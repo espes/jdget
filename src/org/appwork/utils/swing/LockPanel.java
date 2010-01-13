@@ -32,11 +32,15 @@ import javax.swing.Timer;
 import org.appwork.utils.ImageProvider.ImageProvider;
 
 /**
- * @author coalado
+ * @author Unknown
  * 
  */
 public class LockPanel extends JPanel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -2262534550090971819L;
     private JFrame frame;
     private Robot robot;
     private BufferedImage screen;
