@@ -10,9 +10,6 @@
 package org.appwork.utils;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 /**
  * Application utils provide statis helper functions concerning the applications
@@ -23,9 +20,8 @@ import java.net.URL;
  */
 public class Application {
 
-    private static String AppFolder = "appw";
-    private static String Jar = "org/appwork";
-    private static boolean appSet = false;
+    private static String APP_FOLDER = ".appwork";
+    private static boolean APP_SET = false;
 
     private static String ROOT = null;
 
@@ -35,7 +31,7 @@ public class Application {
      * @return
      */
     public static boolean isJared() {
-        String caller = (Thread.currentThread().getContextClassLoader().getResource(Jar) + "");
+        String caller = (Thread.currentThread().getContextClassLoader().getResource("org/appwork") + "");
         return caller.matches("jar\\:.*\\.jar\\!.*");
 
     }
@@ -47,42 +43,22 @@ public class Application {
      * @param newAppFolder
      * @param newJar
      */
-    public synchronized static void setApplication(String newAppFolder, String newJar) {
-        if (appSet) return;
-        AppFolder = newAppFolder;
-        Jar = newJar;
-        appSet = true;
+    public synchronized static void setApplication(String newAppFolder) {
+        if (APP_SET) return;
+        APP_FOLDER = newAppFolder;
+        APP_SET = true;
     }
 
     /**
      * Detects the applications home directory. it is either the pass of the
-     * main.jar or HOME/.rs
+     * main.jar or HOME/
      */
     public static String getRoot() {
         if (ROOT != null) return ROOT;
         if (isJared()) {
-            File currentDir = null;
-            isJared();
-            URL ressource = Thread.currentThread().getContextClassLoader().getResource(Jar);
-            System.out.println(ressource);
-            String dir = ressource + "";
-            dir = dir.split("\\.jar\\!")[0] + ".jar";
-            dir = dir.substring(Math.max(dir.indexOf("file:"), 0));
-
-            try {
-                currentDir = new File(new URI(dir));
-
-                if (currentDir.isFile()) {
-                    currentDir = currentDir.getParentFile();
-                }
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-                return ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + AppFolder + System.getProperty("file.separator");
-            }
-
-            return ROOT = currentDir.getAbsolutePath();
+            return ROOT = new File(Application.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getAbsolutePath();
         } else {
-            return ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + AppFolder + System.getProperty("file.separator");
+            return ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + APP_FOLDER + System.getProperty("file.separator");
 
         }
     }
