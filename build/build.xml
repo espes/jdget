@@ -1,0 +1,27 @@
+<project default="standardBuild" basedir=".">
+	<property environment="env" />
+	<property name="src" value="src" />
+	<property name="cls" value="bin" />
+	<property name="dist" value="dist" />
+
+	<target name="compile">
+		<mkdir dir="${cls}" />
+		<javac srcdir="${src}" destdir="${cls}" encoding="UTF-8" source="1.5" target="1.5" />
+	</target>
+
+	<target name="jar">
+		<manifest file="Manifest.MF">
+			<attribute name="Created-By" value="AppWork UG(haftungsbeschränkt)" />
+		</manifest>
+		<mkdir dir="${dist}" />
+		<jar jarfile="${dist}/appworkutils.jar" manifest="Manifest.MF">
+			<fileset dir="${cls}">
+				<include name="**/*.class" />
+	
+			</fileset>
+		</jar>
+		<delete file="Manifest.MF" failonerror="false" />
+	</target>
+	<target name="standardBuild" depends="compile,jar">
+	</target>
+</project>

@@ -1,0 +1,31 @@
+/**
+ * Copyright (c) 2009 - 2010 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
+ * 
+ * This file is part of org.appwork.utils.formatter
+ * 
+ * This software is licensed under the Artistic License 2.0,
+ * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
+ * for details
+ */
+package org.appwork.utils.formatter;
+
+public class HexFormatter {
+
+    /**
+     * Converts a Bytearray to a HexString
+     * 
+     * @param digest
+     * @return
+     */
+    public static String byteArrayToHex(byte[] digest) {
+        StringBuilder ret = new StringBuilder();
+        String tmp;
+        for (byte d : digest) {
+            tmp = Integer.toHexString(d & 0xFF);
+            if (tmp.length() < 2) ret.append('0');
+            ret.append(tmp);
+        }
+        return ret.toString();
+    }
+
+}
