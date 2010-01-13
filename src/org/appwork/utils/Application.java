@@ -21,9 +21,21 @@ import java.io.File;
 public class Application {
 
     private static String APP_FOLDER = ".appwork";
-    private static boolean APP_SET = false;
 
-    private static String ROOT = null;
+    private final static String ROOT;
+    static {
+
+        if (isJared()) {
+            // this is the jar file
+            File appRoot = new File(Application.class.getProtectionDomain().getCodeSource().getLocation().getFile());
+            if (appRoot.isFile()) appRoot = appRoot.getParentFile();
+            ROOT = appRoot.getAbsolutePath();
+
+        } else {
+            ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + APP_FOLDER + System.getProperty("file.separator");
+
+        }
+    }
 
     /**
      * Detects if the Application runs out of a jar or not.
@@ -44,9 +56,9 @@ public class Application {
      * @param newJar
      */
     public synchronized static void setApplication(String newAppFolder) {
-        if (APP_SET) return;
+
         APP_FOLDER = newAppFolder;
-        APP_SET = true;
+
     }
 
     /**
@@ -54,13 +66,8 @@ public class Application {
      * main.jar or HOME/
      */
     public static String getRoot() {
-        if (ROOT != null) return ROOT;
-        if (isJared()) {
-            return ROOT = new File(Application.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getAbsolutePath();
-        } else {
-            return ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + APP_FOLDER + System.getProperty("file.separator");
 
-        }
+        return ROOT;
     }
 
     /**
