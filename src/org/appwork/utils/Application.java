@@ -10,6 +10,12 @@
 package org.appwork.utils;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+
+import org.appwork.utils.logging.Log;
 
 /**
  * Application utils provide statis helper functions concerning the applications
@@ -74,6 +80,27 @@ public class Application {
      */
     public static File getRessource(String relative) {
         return new File(getRoot(), relative);
+    }
+
+    /**
+     * Adds a folder to the System classloader classpath this might fail if
+     * there is a security manager
+     * 
+     * @param file
+     * @throws IOException
+     */
+    public static void addFolderToClassPath(File file) throws IOException {
+        try {
+            // hack to add an url to the system classpath
+            Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[] { URL.class });
+            method.setAccessible(true);
+            method.invoke(Application.class.getClassLoader(), new Object[] { file.toURI().toURL() });
+
+        } catch (Throwable t) {
+            Log.exception(t);
+            throw new IOException("Error, could not add URL to system classloader");
+        }
+
     }
 
 }
