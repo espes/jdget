@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -36,6 +37,7 @@ import net.miginfocom.swing.MigLayout;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale.Loc;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.swing.LockPanel;
 
 public abstract class AbstractDialog extends TimerDialog implements ActionListener {
 
@@ -73,6 +75,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
         this.flagMask = flag;
         setTitle(title);
+        ;
 
         this.icon = (BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON)) ? null : icon;
         this.okOption = (okOption == null) ? Loc.L("com.rapidshare.utils.swing.dialog.AbstractDialog.okOption", "Ok") : okOption;
@@ -80,6 +83,12 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
     }
 
     public void init() {
+        try {
+            LockPanel.create(Dialog.getInstance().getParentOwner()).lock(5000);
+        } catch (AWTException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
         dont: if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
             try {
@@ -219,7 +228,9 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
             private static final long serialVersionUID = -6666144330707394562L;
 
             public void actionPerformed(ActionEvent e) {
+
                 dispose();
+
             }
         });
 
@@ -295,7 +306,18 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         } else if (e.getSource() == cancelButton) {
             setReturnmask(false);
         }
+
         dispose();
+    }
+
+    public void dispose() {
+        try {
+            LockPanel.create(Dialog.getInstance().getParentOwner()).unlock(2000);
+        } catch (AWTException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+        super.dispose();
     }
 
     /**
@@ -304,6 +326,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
     protected void onTimeout() {
         setReturnmask(false);
         returnBitMask |= Dialog.RETURN_TIMEOUT;
+
         this.dispose();
     }
 

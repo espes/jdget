@@ -173,4 +173,17 @@ public class ImageProvider {
 
         return new ImageIcon(scaleBufferedImage(dest, w, h));
     }
+
+    /**
+     * @param bufferedImage
+     * @return
+     */
+    public static BufferedImage convertToGrayScale(BufferedImage bufferedImage) {
+        BufferedImage dest = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+        Graphics2D g2 = dest.createGraphics();
+        g2.drawImage(bufferedImage, 0, 0, null);
+        g2.dispose();
+        return dest;
+
+    }
 }
