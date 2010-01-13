@@ -23,6 +23,10 @@ import java.net.URL;
  */
 public class Application {
 
+    private static String AppFolder = "appw";
+    private static String Jar = "org/appwork";
+    private static boolean appSet = false;
+
     private static String ROOT = null;
 
     /**
@@ -31,9 +35,23 @@ public class Application {
      * @return
      */
     public static boolean isJared() {
-        String caller = (Thread.currentThread().getContextClassLoader().getResource("com/rapidshare") + "");
+        String caller = (Thread.currentThread().getContextClassLoader().getResource(Jar) + "");
         return caller.matches("jar\\:.*\\.jar\\!.*");
 
+    }
+
+    /**
+     * sets current Application Folder and Jar ID. MUST BE SET at startup! Can
+     * only be set once!
+     * 
+     * @param newAppFolder
+     * @param newJar
+     */
+    public synchronized static void setApplication(String newAppFolder, String newJar) {
+        if (appSet) return;
+        AppFolder = newAppFolder;
+        Jar = newJar;
+        appSet = true;
     }
 
     /**
@@ -45,7 +63,7 @@ public class Application {
         if (isJared()) {
             File currentDir = null;
             isJared();
-            URL ressource = Thread.currentThread().getContextClassLoader().getResource("com/rapidshare");
+            URL ressource = Thread.currentThread().getContextClassLoader().getResource(Jar);
             System.out.println(ressource);
             String dir = ressource + "";
             dir = dir.split("\\.jar\\!")[0] + ".jar";
@@ -59,12 +77,12 @@ public class Application {
                 }
             } catch (URISyntaxException e) {
                 e.printStackTrace();
-                return ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + ".rs" + System.getProperty("file.separator");
+                return ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + AppFolder + System.getProperty("file.separator");
             }
 
             return ROOT = currentDir.getAbsolutePath();
         } else {
-            return ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + ".rs" + System.getProperty("file.separator");
+            return ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + AppFolder + System.getProperty("file.separator");
 
         }
     }
