@@ -21,6 +21,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.util.HashMap;
 
 import javax.swing.JFrame;
@@ -41,7 +43,7 @@ public class LockPanel extends JPanel {
     private BufferedImage gray;
     private Timer fadeTimer;
     private int fadeCounter;
-    private float steps;
+    private double steps;
     // if there are different lockpanels for the same frame, the fade animations
     // may lock
     private static final HashMap<JFrame, LockPanel> CACHE = new HashMap<JFrame, LockPanel>();
@@ -66,6 +68,12 @@ public class LockPanel extends JPanel {
 
         screen = createScreenShot();
         gray = ImageProvider.convertToGrayScale(screen);
+
+        float data[] = { 0.0625f, 0.125f, 0.0625f, 0.125f, 0.25f, 0.125f, 0.0625f, 0.125f, 0.0625f };
+        Kernel kernel = new Kernel(3, 3, data);
+        ConvolveOp convolve = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
+        BufferedImage dest = new BufferedImage(gray.getWidth(), gray.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+        gray = convolve.filter(gray, dest);
         frame.setGlassPane(this);
         frame.getGlassPane().setVisible(true);
 
@@ -75,7 +83,7 @@ public class LockPanel extends JPanel {
 
     public synchronized void fadeOut(int time) {
         fadeCounter--;
-        steps = time / 20f;
+        steps = (50 * 1.0) / (float) time;
         if (fadeCounter > 0) return;
         if (fadeTimer != null) {
             fadeTimer.stop();
@@ -86,7 +94,7 @@ public class LockPanel extends JPanel {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                alpha -= 0.05f;
+                alpha -= steps;
                 if (alpha <= 0.0) {
                     alpha = 0.0f;
                     if (fadeTimer != null) fadeTimer.stop();
@@ -105,42 +113,25 @@ public class LockPanel extends JPanel {
 
     public synchronized void fadeIn(int time) {
         fadeCounter++;
+        steps = (50 * 1.0) / (float) time;
         if (fadeTimer != null) {
             fadeTimer.stop();
             fadeTimer = null;
         }
-        steps = time / 20f;
+
         fadeTimer = new Timer(50, new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                alpha += 0.1f;
-                if (alpha >= 0.9) {
-                    alpha = 0.9f;
+
+                alpha += steps;
+
+                if (alpha >= 1.0) {
+                    alpha = 1.0f;
                     if (fadeTimer != null) fadeTimer.stop();
-
-                    // blink fader
-                    fadeTimer = new Timer(75, new ActionListener() {
-
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-
-                            alpha += steps;
-
-                            if (alpha >= 1.0) {
-                                alpha = 1.0f;
-                                if (fadeTimer != null) fadeTimer.stop();
-                            }
-
-                            LockPanel.this.repaint();
-
-                        }
-                    });
-                    fadeTimer.setRepeats(true);
-                    fadeTimer.setInitialDelay(0);
-                    fadeTimer.start();
-
                 }
+
+                LockPanel.this.repaint();
 
             }
         });
