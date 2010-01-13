@@ -33,11 +33,6 @@ abstract public class DatabaseInterfaceList {
         this.tableID = tableID;
     }
 
-    protected void setID(Storable stor, int id) {
-        stor.setStorageID(id);
-
-    }
-
     /**
      * Clears all data in this table.
      * 
@@ -69,14 +64,6 @@ abstract public class DatabaseInterfaceList {
     abstract public void remove(Storable account) throws DBException;
 
     /**
-     * Removes entry id
-     * 
-     * @param id
-     * @throws DBException
-     */
-    abstract public void remove(int id) throws DBException;
-
-    /**
      * Returns a list of all entries
      * 
      * @param <E>
@@ -95,5 +82,5 @@ abstract public class DatabaseInterfaceList {
      * @return
      * @throws DBException
      */
-    abstract public <E extends Storable> E get(int id, E inst) throws DBException;
+    abstract public <E extends Storable> E get(long id, E inst) throws DBException;
 }

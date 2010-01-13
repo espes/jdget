@@ -45,10 +45,8 @@ public interface Storable {
     public void restore(ArrayList<Object> data);
 
     /**
-     * The storageID should be set by Databaseinterface after restoring the
-     * instance
-     * 
-     * @param id
+     * @return
      */
-    public void setStorageID(int id);
+    public String getStorageID();
+
 }
