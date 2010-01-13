@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing;
 
+import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.JLabel;
@@ -23,11 +24,11 @@ public class TitledSeparator extends JPanel {
 
     private JLabel label;
 
-    public TitledSeparator(final String title) {
+    public TitledSeparator(final String title, Color color) {
         super(new MigLayout("ins 0", "[][][grow,fill]", "[grow,fill]"));
         add(new JSeparator(), "gaptop 8,width 5!");
         add(label = new JLabel(title));
-        label.setForeground(getBackground().darker().darker());
+        if (color != null) label.setForeground(color);
         Font f = label.getFont();
         label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
         add(new JSeparator(), "gaptop 8");
