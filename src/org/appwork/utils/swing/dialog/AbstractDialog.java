@@ -84,7 +84,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
     public void init() {
         try {
-            LockPanel.create(Dialog.getInstance().getParentOwner()).lock(1000);
+            LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
         } catch (AWTException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
