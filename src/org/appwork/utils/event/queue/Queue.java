@@ -92,6 +92,7 @@ public class Queue extends Thread {
     }
 
     public void run() {
+        if (thread != null) return;
         thread = this;
         while (true) {
             synchronized (this) {
