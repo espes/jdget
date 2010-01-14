@@ -1,6 +1,7 @@
 package org.appwork.utils.swing;
 
 import java.awt.Point;
+import java.awt.Window;
 
 import javax.swing.JFrame;
 
@@ -12,7 +13,7 @@ public class SwingUtils {
      * @param frame
      * @return
      */
-    public static Point getCenter(JFrame parentFrame, JFrame frame) {
+    public static Point getCenter(JFrame parentFrame, Window frame) {
         Point point = new Point();
         int x = 0, y = 0;
 

@@ -20,16 +20,28 @@ import java.awt.Robot;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowStateListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
+import java.io.IOException;
 import java.util.HashMap;
 
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JTextArea;
+import javax.swing.JWindow;
 import javax.swing.Timer;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.utils.logging.Log;
 
 /**
  * @author Unknown
@@ -48,6 +60,9 @@ public class LockPanel extends JPanel {
     private Timer fadeTimer;
     private int fadeCounter;
     private double steps;
+    private JWindow waitingPanel;
+    private JTextArea text;
+    private boolean resizable;
     // if there are different lockpanels for the same frame, the fade animations
     // may lock
     private static final HashMap<JFrame, LockPanel> CACHE = new HashMap<JFrame, LockPanel>();
@@ -60,9 +75,88 @@ public class LockPanel extends JPanel {
         this.frame = frame;
 
         robot = new Robot();
+        waitingPanel = new JWindow();
+        frame.addWindowStateListener(new WindowStateListener() {
+
+            @Override
+            public void windowStateChanged(WindowEvent e) {
+                System.out.println(e);
+
+            }
+
+        });
+
+        frame.addWindowListener(new WindowListener() {
+
+            @Override
+            public void windowActivated(WindowEvent e) {
+                waitingPanel.toFront();
+
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void windowIconified(WindowEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void windowOpened(WindowEvent e) {
+                System.out.println(e);
+
+            }
+
+        });
+
+        final JPanel p;
+        waitingPanel.setContentPane(p = new JPanel());
+        p.setLayout(new MigLayout("ins 10", "[][fill,grow]", "[fill,grow]"));
+        try {
+            p.add(new JLabel(ImageProvider.getImageIcon("wait", 32, 32)));
+        } catch (IOException e) {
+            Log.exception(e);
+        }
+        p.add(text = new JTextArea(), "spanx,aligny center");
+        p.setBorder(BorderFactory.createLineBorder(p.getBackground().darker().darker()));
+        JProgressBar bar;
+        p.add(bar = new JProgressBar(), "growx,pushx,spanx,newline");
+        bar.setIndeterminate(true);
+        text.setBorder(null);
+        text.setBackground(null);
 
         this.addMouseListener(new MouseAdapter() {
         });
+    }
+
+    /**
+     * @return the text
+     */
+    protected JTextArea getText() {
+        return text;
     }
 
     /**
@@ -79,9 +173,25 @@ public class LockPanel extends JPanel {
         BufferedImage dest = new BufferedImage(gray.getWidth(), gray.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
         gray = convolve.filter(gray, dest);
         frame.setGlassPane(this);
+        resizable = frame.isResizable();
+        frame.setResizable(false);
         frame.getGlassPane().setVisible(true);
 
         fadeIn(time);
+
+    }
+
+    public void setWaitingPanelText(String wait) {
+        if (wait == null) {
+            this.waitingPanel.setVisible(false);
+        } else {
+
+            text.setText(wait);
+            waitingPanel.pack();
+            waitingPanel.setLocation(SwingUtils.getCenter(frame, waitingPanel));
+            waitingPanel.setVisible(true);
+
+        }
 
     }
 
@@ -103,6 +213,8 @@ public class LockPanel extends JPanel {
                     alpha = 0.0f;
                     if (fadeTimer != null) fadeTimer.stop();
                     fadeTimer = null;
+                    setWaitingPanelText(null);
+                    frame.setResizable(resizable);
                     frame.getGlassPane().setVisible(false);
                 }
 
