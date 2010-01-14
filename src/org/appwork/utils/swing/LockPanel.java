@@ -61,7 +61,7 @@ public class LockPanel extends JPanel {
     private double steps;
     private JWindow waitingPanel;
     private JTextArea text;
-    private boolean resizable;
+
     // if there are different lockpanels for the same frame, the fade animations
     // may lock
     private static final HashMap<JFrame, LockPanel> CACHE = new HashMap<JFrame, LockPanel>();
@@ -157,8 +157,7 @@ public class LockPanel extends JPanel {
         BufferedImage dest = new BufferedImage(gray.getWidth(), gray.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
         gray = convolve.filter(gray, dest);
         frame.setGlassPane(this);
-        resizable = frame.isResizable();
-        frame.setResizable(false);
+
         frame.getGlassPane().setVisible(true);
 
         fadeIn(time);
@@ -198,7 +197,7 @@ public class LockPanel extends JPanel {
                     if (fadeTimer != null) fadeTimer.stop();
                     fadeTimer = null;
                     setWaitingPanelText(null);
-                    frame.setResizable(resizable);
+
                     frame.getGlassPane().setVisible(false);
                 }
 
