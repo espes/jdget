@@ -12,6 +12,7 @@ package org.appwork.utils.swing;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.border.Border;
 
@@ -28,22 +29,22 @@ public class MouseOverBackgroundListener extends MouseAdapter {
     public MouseOverBackgroundListener(JButton button) {
         if (button == null) throw new IllegalArgumentException("JButton parameter is null");
         this.button = button;
-        // border = BorderFactory.createEmptyBorder(2, 2, 0, 0);
-        // borderb = BorderFactory.createEmptyBorder(0, 0, 2, 2);
+        border = BorderFactory.createEmptyBorder(2, 2, 0, 0);
+        borderb = BorderFactory.createEmptyBorder(0, 0, 2, 2);
         button.addMouseListener(this);
 
-        // button.setContentAreaFilled(false);
-        // button.setBorder(borderb);
+        button.setContentAreaFilled(false);
+        button.setBorder(null);
     }
 
     @Override
     public void mouseEntered(MouseEvent e) {
 
-        // if (button.isEnabled()) button.setBorder(border);
+        if (button.isEnabled()) button.setBorder(border);
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-        // if (button.isEnabled()) button.setBorder(borderb);
+        if (button.isEnabled()) button.setBorder(borderb);
     }
 }

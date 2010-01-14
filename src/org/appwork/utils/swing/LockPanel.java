@@ -22,7 +22,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.event.WindowStateListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
@@ -76,57 +75,42 @@ public class LockPanel extends JPanel {
 
         robot = new Robot();
         waitingPanel = new JWindow();
-        frame.addWindowStateListener(new WindowStateListener() {
-
-            @Override
-            public void windowStateChanged(WindowEvent e) {
-                System.out.println(e);
-
-            }
-
-        });
 
         frame.addWindowListener(new WindowListener() {
 
             @Override
             public void windowActivated(WindowEvent e) {
-                waitingPanel.toFront();
+                if (waitingPanel.isVisible()) waitingPanel.toFront();
 
             }
 
             @Override
             public void windowClosed(WindowEvent e) {
-                System.out.println(e);
 
             }
 
             @Override
             public void windowClosing(WindowEvent e) {
-                System.out.println(e);
 
             }
 
             @Override
             public void windowDeactivated(WindowEvent e) {
-                System.out.println(e);
 
             }
 
             @Override
             public void windowDeiconified(WindowEvent e) {
-                System.out.println(e);
 
             }
 
             @Override
             public void windowIconified(WindowEvent e) {
-                System.out.println(e);
 
             }
 
             @Override
             public void windowOpened(WindowEvent e) {
-                System.out.println(e);
 
             }
 
