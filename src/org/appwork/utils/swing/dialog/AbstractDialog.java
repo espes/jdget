@@ -75,7 +75,6 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
         this.flagMask = flag;
         setTitle(title);
-        ;
 
         this.icon = (BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON)) ? null : icon;
         this.okOption = (okOption == null) ? Loc.L("org.appwork.utils.swing.dialog.AbstractDialog.okOption", "Ok") : okOption;
