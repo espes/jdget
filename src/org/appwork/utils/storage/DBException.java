@@ -16,6 +16,13 @@ public class DBException extends Exception {
     }
 
     /**
+     * @param message
+     */
+    public DBException(String message) {
+        super(message);
+    }
+
+    /**
      * 
      */
     private static final long serialVersionUID = 5046118648749420384L;

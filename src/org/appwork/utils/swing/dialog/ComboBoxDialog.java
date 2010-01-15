@@ -68,7 +68,7 @@ public class ComboBoxDialog extends AbstractDialog {
      * (non-Javadoc)
      * 
      * @see
-     * com.rapidshare.utils.swing.dialog.AbstractDialog#layoutDialogContent()
+     * org.appwork.utils.swing.dialog.AbstractDialog#layoutDialogContent()
      */
     @Override
     public JComponent layoutDialogContent() {

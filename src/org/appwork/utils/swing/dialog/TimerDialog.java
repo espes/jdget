@@ -51,7 +51,7 @@ public abstract class TimerDialog extends JDialog {
     }
 
     protected void layoutDialog() {
-        this.timerLbl = new JLabel(Loc.L("com.rapidshare.utils.swing.dialog.TimerDialog.timerLbl", "Countdown starting..."));
+        this.timerLbl = new JLabel(Loc.L("org.appwork.utils.swing.dialog.TimerDialog.timerLbl", "Countdown starting..."));
 
         timerLbl.addMouseListener(new MouseAdapter() {
 
@@ -62,7 +62,7 @@ public abstract class TimerDialog extends JDialog {
             }
 
         });
-        timerLbl.setToolTipText(Loc.L("com.rapidshare.utils.swing.dialog.TimerDialog.canceltooltip", "This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"));
+        timerLbl.setToolTipText(Loc.L("org.appwork.utils.swing.dialog.TimerDialog.canceltooltip", "This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"));
 
         try {
             timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16));

@@ -41,15 +41,15 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
     private JCheckBox regularExpression;
 
     public SearchDialog(int flag, String title, String message) throws IOException {
-        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32), Loc.L("com.rapidshare.utils.swing.dialog.SearchDialog.button", "Find"), null);
+        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32), Loc.L("org.appwork.utils.swing.dialog.SearchDialog.button", "Find"), null);
 
-        this.caseSensitive = new JCheckBox(Loc.L("com.rapidshare.utils.swing.dialog.SearchDialog.caseSensitive", "Case sensitive"));
-        this.regularExpression = new JCheckBox(Loc.L("com.rapidshare.utils.swing.dialog.SearchDialog.regularExpression", "Regular Expressions"));
+        this.caseSensitive = new JCheckBox(Loc.L("org.appwork.utils.swing.dialog.SearchDialog.caseSensitive", "Case sensitive"));
+        this.regularExpression = new JCheckBox(Loc.L("org.appwork.utils.swing.dialog.SearchDialog.regularExpression", "Regular Expressions"));
 
         try {
-            caseSensitive.setSelected(Dialog.getInstance().getDatabase().get("com.rapidshare.utils.swing.dialog.SearchDialog.caseSensitive", false));
+            caseSensitive.setSelected(Dialog.getInstance().getDatabase().get("org.appwork.utils.swing.dialog.SearchDialog.caseSensitive", false));
 
-            regularExpression.setSelected(Dialog.getInstance().getDatabase().get("com.rapidshare.utils.swing.dialog.SearchDialog.regularExpression", false));
+            regularExpression.setSelected(Dialog.getInstance().getDatabase().get("org.appwork.utils.swing.dialog.SearchDialog.regularExpression", false));
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -94,9 +94,9 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
         if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
         if (input.getText() == null || input.getText().equals("")) return null;
         try {
-            Dialog.getInstance().getDatabase().put("com.rapidshare.utils.swing.dialog.SearchDialog.caseSensitive", this.caseSensitive.isSelected());
+            Dialog.getInstance().getDatabase().put("org.appwork.utils.swing.dialog.SearchDialog.caseSensitive", this.caseSensitive.isSelected());
 
-            Dialog.getInstance().getDatabase().put("com.rapidshare.utils.swing.dialog.SearchDialog.regularExpression", this.regularExpression.isSelected());
+            Dialog.getInstance().getDatabase().put("org.appwork.utils.swing.dialog.SearchDialog.regularExpression", this.regularExpression.isSelected());
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

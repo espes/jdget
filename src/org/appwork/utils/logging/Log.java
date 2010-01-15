@@ -32,7 +32,7 @@ public class Log {
      */
 
     static {
-        LOGGER = Logger.getLogger("com.rapidshare.rsmanager");
+        LOGGER = Logger.getLogger("org.appwork.rsmanager");
         LOGGER.setUseParentHandlers(false);
         ConsoleHandler cHandler = new ConsoleHandler();
         cHandler.setLevel(Level.ALL);

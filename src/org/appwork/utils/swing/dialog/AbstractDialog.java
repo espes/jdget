@@ -78,16 +78,15 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         ;
 
         this.icon = (BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON)) ? null : icon;
-        this.okOption = (okOption == null) ? Loc.L("com.rapidshare.utils.swing.dialog.AbstractDialog.okOption", "Ok") : okOption;
-        this.cancelOption = (cancelOption == null) ? Loc.L("com.rapidshare.utils.swing.dialog.AbstractDialog.cancelOption", "Cancel") : cancelOption;
+        this.okOption = (okOption == null) ? Loc.L("org.appwork.utils.swing.dialog.AbstractDialog.okOption", "Ok") : okOption;
+        this.cancelOption = (cancelOption == null) ? Loc.L("org.appwork.utils.swing.dialog.AbstractDialog.cancelOption", "Cancel") : cancelOption;
     }
 
     public void init() {
         try {
             LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
-        } catch (AWTException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+        } catch (Exception e) {
+
         }
         dont: if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
@@ -150,7 +149,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
             dontshowagain = new JCheckBox();
             dontshowagain.setHorizontalAlignment(JCheckBox.TRAILING);
-            add(new JLabel(Loc.L("com.rapidshare.utils.swing.dialog.Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN", "Don't show this again")));
+            add(new JLabel(Loc.L("org.appwork.utils.swing.dialog.Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN", "Don't show this again")));
             add(dontshowagain, "alignx right");
         }
         add(defaultButtons, "alignx right");
@@ -199,7 +198,12 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         this.toFront();
         this.setMinimumSize(this.getPreferredSize());
         if (getDesiredSize() != null) this.setSize(getDesiredSize());
-        if (Dialog.getInstance().getParentOwner() != null && (Dialog.getInstance().getParentOwner().getExtendedState() == JFrame.ICONIFIED || !Dialog.getInstance().getParentOwner().isVisible())) {
+        if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isDisplayable() || !Dialog.getInstance().getParentOwner().isVisible()) {
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+            this.setLocation(new Point((int) (screenSize.getWidth() - this.getWidth()) / 2, (int) (screenSize.getHeight() - this.getHeight()) / 2));
+
+        } else if ((Dialog.getInstance().getParentOwner().getExtendedState() == JFrame.ICONIFIED)) {
             // dock dialog at bottom right if mainframe is not visible
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -297,7 +301,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
     /*
      * (non-Javadoc)
      * 
-     * @seecom.rapidshare.utils.event.Event.ActionListener#actionPerformed(com.
+     * @seeorg.appwork.utils.event.Event.ActionListener#actionPerformed(com.
      * rapidshare.utils.event.Event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
@@ -314,8 +318,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         try {
             LockPanel.create(Dialog.getInstance().getParentOwner()).unlock(300);
         } catch (AWTException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+
         }
         super.dispose();
     }

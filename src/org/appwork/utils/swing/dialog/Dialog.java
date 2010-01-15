@@ -100,7 +100,7 @@ public class Dialog {
     /**
      * Parent window for all dialogs created with abstractdialog
      */
-    private JFrame owner;
+    private JFrame owner = new JFrame();
     /**
      * if the user pressed cancel, the return mask will contain this mask
      */
@@ -316,7 +316,7 @@ public class Dialog {
      * @return
      */
     public int showConfirmDialog(int flag, String question) {
-        return showConfirmDialog(flag, Loc.L("com.rapidshare.utils.swing.dialog.Dialog.showConfirmDialog(int, String)", "Please confirm!"), question, this.getIconByText(question), null, null);
+        return showConfirmDialog(flag, Loc.L("org.appwork.utils.swing.dialog.Dialog.showConfirmDialog(int, String)", "Please confirm!"), question, this.getIconByText(question), null, null);
     }
 
     /**
@@ -460,7 +460,7 @@ public class Dialog {
      * @return
      */
     public String showInputDialog(int flag, String question, String defaultvalue) {
-        return showInputDialog(flag, Loc.L("com.rapidshare.utils.swing.dialog.Dialog.showInputDialog(int, String, String)", "Please enter!"), question, defaultvalue, this.getIconByText(question), null, null);
+        return showInputDialog(flag, Loc.L("org.appwork.utils.swing.dialog.Dialog.showInputDialog(int, String, String)", "Please enter!"), question, defaultvalue, this.getIconByText(question), null, null);
     }
 
     /**
@@ -523,7 +523,7 @@ public class Dialog {
      * @return
      */
     public String showPasswordDialog(int flag, String question, String defaultvalue) {
-        return showPasswordDialog(flag, Loc.L("com.rapidshare.utils.swing.dialog.Dialog.showPasswordDialog(int, String, String)", "Please enter!"), question, defaultvalue, this.getIconByText(question), null, null);
+        return showPasswordDialog(flag, Loc.L("org.appwork.utils.swing.dialog.Dialog.showPasswordDialog(int, String, String)", "Please enter!"), question, defaultvalue, this.getIconByText(question), null, null);
     }
 
     /**
@@ -582,7 +582,7 @@ public class Dialog {
      *            The Dialog is able to show a message to the user
      */
     public void showMessageDialog(int flag, String message) {
-        showMessageDialog(flag, Loc.L("com.rapidshare.utils.swing.dialog.Dialog.showMessageDialog(int, String).title", "Message"), message);
+        showMessageDialog(flag, Loc.L("org.appwork.utils.swing.dialog.Dialog.showMessageDialog(int, String).title", "Message"), message);
     }
 
     /**
@@ -611,7 +611,7 @@ public class Dialog {
      *            The Dialog is able to show a message to the user
      */
     public void showMessageDialog(String message) {
-        showMessageDialog(0, Loc.L("com.rapidshare.utils.swing.dialog.Dialog.showMessageDialog(String).title", "Message"), message);
+        showMessageDialog(0, Loc.L("org.appwork.utils.swing.dialog.Dialog.showMessageDialog(String).title", "Message"), message);
     }
 
     /**
@@ -664,7 +664,7 @@ public class Dialog {
      * @return
      */
     public long showValueDialog(int flag, String question, long defaultvalue, long min, long max, long step, ValueConverter valueConverter) {
-        return showValueDialog(flag, Loc.L("com.rapidshare.utils.swing.dialog.Dialog.showValueDialog.title", "Please enter!"), question, defaultvalue, this.getIconByText(question), null, null, min, max, step, valueConverter);
+        return showValueDialog(flag, Loc.L("org.appwork.utils.swing.dialog.Dialog.showValueDialog.title", "Please enter!"), question, defaultvalue, this.getIconByText(question), null, null, min, max, step, valueConverter);
     }
 
     /**
