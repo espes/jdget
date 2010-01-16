@@ -173,7 +173,7 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
      * @param manager
      */
     public void setManager(ThrottledConnectionManager manager) {
-        if (this.manager != null) this.manager.removeManagedThrottledInputStream(this);
+        if (this.manager != null && this.manager != manager) this.manager.removeManagedThrottledInputStream(this);
         this.manager = manager;
         if (this.manager != null) this.manager.addManagedThrottledInputStream(this);
     }
