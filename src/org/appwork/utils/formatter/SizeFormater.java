@@ -10,6 +10,9 @@
 package org.appwork.utils.formatter;
 
 import java.text.DecimalFormat;
+import java.util.regex.Pattern;
+
+import org.appwork.utils.Regex;
 
 /**
  * @author $Author: unknown$
@@ -36,4 +39,29 @@ public class SizeFormater {
 
     }
 
+    public static long getSize(final String string) {
+        String[][] matches = new Regex(string, Pattern.compile("([\\d]+)[\\.|\\,|\\:]([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
+
+        if (matches == null || matches.length == 0) {
+            matches = new Regex(string, Pattern.compile("([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
+        }
+        if (matches == null || matches.length == 0) { return -1; }
+
+        double res = 0;
+        if (matches[0].length == 1) {
+            res = Double.parseDouble(matches[0][0]);
+        }
+        if (matches[0].length == 2) {
+            res = Double.parseDouble(matches[0][0] + "." + matches[0][1]);
+        }
+        if (Regex.matches(string, Pattern.compile("(gb|gbyte|gig|gib)", Pattern.CASE_INSENSITIVE))) {
+            res *= 1024 * 1024 * 1024;
+        } else if (Regex.matches(string, Pattern.compile("(mb|mbyte|megabyte|mib)", Pattern.CASE_INSENSITIVE))) {
+            res *= 1024 * 1024;
+        } else if (Regex.matches(string, Pattern.compile("(kb|kbyte|kilobyte|kib)", Pattern.CASE_INSENSITIVE))) {
+            res *= 1024;
+        }
+
+        return Math.round(res);
+    }
 }

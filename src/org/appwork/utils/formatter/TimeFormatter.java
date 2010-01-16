@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.formatter;
 
+
 public class TimeFormatter {
 
     protected static final int HIDE_SECONDS = 1;
