@@ -416,35 +416,45 @@ public class Dialog {
      * @return an array of files or null if the user cancel the dialog
      */
 
-    public File[] showFileChooser(String id, String title, Integer fileSelectionMode, FileFilter fileFilter, Boolean multiSelection, Integer dialogType) {
+    public File[] showFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final Boolean multiSelection, final Integer dialogType) {
         synchronized (this) {
-            try {
-                JFileChooser fc = new JFileChooser(id);
-                if (title != null) fc.setDialogTitle(title);
-                if (fileSelectionMode != null) fc.setFileSelectionMode(fileSelectionMode);
-                if (fileFilter != null) fc.setFileFilter(fileFilter);
-                if (multiSelection != null) fc.setMultiSelectionEnabled(multiSelection);
-                if (dialogType != null) fc.setDialogType(dialogType);
-                if (dialogType == null || dialogType == JFileChooser.OPEN_DIALOG) {
-                    if (fc.showOpenDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
-                        if (multiSelection) return (File[]) (latestReturnMask = fc.getSelectedFiles());
-                        final File[] ret = new File[1];
-                        ret[0] = fc.getSelectedFile();
-                        return ret;
-                    }
-                } else if (dialogType == JFileChooser.SAVE_DIALOG) {
-                    if (fc.showSaveDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
-                        if (multiSelection) return (File[]) (latestReturnMask = fc.getSelectedFiles());
-                        final File[] ret = new File[1];
-                        ret[0] = fc.getSelectedFile();
-                        return ret;
+
+            return new EDTHelper<File[]>() {
+
+                @Override
+                public File[] edtRun() {
+                    try {
+
+                        JFileChooser fc = new JFileChooser(id);
+                        if (title != null) fc.setDialogTitle(title);
+                        if (fileSelectionMode != null) fc.setFileSelectionMode(fileSelectionMode);
+                        if (fileFilter != null) fc.setFileFilter(fileFilter);
+                        if (multiSelection != null) fc.setMultiSelectionEnabled(multiSelection);
+                        if (dialogType != null) fc.setDialogType(dialogType);
+                        if (dialogType == null || dialogType == JFileChooser.OPEN_DIALOG) {
+                            if (fc.showOpenDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
+                                if (multiSelection) return (File[]) (latestReturnMask = fc.getSelectedFiles());
+                                final File[] ret = new File[1];
+                                ret[0] = fc.getSelectedFile();
+                                return ret;
+                            }
+                        } else if (dialogType == JFileChooser.SAVE_DIALOG) {
+                            if (fc.showSaveDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
+                                if (multiSelection) return (File[]) (latestReturnMask = fc.getSelectedFiles());
+                                final File[] ret = new File[1];
+                                ret[0] = fc.getSelectedFile();
+                                return ret;
+                            }
+                        }
+                        return null;
+                    } catch (Exception e) {
+                        Log.exception(e);
+                        return null;
                     }
                 }
-                return null;
-            } catch (Exception e) {
-                Log.exception(e);
-                return null;
-            }
+
+            }.getReturnValue();
+
         }
     }
 
