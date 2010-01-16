@@ -16,7 +16,7 @@ import java.io.InputStream;
  * @author daniel
  * 
  */
-public class ThrottledInputStream extends InputStream {
+public class ThrottledInputStream extends InputStream implements ThrottledConnection {
 
     private ThrottledConnectionManager manager;
     private InputStream in;
@@ -27,6 +27,8 @@ public class ThrottledInputStream extends InputStream {
     private long limitCounter = 0;
     private long lastLimitReached = 0;
     private int lastRead;
+    private int lastRead2;
+    private int checkStep = 10240;
 
     /**
      * constructor for not managed ThrottledInputStream
@@ -61,13 +63,34 @@ public class ThrottledInputStream extends InputStream {
     }
 
     @Override
+    public int read(byte b[], int off, int len) throws IOException {
+        if (len < checkStep) {
+            lastRead = in.read(b, off, len);
+            increase(lastRead);
+            return lastRead;
+        } else {
+            lastRead = in.read(b, off, checkStep);
+            increase(lastRead);
+            return lastRead;
+        }
+    }
+
+    /**
+     * WARNING: this function has a huge overhead
+     */
+    @Override
     public int read() throws IOException {
-        /* TODO: move to other read function to reduce overhead */
-        lastRead = in.read();
-        transferedCounter++;
+        lastRead2 = in.read();
+        increase(lastRead2);
+        return lastRead2;
+    }
+
+    final private void increase(int num) {
+        if (num == -1) return;
+        transferedCounter += num;
         if (limitCurrent != 0) {
-            limitCounter++;
-            if (limitCounter > limitCurrent && lastRead != -1) {
+            limitCounter += num;
+            if (limitCounter > limitCurrent) {
                 if (lastLimitReached == 0) {
                     /* our first read */
                     lastLimitReached = System.currentTimeMillis();
@@ -88,7 +111,6 @@ public class ThrottledInputStream extends InputStream {
                 limitCounter = 0;
             }
         }
-        return lastRead;
     }
 
     @Override
@@ -129,17 +151,31 @@ public class ThrottledInputStream extends InputStream {
         }
     }
 
+    /**
+     * DO NOT FORGET TO CLOSE
+     */
     @Override
     public void close() throws IOException {
-        synchronized (this) {
-            notify();
-        }
         /* remove this stream from manager */
         if (manager != null) {
             manager.removeManagedThrottledInputStream(this);
             manager = null;
         }
+        synchronized (this) {
+            notify();
+        }
         in.close();
+    }
+
+    /**
+     * set a new ThrottledConnectionManager
+     * 
+     * @param manager
+     */
+    public void setManager(ThrottledConnectionManager manager) {
+        if (this.manager != null) this.manager.removeManagedThrottledInputStream(this);
+        this.manager = manager;
+        if (this.manager != null) this.manager.addManagedThrottledInputStream(this);
     }
 
     /**
@@ -147,7 +183,7 @@ public class ThrottledInputStream extends InputStream {
      * 
      * @param kpsLimit
      */
-    protected void setManagedLimit(long kpsLimit) {
+    public void setManagedLimit(long kpsLimit) {
         if (kpsLimit == limitManaged) return;
         if (kpsLimit <= 0) {
             limitManaged = 0;
@@ -195,8 +231,7 @@ public class ThrottledInputStream extends InputStream {
     private void changeCurrentLimit(long kpsLimit) {
         if (kpsLimit == limitCurrent) return;
         /* TODO: maybe allow little jitter here */
-        limitCurrent = kpsLimit;
-        System.out.println("new limit " + limitCurrent);
+        limitCurrent = Math.max(0, kpsLimit);
         synchronized (this) {
             notify();
         }

@@ -16,7 +16,7 @@ import java.io.OutputStream;
  * @author daniel
  * 
  */
-public class ThrottledOutputStream extends OutputStream {
+public class ThrottledOutputStream extends OutputStream implements ThrottledConnection {
 
     private ThrottledConnectionManager manager;
     private OutputStream out;
@@ -27,6 +27,10 @@ public class ThrottledOutputStream extends OutputStream {
     private long limitCustom = 0;
     private long limitCounter = 0;
     private long lastLimitReached = 0;
+    private int checkStep = 1024;
+    private int index1;
+    private int index2;
+    private int index3;
 
     /**
      * constructor for not managed ThrottledOutputStream
@@ -60,13 +64,39 @@ public class ThrottledOutputStream extends OutputStream {
         this.out = out;
     }
 
+    /**
+     * WARNING: this function has a huge overhead
+     */
     @Override
     public void write(int b) throws IOException {
-        /* TODO: move to other write function to reduce overhead */
         out.write(b);
-        transferedCounter++;
+        increase(1);
+    }
+
+    @Override
+    public void write(byte b[], int off, int len) throws IOException {
+        if (len < checkStep) {
+            out.write(b, off, len);
+            increase(len);
+        } else {
+            index1 = off;
+            index3 = len;
+            index2 = Math.min(checkStep, index3 - checkStep);
+            while (index2 != 0) {
+                out.write(b, index1, index2);
+                increase(index2);
+                index1 += index2;
+                index2 = Math.min(checkStep, index3 - checkStep);
+                index3 -= index2;
+            }
+        }
+    }
+
+    final private void increase(int num) {
+        if (num == -1) return;
+        transferedCounter += num;
         if (limitCurrent != 0) {
-            limitCounter++;
+            limitCounter += num;
             if (limitCounter > limitCurrent) {
                 if (lastLimitReached == 0) {
                     /* our first write */
@@ -108,17 +138,31 @@ public class ThrottledOutputStream extends OutputStream {
         }
     }
 
+    /**
+     * DO NOT FORGET TO CLOSE
+     */
     @Override
     public void close() throws IOException {
-        synchronized (this) {
-            notify();
-        }
         /* remove this stream from manager */
         if (manager != null) {
             manager.removeManagedThrottledOutputStream(this);
             manager = null;
         }
+        synchronized (this) {
+            notify();
+        }
         out.close();
+    }
+
+    /**
+     * set a new ThrottledConnectionManager
+     * 
+     * @param manager
+     */
+    public void setManager(ThrottledConnectionManager manager) {
+        if (this.manager != null && this.manager != manager) this.manager.removeManagedThrottledOutputStream(this);
+        this.manager = manager;
+        if (this.manager != null) this.manager.addManagedThrottledOutputStream(this);
     }
 
     /**
@@ -126,7 +170,7 @@ public class ThrottledOutputStream extends OutputStream {
      * 
      * @param kpsLimit
      */
-    protected void setManagedLimit(long kpsLimit) {
+    public void setManagedLimit(long kpsLimit) {
         if (kpsLimit == limitManaged) return;
         if (kpsLimit <= 0) {
             limitManaged = 0;
@@ -174,7 +218,7 @@ public class ThrottledOutputStream extends OutputStream {
     private void changeCurrentLimit(long kpsLimit) {
         if (kpsLimit == limitCurrent) return;
         /* TODO: maybe allow little jitter here */
-        limitCurrent = kpsLimit;
+        limitCurrent = Math.max(0, kpsLimit);
         synchronized (this) {
             notify();
         }

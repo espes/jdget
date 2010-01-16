@@ -19,13 +19,14 @@ import java.util.ArrayList;
  */
 public class ThrottledConnectionManager {
 
-    private ArrayList<ThrottledInputStream> managedIn = new ArrayList<ThrottledInputStream>();
-    private ArrayList<ThrottledOutputStream> managedOut = new ArrayList<ThrottledOutputStream>();
+    private ArrayList<ThrottledConnection> managedIn = new ArrayList<ThrottledConnection>();
+    private ArrayList<ThrottledConnection> managedOut = new ArrayList<ThrottledConnection>();
     private final Object LOCK = new Object();
     /**
-     * how fast do we want to update and check current status
+     * how fast do we want to update and check current status DO NOT use values
+     * smaller than 1000
      */
-    private final int updateSpeed = 2000;
+    private final static int updateSpeed = 2000;
 
     private Thread watchDog = null;
 
@@ -71,6 +72,7 @@ public class ThrottledConnectionManager {
         synchronized (LOCK) {
             if (managedIn.contains(tin)) return;
             managedIn.add(tin);
+            tin.setManager(this);
             tin.setManagedLimit(IncommingBandwidthLimit / managedIn.size());
             startWatchDog();
         }
@@ -85,6 +87,7 @@ public class ThrottledConnectionManager {
         synchronized (LOCK) {
             if (managedOut.contains(tout)) return;
             managedOut.add(tout);
+            tout.setManager(this);
             tout.setManagedLimit(OutgoingBandwidthLimit / managedOut.size());
             startWatchDog();
         }
@@ -99,7 +102,10 @@ public class ThrottledConnectionManager {
     public boolean removeManagedThrottledInputStream(ThrottledInputStream tin) {
         synchronized (LOCK) {
             boolean ret = managedIn.remove(tin);
-            if (ret) tin.setManagedLimit(0);
+            if (ret) {
+                tin.setManager(null);
+                tin.setManagedLimit(0);
+            }
             return ret;
         }
     }
@@ -113,7 +119,10 @@ public class ThrottledConnectionManager {
     public boolean removeManagedThrottledOutputStream(ThrottledOutputStream tout) {
         synchronized (LOCK) {
             boolean ret = managedOut.remove(tout);
-            if (ret) tout.setManagedLimit(0);
+            if (ret) {
+                tout.setManager(null);
+                tout.setManagedLimit(0);
+            }
             return ret;
         }
     }
@@ -172,38 +181,43 @@ public class ThrottledConnectionManager {
         return IncommingBandwidthUsage;
     }
 
-    private void manageInputSpeed() {
+    private long manageConnections(ArrayList<ThrottledConnection> managed, long limit) {
         synchronized (LOCK) {
-            long currentManagedInputSpeed = 0;
+            long currentManagedSpeed = 0;
             long managedConnections = 0;
-            long currentRealInputSpeed = 0;
-            for (ThrottledInputStream in : managedIn) {
+            long currentRealSpeed = 0;
+            for (ThrottledConnection in : managed) {
                 long inspeed = in.resetTransferdCounted();
                 if (in.getCustomLimit() == 0) {
                     /* this connection is managed */
-                    currentManagedInputSpeed += inspeed;
-                    managedConnections++;
+                    currentManagedSpeed += inspeed;
+                    /*
+                     * dont count connections with no bandwidth usage, eg lost
+                     * ones
+                     */
+                    if (inspeed != 0) managedConnections++;
                 }
-                currentRealInputSpeed += inspeed;
+                currentRealSpeed += inspeed;
             }
             /*
              * calculate new input limit based on current input bandwidth usage
              */
-            currentManagedInputSpeed = (currentManagedInputSpeed / updateSpeed) * 1000;
-            IncommingBandwidthUsage = (currentRealInputSpeed / updateSpeed) * 1000;
-            long difference = currentManagedInputSpeed - IncommingBandwidthLimit;
+            currentManagedSpeed = (currentManagedSpeed / updateSpeed) * 1000;
+            currentRealSpeed = (currentRealSpeed / updateSpeed) * 1000;
+            long difference = currentManagedSpeed - limit;
             long newLimit = 0;
             if (managedConnections == 0) {
-                newLimit = IncommingBandwidthLimit;
+                newLimit = limit;
             } else if (difference >= 0) {
                 /* faster than we wanted */
-                newLimit = IncommingBandwidthLimit / managedConnections;
+                newLimit = limit / managedConnections;
             } else {
                 /* slower than we wanted */
-                newLimit = (-difference + IncommingBandwidthLimit) / managedConnections;
+                newLimit = (-difference + limit) / managedConnections;
             }
-            for (ThrottledInputStream in : managedIn) {
-                if (IncommingBandwidthLimit == 0) {
+            System.out.println("Speed " + currentManagedSpeed + " Limit: " + limit + " new Limit:" + newLimit + " diff: " + difference + " managed: " + managedConnections + " " + managed.size());
+            for (ThrottledConnection in : managed) {
+                if (limit == 0) {
                     /* we do not have a limit set */
                     in.setManagedLimit(0);
                 } else {
@@ -211,49 +225,7 @@ public class ThrottledConnectionManager {
                     in.setManagedLimit(newLimit);
                 }
             }
-        }
-    }
-
-    private void manageOutputSpeed() {
-        synchronized (LOCK) {
-            long currentManagedOutputSpeed = 0;
-            long managedConnections = 0;
-            long currentRealOutputSpeed = 0;
-            for (ThrottledOutputStream out : managedOut) {
-                long outspeed = out.resetTransferdCounted();
-                if (out.getCustomLimit() == 0) {
-                    /* this connection is managed */
-                    currentManagedOutputSpeed += outspeed;
-                    managedConnections++;
-                }
-                currentRealOutputSpeed += outspeed;
-            }
-            /*
-             * calculate new output limit based on current output bandwidth
-             * usage
-             */
-            currentManagedOutputSpeed = (currentManagedOutputSpeed / updateSpeed) * 1000;
-            OutgoingBandwidthUsage = (currentRealOutputSpeed / updateSpeed) * 1000;
-            long difference = currentManagedOutputSpeed - OutgoingBandwidthLimit;
-            long newLimit = 0;
-            if (managedConnections == 0) {
-                newLimit = OutgoingBandwidthLimit;
-            } else if (difference >= 0) {
-                /* faster than we wanted */
-                newLimit = OutgoingBandwidthLimit / managedConnections;
-            } else {
-                /* slower than we wanted */
-                newLimit = (-difference + OutgoingBandwidthLimit) / managedConnections;
-            }
-            for (ThrottledOutputStream out : managedOut) {
-                if (OutgoingBandwidthLimit == 0) {
-                    /* we do not have a limit set */
-                    out.setManagedLimit(0);
-                } else {
-                    /* set new limit */
-                    out.setManagedLimit(newLimit);
-                }
-            }
+            return currentRealSpeed;
         }
     }
 
@@ -268,8 +240,8 @@ public class ThrottledConnectionManager {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    manageInputSpeed();
-                    manageOutputSpeed();
+                    IncommingBandwidthUsage = manageConnections(managedIn, IncommingBandwidthLimit);
+                    OutgoingBandwidthUsage = manageConnections(managedOut, OutgoingBandwidthLimit);
                 }
             }
         };

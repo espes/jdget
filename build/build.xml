@@ -14,7 +14,7 @@
 			<attribute name="Created-By" value="AppWork UG(haftungsbeschränkt)" />
 		</manifest>
 		<mkdir dir="${dist}" />
-		<jar jarfile="${dist}/appworkutils.jar" manifest="Manifest.MF">
+		<jar jarfile="${dist}/AppWorkUtils.jar" manifest="Manifest.MF">
 			<fileset dir="${cls}">
 				<include name="**/*.class" />
 	
