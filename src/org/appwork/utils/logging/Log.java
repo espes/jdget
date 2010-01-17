@@ -32,7 +32,7 @@ public class Log {
      */
 
     static {
-        LOGGER = Logger.getLogger("org.appwork.rsmanager");
+        LOGGER = Logger.getLogger("org.appwork");
         LOGGER.setUseParentHandlers(false);
         ConsoleHandler cHandler = new ConsoleHandler();
         cHandler.setLevel(Level.ALL);

@@ -23,8 +23,7 @@ public class ThrottledConnectionManager {
     private ArrayList<ThrottledConnection> managedOut = new ArrayList<ThrottledConnection>();
     private final Object LOCK = new Object();
     /**
-     * how fast do we want to update and check current status DO NOT use values
-     * smaller than 1000
+     * how fast do we want to update and check current status
      */
     private final static int updateSpeed = 2000;
 
@@ -202,8 +201,8 @@ public class ThrottledConnectionManager {
             /*
              * calculate new input limit based on current input bandwidth usage
              */
-            currentManagedSpeed = (currentManagedSpeed / updateSpeed) * 1000;
-            currentRealSpeed = (currentRealSpeed / updateSpeed) * 1000;
+            currentManagedSpeed = (currentManagedSpeed / Math.max(1000, updateSpeed)) * 1000;
+            currentRealSpeed = (currentRealSpeed / Math.max(1000, updateSpeed)) * 1000;
             long difference = currentManagedSpeed - limit;
             long newLimit = 0;
             if (managedConnections == 0) {
@@ -236,7 +235,7 @@ public class ThrottledConnectionManager {
             public void run() {
                 while (true) {
                     try {
-                        sleep(updateSpeed);
+                        sleep(Math.max(1000, updateSpeed));
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
