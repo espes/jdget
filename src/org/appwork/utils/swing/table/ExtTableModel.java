@@ -10,7 +10,6 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.EDTHelper;
 
-
 public abstract class ExtTableModel extends AbstractTableModel {
 
     /**
@@ -107,7 +106,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
                 int rowIndex = -1;
                 for (Object obj : selections) {
                     rowIndex = getRowforObject(obj);
-                    if (rowIndex > 0) selectedRows.add(rowIndex);
+                    if (rowIndex >= 0) selectedRows.add(rowIndex);
                 }
                 Collections.sort(selectedRows);
                 for (Integer row : selectedRows) {
