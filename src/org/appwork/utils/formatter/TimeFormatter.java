@@ -9,10 +9,13 @@
  */
 package org.appwork.utils.formatter;
 
-
 public class TimeFormatter {
 
     protected static final int HIDE_SECONDS = 1;
+
+    public static String formatMilliSeconds(long totalSeconds, int flags) {
+        return formatSeconds(totalSeconds / 1000, flags);
+    }
 
     public static String formatSeconds(long totalSeconds, int flags) {
         long days, hours, minutes, seconds;

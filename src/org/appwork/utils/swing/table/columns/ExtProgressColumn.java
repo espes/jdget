@@ -11,7 +11,6 @@ import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
-
 abstract public class ExtProgressColumn extends ExtColumn {
     private static final long serialVersionUID = -2473320164484034664L;
     private JProgressBar bar;
@@ -20,6 +19,7 @@ abstract public class ExtProgressColumn extends ExtColumn {
         super(name, table, database);
         bar = new JProgressBar(0, getMax());
         bar.setOpaque(false);
+        bar.setStringPainted(true);
         this.setRowSorter(new ExtDefaultRowSorter() {
 
             @Override
@@ -36,7 +36,6 @@ abstract public class ExtProgressColumn extends ExtColumn {
     }
 
     protected int getMax() {
-        // TODO Auto-generated method stub
         return 100;
     }
 
@@ -109,6 +108,7 @@ abstract public class ExtProgressColumn extends ExtColumn {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
         bar.setValue(getValue(value));
+        bar.setString(getString(value));
         if (isSelected) {
             bar.setForeground(((ExtTable) table).getColumnForegroundSelected());
             bar.setBackground(((ExtTable) table).getColumnBackgroundSelected());
@@ -123,5 +123,7 @@ abstract public class ExtProgressColumn extends ExtColumn {
     }
 
     abstract protected int getValue(Object value);
+
+    abstract protected String getString(Object value);
 
 }

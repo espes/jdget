@@ -11,14 +11,13 @@ import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
 
-
 public abstract class ExtFileSizeColumn extends ExtColumn {
 
     /**
      * 
      */
     private static final long serialVersionUID = -5812486934156037376L;
-    private RenderLabel label;
+    protected RenderLabel label;
 
     public ExtFileSizeColumn(String name, ExtTableModel table, DatabaseInterface database) {
         super(name, table, database);

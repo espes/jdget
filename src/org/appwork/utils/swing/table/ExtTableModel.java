@@ -92,6 +92,17 @@ public abstract class ExtTableModel extends AbstractTableModel {
     }
 
     /**
+     * returns a copy of current objects in tablemodel
+     * 
+     * @return
+     */
+    public ArrayList<Object> getTableObjects() {
+        ArrayList<Object> ret = new ArrayList<Object>();
+        ret.addAll(tableData);
+        return ret;
+    }
+
+    /**
      * Sets the current selection to the given objects
      * 
      * @param selections
@@ -100,6 +111,10 @@ public abstract class ExtTableModel extends AbstractTableModel {
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
+                if (selections == null) {
+                    clearSelection();
+                    return null;
+                }
                 if (selections.size() == 0) return null;
                 // Transform to rowindex list
                 ArrayList<Integer> selectedRows = new ArrayList<Integer>();
