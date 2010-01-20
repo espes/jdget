@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.storage;
 
-import java.util.ArrayList;
 
 /**
  * Use this interface if you want to stiore instances of a certain class to
@@ -34,19 +33,5 @@ public interface Storable {
      * @return
      */
     public Object getStore(int id, String key, Class<?> clazz);
-
-    /**
-     * TRhis method must restore a fresh instance of Storable.
-     * 
-     * @param data
-     *            [UNIQUE INT ID,HASH INT,..data according to
-     *            STorableAnnotation]
-     */
-    public void restore(ArrayList<Object> data);
-
-    /**
-     * @return
-     */
-    public String getStorageID();
 
 }

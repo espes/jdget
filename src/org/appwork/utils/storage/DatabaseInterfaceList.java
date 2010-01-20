@@ -17,70 +17,31 @@ import java.util.ArrayList;
  * @author $Author: unknown$
  * 
  */
-abstract public class DatabaseInterfaceList {
+abstract public class DatabaseInterfaceList<E extends Storable> extends ArrayList<E> {
+
     /**
-     * The annotation defines the tablestructure
+     * 
      */
-    protected StorableAnnotation ann;
+    private static final long serialVersionUID = -1488793256769278977L;
     /**
      * tableID is a unique id. e.g. the tablename
      */
     protected String tableID;
+    protected Class<E> clazz;
+    protected StorableAnnotation ann;
 
-    public DatabaseInterfaceList(StorableAnnotation ann, String tableID) {
-
-        this.ann = ann;
+    @SuppressWarnings("unchecked")
+    public DatabaseInterfaceList(Class<? extends Storable> clazz2, String tableID) {
+        this.clazz = (Class<E>) clazz2;
+        ann = clazz2.getAnnotation(StorableAnnotation.class);
         this.tableID = tableID;
     }
-
-    /**
-     * Clears all data in this table.
-     * 
-     * @throws DBException
-     */
-    abstract public void clear() throws DBException;
 
     /**
      * Deletes the table
      * 
      * @throws DBException
      */
-    abstract public void drop() throws DBException;
+    abstract public void drop();
 
-    /**
-     * Add a STorable instance
-     * 
-     * @param account
-     * @throws DBException
-     */
-    abstract public void add(Storable account) throws DBException;
-
-    /**
-     * Removes a storable Item
-     * 
-     * @param account
-     * @throws DBException
-     */
-    abstract public void remove(Storable account) throws DBException;
-
-    /**
-     * Returns a list of all entries
-     * 
-     * @param <E>
-     * @param inst
-     * @return
-     * @throws DBException
-     */
-    abstract public <E extends Storable> ArrayList<E> list(E inst) throws DBException;
-
-    /**
-     * Returns item with id throws exception if this item does not exist
-     * 
-     * @param <E>
-     * @param id
-     * @param inst
-     * @return
-     * @throws DBException
-     */
-    abstract public <E extends Storable> E get(long id, E inst) throws DBException;
 }

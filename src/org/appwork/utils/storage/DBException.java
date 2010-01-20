@@ -9,7 +9,7 @@
  */
 package org.appwork.utils.storage;
 
-public class DBException extends Exception {
+public class DBException extends Error {
 
     public DBException(Exception e) {
         super(e);

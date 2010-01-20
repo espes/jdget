@@ -35,5 +35,4 @@ public interface DatabaseInterface {
      */
     public <E> E get(String key, E def) throws DBException;
 
-    public DatabaseInterfaceList getList(StorableAnnotation ann, String tableID) throws DBException;
 }
