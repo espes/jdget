@@ -21,14 +21,19 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
     private ThrottledConnectionManager manager;
     private InputStream in;
     private long transferedCounter = 0;
+    private long transferedCounter2 = 0;
     private long limitCurrent = 0;
     private long limitManaged = 0;
     private long limitCustom = 0;
     private long limitCounter = 0;
     private long lastLimitReached = 0;
     private int lastRead;
+    private int lastRead3;
     private int lastRead2;
     private int checkStep = 10240;
+    private int offset;
+    private int length;
+    private int todo;
 
     /**
      * constructor for not managed ThrottledInputStream
@@ -69,9 +74,24 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
             increase(lastRead);
             return lastRead;
         } else {
-            lastRead = in.read(b, off, checkStep);
-            increase(lastRead);
-            return lastRead;
+            lastRead3 = 0;
+            offset = off;
+            todo = len;
+            length = Math.min(checkStep, todo - checkStep);
+            while (length != 0) {
+                lastRead = in.read(b, offset, length);
+                if (lastRead == -1) break;
+                lastRead3 += lastRead;
+                increase(lastRead);
+                offset += lastRead;
+                length = Math.min(checkStep, todo - checkStep);
+                todo -= length;
+            }
+            if (lastRead == -1 && lastRead3 == 0) {
+                return -1;
+            } else {
+                return lastRead3;
+            }
         }
     }
 
@@ -143,11 +163,11 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
      * 
      * @return
      */
-    public long resetTransferdCounted() {
+    public synchronized long transferedSinceLastCall() {
         try {
-            return transferedCounter;
+            return transferedCounter - transferedCounter2;
         } finally {
-            transferedCounter = 0;
+            transferedCounter2 = transferedCounter;
         }
     }
 

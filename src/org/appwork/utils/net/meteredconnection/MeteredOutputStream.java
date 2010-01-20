@@ -22,7 +22,8 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
 
     private OutputStream out;
     private SpeedMeterInterface speedmeter = null;
-    private long counted = 0;
+    private long transfered = 0;
+    private long transfered2 = 0;
     private long time = 0;
     private long speed = 0;
 
@@ -49,13 +50,13 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
     @Override
     public void write(int b) throws IOException {
         write(b);
-        counted++;
+        transfered++;
     }
 
     @Override
     public void write(byte b[], int off, int len) throws IOException {
         out.write(b, off, len);
-        counted += len;
+        transfered += len;
     }
 
     @Override
@@ -74,9 +75,10 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
      * @see org.appwork.utils.SpeedMeterInterface#getSpeedMeter()
      */
     @Override
-    public long getSpeedMeter() {
+    public synchronized long getSpeedMeter() {
         if (time == 0) {
             time = System.currentTimeMillis();
+            transfered2 = transfered;
             return 0;
         }
         if (System.currentTimeMillis() - time < 1000) {
@@ -85,15 +87,15 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
         }
         try {
             if (speedmeter != null) {
-                speedmeter.putSpeedMeter(counted, System.currentTimeMillis() - time);
+                speedmeter.putSpeedMeter(transfered - transfered2, System.currentTimeMillis() - time);
                 return speedmeter.getSpeedMeter();
             } else {
-                speed = (counted / (System.currentTimeMillis() - time)) * 1000;
+                speed = ((transfered - transfered2) / (System.currentTimeMillis() - time)) * 1000;
                 return speed;
             }
         } finally {
+            transfered2 = transfered;
             time = System.currentTimeMillis();
-            counted = 0;
         }
     }
 
@@ -112,11 +114,11 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
      * @see org.appwork.utils.SpeedMeterInterface#resetSpeedMeter()
      */
     @Override
-    public void resetSpeedMeter() {
+    public synchronized void resetSpeedMeter() {
         if (speedmeter != null) {
             speedmeter.resetSpeedMeter();
         } else {
-            counted = 0;
+            transfered2 = transfered = 0;
         }
     }
 

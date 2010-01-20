@@ -44,10 +44,10 @@ public interface ThrottledConnection {
     public long getCustomLimit();
 
     /**
-     * return how many bytes got transfered till now and reset counter
+     * return how many bytes got transfered till last call of the function
      * 
      * @return
      */
-    public long resetTransferdCounted();
+    public long transferedSinceLastCall();
 
 }

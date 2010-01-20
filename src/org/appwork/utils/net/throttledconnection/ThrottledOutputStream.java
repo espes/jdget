@@ -22,6 +22,7 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     private OutputStream out;
 
     private long transferedCounter = 0;
+    private long transferedCounter2 = 0;
     private long limitCurrent = 0;
     private long limitManaged = 0;
     private long limitCustom = 0;
@@ -130,11 +131,11 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
      * 
      * @return
      */
-    public long resetTransferdCounted() {
+    public synchronized long transferedSinceLastCall() {
         try {
-            return transferedCounter;
+            return transferedCounter - transferedCounter2;
         } finally {
-            transferedCounter = 0;
+            transferedCounter2 = transferedCounter;
         }
     }
 

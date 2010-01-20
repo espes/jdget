@@ -22,7 +22,8 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
 
     private InputStream in;
     private SpeedMeterInterface speedmeter = null;
-    private long counted = 0;
+    private long transfered = 0;
+    private long transfered2 = 0;
     private long time = 0;
     private int readTmp1;
     private int readTmp2;
@@ -51,14 +52,14 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
     @Override
     public int read() throws IOException {
         readTmp1 = in.read();
-        if (readTmp1 != -1) counted++;
+        if (readTmp1 != -1) transfered++;
         return readTmp1;
     }
 
     @Override
     public int read(byte b[], int off, int len) throws IOException {
         readTmp2 = in.read(b, off, len);
-        if (readTmp2 != -1) counted += readTmp2;
+        if (readTmp2 != -1) transfered += readTmp2;
         return readTmp2;
     }
 
@@ -98,9 +99,10 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
      * @see org.appwork.utils.SpeedMeterInterface#getSpeedMeter()
      */
     @Override
-    public long getSpeedMeter() {
+    public synchronized long getSpeedMeter() {
         if (time == 0) {
             time = System.currentTimeMillis();
+            transfered2 = transfered;
             return 0;
         }
         if (System.currentTimeMillis() - time < 1000) {
@@ -109,15 +111,15 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
         }
         try {
             if (speedmeter != null) {
-                speedmeter.putSpeedMeter(counted, System.currentTimeMillis() - time);
+                speedmeter.putSpeedMeter(transfered - transfered2, System.currentTimeMillis() - time);
                 return speedmeter.getSpeedMeter();
             } else {
-                speed = (counted / (System.currentTimeMillis() - time)) * 1000;
+                speed = ((transfered - transfered2) / (System.currentTimeMillis() - time)) * 1000;
                 return speed;
             }
         } finally {
+            transfered2 = transfered;
             time = System.currentTimeMillis();
-            counted = 0;
         }
     }
 
@@ -136,11 +138,11 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
      * @see org.appwork.utils.SpeedMeterInterface#resetSpeedMeter()
      */
     @Override
-    public void resetSpeedMeter() {
+    public synchronized void resetSpeedMeter() {
         if (speedmeter != null) {
             speedmeter.resetSpeedMeter();
         } else {
-            counted = 0;
+            transfered2 = transfered = 0;
         }
     }
 }

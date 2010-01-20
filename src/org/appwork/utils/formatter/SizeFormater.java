@@ -28,7 +28,6 @@ public class SizeFormater {
      * @return
      */
     public static String formatBytes(long fileSize) {
-
         if (fileSize < 0) fileSize = 0;
         DecimalFormat c = new DecimalFormat("0.00");
         if (fileSize >= (1024 * 1024 * 1024 * 1024l)) return c.format(fileSize / (1024 * 1024 * 1024 * 1024.0)) + " TiB";
@@ -36,7 +35,6 @@ public class SizeFormater {
         if (fileSize >= (1024 * 1024l)) return c.format(fileSize / (1024 * 1024.0)) + " MiB";
         if (fileSize >= 1024l) return c.format(fileSize / 1024.0) + " KiB";
         return fileSize + " B";
-
     }
 
     public static long getSize(final String string) {

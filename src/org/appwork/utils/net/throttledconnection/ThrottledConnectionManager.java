@@ -186,7 +186,7 @@ public class ThrottledConnectionManager {
             long managedConnections = 0;
             long currentRealSpeed = 0;
             for (ThrottledConnection in : managed) {
-                long inspeed = in.resetTransferdCounted();
+                long inspeed = in.transferedSinceLastCall();
                 if (in.getCustomLimit() == 0) {
                     /* this connection is managed */
                     currentManagedSpeed += inspeed;
@@ -214,7 +214,6 @@ public class ThrottledConnectionManager {
                 /* slower than we wanted */
                 newLimit = (-difference + limit) / managedConnections;
             }
-            System.out.println("Speed " + currentManagedSpeed + " Limit: " + limit + " new Limit:" + newLimit + " diff: " + difference + " managed: " + managedConnections + " " + managed.size());
             for (ThrottledConnection in : managed) {
                 if (limit == 0) {
                     /* we do not have a limit set */

@@ -40,6 +40,7 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
         times = new long[size];
         index = 0;
         this.size = size;
+        resetSpeedMeter();
     }
 
     /*
@@ -54,7 +55,7 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
             long totalValue = 0;
             long totalTime = 0;
             for (int i = 0; i < size; i++) {
-                if (bytes[i] == -1) continue;
+                if (bytes[i] < 0) continue;
                 totalValue += bytes[i];
                 totalTime += times[i];
             }
