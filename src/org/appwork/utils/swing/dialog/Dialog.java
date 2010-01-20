@@ -245,13 +245,20 @@ public class Dialog {
 
     /**
      * Returns true, if the latest answer contains the {@link #RETURN_OK} flag
+     * WARNING: do not use this in single instance Dialog
      * 
      * @param returnMask
      * @return
      */
+    @Deprecated
     public boolean isOK() {
         if (!(latestReturnMask instanceof Integer)) return false;
         return BinaryLogic.containsSome((Integer) latestReturnMask, Dialog.RETURN_OK);
+    }
+
+    public static boolean isOK(Object value) {
+        if (!(value instanceof Integer)) return false;
+        return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_OK);
     }
 
     /**

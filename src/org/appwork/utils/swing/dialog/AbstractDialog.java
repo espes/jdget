@@ -82,11 +82,6 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
     }
 
     public void init() {
-        try {
-            LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
-        } catch (Exception e) {
-
-        }
         dont: if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
             try {
@@ -115,6 +110,11 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
             } catch (Exception e) {
                 Log.exception(e);
             }
+        }
+        try {
+            LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
+        } catch (Exception e) {
+
         }
         // The Dialog MOdal
         this.setModal(true);
@@ -309,7 +309,6 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         } else if (e.getSource() == cancelButton) {
             setReturnmask(false);
         }
-
         dispose();
     }
 
@@ -317,7 +316,6 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         try {
             LockPanel.create(Dialog.getInstance().getParentOwner()).unlock(300);
         } catch (AWTException e1) {
-
         }
         super.dispose();
     }
