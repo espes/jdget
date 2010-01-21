@@ -13,7 +13,7 @@ import org.appwork.utils.swing.table.ExtTableModel;
 
 abstract public class ExtProgressColumn extends ExtColumn {
     private static final long serialVersionUID = -2473320164484034664L;
-    private JProgressBar bar;
+    protected JProgressBar bar;
 
     public ExtProgressColumn(String name, ExtTableModel table, DatabaseInterface database) {
         super(name, table, database);
