@@ -107,7 +107,9 @@ abstract public class ExtProgressColumn extends ExtColumn {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
+        bar.setIndeterminate(false);
         bar.setValue(getValue(value));
+
         bar.setString(getString(value));
         if (isSelected) {
             bar.setForeground(((ExtTable) table).getColumnForegroundSelected());
