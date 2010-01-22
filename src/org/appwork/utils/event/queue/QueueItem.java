@@ -21,10 +21,6 @@ public abstract class QueueItem {
     private volatile boolean killed = false;
     private Queue queue = null;
 
-    protected QueueItem getThis() {
-        return this;
-    }
-
     protected Queue getQueue() {
         return queue;
     }
@@ -70,7 +66,7 @@ public abstract class QueueItem {
      * 
      * @param e
      */
-    protected void exceptionHandler(Exception e) {
+    public void exceptionHandler(Exception e) {
     }
 
 }
