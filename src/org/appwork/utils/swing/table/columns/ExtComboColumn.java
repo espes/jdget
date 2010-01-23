@@ -16,7 +16,6 @@ import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
 
-
 public abstract class ExtComboColumn extends ExtColumn implements ActionListener {
 
     private static final long serialVersionUID = 2114805529462086691L;
@@ -32,7 +31,12 @@ public abstract class ExtComboColumn extends ExtColumn implements ActionListener
         super(name, table, database);
         if (model == null) model = new DefaultComboBoxModel();
         dataModel = model;
-        comboBoxRend = new JComboBox(dataModel);
+        comboBoxRend = new JComboBox(dataModel) {
+            public void addActionListener(ActionListener l) {
+                listenerList.add(ActionListener.class, l);
+            }
+        };
+
         comboBoxEdit = new JComboBox(dataModel);
         comboBoxEdit.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
         comboBoxRend.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
@@ -69,8 +73,12 @@ public abstract class ExtComboColumn extends ExtColumn implements ActionListener
         selection = getComboBoxItem(value);
         if (selection < 0) { return super.getTableCellRendererComponent(table, "", false, hasFocus, row, column); }
         comboBoxRend.setModel(updateModel(dataModel, value));
-        comboBoxRend.setToolTipText(getTooltip(value));
+
+        comboBoxEdit.removeActionListener(this);
+        comboBoxEdit.setToolTipText(getTooltip(value));
         comboBoxRend.setSelectedIndex(getComboBoxItem(value));
+        comboBoxEdit.addActionListener(this);
+
         comboBoxRend.setEnabled(isEnabled(value));
         return comboBoxRend;
     }
@@ -124,6 +132,7 @@ public abstract class ExtComboColumn extends ExtColumn implements ActionListener
     }
 
     public void actionPerformed(ActionEvent e) {
+
         comboBoxEdit.removeActionListener(this);
         this.stopCellEditing();
     }

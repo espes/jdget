@@ -17,6 +17,10 @@ public abstract class ExtTableModel extends AbstractTableModel {
      */
     private static final long serialVersionUID = 939549808899567618L;
     /**
+     * complete table structure has changed
+     */
+    protected static final int UPDATE_STRUCTURE = 1;
+    /**
      * Column instances
      */
     protected ArrayList<ExtColumn> columns = new ArrayList<ExtColumn>();
