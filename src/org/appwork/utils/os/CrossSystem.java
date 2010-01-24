@@ -10,7 +10,9 @@
 package org.appwork.utils.os;
 
 import java.awt.Desktop;
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
@@ -96,6 +98,44 @@ public class CrossSystem {
         } catch (IOException e) {
             Log.exception(e);
         } catch (URISyntaxException e) {
+            Log.exception(e);
+        }
+    }
+
+    /**
+     * Opens a file or directory
+     * 
+     * @see java.awt.Desktop#open(File)
+     * @param file
+     */
+    public static void openFile(File file) {
+
+        if (isWindows() && file.isFile()) {
+            // workaround for windows
+            // see http://bugs.sun.com/view_bug.do?bug_id=6599987
+            try {
+                Runtime.getRuntime().exec("cmd /c \"" + file.getAbsolutePath() + "\"");
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return;
+        }
+
+        if (!Desktop.isDesktopSupported()) {
+            Log.L.severe("Desktop is not supported (fatal)");
+        }
+
+        Desktop desktop = java.awt.Desktop.getDesktop();
+
+        if (!desktop.isSupported(java.awt.Desktop.Action.OPEN)) {
+            Log.L.severe("Desktop doesn't support the OPEN action (fatal)");
+        }
+
+        try {
+            URI uri = file.getCanonicalFile().toURI();
+            desktop.open(new File(uri));
+        } catch (IOException e) {
             Log.exception(e);
         }
     }
