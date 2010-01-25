@@ -29,9 +29,9 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     private long limitCounter = 0;
     private long lastLimitReached = 0;
     private int checkStep = 1024;
-    private int index1;
-    private int index2;
-    private int index3;
+    private int offset;
+    private int todo;
+    private int rest;
 
     /**
      * constructor for not managed ThrottledOutputStream
@@ -80,15 +80,15 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
             out.write(b, off, len);
             increase(len);
         } else {
-            index1 = off;
-            index3 = len;
-            index2 = Math.min(checkStep, index3 - checkStep);
-            while (index2 != 0) {
-                out.write(b, index1, index2);
-                increase(index2);
-                index1 += index2;
-                index2 = Math.min(checkStep, index3 - checkStep);
-                index3 -= index2;
+            offset = off;
+            rest = len;
+            while (rest != 0) {
+                todo = rest;
+                if (todo > checkStep) todo = checkStep;
+                out.write(b, offset, todo);
+                increase(todo);
+                rest -= todo;
+                offset += todo;
             }
         }
     }
