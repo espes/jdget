@@ -28,12 +28,11 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
     private long limitCounter = 0;
     private long lastLimitReached = 0;
     private int lastRead;
-    private int lastRead3;
     private int lastRead2;
-    private int checkStep = 10240;
+    private final static int checkStep = 10240;
     private int offset;
-    private int length;
     private int todo;
+    private int rest;
 
     /**
      * constructor for not managed ThrottledInputStream
@@ -69,29 +68,23 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
 
     @Override
     public int read(byte b[], int off, int len) throws IOException {
-        if (len < checkStep) {
-            lastRead = in.read(b, off, len);
+        offset = off;
+        rest = len;
+        lastRead2 = 0;
+        while (rest != 0) {
+            todo = rest;
+            if (todo > checkStep) todo = checkStep;
+            lastRead = in.read(b, offset, todo);
+            if (lastRead == -1) break;
+            lastRead2 += lastRead;
             increase(lastRead);
-            return lastRead;
+            rest -= lastRead;
+            offset += lastRead;
+        }
+        if (lastRead == -1 && lastRead2 == 0) {
+            return -1;
         } else {
-            lastRead3 = 0;
-            offset = off;
-            todo = len;
-            length = Math.min(checkStep, todo - checkStep);
-            while (length != 0) {
-                lastRead = in.read(b, offset, length);
-                if (lastRead == -1) break;
-                lastRead3 += lastRead;
-                increase(lastRead);
-                offset += lastRead;
-                length = Math.min(checkStep, todo - checkStep);
-                todo -= length;
-            }
-            if (lastRead == -1 && lastRead3 == 0) {
-                return -1;
-            } else {
-                return lastRead3;
-            }
+            return lastRead2;
         }
     }
 

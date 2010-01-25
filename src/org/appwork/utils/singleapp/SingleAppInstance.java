@@ -87,27 +87,22 @@ public class SingleAppInstance {
                         }
                     }
                 } catch (UnknownHostException e) {
-                    e.printStackTrace();
                     return false;
                 } catch (IOException e) {
-                    e.printStackTrace();
                     return false;
                 } finally {
                     if (runninginstance != null) {
                         try {
                             runninginstance.shutdownInput();
                         } catch (Throwable e) {
-                            e.printStackTrace();
                         }
                         try {
                             runninginstance.shutdownOutput();
                         } catch (Throwable e) {
-                            e.printStackTrace();
                         }
                         try {
                             runninginstance.close();
                         } catch (Throwable e) {
-                            e.printStackTrace();
                         }
                         runninginstance = null;
                     }
@@ -189,12 +184,10 @@ public class SingleAppInstance {
             try {
                 fileLock.release();
             } catch (IOException e) {
-                e.printStackTrace();
             }
             try {
                 lockChannel.close();
             } catch (IOException e) {
-                e.printStackTrace();
             }
         } finally {
             lockChannel = null;
@@ -252,17 +245,14 @@ public class SingleAppInstance {
                             try {
                                 client.shutdownInput();
                             } catch (Throwable e) {
-                                e.printStackTrace();
                             }
                             try {
                                 client.shutdownOutput();
                             } catch (Throwable e) {
-                                e.printStackTrace();
                             }
                             try {
                                 client.close();
                             } catch (Throwable e) {
-                                e.printStackTrace();
                             }
                             client = null;
                         }
@@ -288,7 +278,6 @@ public class SingleAppInstance {
             outputStream.write("\r\n".getBytes());
             outputStream.flush();
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -313,12 +302,10 @@ public class SingleAppInstance {
                 if (in.read() != 10) in.reset();
             }
         } catch (Exception e) {
-            e.printStackTrace();
         }
         try {
             return inbuffer.toString("UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
             return "";
         }
     }
@@ -340,7 +327,6 @@ public class SingleAppInstance {
                 try {
                     reader.close();
                 } catch (Throwable e) {
-                    e.printStackTrace();
                 }
             }
         }

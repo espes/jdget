@@ -28,7 +28,7 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     private long limitCustom = 0;
     private long limitCounter = 0;
     private long lastLimitReached = 0;
-    private int checkStep = 1024;
+    private final static int checkStep = 1024;
     private int offset;
     private int todo;
     private int rest;
@@ -76,20 +76,15 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
 
     @Override
     public void write(byte b[], int off, int len) throws IOException {
-        if (len < checkStep) {
-            out.write(b, off, len);
-            increase(len);
-        } else {
-            offset = off;
-            rest = len;
-            while (rest != 0) {
-                todo = rest;
-                if (todo > checkStep) todo = checkStep;
-                out.write(b, offset, todo);
-                increase(todo);
-                rest -= todo;
-                offset += todo;
-            }
+        offset = off;
+        rest = len;
+        while (rest != 0) {
+            todo = rest;
+            if (todo > checkStep) todo = checkStep;
+            out.write(b, offset, todo);
+            increase(todo);
+            rest -= todo;
+            offset += todo;
         }
     }
 

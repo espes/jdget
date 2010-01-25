@@ -26,6 +26,10 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
     private long transfered2 = 0;
     private long time = 0;
     private long speed = 0;
+    private int offset;
+    private final static int checkStep = 1024;
+    private int rest;
+    private int todo;
 
     /**
      * constructor for MeteredOutputStream
@@ -55,8 +59,16 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
 
     @Override
     public void write(byte b[], int off, int len) throws IOException {
-        out.write(b, off, len);
-        transfered += len;
+        offset = off;
+        rest = len;
+        while (rest != 0) {
+            todo = rest;
+            if (todo > checkStep) todo = checkStep;
+            out.write(b, offset, todo);
+            transfered += todo;
+            rest -= todo;
+            offset += todo;
+        }
     }
 
     @Override

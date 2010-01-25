@@ -26,8 +26,13 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
     private long transfered2 = 0;
     private long time = 0;
     private int readTmp1;
-    private int readTmp2;
     private long speed = 0;
+    private int offset;
+    private final static int checkStep = 10240;
+    private int todo;
+    private int lastRead;
+    private int rest;
+    private int lastRead2;
 
     /**
      * constructor for MeterdInputStream
@@ -58,9 +63,24 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
 
     @Override
     public int read(byte b[], int off, int len) throws IOException {
-        readTmp2 = in.read(b, off, len);
-        if (readTmp2 != -1) transfered += readTmp2;
-        return readTmp2;
+        offset = off;
+        rest = len;
+        lastRead2 = 0;
+        while (rest != 0) {
+            todo = rest;
+            if (todo > checkStep) todo = checkStep;
+            lastRead = in.read(b, offset, todo);
+            if (lastRead == -1) break;
+            lastRead2 += lastRead;
+            transfered += lastRead;
+            rest -= lastRead;
+            offset += lastRead;
+        }
+        if (lastRead == -1 && lastRead2 == 0) {
+            return -1;
+        } else {
+            return lastRead2;
+        }
     }
 
     @Override
