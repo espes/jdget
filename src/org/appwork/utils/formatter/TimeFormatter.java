@@ -9,9 +9,14 @@
  */
 package org.appwork.utils.formatter;
 
+import org.appwork.utils.BinaryLogic;
+import org.appwork.utils.Regex;
+
 public class TimeFormatter {
 
-    protected static final int HIDE_SECONDS = 1;
+    public static final int HIDE_SECONDS = 1;
+    public static final int HIDE_MARKER = 2;
+    public static final int CLOCK = 3;
 
     public static String formatMilliSeconds(long totalSeconds, int flags) {
         return formatSeconds(totalSeconds / 1000, flags);
@@ -28,19 +33,53 @@ public class TimeFormatter {
         minutes = totalSeconds / 60;
         seconds = totalSeconds - minutes * 60;
 
-        if (days != 0) string.append(days).append('d');
-        if (hours != 0 || string.length() != 0) {
-            if (string.length() != 0) string.append(':');
-            string.append(hours).append('h');
+        if (!BinaryLogic.containsAll(flags, CLOCK)) {
+            if (days != 0) {
+                string.append(days);
+                string.append('d');
+            }
         }
-        if (minutes != 0 || string.length() != 0) {
+        if (hours != 0 || string.length() != 0 || BinaryLogic.containsAll(flags, CLOCK)) {
             if (string.length() != 0) string.append(':');
-            string.append(StringFormatter.fillStart(minutes + "", 2, "0")).append('m');
+            string.append(hours);
+            if (BinaryLogic.containsNone(flags, HIDE_MARKER)) string.append('h');
         }
-        if ((flags & HIDE_SECONDS) == 0 || string.length() != 0) {
+
+        if (minutes != 0 || string.length() != 0 || BinaryLogic.containsAll(flags, CLOCK)) {
             if (string.length() != 0) string.append(':');
-            string.append(StringFormatter.fillStart(seconds + "", 2, "0")).append('s');
+            string.append(StringFormatter.fillStart(minutes + "", 2, "0"));
+            if (BinaryLogic.containsNone(flags, HIDE_MARKER)) string.append('m');
+        }
+        if (BinaryLogic.containsNone(flags, HIDE_SECONDS)) {
+
+            if (string.length() != 0) string.append(':');
+            string.append(StringFormatter.fillStart(seconds + "", 2, "0"));
+            if (BinaryLogic.containsNone(flags, HIDE_MARKER)) string.append('s');
+
         }
         return string.toString();
+    }
+
+    /**
+     * formats (\\d+)\\w?:(\\d+) to ms
+     * 
+     * @param text
+     * @return
+     */
+    public static long formatStringToMilliseconds(String text) {
+        String[] found = new Regex(text, "(\\d+)\\w?:(\\d+)").getRow(0);
+        if (found == null) return 0;
+        int hours = Integer.parseInt(found[0]);
+        int minutes = Integer.parseInt(found[1]);
+        if (hours >= 24) {
+            hours = 24;
+            minutes = 0;
+        }
+        if (minutes >= 60) {
+            hours += 1;
+            minutes = 0;
+        }
+
+        return hours * 60 * 60 * 1000 + minutes * 60 * 1000;
     }
 }
