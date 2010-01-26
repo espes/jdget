@@ -30,6 +30,22 @@ public class TreeModelStateSaver {
      * Stores for each node the expanded state
      */
     private HashMap<Object, Boolean> expandCache;
+
+    /**
+     * @param selectedPathes
+     *            the selectedPathes to set
+     */
+    public void setSelectedPathes(TreePath[] selectedPathes) {
+        this.selectedPathes = selectedPathes;
+    }
+
+    /**
+     * @return the expandCache
+     */
+    public HashMap<Object, Boolean> getExpandCache() {
+        return expandCache;
+    }
+
     /**
      * treePath for internal use
      */
@@ -111,7 +127,8 @@ public class TreeModelStateSaver {
     protected void restoreState(Object node, ArrayList<Object> path) {
         path.add(node);
         treePath = new TreePath(path.toArray(new Object[] {}));
-        if (expandCache.get(node)) {
+        Boolean bo = expandCache.get(node);
+        if (bo != null && bo.booleanValue()) {
             tree.expandPath(treePath);
         }
 
