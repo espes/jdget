@@ -10,6 +10,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -20,6 +21,7 @@ import java.util.LinkedHashMap;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableColumnModelEvent;
@@ -31,7 +33,6 @@ import javax.swing.table.TableColumnModel;
 
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.storage.DatabaseInterface;
-
 
 /**
  * The ExtTable package is a tableframework that follows two main tasks:<br>
@@ -183,6 +184,41 @@ public class ExtTable extends JTable {
 
         });
 
+    }
+
+    // Key selection
+    protected boolean processKeyBinding(KeyStroke stroke, KeyEvent evt, int condition, boolean pressed) {
+        if (!pressed) { return super.processKeyBinding(stroke, evt, condition, pressed); }
+        switch (evt.getKeyCode()) {
+
+        case KeyEvent.VK_UP:
+            if (getSelectedRow() == 0) {
+                if (getCellEditor() != null) {
+                    getCellEditor().stopCellEditing();
+                }
+                changeSelection(getRowCount() - 1, 0, false, false);
+                return true;
+            }
+            break;
+        case KeyEvent.VK_DOWN:
+            if (getSelectedRow() == (getRowCount() - 1)) {
+                if (getCellEditor() != null) {
+                    getCellEditor().stopCellEditing();
+                }
+                changeSelection(0, 0, false, false);
+                return true;
+            }
+        case KeyEvent.VK_A:
+            if (evt.isControlDown()) {
+                if (getCellEditor() != null) {
+                    getCellEditor().stopCellEditing();
+                }
+                this.getSelectionModel().setSelectionInterval(1, getRowCount() - 1);
+                return true;
+            }
+
+        }
+        return super.processKeyBinding(stroke, evt, condition, pressed);
     }
 
     /**
@@ -453,4 +489,34 @@ public class ExtTable extends JTable {
         return ((ExtTableModel) getModel()).getExtColumn(x);
 
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.awt.event.KeyListener#keyPressed(java.awt.event.KeyEvent)
+     */
+    // @Override
+    // public void keyPressed(KeyEvent e) {
+    // // TODO Auto-generated method stub
+    // int leadSelectIndex, selectIndex;
+    // switch (e.getKeyCode()) {
+    // case KeyEvent.VK_UP:
+    // // getSelectionModel().getMinSelectionIndex()
+    // leadSelectIndex = Math.max(0, getSelectionModel().getLeadSelectionIndex()
+    // - 1);
+    // getSelectionModel().setLeadSelectionIndex(leadSelectIndex);
+    // break;
+    // case KeyEvent.VK_DOWN:
+    // leadSelectIndex = Math.min(this.getRowCount() - 1,
+    // getSelectionModel().getLeadSelectionIndex() + 1);
+    // getSelectionModel().setLeadSelectionIndex(leadSelectIndex);
+    // break;
+    // case KeyEvent.VK_A:
+    // if (e.isControlDown()) {
+    //
+    // }
+    // break;
+    // }
+    // }
+
 }
