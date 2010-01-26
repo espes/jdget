@@ -125,6 +125,7 @@ public class TreeModelStateSaver {
      */
     @SuppressWarnings("unchecked")
     protected void restoreState(Object node, ArrayList<Object> path) {
+        if (node == null) return;
         path.add(node);
         treePath = new TreePath(path.toArray(new Object[] {}));
         Boolean bo = expandCache.get(node);

@@ -6,11 +6,11 @@ import javax.swing.JLabel;
 import javax.swing.JTable;
 
 import org.appwork.utils.storage.DatabaseInterface;
+import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
-
 
 public abstract class ExtTextColumn extends ExtColumn {
 
@@ -20,8 +20,9 @@ public abstract class ExtTextColumn extends ExtColumn {
     public ExtTextColumn(String name, ExtTableModel table, DatabaseInterface database) {
         super(name, table, database);
 
-        label = new JLabel();
+        label = new RenderLabel();
         label.setBorder(null);
+        label.setOpaque(false);
         prepareTableCellRendererComponent(label);
 
         this.setRowSorter(new ExtDefaultRowSorter() {
@@ -61,7 +62,7 @@ public abstract class ExtTextColumn extends ExtColumn {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
         isSelected = false;
-        return ((ExtTable) table).getLafCellRenderer(row, column).getTableCellRendererComponent(table, getStringValue(value), isSelected, hasFocus, row, column);
+        return ((ExtTable) table).getLafCellRenderer(row, column).getTableCellRendererComponent(table, getStringValue(value), isSelected, false, row, column);
     }
 
     @Override
