@@ -21,12 +21,14 @@ import org.appwork.utils.logging.Log;
  * 
  */
 public class HTMLParser {
-    public static ArrayList<URL> findUrls(String source) {
-        final ArrayList<URL> ret = new ArrayList<URL>();
+    public static ArrayList<String> findUrls(String source) {
+        /* TODO: better parsing */
+        final ArrayList<String> ret = new ArrayList<String>();
         try {
-            for (String link : new Regex(source, "((https?|ftp|gopher|telnet|file|notes|ms-help):((//)|(\\\\\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)").getColumn(0)) {
+            for (String link : new Regex(source, "((https?|ftp):((//)|(\\\\\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)").getColumn(0)) {
                 try {
-                    ret.add(new URL(link));
+                    new URL(link);
+                    ret.add(link);
                 } catch (MalformedURLException e) {
 
                 }
@@ -34,8 +36,28 @@ public class HTMLParser {
         } catch (Exception e) {
             Log.exception(e);
         }
-        return ret;
+        return removeDuplicates(ret);
+    }
 
+    public static ArrayList<String> removeDuplicates(ArrayList<String> links) {
+        ArrayList<String> tmplinks = new ArrayList<String>();
+        if (links == null || links.size() == 0) return tmplinks;
+        for (String link : links) {
+            if (link.contains("...")) {
+                String check = link.substring(0, link.indexOf("..."));
+                String found = link;
+                for (String link2 : links) {
+                    if (link2.startsWith(check) && !link2.contains("...")) {
+                        found = link2;
+                        break;
+                    }
+                }
+                if (!tmplinks.contains(found)) tmplinks.add(found);
+            } else {
+                tmplinks.add(link);
+            }
+        }
+        return tmplinks;
     }
 
 }

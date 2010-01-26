@@ -19,38 +19,49 @@ import java.util.StringTokenizer;
 
 import javax.swing.TransferHandler.TransferSupport;
 
+import org.appwork.utils.os.CrossSystem;
+import org.appwork.utils.parser.HTMLParser;
+
 public class ClipboardUtils {
 
-    private final static ClipboardUtils INSTANCE = new ClipboardUtils();
+    private static ClipboardUtils INSTANCE = new ClipboardUtils();
 
-    private DataFlavor fileListFlavor = DataFlavor.javaFileListFlavor;
-    private DataFlavor explorerFlavor;
-    private DataFlavor uriListFlavor;
+    public final static DataFlavor fileListFlavor = DataFlavor.javaFileListFlavor;
+    public final static DataFlavor stringFlavor = DataFlavor.stringFlavor;
+    private final static byte[] tmpByteArray = new byte[0];
+    public final static DataFlavor arrayListFlavor;
+    public final static DataFlavor uriListFlavor;
 
-    private static ArrayList<Object> cutpasteBuffer = new ArrayList<Object>();
+    static {
+        DataFlavor tmp;
+        try {
+            tmp = new DataFlavor("text/uri-list; class=java.lang.String");
+        } catch (Throwable e) {
+            tmp = null;
+        }
+        uriListFlavor = tmp;
+        try {
+            tmp = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType + ";class=java.util.ArrayList");
+        } catch (Throwable e) {
+            tmp = null;
+        }
+        arrayListFlavor = tmp;
+    }
+
+    private ArrayList<Object> cutpasteBuffer = new ArrayList<Object>();
 
     public static ClipboardUtils getInstance() {
         return INSTANCE;
     }
 
-    private ClipboardUtils() {
-        try {
-            uriListFlavor = new DataFlavor("text/uri-list; class=java.lang.String");
-        } catch (ClassNotFoundException e) {
-            uriListFlavor = null;
-        }
-        try {
-            explorerFlavor = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType + ";class=java.util.ArrayList");
-        } catch (ClassNotFoundException e) {
-            explorerFlavor = null;
-        }
+    public static void setInstance(ClipboardUtils instance) {
+        INSTANCE = instance;
     }
 
-    public DataFlavor getExplorerFlavor() {
-        return explorerFlavor;
+    public ClipboardUtils() {
     }
 
-    public static void putToCutPasteBuffer(ArrayList<Object> objs) {
+    public void putToCutPasteBuffer(ArrayList<Object> objs) {
         synchronized (cutpasteBuffer) {
             cutpasteBuffer.clear();
             if (objs == null || objs.size() == 0) return;
@@ -58,29 +69,87 @@ public class ClipboardUtils {
         }
     }
 
-    public static ArrayList<Object> getCutPasteBuffer() {
+    public ArrayList<Object> getCutPasteBuffer() {
         synchronized (cutpasteBuffer) {
             return new ArrayList<Object>(cutpasteBuffer);
         }
     }
 
-    public static boolean emptyCutPasteBuffer() {
+    public boolean emptyCutPasteBuffer() {
         synchronized (cutpasteBuffer) {
             return cutpasteBuffer.isEmpty();
         }
     }
 
-    public boolean hasSupport(TransferSupport info) {
+    public static boolean hasSupport(TransferSupport info) {
         if (info != null) {
             if (uriListFlavor != null && info.isDataFlavorSupported(uriListFlavor)) return true;
             if (fileListFlavor != null && info.isDataFlavorSupported(fileListFlavor)) return true;
-            if (explorerFlavor != null && info.isDataFlavorSupported(explorerFlavor)) return true;
+            if (arrayListFlavor != null && info.isDataFlavorSupported(arrayListFlavor)) return true;
         }
         return false;
     }
 
+    public static ArrayList<String> getLinks(TransferSupport trans) {
+        ArrayList<String> links = new ArrayList<String>();
+        String content = null;
+        DataFlavor htmlFlavor = null;
+        /*
+         * workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=385421
+         */
+        for (final DataFlavor flav : trans.getTransferable().getTransferDataFlavors()) {
+            if (flav.getMimeType().contains("html") && flav.getRepresentationClass().isInstance(tmpByteArray)) {
+                if (htmlFlavor != null) htmlFlavor = flav;
+                final String charSet = new Regex(flav.toString(), "charset=(.*?)]").getMatch(0);
+                if (charSet != null && charSet.equalsIgnoreCase("UTF-8")) {
+                    /* we found utf-8 encoding, so lets use that */
+                    htmlFlavor = flav;
+                    break;
+                }
+            }
+        }
+        try {
+            if (htmlFlavor != null) {
+                final String charSet = new Regex(htmlFlavor.toString(), "charset=(.*?)]").getMatch(0);
+                byte[] html = (byte[]) trans.getTransferable().getTransferData(htmlFlavor);
+                if (CrossSystem.isLinux()) {
+                    /*
+                     * workaround for
+                     * https://bugzilla.mozilla.org/show_bug.cgi?id=385421if
+                     */
+                    final int htmlLength = html.length;
+                    final byte[] html2 = new byte[htmlLength];
+
+                    int o = 0;
+                    for (int i = 6; i < htmlLength - 1; i++) {
+                        if (html[i] != 0) {
+                            html2[o++] = html[i];
+                        }
+                    }
+                    html = html2;
+                    content = new String(html, "UTF-8");
+                } else {
+                    if (charSet != null) {
+                        content = new String(html, charSet);
+                    } else {
+                        content = new String(html);
+                    }
+                }
+            } else {
+                /* try stringFlavor */
+                if (trans.isDataFlavorSupported(stringFlavor)) content = ((String) trans.getTransferable().getTransferData(stringFlavor));
+            }
+            if (content != null) {
+                links.addAll(HTMLParser.findUrls(content));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return links;
+    }
+
     @SuppressWarnings("unchecked")
-    public ArrayList<File> getFiles(TransferSupport info) {
+    public static ArrayList<File> getFiles(TransferSupport info) {
         ArrayList<File> files = new ArrayList<File>();
         if (info != null) {
             try {
