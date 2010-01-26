@@ -31,6 +31,10 @@ public class Queue extends Thread {
         start();
     }
 
+    public boolean isWaiting() {
+        return waitFlag;
+    }
+
     public void add(QueueItem item) {
         if (isQueueThread()) {
             /*
