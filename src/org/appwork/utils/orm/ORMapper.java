@@ -22,8 +22,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import javax.swing.JTable;
-
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.storage.DBException;
@@ -65,18 +63,12 @@ public class ORMapper {
         converter = new HashMap<String, ClassConverter>();
 
         // typeMap.put(Boolean.class, "INT");
-        typeMap.put(String.class.getName(), "LONGVARCHAR");
-        typeMap.put(Long.class.getName(), "BIGINT");
+
         typeMap.put("long", "BIGINT");
-        typeMap.put(Byte.class.getName(), "INT");
         typeMap.put("byte", "INT");
-        typeMap.put(Character.class.getName(), "INT");
         typeMap.put("char", "INT");
-        typeMap.put(Integer.class.getName(), "INT");
         typeMap.put("int", "INT");
-        typeMap.put(Double.class.getName(), "FLOAT");
         typeMap.put("double", "FLOAT");
-        typeMap.put(Float.class.getName(), "FLOAT");
         typeMap.put("float", "FLOAT");
         initDB();
 
@@ -132,16 +124,17 @@ public class ORMapper {
     public static void main(String[] args) {
         ORMapper mapper = new ORMapper();
 
-        // TestClass item = new TestClass();
-        // item.obj = new String("III");
-        // feste id geben. NUr manchmal für root items wichtig
-        // item.instanceID = "main";
-        // item.testClassA = new TestClass(1, "banane");
-        // mapper.store(item);
-        // ArrayList<String> list = new ArrayList<String>();
-        // list.add("aaa");
-        // list.add("bbb");
-        mapper.store(new JTable(), null, null);
+        TestClass item = new TestClass();
+        TestClass item2 = new TestClass();
+        item.stringD = "ZWQEITER";
+        item.testClassA = item2;
+        item2.ich = item;
+        item.obj = new String("III");
+
+        // mapper.store(item, null, null, null);
+
+        Object restore = mapper.get(TestClass.class, 0, null);
+        System.out.println(restore);
 
     }
 
@@ -151,17 +144,18 @@ public class ORMapper {
      * @return
      */
 
-    private Object get(Class<?> clazz, String instanceID) {
-        return getByWhere(clazz, " WHERE INSTANCEID = '" + instanceID + "'");
+    private Object get(Class<?> clazz, String instanceID, HashMap<String, Object> idMap) {
+        return getByWhere(clazz, " WHERE INSTANCEID = '" + instanceID + "'", idMap);
     }
 
     /**
      * @param type
      * @param id
+     * @param idMap
      * @return
      */
-    private Object get(Class<?> clazz, int id) {
-        return getByWhere(clazz, " WHERE ID = '" + id + "'");
+    private Object get(Class<?> clazz, int id, HashMap<String, Object> idMap) {
+        return getByWhere(clazz, " WHERE ID = '" + id + "'", idMap);
     }
 
     /**
@@ -169,8 +163,10 @@ public class ORMapper {
      * @param string
      * @return
      */
-    private Object getByWhere(Class<?> clazz, String where) {
-
+    private Object getByWhere(Class<?> clazz, String where, HashMap<String, Object> idMap) {
+        if (idMap == null) {
+            idMap = new HashMap<String, Object>();
+        }
         try {
             MappableClassID anno = clazz.getAnnotation(MappableClassID.class);
             String tableID = anno == null ? clazz.getName().replace(".", "_") : anno.value();
@@ -181,7 +177,14 @@ public class ORMapper {
             if (conv != null) return conv.get(clazz, where);
             checkTableIntegraty(tableID, clazz);
             ResultSet rs;
-            Object instance = clazz.newInstance();
+
+            System.out.println("SELECT * FROM " + tableID + where);
+            if (!(rs = db.prepareStatement("SELECT * FROM " + tableID + where).executeQuery()).next()) return null;
+            String instanceID = rs.getString(2);
+            Object instance = idMap.get(instanceID);
+            if (instance != null) return instance;
+            instance = clazz.newInstance();
+            idMap.put(rs.getString(2), instance);
             Field instanceIDField = null;
             for (Field f : getFields(clazz)) {
                 f.setAccessible(true);
@@ -190,21 +193,20 @@ public class ORMapper {
                     break;
                 }
             }
-            System.out.println("SELECT * FROM " + tableID + where);
-            if (!(rs = db.prepareStatement("SELECT * FROM " + tableID + where).executeQuery()).next()) return null;
             if (instanceIDField != null) instanceIDField.setAccessible(true);
             if (instanceIDField != null) instanceIDField.set(instance, rs.getString(2));
+
             Field f;
             for (int i = 4; i <= rs.getMetaData().getColumnCount(); i++) {
                 f = getField(clazz, rs.getMetaData().getColumnName(i));
                 f.setAccessible(true);
                 if (f.getType().isArray()) {
-                    f.set(instance, restoreArray(rs.getString(i), f.getType()));
+                    f.set(instance, restoreArray(rs.getString(i), f.getType(), idMap));
                 } else if (!f.getType().isPrimitive() && !Modifier.isTransient(f.getType().getModifiers())) {
                     try {
                         String[] reference = rs.getString(i).split(":");
                         ;
-                        f.set(instance, getJavaValue(f, get(Class.forName(reference[0]), Integer.parseInt(reference[1]))));
+                        f.set(instance, getJavaValue(f, get(Class.forName(reference[0]), Integer.parseInt(reference[1]), idMap)));
                     } catch (NullPointerException e) {
                         f.set(instance, null);
                     }
@@ -221,6 +223,7 @@ public class ORMapper {
     }
 
     /**
+     * @param idMap
      * @param string
      * @param class1
      * @return
@@ -230,7 +233,7 @@ public class ORMapper {
      * @throws NumberFormatException
      * @throws ArrayIndexOutOfBoundsException
      */
-    private Object restoreArray(String table, Class<?> clazz) throws SQLException, ArrayIndexOutOfBoundsException, NumberFormatException, IllegalArgumentException, ClassNotFoundException {
+    private Object restoreArray(String table, Class<?> clazz, HashMap<String, Object> idMap) throws SQLException, ArrayIndexOutOfBoundsException, NumberFormatException, IllegalArgumentException, ClassNotFoundException {
 
         ResultSet rs = db.prepareStatement("SELECT * FROM " + table).executeQuery();
 
@@ -238,19 +241,21 @@ public class ORMapper {
         r.next();
         int count = r.getInt(1);
         r.close();
-
-        Object array = Array.newInstance(clazz.getComponentType(), count);
+        Object array = idMap.get(table);
+        if (array != null) return array;
+        array = Array.newInstance(clazz.getComponentType(), count);
+        idMap.put(table, array);
         Class<?> ct = clazz.getComponentType();
         for (int i = 0; i < count; i++) {
             rs.next();
             if (clazz.getComponentType().isArray()) {
 
-                Array.set(array, i, restoreArray(rs.getString(4), clazz.getComponentType()));
+                Array.set(array, i, restoreArray(rs.getString(4), clazz.getComponentType(), idMap));
             } else if (!clazz.getComponentType().isPrimitive()) {
                 try {
                     String[] reference = rs.getString(4).split(":");
 
-                    Array.set(array, i, get(Class.forName(reference[0]), Integer.parseInt(reference[1])));
+                    Array.set(array, i, get(Class.forName(reference[0]), Integer.parseInt(reference[1]), idMap));
                 } catch (NullPointerException e) {
                     Array.set(array, i, null);
                 }
@@ -293,7 +298,7 @@ public class ORMapper {
      * @throws NoSuchFieldException
      * @throws SecurityException
      */
-    private int store(Object item, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite) {
+    private int store(Object item, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite, HashMap<Object, Integer> finalSaved) {
 
         try {
 
@@ -319,11 +324,15 @@ public class ORMapper {
                 saved = new HashMap<Object, Integer>();
             }
             if (rewrite == null) {
-                System.out.println("Newwrite: " + instanceID);
+
                 rewrite = new HashMap<Object, Object>();
+            }
+            if (finalSaved == null) {
+
+                finalSaved = new HashMap<Object, Integer>();
 
             }
-            int ret = write(tableID, item, instanceID, saved, rewrite);
+            int ret = write(tableID, item, instanceID, saved, rewrite, finalSaved);
             if (doRewrites) {
                 System.out.println("LAST RUOND");
             }
@@ -334,9 +343,9 @@ public class ORMapper {
 
                     saved.remove(next.getKey());
                     if (next.getKey().getClass().isArray()) {
-                        this.storeArray(null, next.getKey().getClass(), next.getKey(), saved, null);
+                        this.storeArray(null, next.getKey().getClass(), next.getKey(), saved, null, finalSaved);
                     } else {
-                        store(next.getKey(), saved, null);
+                        store(next.getKey(), saved, null, finalSaved);
                     }
                 }
 
@@ -370,6 +379,7 @@ public class ORMapper {
      * @param instanceID
      * @param saved
      * @param rewrite
+     * @param finalSaved
      * @return
      * @throws SQLException
      * @throws IllegalAccessException
@@ -377,12 +387,13 @@ public class ORMapper {
      * @throws NoSuchFieldException
      * @throws SecurityException
      */
-    private int write(String tableID, Object item, String instanceID, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite) throws SQLException, IllegalArgumentException, IllegalAccessException, SecurityException, NoSuchFieldException {
+    private int write(String tableID, Object item, String instanceID, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite, HashMap<Object, Integer> finalSaved) throws SQLException, IllegalArgumentException, IllegalAccessException, SecurityException, NoSuchFieldException {
 
         if (db.prepareStatement("SELECT * FROM " + tableID + " WHERE INSTANCEID = '" + instanceID + "'").executeQuery().next()) {
 
             ClassConverter conv = converter.get(item.getClass().getName());
             if (conv != null) return conv.update(tableID, item, instanceID);
+            // row id is already determined
 
             if (saved.containsKey(item)) {
                 // loop reference
@@ -402,7 +413,7 @@ public class ORMapper {
                 f = getField(item.getClass(), columns.get(i).getColumnName());
                 if (f.getType().isArray()) {
                     f.setAccessible(true);
-                    String table = storeArray(instanceID + "__" + f.getName(), f.getType(), f.get(item), saved, rewrite);
+                    String table = storeArray(instanceID + "__" + f.getName(), f.getType(), f.get(item), saved, rewrite, finalSaved);
 
                     sb.append("\"");
                     sb.append(f.getName());
@@ -419,7 +430,17 @@ public class ORMapper {
                     if (cross != null) {
 
                         int rw;
-                        cross = "'" + cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite)) + "'";
+                        // special for self references
+                        if (cross == item) {
+                            if (finalSaved.containsKey(cross)) {
+                                cross = "'" + cross.getClass().getName() + ":" + (rw = finalSaved.get(cross)) + "'";
+                            } else {
+                                cross = "'" + cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved)) + "'";
+                            }
+                        } else {
+                            cross = "'" + cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved)) + "'";
+                        }
+
                         if (rw < 0) {
                             rewrite.put(item, (Object) getSQLValue(f, item));
                         }
@@ -447,7 +468,13 @@ public class ORMapper {
                 }
 
             }
+            // item may have be saved through a loopback reference
+            if (saved.get(item) >= 0) {
 
+                // loop reference
+
+                return saved.get(item);
+            }
             sb.append(" WHERE INSTANCEID = '");
             sb.append(instanceID);
             sb.append("'");
@@ -460,11 +487,14 @@ public class ORMapper {
 
             int ret;
             saved.put(item, ret = rs.getInt(1));
+            // self references
+            finalSaved.put(item, ret);
             return ret;
         } else {
 
             ClassConverter conv = converter.get(item.getClass().getName());
             if (conv != null) return conv.write(tableID, item, instanceID);
+
             // new entry
             if (saved.containsKey(item)) {
 
@@ -488,12 +518,13 @@ public class ORMapper {
             PreparedStatement insertStatement = db.prepareStatement(sb.toString());
             insertStatement.setObject(2, instanceID);
             Field f;
+
             for (int i = 3; i < columns.size(); i++) {
                 f = getField(item.getClass(), columns.get(i).getColumnName());
                 f.setAccessible(true);
                 if (f.getType().isArray()) {
 
-                    String table = storeArray(instanceID + "__" + f.getName(), f.getType(), f.get(item), saved, rewrite);
+                    String table = storeArray(instanceID + "__" + f.getName(), f.getType(), f.get(item), saved, rewrite, finalSaved);
                     insertStatement.setObject(i + 1, table);
 
                 } else if (!f.getType().isPrimitive() && !Modifier.isTransient(f.getType().getModifiers())) {
@@ -501,13 +532,33 @@ public class ORMapper {
                     if (cross != null) {
 
                         int rw;
-                        cross = cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite));
-                        if (rw < 0) rewrite.put(item, (Object) getSQLValue(f, item));
+
+                        if (cross == item) {
+                            if (finalSaved.containsKey(cross)) {
+                                cross = cross.getClass().getName() + ":" + +(rw = finalSaved.get(cross));
+                            } else {
+                                cross = cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved));
+                            }
+                        } else {
+                            cross = cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved));
+                        }
+
+                        if (rw < 0) {
+
+                            rewrite.put(item, (Object) getSQLValue(f, item));
+                        }
                     }
                     insertStatement.setObject(i + 1, cross);
                 } else {
                     insertStatement.setObject(i + 1, getSQLValue(f, item));
                 }
+            }
+            // item may have be saved through a loopback reference
+            if (saved.get(item) >= 0) {
+
+                // loop reference
+
+                return saved.get(item);
             }
             insertStatement.execute();
 
@@ -517,6 +568,8 @@ public class ORMapper {
             (rs = db.prepareStatement("SELECT id FROM " + tableID + " WHERE INSTANCEID ='" + instanceID + "'").executeQuery()).next();
             int ret;
             saved.put(item, ret = rs.getInt(1));
+            // self references
+            finalSaved.put(item, ret);
             return ret;
         }
     }
@@ -551,14 +604,16 @@ public class ORMapper {
      * @throws IllegalArgumentException
      * @throws SecurityException
      */
-    private String storeArray(String table, Class<?> clazz, Object object, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException, SQLException {
+    private String storeArray(String table, Class<?> clazz, Object object, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite, HashMap<Object, Integer> finalSaved) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException, SQLException {
         if (object == null) return null;
 
         if (saved == null) saved = new HashMap<Object, Integer>();
+
         if (rewrite == null) {
             rewrite = new HashMap<Object, Object>();
 
         }
+
         if (saved.containsKey(object)) { return table; }
         saved.put(object, -1);
         table = table.toUpperCase();
@@ -579,7 +634,7 @@ public class ORMapper {
             obj = Array.get(object, i);
             insertStatement.setString(3, type.getName());
             if (type.isArray()) {
-                String sub = storeArray(table + "__" + i, type, obj, saved, rewrite);
+                String sub = storeArray(table + "__" + i, type, obj, saved, rewrite, finalSaved);
                 insertStatement.setObject(4, sub);
             } else if (!type.isPrimitive()) {
                 Object cross = (Object) getSQLValue(type, obj);
@@ -587,7 +642,7 @@ public class ORMapper {
                 if (cross != null) {
 
                     int rw;
-                    cross = "'" + cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite)) + "'";
+                    cross = "'" + cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved)) + "'";
                     if (rw < 0) rewrite.put(object, (Object) getSQLValue(type, obj));
                 }
 
@@ -598,7 +653,7 @@ public class ORMapper {
             insertStatement.execute();
             System.err.println(insertStatement);
         }
-
+        finalSaved.put(object, -1);
         return table;
     }
 
@@ -884,6 +939,6 @@ public class ORMapper {
      * @param a
      */
     public void store(Object a) {
-        store(a, null, null);
+        store(a, null, null, null);
     }
 }

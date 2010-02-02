@@ -33,6 +33,7 @@ public class TestClass {
     transient public String instanceID = System.currentTimeMillis() + "_" + Math.random();
     private int[][] doubleInt;
     public Object obj;
+    public TestClass ich;
 
     public TestClass() {
         intc = 1;
@@ -43,6 +44,7 @@ public class TestClass {
         stringD = "affenhaut";
         intArrayE = new int[] { 1, 2, 3, 4, 5 };
         doubleInt = new int[][] { { 1, 2 }, { 2, 3 }, { 4, 5 } };
+        ich = this;
     }
 
     /**
@@ -52,6 +54,7 @@ public class TestClass {
     public TestClass(int i, String string) {
         intc = i;
         stringD = string;
+
     }
 
 }
