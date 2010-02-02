@@ -18,12 +18,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.orm.converter.ClassClassConverter;
+import org.appwork.utils.orm.converter.ClassConverter;
+import org.appwork.utils.orm.converter.LongConverter;
+import org.appwork.utils.orm.converter.StringConverter;
 import org.appwork.utils.storage.DBException;
 
 /**
@@ -55,7 +60,13 @@ public class ORMapper {
         }
 
     }
+    /**
+     * Database connection. hsqldb in this case
+     */
     private Connection db;
+    /**
+     * maps java primitive types to SQL types
+     */
     private HashMap<String, String> typeMap;
 
     public ORMapper() {
@@ -71,10 +82,27 @@ public class ORMapper {
         typeMap.put("double", "FLOAT");
         typeMap.put("float", "FLOAT");
         initDB();
+        initDefaultConverter();
 
-        converter.put(String.class.getName(), new StringConverter(db));
-        converter.put(Long.class.getName(), new LongConverter(db));
-        converter.put(Class.class.getName(), new ClassClassConverter(db));
+    }
+
+    private void initDefaultConverter() {
+
+        addConverter(String.class, new StringConverter(db));
+        addConverter(Long.class, new LongConverter(db));
+        addConverter(Class.class, new ClassClassConverter(db));
+    }
+
+    /**
+     * /** The mapper is able to use so called converter. these converter define
+     * how to
+     * 
+     * @param class1
+     * @param stringConverter
+     */
+    public void addConverter(Class<?> class1, ClassConverter classConverter) {
+        converter.put(class1.getName(), classConverter);
+
     }
 
     /**
@@ -131,27 +159,34 @@ public class ORMapper {
         item2.ich = item;
         item.obj = new String("III");
 
-        // mapper.store(item, null, null, null);
+        mapper.store(item, null, null, null);
 
-        Object restore = mapper.get(TestClass.class, 0, null);
-        System.out.println(restore);
-
+        TestClass restore = (TestClass) mapper.get(TestClass.class, 0, null);
+        // these testcases have to print TRUE
+        System.out.println("Restore Strings: " + restore.stringD.equals(item.stringD));
+        System.out.println("Restore Reference Loops: " + (restore.testClassA.ich == restore));
+        System.out.println("Restore SelfReference Loops: " + (restore.ich == restore));
+        System.out.println("Restore Childclass types: " + (restore.obj instanceof String));
+        System.out.println("Restore Deep arrays: " + Arrays.deepToString(restore.doubleInt).equals(Arrays.deepToString(item.doubleInt)));
     }
 
     /**
-     * @param class1
-     * @param string
+     * Restore a instance of clazz with the instanceID
+     * 
+     * @param clazz
+     * @param instanceID
      * @return
      */
-
-    private Object get(Class<?> clazz, String instanceID, HashMap<String, Object> idMap) {
-        return getByWhere(clazz, " WHERE INSTANCEID = '" + instanceID + "'", idMap);
+    public Object get(Class<?> clazz, String instanceID) {
+        return getByWhere(clazz, " WHERE INSTANCEID = '" + instanceID + "'", null);
     }
 
     /**
      * @param type
      * @param id
      * @param idMap
+     *            stores all new instances to restore create referenceloops;
+     *            Null for the first call
      * @return
      */
     private Object get(Class<?> clazz, int id, HashMap<String, Object> idMap) {
@@ -159,8 +194,13 @@ public class ORMapper {
     }
 
     /**
+     * Returns a new instance of type clazz with there given whereclause.
+     * 
      * @param clazz
-     * @param string
+     * @param where
+     * @param idMap
+     *            stores all new instances to restore create referenceloops;
+     *            Null for the first call
      * @return
      */
     private Object getByWhere(Class<?> clazz, String where, HashMap<String, Object> idMap) {
@@ -168,23 +208,26 @@ public class ORMapper {
             idMap = new HashMap<String, Object>();
         }
         try {
+            // get tableid either by MappableClassID or the classname
             MappableClassID anno = clazz.getAnnotation(MappableClassID.class);
             String tableID = anno == null ? clazz.getName().replace(".", "_") : anno.value();
-            // ArrayList<Field> fields =
-            // this.getDeclaredFieldsToStore(clazz.getDeclaredFields());
-
+            // use converter for the given class if there is one
             ClassConverter conv = converter.get(clazz.getName());
             if (conv != null) return conv.get(clazz, where);
-            checkTableIntegraty(tableID, clazz);
+            // checktable if table has errors
+            checkTableIntegrity(tableID, clazz);
+            // get result row from the classtable
             ResultSet rs;
-
-            System.out.println("SELECT * FROM " + tableID + where);
             if (!(rs = db.prepareStatement("SELECT * FROM " + tableID + where).executeQuery()).next()) return null;
+            // instanceid is unique across sessions
             String instanceID = rs.getString(2);
+            // check if we have already restored this instanceid
             Object instance = idMap.get(instanceID);
             if (instance != null) return instance;
+            // create new instance
             instance = clazz.newInstance();
             idMap.put(rs.getString(2), instance);
+            // get instanceid field by InstanceID annotation
             Field instanceIDField = null;
             for (Field f : getFields(clazz)) {
                 f.setAccessible(true);
@@ -193,9 +236,11 @@ public class ORMapper {
                     break;
                 }
             }
+            // if found, store instanceid to new instance
             if (instanceIDField != null) instanceIDField.setAccessible(true);
             if (instanceIDField != null) instanceIDField.set(instance, rs.getString(2));
 
+            // set all fields defined by the table
             Field f;
             for (int i = 4; i <= rs.getMetaData().getColumnCount(); i++) {
                 f = getField(clazz, rs.getMetaData().getColumnName(i));
@@ -223,9 +268,15 @@ public class ORMapper {
     }
 
     /**
+     * Restores an Array
+     * 
      * @param idMap
-     * @param string
+     *            stores all new instances to restore create referenceloops;
+     *            Null for the first call
+     * @param table
+     *            Tablename for the array
      * @param class1
+     *            ArrayClass
      * @return
      * @throws SQLException
      * @throws ClassNotFoundException
@@ -234,37 +285,38 @@ public class ORMapper {
      * @throws ArrayIndexOutOfBoundsException
      */
     private Object restoreArray(String table, Class<?> clazz, HashMap<String, Object> idMap) throws SQLException, ArrayIndexOutOfBoundsException, NumberFormatException, IllegalArgumentException, ClassNotFoundException {
-
+        // get whole table
         ResultSet rs = db.prepareStatement("SELECT * FROM " + table).executeQuery();
-
+        // get row count
         ResultSet r = db.createStatement().executeQuery("SELECT COUNT(*) FROM " + table);
         r.next();
         int count = r.getInt(1);
         r.close();
+        // create idMap entry or return fi the array has already be restored
         Object array = idMap.get(table);
         if (array != null) return array;
+        // create new Array
         array = Array.newInstance(clazz.getComponentType(), count);
         idMap.put(table, array);
-        Class<?> ct = clazz.getComponentType();
+        // restore all Arrayentries
         for (int i = 0; i < count; i++) {
             rs.next();
             if (clazz.getComponentType().isArray()) {
-
+                // array is multiDimensional. retsore a new array for each entry
                 Array.set(array, i, restoreArray(rs.getString(4), clazz.getComponentType(), idMap));
             } else if (!clazz.getComponentType().isPrimitive()) {
+                // is a object. use object getter
                 try {
                     String[] reference = rs.getString(4).split(":");
-
                     Array.set(array, i, get(Class.forName(reference[0]), Integer.parseInt(reference[1]), idMap));
                 } catch (NullPointerException e) {
                     Array.set(array, i, null);
                 }
 
             } else {
+                // primitive type
 
-                String type = rs.getString(3);
-                Object obj = rs.getObject(4);
-                Array.set(array, i, obj);
+                Array.set(array, i, rs.getObject(4));
 
             }
         }
@@ -272,17 +324,9 @@ public class ORMapper {
     }
 
     /**
-     * @param obj
-     * @param type
-     * @return
-     */
-    private Object getPrimitive(Object obj, String type) {
-        if (Number.class.isAssignableFrom(obj.getClass())) { return ((Number) obj).longValue(); }
-
-        return obj;
-    }
-
-    /**
+     * Casts the object to the right class. Has no direct use. Just checks for
+     * integrity
+     * 
      * @param f
      * @param object
      * @return
@@ -294,17 +338,27 @@ public class ORMapper {
     }
 
     /**
+     * Store item to the table
+     * 
      * @param item
-     * @throws NoSuchFieldException
-     * @throws SecurityException
+     * @param saved
+     *            internal use. stores all items that have started to store
+     * @param rewrite
+     *            internal use. stores all items which have a missing reference.
+     *            Have to be rewritten
+     * @param finalSaved
+     *            internal use. stores all items least at least one full write
+     *            cycle
+     * @return
      */
     private int store(Object item, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite, HashMap<Object, Integer> finalSaved) {
 
         try {
 
             String instanceID = null;
-            // table is created, or verified as ok noew
-
+            // get Instanceid
+            // instance id can be givven by a String with InstanceID Annotation,
+            // or it is outbuild by hashcode
             for (Field f : getFields(item.getClass())) {
 
                 f.setAccessible(true);
@@ -316,34 +370,31 @@ public class ORMapper {
                 instanceID = "T" + item.hashCode() + "";
                 // throw new DBException("COuld not find instance id");
             }
-
+            // check table integrity or create anew table.
             String tableID = checkTable(item);
-            boolean doRewrites = false;
+
+            // init loop controller maps
             if (saved == null) {
-                doRewrites = true;
                 saved = new HashMap<Object, Integer>();
             }
             if (rewrite == null) {
-
                 rewrite = new HashMap<Object, Object>();
             }
             if (finalSaved == null) {
-
                 finalSaved = new HashMap<Object, Integer>();
 
             }
+            // write item
             int ret = write(tableID, item, instanceID, saved, rewrite, finalSaved);
-            if (doRewrites) {
-                System.out.println("LAST RUOND");
-            }
+            // check if there are rewrite requests
+            // rewrites may be required if there are missing references after
+            // the first write cycle
             for (Iterator<Entry<Object, Object>> it = rewrite.entrySet().iterator(); it.hasNext();) {
                 Entry<Object, Object> next = it.next();
                 if (next.getValue() == item) {
-                    System.out.println("Reqrite: " + next.getKey());
-
                     saved.remove(next.getKey());
                     if (next.getKey().getClass().isArray()) {
-                        this.storeArray(null, next.getKey().getClass(), next.getKey(), saved, null, finalSaved);
+                        storeArray(null, next.getKey().getClass(), next.getKey(), saved, null, finalSaved);
                     } else {
                         store(next.getKey(), saved, null, finalSaved);
                     }
@@ -358,6 +409,8 @@ public class ORMapper {
     }
 
     /**
+     * Runs down the Class hirarchy and returns All fields of the given clazz
+     * 
      * @param class1
      * @return
      */
@@ -374,36 +427,47 @@ public class ORMapper {
     }
 
     /**
+     * Write method. writes item to tableID with instanceID
+     * 
      * @param tableID
      * @param item
      * @param instanceID
      * @param saved
+     * @see #store(Object, HashMap, HashMap, HashMap)
      * @param rewrite
+     * @see #store(Object, HashMap, HashMap, HashMap)
      * @param finalSaved
+     * @see #store(Object, HashMap, HashMap, HashMap)
      * @return
      * @throws SQLException
-     * @throws IllegalAccessException
      * @throws IllegalArgumentException
-     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
      * @throws SecurityException
+     * @throws NoSuchFieldException
      */
     private int write(String tableID, Object item, String instanceID, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite, HashMap<Object, Integer> finalSaved) throws SQLException, IllegalArgumentException, IllegalAccessException, SecurityException, NoSuchFieldException {
 
+        // checks if there is a tableentry for instanceif
         if (db.prepareStatement("SELECT * FROM " + tableID + " WHERE INSTANCEID = '" + instanceID + "'").executeQuery().next()) {
-
+            // if yes, update id
+            // check if there are classconverter and use them
             ClassConverter conv = converter.get(item.getClass().getName());
             if (conv != null) return conv.update(tableID, item, instanceID);
-            // row id is already determined
 
             if (saved.containsKey(item)) {
-                // loop reference
+                // saving for item is in progress. Probably we have reference
+                // conflict which can only be solved by rewriting.
+                // saved may also contain the final rowid.
+                // however, item is already saved, so we return the saved rowID
 
                 return saved.get(item);
             }
+            // putting -1 as rowid. this indicates, that saving is in progress,
+            // but not finished yet.
+            // value is >=0 if saving is finished
             saved.put(item, -1);
             // instanceod is present. just update
             StringBuilder sb = new StringBuilder();
-
             ArrayList<DBTableColumn> columns = getDBTableColumns(tableID);
             sb.append("UPDATE ");
             sb.append(tableID);
@@ -412,6 +476,8 @@ public class ORMapper {
             for (int i = 3; i < columns.size(); i++) {
                 f = getField(item.getClass(), columns.get(i).getColumnName());
                 if (f.getType().isArray()) {
+                    // update array. this means rebuilding the wholoe array
+                    // table
                     f.setAccessible(true);
                     String table = storeArray(instanceID + "__" + f.getName(), f.getType(), f.get(item), saved, rewrite, finalSaved);
 
@@ -425,10 +491,9 @@ public class ORMapper {
                         sb.append(",");
                     }
                 } else if (!f.getType().isPrimitive() && !Modifier.isTransient(f.getType().getModifiers())) {
+                    // object. we run recursive through the object tree
                     Object cross = (Object) getSQLValue(f, item);
-
                     if (cross != null) {
-
                         int rw;
                         // special for self references
                         if (cross == item) {
@@ -440,7 +505,8 @@ public class ORMapper {
                         } else {
                             cross = "'" + cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved)) + "'";
                         }
-
+                        // could not get a final rowid for cross. this means
+                        // that we have to rewrite item
                         if (rw < 0) {
                             rewrite.put(item, (Object) getSQLValue(f, item));
                         }
@@ -454,8 +520,8 @@ public class ORMapper {
                     if (i < columns.size() - 1) {
                         sb.append(",");
                     }
-                } else {
-
+                } else if (f.getType().isPrimitive()) {
+                    // things are simple for primitive types
                     sb.append("\"");
                     sb.append(f.getName());
                     sb.append("\"");
@@ -469,42 +535,43 @@ public class ORMapper {
 
             }
             // item may have be saved through a loopback reference
+            // do another check before performing the statement
             if (saved.get(item) >= 0) {
-
                 // loop reference
-
                 return saved.get(item);
             }
             sb.append(" WHERE INSTANCEID = '");
             sb.append(instanceID);
             sb.append("'");
+            // get autocreated rowID (autoincrement)
             // there must be a better way
-            System.err.println(sb);
+
             db.prepareStatement(sb.toString()).execute();
 
             ResultSet rs;
             (rs = db.prepareStatement("SELECT id FROM " + tableID + " WHERE INSTANCEID ='" + instanceID + "'").executeQuery()).next();
 
             int ret;
+            // put final rowid to saved map
             saved.put(item, ret = rs.getInt(1));
-            // self references
+            // first writecycle finished. put id to finalSaved
             finalSaved.put(item, ret);
             return ret;
         } else {
-
+            // no entry. create a new one
+            // first check for converters
             ClassConverter conv = converter.get(item.getClass().getName());
             if (conv != null) return conv.write(tableID, item, instanceID);
 
-            // new entry
+            // return cached rowid if storage of item si in progress
             if (saved.containsKey(item)) {
-
                 // loop reference
-
                 return saved.get(item);
             }
+            // put -1 as ropwid to saved. indicating that storage is in progress
             saved.put(item, -1);
+            // build statement
             StringBuilder sb = new StringBuilder();
-
             ArrayList<DBTableColumn> columns = getDBTableColumns(tableID);
             sb.append("INSERT INTO ");
             sb.append(tableID);
@@ -523,16 +590,19 @@ public class ORMapper {
                 f = getField(item.getClass(), columns.get(i).getColumnName());
                 f.setAccessible(true);
                 if (f.getType().isArray()) {
-
-                    String table = storeArray(instanceID + "__" + f.getName(), f.getType(), f.get(item), saved, rewrite, finalSaved);
-                    insertStatement.setObject(i + 1, table);
+                    // is an array.
+                    // create array table and store string reference (tablename)
+                    // to current table
+                    insertStatement.setObject(i + 1, storeArray(instanceID + "__" + f.getName(), f.getType(), f.get(item), saved, rewrite, finalSaved));
 
                 } else if (!f.getType().isPrimitive() && !Modifier.isTransient(f.getType().getModifiers())) {
+                    // is a non transient object. run recursive throu object
+                    // tree and return resulting row id
                     Object cross = (Object) getSQLValue(f, item);
                     if (cross != null) {
 
                         int rw;
-
+                        // special for self references
                         if (cross == item) {
                             if (finalSaved.containsKey(cross)) {
                                 cross = cross.getClass().getName() + ":" + +(rw = finalSaved.get(cross));
@@ -544,7 +614,10 @@ public class ORMapper {
                         }
 
                         if (rw < 0) {
-
+                            // resulting rowid could not be determined.
+                            // References could not be resolved. put item to
+                            // rewritemap. this forces the mapper to update the
+                            // item table afterreferences have been written
                             rewrite.put(item, (Object) getSQLValue(f, item));
                         }
                     }
@@ -554,32 +627,39 @@ public class ORMapper {
                 }
             }
             // item may have be saved through a loopback reference
+            // do another check. item may have been written deeper in object
+            // tree already
             if (saved.get(item) >= 0) {
-
                 // loop reference
 
                 return saved.get(item);
             }
+            // execute query
             insertStatement.execute();
 
-            System.err.println(insertStatement);
+            // get final row id
             // there must be a better way
             ResultSet rs;
             (rs = db.prepareStatement("SELECT id FROM " + tableID + " WHERE INSTANCEID ='" + instanceID + "'").executeQuery()).next();
             int ret;
+            // update rowid in saved map
             saved.put(item, ret = rs.getInt(1));
             // self references
+            // first cycle is through, and we have a final rowid
             finalSaved.put(item, ret);
             return ret;
         }
     }
 
     /**
-     * @param class1
-     * @param columnName
+     * Get the filed with the given name. loops through classhirarchy to find
+     * the field
+     * 
+     * @param clazz
+     * @param name
      * @return
-     * @throws NoSuchFieldException
      * @throws SecurityException
+     * @throws NoSuchFieldException
      */
     private Field getField(Class<? extends Object> clazz, String name) throws SecurityException, NoSuchFieldException {
         Field ret = null;
@@ -595,34 +675,54 @@ public class ORMapper {
     }
 
     /**
+     * Stores array object to table. object is of class clazz
+     * 
      * @param table
-     * @param cast
+     * @param clazz
      * @param object
-     * @throws SQLException
-     * @throws IllegalAccessException
-     * @throws NoSuchFieldException
-     * @throws IllegalArgumentException
+     * @param saved
+     * @see {@link #store(Object, HashMap, HashMap, HashMap)}
+     * @param rewrite
+     * @see {@link #store(Object, HashMap, HashMap, HashMap)}
+     * @param finalSaved
+     * @see {@link #store(Object, HashMap, HashMap, HashMap)}
+     * @return
      * @throws SecurityException
+     * @throws IllegalArgumentException
+     * @throws NoSuchFieldException
+     * @throws IllegalAccessException
+     * @throws SQLException
      */
     private String storeArray(String table, Class<?> clazz, Object object, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite, HashMap<Object, Integer> finalSaved) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException, SQLException {
+        // Array is null. return null
         if (object == null) return null;
 
-        if (saved == null) saved = new HashMap<Object, Integer>();
+        // create references controller maps
+        if (saved == null) {
+            saved = new HashMap<Object, Integer>();
+        }
+        if (finalSaved == null) {
+            finalSaved = new HashMap<Object, Integer>();
 
+        }
         if (rewrite == null) {
             rewrite = new HashMap<Object, Object>();
 
         }
-
+        // return tablename if the array has already been stored
+        // arrays ay also contain invalid references. this is a TODO
         if (saved.containsKey(object)) { return table; }
+        // but array to saved map, indictaing that saving is in progress
         saved.put(object, -1);
         table = table.toUpperCase();
+        // table integrity check
         table = this.checkTable(clazz, table);
+        // clear table. we have to rebuild it from scratch
         clearTable(table);
+        // get class of array entries
         Class<?> type = clazz.getComponentType();
-
+        // build table
         StringBuilder sb = new StringBuilder();
-
         sb.append("INSERT INTO ");
         sb.append(table);
         sb.append(" VALUES (?,?,?,?)");
@@ -634,30 +734,37 @@ public class ORMapper {
             obj = Array.get(object, i);
             insertStatement.setString(3, type.getName());
             if (type.isArray()) {
+                // MultiDim array. create subarray Table
                 String sub = storeArray(table + "__" + i, type, obj, saved, rewrite, finalSaved);
                 insertStatement.setObject(4, sub);
             } else if (!type.isPrimitive()) {
-                Object cross = (Object) getSQLValue(type, obj);
-
+                Object cross = (Object) obj;
                 if (cross != null) {
 
+                    // we have no selfreferencs check in arrays yet.
+                    // this may produce endless loops.
+                    // TODO
                     int rw;
                     cross = "'" + cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved)) + "'";
-                    if (rw < 0) rewrite.put(object, (Object) getSQLValue(type, obj));
+                    if (rw < 0) {
+                        rewrite.put(object, obj);
+                    }
                 }
 
                 insertStatement.setObject(4, cross);
             } else {
-                insertStatement.setObject(4, getSQLValue(type, obj));
+                insertStatement.setObject(4, obj);
             }
             insertStatement.execute();
-            System.err.println(insertStatement);
+
         }
         finalSaved.put(object, -1);
         return table;
     }
 
     /**
+     * Clear array TODO: better sql
+     * 
      * @param table
      * @throws SQLException
      */
@@ -667,12 +774,13 @@ public class ORMapper {
         sb.append("DELETE FROM ");
         sb.append(table);
         sb.append(" WHERE ID >= '0'");
-        System.err.println(sb);
         db.createStatement().executeQuery(sb.toString());
 
     }
 
     /**
+     * returns all columns for table with name tableID
+     * 
      * @param tableID
      * @return
      * @throws SQLException
@@ -688,6 +796,8 @@ public class ORMapper {
     }
 
     /**
+     * sets the field readable, and returns the object from item
+     * 
      * @param field
      * @param item
      * @return
@@ -697,17 +807,6 @@ public class ORMapper {
     private Object getSQLValue(Field field, Object item) throws IllegalArgumentException, IllegalAccessException {
         field.setAccessible(true);
         Object obj = field.get(item);
-
-        return getSQLValue(field.getType(), obj);
-    }
-
-    /**
-     * @param type
-     * @param obj
-     * @return
-     */
-    private Object getSQLValue(Class<?> type, Object obj) {
-        // add converter here
         return obj;
     }
 
@@ -725,6 +824,19 @@ public class ORMapper {
 
     }
 
+    /**
+     * checks table integrity and creates a table if required. This would be the
+     * right plae to autofix broken table-Class relations
+     * 
+     * @param clazz
+     * @param tableID
+     * @return
+     * @throws SecurityException
+     * @throws NoSuchFieldException
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
+     * @throws SQLException
+     */
     private String checkTable(Class<?> clazz, String tableID) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException, SQLException {
         if (tableID == null) {
             MappableClassID anno = clazz.getAnnotation(MappableClassID.class);
@@ -735,18 +847,21 @@ public class ORMapper {
             return createTable(tableID, clazz);
         } else {
             // check inte.
-            checkTableIntegraty(tableID, clazz);
+            checkTableIntegrity(tableID, clazz);
         }
 
         return tableID;
     }
 
     /**
+     * checks if the table for clazz has errors, missing fields etc. This would
+     * be the right place to autofix tables
+     * 
      * @param tableID
      * @param class1
      * @throws SQLException
      */
-    private void checkTableIntegraty(String tableID, Class<?> clazz) throws SQLException {
+    private void checkTableIntegrity(String tableID, Class<?> clazz) throws SQLException {
 
         ClassConverter conv = converter.get(clazz.getName());
         if (conv != null) {
@@ -855,7 +970,6 @@ public class ORMapper {
             sb.append(")");
         }
 
-        System.err.println(sb.toString());
         db.createStatement().executeUpdate(sb.toString());
 
         return tableID;
@@ -886,10 +1000,6 @@ public class ORMapper {
             if (Modifier.isTransient(f.getModifiers())) {
                 continue;
             }
-            // no incompatible class types
-            if (!isClassCompatible(f.getType())) {
-                continue;
-            }
             // no statics
             if (Modifier.isStatic(f.getModifiers())) {
                 continue;
@@ -898,20 +1008,6 @@ public class ORMapper {
 
         }
         return ret;
-    }
-
-    /**
-     * @param type
-     * @return
-     */
-    private boolean isClassCompatible(Class<?> type) {
-
-        if (type == String.class) return true;
-        // if (Number.class.isAssignableFrom(type)) return true;
-        if (type.isPrimitive()) return true;
-        if (type.isArray()) return true;
-
-        return true;
     }
 
     /**
@@ -936,6 +1032,7 @@ public class ORMapper {
     }
 
     /**
+     * @see #store(Object, HashMap, HashMap, HashMap)
      * @param a
      */
     public void store(Object a) {

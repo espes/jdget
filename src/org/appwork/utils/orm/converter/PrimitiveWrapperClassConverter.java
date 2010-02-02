@@ -7,12 +7,14 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.orm;
+package org.appwork.utils.orm.converter;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import org.appwork.utils.orm.MappableClassID;
 
 /**
  * @author coalado
@@ -54,7 +56,7 @@ public abstract class PrimitiveWrapperClassConverter extends ClassConverter {
         sb.append("CREATE TABLE ");
         sb.append(tableID);
         sb.append(" ( ID INT IDENTITY ,INSTANCEID LONGVARCHAR,VALUE " + type + ") ");
-        System.err.println(sb.toString());
+
         db.createStatement().executeUpdate(sb.toString());
 
         return tableID;
@@ -106,7 +108,7 @@ public abstract class PrimitiveWrapperClassConverter extends ClassConverter {
         sb.append(instanceID);
         sb.append("'");
         // there must be a better way
-        System.err.println(sb);
+
         db.prepareStatement(sb.toString()).execute();
 
         ResultSet rs;
@@ -141,7 +143,6 @@ public abstract class PrimitiveWrapperClassConverter extends ClassConverter {
         insertStatement.setObject(2, instanceID);
         insertStatement.setObject(3, getValue(item));
         insertStatement.execute();
-        System.err.println(insertStatement);
         // there must be a better way
         ResultSet rs;
         (rs = db.prepareStatement("SELECT id FROM " + tableID + " WHERE INSTANCEID ='" + instanceID + "'").executeQuery()).next();

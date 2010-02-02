@@ -7,35 +7,40 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.orm;
+package org.appwork.utils.orm.converter;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * @author coalado
  * 
  */
-public class StringConverter extends PrimitiveWrapperClassConverter {
+public class ClassClassConverter extends StringConverter {
 
     /**
      * @param db
      */
-    public StringConverter(Connection db) {
-        super(db, "LONGVARCHAR");
+    public ClassClassConverter(Connection db) {
+        super(db);
+
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.appwork.utils.orm.PrimitiveWrapperClassConverter#getValue(java.lang
-     * .Object)
-     */
     @Override
     protected Object getValue(Object item) {
         // TODO Auto-generated method stub
         if (item == null) return null;
-        return item.toString();
+        return ((Class<?>) item).getName();
     }
 
+    public Object get(Class<?> clazz, String where) throws SQLException {
+
+        try {
+            return Class.forName(super.get(clazz, where).toString());
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

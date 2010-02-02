@@ -25,13 +25,13 @@ public class TestClass {
     private int intc;
     transient private int transientintb;
     String stringD;
-    private int[] intArrayE;
+    public int[] intArrayE;
 
     // @InstanceID
     // be carefull. do NEVER change this if yuor are not absolutly sure what you
     // are doing
     transient public String instanceID = System.currentTimeMillis() + "_" + Math.random();
-    private int[][] doubleInt;
+    public int[][] doubleInt;
     public Object obj;
     public TestClass ich;
 

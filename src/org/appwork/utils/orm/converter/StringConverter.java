@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.orm;
+package org.appwork.utils.orm.converter;
 
 import java.sql.Connection;
 
@@ -15,17 +15,13 @@ import java.sql.Connection;
  * @author coalado
  * 
  */
-public class LongConverter extends PrimitiveWrapperClassConverter {
-
-    private String type;
+public class StringConverter extends PrimitiveWrapperClassConverter {
 
     /**
      * @param db
      */
-    public LongConverter(Connection db) {
-        super(db, "BIGINT");
-
-        // TODO Auto-generated constructor stub
+    public StringConverter(Connection db) {
+        super(db, "LONGVARCHAR");
     }
 
     /*
@@ -37,9 +33,9 @@ public class LongConverter extends PrimitiveWrapperClassConverter {
      */
     @Override
     protected Object getValue(Object item) {
+        // TODO Auto-generated method stub
         if (item == null) return null;
-
-        return ((Long) item).longValue();
+        return item.toString();
     }
 
 }
