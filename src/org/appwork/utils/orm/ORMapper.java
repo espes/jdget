@@ -151,23 +151,34 @@ public class ORMapper {
      */
     public static void main(String[] args) {
         ORMapper mapper = new ORMapper();
-
+        // create a test object structure
         TestClass item = new TestClass();
+        item.stringD = "affenhaut";
+        item.intArrayE = new int[] { 1, 2, 3, 4, 5 };
+        item.doubleInt = new int[][] { { 1, 2 }, { 2, 3 }, { 4, 5 } };
+        item.instanceID = "Mainitem";
         TestClass item2 = new TestClass();
+        item2.instanceID = "Childitem";
+        item2.stringD = "babla";
+        item2.intArrayE = new int[] { 6, 4, 7 };
+        item2.doubleInt = new int[][] { { 10, 20 }, { 20, 30 }, { 40, 50 } };
         item.stringD = "ZWQEITER";
         item.testClassA = item2;
         item2.ich = item;
         item.obj = new String("III");
-
-        mapper.store(item, null, null, null);
-
+        // store it
+        mapper.store(item);
+        // reswtore it from db
         TestClass restore = (TestClass) mapper.get(TestClass.class, 0, null);
         // these testcases have to print TRUE
+        // compare
         System.out.println("Restore Strings: " + restore.stringD.equals(item.stringD));
         System.out.println("Restore Reference Loops: " + (restore.testClassA.ich == restore));
         System.out.println("Restore SelfReference Loops: " + (restore.ich == restore));
         System.out.println("Restore Childclass types: " + (restore.obj instanceof String));
         System.out.println("Restore Deep arrays: " + Arrays.deepToString(restore.doubleInt).equals(Arrays.deepToString(item.doubleInt)));
+        System.out.println("Restore instanceids: " + restore.instanceID.equals(item.instanceID) + " & Deep :" + restore.testClassA.instanceID.equals(item.testClassA.instanceID));
+
     }
 
     /**

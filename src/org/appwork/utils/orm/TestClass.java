@@ -27,7 +27,7 @@ public class TestClass {
     String stringD;
     public int[] intArrayE;
 
-    // @InstanceID
+    @InstanceID
     // be carefull. do NEVER change this if yuor are not absolutly sure what you
     // are doing
     transient public String instanceID = System.currentTimeMillis() + "_" + Math.random();
@@ -41,9 +41,7 @@ public class TestClass {
         testClassA = null;
         obj = null;
         testClassB = null;
-        stringD = "affenhaut";
-        intArrayE = new int[] { 1, 2, 3, 4, 5 };
-        doubleInt = new int[][] { { 1, 2 }, { 2, 3 }, { 4, 5 } };
+
         ich = this;
     }
 
