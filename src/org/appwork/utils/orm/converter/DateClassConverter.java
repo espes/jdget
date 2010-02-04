@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.orm.converter;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Date;
 
@@ -22,8 +21,8 @@ public class DateClassConverter extends StringConverter {
     /**
      * @param db
      */
-    public DateClassConverter(Connection db) {
-        super(db);
+    public DateClassConverter() {
+
         // TODO Auto-generated constructor stub
     }
 

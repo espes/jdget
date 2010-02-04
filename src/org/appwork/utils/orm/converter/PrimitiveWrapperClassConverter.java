@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.orm.converter;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,8 +26,8 @@ public abstract class PrimitiveWrapperClassConverter extends ClassConverter {
     /**
      * @param db
      */
-    public PrimitiveWrapperClassConverter(Connection db, String type) {
-        super(db);
+    public PrimitiveWrapperClassConverter(String type) {
+
         this.type = type;
     }
 

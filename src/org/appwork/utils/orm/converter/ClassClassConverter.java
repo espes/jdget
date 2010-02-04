@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.orm.converter;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
@@ -21,8 +20,7 @@ public class ClassClassConverter extends StringConverter {
     /**
      * @param db
      */
-    public ClassClassConverter(Connection db) {
-        super(db);
+    public ClassClassConverter() {
 
     }
 

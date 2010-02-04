@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.orm.converter;
 
-import java.sql.Connection;
 
 /**
  * @author coalado
@@ -20,8 +19,8 @@ public class StringConverter extends PrimitiveWrapperClassConverter {
     /**
      * @param db
      */
-    public StringConverter(Connection db) {
-        super(db, "LONGVARCHAR");
+    public StringConverter() {
+        super("LONGVARCHAR");
     }
 
     /*

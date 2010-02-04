@@ -75,6 +75,14 @@ public class ORMapper {
     private HashMap<Class<?>, ClassAdapter> adapter;
 
     public ORMapper() {
+        this("orm");
+
+    }
+
+    /**
+     * @param string
+     */
+    public ORMapper(String dbname) {
         typeMap = new HashMap<String, String>();
         converter = new HashMap<String, ClassConverter>();
         adapter = new HashMap<Class<?>, ClassAdapter>();
@@ -87,10 +95,9 @@ public class ORMapper {
         typeMap.put("int", "INT");
         typeMap.put("double", "FLOAT");
         typeMap.put("float", "FLOAT");
-        initDB();
+        initDB(dbname);
         initDefaultConverter();
         initAdapter();
-
     }
 
     /**
@@ -111,10 +118,10 @@ public class ORMapper {
 
     private void initDefaultConverter() {
 
-        addConverter(String.class, new StringConverter(db));
-        addConverter(Long.class, new LongConverter(db));
-        addConverter(Class.class, new ClassClassConverter(db));
-        addConverter(Date.class, new DateClassConverter(db));
+        addConverter(String.class, new StringConverter());
+        addConverter(Long.class, new LongConverter());
+        addConverter(Class.class, new ClassClassConverter());
+        addConverter(Date.class, new DateClassConverter());
 
     }
 
@@ -128,16 +135,18 @@ public class ORMapper {
     public void addConverter(Class<?> class1, ClassConverter classConverter) {
         converter.put(class1.getName(), classConverter);
         classConverter.setOwner(this);
+        classConverter.setDb(db);
 
     }
 
     /**
+     * @param dbname
      * 
      */
-    private void initDB() {
+    private void initDB(String dbname) {
 
         try {
-            db = DriverManager.getConnection("jdbc:hsqldb:file:" + Application.getRessource("/config/databases/orm") + ";shutdown=true", "sa", "");
+            db = DriverManager.getConnection("jdbc:hsqldb:file:" + Application.getRessource("/config/databases/" + dbname) + ";shutdown=true", "sa", "");
 
             db.setAutoCommit(false);
             db.createStatement().executeUpdate("SET LOGSIZE 10");
@@ -392,26 +401,29 @@ public class ORMapper {
      * @param finalSaved
      *            internal use. stores all items least at least one full write
      *            cycle
+     * @param instanceID
      * @return
      */
-    private int store(Object item, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite, HashMap<Object, Integer> finalSaved) {
+    private int store(Object item, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite, HashMap<Object, Integer> finalSaved, String instanceID) {
 
         try {
             System.out.println(item);
-            String instanceID = null;
+
             // get Instanceid
             // instance id can be givven by a String with InstanceID Annotation,
             // or it is outbuild by hashcode
-            for (Field f : getFields(item.getClass())) {
-
-                f.setAccessible(true);
-                if (f.getAnnotation(InstanceID.class) != null) {
-                    instanceID = (String) f.get(item);
-                }
-            }
             if (instanceID == null) {
-                instanceID = "T" + Math.abs(item.hashCode()) + "";
-                // throw new DBException("COuld not find instance id");
+                for (Field f : getFields(item.getClass())) {
+
+                    f.setAccessible(true);
+                    if (f.getAnnotation(InstanceID.class) != null) {
+                        instanceID = (String) f.get(item);
+                    }
+                }
+                if (instanceID == null) {
+                    instanceID = "T" + Math.abs(item.hashCode()) + "";
+                    // throw new DBException("COuld not find instance id");
+                }
             }
             // check table integrity or create anew table.
             String tableID = checkTable(item);
@@ -442,7 +454,7 @@ public class ORMapper {
                         if (next.getKey().getClass().isArray()) {
                             storeArray(null, next.getKey().getClass(), next.getKey(), saved, null, finalSaved);
                         } else {
-                            store(next.getKey(), saved, null, finalSaved);
+                            store(next.getKey(), saved, null, finalSaved, null);
                         }
                     }
                 }
@@ -547,10 +559,10 @@ public class ORMapper {
                             if (finalSaved.containsKey(cross)) {
                                 cross = "'" + cross.getClass().getName() + ":" + (rw = finalSaved.get(cross)) + "'";
                             } else {
-                                cross = "'" + cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved)) + "'";
+                                cross = "'" + cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved, null)) + "'";
                             }
                         } else {
-                            cross = "'" + cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved)) + "'";
+                            cross = "'" + cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved, null)) + "'";
                         }
                         // could not get a final rowid for cross. this means
                         // that we have to rewrite item
@@ -655,10 +667,10 @@ public class ORMapper {
                             if (finalSaved.containsKey(cross)) {
                                 cross = cross.getClass().getName() + ":" + +(rw = finalSaved.get(cross));
                             } else {
-                                cross = cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved));
+                                cross = cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved, null));
                             }
                         } else {
-                            cross = cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved));
+                            cross = cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved, null));
                         }
 
                         if (rw < 0) {
@@ -794,7 +806,7 @@ public class ORMapper {
                     // this may produce endless loops.
                     // TODO
                     int rw;
-                    cross = cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved));
+                    cross = cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved, null));
                     if (rw < 0) {
                         rewrite.put(object, obj);
                     }
@@ -936,24 +948,9 @@ public class ORMapper {
             if (id == null) { throw new ConflictTableException("Column " + next.getName() + " in " + tableID + " is not present ");
             // we could autoenhance the column here
             }
-            if (!typeCheck(rs.getMetaData().getColumnType(id), next.getType())) {
-                // this is a bit tricky. we could try to implement external
-                // converter for such issues
-                throw new ConflictTableException("Column " + next.getName() + " in " + tableID + " has an incorrect type");
-            }
 
         }
 
-    }
-
-    /**
-     * @param columnType
-     * @param type
-     * @return
-     */
-    private boolean typeCheck(int columnType, Class<?> type) {
-
-        return true;
     }
 
     /**
@@ -1087,6 +1084,15 @@ public class ORMapper {
      * @param a
      */
     public void store(Object a) {
-        store(a, null, null, null);
+        store(a, null, null, null, null);
+    }
+
+    /**
+     * @param uploads
+     * @param string
+     */
+    public void store(Object uploads, String instanceID) {
+        this.store(uploads, null, null, null, instanceID);
+
     }
 }

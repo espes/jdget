@@ -21,13 +21,26 @@ import org.appwork.utils.orm.ORMapper;
 public abstract class ClassConverter {
 
     protected Connection db;
-    protected ORMapper owner;
+
+    /**
+     * @return the db
+     */
+    public Connection getDb() {
+        return db;
+    }
 
     /**
      * @param db
+     *            the db to set
      */
-    public ClassConverter(Connection db) {
+    public void setDb(Connection db) {
         this.db = db;
+    }
+
+    protected ORMapper owner;
+
+    public ClassConverter() {
+
     }
 
     /**
@@ -40,7 +53,7 @@ public abstract class ClassConverter {
     /**
      * @param tableID
      */
-    public abstract void checkIntegrety(String tableID);
+    public abstract void checkIntegrety(String tableID) throws SQLException;
 
     /**
      * @param tableID

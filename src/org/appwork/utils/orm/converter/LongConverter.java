@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.orm.converter;
 
-import java.sql.Connection;
 
 /**
  * @author coalado
@@ -22,8 +21,8 @@ public class LongConverter extends PrimitiveWrapperClassConverter {
     /**
      * @param db
      */
-    public LongConverter(Connection db) {
-        super(db, "BIGINT");
+    public LongConverter() {
+        super("BIGINT");
 
         // TODO Auto-generated constructor stub
     }
