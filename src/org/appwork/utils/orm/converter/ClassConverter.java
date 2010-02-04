@@ -12,6 +12,8 @@ package org.appwork.utils.orm.converter;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import org.appwork.utils.orm.ORMapper;
+
 /**
  * @author coalado
  * 
@@ -19,6 +21,7 @@ import java.sql.SQLException;
 public abstract class ClassConverter {
 
     protected Connection db;
+    protected ORMapper owner;
 
     /**
      * @param db
@@ -64,5 +67,13 @@ public abstract class ClassConverter {
      * @throws SQLException
      */
     public abstract Object get(Class<?> clazz, String where) throws SQLException;
+
+    /**
+     * @param orMapper
+     */
+    public void setOwner(ORMapper orMapper) {
+        owner = orMapper;
+
+    }
 
 }

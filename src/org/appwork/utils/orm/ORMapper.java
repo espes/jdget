@@ -19,14 +19,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.orm.adapter.ArrayListAdapter;
+import org.appwork.utils.orm.adapter.ClassAdapter;
 import org.appwork.utils.orm.converter.ClassClassConverter;
 import org.appwork.utils.orm.converter.ClassConverter;
+import org.appwork.utils.orm.converter.DateClassConverter;
 import org.appwork.utils.orm.converter.LongConverter;
 import org.appwork.utils.orm.converter.StringConverter;
 import org.appwork.utils.storage.DBException;
@@ -68,10 +72,12 @@ public class ORMapper {
      * maps java primitive types to SQL types
      */
     private HashMap<String, String> typeMap;
+    private HashMap<Class<?>, ClassAdapter> adapter;
 
     public ORMapper() {
         typeMap = new HashMap<String, String>();
         converter = new HashMap<String, ClassConverter>();
+        adapter = new HashMap<Class<?>, ClassAdapter>();
 
         // typeMap.put(Boolean.class, "INT");
 
@@ -83,7 +89,24 @@ public class ORMapper {
         typeMap.put("float", "FLOAT");
         initDB();
         initDefaultConverter();
+        initAdapter();
 
+    }
+
+    /**
+     * 
+     */
+    private void initAdapter() {
+        addAdapter(ArrayList.class, new ArrayListAdapter());
+    }
+
+    /**
+     * @param class1
+     * @param arrayListAdapter
+     */
+    private void addAdapter(Class<?> class1, ClassAdapter ca) {
+        adapter.put(class1, ca);
+        ca.setOwner(this);
     }
 
     private void initDefaultConverter() {
@@ -91,6 +114,8 @@ public class ORMapper {
         addConverter(String.class, new StringConverter(db));
         addConverter(Long.class, new LongConverter(db));
         addConverter(Class.class, new ClassClassConverter(db));
+        addConverter(Date.class, new DateClassConverter(db));
+
     }
 
     /**
@@ -102,6 +127,7 @@ public class ORMapper {
      */
     public void addConverter(Class<?> class1, ClassConverter classConverter) {
         converter.put(class1.getName(), classConverter);
+        classConverter.setOwner(this);
 
     }
 
@@ -165,7 +191,12 @@ public class ORMapper {
         item.stringD = "ZWQEITER";
         item.testClassA = item2;
         item2.ich = item;
-        item.obj = new String("III");
+        ArrayList<String> list = new ArrayList<String>();
+        list.add("aaa");
+        list.add("bbb");
+        list.add("ccc");
+        item.obj = list;
+
         // store it
         mapper.store(item);
         // reswtore it from db
@@ -175,7 +206,8 @@ public class ORMapper {
         System.out.println("Restore Strings: " + restore.stringD.equals(item.stringD));
         System.out.println("Restore Reference Loops: " + (restore.testClassA.ich == restore));
         System.out.println("Restore SelfReference Loops: " + (restore.ich == restore));
-        System.out.println("Restore Childclass types: " + (restore.obj instanceof String));
+        // System.out.println("Restore Childclass types: " +
+        // (restore.obj.class.equals(item.obj.class)));
         System.out.println("Restore Deep arrays: " + Arrays.deepToString(restore.doubleInt).equals(Arrays.deepToString(item.doubleInt)));
         System.out.println("Restore instanceids: " + restore.instanceID.equals(item.instanceID) + " & Deep :" + restore.testClassA.instanceID.equals(item.testClassA.instanceID));
 
@@ -365,7 +397,7 @@ public class ORMapper {
     private int store(Object item, HashMap<Object, Integer> saved, HashMap<Object, Object> rewrite, HashMap<Object, Integer> finalSaved) {
 
         try {
-
+            System.out.println(item);
             String instanceID = null;
             // get Instanceid
             // instance id can be givven by a String with InstanceID Annotation,
@@ -378,7 +410,7 @@ public class ORMapper {
                 }
             }
             if (instanceID == null) {
-                instanceID = "T" + item.hashCode() + "";
+                instanceID = "T" + Math.abs(item.hashCode()) + "";
                 // throw new DBException("COuld not find instance id");
             }
             // check table integrity or create anew table.
@@ -403,11 +435,15 @@ public class ORMapper {
             for (Iterator<Entry<Object, Object>> it = rewrite.entrySet().iterator(); it.hasNext();) {
                 Entry<Object, Object> next = it.next();
                 if (next.getValue() == item) {
-                    saved.remove(next.getKey());
-                    if (next.getKey().getClass().isArray()) {
-                        storeArray(null, next.getKey().getClass(), next.getKey(), saved, null, finalSaved);
-                    } else {
-                        store(next.getKey(), saved, null, finalSaved);
+                    Integer rowID = -2;
+                    Integer rowID2 = -2;
+                    if ((saved.containsKey(next.getValue()) && (rowID = saved.get(next.getValue())) >= 0) || ((finalSaved.containsKey(next.getValue()) && (rowID2 = finalSaved.get(next.getValue())) >= 0))) {
+                        saved.remove(next.getKey());
+                        if (next.getKey().getClass().isArray()) {
+                            storeArray(null, next.getKey().getClass(), next.getKey(), saved, null, finalSaved);
+                        } else {
+                            store(next.getKey(), saved, null, finalSaved);
+                        }
                     }
                 }
 
@@ -425,7 +461,7 @@ public class ORMapper {
      * @param class1
      * @return
      */
-    private Field[] getFields(Class<? extends Object> clazz) {
+    public Field[] getFields(Class<? extends Object> clazz) {
         ArrayList<Field> ret = new ArrayList<Field>();
 
         while (clazz != null) {
@@ -557,6 +593,7 @@ public class ORMapper {
             // get autocreated rowID (autoincrement)
             // there must be a better way
 
+            Log.L.finer(sb.toString());
             db.prepareStatement(sb.toString()).execute();
 
             ResultSet rs;
@@ -646,6 +683,7 @@ public class ORMapper {
                 return saved.get(item);
             }
             // execute query
+            Log.L.finer(insertStatement.toString());
             insertStatement.execute();
 
             // get final row id
@@ -756,7 +794,7 @@ public class ORMapper {
                     // this may produce endless loops.
                     // TODO
                     int rw;
-                    cross = "'" + cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved)) + "'";
+                    cross = cross.getClass().getName() + ":" + +(rw = store(cross, saved, rewrite, finalSaved));
                     if (rw < 0) {
                         rewrite.put(object, obj);
                     }
@@ -766,6 +804,7 @@ public class ORMapper {
             } else {
                 insertStatement.setObject(4, obj);
             }
+            Log.L.finer(insertStatement.toString());
             insertStatement.execute();
 
         }
@@ -883,7 +922,7 @@ public class ORMapper {
         ResultSet rs;
         rs = db.prepareStatement("SELECT * FROM " + tableID).executeQuery();
 
-        HashMap<String, Field> fields = getDeclaredFieldsToStore(this.getFields(clazz));
+        HashMap<String, Field> fields = getDeclaredFieldsToStore(clazz);
         HashMap<String, Integer> columnmap = new HashMap<String, Integer>();
         // create column name-id map
         for (int i = 3; i <= rs.getMetaData().getColumnCount(); i++) {
@@ -931,7 +970,7 @@ public class ORMapper {
         ClassConverter conv = converter.get(clazz.getName());
         if (conv != null) return conv.createTable(tableID);
         StringBuilder sb = new StringBuilder();
-        HashMap<String, Field> fields = this.getDeclaredFieldsToStore(getFields(clazz));
+        HashMap<String, Field> fields = this.getDeclaredFieldsToStore(clazz);
         sb.append("CREATE TABLE ");
         sb.append(tableID);
         sb.append(" ( ID INT IDENTITY ,INSTANCEID LONGVARCHAR,CLASSID LONGVARCHAR");
@@ -999,9 +1038,10 @@ public class ORMapper {
      * @param fields
      * @return
      */
-    private HashMap<String, Field> getDeclaredFieldsToStore(Field[] fields) {
+    private HashMap<String, Field> getDeclaredFieldsToStore(Class<?> clazz) {
+        if (adapter.containsKey(clazz)) { return adapter.get(clazz).getDeclaredFields(clazz); }
         HashMap<String, Field> ret = new HashMap<String, Field>();
-
+        Field[] fields = this.getFields(clazz);
         for (Field f : fields) {
             // filter instanceid
             if (f.getAnnotation(InstanceID.class) != null) {
