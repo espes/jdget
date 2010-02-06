@@ -232,6 +232,7 @@ public class ThrottledConnectionManager {
         watchDog = new Thread() {
             @Override
             public void run() {
+                setName("ThrottlecConnectionManager");
                 while (true) {
                     try {
                         sleep(Math.max(1000, updateSpeed));

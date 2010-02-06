@@ -22,4 +22,6 @@ public interface StateEventListener extends EventListener {
      */
     void onStateChange(StateEvent event);
 
+    void onStateUpdate(StateEvent event);
+
 }

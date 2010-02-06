@@ -26,8 +26,11 @@ public class StateEventsender extends Eventsender<StateEventListener, StateEvent
      */
     @Override
     protected void fireEvent(StateEventListener listener, StateEvent event) {
-        listener.onStateChange(event);
-
+        if (event.getEventID() == StateEvent.CHANGED) {
+            listener.onStateChange(event);
+        } else if (event.getEventID() == StateEvent.UPDATED) {
+            listener.onStateUpdate(event);
+        }
     }
 
 }

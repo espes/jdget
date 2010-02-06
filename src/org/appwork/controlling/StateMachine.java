@@ -75,6 +75,14 @@ public class StateMachine {
         this.forceState(newState);
     }
 
+    public void fireUpdate(State currentState) {
+        if (currentState != null) {
+            if (this.currentState != currentState) throw new StateConflictException("Cannot update state " + currentState + " because current state is " + this.currentState);
+        }
+        StateEvent event = new StateEvent(this, StateEvent.UPDATED, currentState, currentState);
+        eventSender.fireEvent(event);
+    }
+
     /**
      * @param canceledState
      * @param progressUpdate

@@ -75,9 +75,13 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
     public void putSpeedMeter(long x, long time) {
         synchronized (LOCK) {
             bytes[index] = Math.max(0, x);
-            times[index] = Math.max(0, time);
-            index++;
-            if (index == size) index = 0;
+            times[index] += Math.max(0, time);
+            if (bytes[index] != 0) {
+                index++;
+                if (index == size) index = 0;
+                times[index] = 0;
+                bytes[index] = -1;
+            }
             changed = true;
         }
     }

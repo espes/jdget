@@ -108,7 +108,9 @@ public class TreeModelStateSaver {
      */
     public void restore() {
         restoreState(tree.getModel().getRoot(), new ArrayList<Object>());
-        if (selectedPathes != null && selectedPathes.length > 0) tree.getSelectionModel().setSelectionPaths(selectedPathes);
+        if (selectedPathes != null && selectedPathes.length > 0) {
+            tree.getSelectionModel().setSelectionPaths(selectedPathes);
+        }
     }
 
     /**

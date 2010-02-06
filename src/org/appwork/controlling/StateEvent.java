@@ -49,6 +49,7 @@ public class StateEvent extends Event {
     }
 
     public static final int CHANGED = 0;
+    public static final int UPDATED = 1;
 
     /**
      * @return
