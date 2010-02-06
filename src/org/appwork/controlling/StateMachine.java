@@ -12,6 +12,7 @@ public class StateMachine {
     private State finalState;
     private ArrayList<State> path;
     private StateMachineInterface owner;
+    private Object lock = new Object();
 
     /**
      * @param interfac
@@ -114,13 +115,17 @@ public class StateMachine {
      * 
      */
     public void reset() {
-        if (currentState == initState) return;
-        if (finalState != currentState) throw new StateConflictException("Cannot reset from state " + currentState);
-        StateEvent event = new StateEvent(this, StateEvent.CHANGED, currentState, initState);
-        this.currentState = this.initState;
+        StateEvent event;
+        synchronized (lock) {
+            if (currentState == initState) return;
+            if (finalState != currentState) throw new StateConflictException("Cannot reset from state " + currentState);
+            event = new StateEvent(this, StateEvent.CHANGED, currentState, initState);
+            this.currentState = this.initState;
+
+            path.clear();
+            path.add(initState);
+        }
         eventSender.fireEvent(event);
-        path.clear();
-        path.add(initState);
     }
 
     /**
@@ -128,27 +133,34 @@ public class StateMachine {
      */
     public boolean isFinal() {
         // TODO Auto-generated method stub
-        return finalState != currentState;
+        return finalState == currentState;
     }
 
     /**
      * @param parseInt
      */
     public void forceState(int id) {
-        State newState = getStateById(this.initState, id, null);
-        if (newState == null) throw new StateConflictException("No State with ID " + id);
+
+        State newState;
+        synchronized (lock) {
+            newState = getStateById(this.initState, id, null);
+            if (newState == null) throw new StateConflictException("No State with ID " + id);
+        }
         forceState(newState);
     }
 
     /**
      * @param newState
      */
-    private synchronized void forceState(State newState) {
-        if (currentState == newState) return;
-        StateEvent event = new StateEvent(this, StateEvent.CHANGED, currentState, newState);
-        path.add(newState);
-        Log.L.finest(owner + " State changed " + currentState + " -> " + newState);
-        currentState = newState;
+    public void forceState(State newState) {
+        StateEvent event;
+        synchronized (lock) {
+            if (currentState == newState) return;
+            event = new StateEvent(this, StateEvent.CHANGED, currentState, newState);
+            path.add(newState);
+            Log.L.finest(owner + " State changed " + currentState + " -> " + newState);
+            currentState = newState;
+        }
         eventSender.fireEvent(event);
     }
 
