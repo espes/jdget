@@ -18,7 +18,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -186,39 +185,46 @@ public class ORMapper {
      */
     public static void main(String[] args) {
         ORMapper mapper = new ORMapper();
+        mapper.clear();
         // create a test object structure
-        TestClass item = new TestClass();
-        item.stringD = "affenhaut";
-        item.intArrayE = new int[] { 1, 2, 3, 4, 5 };
-        item.doubleInt = new int[][] { { 1, 2 }, { 2, 3 }, { 4, 5 } };
-        item.instanceID = "Mainitem";
-        TestClass item2 = new TestClass();
-        item2.instanceID = "Childitem";
-        item2.stringD = "babla";
-        item2.intArrayE = new int[] { 6, 4, 7 };
-        item2.doubleInt = new int[][] { { 10, 20 }, { 20, 30 }, { 40, 50 } };
-        item.stringD = "ZWQEITER";
-        item.testClassA = item2;
-        item2.ich = item;
-        ArrayList<String> list = new ArrayList<String>();
-        list.add("aaa");
-        list.add("bbb");
-        list.add("ccc");
-        item.obj = list;
-
-        // store it
-        mapper.store(item);
-        // reswtore it from db
-        TestClass restore = (TestClass) mapper.get(TestClass.class, 0, null);
-        // these testcases have to print TRUE
-        // compare
-        System.out.println("Restore Strings: " + restore.stringD.equals(item.stringD));
-        System.out.println("Restore Reference Loops: " + (restore.testClassA.ich == restore));
-        System.out.println("Restore SelfReference Loops: " + (restore.ich == restore));
-        // System.out.println("Restore Childclass types: " +
-        // (restore.obj.class.equals(item.obj.class)));
-        System.out.println("Restore Deep arrays: " + Arrays.deepToString(restore.doubleInt).equals(Arrays.deepToString(item.doubleInt)));
-        System.out.println("Restore instanceids: " + restore.instanceID.equals(item.instanceID) + " & Deep :" + restore.testClassA.instanceID.equals(item.testClassA.instanceID));
+        // TestClass item = new TestClass();
+        // item.stringD = "affenhaut";
+        // item.intArrayE = new int[] { 1, 2, 3, 4, 5 };
+        // item.doubleInt = new int[][] { { 1, 2 }, { 2, 3 }, { 4, 5 } };
+        // item.instanceID = "Mainitem";
+        // TestClass item2 = new TestClass();
+        // item2.instanceID = "Childitem";
+        // item2.stringD = "babla";
+        // item2.intArrayE = new int[] { 6, 4, 7 };
+        // item2.doubleInt = new int[][] { { 10, 20 }, { 20, 30 }, { 40, 50 } };
+        // item.stringD = "ZWQEITER";
+        // item.testClassA = item2;
+        // item2.ich = item;
+        // ArrayList<String> list = new ArrayList<String>();
+        // list.add("aaa");
+        // list.add("bbb");
+        // list.add("ccc");
+        // item.obj = list;
+        //
+        // // store it
+        // mapper.store(item);
+        // // reswtore it from db
+        // TestClass restore = (TestClass) mapper.get(TestClass.class, 0, null);
+        // // these testcases have to print TRUE
+        // // compare
+        // System.out.println("Restore Strings: " +
+        // restore.stringD.equals(item.stringD));
+        // System.out.println("Restore Reference Loops: " +
+        // (restore.testClassA.ich == restore));
+        // System.out.println("Restore SelfReference Loops: " + (restore.ich ==
+        // restore));
+        // // System.out.println("Restore Childclass types: " +
+        // // (restore.obj.class.equals(item.obj.class)));
+        // System.out.println("Restore Deep arrays: " +
+        // Arrays.deepToString(restore.doubleInt).equals(Arrays.deepToString(item.doubleInt)));
+        // System.out.println("Restore instanceids: " +
+        // restore.instanceID.equals(item.instanceID) + " & Deep :" +
+        // restore.testClassA.instanceID.equals(item.testClassA.instanceID));
 
     }
 
@@ -315,6 +321,7 @@ public class ORMapper {
 
             return instance;
         } catch (Exception e) {
+            if (e.getMessage().startsWith("Table not found in statement")) { return null; }
             throw new DBException(e);
         }
     }
@@ -1094,5 +1101,20 @@ public class ORMapper {
     public void store(Object uploads, String instanceID) {
         this.store(uploads, null, null, null, instanceID);
 
+    }
+
+    /**
+     * drops all tables
+     */
+    public void clear() {
+        try {
+            ResultSet rs = db.getMetaData().getTables(null, null, null, new String[] { "TABLE" });
+            while (rs.next()) {
+
+                db.prepareStatement("DROP TABLE " + rs.getString(3)).execute();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

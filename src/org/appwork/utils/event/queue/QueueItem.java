@@ -9,6 +9,8 @@
  */
 package org.appwork.utils.event.queue;
 
+import org.appwork.utils.logging.Log;
+
 /**
  * @author daniel
  * 
@@ -30,6 +32,7 @@ public abstract class QueueItem {
         try {
             result = run();
         } catch (Exception e) {
+            Log.exception(e);
             exce = e;
             throw e;
         } finally {
