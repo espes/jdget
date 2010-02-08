@@ -69,10 +69,11 @@ public class StateMachine {
     /**
      * @param addLinkState
      */
-    public synchronized void setStatus(State newState) {
-        if (currentState == newState) return;
-        if (!currentState.getChildren().contains(newState)) { throw new StateConflictException("Cannot change state from " + currentState + " to " + newState); }
-
+    public void setStatus(State newState) {
+        synchronized (lock) {
+            if (currentState == newState) return;
+            if (!currentState.getChildren().contains(newState)) { throw new StateConflictException("Cannot change state from " + currentState + " to " + newState); }
+        }
         this.forceState(newState);
     }
 
@@ -120,6 +121,7 @@ public class StateMachine {
             if (currentState == initState) return;
             if (finalState != currentState) throw new StateConflictException("Cannot reset from state " + currentState);
             event = new StateEvent(this, StateEvent.CHANGED, currentState, initState);
+            Log.L.finest(owner + " State changed (reset) " + currentState + " -> " + initState);
             this.currentState = this.initState;
 
             path.clear();

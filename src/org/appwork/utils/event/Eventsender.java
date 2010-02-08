@@ -80,7 +80,7 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
      * @return
      */
     // synchronized to avoid parallel runs
-    public synchronized void fireEvent(TT event) {
+    public void fireEvent(TT event) {
         // first handle removelist
         synchronized (removeRequestedListeners) {
             listeners.removeAll(removeRequestedListeners);
