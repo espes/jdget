@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLDecoder;
 
 import org.appwork.utils.logging.Log;
 
@@ -61,7 +62,15 @@ public class Application {
     public static String getRoot() {
         if (isJared()) {
             // this is the jar file
-            File appRoot = new File(Application.class.getProtectionDomain().getCodeSource().getLocation().getFile());
+            String loc;
+            try {
+                loc = URLDecoder.decode(Application.class.getProtectionDomain().getCodeSource().getLocation().getFile(), "UTF-8");
+            } catch (Exception e) {
+                loc = Application.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+                System.err.println("ailed urldecoding Location: " + loc);
+
+            }
+            File appRoot = new File(loc);
             if (appRoot.isFile()) appRoot = appRoot.getParentFile();
             ROOT = appRoot.getAbsolutePath();
 
