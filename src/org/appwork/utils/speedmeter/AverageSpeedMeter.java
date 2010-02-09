@@ -36,10 +36,11 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
      * @param size
      */
     public AverageSpeedMeter(int size) {
-        bytes = new long[size];
-        times = new long[size];
+        /* because putSpeedMeter will always the next slot */
+        this.size = size + 1;
+        bytes = new long[this.size];
+        times = new long[this.size];
         index = 0;
-        this.size = size;
         resetSpeedMeter();
     }
 

@@ -63,13 +63,26 @@ public class SingleAppInstance {
         this.listener = listener;
     }
 
+    private InetAddress getLocalHost() {
+        InetAddress localhost = null;
+        try {
+            localhost = InetAddress.getByName("127.0.0.1");
+        } catch (UnknownHostException e1) {
+            try {
+                localhost = InetAddress.getByName(null);
+            } catch (UnknownHostException e2) {
+            }
+        }
+        return localhost;
+    }
+
     public synchronized boolean sendToRunningInstance(String[] message) {
         if (portFile.exists()) {
             int port = readPortFromPortFile();
             Socket runninginstance = null;
             if (port != 0) {
                 try {
-                    runninginstance = new Socket(InetAddress.getByName(null), port);
+                    runninginstance = new Socket(getLocalHost(), port);
                     runninginstance.setSoTimeout(10000);/* set Timeout */
                     BufferedInputStream in = new BufferedInputStream(runninginstance.getInputStream());
                     OutputStream out = runninginstance.getOutputStream();
@@ -143,7 +156,7 @@ public class SingleAppInstance {
                 foundRunningInstance();
             }
             serverSocket = new ServerSocket();
-            final SocketAddress socketAddress = new InetSocketAddress(InetAddress.getByName(null), 0);
+            SocketAddress socketAddress = new InetSocketAddress(getLocalHost(), 0);
             serverSocket.bind(socketAddress);
             FileOutputStream portWriter = null;
             try {
