@@ -53,8 +53,6 @@ public class SingleAppInstance {
         this.AppID = AppID;
         this.lockFile = Application.getRessource(AppID + ".lock");
         this.portFile = Application.getRessource(AppID + ".port");
-        this.lockFile.deleteOnExit();
-        this.portFile.deleteOnExit();
         Runtime rt = Runtime.getRuntime();
         rt.addShutdownHook(new Thread(new ShutdownHook(this)));
     }
@@ -145,7 +143,6 @@ public class SingleAppInstance {
         if (alreadyUsed) cannotStart("create new instance!");
         try {
             if (sendToRunningInstance(null)) foundRunningInstance();
-            portFile.delete();
             lockChannel = new RandomAccessFile(lockFile, "rw").getChannel();
             try {
                 fileLock = lockChannel.tryLock();
@@ -155,6 +152,7 @@ public class SingleAppInstance {
             } catch (IOException e) {
                 foundRunningInstance();
             }
+            portFile.delete();
             serverSocket = new ServerSocket();
             SocketAddress socketAddress = new InetSocketAddress(getLocalHost(), 0);
             serverSocket.bind(socketAddress);
