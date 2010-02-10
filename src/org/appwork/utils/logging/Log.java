@@ -38,6 +38,16 @@ public class Log {
         cHandler.setLevel(Level.ALL);
         cHandler.setFormatter(new LogFormatter());
         LOGGER.addHandler(cHandler);
+        LogToFileHandler fh;
+        try {
+            fh = new LogToFileHandler();
+
+            fh.setFormatter(new FileLogFormatter());
+            LOGGER.addHandler(fh);
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
         LOGGER.addHandler(LogEventHandler.getInstance());
         LOGGER.setLevel(Level.ALL);
 
