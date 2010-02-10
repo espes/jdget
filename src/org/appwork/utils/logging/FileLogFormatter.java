@@ -9,8 +9,8 @@
  */
 package org.appwork.utils.logging;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Locale;
 import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
 
@@ -22,7 +22,7 @@ public class FileLogFormatter extends SimpleFormatter {
     /**
      * Date to convert timestamp to a readable format
      */
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy hh:mm", Locale.UK);
+    private final DateFormat dateFormat = new SimpleDateFormat();
 
     /**
      * Strigbuilder is used to create Strings with less memory and CPU usage
