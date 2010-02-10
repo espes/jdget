@@ -112,7 +112,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
             }
         }
         try {
-            LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
+            if (Dialog.getInstance().getParentOwner() != null) LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
         } catch (Exception e) {
 
         }
@@ -243,8 +243,10 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
         // workaround a javabug that forces the parentframe to stay always on
         // top
-        Dialog.getInstance().getParentOwner().setAlwaysOnTop(true);
-        Dialog.getInstance().getParentOwner().setAlwaysOnTop(false);
+        if (Dialog.getInstance().getParentOwner() != null) {
+            Dialog.getInstance().getParentOwner().setAlwaysOnTop(true);
+            Dialog.getInstance().getParentOwner().setAlwaysOnTop(false);
+        }
 
     }
 
@@ -314,7 +316,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
     public void dispose() {
         try {
-            LockPanel.create(Dialog.getInstance().getParentOwner()).unlock(300);
+            if (Dialog.getInstance().getParentOwner() != null) LockPanel.create(Dialog.getInstance().getParentOwner()).unlock(300);
         } catch (AWTException e1) {
         }
         super.dispose();
