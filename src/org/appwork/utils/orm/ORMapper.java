@@ -171,7 +171,7 @@ public class ORMapper {
     /**
      * 
      */
-    protected void close() {
+    public void close() {
         try {
             db.commit();
             db.close();

@@ -237,20 +237,24 @@ public class SingleAppInstance {
                         BufferedInputStream in = new BufferedInputStream(client.getInputStream());
                         OutputStream out = client.getOutputStream();
                         writeLine(out, SINGLEAPP);
-                        final int lines = Integer.parseInt(readLine(in));
-                        if (lines != 0) {
-                            final String[] message = new String[lines];
-                            for (int index = 0; index < lines; index++) {
-                                message[index] = readLine(in);
-                            }
-                            if (listener != null) {
-                                try {
-                                    listener.parseMessage(message);
-                                } catch (Throwable e) {
+                        String line = readLine(in);
+                        if (line.length() > 0) {
+                            final int lines = Integer.parseInt(line);
+                            if (lines != 0) {
+                                final String[] message = new String[lines];
+                                for (int index = 0; index < lines; index++) {
+                                    message[index] = readLine(in);
+                                }
+                                if (listener != null) {
+                                    try {
+                                        listener.parseMessage(message);
+                                    } catch (Throwable e) {
+                                    }
                                 }
                             }
                         }
                     } catch (IOException e) {
+                        e.printStackTrace();
                     } finally {
                         if (client != null) {
                             try {
