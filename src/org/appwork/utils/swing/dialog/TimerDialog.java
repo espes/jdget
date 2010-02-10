@@ -43,10 +43,10 @@ public abstract class TimerDialog extends JDialog {
     protected JLabel timerLbl;
 
     public TimerDialog(JFrame parentframe) {
-        super(parentframe);
+        super(parentframe, ModalityType.TOOLKIT_MODAL);
         // avoids always On Top BUg
-        parentframe.setAlwaysOnTop(true);
-        parentframe.setAlwaysOnTop(false);
+        if (parentframe != null) parentframe.setAlwaysOnTop(true);
+        if (parentframe != null) parentframe.setAlwaysOnTop(false);
         layoutDialog();
     }
 

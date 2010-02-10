@@ -156,9 +156,8 @@ public class ORMapper {
                     try {
 
                         ORMapper.this.close();
-
                     } catch (Throwable e) {
-                        Log.exception(e);
+
                     }
                 }
             });
