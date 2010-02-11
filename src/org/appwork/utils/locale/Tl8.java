@@ -64,4 +64,7 @@ public enum Tl8 implements Translate {
         }
     }
 
+    public String toString() {
+        return toString(null);
+    }
 }
