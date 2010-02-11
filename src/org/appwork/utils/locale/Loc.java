@@ -134,12 +134,16 @@ public class Loc {
      * @see Loc#parseLocalization(RFSFile)
      */
     public static void setLocale(String loc) {
-        File file = new File(LOCALIZATION_DIR, loc + ".loc");
-        if (file != null && file.exists()) {
-            Loc.parseLocalization(file);
-        } else {
-            Log.L.info("The language " + loc + " isn't available! Parsing default (en.loc) one!");
-            Loc.parseLocalization(DEFAULT_LOCALIZATION);
+        try {
+            File file = new File(LOCALIZATION_DIR, loc + ".loc");
+            if (file != null && file.exists()) {
+                Loc.parseLocalization(file);
+            } else {
+                Log.L.info("The language " + loc + " isn't available! Parsing default (en.loc) one!");
+                Loc.parseLocalization(DEFAULT_LOCALIZATION);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
