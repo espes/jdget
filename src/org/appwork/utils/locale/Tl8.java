@@ -42,6 +42,7 @@ public enum Tl8 implements Translate {
      * Stores the DefaultTranslation
      */
     private String defaultTranslation;
+    private String cache = null;
 
     Tl8(String defaultString) {
         this.defaultTranslation = defaultString;
@@ -55,11 +56,12 @@ public enum Tl8 implements Translate {
     @Override
     public String toString(Object... args) {
         if (args != null && args.length > 0) {
-            return Loc.LF(name(), defaultTranslation, args);
+            return Loc.LF("APPWORKUTILS:::" + name(), defaultTranslation, args);
         } else {
-            return Loc.L(name(), defaultTranslation);
+            if (cache != null) return cache;
+            cache = Loc.L("APPWORKUTILS:::" + name(), defaultTranslation);
+            return cache;
         }
-
     }
 
 }
