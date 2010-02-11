@@ -19,7 +19,7 @@ import javax.swing.JLabel;
 
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.formatter.TimeFormatter;
-import org.appwork.utils.locale.Loc;
+import org.appwork.utils.locale.Tl8;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
@@ -51,7 +51,7 @@ public abstract class TimerDialog extends JDialog {
     }
 
     protected void layoutDialog() {
-        this.timerLbl = new JLabel(Loc.L("org.appwork.utils.swing.dialog.TimerDialog.timerLbl", "Countdown starting..."));
+        this.timerLbl = new JLabel(Tl8.TIMERDIALOG_MESSAGE_COUNTDOWN_STARTING.toString());
 
         timerLbl.addMouseListener(new MouseAdapter() {
 
@@ -62,7 +62,7 @@ public abstract class TimerDialog extends JDialog {
             }
 
         });
-        timerLbl.setToolTipText(Loc.L("org.appwork.utils.swing.dialog.TimerDialog.canceltooltip", "This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"));
+        timerLbl.setToolTipText(Tl8.TIMERDIALOG_TOOLTIP_TIMERLABEL.toString());
 
         try {
             timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16));

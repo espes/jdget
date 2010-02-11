@@ -120,7 +120,7 @@ public class Loc {
      */
     public static String LF(String key, String def, Object... args) {
         try {
-            return String.format(Loc.L(key, def), args);
+            return String.format(L(key, def), args);
         } catch (Exception e) {
             return "Error: " + key;
         }

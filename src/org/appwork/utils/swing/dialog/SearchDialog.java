@@ -26,7 +26,7 @@ import javax.swing.text.JTextComponent;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.ImageProvider.ImageProvider;
-import org.appwork.utils.locale.Loc;
+import org.appwork.utils.locale.Tl8;
 
 public class SearchDialog extends AbstractDialog implements KeyListener, MouseListener {
 
@@ -41,10 +41,10 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
     private JCheckBox regularExpression;
 
     public SearchDialog(int flag, String title, String message) throws IOException {
-        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32), Loc.L("org.appwork.utils.swing.dialog.SearchDialog.button", "Find"), null);
+        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32), Tl8.SEARCHDIALOG_BUTTON_FIND.toString(), null);
 
-        this.caseSensitive = new JCheckBox(Loc.L("org.appwork.utils.swing.dialog.SearchDialog.caseSensitive", "Case sensitive"));
-        this.regularExpression = new JCheckBox(Loc.L("org.appwork.utils.swing.dialog.SearchDialog.regularExpression", "Regular Expressions"));
+        this.caseSensitive = new JCheckBox(Tl8.SEARCHDIALOG_CHECKBOX_CASESENSITIVE.toString());
+        this.regularExpression = new JCheckBox(Tl8.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.toString());
 
         try {
             caseSensitive.setSelected(Dialog.getInstance().getDatabase().get("org.appwork.utils.swing.dialog.SearchDialog.caseSensitive", false));

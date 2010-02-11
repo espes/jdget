@@ -30,7 +30,7 @@ import javax.swing.SwingConstants;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.locale.Loc;
+import org.appwork.utils.locale.Tl8;
 
 public class LoginDialog extends AbstractDialog implements KeyListener, MouseListener {
 
@@ -74,7 +74,7 @@ public class LoginDialog extends AbstractDialog implements KeyListener, MouseLis
 
         cp.add(messageArea, "spanx");
         JLabel lbl;
-        cp.add(lbl = new JLabel(Loc.L("org.appwork.utils.swing.dialog.InputDialog.username", "Login")), "alignx right");
+        cp.add(lbl = new JLabel(Tl8.LOGINDIALOG_LABEL_USERNAME.toString()), "alignx right");
 
         login = new JTextField();
         login.setBorder(BorderFactory.createEtchedBorder());
@@ -84,7 +84,7 @@ public class LoginDialog extends AbstractDialog implements KeyListener, MouseLis
         cp.add(login, "pushy,growy");
         // password
 
-        cp.add(lbl = new JLabel(Loc.L("org.appwork.utils.swing.dialog.InputDialog.password", "Password")), "alignx right");
+        cp.add(lbl = new JLabel(Tl8.LOGINDIALOG_LABEL_PASSWORD.toString()), "alignx right");
 
         password = new JPasswordField();
         password.setBorder(BorderFactory.createEtchedBorder());
@@ -94,7 +94,7 @@ public class LoginDialog extends AbstractDialog implements KeyListener, MouseLis
 
         // register
 
-        cp.add(rpasswordLabel = new JLabel(Loc.L("org.appwork.utils.swing.dialog.InputDialog.passwordrepeat", "Repeat Password")), "alignx right,hidemode 3");
+        cp.add(rpasswordLabel = new JLabel(Tl8.LOGINDIALOG_LABEL_PASSWORD_REPEAT.toString()), "alignx right,hidemode 3");
 
         rpassword = new JPasswordField();
         rpassword.setBorder(BorderFactory.createEtchedBorder());
@@ -104,7 +104,7 @@ public class LoginDialog extends AbstractDialog implements KeyListener, MouseLis
         rpassword.setVisible(BinaryLogic.containsAll(this.flagMask, FORCE_REGISTER));
         rpasswordLabel.setVisible(BinaryLogic.containsAll(this.flagMask, FORCE_REGISTER));
         if (register) {
-            registerBtn = new JLabel(Loc.L("org.appwork.utils.swing.dialog.InputDialog.register.button", "Create new User"));
+            registerBtn = new JLabel(Tl8.LOGINDIALOG_BUTTON_REGISTER.toString());
             registerBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, cp.getBackground().darker().darker()));
             registerBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             registerBtn.addMouseListener(this);
@@ -114,7 +114,7 @@ public class LoginDialog extends AbstractDialog implements KeyListener, MouseLis
         }
 
         if (remember) {
-            rem = new JCheckBox(Loc.L("org.appwork.utils.swing.dialog.InputDialog.remember", "Remember"));
+            rem = new JCheckBox(Tl8.LOGINDIALOG_CHECKBOX_REMEMBER.toString());
             rem.setHorizontalTextPosition(SwingConstants.LEFT);
             rem.setHorizontalAlignment(SwingConstants.RIGHT);
             cp.add(rem, "pushx,growx,alignx right");
@@ -170,11 +170,11 @@ public class LoginDialog extends AbstractDialog implements KeyListener, MouseLis
             if (rpassword.isVisible()) {
                 rpassword.setVisible(false);
                 rpasswordLabel.setVisible(false);
-                registerBtn.setText(Loc.L("org.appwork.utils.swing.dialog.InputDialog.register.button", "Create new User"));
+                registerBtn.setText(Tl8.LOGINDIALOG_BUTTON_REGISTER.toString());
             } else {
                 rpassword.setVisible(true);
                 rpasswordLabel.setVisible(true);
-                registerBtn.setText(Loc.L("org.appwork.utils.swing.dialog.InputDialog.login.button", "Login"));
+                registerBtn.setText(Tl8.LOGINDIALOG_BUTTON_LOGIN.toString());
             }
 
             this.pack();

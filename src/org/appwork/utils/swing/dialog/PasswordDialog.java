@@ -27,7 +27,7 @@ import javax.swing.text.JTextComponent;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.locale.Loc;
+import org.appwork.utils.locale.Tl8;
 
 public class PasswordDialog extends AbstractDialog implements KeyListener, MouseListener {
 
@@ -57,7 +57,7 @@ public class PasswordDialog extends AbstractDialog implements KeyListener, Mouse
         messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
         contentpane.add("span 2", messageArea);
-        contentpane.add(new JLabel(Loc.L("org.appwork.utils.swing.dialog.Dialog.PasswordDialog.old", "Old Password:")));
+        contentpane.add(new JLabel(Tl8.PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD.toString()));
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
             input1 = new JPasswordField();
             input1.addKeyListener(this);
@@ -70,7 +70,7 @@ public class PasswordDialog extends AbstractDialog implements KeyListener, Mouse
             input1.addMouseListener(this);
             contentpane.add(input1, "pushy,growy,w 250");
         }
-        contentpane.add(new JLabel(Loc.L("org.appwork.utils.swing.dialog.Dialog.PasswordDialog.new", "New Password:")));
+        contentpane.add(new JLabel(Tl8.PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD.toString()));
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
             input2 = new JPasswordField();
             input2.addKeyListener(this);
@@ -83,7 +83,7 @@ public class PasswordDialog extends AbstractDialog implements KeyListener, Mouse
             input2.addMouseListener(this);
             contentpane.add(input2, "pushy,growy,w 250");
         }
-        contentpane.add(new JLabel(Loc.L("org.appwork.utils.swing.dialog.Dialog.PasswordDialog.confirm", "Confirm Password:")));
+        contentpane.add(new JLabel(Tl8.PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD_REPEAT.toString()));
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
             input3 = new JPasswordField();
             input3.addKeyListener(this);

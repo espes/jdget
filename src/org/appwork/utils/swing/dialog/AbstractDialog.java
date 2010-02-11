@@ -35,7 +35,7 @@ import javax.swing.WindowConstants;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.locale.Loc;
+import org.appwork.utils.locale.Tl8;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.SwingUtils;
@@ -78,8 +78,8 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         setTitle(title);
 
         this.icon = (BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON)) ? null : icon;
-        this.okOption = (okOption == null) ? Loc.L("org.appwork.utils.swing.dialog.AbstractDialog.okOption", "Ok") : okOption;
-        this.cancelOption = (cancelOption == null) ? Loc.L("org.appwork.utils.swing.dialog.AbstractDialog.cancelOption", "Cancel") : cancelOption;
+        this.okOption = (okOption == null) ? Tl8.ABSTRACTDIALOG_BUTTON_OK.toString() : okOption;
+        this.cancelOption = (cancelOption == null) ? Tl8.ABSTRACTDIALOG_BUTTON_CANCEL.toString() : cancelOption;
     }
 
     public void init() {
@@ -149,7 +149,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
             dontshowagain = new JCheckBox();
             dontshowagain.setHorizontalAlignment(JCheckBox.TRAILING);
-            add(new JLabel(Loc.L("org.appwork.utils.swing.dialog.Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN", "Don't show this again")));
+            add(new JLabel(Tl8.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.toString()));
             add(dontshowagain, "alignx right");
         }
         add(defaultButtons, "alignx right");
