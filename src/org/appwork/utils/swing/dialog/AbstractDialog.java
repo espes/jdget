@@ -38,6 +38,7 @@ import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale.Loc;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.LockPanel;
+import org.appwork.utils.swing.SwingUtils;
 
 public abstract class AbstractDialog extends TimerDialog implements ActionListener {
 
@@ -208,15 +209,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
             this.setLocation(new Point((int) (screenSize.getWidth() - this.getWidth() - 20), (int) (screenSize.getHeight() - this.getHeight() - 60)));
         } else {
-            // locate dialog in the middle of the mainframe
-            Point center = Dialog.getInstance().getParentOwner().getLocationOnScreen();
-            center.x += Dialog.getInstance().getParentOwner().getWidth() / 2;
-            center.y += Dialog.getInstance().getParentOwner().getHeight() / 2;
-
-            center.x -= this.getWidth() / 2;
-            center.y -= this.getHeight() / 2;
-
-            this.setLocation(center);
+            this.setLocation(SwingUtils.getCenter(Dialog.getInstance().getParentOwner(), this));
         }
         // register an escape listener to cancel the dialog
         KeyStroke ks = KeyStroke.getKeyStroke("ESCAPE");
