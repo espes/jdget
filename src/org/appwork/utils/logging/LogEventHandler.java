@@ -19,7 +19,9 @@ public class LogEventHandler extends Handler {
 
     private LogEventHandler() {
         super();
-        cache = new ArrayList<LogRecord>();
+        synchronized (lock) {
+            cache = new ArrayList<LogRecord>();
+        }
         eventSender = new LogEventSender();
 
     }
@@ -37,9 +39,12 @@ public class LogEventHandler extends Handler {
     }
 
     private ArrayList<LogRecord> cache;
+    private Object lock = new Object();;
 
     public ArrayList<LogRecord> getCache() {
-        return cache;
+        synchronized (lock) {
+            return new ArrayList<LogRecord>(cache);
+        }
     }
 
     public void close() {

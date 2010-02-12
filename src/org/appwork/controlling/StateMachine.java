@@ -72,7 +72,13 @@ public class StateMachine {
     public void setStatus(State newState) {
         synchronized (lock) {
             if (currentState == newState) return;
-            if (!currentState.getChildren().contains(newState)) { throw new StateConflictException("Cannot change state from " + currentState + " to " + newState); }
+            if (!currentState.getChildren().contains(newState)) {
+
+                StateConflictException e = new StateConflictException("Cannot change state from " + currentState + " to " + newState);
+                e.printStackTrace();
+                throw e;
+            }
+
         }
         this.forceState(newState);
     }

@@ -213,7 +213,7 @@ public class ExtTable extends JTable {
                 if (getCellEditor() != null) {
                     getCellEditor().stopCellEditing();
                 }
-                this.getSelectionModel().setSelectionInterval(1, getRowCount() - 1);
+                this.getSelectionModel().setSelectionInterval(0, getRowCount() - 1);
                 return true;
             }
 
