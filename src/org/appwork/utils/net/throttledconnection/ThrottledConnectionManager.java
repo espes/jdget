@@ -182,40 +182,33 @@ public class ThrottledConnectionManager {
 
     private long manageConnections(ArrayList<ThrottledConnection> managed, long limit) {
         synchronized (LOCK) {
-            long currentManagedSpeed = 0;
             long managedConnections = 0;
             long currentRealSpeed = 0;
+            long ret;
             for (ThrottledConnection in : managed) {
-                long inspeed = in.transferedSinceLastCall();
+                ret = in.transferedSinceLastCall();
+                currentRealSpeed += ret;
                 if (in.getCustomLimit() == 0) {
                     /* this connection is managed */
-                    currentManagedSpeed += inspeed;
                     /*
                      * dont count connections with no bandwidth usage, eg lost
                      * ones
                      */
-                    if (inspeed != 0) managedConnections++;
+                    if (ret != 0) managedConnections++;
                 }
-                currentRealSpeed += inspeed;
             }
             /*
              * calculate new input limit based on current input bandwidth usage
              */
-            currentManagedSpeed = (currentManagedSpeed / Math.max(1000, updateSpeed)) * 1000;
-            currentRealSpeed = (currentRealSpeed / Math.max(1000, updateSpeed)) * 1000;
-            long difference = currentManagedSpeed - limit;
+            currentRealSpeed = ((currentRealSpeed * 1000) / Math.max(1000, updateSpeed));
             long newLimit = 0;
             if (managedConnections == 0) {
                 newLimit = limit;
-            } else if (difference >= 0) {
-                /* faster than we wanted */
-                newLimit = limit / managedConnections;
             } else {
-                /* slower than we wanted */
-                newLimit = (-difference + limit) / managedConnections;
+                newLimit = limit / managedConnections;
             }
             for (ThrottledConnection in : managed) {
-                if (limit == 0) {
+                if (newLimit == 0) {
                     /* we do not have a limit set */
                     in.setManagedLimit(0);
                 } else {

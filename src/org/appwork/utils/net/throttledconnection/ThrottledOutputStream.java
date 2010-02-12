@@ -21,8 +21,8 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     private ThrottledConnectionManager manager;
     private OutputStream out;
 
-    private long transferedCounter = 0;
-    private long transferedCounter2 = 0;
+    protected long transferedCounter = 0;
+    protected long transferedCounter2 = 0;
     private long limitCurrent = 0;
     private long limitManaged = 0;
     private long limitCustom = 0;
@@ -32,6 +32,7 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     private int offset;
     private int todo;
     private int rest;
+    private long ret;
 
     /**
      * constructor for not managed ThrottledOutputStream
@@ -127,11 +128,9 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
      * @return
      */
     public synchronized long transferedSinceLastCall() {
-        try {
-            return transferedCounter - transferedCounter2;
-        } finally {
-            transferedCounter2 = transferedCounter;
-        }
+        ret = transferedCounter - transferedCounter2;
+        transferedCounter2 = transferedCounter;
+        return ret;
     }
 
     /**

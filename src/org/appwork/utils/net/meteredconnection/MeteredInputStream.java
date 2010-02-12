@@ -28,11 +28,13 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
     private int readTmp1;
     private long speed = 0;
     private int offset;
-    private final static int checkStep = 10240;
+    private final static int checkStep = 1024;
     private int todo;
     private int lastRead;
     private int rest;
     private int lastRead2;
+    private long lastTime;
+    private long lastTrans;
 
     /**
      * constructor for MeterdInputStream
@@ -129,17 +131,17 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
             if (speedmeter != null) return speedmeter.getSpeedMeter();
             return speed;
         }
-        try {
-            if (speedmeter != null) {
-                speedmeter.putSpeedMeter(transfered - transfered2, System.currentTimeMillis() - time);
-                return speedmeter.getSpeedMeter();
-            } else {
-                speed = ((transfered - transfered2) / (System.currentTimeMillis() - time)) * 1000;
-                return speed;
-            }
-        } finally {
-            transfered2 = transfered;
-            time = System.currentTimeMillis();
+        lastTime = System.currentTimeMillis() - time;
+        time = System.currentTimeMillis();
+        lastTrans = transfered - transfered2;
+        transfered2 = transfered;
+        if (speedmeter != null) {
+            speedmeter.putSpeedMeter(lastTrans, lastTime);
+            speed = speedmeter.getSpeedMeter();
+            return speed;
+        } else {
+            speed = (lastTrans / lastTime) * 1000;
+            return speed;
         }
     }
 
@@ -159,10 +161,9 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
      */
     @Override
     public synchronized void resetSpeedMeter() {
-        if (speedmeter != null) {
-            speedmeter.resetSpeedMeter();
-        } else {
-            transfered2 = transfered = 0;
-        }
+        if (speedmeter != null) speedmeter.resetSpeedMeter();
+        speed = 0;
+        transfered2 = transfered;
+        time = System.currentTimeMillis();
     }
 }

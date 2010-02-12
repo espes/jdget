@@ -30,6 +30,8 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
     private final static int checkStep = 1024;
     private int rest;
     private int todo;
+    private long lastTime;
+    private long lastTrans;
 
     /**
      * constructor for MeteredOutputStream
@@ -97,17 +99,16 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
             if (speedmeter != null) return speedmeter.getSpeedMeter();
             return speed;
         }
-        try {
-            if (speedmeter != null) {
-                speedmeter.putSpeedMeter(transfered - transfered2, System.currentTimeMillis() - time);
-                return speedmeter.getSpeedMeter();
-            } else {
-                speed = ((transfered - transfered2) / (System.currentTimeMillis() - time)) * 1000;
-                return speed;
-            }
-        } finally {
-            transfered2 = transfered;
-            time = System.currentTimeMillis();
+        lastTime = System.currentTimeMillis() - time;
+        time = System.currentTimeMillis();
+        lastTrans = transfered - transfered2;
+        transfered2 = transfered;
+        if (speedmeter != null) {
+            speedmeter.putSpeedMeter(lastTrans, lastTime);
+            return speedmeter.getSpeedMeter();
+        } else {
+            speed = (lastTrans / lastTime) * 1000;
+            return speed;
         }
     }
 
@@ -127,11 +128,10 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
      */
     @Override
     public synchronized void resetSpeedMeter() {
-        if (speedmeter != null) {
-            speedmeter.resetSpeedMeter();
-        } else {
-            transfered2 = transfered = 0;
-        }
+        if (speedmeter != null) speedmeter.resetSpeedMeter();
+        speed = 0;
+        transfered2 = transfered;
+        time = System.currentTimeMillis();
     }
 
 }

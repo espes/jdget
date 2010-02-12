@@ -22,12 +22,13 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
     private boolean changed = false;
     private long speed = 0;
     private final Object LOCK = new Object();
+    private long stalled = 0;
 
     /**
-     * constructor for AverageSpeedMeter with default size 10
+     * constructor for AverageSpeedMeter with default size 5
      */
     public AverageSpeedMeter() {
-        this(10);
+        this(5);
     }
 
     /**
@@ -36,8 +37,7 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
      * @param size
      */
     public AverageSpeedMeter(int size) {
-        /* because putSpeedMeter will always the next slot */
-        this.size = size + 1;
+        this.size = size;
         bytes = new long[this.size];
         times = new long[this.size];
         index = 0;
@@ -54,13 +54,13 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
         synchronized (LOCK) {
             if (!changed) return speed;
             long totalValue = 0;
-            long totalTime = 0;
+            long totalTime = stalled;
             for (int i = 0; i < size; i++) {
                 if (bytes[i] < 0) continue;
                 totalValue += bytes[i];
                 totalTime += times[i];
             }
-            if (totalTime >= 1000) speed = (totalValue / totalTime) * 1000;
+            if (totalTime >= 1000) speed = ((totalValue * 1000) / totalTime);
             changed = false;
             return speed;
         }
@@ -75,13 +75,15 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
     @Override
     public void putSpeedMeter(long x, long time) {
         synchronized (LOCK) {
-            bytes[index] = Math.max(0, x);
-            times[index] += Math.max(0, time);
-            if (bytes[index] != 0) {
+            long put = Math.max(0, x);
+            if (put == 0) {
+                stalled += Math.max(0, time);
+            } else {
+                bytes[index] = put;
+                times[index] = Math.max(0, time) + stalled;
+                stalled = 0;
                 index++;
                 if (index == size) index = 0;
-                times[index] = 0;
-                bytes[index] = -1;
             }
             changed = true;
         }

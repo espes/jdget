@@ -20,8 +20,8 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
 
     private ThrottledConnectionManager manager;
     private InputStream in;
-    private long transferedCounter = 0;
-    private long transferedCounter2 = 0;
+    protected long transferedCounter = 0;
+    protected long transferedCounter2 = 0;
     private long limitCurrent = 0;
     private long limitManaged = 0;
     private long limitCustom = 0;
@@ -29,10 +29,11 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
     private long lastLimitReached = 0;
     private int lastRead;
     private int lastRead2;
-    private final static int checkStep = 10240;
+    private final static int checkStep = 1024;
     private int offset;
     private int todo;
     private int rest;
+    private long ret;
 
     /**
      * constructor for not managed ThrottledInputStream
@@ -157,11 +158,9 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
      * @return
      */
     public synchronized long transferedSinceLastCall() {
-        try {
-            return transferedCounter - transferedCounter2;
-        } finally {
-            transferedCounter2 = transferedCounter;
-        }
+        ret = transferedCounter - transferedCounter2;
+        transferedCounter2 = transferedCounter;
+        return ret;
     }
 
     /**
