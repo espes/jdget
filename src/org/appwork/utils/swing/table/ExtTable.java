@@ -191,6 +191,19 @@ public class ExtTable extends JTable {
         if (!pressed) { return super.processKeyBinding(stroke, evt, condition, pressed); }
         switch (evt.getKeyCode()) {
 
+        case KeyEvent.VK_X:
+
+            if (evt.isControlDown()) { return this.onShortcutCut(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            break;
+        case KeyEvent.VK_V:
+            if (evt.isControlDown()) { return this.onShortcutPaste(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            break;
+        case KeyEvent.VK_C:
+            if (evt.isControlDown()) { return this.onShortcutCopy(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            break;
+        case KeyEvent.VK_DELETE:
+            return this.onShortcutDelete(((ExtTableModel) getModel()).getSelectedObjects(), evt);
+
         case KeyEvent.VK_UP:
             if (getSelectedRow() == 0) {
                 if (getCellEditor() != null) {
@@ -219,6 +232,46 @@ public class ExtTable extends JTable {
 
         }
         return super.processKeyBinding(stroke, evt, condition, pressed);
+    }
+
+    /**
+     * @param selectedObjects
+     * @param evt
+     * @return
+     */
+    protected boolean onShortcutDelete(ArrayList<Object> selectedObjects, KeyEvent evt) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     * @param selectedObjects
+     * @param evt
+     * @return
+     */
+    protected boolean onShortcutCopy(ArrayList<Object> selectedObjects, KeyEvent evt) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     * @param selectedObjects
+     * @param evt
+     * @return
+     */
+    protected boolean onShortcutPaste(ArrayList<Object> selectedObjects, KeyEvent evt) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /**
+     * @param selectedObjects
+     * @param evt
+     * @return
+     */
+    protected boolean onShortcutCut(ArrayList<Object> selectedObjects, KeyEvent evt) {
+        // TODO Auto-generated method stub
+        return false;
     }
 
     /**
