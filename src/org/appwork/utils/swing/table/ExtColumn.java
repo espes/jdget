@@ -14,7 +14,6 @@ import javax.swing.table.TableCellRenderer;
 import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.EDTHelper;
 
-
 /**
  * ExtColums define a single column of an extended Table. It contains all
  * columdetails including renderer
@@ -105,7 +104,7 @@ public abstract class ExtColumn extends AbstractCellEditor implements TableCellE
                 sortThread = null;
                 // Do this in EDT
                 new EDTHelper<Object>() {
-                    @Override
+
                     public Object edtRun() {
                         // inform model about structure change
                         model.fireTableStructureChanged();
@@ -178,7 +177,7 @@ public abstract class ExtColumn extends AbstractCellEditor implements TableCellE
      * javax.swing.table.TableCellEditor#getTableCellEditorComponent(javax.swing
      * .JTable, java.lang.Object, boolean, int, int)
      */
-    @Override
+
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
         // TODO Auto-generated method stub
         return ((ExtTable) table).getLafCellEditor(row, column).getTableCellEditorComponent(table, value, isSelected, row, column);
@@ -191,7 +190,7 @@ public abstract class ExtColumn extends AbstractCellEditor implements TableCellE
      * javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax
      * .swing.JTable, java.lang.Object, boolean, boolean, int, int)
      */
-    @Override
+
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         return ((ExtTable) table).getLafCellRenderer(row, column).getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     }

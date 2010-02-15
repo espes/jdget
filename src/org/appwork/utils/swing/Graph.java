@@ -93,7 +93,6 @@ abstract public class Graph extends JPanel {
 
         painter = new Timer(1000, new ActionListener() {
 
-            @Override
             public void actionPerformed(ActionEvent e) {
                 repaint();
             }

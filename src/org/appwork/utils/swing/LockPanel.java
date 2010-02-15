@@ -78,38 +78,31 @@ public class LockPanel extends JPanel {
 
         frame.addWindowListener(new WindowListener() {
 
-            @Override
             public void windowActivated(WindowEvent e) {
                 if (waitingPanel.isVisible()) waitingPanel.toFront();
 
             }
 
-            @Override
             public void windowClosed(WindowEvent e) {
 
             }
 
-            @Override
             public void windowClosing(WindowEvent e) {
 
             }
 
-            @Override
             public void windowDeactivated(WindowEvent e) {
 
             }
 
-            @Override
             public void windowDeiconified(WindowEvent e) {
 
             }
 
-            @Override
             public void windowIconified(WindowEvent e) {
 
             }
 
-            @Override
             public void windowOpened(WindowEvent e) {
 
             }
@@ -189,7 +182,6 @@ public class LockPanel extends JPanel {
 
         fadeTimer = new Timer(50, new ActionListener() {
 
-            @Override
             public void actionPerformed(ActionEvent e) {
                 alpha -= steps;
                 if (alpha <= 0.0) {
@@ -220,7 +212,6 @@ public class LockPanel extends JPanel {
 
         fadeTimer = new Timer(50, new ActionListener() {
 
-            @Override
             public void actionPerformed(ActionEvent e) {
 
                 alpha += steps;

@@ -44,7 +44,6 @@ public class MeteredThrottledInputStream extends ThrottledInputStream implements
      * 
      * @see org.appwork.utils.SpeedMeterInterface#getSpeedMeter()
      */
-    @Override
     public long getSpeedMeter() {
         synchronized (LOCK) {
             if (time == 0) {
@@ -76,7 +75,7 @@ public class MeteredThrottledInputStream extends ThrottledInputStream implements
      * 
      * @see org.appwork.utils.SpeedMeterInterface#putSpeedMeter(long, long)
      */
-    @Override
+
     public void putSpeedMeter(long bytes, long time) {
     }
 
@@ -85,7 +84,7 @@ public class MeteredThrottledInputStream extends ThrottledInputStream implements
      * 
      * @see org.appwork.utils.SpeedMeterInterface#resetSpeedMeter()
      */
-    @Override
+
     public void resetSpeedMeter() {
         synchronized (LOCK) {
             if (speedmeter != null) speedmeter.resetSpeedMeter();

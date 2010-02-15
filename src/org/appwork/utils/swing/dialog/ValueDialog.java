@@ -66,7 +66,6 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
         if (valueConverter == null) {
             valueConverter = new ValueConverter() {
 
-                @Override
                 public String toString(long value) {
                     // TODO Auto-generated method stub
                     return (value * faktor) + "";
@@ -79,7 +78,6 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
         init();
     }
 
-    @Override
     public JComponent layoutDialogContent() {
         JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
         messageArea = new JTextPane();
@@ -103,13 +101,11 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             editable = new JTextField();
             editable.addFocusListener(new FocusListener() {
 
-                @Override
                 public void focusGained(FocusEvent e) {
                     // TODO Auto-generated method stub
 
                 }
 
-                @Override
                 public void focusLost(FocusEvent e) {
                     updateSlider();
 
@@ -118,13 +114,11 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             });
             editable.addKeyListener(new KeyListener() {
 
-                @Override
                 public void keyPressed(KeyEvent e) {
                     // TODO Auto-generated method stub
 
                 }
 
-                @Override
                 public void keyReleased(KeyEvent e) {
                     if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                         updateSlider();
@@ -132,7 +126,6 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
 
                 }
 
-                @Override
                 public void keyTyped(KeyEvent e) {
                     // TODO Auto-generated method stub
 
@@ -141,7 +134,6 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             });
             slider.addChangeListener(new ChangeListener() {
 
-                @Override
                 public void stateChanged(ChangeEvent arg0) {
                     converted.setText(valueconverter.toString((slider.getValue() * faktor)));
                     editable.setText((slider.getValue() * faktor) + "");
@@ -162,7 +154,6 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             slider.addMouseListener(this);
             slider.addChangeListener(new ChangeListener() {
 
-                @Override
                 public void stateChanged(ChangeEvent arg0) {
                     converted.setText(valueconverter.toString((slider.getValue() * faktor)));
                     editable.setText((slider.getValue() * faktor) + "");
@@ -182,7 +173,7 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
         // public void run() {
         // new EDTHelper<Object>() {
         //
-        // @Override
+        // 
         // public Object edtRun() {
         try {
             long value = Long.parseLong(editable.getText());
@@ -200,7 +191,6 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
 
     }
 
-    @Override
     protected void packed() {
         requestFocus();
         slider.requestFocusInWindow();

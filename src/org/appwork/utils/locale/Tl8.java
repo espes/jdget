@@ -53,7 +53,7 @@ public enum Tl8 implements Translate {
      * 
      * @see org.appwork.utils.locale.Translate#toString(java.lang.Object[])
      */
-    @Override
+
     public String toString(Object... args) {
         if (args != null && args.length > 0) {
             return Loc.LF("APPWORKUTILS:::" + name(), defaultTranslation, args);

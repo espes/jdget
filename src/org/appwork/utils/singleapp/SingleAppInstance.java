@@ -215,7 +215,6 @@ public class SingleAppInstance {
             this.instance = instance;
         }
 
-        @Override
         public void run() {
             if (instance != null) instance.exit();
         }
@@ -224,7 +223,7 @@ public class SingleAppInstance {
     private synchronized void startDeamon() {
         if (deamon != null) return;
         deamon = new Thread(new Runnable() {
-            @Override
+
             public void run() {
                 DeamonRunning = true;
                 while (DeamonRunning) {

@@ -86,12 +86,10 @@ public class MimeDefault implements Mime {
         DESCRIPTION_CACHE.put(mimetype, description);
     }
 
-    @Override
     public ImageIcon getFileIcon(String extension, int width, int height) throws IOException {
         return ImageProvider.getImageIcon("fileIcon", width, height);
     }
 
-    @Override
     public String getMimeDescription(String mimetype) {
         return mimetype;
     }

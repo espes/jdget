@@ -88,7 +88,7 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
      * 
      * @see org.appwork.utils.SpeedMeterInterface#getSpeedMeter()
      */
-    @Override
+
     public synchronized long getSpeedMeter() {
         if (time == 0) {
             time = System.currentTimeMillis();
@@ -117,7 +117,6 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
      * 
      * @see org.appwork.utils.SpeedMeterInterface#putSpeedMeter(long, long)
      */
-    @Override
     public void putSpeedMeter(long bytes, long time) {
     }
 
@@ -126,7 +125,6 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
      * 
      * @see org.appwork.utils.SpeedMeterInterface#resetSpeedMeter()
      */
-    @Override
     public synchronized void resetSpeedMeter() {
         if (speedmeter != null) speedmeter.resetSpeedMeter();
         speed = 0;

@@ -49,7 +49,7 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
      * 
      * @see org.appwork.utils.speedmeter.SpeedMeterInterface#getSpeedMeter()
      */
-    @Override
+
     public long getSpeedMeter() {
         synchronized (LOCK) {
             if (!changed) return speed;
@@ -72,7 +72,7 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
      * @see org.appwork.utils.speedmeter.SpeedMeterInterface#putSpeedMeter(long,
      * long)
      */
-    @Override
+
     public void putSpeedMeter(long x, long time) {
         synchronized (LOCK) {
             long put = Math.max(0, x);
@@ -94,7 +94,7 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
      * 
      * @see org.appwork.utils.speedmeter.SpeedMeterInterface#resetSpeedMeter()
      */
-    @Override
+
     public void resetSpeedMeter() {
         synchronized (LOCK) {
             for (index = 0; index < size; index++) {

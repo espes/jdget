@@ -29,7 +29,6 @@ public class ArrayListTransferable implements Transferable {
         this.objs = objs;
     }
 
-    @Override
     public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
         if (flavor != null && flavor == ClipboardUtils.arrayListFlavor) {
             return objs;
@@ -38,13 +37,11 @@ public class ArrayListTransferable implements Transferable {
         }
     }
 
-    @Override
     public DataFlavor[] getTransferDataFlavors() {
         if (ClipboardUtils.arrayListFlavor == null) return new DataFlavor[] {};
         return new DataFlavor[] { ClipboardUtils.arrayListFlavor };
     }
 
-    @Override
     public boolean isDataFlavorSupported(DataFlavor flavor) {
         if (flavor != null && flavor == ClipboardUtils.arrayListFlavor) return true;
         return false;
