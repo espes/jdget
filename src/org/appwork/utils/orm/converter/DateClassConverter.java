@@ -35,7 +35,7 @@ public class DateClassConverter extends StringConverter {
 
     public Object get(Class<?> clazz, String where) throws SQLException {
 
-        return new Date((Long) super.get(clazz, where));
+        return new Date(Long.parseLong((String) super.get(clazz, where)));
 
     }
 

@@ -72,6 +72,7 @@ public class ORMapper {
      */
     private HashMap<String, String> typeMap;
     private HashMap<Class<?>, ClassAdapter> adapter;
+    private String name;
 
     public ORMapper() {
         this("orm");
@@ -89,7 +90,7 @@ public class ORMapper {
         // typeMap.put(Boolean.class, "INT");
 
         typeMap.put("long", "BIGINT");
-        typeMap.put("byte", "INT");
+        typeMap.put("byte", "TINYINT");
         typeMap.put("char", "INT");
         typeMap.put("int", "INT");
         typeMap.put("double", "FLOAT");
@@ -145,6 +146,7 @@ public class ORMapper {
     private void initDB(String dbname) {
 
         try {
+            this.name = dbname;
             db = DriverManager.getConnection("jdbc:hsqldb:file:" + Application.getRessource("/config/databases/" + dbname) + ";shutdown=true", "sa", "");
 
             db.setAutoCommit(false);
@@ -154,7 +156,7 @@ public class ORMapper {
                 @Override
                 public void run() {
                     try {
-
+                        Log.L.finer("Saved mapper " + name);
                         ORMapper.this.close();
                     } catch (Throwable e) {
 
@@ -320,6 +322,7 @@ public class ORMapper {
 
             return instance;
         } catch (Exception e) {
+            e.printStackTrace();
             if (e.getMessage().startsWith("Table not found in statement")) { return null; }
             throw new DBException(e);
         }
@@ -391,7 +394,16 @@ public class ORMapper {
      */
     private Object getJavaValue(Field f, Object object) {
         // casting would fail here
-        if (f.getType().isPrimitive()) return object;
+
+        if (f.getType().isPrimitive()) {
+            if (object instanceof Integer) return (int) ((Integer) object).intValue();
+            if (object instanceof Long) return (long) ((Long) object).longValue();
+            if (object instanceof Float) return (float) ((Float) object).floatValue();
+            if (object instanceof Double) return (double) ((Double) object).doubleValue();
+            if (object instanceof Byte) return (byte) ((Byte) object).byteValue();
+            if (object instanceof Character) return (char) ((Character) object).charValue();
+            return object;
+        }
         return f.getType().cast(object);
     }
 
