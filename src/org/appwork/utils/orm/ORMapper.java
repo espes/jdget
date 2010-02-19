@@ -552,21 +552,29 @@ public class ORMapper {
             Field f;
             for (int i = 3; i < columns.size(); i++) {
                 f = getField(item.getClass(), columns.get(i).getColumnName());
+                sb.append("\"");
+                sb.append(f.getName());
+                sb.append("\"");
+                sb.append("=");
+                sb.append("?");
+                sb.append("");
+                if (i < columns.size() - 1) {
+                    sb.append(",");
+                }
+            }
+            sb.append(" WHERE INSTANCEID = ?");
+            PreparedStatement pstmt = db.prepareStatement(sb.toString());
+
+            for (int i = 3; i < columns.size(); i++) {
+                f = getField(item.getClass(), columns.get(i).getColumnName());
                 if (f.getType().isArray()) {
                     // update array. this means rebuilding the wholoe array
                     // table
                     f.setAccessible(true);
                     String table = storeArray(instanceID + "__" + f.getName(), f.getType(), f.get(item), saved, rewrite, finalSaved);
 
-                    sb.append("\"");
-                    sb.append(f.getName());
-                    sb.append("\"");
-                    sb.append("='");
-                    sb.append(table);
-                    sb.append("'");
-                    if (i < columns.size() - 1) {
-                        sb.append(",");
-                    }
+                    pstmt.setString(i - 2, table);
+
                 } else if (!f.getType().isPrimitive() && !Modifier.isTransient(f.getType().getModifiers())) {
                     // object. we run recursive through the object tree
                     Object cross = (Object) getSQLValue(f, item);
@@ -575,12 +583,12 @@ public class ORMapper {
                         // special for self references
                         if (cross == item) {
                             if (finalSaved.containsKey(cross)) {
-                                cross = "'" + cross.getClass().getName() + ":" + (rw = finalSaved.get(cross)) + "'";
+                                cross = cross.getClass().getName() + ":" + (rw = finalSaved.get(cross));
                             } else {
-                                cross = "'" + cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved, null)) + "'";
+                                cross = cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved, null));
                             }
                         } else {
-                            cross = "'" + cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved, null)) + "'";
+                            cross = cross.getClass().getName() + ":" + (rw = store(cross, saved, rewrite, finalSaved, null));
                         }
                         // could not get a final rowid for cross. this means
                         // that we have to rewrite item
@@ -589,25 +597,13 @@ public class ORMapper {
                         }
                     }
 
-                    sb.append("\"");
-                    sb.append(f.getName());
-                    sb.append("\"");
-                    sb.append("=");
-                    sb.append(cross);
-                    if (i < columns.size() - 1) {
-                        sb.append(",");
-                    }
+                    pstmt.setObject(i - 2, cross);
+
                 } else if (f.getType().isPrimitive()) {
                     // things are simple for primitive types
-                    sb.append("\"");
-                    sb.append(f.getName());
-                    sb.append("\"");
-                    sb.append("='");
-                    sb.append(getSQLValue(f, item));
-                    sb.append("'");
-                    if (i < columns.size() - 1) {
-                        sb.append(",");
-                    }
+
+                    pstmt.setObject(i - 2, getSQLValue(f, item));
+
                 }
 
             }
@@ -617,14 +613,13 @@ public class ORMapper {
                 // loop reference
                 return saved.get(item);
             }
-            sb.append(" WHERE INSTANCEID = '");
-            sb.append(instanceID);
-            sb.append("'");
+
+            pstmt.setString(columns.size() - 2, instanceID);
             // get autocreated rowID (autoincrement)
             // there must be a better way
 
             Log.L.finer(sb.toString());
-            db.prepareStatement(sb.toString()).execute();
+            pstmt.executeUpdate();
 
             ResultSet rs;
             (rs = db.prepareStatement("SELECT id FROM " + tableID + " WHERE INSTANCEID ='" + instanceID + "'").executeQuery()).next();
