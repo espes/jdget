@@ -20,6 +20,8 @@ import javax.swing.ListCellRenderer;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.utils.logging.Log;
+
 public class ComboBoxDialog extends AbstractDialog {
     /**
      * 
@@ -67,8 +69,7 @@ public class ComboBoxDialog extends AbstractDialog {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.appwork.utils.swing.dialog.AbstractDialog#layoutDialogContent()
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#layoutDialogContent()
      */
     @Override
     public JComponent layoutDialogContent() {
@@ -84,8 +85,12 @@ public class ComboBoxDialog extends AbstractDialog {
 
         box = new JComboBox(options);
         if (renderer != null) box.setRenderer(renderer);
-        box.setSelectedIndex(this.defaultAnswer);
+        try {
 
+            box.setSelectedIndex(this.defaultAnswer);
+        } catch (Exception e) {
+            Log.exception(e);
+        }
         if (getDesiredSize() != null) {
             box.setBounds(0, 0, (int) getDesiredSize().getWidth(), (int) getDesiredSize().getHeight());
             box.setMaximumSize(getDesiredSize());

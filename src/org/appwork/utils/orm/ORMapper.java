@@ -322,7 +322,7 @@ public class ORMapper {
 
             return instance;
         } catch (Exception e) {
-            e.printStackTrace();
+
             if (e.getMessage().startsWith("Table not found in statement")) { return null; }
             throw new DBException(e);
         }

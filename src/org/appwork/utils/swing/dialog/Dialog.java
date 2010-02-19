@@ -370,7 +370,7 @@ public class Dialog {
      * @return
      */
 
-    protected int showConfirmDialog(final int flag, final String title, final String message, final ImageIcon tmpicon, final String okOption, final String cancelOption) {
+    public int showConfirmDialog(final int flag, final String title, final String message, final ImageIcon tmpicon, final String okOption, final String cancelOption) {
         synchronized (this) {
             final ImageIcon icon;
             if ((flag & LOGIC_BYPASS) > 0) return 0;
