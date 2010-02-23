@@ -248,13 +248,19 @@ public class LockPanel extends JPanel {
      * @return
      */
     private BufferedImage createScreenShot() {
+        frame.toFront();
+        boolean top = frame.isAlwaysOnTop();
+        try {
+            frame.setAlwaysOnTop(true);
+            Rectangle captureSize = new Rectangle(frame.getContentPane().getSize());
+            Point loc = frame.getContentPane().getLocationOnScreen();
+            captureSize.x = loc.x;
+            captureSize.y = loc.y;
 
-        Rectangle captureSize = new Rectangle(frame.getContentPane().getSize());
-        Point loc = frame.getContentPane().getLocationOnScreen();
-        captureSize.x = loc.x;
-        captureSize.y = loc.y;
-
-        return robot.createScreenCapture(captureSize);
+            return robot.createScreenCapture(captureSize);
+        } finally {
+            frame.setAlwaysOnTop(top);
+        }
     }
 
     /**
