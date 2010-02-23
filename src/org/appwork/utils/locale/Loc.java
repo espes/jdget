@@ -91,7 +91,7 @@ public class Loc {
             try {
                 Loc.setLocale(DATABASE.get(PROPERTY_LOCALE, DEFAULE_LOCALIZATION_NAME));
             } catch (Exception e) {
-                e.printStackTrace();
+
                 Log.L.severe("Error while loading the stored localization name!");
                 Loc.setLocale(DEFAULE_LOCALIZATION_NAME);
             }
