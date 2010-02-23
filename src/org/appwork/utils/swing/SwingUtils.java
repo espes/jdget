@@ -1,8 +1,10 @@
 package org.appwork.utils.swing;
 
+import java.awt.Component;
 import java.awt.Point;
 import java.awt.Window;
 
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 
 public class SwingUtils {
@@ -30,4 +32,25 @@ public class SwingUtils {
         return point;
     }
 
+    /**
+     * @param frame
+     * @param string
+     */
+    public static JComponent getComponentByName(JComponent frame, String name) {
+        JComponent ret = null;
+        for (Component c : frame.getComponents()) {
+
+            if (c instanceof JComponent) {
+                if (c.getName() != null && c.getName().equals(name)) {
+                    return (JComponent) c;
+                } else {
+                    ret = getComponentByName((JComponent) c, name);
+                    if (ret != null) return ret;
+
+                }
+            }
+        }
+        return null;
+
+    }
 }
