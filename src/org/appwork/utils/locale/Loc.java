@@ -12,6 +12,7 @@ package org.appwork.utils.locale;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
@@ -39,17 +40,17 @@ public class Loc {
     /**
      * The key (String) under which the saved localization-name is stored.
      */
-    public static final String PROPERTY_LOCALE = "PROPERTY_LOCALE";
+    public static final String PROPERTY_LOCALE = "PROPERTY_LOCALE2";
 
     /**
      * The directory, where all localization files are located.
      */
-    private static final File LOCALIZATION_DIR = Application.getRessource("languages/");
+    public static final File LOCALIZATION_DIR = Application.getRessource("languages/");
 
     /**
      * The name of the default localization file. This is the english language.
      */
-    private static final String DEFAULE_LOCALIZATION_NAME = "en";
+    private static final String DEFAULE_LOCALIZATION_NAME = "en_GB";
 
     /**
      * The default localization file. This is the english language.
@@ -63,6 +64,8 @@ public class Loc {
      * @see Loc#parseLocalization(RFSFile)
      */
     private static HashMap<Integer, String> data = null;
+
+    private static String locale;
 
     /**
      * Returns the translated value for the translation-key. If the current
@@ -88,6 +91,7 @@ public class Loc {
             try {
                 Loc.setLocale(DATABASE.get(PROPERTY_LOCALE, DEFAULE_LOCALIZATION_NAME));
             } catch (Exception e) {
+                e.printStackTrace();
                 Log.L.severe("Error while loading the stored localization name!");
                 Loc.setLocale(DEFAULE_LOCALIZATION_NAME);
             }
@@ -135,11 +139,17 @@ public class Loc {
      */
     public static void setLocale(String loc) {
         try {
+            if (loc == null && DATABASE != null) {
+                loc = DATABASE.get(PROPERTY_LOCALE, DEFAULE_LOCALIZATION_NAME);
+            }
             File file = new File(LOCALIZATION_DIR, loc + ".loc");
+            locale = loc;
             if (file != null && file.exists()) {
+
+                if (DATABASE != null) DATABASE.put(PROPERTY_LOCALE, loc);
                 Loc.parseLocalization(file);
             } else {
-                Log.L.info("The language " + loc + " isn't available! Parsing default (en.loc) one!");
+                Log.L.info("The language " + loc + " isn't available! Parsing default (en_GB.loc) one!");
                 Loc.parseLocalization(DEFAULT_LOCALIZATION);
             }
         } catch (Exception e) {
@@ -203,6 +213,33 @@ public class Loc {
      */
     public static String getErrorRegex() {
         return L("system.error", ".*(error|failed).*");
+    }
+
+    /**
+     * @return
+     */
+    public static String[] getLocales() {
+        String[] files = LOCALIZATION_DIR.list(new FilenameFilter() {
+
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".loc");
+
+            }
+
+        });
+        for (int i = 0; i < files.length; i++) {
+            files[i] = files[i].replace(".loc", "");
+        }
+        return files;
+    }
+
+    /**
+     * @return
+     */
+    public static String getLocale() {
+        // TODO Auto-generated method stub
+        return locale;
     }
 
 }

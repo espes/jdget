@@ -36,7 +36,9 @@ public enum Tl8 implements Translate {
     SEARCHDIALOG_CHECKBOX_CASESENSITIVE("Case sensitive"),
     SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION("Regular Expressions"),
     TIMERDIALOG_MESSAGE_COUNTDOWN_STARTING("Countdown starting..."),
-    TIMERDIALOG_TOOLTIP_TIMERLABEL("This dialog has a countdown and closes after a few seconds. Click to cancel the countdown");
+    TIMERDIALOG_TOOLTIP_TIMERLABEL("This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"),
+    RESTART_REQUIRED("Restart required!\r\nPlease restart the Application."),
+    LOC_USE_LOCALE("Use Language: %s");
 
     /**
      * Stores the DefaultTranslation
@@ -66,5 +68,36 @@ public enum Tl8 implements Translate {
 
     public String toString() {
         return toString(null);
+    }
+
+    public static void reset() {
+        for (Tl8 rsm : Tl8.values()) {
+            rsm.cache = null;
+        }
+    }
+
+    /**
+     * @return
+     */
+    public static String list() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# APPWORK UTILS Locale: " + Loc.getLocale());
+
+        int max = 0;
+        for (Tl8 entry : Tl8.values()) {
+            max = Math.max(entry.name().length(), max);
+        }
+        for (Tl8 entry : Tl8.values()) {
+            sb.append("\r\nAPPWORKUTILS:::");
+            sb.append(entry.name());
+
+            sb.append("               ");
+            for (int i = entry.name().length(); i < max; i++) {
+                sb.append(" ");
+            }
+            sb.append(" = ");
+            sb.append(Loc.L("APPWORKUTILS:::" + entry.name(), entry.defaultTranslation).replace("\r", "\\r").replace("\n", "\\n"));
+        }
+        return sb.toString();
     }
 }
