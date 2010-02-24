@@ -189,21 +189,25 @@ public class ExtTable extends JTable {
     // Key selection
     protected boolean processKeyBinding(KeyStroke stroke, KeyEvent evt, int condition, boolean pressed) {
         if (!pressed) { return super.processKeyBinding(stroke, evt, condition, pressed); }
+
         switch (evt.getKeyCode()) {
 
         case KeyEvent.VK_X:
 
-            if (evt.isControlDown()) { return this.onShortcutCut(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCut(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
             break;
         case KeyEvent.VK_V:
-            if (evt.isControlDown()) { return this.onShortcutPaste(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutPaste(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
             break;
         case KeyEvent.VK_C:
-            if (evt.isControlDown()) { return this.onShortcutCopy(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCopy(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
             break;
         case KeyEvent.VK_DELETE:
             return this.onShortcutDelete(((ExtTableModel) getModel()).getSelectedObjects(), evt);
+        case KeyEvent.VK_BACK_SPACE:
 
+            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutDelete(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            break;
         case KeyEvent.VK_UP:
             if (getSelectedRow() == 0) {
                 if (getCellEditor() != null) {
@@ -222,7 +226,7 @@ public class ExtTable extends JTable {
                 return true;
             }
         case KeyEvent.VK_A:
-            if (evt.isControlDown()) {
+            if (evt.isControlDown() || evt.isMetaDown()) {
                 if (getCellEditor() != null) {
                     getCellEditor().stopCellEditing();
                 }
