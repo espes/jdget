@@ -221,7 +221,6 @@ public class Loc {
     public static String[] getLocales() {
         String[] files = LOCALIZATION_DIR.list(new FilenameFilter() {
 
-            @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".loc");
 
