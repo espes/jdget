@@ -186,4 +186,21 @@ public class ImageProvider {
         return dest;
 
     }
+
+    /**
+     * @param image
+     * @param imageIcon
+     * @param i
+     * @param j
+     */
+    public static BufferedImage merge(Image image, Image b, int xoffset, int yoffset) {
+        int width = Math.max(image.getWidth(null), xoffset + b.getWidth(null));
+        int height = Math.max(image.getHeight(null), yoffset + b.getHeight(null));
+        BufferedImage dest = new BufferedImage(width, height, BufferedImage.TRANSLUCENT);
+        Graphics2D g2 = dest.createGraphics();
+        g2.drawImage(image, 0, 0, null);
+        g2.drawImage(b, xoffset, yoffset, null);
+        g2.dispose();
+        return dest;
+    }
 }
