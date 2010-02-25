@@ -149,7 +149,8 @@ public class Loc {
                 if (DATABASE != null) DATABASE.put(PROPERTY_LOCALE, loc);
                 Loc.parseLocalization(file);
             } else {
-                Log.L.info("The language " + loc + " isn't available! Parsing default (en_GB.loc) one!");
+                Log.L.info("The language " + loc + " isn't available! Parsing default (" + DEFAULE_LOCALIZATION_NAME + ".loc) one!");
+                locale = DEFAULE_LOCALIZATION_NAME;
                 Loc.parseLocalization(DEFAULT_LOCALIZATION);
             }
         } catch (Exception e) {
