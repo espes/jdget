@@ -424,7 +424,7 @@ public class Dialog {
      * @return an array of files or null if the user cancel the dialog
      */
 
-    public File[] showFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final Boolean multiSelection, final Integer dialogType) {
+    public File[] showFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final Integer dialogType) {
         synchronized (this) {
 
             return new EDTHelper<File[]>() {
@@ -437,11 +437,15 @@ public class Dialog {
                         if (title != null) fc.setDialogTitle(title);
                         if (fileSelectionMode != null) fc.setFileSelectionMode(fileSelectionMode);
                         if (fileFilter != null) fc.setFileFilter(fileFilter);
-                        if (multiSelection != null) fc.setMultiSelectionEnabled(multiSelection);
+                        if (multiSelection) fc.setMultiSelectionEnabled(multiSelection);
                         if (dialogType != null) fc.setDialogType(dialogType);
                         if (dialogType == null || dialogType == JFileChooser.OPEN_DIALOG) {
                             if (fc.showOpenDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
-                                if (multiSelection) return (File[]) (latestReturnMask = fc.getSelectedFiles());
+                                if (multiSelection) {
+                                    latestReturnMask = fc.getSelectedFiles();
+                                    return (File[]) latestReturnMask;
+                                }
+
                                 final File[] ret = new File[1];
                                 ret[0] = fc.getSelectedFile();
                                 return ret;

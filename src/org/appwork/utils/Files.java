@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 
 import org.appwork.utils.formatter.HexFormatter;
 
@@ -84,6 +85,24 @@ public class Files {
      */
     public static String getMD5(File arg) {
         return getHash(arg, "md5");
+    }
+
+    /**
+     * Returns all files which were find in a recursive search through all files
+     * 
+     * @param files
+     * @return
+     */
+    public static ArrayList<File> getFiles(File[] files) {
+        ArrayList<File> ret = new ArrayList<File>();
+        for (File f : files) {
+            if (f.isDirectory()) {
+                ret.addAll(getFiles(f.listFiles()));
+            } else {
+                ret.add(f);
+            }
+        }
+        return ret;
     }
 
 }
