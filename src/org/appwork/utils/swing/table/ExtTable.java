@@ -310,6 +310,7 @@ public class ExtTable extends JTable {
         first = this.getCellRect(0, 0, true);
         last = this.getCellRect(0, this.getColumnCount() - 1, true);
         final int width = last.x + last.width - first.x;
+
         for (ExtRowHighlighter rh : this.rowHighlighters) {
 
             for (int i = 0; i < this.getRowCount(); i++) {
@@ -324,6 +325,8 @@ public class ExtTable extends JTable {
 
                 if (rh.doHighlight(this, i)) {
 
+                    // RepaintManager.currentManager(this).addDirtyRegion(this,
+                    // 0, first.y, width, first.height);
                     rh.paint((Graphics2D) g, 0, first.y, width, first.height);
 
                 }
@@ -331,6 +334,7 @@ public class ExtTable extends JTable {
             }
 
         }
+
     }
 
     /**

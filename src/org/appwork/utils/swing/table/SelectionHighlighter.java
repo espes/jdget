@@ -12,7 +12,7 @@ public class SelectionHighlighter extends ExtRowHighlighter {
     @Override
     public boolean doHighlight(ExtTable extTable, int row) {
 
-        return extTable.isRowSelected(row);
+        return extTable.isRowSelected(row) && extTable.getDropLocation() == null;
     }
 
 }

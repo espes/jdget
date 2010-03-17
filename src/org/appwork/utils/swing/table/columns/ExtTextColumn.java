@@ -9,13 +9,12 @@ import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtTextColumn extends ExtColumn {
 
     private static final long serialVersionUID = 2114805529462086691L;
-    private JLabel label;
+    private RenderLabel label;
 
     public ExtTextColumn(String name, ExtTableModel table, DatabaseInterface database) {
         super(name, table, database);
@@ -60,9 +59,12 @@ public abstract class ExtTextColumn extends ExtColumn {
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-
-        isSelected = false;
-        return ((ExtTable) table).getLafCellRenderer(row, column).getTableCellRendererComponent(table, getStringValue(value), isSelected, false, row, column);
+        label.setText(getStringValue(value));
+        return label;
+        // isSelected = false;
+        // return ((ExtTable) table).getLafCellRenderer(row,
+        // column).getTableCellRendererComponent(table, getStringValue(value),
+        // isSelected, false, row, column);
     }
 
     @Override
