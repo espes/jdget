@@ -95,11 +95,13 @@ public class Files {
      */
     public static ArrayList<File> getFiles(File[] files) {
         ArrayList<File> ret = new ArrayList<File>();
-        for (File f : files) {
-            if (f.isDirectory()) {
-                ret.addAll(getFiles(f.listFiles()));
-            } else {
-                ret.add(f);
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    ret.addAll(getFiles(f.listFiles()));
+                } else {
+                    ret.add(f);
+                }
             }
         }
         return ret;

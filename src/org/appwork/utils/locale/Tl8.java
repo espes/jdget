@@ -37,7 +37,7 @@ public enum Tl8 implements Translate {
     SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION("Regular Expressions"),
     TIMERDIALOG_MESSAGE_COUNTDOWN_STARTING("Countdown starting..."),
     TIMERDIALOG_TOOLTIP_TIMERLABEL("This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"),
-    RESTART_REQUIRED("Restart required!\r\nPlease restart the Application."),
+
     LOC_USE_LOCALE("Use Language: %s");
 
     /**
