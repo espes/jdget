@@ -93,7 +93,7 @@ public class Files {
      * @param files
      * @return
      */
-    public static ArrayList<File> getFiles(File[] files) {
+    public static ArrayList<File> getFiles(File... files) {
         ArrayList<File> ret = new ArrayList<File>();
         if (files != null) {
             for (File f : files) {
