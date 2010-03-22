@@ -57,6 +57,14 @@ public class SingleAppInstance {
         rt.addShutdownHook(new Thread(new ShutdownHook(this)));
     }
 
+    public SingleAppInstance(final String AppID, File directory) {
+        this.AppID = AppID;
+        this.lockFile = new File(directory, AppID + ".lock");
+        this.portFile = new File(directory, AppID + ".port");
+        Runtime rt = Runtime.getRuntime();
+        rt.addShutdownHook(new Thread(new ShutdownHook(this)));
+    }
+
     public synchronized void setInstanceMessageListener(final InstanceMessageListener listener) {
         this.listener = listener;
     }
