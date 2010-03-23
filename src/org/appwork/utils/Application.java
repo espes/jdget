@@ -53,11 +53,15 @@ public class Application {
         APP_FOLDER = newAppFolder;
     }
 
+    public static String getRoot() {
+        return getRoot(Application.class);
+    }
+
     /**
      * Detects the applications home directory. it is either the pass of the
      * main.jar or HOME/
      */
-    public static String getRoot() {
+    public static String getRoot(Class<?> rootOfClazz) {
         if (isJared()) {
             // this is the jar file
             String loc;
@@ -66,15 +70,12 @@ public class Application {
             } catch (Exception e) {
                 loc = Application.class.getProtectionDomain().getCodeSource().getLocation().getFile();
                 System.err.println("ailed urldecoding Location: " + loc);
-
             }
             File appRoot = new File(loc);
             if (appRoot.isFile()) appRoot = appRoot.getParentFile();
             ROOT = appRoot.getAbsolutePath();
-
         } else {
             ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + APP_FOLDER + System.getProperty("file.separator");
-
         }
         return ROOT;
     }
