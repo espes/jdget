@@ -50,9 +50,7 @@ public class Application {
      * @param newJar
      */
     public synchronized static void setApplication(String newAppFolder) {
-
         APP_FOLDER = newAppFolder;
-
     }
 
     /**
