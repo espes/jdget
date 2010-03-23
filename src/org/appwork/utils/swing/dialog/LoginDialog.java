@@ -73,8 +73,7 @@ public class LoginDialog extends AbstractDialog implements KeyListener, MouseLis
         messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
         cp.add(messageArea, "spanx");
-        JLabel lbl;
-        cp.add(lbl = new JLabel(Tl8.LOGINDIALOG_LABEL_USERNAME.toString()), "alignx right");
+        cp.add(new JLabel(Tl8.LOGINDIALOG_LABEL_USERNAME.toString()), "alignx right");
 
         login = new JTextField();
         login.setBorder(BorderFactory.createEtchedBorder());
@@ -84,7 +83,7 @@ public class LoginDialog extends AbstractDialog implements KeyListener, MouseLis
         cp.add(login, "pushy,growy");
         // password
 
-        cp.add(lbl = new JLabel(Tl8.LOGINDIALOG_LABEL_PASSWORD.toString()), "alignx right");
+        cp.add(new JLabel(Tl8.LOGINDIALOG_LABEL_PASSWORD.toString()), "alignx right");
 
         password = new JPasswordField();
         password.setBorder(BorderFactory.createEtchedBorder());

@@ -41,13 +41,27 @@ public enum Tl8 implements Translate {
     LOC_USE_LOCALE("Use Language: %s");
 
     /**
-     * Stores the DefaultTranslation
+     * Stores the DefaultTranslation.
      */
     private String defaultTranslation;
+    /**
+     * Stores the translated value or <code>null</code>, if it wasn't translated
+     * yet.
+     */
     private String cache = null;
 
-    Tl8(String defaultString) {
+    private Tl8(String defaultString) {
         this.defaultTranslation = defaultString;
+    }
+
+    @Override
+    public String s() {
+        return toString();
+    }
+
+    @Override
+    public String toString() {
+        return toString((Object[]) null);
     }
 
     /*
@@ -55,7 +69,6 @@ public enum Tl8 implements Translate {
      * 
      * @see org.appwork.utils.locale.Translate#toString(java.lang.Object[])
      */
-
     public String toString(Object... args) {
         if (args != null && args.length > 0) {
             return Loc.LF("APPWORKUTILS:::" + name(), defaultTranslation, args);
@@ -64,10 +77,6 @@ public enum Tl8 implements Translate {
             cache = Loc.L("APPWORKUTILS:::" + name(), defaultTranslation);
             return cache;
         }
-    }
-
-    public String toString() {
-        return toString(null);
     }
 
     public static void reset() {

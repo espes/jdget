@@ -309,7 +309,6 @@ public class ORMapper {
                 } else if (!f.getType().isPrimitive() && !Modifier.isTransient(f.getType().getModifiers())) {
                     try {
                         String[] reference = rs.getString(i).split(":");
-                        ;
                         f.set(instance, getJavaValue(f, get(Class.forName(reference[0]), Integer.parseInt(reference[1]), idMap)));
                     } catch (NullPointerException e) {
                         f.set(instance, null);

@@ -15,6 +15,8 @@ package org.appwork.controlling;
  */
 public class StateConflictException extends Error {
 
+    private static final long serialVersionUID = -5880954175256200217L;
+
     /**
      * @param string
      */

@@ -39,7 +39,7 @@ public class LogEventHandler extends Handler {
     }
 
     private ArrayList<LogRecord> cache;
-    private Object lock = new Object();;
+    private Object lock = new Object();
 
     public ArrayList<LogRecord> getCache() {
         synchronized (lock) {

@@ -37,32 +37,27 @@ import org.appwork.utils.Application;
  */
 public class SingleAppInstance {
 
-    private String AppID;
+    private String appID;
     private InstanceMessageListener listener = null;
     private File lockFile = null;
     private FileLock fileLock = null;
     private FileChannel lockChannel = null;
-    private boolean DeamonRunning = false;
+    private boolean daemonRunning = false;
     private boolean alreadyUsed = false;
     private ServerSocket serverSocket = null;
     private final String SINGLEAPP = "SingleAppInstance";
-    private Thread deamon = null;
+    private Thread daemon = null;
     private File portFile = null;
 
-    public SingleAppInstance(final String AppID) {
-        this.AppID = AppID;
-        this.lockFile = Application.getRessource(AppID + ".lock");
-        this.portFile = Application.getRessource(AppID + ".port");
-        Runtime rt = Runtime.getRuntime();
-        rt.addShutdownHook(new Thread(new ShutdownHook(this)));
+    public SingleAppInstance(final String appID) {
+        this(appID, new File(Application.getRoot()));
     }
 
-    public SingleAppInstance(final String AppID, File directory) {
-        this.AppID = AppID;
-        this.lockFile = new File(directory, AppID + ".lock");
-        this.portFile = new File(directory, AppID + ".port");
-        Runtime rt = Runtime.getRuntime();
-        rt.addShutdownHook(new Thread(new ShutdownHook(this)));
+    public SingleAppInstance(final String appID, File directory) {
+        this.appID = appID;
+        this.lockFile = new File(directory, appID + ".lock");
+        this.portFile = new File(directory, appID + ".port");
+        Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(this)));
     }
 
     public synchronized void setInstanceMessageListener(final InstanceMessageListener listener) {
@@ -136,7 +131,7 @@ public class SingleAppInstance {
         alreadyUsed = true;
         lockChannel = null;
         fileLock = null;
-        throw new AnotherInstanceRunningException(AppID);
+        throw new AnotherInstanceRunningException(appID);
     }
 
     private synchronized void cannotStart(String cause) throws UncheckableInstanceException {
@@ -169,7 +164,7 @@ public class SingleAppInstance {
                 portWriter = new FileOutputStream(portFile);
                 portWriter.write((serverSocket.getLocalPort() + "").getBytes());
                 portWriter.flush();
-                startDeamon();
+                startDaemon();
                 return;
             } catch (Throwable t) {
                 /* network communication not possible */
@@ -197,8 +192,8 @@ public class SingleAppInstance {
 
     public synchronized void exit() {
         if (fileLock == null) return;
-        DeamonRunning = false;
-        if (deamon != null) deamon.interrupt();
+        daemonRunning = false;
+        if (daemon != null) daemon.interrupt();
         try {
             try {
                 fileLock.release();
@@ -228,14 +223,14 @@ public class SingleAppInstance {
         }
     }
 
-    private synchronized void startDeamon() {
-        if (deamon != null) return;
-        deamon = new Thread(new Runnable() {
+    private synchronized void startDaemon() {
+        if (daemon != null) return;
+        daemon = new Thread(new Runnable() {
 
             public void run() {
-                DeamonRunning = true;
-                while (DeamonRunning) {
-                    if (deamon.isInterrupted()) break;
+                daemonRunning = true;
+                while (daemonRunning) {
+                    if (daemon.isInterrupted()) break;
                     Socket client = null;
                     try {
                         /* accept new request */
@@ -287,10 +282,10 @@ public class SingleAppInstance {
                 }
             }
         });
-        deamon.setName("SingleAppInstance: " + AppID);
-        /* set deamonmode so java does not wait for this thread */
-        deamon.setDaemon(true);
-        deamon.start();
+        daemon.setName("SingleAppInstance: " + appID);
+        /* set daemonmode so java does not wait for this thread */
+        daemon.setDaemon(true);
+        daemon.start();
     }
 
     private void writeLine(OutputStream outputStream, String line) {

@@ -14,5 +14,9 @@ package org.appwork.utils.locale;
  * 
  */
 public interface Translate {
+    public String s();
+
+    public String toString();
+
     public String toString(Object... args);
 }

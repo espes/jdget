@@ -27,7 +27,6 @@ public abstract class PrimitiveWrapperClassConverter extends ClassConverter {
      * @param db
      */
     public PrimitiveWrapperClassConverter(String type) {
-
         this.type = type;
     }
 
@@ -39,7 +38,6 @@ public abstract class PrimitiveWrapperClassConverter extends ClassConverter {
      */
     @Override
     public void checkIntegrety(String tableID) {
-        // TODO Auto-generated method stub
 
     }
 
@@ -69,10 +67,9 @@ public abstract class PrimitiveWrapperClassConverter extends ClassConverter {
     public Object get(Class<?> clazz, String where) throws SQLException {
         MappableClassID anno = clazz.getAnnotation(MappableClassID.class);
         String tableID = anno == null ? clazz.getName().replace(".", "_") : anno.value();
-        ResultSet rs;
-        rs = db.prepareStatement("SELECT * FROM " + tableID + where).executeQuery();
-        boolean b = rs.next();
 
+        ResultSet rs = db.prepareStatement("SELECT * FROM " + tableID + where).executeQuery();
+        rs.next();
         return rs.getObject(3);
     }
 
@@ -110,11 +107,9 @@ public abstract class PrimitiveWrapperClassConverter extends ClassConverter {
 
         db.prepareStatement(sb.toString()).execute();
 
-        ResultSet rs;
-        (rs = db.prepareStatement("SELECT id FROM " + tableID + " WHERE INSTANCEID ='" + instanceID + "'").executeQuery()).next();
-
+        ResultSet rs = db.prepareStatement("SELECT id FROM " + tableID + " WHERE INSTANCEID ='" + instanceID + "'").executeQuery();
+        rs.next();
         return rs.getInt(1);
-
     }
 
     /*
@@ -142,10 +137,10 @@ public abstract class PrimitiveWrapperClassConverter extends ClassConverter {
         insertStatement.setObject(2, instanceID);
         insertStatement.setObject(3, getValue(item));
         insertStatement.execute();
-        // there must be a better way
-        ResultSet rs;
-        (rs = db.prepareStatement("SELECT id FROM " + tableID + " WHERE INSTANCEID ='" + instanceID + "'").executeQuery()).next();
 
+        // there must be a better way
+        ResultSet rs = db.prepareStatement("SELECT id FROM " + tableID + " WHERE INSTANCEID ='" + instanceID + "'").executeQuery();
+        rs.next();
         return rs.getInt(1);
     }
 

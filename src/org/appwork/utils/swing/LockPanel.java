@@ -137,7 +137,7 @@ public class LockPanel extends JPanel {
     }
 
     /**
-     * @param i
+     * @param time
      */
     public void lock(int time) {
 

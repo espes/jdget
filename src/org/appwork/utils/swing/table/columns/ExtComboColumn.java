@@ -32,6 +32,8 @@ public abstract class ExtComboColumn extends ExtColumn implements ActionListener
         if (model == null) model = new DefaultComboBoxModel();
         dataModel = model;
         comboBoxRend = new JComboBox(dataModel) {
+            private static final long serialVersionUID = -7223814300276557968L;
+
             public void addActionListener(ActionListener l) {
                 listenerList.add(ActionListener.class, l);
             }

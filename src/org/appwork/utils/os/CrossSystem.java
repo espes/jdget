@@ -13,7 +13,6 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.appwork.utils.logging.Log;
@@ -87,17 +86,15 @@ public class CrossSystem {
             Log.L.severe("Desktop is not supported (fatal)");
         }
 
-        Desktop desktop = java.awt.Desktop.getDesktop();
+        Desktop desktop = Desktop.getDesktop();
 
-        if (!desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
+        if (!desktop.isSupported(Desktop.Action.BROWSE)) {
             Log.L.severe("Desktop doesn't support the browse action (fatal)");
         }
 
         try {
             desktop.browse(url.toURI());
-        } catch (IOException e) {
-            Log.exception(e);
-        } catch (URISyntaxException e) {
+        } catch (Exception e) {
             Log.exception(e);
         }
     }
@@ -116,7 +113,6 @@ public class CrossSystem {
             try {
                 Runtime.getRuntime().exec("cmd /c \"" + file.getAbsolutePath() + "\"");
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             return;
@@ -126,9 +122,9 @@ public class CrossSystem {
             Log.L.severe("Desktop is not supported (fatal)");
         }
 
-        Desktop desktop = java.awt.Desktop.getDesktop();
+        Desktop desktop = Desktop.getDesktop();
 
-        if (!desktop.isSupported(java.awt.Desktop.Action.OPEN)) {
+        if (!desktop.isSupported(Desktop.Action.OPEN)) {
             Log.L.severe("Desktop doesn't support the OPEN action (fatal)");
         }
 

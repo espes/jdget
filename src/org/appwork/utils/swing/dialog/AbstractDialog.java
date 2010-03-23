@@ -42,9 +42,6 @@ import org.appwork.utils.swing.SwingUtils;
 
 public abstract class AbstractDialog extends TimerDialog implements ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1831761858087385862L;
 
     protected JButton cancelButton;
@@ -356,9 +353,10 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
     }
 
     public static void resetDialogInformations() {
-        // TODO
-        // We should extends the DatabaseInterface to create an own subdb which
-        // can be removed here.
+        /*
+         * TODO We should extends the DatabaseInterface to create an own subdb
+         * which can be removed here.
+         */
     }
 
 }

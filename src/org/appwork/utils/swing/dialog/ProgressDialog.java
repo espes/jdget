@@ -30,19 +30,11 @@ import org.appwork.utils.swing.EDTHelper;
  * 
  */
 public class ProgressDialog extends AbstractDialog {
+    private static final long serialVersionUID = -7420852517889843489L;
     private JTextPane textField;
     private String message;
 
     private ProgressGetter getter;
-
-    /**
-     * @param flag
-     * @param title
-     * @param message
-     * @param icon
-     * @param okOption
-     * @param cancelOption
-     */
 
     /**
      * @param progressGetter
@@ -60,9 +52,6 @@ public class ProgressDialog extends AbstractDialog {
     public interface ProgressGetter {
         public int getProgress();
 
-        /**
-         * @return
-         */
         public String getString();
     }
 
@@ -76,7 +65,6 @@ public class ProgressDialog extends AbstractDialog {
                     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
                         CrossSystem.openURL(e.getURL());
                     }
-
                 }
 
             });
@@ -124,7 +112,6 @@ public class ProgressDialog extends AbstractDialog {
                                     bar.setStringPainted(true);
                                     bar.setString(text);
                                 }
-
                                 return null;
                             }
 
@@ -137,7 +124,6 @@ public class ProgressDialog extends AbstractDialog {
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }
@@ -145,6 +131,6 @@ public class ProgressDialog extends AbstractDialog {
         };
         th.start();
         return p;
-
     }
+
 }

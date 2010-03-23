@@ -26,9 +26,9 @@ import javax.swing.Timer;
  * @author thomas
  * 
  */
-
 abstract public class Graph extends JPanel {
 
+    private static final long serialVersionUID = 6943108941655020136L;
     private int i;
     private int[] cache;
     private transient Thread fetcherThread;

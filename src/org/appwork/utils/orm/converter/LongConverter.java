@@ -16,15 +16,13 @@ package org.appwork.utils.orm.converter;
  */
 public class LongConverter extends PrimitiveWrapperClassConverter {
 
-    private String type;
+    // private String type;
 
     /**
      * @param db
      */
     public LongConverter() {
         super("BIGINT");
-
-        // TODO Auto-generated constructor stub
     }
 
     /*
