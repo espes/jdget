@@ -66,9 +66,9 @@ public class Application {
             // this is the jar file
             String loc;
             try {
-                loc = URLDecoder.decode(Application.class.getProtectionDomain().getCodeSource().getLocation().getFile(), "UTF-8");
+                loc = URLDecoder.decode(rootOfClazz.getProtectionDomain().getCodeSource().getLocation().getFile(), "UTF-8");
             } catch (Exception e) {
-                loc = Application.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+                loc = rootOfClazz.getProtectionDomain().getCodeSource().getLocation().getFile();
                 System.err.println("ailed urldecoding Location: " + loc);
             }
             File appRoot = new File(loc);
