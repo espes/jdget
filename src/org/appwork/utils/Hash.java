@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedInputStream;
 
 import org.appwork.utils.formatter.HexFormatter;
 
@@ -64,4 +66,20 @@ public class Hash {
         return getFileHash(arg, HASH_TYPE_SHA1);
     }
 
+    public static long getCRC32(File arg) throws IOException {
+        FileInputStream fis = new FileInputStream(arg);
+        CheckedInputStream cis = null;
+        try {
+            cis = new CheckedInputStream(fis, new CRC32());
+            byte readBuffer[] = new byte[4096];
+            long ret = 0;
+            while (cis.read(readBuffer) >= 0) {
+                ret = cis.getChecksum().getValue();
+            }
+            return ret;
+        } finally {
+            if (cis != null) cis.close();
+            fis.close();
+        }
+    }
 }
