@@ -26,19 +26,40 @@ public class ZipIOReader {
 
     private File zipFile = null;
     private ZipFile zip = null;
-    private ArrayList<ZipIOFile> root = null;
+    private ZipIOFile rootFS = null;
 
+    /**
+     * open the zipFile for this ZipIOReader
+     * 
+     * @param zipFile
+     *            the zipFile we want to open
+     * @throws ZipIOException
+     * @throws ZipException
+     * @throws IOException
+     */
     public ZipIOReader(File zipFile) throws ZipIOException, ZipException, IOException {
         this.zipFile = zipFile;
         openZip();
     }
 
+    /**
+     * opens the ZipFile for further use
+     * 
+     * @throws ZipIOException
+     * @throws ZipException
+     * @throws IOException
+     */
     private void openZip() throws ZipIOException, ZipException, IOException {
         if (zip != null) return;
         if (zipFile == null || zipFile.isDirectory() || !zipFile.exists()) throw new ZipIOException("invalid zipFile");
         this.zip = new ZipFile(zipFile);
     }
 
+    /**
+     * closes the ZipFile
+     * 
+     * @throws IOException
+     */
     public synchronized void close() throws IOException {
         try {
             if (zip != null) {
@@ -49,6 +70,12 @@ public class ZipIOReader {
         }
     }
 
+    /**
+     * returns a list of all ZipEntries in this ZipFile
+     * 
+     * @return ZipEntry[] of all files in the ZipFile
+     * @throws ZipIOException
+     */
     public synchronized ZipEntry[] getZipFiles() throws ZipIOException {
         ArrayList<ZipEntry> ret = new ArrayList<ZipEntry>();
         Enumeration<? extends ZipEntry> zipIter = zip.entries();
@@ -58,15 +85,38 @@ public class ZipIOReader {
         return ret.toArray(new ZipEntry[ret.size()]);
     }
 
+    /**
+     * how many ZipEntries does this ZipFile have
+     * 
+     * @return
+     * @throws ZipIOException
+     */
     public synchronized int size() throws ZipIOException {
         return zip.size();
     }
 
+    /**
+     * returns an InputStream for given ZipEntry
+     * 
+     * @param entry
+     *            ZipEntry we want an InputStream
+     * @return InputStream for given ZipEntry
+     * @throws ZipIOException
+     * @throws IOException
+     */
     public synchronized InputStream getInputStream(ZipEntry entry) throws ZipIOException, IOException {
         if (entry == null) throw new ZipIOException("invalid zipEntry");
         return zip.getInputStream(entry);
     }
 
+    /**
+     * returns the ZipEntry for the given name
+     * 
+     * @param fileName
+     *            Filename we want a ZipEntry for
+     * @return ZipEntry if filename is found or null if not found
+     * @throws ZipIOException
+     */
     public synchronized ZipEntry getZipFile(String fileName) throws ZipIOException {
         if (fileName == null) throw new ZipIOException("invalid fileName");
         return zip.getEntry(fileName);
@@ -76,10 +126,16 @@ public class ZipIOReader {
         close();
     }
 
-    public synchronized ZipIOFile[] getZipIOFileSystem() throws ZipIOException {
-        if (root != null) return root.toArray(new ZipIOFile[root.size()]);
+    /**
+     * returns a ZipIOFile Filesystem for this ZipFile
+     * 
+     * @return ZipIOFile that represents ROOT of the Filesystem
+     * @throws ZipIOException
+     */
+    public synchronized ZipIOFile getZipIOFileSystem() throws ZipIOException {
+        if (rootFS != null) return rootFS;
         ZipEntry[] content = getZipFiles();
-        root = new ArrayList<ZipIOFile>();
+        ArrayList<ZipIOFile> root = new ArrayList<ZipIOFile>();
         for (ZipEntry file : content) {
             if (!file.isDirectory() && !file.getName().contains("/")) {
                 /* file is in root */
@@ -119,14 +175,41 @@ public class ZipIOReader {
                 }
             }
         }
-        return root.toArray(new ZipIOFile[root.size()]);
+        rootFS = new ZipIOFile("", null, this, null);
+        rootFS.getFilesInternal().addAll(root);
+        rootFS.getFilesInternal().trimToSize();
+        trimZipIOFiles(rootFS);
+        return rootFS;
     }
 
+    /**
+     * trims the ZipIOFiles(reduces memory)
+     * 
+     * @param root
+     *            ZipIOFile we want to start
+     */
+    private void trimZipIOFiles(ZipIOFile root) {
+        if (root == null) return;
+        for (ZipIOFile tmp : root.getFiles()) {
+            if (tmp.isDirectory()) trimZipIOFiles(tmp);
+        }
+        root.getFilesInternal().trimToSize();
+    }
+
+    /**
+     * find ZipIOFile that represents the Folder with given path
+     * 
+     * @param path
+     *            the path we search a ZipIOFile for
+     * @param currentRoot
+     *            currentRoot for the search
+     * @return ZipIOFile if path is found, else null
+     */
     private ZipIOFile getFolder(String path, ZipIOFile currentRoot) {
-        if (!currentRoot.isDirectory()) return null;
-        if (currentRoot.getAbsolutPath().equalsIgnoreCase(path)) return currentRoot;
+        if (path == null || currentRoot == null || !currentRoot.isDirectory()) return null;
+        if (currentRoot.getAbsolutePath().equalsIgnoreCase(path)) return currentRoot;
         for (ZipIOFile tmp : currentRoot.getFiles()) {
-            if (tmp.isDirectory() && tmp.getAbsolutPath().equalsIgnoreCase(path)) {
+            if (tmp.isDirectory() && tmp.getAbsolutePath().equalsIgnoreCase(path)) {
                 return tmp;
             } else if (tmp.isDirectory()) {
                 ZipIOFile ret = getFolder(path, tmp);
@@ -141,7 +224,7 @@ public class ZipIOReader {
         for (ZipEntry file : zip.getZipFiles()) {
             System.out.println(file.getName());
         }
-        ZipIOFile[] dd = zip.getZipIOFileSystem();
+        ZipIOFile dd = zip.getZipIOFileSystem();
         int i = 1;
     }
 }

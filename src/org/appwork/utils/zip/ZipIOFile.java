@@ -27,6 +27,19 @@ public class ZipIOFile {
     private final boolean isFile;
     private ArrayList<ZipIOFile> files = new ArrayList<ZipIOFile>();
 
+    /**
+     * constructor for ZipIOFile
+     * 
+     * @param name
+     *            name of the ZipIOFile node
+     * @param file
+     *            ZipEntry that represents the given File
+     * @param zipFile
+     *            ZipIOReader for this ZipIOFile
+     * @param parent
+     *            ZipIOFile that represents the parent of this node or null if
+     *            no parent available
+     */
     protected ZipIOFile(String name, ZipEntry file, ZipIOReader zipFile, ZipIOFile parent) {
         this.name = name;
         this.zipFile = zipFile;
@@ -39,45 +52,97 @@ public class ZipIOFile {
         }
     }
 
+    /**
+     * returns ZipIOFile list for all the filesif this ZipIOFile represents a
+     * directory(internal use for ZipIOReader)
+     * 
+     * @return
+     */
     protected final ArrayList<ZipIOFile> getFilesInternal() {
         return files;
     }
 
+    /**
+     * returns ZipIOFile list for all the filesif this ZipIOFile represents a
+     * directory
+     * 
+     * @return
+     */
     public final ZipIOFile[] getFiles() {
         return files.toArray(new ZipIOFile[files.size()]);
     }
 
+    /**
+     * returns the name of this ZipIOFile
+     * 
+     * @return
+     */
     public final String getName() {
         return name;
     }
 
+    /**
+     * is this ZipIOFile a directory
+     * 
+     * @return
+     */
     public final boolean isDirectory() {
         return !isFile;
     }
 
+    /**
+     * returns parent ZipIOFile
+     * 
+     * @return
+     */
     public final ZipIOFile getParent() {
         return parent;
     }
 
+    /**
+     * is this ZipIOFile a file
+     * 
+     * @return
+     */
     public final boolean isFile() {
         return isFile;
     }
 
-    public final String getAbsolutPath() {
-        if (file == null) return (parent != null ? parent.getAbsolutPath() : "") + name + "/";
+    /**
+     * returns the absolutepath of this ZipIOFile
+     * 
+     * @return
+     */
+    public final String getAbsolutePath() {
+        if (file == null) return (parent != null ? parent.getAbsolutePath() : "") + name + "/";
         return file.getName();
     }
 
+    /**
+     * returns filesize for this ZipIOFile
+     * 
+     * @return filesize or 0 if this ZipIOFile is a directory
+     */
     public final long getSize() {
         if (!isFile) return 0;
         return file.getSize();
     }
 
+    /**
+     * returns CRC32 for this ZipIOFile
+     * 
+     * @return CRC32 or 0 if this ZipIOFile is a directory
+     */
     public final long getCRC32() {
         if (!isFile) return 0;
         return file.getCrc();
     }
 
+    /**
+     * returns InputStream for this ZipIOFile
+     * 
+     * @return InputStream or null if this ZipIOFile is a directory
+     */
     public final InputStream getInputStream() throws IOException, ZipIOException {
         if (!isFile) return null;
         return zipFile.getInputStream(file);
@@ -86,9 +151,9 @@ public class ZipIOFile {
     @Override
     public String toString() {
         if (isFile) {
-            return getAbsolutPath() + name;
+            return getAbsolutePath() + name;
         } else {
-            return getAbsolutPath();
+            return getAbsolutePath();
         }
     }
 

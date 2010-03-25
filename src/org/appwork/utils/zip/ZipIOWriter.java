@@ -31,16 +31,42 @@ public class ZipIOWriter {
 
     private byte[] buf = new byte[8192];
 
+    /**
+     * constructor for ZipIOWriter
+     * 
+     * @param zipFile
+     *            zipFile we want create (does not overwrite existing files!)
+     * @throws FileNotFoundException
+     * @throws ZipIOException
+     */
     public ZipIOWriter(File zipFile) throws FileNotFoundException, ZipIOException {
         this.zipFile = zipFile;
         openZip(false);
     }
 
+    /**
+     * constructor for ZipIOWriter
+     * 
+     * @param zipFile
+     *            zipFile we want create
+     * @param overwrite
+     *            overwrite existing ziFiles?
+     * @throws FileNotFoundException
+     * @throws ZipIOException
+     */
     public ZipIOWriter(File zipFile, boolean overwrite) throws FileNotFoundException, ZipIOException {
         this.zipFile = zipFile;
         openZip(overwrite);
     }
 
+    /**
+     * opens the zipFile for further use
+     * 
+     * @param overwrite
+     *            overwrite existing zipFiles?
+     * @throws ZipIOException
+     * @throws FileNotFoundException
+     */
     private void openZip(boolean overwrite) throws ZipIOException, FileNotFoundException {
         if (fileStream != null && zipStream != null) return;
         if (zipFile == null || zipFile.isDirectory()) throw new ZipIOException("invalid zipFile");
@@ -49,6 +75,11 @@ public class ZipIOWriter {
         zipStream = new ZipOutputStream(fileStream);
     }
 
+    /**
+     * closes the ZipFile
+     * 
+     * @throws IOException
+     */
     public synchronized void close() throws IOException {
         try {
             if (zipStream != null) {
@@ -69,6 +100,18 @@ public class ZipIOWriter {
         close();
     }
 
+    /**
+     * add given File (File or Directory) to this ZipFile
+     * 
+     * @param add
+     *            File to add
+     * @param compress
+     *            compress or store
+     * @param path
+     *            customized path
+     * @throws ZipIOException
+     * @throws IOException
+     */
     public synchronized void add(File add, boolean compress, String path) throws ZipIOException, IOException {
         if (add == null || !add.exists()) throw new ZipIOException("add " + add.getAbsolutePath() + " invalid");
         if (add.isFile()) {
@@ -80,10 +123,34 @@ public class ZipIOWriter {
         }
     }
 
+    /**
+     * add given File to this ZipFile
+     * 
+     * @param addFile
+     *            File to add
+     * @param compress
+     *            compress or store
+     * @param path
+     *            customized path
+     * @throws ZipIOException
+     * @throws IOException
+     */
     public synchronized void addFile(File addFile, boolean compress, String path) throws ZipIOException, IOException {
         addFileInternal(addFile, compress, path);
     }
 
+    /**
+     * add given Directory to this ZipFile
+     * 
+     * @param addDirectory
+     *            Directory to add
+     * @param compress
+     *            compress or store
+     * @param path
+     *            customized path
+     * @throws ZipIOException
+     * @throws IOException
+     */
     public synchronized void addDirectory(File addDirectory, boolean compress, String path) throws ZipIOException, IOException {
         addDirectoryInternal(addDirectory, compress, path);
     }
