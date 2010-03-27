@@ -53,13 +53,18 @@ public class Application {
         APP_FOLDER = newAppFolder;
     }
 
+    /**
+     * Returns the Path of appworkutils.jar
+     * 
+     * @return
+     */
     public static String getRoot() {
         return getRoot(Application.class);
     }
 
     /**
      * Detects the applications home directory. it is either the pass of the
-     * main.jar or HOME/
+     * appworkutils.jar or HOME/
      */
     public static String getRoot(Class<?> rootOfClazz) {
         if (isJared()) {

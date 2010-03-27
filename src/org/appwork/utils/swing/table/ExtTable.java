@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
@@ -33,6 +34,7 @@ import javax.swing.table.TableColumnModel;
 
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.storage.DatabaseInterface;
+import org.appwork.utils.swing.EDTHelper;
 
 /**
  * The ExtTable package is a tableframework that follows two main tasks:<br>
@@ -183,6 +185,24 @@ public class ExtTable extends JTable {
             }
 
         });
+
+    }
+
+    public void scrollToRow(final int row) {
+        new EDTHelper<Object>() {
+
+            @Override
+            public Object edtRun() {
+                JViewport viewport = (JViewport) getParent();
+                if (viewport == null) return null;
+                Rectangle rect = getCellRect(row, 0, true);
+                Point pt = viewport.getViewPosition();
+                rect.setLocation(rect.x - pt.x, rect.y - pt.y);
+                viewport.scrollRectToVisible(rect);
+                return null;
+            }
+
+        }.start();
 
     }
 
