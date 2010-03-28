@@ -48,8 +48,6 @@ public class ClipboardUtils {
         arrayListFlavor = tmp;
     }
 
-    private ArrayList<Object> cutpasteBuffer = new ArrayList<Object>();
-
     public static ClipboardUtils getInstance() {
         return INSTANCE;
     }
@@ -61,31 +59,20 @@ public class ClipboardUtils {
     public ClipboardUtils() {
     }
 
-    public void putToCutPasteBuffer(ArrayList<Object> objs) {
-        synchronized (cutpasteBuffer) {
-            cutpasteBuffer.clear();
-            if (objs == null || objs.size() == 0) return;
-            cutpasteBuffer.addAll(objs);
+    public static boolean hasSupport(DataFlavor flavor) {
+        if (flavor != null) {
+            if (uriListFlavor != null && flavor.isMimeTypeEqual(uriListFlavor)) return true;
+            if (fileListFlavor != null && flavor.isMimeTypeEqual(fileListFlavor)) return true;
+            if (arrayListFlavor != null && flavor.isMimeTypeEqual(arrayListFlavor)) return true;
         }
-    }
-
-    public ArrayList<Object> getCutPasteBuffer() {
-        synchronized (cutpasteBuffer) {
-            return new ArrayList<Object>(cutpasteBuffer);
-        }
-    }
-
-    public boolean emptyCutPasteBuffer() {
-        synchronized (cutpasteBuffer) {
-            return cutpasteBuffer.isEmpty();
-        }
+        return false;
     }
 
     public static boolean hasSupport(TransferSupport info) {
         if (info != null) {
-            if (uriListFlavor != null && info.isDataFlavorSupported(uriListFlavor)) return true;
-            if (fileListFlavor != null && info.isDataFlavorSupported(fileListFlavor)) return true;
-            if (arrayListFlavor != null && info.isDataFlavorSupported(arrayListFlavor)) return true;
+            for (DataFlavor flavor : info.getDataFlavors()) {
+                if (hasSupport(flavor)) return true;
+            }
         }
         return false;
     }
