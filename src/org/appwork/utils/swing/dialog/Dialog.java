@@ -24,7 +24,6 @@ import org.appwork.utils.interfaces.ValueConverter;
 import org.appwork.utils.locale.Loc;
 import org.appwork.utils.locale.Tl8;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.EDTHelper;
 
 /**
@@ -44,7 +43,7 @@ public class Dialog {
      * Hide the OK button
      */
     public static final int BUTTONS_HIDE_OK = 1 << 3;
-    private DatabaseInterface database;
+
     /**
      * Icon Key for Error Icons
      * 
@@ -156,14 +155,6 @@ public class Dialog {
     public static final int STYLE_SHOW_DO_NOT_DISPLAY_AGAIN = 1 << 5;
 
     /**
-     * @return the {@link AbstractDialog#dATABASE}
-     * @see AbstractDialog#dATABASE
-     */
-    public DatabaseInterface getDatabase() {
-        return database;
-    }
-
-    /**
      * Return the singleton instance of Dialog
      * 
      * @return
@@ -188,15 +179,6 @@ public class Dialog {
      */
     public void setParentOwner(JFrame parent) {
         owner = parent;
-    }
-
-    /**
-     * @param dATABASE
-     *            the {@link AbstractDialog#dATABASE} to set
-     * @see AbstractDialog#dATABASE
-     */
-    public void setDatabase(DatabaseInterface db) {
-        database = db;
     }
 
     /**

@@ -32,8 +32,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import org.appwork.storage.ConfigInterface;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.EDTHelper;
 
 /**
@@ -69,10 +69,6 @@ public class ExtTable extends JTable {
     private Color columnForegroundSelected;
 
     /**
-     * Database interface used to store crossession data.
-     */
-    private DatabaseInterface database;
-    /**
      * The underlaying datamodel
      */
     private ExtTableModel model;
@@ -93,12 +89,12 @@ public class ExtTable extends JTable {
      * @param id
      *            Tableid used for storage
      */
-    public ExtTable(ExtTableModel model, DatabaseInterface database, String id) {
+    public ExtTable(ExtTableModel model, String id) {
         super(model);
         this.tableID = id;
         rowHighlighters = new ArrayList<ExtRowHighlighter>();
         this.model = model;
-        this.database = database;
+
         model.setTable(this);
         // get defaultbackground and Foregroundcolors
         Component c = super.getCellRenderer(0, 0).getTableCellRendererComponent(this, "", true, false, 0, 0);
@@ -170,7 +166,7 @@ public class ExtTable extends JTable {
                 TableColumnModel tcm = getColumnModel();
                 for (int i = 0; i < tcm.getColumnCount(); i++) {
                     try {
-                        ExtTable.this.database.put("EXTTABLE_" + tableID + "_POS_COL_" + i, getExtTableModel().getExtColumn(tcm.getColumn(i).getModelIndex()).getID());
+                        ConfigInterface.getStorage("ExtTable_" + tableID).put("POS_COL_" + i, getExtTableModel().getExtColumn(tcm.getColumn(i).getModelIndex()).getID());
                     } catch (Exception e1) {
                         Log.exception(e1);
                     }
@@ -411,7 +407,7 @@ public class ExtTable extends JTable {
                     if (evt.getPropertyName().equals("width")) {
                         // TODO
                         try {
-                            ExtTable.this.database.put("EXTTABLE_" + tableID + "_WIDTH_COL_" + model.getExtColumn(j).getID(), evt.getNewValue());
+                            ConfigInterface.getStorage("ExtTable_" + tableID).put("WIDTH_COL_" + model.getExtColumn(j).getID(), (Integer) evt.getNewValue());
                         } catch (Exception e) {
                             Log.exception(e);
                         }
@@ -422,7 +418,7 @@ public class ExtTable extends JTable {
             if (model.getExtColumn(j).getMaxWidth() >= 0) tableColumn.setMaxWidth(model.getExtColumn(j).getMaxWidth());
             // Set stored columnwidth
             try {
-                int w = ExtTable.this.database.get("EXTTABLE_" + tableID + "_WIDTH_COL_" + model.getExtColumn(j).getID(), tableColumn.getWidth());
+                int w = ConfigInterface.getStorage("ExtTable_" + tableID).get("WIDTH_COL_" + model.getExtColumn(j).getID(), tableColumn.getWidth());
                 tableColumn.setPreferredWidth(w);
 
                 if (!model.isVisible(i)) {
@@ -442,7 +438,7 @@ public class ExtTable extends JTable {
             if (index < getModel().getColumnCount()) {
                 String id;
                 try {
-                    id = this.database.get("EXTTABLE_" + tableID + "_POS_COL_" + index, "");
+                    id = ConfigInterface.getStorage("ExtTable_" + tableID).get("POS_COL_" + index, "");
 
                     index++;
                     if (id != null) {

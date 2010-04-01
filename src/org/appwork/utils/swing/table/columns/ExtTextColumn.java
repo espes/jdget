@@ -5,7 +5,6 @@ import java.awt.Component;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
@@ -16,8 +15,8 @@ public abstract class ExtTextColumn extends ExtColumn {
     private static final long serialVersionUID = 2114805529462086691L;
     private RenderLabel label;
 
-    public ExtTextColumn(String name, ExtTableModel table, DatabaseInterface database) {
-        super(name, table, database);
+    public ExtTextColumn(String name, ExtTableModel table) {
+        super(name, table);
 
         label = new RenderLabel();
         label.setBorder(null);

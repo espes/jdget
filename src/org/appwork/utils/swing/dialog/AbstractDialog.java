@@ -34,6 +34,7 @@ import javax.swing.WindowConstants;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.storage.ConfigInterface;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale.Tl8;
 import org.appwork.utils.logging.Log;
@@ -83,7 +84,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         dont: if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
             try {
-                int i = Dialog.getInstance().getDatabase().get(getDontShowAgainKey(), -1);
+                int i = ConfigInterface.getStorage("Dialogs").get(getDontShowAgainKey(), -1);
 
                 if (i >= 0) {
                     // filter saved return value
@@ -334,7 +335,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
             if (dontshowagain.isSelected() && dontshowagain.isEnabled()) {
                 returnBitMask |= Dialog.RETURN_DONT_SHOW_AGAIN;
                 try {
-                    Dialog.getInstance().getDatabase().put(getDontShowAgainKey(), returnBitMask);
+                    ConfigInterface.getStorage("Dialogs").put(getDontShowAgainKey(), returnBitMask);
                 } catch (Exception e) {
                     Log.exception(e);
                 }

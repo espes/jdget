@@ -128,6 +128,7 @@ public class Queue extends Thread {
             try {
                 item.exceptionHandler(e);
             } catch (Exception e2) {
+                e2.printStackTrace();
             }
         }
     }

@@ -4,12 +4,10 @@ import java.awt.Component;
 
 import javax.swing.JTable;
 
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
-
 
 public abstract class ExtLongColumn extends ExtColumn {
 
@@ -19,8 +17,8 @@ public abstract class ExtLongColumn extends ExtColumn {
     private static final long serialVersionUID = -6917352290094392921L;
     private RenderLabel label;
 
-    public ExtLongColumn(String name, ExtTableModel table, DatabaseInterface database) {
-        super(name, table, database);
+    public ExtLongColumn(String name, ExtTableModel table) {
+        super(name, table);
         this.label = new RenderLabel();
         label.setBorder(null);
         label.setOpaque(false);

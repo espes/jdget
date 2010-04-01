@@ -7,12 +7,10 @@ import java.util.Date;
 
 import javax.swing.JTable;
 
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
-
 
 public abstract class ExtDateColumn extends ExtColumn {
 
@@ -24,8 +22,8 @@ public abstract class ExtDateColumn extends ExtColumn {
     private SimpleDateFormat dateFormat;
     private Date date;
 
-    public ExtDateColumn(String name, ExtTableModel table, DatabaseInterface database) {
-        super(name, table, database);
+    public ExtDateColumn(String name, ExtTableModel table) {
+        super(name, table);
         this.label = new RenderLabel();
         label.setBorder(null);
         label.setOpaque(false);

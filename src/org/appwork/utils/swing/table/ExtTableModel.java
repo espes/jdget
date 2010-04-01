@@ -6,8 +6,8 @@ import java.util.Collections;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 
+import org.appwork.storage.ConfigInterface;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.EDTHelper;
 
 public abstract class ExtTableModel extends AbstractTableModel {
@@ -24,10 +24,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * Column instances
      */
     protected ArrayList<ExtColumn> columns = new ArrayList<ExtColumn>();
-    /**
-     * database interface to store internal data
-     */
-    private DatabaseInterface database;
+
     /**
      * Modelid to have an seperate key for database savong
      */
@@ -54,9 +51,9 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @param id
      *            storageID.
      */
-    public ExtTableModel(DatabaseInterface database, String id) {
+    public ExtTableModel(String id) {
         super();
-        this.database = database;
+
         this.modelID = id;
         initColumns();
     }
@@ -268,7 +265,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
 
         ExtColumn col = getExtColumn(column);
         try {
-            return database.get("EXTTABLEMODEL_" + modelID + "_VISABLE_COL_" + col.getName(), col.defaultVisible());
+            return ConfigInterface.getStorage("ExtTableModel_" + modelID).get("VISABLE_COL_" + col.getName(), col.defaultVisible());
         } catch (Exception e) {
             Log.exception(e);
             return true;
@@ -302,7 +299,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
     public void setVisible(int column, boolean visible) {
         ExtColumn col = getExtColumn(column);
         try {
-            database.put("EXTTABLEMODEL_" + modelID + "_VISABLE_COL_" + col.getName(), visible);
+            ConfigInterface.getStorage("ExtTableModel_" + modelID).put("VISABLE_COL_" + col.getName(), visible);
         } catch (Exception e) {
             Log.exception(e);
         }

@@ -11,7 +11,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
@@ -27,8 +26,8 @@ public abstract class ExtComboColumn extends ExtColumn implements ActionListener
 
     private ComboBoxModel dataModel;
 
-    public ExtComboColumn(String name, ExtTableModel table, DatabaseInterface database, ComboBoxModel model) {
-        super(name, table, database);
+    public ExtComboColumn(String name, ExtTableModel table, ComboBoxModel model) {
+        super(name, table);
         if (model == null) model = new DefaultComboBoxModel();
         dataModel = model;
         comboBoxRend = new JComboBox(dataModel) {

@@ -5,7 +5,6 @@ import java.awt.Component;
 import javax.swing.JTable;
 
 import org.appwork.utils.formatter.SizeFormater;
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
@@ -19,8 +18,8 @@ public abstract class ExtFileSizeColumn extends ExtColumn {
     private static final long serialVersionUID = -5812486934156037376L;
     protected RenderLabel label;
 
-    public ExtFileSizeColumn(String name, ExtTableModel table, DatabaseInterface database) {
-        super(name, table, database);
+    public ExtFileSizeColumn(String name, ExtTableModel table) {
+        super(name, table);
         this.label = new RenderLabel();
         label.setBorder(null);
         label.setOpaque(false);

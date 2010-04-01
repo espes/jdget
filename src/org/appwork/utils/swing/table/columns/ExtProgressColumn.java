@@ -5,7 +5,6 @@ import java.awt.Component;
 import javax.swing.JProgressBar;
 import javax.swing.JTable;
 
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTable;
@@ -15,8 +14,8 @@ abstract public class ExtProgressColumn extends ExtColumn {
     private static final long serialVersionUID = -2473320164484034664L;
     protected JProgressBar bar;
 
-    public ExtProgressColumn(String name, ExtTableModel table, DatabaseInterface database) {
-        super(name, table, database);
+    public ExtProgressColumn(String name, ExtTableModel table) {
+        super(name, table);
         bar = new JProgressBar(0, getMax());
         bar.setOpaque(false);
         bar.setStringPainted(true);

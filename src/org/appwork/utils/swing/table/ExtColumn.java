@@ -11,7 +11,6 @@ import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.EDTHelper;
 
 /**
@@ -38,10 +37,7 @@ public abstract class ExtColumn extends AbstractCellEditor implements TableCellE
      * required to start edit mode
      */
     private int clickcount = 1;
-    /**
-     * Database interface to let derived colums save statusinformation
-     */
-    protected DatabaseInterface database;
+
     /**
      * The model this column belongs to
      */
@@ -70,10 +66,10 @@ public abstract class ExtColumn extends AbstractCellEditor implements TableCellE
      * @param table
      * @param database
      */
-    public ExtColumn(String name, ExtTableModel table, DatabaseInterface database) {
+    public ExtColumn(String name, ExtTableModel table) {
         this.name = name;
         this.model = table;
-        this.database = database;
+
         this.headerrenderer = new ExtTableCellHeaderRenderer(this);
         // sort function
         rowSorter = new ExtDefaultRowSorter();

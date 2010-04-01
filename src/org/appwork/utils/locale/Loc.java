@@ -16,9 +16,10 @@ import java.io.FilenameFilter;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
+import org.appwork.storage.ConfigInterface;
+import org.appwork.storage.Storage;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.storage.DatabaseInterface;
 
 /**
  * This class provides functions to return translated strings
@@ -27,16 +28,7 @@ import org.appwork.utils.storage.DatabaseInterface;
  */
 public class Loc {
 
-    private static DatabaseInterface DATABASE;
-
-    /**
-     * @param dATABASE
-     *            the dATABASE to set
-     */
-    public static void setDatabase(DatabaseInterface db) {
-        DATABASE = db;
-    }
-
+    public static final Storage CFG = ConfigInterface.getStorage("Locale");
     /**
      * The key (String) under which the saved localization-name is stored.
      */
@@ -89,7 +81,7 @@ public class Loc {
         if (data == null) {
             Log.L.warning("No parsed localization found! Loading now from saved localization file!");
             try {
-                Loc.setLocale(DATABASE.get(PROPERTY_LOCALE, DEFAULE_LOCALIZATION_NAME));
+                Loc.setLocale(CFG.get(PROPERTY_LOCALE, DEFAULE_LOCALIZATION_NAME));
             } catch (Exception e) {
 
                 Log.L.severe("Error while loading the stored localization name!");
@@ -139,14 +131,15 @@ public class Loc {
      */
     public static void setLocale(String loc) {
         try {
-            if (loc == null && DATABASE != null) {
-                loc = DATABASE.get(PROPERTY_LOCALE, DEFAULE_LOCALIZATION_NAME);
+            if (loc == null) {
+
+                loc = CFG.get(PROPERTY_LOCALE, DEFAULE_LOCALIZATION_NAME);
             }
             File file = new File(LOCALIZATION_DIR, loc + ".loc");
             locale = loc;
             if (file != null && file.exists()) {
 
-                if (DATABASE != null) DATABASE.put(PROPERTY_LOCALE, loc);
+                CFG.put(PROPERTY_LOCALE, loc);
                 Loc.parseLocalization(file);
             } else {
                 Log.L.info("The language " + loc + " isn't available! Parsing default (" + DEFAULE_LOCALIZATION_NAME + ".loc) one!");

@@ -25,6 +25,7 @@ import javax.swing.text.JTextComponent;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.storage.ConfigInterface;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.Tl8;
 
@@ -47,9 +48,9 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
         this.regularExpression = new JCheckBox(Tl8.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.toString());
 
         try {
-            caseSensitive.setSelected(Dialog.getInstance().getDatabase().get("org.appwork.utils.swing.dialog.SearchDialog.caseSensitive", false));
+            caseSensitive.setSelected(ConfigInterface.getStorage("SearchDialog").get("caseSensitive", false));
 
-            regularExpression.setSelected(Dialog.getInstance().getDatabase().get("org.appwork.utils.swing.dialog.SearchDialog.regularExpression", false));
+            regularExpression.setSelected(ConfigInterface.getStorage("SearchDialog").get("regularExpression", false));
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -94,9 +95,9 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
         if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
         if (input.getText() == null || input.getText().equals("")) return null;
         try {
-            Dialog.getInstance().getDatabase().put("org.appwork.utils.swing.dialog.SearchDialog.caseSensitive", this.caseSensitive.isSelected());
+            ConfigInterface.getStorage("SearchDialog").put("caseSensitive", this.caseSensitive.isSelected());
 
-            Dialog.getInstance().getDatabase().put("org.appwork.utils.swing.dialog.SearchDialog.regularExpression", this.regularExpression.isSelected());
+            ConfigInterface.getStorage("SearchDialog").put("regularExpression", this.regularExpression.isSelected());
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

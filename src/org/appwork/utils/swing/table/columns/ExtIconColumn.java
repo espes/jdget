@@ -5,12 +5,10 @@ import java.awt.Component;
 import javax.swing.Icon;
 import javax.swing.JTable;
 
-import org.appwork.utils.storage.DatabaseInterface;
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
-
 
 /**
  * Single icon column
@@ -22,8 +20,8 @@ public abstract class ExtIconColumn extends ExtColumn {
 
     private RenderLabel label;
 
-    public ExtIconColumn(String name, ExtTableModel table, DatabaseInterface database) {
-        super(name, table, database);
+    public ExtIconColumn(String name, ExtTableModel table) {
+        super(name, table);
         this.label = new RenderLabel();
         label.setBorder(null);
         label.setOpaque(false);
