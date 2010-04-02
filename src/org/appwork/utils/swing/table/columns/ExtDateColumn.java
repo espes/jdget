@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.swing.BorderFactory;
 import javax.swing.JTable;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
@@ -27,6 +28,7 @@ public abstract class ExtDateColumn extends ExtColumn {
         this.label = new RenderLabel();
         label.setBorder(null);
         label.setOpaque(false);
+        label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
         dateFormat = new SimpleDateFormat("dd.MM.yy HH:mm");
         this.setRowSorter(new ExtDefaultRowSorter() {
 

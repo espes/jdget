@@ -41,7 +41,6 @@ public abstract class ExtComboColumn extends ExtColumn implements ActionListener
         comboBoxEdit = new JComboBox(dataModel);
         comboBoxEdit.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
         comboBoxRend.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
-
         this.setRowSorter(new ExtDefaultRowSorter() {
 
             @Override

@@ -19,6 +19,7 @@ abstract public class ExtProgressColumn extends ExtColumn {
         bar = new JProgressBar(0, getMax());
         bar.setOpaque(false);
         bar.setStringPainted(true);
+
         this.setRowSorter(new ExtDefaultRowSorter() {
 
             @Override

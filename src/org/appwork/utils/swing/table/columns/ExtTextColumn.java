@@ -2,6 +2,7 @@ package org.appwork.utils.swing.table.columns;
 
 import java.awt.Component;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 
@@ -19,7 +20,7 @@ public abstract class ExtTextColumn extends ExtColumn {
         super(name, table);
 
         label = new RenderLabel();
-        label.setBorder(null);
+        label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
         label.setOpaque(false);
         prepareTableCellRendererComponent(label);
 

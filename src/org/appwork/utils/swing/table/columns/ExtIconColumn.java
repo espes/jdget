@@ -2,6 +2,7 @@ package org.appwork.utils.swing.table.columns;
 
 import java.awt.Component;
 
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JTable;
 
@@ -25,6 +26,8 @@ public abstract class ExtIconColumn extends ExtColumn {
         this.label = new RenderLabel();
         label.setBorder(null);
         label.setOpaque(false);
+        label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+
         this.setRowSorter(new ExtDefaultRowSorter() {
             /**
              * sorts the icon by hashcode

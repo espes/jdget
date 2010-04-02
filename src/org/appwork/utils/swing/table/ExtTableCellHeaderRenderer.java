@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
 
+import javax.swing.JLabel;
 import javax.swing.JTable;
 
 import sun.swing.table.DefaultTableCellHeaderRenderer;
@@ -23,6 +24,8 @@ public class ExtTableCellHeaderRenderer extends DefaultTableCellHeaderRenderer {
 
     public ExtTableCellHeaderRenderer(ExtColumn extColumn) {
         this.column = extColumn;
+        ((JLabel) this).setHorizontalAlignment(JLabel.LEFT);
+
     }
 
     @Override
@@ -34,7 +37,10 @@ public class ExtTableCellHeaderRenderer extends DefaultTableCellHeaderRenderer {
             this.paintIcon = true;
         }
         order = column.getModel().isSortOrderToggle();
-        return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+        // empty borders do not work here. to have a left side border, we add
+        // spaces here
+        return super.getTableCellRendererComponent(table, "   " + value, isSelected, hasFocus, row, col);
+
     }
 
     @Override
