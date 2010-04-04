@@ -91,7 +91,7 @@ public class ImageProvider {
             String key;
             if (IMAGEICON_CACHE.containsKey(key = SB.toString())) { return IMAGEICON_CACHE.get(key); }
             Image image = getBufferedImage(name);
-            double faktor = Math.min((double) image.getWidth(null) / width, (double) image.getHeight(null) / height);
+            double faktor = Math.max((double) image.getWidth(null) / width, (double) image.getHeight(null) / height);
             width = (int) (image.getWidth(null) / faktor);
             height = (int) (image.getHeight(null) / faktor);
             ImageIcon imageicon = new ImageIcon(image.getScaledInstance(width, height, Image.SCALE_SMOOTH));
@@ -138,7 +138,7 @@ public class ImageProvider {
      */
     public static Image scaleBufferedImage(BufferedImage img, int width, int height) {
         if (img == null) return null;
-        final double faktor = Math.min((double) img.getWidth() / width, (double) img.getHeight() / height);
+        final double faktor = Math.max((double) img.getWidth() / width, (double) img.getHeight() / height);
         width = (int) (img.getWidth() / faktor);
         height = (int) (img.getHeight() / faktor);
         if (faktor == 1.0) return img;

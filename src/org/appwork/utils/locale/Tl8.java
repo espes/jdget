@@ -38,7 +38,12 @@ public enum Tl8 implements Translate {
     TIMERDIALOG_MESSAGE_COUNTDOWN_STARTING("Countdown starting..."),
     TIMERDIALOG_TOOLTIP_TIMERLABEL("This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"),
 
-    LOC_USE_LOCALE("Use Language: %s");
+    LOC_USE_LOCALE("Use Language: %s"),
+    DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER("Switch to parent folder"),
+    DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER("Switch to Home"),
+    DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER("Create new folder"),
+    DIALOG_FILECHOOSER_TOOLTIP_DETAILS("Switch to detailed view"),
+    DIALOG_FILECHOOSER_TOOLTIP_LIST("Switch to list view");
 
     /**
      * Stores the DefaultTranslation.
