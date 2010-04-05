@@ -67,8 +67,6 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
     private JCheckBox dontshowagain;
 
-    // private JLabel dontlabel;
-
     private JPanel defaultButtons;
 
     public AbstractDialog(int flag, String title, ImageIcon icon, String okOption, String cancelOption) {
@@ -94,10 +92,11 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
                     // add flags
                     ret |= Dialog.RETURN_DONT_SHOW_AGAIN | Dialog.RETURN_SKIPPED_BY_DONT_SHOW;
 
-                    // if LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL or
-                    // LOGIC_DONT_SHOW_AGAIN_IGNORES_OK are used, we check here
-                    // if
-                    // we should handle the dont show again feature
+                    /*
+                     * if LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL or
+                     * LOGIC_DONT_SHOW_AGAIN_IGNORES_OK are used, we check here
+                     * if we should handle the dont show again feature
+                     */
                     if (BinaryLogic.containsAll(flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) {
                         break dont;
                     }
@@ -117,7 +116,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         } catch (Exception e) {
 
         }
-        // The Dialog MOdal
+        // The Dialog Modal
         this.setModal(true);
         // Layout manager
         this.setLayout(new MigLayout("ins 5", "[fill,grow]", "[fill,grow][]"));
@@ -128,8 +127,10 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         this.defaultButtons = new JPanel(new MigLayout("ins 0", "[fill,grow]", "[fill,grow]"));
 
         okButton = new JButton(this.okOption);
-        // We set the focus on the ok button. if no ok button is shown, we set
-        // the focus on cancel button
+        /*
+         * We set the focus on the ok button. if no ok button is shown, we set
+         * the focus on cancel button
+         */
         JButton focus = okButton;
 
         cancelButton = new JButton(this.cancelOption);
@@ -219,15 +220,10 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         focus.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
         focus.getActionMap().put("ESCAPE", new AbstractAction() {
 
-            /**
-             * 
-             */
             private static final long serialVersionUID = -6666144330707394562L;
 
             public void actionPerformed(ActionEvent e) {
-
                 dispose();
-
             }
         });
 
@@ -235,8 +231,10 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         this.packed();
         this.setVisible(true);
 
-        // workaround a javabug that forces the parentframe to stay always on
-        // top
+        /*
+         * workaround a javabug that forces the parentframe to stay always on
+         * top
+         */
         if (Dialog.getInstance().getParentOwner() != null) {
             Dialog.getInstance().getParentOwner().setAlwaysOnTop(true);
             Dialog.getInstance().getParentOwner().setAlwaysOnTop(false);
@@ -251,7 +249,6 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
      * @return
      */
     protected Dimension getDesiredSize() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -342,7 +339,6 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
                 } catch (Exception e) {
                     Log.exception(e);
                 }
-
             }
         }
     }
@@ -357,13 +353,18 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
     }
 
     public static void resetDialogInformations() {
-        /*
-         * TODO We should extends the DatabaseInterface to create an own subdb
-         * which can be removed here.
-         */
+        try {
+            ConfigInterface.getStorage("Dialogs").clear();
+        } catch (Exception e) {
+            Log.exception(e);
+        }
     }
 
-    /* called when user closes the window */
+    /**
+     * called when user closes the window
+     * 
+     * @return <code>true</code>, if and only if the dialog should be closeable
+     **/
     public boolean closeAllowed() {
         return true;
     }

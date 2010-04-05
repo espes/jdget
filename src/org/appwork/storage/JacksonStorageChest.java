@@ -25,10 +25,8 @@ public class JacksonStorageChest extends Storage {
             HashMap<String, Object> load = ConfigInterface.getMapper().readValue(IO.readFileToString(Application.getRessource("cfg/" + name + ".json")), HashMap.class);
             map.putAll(load);
         } catch (JsonParseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
 
@@ -39,11 +37,6 @@ public class JacksonStorageChest extends Storage {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.Storage#get(java.lang.String, java.lang.Object)
-     */
     @SuppressWarnings("unchecked")
     @Override
     public <E> E get(String key, E def) throws StorageException {
@@ -81,82 +74,60 @@ public class JacksonStorageChest extends Storage {
 
     }
 
-    /**
-     * 
-     */
-    private void initTransformer() {
-
-        // f transformer.put(Enum.class, new EnumTransformer());
-    }
+    // private void initTransformer() {
+    // // f transformer.put(Enum.class, new EnumTransformer());
+    // }
 
     @Override
     public void put(String key, Boolean value) throws StorageException {
         map.put(key, value);
-
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.Storage#put(java.lang.String, java.lang.Byte)
-     */
     @Override
     public void put(String key, Byte value) throws StorageException {
         map.put(key, value);
-
     }
 
     @Override
-    public void put(String key, Enum value) throws StorageException {
+    public void put(String key, Enum<?> value) throws StorageException {
         map.put(key, value);
-
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.Storage#put(java.lang.String, java.lang.Integer)
-     */
     @Override
     public void put(String key, Integer value) throws StorageException {
         map.put(key, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.Storage#put(java.lang.String, java.lang.Long)
-     */
     @Override
     public void put(String key, Long value) throws StorageException {
         map.put(key, value);
-
     }
 
     @Override
     public void put(String key, String value) throws StorageException {
         map.put(key, value);
-
     }
 
     @Override
     public void save() throws StorageException {
         // can reuse, share globally
 
-        String json;
         try {
-            json = ConfigInterface.getMapper().writeValueAsString(map);
+            String json = ConfigInterface.getMapper().writeValueAsString(map);
             ConfigInterface.saveTo("cfg/" + name + ".json", json);
         } catch (JsonGenerationException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
     }
+
+    @Override
+    public void clear() throws StorageException {
+        map.clear();
+    }
+
 }

@@ -70,7 +70,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
     }
 
     @SuppressWarnings("unchecked")
-    public <E> E getColumnByClass(Class<?> clazz) {
+    public <E extends ExtColumn> E getColumnByClass(Class<E> clazz) {
         try {
             for (ExtColumn column : columns) {
                 if (column.getClass().equals(clazz)) return (E) column;

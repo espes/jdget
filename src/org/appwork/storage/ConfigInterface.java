@@ -21,10 +21,10 @@ public class ConfigInterface {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
-     * @return the mapper Mapper is Thread safe according to
-     *         http://wiki.fasterxml
-     *         .com/JacksonBestPracticeThreadSafety?highlight
-     *         =%28\bCategoryJackson\b%29
+     * Mapper is Thread safe according to <br>
+     * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
+     * 
+     * @return the mapper
      */
     public static ObjectMapper getMapper() {
         return MAPPER;
@@ -87,19 +87,14 @@ public class ConfigInterface {
         try {
             saveTo(string, MAPPER.writeValueAsString(list));
         } catch (JsonGenerationException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (StorageException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -128,13 +123,10 @@ public class ConfigInterface {
             }
 
         } catch (JsonParseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return def;

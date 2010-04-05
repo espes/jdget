@@ -219,12 +219,4 @@ public class ZipIOReader {
         return null;
     }
 
-    public static void main(String[] args) throws ZipIOException, IOException {
-        ZipIOReader zip = new ZipIOReader(new File("/home/daniel/test.zip"));
-        for (ZipEntry file : zip.getZipFiles()) {
-            System.out.println(file.getName());
-        }
-        ZipIOFile dd = zip.getZipIOFileSystem();
-        int i = 1;
-    }
 }

@@ -55,9 +55,8 @@ public final class TrustProvider extends Provider {
 
     }
 
-    @SuppressWarnings("unchecked")
     private void init() {
-        AccessController.doPrivileged(new PrivilegedAction() {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 put("TrustManagerFactory." + CryptServiceProvider.getAlgorithm(), CryptServiceProvider.class.getName());
                 return null;

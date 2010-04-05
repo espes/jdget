@@ -13,8 +13,9 @@ package org.appwork.utils.zip;
  * @author daniel
  * 
  */
-@SuppressWarnings("serial")
 public class ZipIOException extends Exception {
+
+    private static final long serialVersionUID = 3395166938053581997L;
 
     public ZipIOException(String message) {
         super(message);

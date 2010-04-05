@@ -42,38 +42,29 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
     private JLabel label;
     private JPanel panel;
     private JFileChooser fileChooser;
-    private JScrollPane sp;
 
     public FilePreview(JFileChooser fc) {
         this.setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
-        add(sp = new JScrollPane(panel = new JPanel(new MigLayout("ins 5", "[grow,fill]", "[grow,fill]"))), "hidemode 3,gapleft 5");
+        add(new JScrollPane(panel = new JPanel(new MigLayout("ins 5", "[grow,fill]", "[grow,fill]"))), "hidemode 3,gapleft 5");
         panel.add(label = new JLabel());
         this.setPreferredSize(new Dimension(200, 100));
         fc.addPropertyChangeListener(this);
         this.fileChooser = fc;
-
     }
 
     public void propertyChange(PropertyChangeEvent e) {
-
         if (JFileChooser.DIRECTORY_CHANGED_PROPERTY.equals(e.getPropertyName())) {
             file = (File) e.getNewValue();
-
         } else if (JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(e.getPropertyName())) {
             file = (File) e.getNewValue();
-
         }
         new Thread() {
             public void run() {
                 update();
             }
         }.start();
-
     }
 
-    /**
-     * 
-     */
     private void update() {
         if (file != null && file.isFile()) {
 
@@ -82,9 +73,7 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
                 BufferedImage image = null;
 
                 if (ext.equalsIgnoreCase("png")) {
-
                     image = ImageIO.read(file);
-
                 } else if (ext.equalsIgnoreCase("jpg")) {
                     image = ImageIO.read(file);
                 } else if (ext.equalsIgnoreCase("gif")) {
@@ -109,7 +98,6 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
 
                 }
             } catch (Exception e) {
-
             }
         }
         new EDTHelper<Object>() {

@@ -32,10 +32,10 @@ public class ExtDefaultRowSorter implements Comparator<Object> {
     @SuppressWarnings("unchecked")
     public int compare(Object o1, Object o2) {
         if (sortOrderToggle) {
-            if (o1 instanceof Comparable) { return ((Comparable) o1).compareTo(o2); }
+            if (o1 instanceof Comparable<?>) return ((Comparable) o1).compareTo(o2);
             return o1.toString().compareTo(o2.toString());
         } else {
-            if (o1 instanceof Comparable) { return ((Comparable) o2).compareTo(o1); }
+            if (o1 instanceof Comparable<?>) return ((Comparable) o2).compareTo(o1);
             return o2.toString().compareTo(o1.toString());
         }
     }
