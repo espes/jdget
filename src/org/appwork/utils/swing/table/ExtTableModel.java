@@ -69,6 +69,18 @@ public abstract class ExtTableModel extends AbstractTableModel {
         columns.add(e);
     }
 
+    @SuppressWarnings("unchecked")
+    public <E> E getColumnByClass(Class<?> clazz) {
+        try {
+            for (ExtColumn column : columns) {
+                if (column.getClass().equals(clazz)) return (E) column;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     /**
      * clears all selection models
      */

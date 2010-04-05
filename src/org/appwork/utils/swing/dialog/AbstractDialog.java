@@ -18,6 +18,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
@@ -41,7 +43,7 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.SwingUtils;
 
-public abstract class AbstractDialog extends TimerDialog implements ActionListener {
+public abstract class AbstractDialog extends TimerDialog implements ActionListener, WindowListener {
 
     private static final long serialVersionUID = 1831761858087385862L;
 
@@ -120,7 +122,8 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         // Layout manager
         this.setLayout(new MigLayout("ins 5", "[fill,grow]", "[fill,grow][]"));
         // Dispose dialog on close
-        this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        this.addWindowListener(this);
         // create panel for the dialog's buttons
         this.defaultButtons = new JPanel(new MigLayout("ins 0", "[fill,grow]", "[fill,grow]"));
 
@@ -360,4 +363,30 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
          */
     }
 
+    /* called when user closes the window */
+    public boolean closeAllowed() {
+        return true;
+    }
+
+    public void windowClosing(WindowEvent arg0) {
+        if (closeAllowed()) dispose();
+    }
+
+    public void windowDeactivated(WindowEvent arg0) {
+    }
+
+    public void windowClosed(WindowEvent arg0) {
+    }
+
+    public void windowActivated(WindowEvent arg0) {
+    }
+
+    public void windowDeiconified(WindowEvent arg0) {
+    }
+
+    public void windowIconified(WindowEvent arg0) {
+    }
+
+    public void windowOpened(WindowEvent arg0) {
+    }
 }
