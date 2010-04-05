@@ -209,7 +209,6 @@ public class ExtTable extends JTable {
         switch (evt.getKeyCode()) {
 
         case KeyEvent.VK_X:
-
             if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCut(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
             break;
         case KeyEvent.VK_V:

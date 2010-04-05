@@ -23,6 +23,7 @@ import org.appwork.utils.logging.Log;
 public class HTMLParser {
     public static ArrayList<String> findUrls(String source) {
         /* TODO: better parsing */
+        /* remove tags!! */
         final ArrayList<String> ret = new ArrayList<String>();
         try {
             for (String link : new Regex(source, "((https?|ftp):((//)|(\\\\\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)").getColumn(0)) {
