@@ -17,7 +17,6 @@ public class JacksonStorageChest extends Storage {
 
     @SuppressWarnings("unchecked")
     public JacksonStorageChest(String name) throws StorageException {
-
         map = new HashMap<String, Object>();
         this.name = name;
 
@@ -29,12 +28,7 @@ public class JacksonStorageChest extends Storage {
         } catch (JsonMappingException e) {
             e.printStackTrace();
         } catch (IOException e) {
-
         }
-
-        // map = new JSONDeserializer<HashMap<String,
-        // Object>>().deserialize(IO.readFileToString(path));
-
     }
 
     @SuppressWarnings("unchecked")
@@ -53,20 +47,19 @@ public class JacksonStorageChest extends Storage {
                 put(key, (Byte) def);
             } else if (def instanceof String) {
                 put(key, (String) def);
-            } else if (def instanceof Enum) {
-                put(key, (Enum) def);
+            } else if (def instanceof Enum<?>) {
+                put(key, (Enum<?>) def);
             } else {
                 throw new StorageException("Invalid datatype: " + def.getClass());
             }
-
         }
 
-        if (def instanceof Enum && ret instanceof String) {
+        if (def instanceof Enum<?> && ret instanceof String) {
             try {
-                ret = (E) Enum.valueOf(((Enum) def).getDeclaringClass(), (String) ret);
+                ret = (E) Enum.valueOf(((Enum<?>) def).getDeclaringClass(), (String) ret);
             } catch (Throwable e) {
                 Log.exception(e);
-                put(key, (Enum) def);
+                put(key, (Enum<?>) def);
                 ret = def;
             }
         }

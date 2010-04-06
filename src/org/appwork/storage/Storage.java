@@ -19,7 +19,7 @@ public abstract class Storage {
     abstract public <E> E get(String key, E def) throws StorageException;
 
     /**
-     * Removes all saved settings.
+     * Removes all saved settings in this {@link Storage}.
      * 
      * @throws StorageException
      */
