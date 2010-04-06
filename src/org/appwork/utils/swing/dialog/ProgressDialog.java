@@ -12,6 +12,7 @@ package org.appwork.utils.swing.dialog;
 import java.awt.Dimension;
 
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -38,15 +39,22 @@ public class ProgressDialog extends AbstractDialog {
 
     /**
      * @param progressGetter
+     * @param flags
+     *            TODO
      * @param s
      * @param s2
      */
-    public ProgressDialog(ProgressGetter progressGetter, String title, String message) {
-        super(Dialog.BUTTONS_HIDE_OK, title, null, null, null);
+    public ProgressDialog(ProgressGetter progressGetter, int flags, String title, String message) {
+        super(flags | Dialog.BUTTONS_HIDE_OK, title, null, null, null);
         this.message = message;
-
+        this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         getter = progressGetter;
+
         init();
+    }
+
+    public boolean closeAllowed() {
+        return false;
     }
 
     public interface ProgressGetter {
