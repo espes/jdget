@@ -34,8 +34,8 @@ public class StateMachine {
     /**
      * @param interfac
      *            TODO
-     * @param initState2
-     * @param stoppedState
+     * @param startState
+     * @param endState
      */
     public StateMachine(StateMachineInterface interfac, State startState, State endState) {
         owner = interfac;
@@ -58,20 +58,14 @@ public class StateMachine {
      * validates a statechain and checks if all states can be reached, and if
      * all chans result in one common finalstate
      * 
-     * @param initState2
+     * @param initState
      * @throws StateConflictException
      */
     public static void validateStateChain(State initState) {
         if (initState.getParents().size() > 0) throw new StateConflictException("initState must not have a parent");
         checkState(initState);
-
     }
 
-    /**
-     * @param s
-     * @return
-     * @throws StateConflictException
-     */
     private static State checkState(State state) {
         State finalState = null;
         for (State s : state.getChildren()) {
@@ -83,9 +77,6 @@ public class StateMachine {
         return finalState;
     }
 
-    /**
-     * @param addLinkState
-     */
     public void setStatus(State newState) {
         synchronized (lock) {
             if (currentState == newState) return;
@@ -108,36 +99,21 @@ public class StateMachine {
         eventSender.fireEvent(event);
     }
 
-    /**
-     * @param canceledState
-     * @param progressUpdate
-     * @return
-     */
     public boolean isState(State... states) {
-        // TODO Auto-generated method stub
         for (State s : states) {
             if (s == currentState) return true;
         }
         return false;
     }
 
-    /**
-     * @param remoteUpload
-     */
     public void addListener(StateEventListener listener) {
         eventSender.addListener(listener);
     }
 
-    /**
-     * @param transferController
-     */
     public void removeListener(StateEventListener listener) {
         eventSender.removeListener(listener);
     }
 
-    /**
-     * 
-     */
     public void reset() {
         StateEvent event;
         synchronized (lock) {
@@ -157,13 +133,9 @@ public class StateMachine {
      * @return
      */
     public boolean isFinal() {
-        // TODO Auto-generated method stub
         return finalState == currentState;
     }
 
-    /**
-     * @param parseInt
-     */
     public void forceState(int id) {
 
         State newState;
@@ -208,13 +180,6 @@ public class StateMachine {
         return null;
     }
 
-    /**
-     * @param statusErrorUploadUnknown
-     * @param statusErrorFilesizeToBig
-     * @param statusErrorDownloadUnknown
-     * @param statusFinished
-     * @return
-     */
     public boolean hasPassed(State... states) {
         for (State s : states) {
             if (path.contains(s)) return true;
@@ -229,7 +194,6 @@ public class StateMachine {
      * @return
      */
     public boolean isStartState() {
-        // TODO Auto-generated method stub
         return currentState == this.initState;
     }
 
@@ -237,7 +201,6 @@ public class StateMachine {
      * @return
      */
     public State getState() {
-        // TODO Auto-generated method stub
         return currentState;
     }
 
