@@ -159,9 +159,9 @@ public class ZipIOWriter {
         if (addDirectory == null || !addDirectory.isDirectory() || !addDirectory.exists()) throw new ZipIOException("addDirectory " + addDirectory.getAbsolutePath() + " invalid");
         for (File add : addDirectory.listFiles()) {
             if (add.isFile()) {
-                addFileInternal(add, compress, (path != null ? path + "/" : "") + addDirectory.getName());
+                addFileInternal(add, compress, ((path != null && path.trim().length() > 0) ? path + "/" : "") + addDirectory.getName());
             } else if (add.isDirectory()) {
-                addDirectoryInternal(add, compress, (path != null ? path + "/" : "") + addDirectory.getName());
+                addDirectoryInternal(add, compress, ((path != null && path.trim().length() > 0) ? path + "/" : "") + addDirectory.getName());
             } else {
                 throw new ZipIOException("addDirectory " + addDirectory.getAbsolutePath() + " invalid");
             }
@@ -173,7 +173,7 @@ public class ZipIOWriter {
         boolean zipEntryAdded = false;
         try {
             if (addFile == null || !addFile.isFile() || !addFile.exists()) throw new ZipIOException("addFile " + addFile.getAbsolutePath() + " invalid");
-            ZipEntry zipAdd = new ZipEntry((path != null ? path + "/" : "") + addFile.getName());
+            ZipEntry zipAdd = new ZipEntry(((path != null && path.trim().length() > 0) ? path + "/" : "") + addFile.getName());
             zipAdd.setSize(addFile.length());
             if (compress) {
                 zipAdd.setMethod(ZipEntry.DEFLATED);
