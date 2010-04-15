@@ -11,20 +11,20 @@ import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
 
-public abstract class ExtEuroColumn extends ExtColumn {
+public abstract class ExtEuroColumn<E> extends ExtColumn<E> {
 
     private static final long serialVersionUID = 3468695684952592989L;
     private RenderLabel label;
     final private DecimalFormat format = new DecimalFormat("0.00");
 
-    public ExtEuroColumn(String name, ExtTableModel table) {
+    public ExtEuroColumn(String name, ExtTableModel<E> table) {
         super(name, table);
         this.label = new RenderLabel();
         label.setBorder(null);
         label.setOpaque(false);
         label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
-        this.setRowSorter(new ExtDefaultRowSorter() {
+        this.setRowSorter(new ExtDefaultRowSorter<E>() {
             /**
              * sorts the icon by hashcode
              */

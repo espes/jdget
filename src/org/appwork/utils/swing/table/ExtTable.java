@@ -559,10 +559,11 @@ public class ExtTable<E> extends JTable {
      * 
      * @param point
      */
-    public ExtColumn getExtColumnAtPoint(Point point) {
+    @SuppressWarnings("unchecked")
+    public ExtColumn<E> getExtColumnAtPoint(Point point) {
 
         int x = getExtColumnIndexByPoint(point);
-        return ((ExtTableModel) getModel()).getExtColumn(x);
+        return ((ExtTableModel<E>) getModel()).getExtColumn(x);
 
     }
 

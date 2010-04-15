@@ -15,7 +15,7 @@ import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
 
-public abstract class ExtComboColumn extends ExtColumn implements ActionListener {
+public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionListener {
 
     private static final long serialVersionUID = 2114805529462086691L;
 
@@ -26,7 +26,7 @@ public abstract class ExtComboColumn extends ExtColumn implements ActionListener
 
     private ComboBoxModel dataModel;
 
-    public ExtComboColumn(String name, ExtTableModel table, ComboBoxModel model) {
+    public ExtComboColumn(String name, ExtTableModel<E> table, ComboBoxModel model) {
         super(name, table);
         if (model == null) model = new DefaultComboBoxModel();
         dataModel = model;
@@ -41,10 +41,10 @@ public abstract class ExtComboColumn extends ExtColumn implements ActionListener
         comboBoxEdit = new JComboBox(dataModel);
         comboBoxEdit.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
         comboBoxRend.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
-        this.setRowSorter(new ExtDefaultRowSorter() {
+        this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
-            public int compare(Object o1, Object o2) {
+            public int compare(E o1, E o2) {
                 if (getComboBoxItem(o1) == getComboBoxItem(o2)) return 0;
                 if (this.isSortOrderToggle()) {
                     return getComboBoxItem(o1) > getComboBoxItem(o2) ? 1 : -1;
@@ -61,22 +61,23 @@ public abstract class ExtComboColumn extends ExtColumn implements ActionListener
         comboBoxEdit.setRenderer(renderer);
     }
 
-    protected abstract int getComboBoxItem(Object value);
+    protected abstract int getComboBoxItem(E value);
 
     @Override
-    public boolean isEditable(Object obj) {
+    public boolean isEditable(E obj) {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        selection = getComboBoxItem(value);
+        selection = getComboBoxItem((E) value);
         if (selection < 0) { return super.getTableCellRendererComponent(table, "", false, hasFocus, row, column); }
         comboBoxRend.setModel(updateModel(dataModel, value));
 
         comboBoxEdit.removeActionListener(this);
         comboBoxEdit.setToolTipText(getTooltip(value));
-        comboBoxRend.setSelectedIndex(getComboBoxItem(value));
+        comboBoxRend.setSelectedIndex(getComboBoxItem((E) value));
         comboBoxEdit.addActionListener(this);
 
         comboBoxRend.setEnabled(isEnabled(value));
@@ -93,9 +94,10 @@ public abstract class ExtComboColumn extends ExtColumn implements ActionListener
 
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        selection = getComboBoxItem(value);
+        selection = getComboBoxItem((E) value);
         if (selection < 0) { return super.getTableCellEditorComponent(table, "", false, row, column); }
         comboBoxEdit.setModel(updateModel(dataModel, value));
         comboBoxEdit.removeActionListener(this);
