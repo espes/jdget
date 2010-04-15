@@ -278,7 +278,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
         ExtColumn<E> col = getExtColumn(column);
         try {
-            return ConfigInterface.getStorage("ExtTableModel_" + modelID).get("VISABLE_COL_" + col.getName(), col.defaultVisible());
+            return ConfigInterface.getStorage("ExtTableModel_" + modelID).get("VISABLE_COL_" + col.getName(), col.isDefaultVisible());
         } catch (Exception e) {
             Log.exception(e);
             return true;

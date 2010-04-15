@@ -76,7 +76,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     }
 
-    public boolean defaultVisible() {
+    public boolean isDefaultVisible() {
         return true;
     }
 
@@ -305,6 +305,14 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public void setRowSorter(ExtDefaultRowSorter<E> rowSorter) {
         this.rowSorter = rowSorter;
+    }
+
+    /**
+     * @return
+     */
+    public int getDefaultWidth() {
+        // TODO Auto-generated method stub
+        return 100;
     }
 
 }

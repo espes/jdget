@@ -417,7 +417,7 @@ public class ExtTable<E> extends JTable {
             if (model.getExtColumn(j).getMaxWidth() >= 0) tableColumn.setMaxWidth(model.getExtColumn(j).getMaxWidth());
             // Set stored columnwidth
             try {
-                int w = ConfigInterface.getStorage("ExtTable_" + tableID).get("WIDTH_COL_" + model.getExtColumn(j).getID(), tableColumn.getWidth());
+                int w = ConfigInterface.getStorage("ExtTable_" + tableID).get("WIDTH_COL_" + model.getExtColumn(j).getID(), model.getExtColumn(j).getDefaultWidth());
                 tableColumn.setPreferredWidth(w);
 
                 if (!model.isVisible(i)) {

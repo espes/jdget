@@ -26,6 +26,7 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
         this.label = new RenderLabel();
         label.setBorder(null);
         label.setOpaque(false);
+        initIcons();
         label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
@@ -43,6 +44,17 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
             }
 
         });
+    }
+
+    public String getToolTip(E obj) {
+        return null;
+    }
+
+    /**
+     * 
+     */
+    protected void initIcons() {
+
     }
 
     /**
@@ -77,7 +89,7 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
     }
 
     @Override
-    public boolean isSortable(Object obj) {
+    public boolean isSortable(E obj) {
         // TODO Auto-generated method stub
         return true;
     }
@@ -100,7 +112,7 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
         label.setIcon(getIcon((E) value));
-
+        label.setToolTipText(getToolTip((E) value));
         return label;
     }
 
