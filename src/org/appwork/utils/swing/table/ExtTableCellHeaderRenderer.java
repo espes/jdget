@@ -17,12 +17,12 @@ public class ExtTableCellHeaderRenderer extends DefaultTableCellHeaderRenderer {
 
     private static final long serialVersionUID = 1984070302981234250L;
 
-    private ExtColumn column;
+    private ExtColumn<?> column;
 
     private boolean order;
     private boolean paintIcon;
 
-    public ExtTableCellHeaderRenderer(ExtColumn extColumn) {
+    public ExtTableCellHeaderRenderer(ExtColumn<?> extColumn) {
         this.column = extColumn;
         ((JLabel) this).setHorizontalAlignment(JLabel.LEFT);
 
