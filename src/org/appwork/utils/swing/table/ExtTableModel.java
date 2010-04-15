@@ -10,7 +10,7 @@ import org.appwork.storage.ConfigInterface;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
-public abstract class ExtTableModel extends AbstractTableModel {
+public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     /**
      * 
@@ -23,7 +23,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
     /**
      * Column instances
      */
-    protected ArrayList<ExtColumn> columns = new ArrayList<ExtColumn>();
+    protected ArrayList<ExtColumn<E>> columns = new ArrayList<ExtColumn<E>>();
 
     /**
      * Modelid to have an seperate key for database savong
@@ -33,13 +33,13 @@ public abstract class ExtTableModel extends AbstractTableModel {
     /**
      * the table that uses this model
      */
-    private ExtTable table = null;
+    private ExtTable<E> table = null;
 
     /**
      * a list of objects. Each object represents one table row
      */
-    protected ArrayList<Object> tableData = new ArrayList<Object>();
-    private ExtColumn sortColumn;
+    protected ArrayList<E> tableData = new ArrayList<E>();
+    private ExtColumn<E> sortColumn;
     private boolean sortOrderToggle = true;
 
     /**
@@ -64,16 +64,16 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @param e
      * @see #columns
      */
-    public void addColumn(ExtColumn e) {
+    public void addColumn(ExtColumn<E> e) {
         e.setModel(this);
         columns.add(e);
     }
 
     @SuppressWarnings("unchecked")
-    public <E extends ExtColumn> E getColumnByClass(Class<E> clazz) {
+    public <T extends ExtColumn<E>> T getColumnByClass(Class<T> clazz) {
         try {
-            for (ExtColumn column : columns) {
-                if (column.getClass().equals(clazz)) return (E) column;
+            for (ExtColumn<?> column : columns) {
+                if (column.getClass().equals(clazz)) return (T) column;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,11 +94,11 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * 
      * @return
      */
-    public ArrayList<Object> getSelectedObjects() {
-        ArrayList<Object> ret = new ArrayList<Object>();
+    public ArrayList<E> getSelectedObjects() {
+        ArrayList<E> ret = new ArrayList<E>();
         int[] rows = table.getSelectedRows();
         for (int row : rows) {
-            Object elem = getValueAt(row, 0);
+            E elem = (E) getValueAt(row, 0);
             if (elem != null) ret.add(elem);
         }
         return ret;
@@ -109,8 +109,8 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * 
      * @return
      */
-    public ArrayList<Object> getTableObjects() {
-        ArrayList<Object> ret = new ArrayList<Object>();
+    public ArrayList<E> getTableObjects() {
+        ArrayList<E> ret = new ArrayList<E>();
         ret.addAll(tableData);
         return ret;
     }
@@ -120,7 +120,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * 
      * @param selections
      */
-    public void setSelectedObjects(final ArrayList<Object> selections) {
+    public void setSelectedObjects(final ArrayList<E> selections) {
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
@@ -132,7 +132,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
                 // Transform to rowindex list
                 ArrayList<Integer> selectedRows = new ArrayList<Integer>();
                 int rowIndex = -1;
-                for (Object obj : selections) {
+                for (E obj : selections) {
                     rowIndex = getRowforObject(obj);
                     if (rowIndex >= 0) selectedRows.add(rowIndex);
                 }
@@ -152,7 +152,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @param index
      * @see #addColumn(ExtColumn)
      */
-    public void addColumn(ExtColumn e, int index) {
+    public void addColumn(ExtColumn<E> e, int index) {
         e.setModel(this);
         columns.add(index, e);
     }
@@ -173,7 +173,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @param columnIndex
      * @return
      */
-    public ExtColumn getCellrendererByColumn(int columnIndex) {
+    public ExtColumn<E> getCellrendererByColumn(int columnIndex) {
         return columns.get(columnIndex);
     }
 
@@ -204,7 +204,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @param columnIndex
      * @return
      */
-    public ExtColumn getExtColumn(int columnIndex) {
+    public ExtColumn<E> getExtColumn(int columnIndex) {
         return columns.get(columnIndex);
     }
 
@@ -221,7 +221,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @return the {@link ExtTableModel#table}
      * @see ExtTableModel#table
      */
-    public ExtTable getTable() {
+    public ExtTable<E> getTable() {
         return table;
     }
 
@@ -229,7 +229,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @return the {@link ExtTableModel#tableData}
      * @see ExtTableModel#tableData
      */
-    public ArrayList<Object> getTableData() {
+    public ArrayList<E> getTableData() {
         return tableData;
     }
 
@@ -238,8 +238,9 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * represented By one single object. the ExtColums renderer just renders
      * each object in its way
      */
-    public Object getValueAt(int rowIndex, int columnIndex) {
+    public E getValueAt(int rowIndex, int columnIndex) {
         try {
+
             return tableData.get(rowIndex);
         } catch (IndexOutOfBoundsException e) {
             return null;
@@ -275,7 +276,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      */
     public boolean isVisible(int column) {
 
-        ExtColumn col = getExtColumn(column);
+        ExtColumn<E> col = getExtColumn(column);
         try {
             return ConfigInterface.getStorage("ExtTableModel_" + modelID).get("VISABLE_COL_" + col.getName(), col.defaultVisible());
         } catch (Exception e) {
@@ -290,7 +291,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * 
      * @param table
      */
-    protected void setTable(ExtTable table) {
+    protected void setTable(ExtTable<E> table) {
         this.table = table;
     }
 
@@ -309,7 +310,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @param visible
      */
     public void setVisible(int column, boolean visible) {
-        ExtColumn col = getExtColumn(column);
+        ExtColumn<E> col = getExtColumn(column);
         try {
             ConfigInterface.getStorage("ExtTableModel_" + modelID).put("VISABLE_COL_" + col.getName(), visible);
         } catch (Exception e) {
@@ -324,7 +325,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @param index
      * @return
      */
-    public Object getObjectbyRow(int index) {
+    public E getObjectbyRow(int index) {
 
         synchronized (tableData) {
             if (index >= 0 && index < tableData.size()) return tableData.get(index);
@@ -338,7 +339,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @param o
      * @return
      */
-    public int getRowforObject(Object o) {
+    public int getRowforObject(E o) {
         synchronized (tableData) {
             return tableData.indexOf(o);
         }
@@ -350,7 +351,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @param column
      * @param sortOrderToggle
      */
-    public void sort(ExtColumn column, boolean sortOrderToggle) {
+    public void sort(ExtColumn<E> column, boolean sortOrderToggle) {
         this.sortColumn = column;
         this.sortOrderToggle = sortOrderToggle;
         Collections.sort(getTableData(), column.getRowSorter(sortOrderToggle));
@@ -382,7 +383,7 @@ public abstract class ExtTableModel extends AbstractTableModel {
      * @return the {@link ExtTableModel#sortColumn}
      * @see ExtTableModel#sortColumn
      */
-    public ExtColumn getSortColumn() {
+    public ExtColumn<E> getSortColumn() {
         return sortColumn;
     }
 }

@@ -7,23 +7,22 @@ import javax.swing.JTable;
 
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
-abstract public class ExtProgressColumn extends ExtColumn {
+abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     private static final long serialVersionUID = -2473320164484034664L;
     protected JProgressBar bar;
 
-    public ExtProgressColumn(String name, ExtTableModel table) {
+    public ExtProgressColumn(String name, ExtTableModel<E> table) {
         super(name, table);
         bar = new JProgressBar(0, getMax());
         bar.setOpaque(false);
         bar.setStringPainted(true);
 
-        this.setRowSorter(new ExtDefaultRowSorter() {
+        this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
-            public int compare(Object o1, Object o2) {
+            public int compare(E o1, E o2) {
                 if (getValue(o1) == getValue(o2)) return 0;
                 if (this.isSortOrderToggle()) {
                     return getValue(o1) > getValue(o2) ? -1 : 1;
@@ -60,7 +59,7 @@ abstract public class ExtProgressColumn extends ExtColumn {
      * .lang.Object)
      */
     @Override
-    public boolean isEditable(Object obj) {
+    public boolean isEditable(E obj) {
         // TODO Auto-generated method stub
         return false;
     }
@@ -73,7 +72,7 @@ abstract public class ExtProgressColumn extends ExtColumn {
      * .lang.Object)
      */
     @Override
-    public boolean isEnabled(Object obj) {
+    public boolean isEnabled(E obj) {
         // TODO Auto-generated method stub
         return true;
     }
@@ -86,7 +85,7 @@ abstract public class ExtProgressColumn extends ExtColumn {
      * .lang.Object)
      */
     @Override
-    public boolean isSortable(Object obj) {
+    public boolean isSortable(E obj) {
         // TODO Auto-generated method stub
         return true;
     }
@@ -99,24 +98,25 @@ abstract public class ExtProgressColumn extends ExtColumn {
      * .lang.Object, java.lang.Object)
      */
     @Override
-    public void setValue(Object value, Object object) {
+    public void setValue(Object value, E object) {
         // TODO Auto-generated method stub
 
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
         bar.setIndeterminate(false);
-        bar.setValue(getValue(value));
+        bar.setValue(getValue((E) value));
 
-        bar.setString(getString(value));
+        bar.setString(getString((E) value));
         if (isSelected) {
-            bar.setForeground(((ExtTable) table).getColumnForegroundSelected());
-            bar.setBackground(((ExtTable) table).getColumnBackgroundSelected());
+            bar.setForeground(getModel().getTable().getColumnForegroundSelected());
+            bar.setBackground(getModel().getTable().getColumnBackgroundSelected());
         } else {
-            bar.setForeground(((ExtTable) table).getColumnForeground());
-            bar.setBackground(((ExtTable) table).getColumnBackground());
+            bar.setForeground(getModel().getTable().getColumnForeground());
+            bar.setBackground(getModel().getTable().getColumnBackground());
         }
 
         bar.setOpaque(true);
@@ -124,8 +124,8 @@ abstract public class ExtProgressColumn extends ExtColumn {
         return bar;
     }
 
-    abstract protected int getValue(Object value);
+    abstract protected int getValue(E value);
 
-    abstract protected String getString(Object value);
+    abstract protected String getString(E value);
 
 }

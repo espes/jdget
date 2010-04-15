@@ -8,7 +8,7 @@ import java.util.Comparator;
  * @author $Author: unknown$
  * 
  */
-public class ExtDefaultRowSorter implements Comparator<Object> {
+public class ExtDefaultRowSorter<E> implements Comparator<E> {
 
     private boolean sortOrderToggle = true;
 
@@ -30,7 +30,7 @@ public class ExtDefaultRowSorter implements Comparator<Object> {
     }
 
     @SuppressWarnings("unchecked")
-    public int compare(Object o1, Object o2) {
+    public int compare(E o1, E o2) {
         if (sortOrderToggle) {
             if (o1 instanceof Comparable<?>) return ((Comparable) o1).compareTo(o2);
             return o1.toString().compareTo(o2.toString());

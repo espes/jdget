@@ -11,12 +11,12 @@ import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
 
-public abstract class ExtTextColumn extends ExtColumn {
+public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     private static final long serialVersionUID = 2114805529462086691L;
     private RenderLabel label;
 
-    public ExtTextColumn(String name, ExtTableModel table) {
+    public ExtTextColumn(String name, ExtTableModel<E> table) {
         super(name, table);
 
         label = new RenderLabel();
@@ -24,10 +24,10 @@ public abstract class ExtTextColumn extends ExtColumn {
         label.setOpaque(false);
         prepareTableCellRendererComponent(label);
 
-        this.setRowSorter(new ExtDefaultRowSorter() {
+        this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
-            public int compare(Object o1, Object o2) {
+            public int compare(E o1, E o2) {
                 if (this.isSortOrderToggle()) {
                     return getStringValue(o1).compareTo(getStringValue(o2));
                 } else {
@@ -45,7 +45,7 @@ public abstract class ExtTextColumn extends ExtColumn {
     protected void prepareTableCellRendererComponent(JLabel jlr) {
     }
 
-    protected abstract String getStringValue(Object value);
+    protected abstract String getStringValue(E value);
 
     @Override
     public Object getCellEditorValue() {
@@ -53,13 +53,14 @@ public abstract class ExtTextColumn extends ExtColumn {
     }
 
     @Override
-    public boolean isEditable(Object obj) {
+    public boolean isEditable(E obj) {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        label.setText(getStringValue(value));
+        label.setText(getStringValue((E) value));
         return label;
         // isSelected = false;
         // return ((ExtTable) table).getLafCellRenderer(row,
@@ -68,17 +69,17 @@ public abstract class ExtTextColumn extends ExtColumn {
     }
 
     @Override
-    public void setValue(Object value, Object object) {
+    public void setValue(Object value, E object) {
     }
 
     @Override
-    public boolean isEnabled(Object obj) {
+    public boolean isEnabled(E obj) {
         // TODO Auto-generated method stub
         return true;
     }
 
     @Override
-    public boolean isSortable(Object obj) {
+    public boolean isSortable(E obj) {
         // TODO Auto-generated method stub
         return true;
     }

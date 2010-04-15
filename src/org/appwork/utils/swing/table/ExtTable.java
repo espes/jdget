@@ -45,7 +45,7 @@ import org.appwork.utils.swing.EDTHelper;
  * @author $Author: unknown$
  * 
  */
-public class ExtTable extends JTable {
+public class ExtTable<E> extends JTable {
 
     /**
      * 
@@ -71,7 +71,7 @@ public class ExtTable extends JTable {
     /**
      * The underlaying datamodel
      */
-    private ExtTableModel model;
+    private ExtTableModel<E> model;
     /**
      * TableID. Used to generate a key for saving internal data to database
      */
@@ -89,7 +89,7 @@ public class ExtTable extends JTable {
      * @param id
      *            Tableid used for storage
      */
-    public ExtTable(ExtTableModel model, String id) {
+    public ExtTable(ExtTableModel<E> model, String id) {
         super(model);
         this.tableID = id;
         rowHighlighters = new ArrayList<ExtRowHighlighter>();
@@ -209,19 +209,19 @@ public class ExtTable extends JTable {
         switch (evt.getKeyCode()) {
 
         case KeyEvent.VK_X:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCut(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCut(getExtTableModel().getSelectedObjects(), evt); }
             break;
         case KeyEvent.VK_V:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutPaste(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutPaste(getExtTableModel().getSelectedObjects(), evt); }
             break;
         case KeyEvent.VK_C:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCopy(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCopy(getExtTableModel().getSelectedObjects(), evt); }
             break;
         case KeyEvent.VK_DELETE:
-            return this.onShortcutDelete(((ExtTableModel) getModel()).getSelectedObjects(), evt);
+            return this.onShortcutDelete(getExtTableModel().getSelectedObjects(), evt);
         case KeyEvent.VK_BACK_SPACE:
 
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutDelete(((ExtTableModel) getModel()).getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutDelete(getExtTableModel().getSelectedObjects(), evt); }
             break;
         case KeyEvent.VK_UP:
             if (getSelectedRow() == 0) {
@@ -258,7 +258,7 @@ public class ExtTable extends JTable {
      * @param evt
      * @return
      */
-    protected boolean onShortcutDelete(ArrayList<Object> selectedObjects, KeyEvent evt) {
+    protected boolean onShortcutDelete(ArrayList<E> selectedObjects, KeyEvent evt) {
         // TODO Auto-generated method stub
         return false;
     }
@@ -268,7 +268,7 @@ public class ExtTable extends JTable {
      * @param evt
      * @return
      */
-    protected boolean onShortcutCopy(ArrayList<Object> selectedObjects, KeyEvent evt) {
+    protected boolean onShortcutCopy(ArrayList<E> selectedObjects, KeyEvent evt) {
         // TODO Auto-generated method stub
         return false;
     }
@@ -278,7 +278,7 @@ public class ExtTable extends JTable {
      * @param evt
      * @return
      */
-    protected boolean onShortcutPaste(ArrayList<Object> selectedObjects, KeyEvent evt) {
+    protected boolean onShortcutPaste(ArrayList<E> selectedObjects, KeyEvent evt) {
         // TODO Auto-generated method stub
         return false;
     }
@@ -288,7 +288,7 @@ public class ExtTable extends JTable {
      * @param evt
      * @return
      */
-    protected boolean onShortcutCut(ArrayList<Object> selectedObjects, KeyEvent evt) {
+    protected boolean onShortcutCut(ArrayList<E> selectedObjects, KeyEvent evt) {
         // TODO Auto-generated method stub
         return false;
     }
@@ -512,7 +512,7 @@ public class ExtTable extends JTable {
         return columnForegroundSelected;
     }
 
-    public ExtTableModel getExtTableModel() {
+    public ExtTableModel<E> getExtTableModel() {
         return model;
     }
 
