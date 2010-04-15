@@ -71,7 +71,9 @@ public class Queue extends Thread {
         }
         while (!item.isFinished()) {
             try {
-                Thread.sleep(50);
+                synchronized (item) {
+                    item.wait(1000);
+                }
             } catch (InterruptedException e) {
             }
         }
@@ -90,6 +92,9 @@ public class Queue extends Thread {
         synchronized (queue) {
             for (QueueItem item : queue) {
                 item.kill();
+                synchronized (item) {
+                    item.notify();
+                }
             }
             queue.clear();
         }
@@ -121,6 +126,7 @@ public class Queue extends Thread {
         }
     }
 
+    /* if you override this, DON'T forget to notify item when its done! */
     protected void startItem(QueueItem item) {
         try {
             item.start(this);
@@ -129,6 +135,10 @@ public class Queue extends Thread {
                 item.exceptionHandler(e);
             } catch (Exception e2) {
                 e2.printStackTrace();
+            }
+        } finally {
+            synchronized (item) {
+                item.notifyAll();
             }
         }
     }
