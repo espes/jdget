@@ -370,7 +370,10 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
     }
 
     public void windowClosing(WindowEvent arg0) {
-        if (closeAllowed()) dispose();
+        if (closeAllowed()) {
+            returnBitMask |= Dialog.RETURN_CLOSED;
+            dispose();
+        }
     }
 
     public void windowDeactivated(WindowEvent arg0) {

@@ -67,14 +67,15 @@ public class Queue extends Thread {
             startItem(item);
         } else {
             /* call does not come from current running item, so lets queue it */
-            add(item);
-        }
-        while (!item.isFinished()) {
-            try {
-                synchronized (item) {
-                    item.wait(1000);
+            internalAdd(item);
+            /* wait till item is finished */
+            while (!item.isFinished()) {
+                try {
+                    synchronized (item) {
+                        item.wait(1000);
+                    }
+                } catch (InterruptedException e) {
                 }
-            } catch (InterruptedException e) {
             }
         }
         if (item.gotKilled()) throw new Exception("Queue got killed!");

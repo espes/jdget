@@ -127,6 +127,9 @@ public class Dialog {
      * If the user pressed OK, the return mask will contain this flag
      */
     public static final int RETURN_OK = 1 << 1;
+
+    /* if user closed the window */
+    public static final int RETURN_CLOSED = 1 << 6;
     /**
      * If the dialog has been skipped due to previously selected
      * {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option, this return flag is set.
@@ -243,6 +246,11 @@ public class Dialog {
     public static boolean isOK(Object value) {
         if (!(value instanceof Integer)) return false;
         return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_OK);
+    }
+
+    public static boolean isClosed(Object value) {
+        if (!(value instanceof Integer)) return false;
+        return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_CLOSED);
     }
 
     /**
