@@ -163,10 +163,8 @@ public class ExtTable<E> extends JTable {
                     if (obj == null || row == -1) {
                         /* no object under mouse, lets clear the selection */
                         clearSelection();
-                        JPopupMenu popup = new JPopupMenu();
-
-                        popup = onContextMenu(popup, null, null);
-                        if (popup != null) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
+                        JPopupMenu popup = onContextMenu(new JPopupMenu(), null, null);
+                        if (popup != null && popup.getComponentCount() > 0) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
                         return;
                     } else {
                         /* check if we need to select object */
@@ -175,11 +173,9 @@ public class ExtTable<E> extends JTable {
                             addRowSelectionInterval(row, row);
                         }
                         ArrayList<E> selected = getExtTableModel().getSelectedObjects();
-                        JPopupMenu popup = new JPopupMenu();
+                        JPopupMenu popup = onContextMenu(new JPopupMenu(), obj, selected);
 
-                        popup = onContextMenu(popup, obj, selected);
-
-                        if (popup != null) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
+                        if (popup != null && popup.getComponentCount() > 0) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
                     }
 
                 }
