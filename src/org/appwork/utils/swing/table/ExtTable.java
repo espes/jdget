@@ -177,9 +177,9 @@ public class ExtTable<E> extends JTable {
                         ArrayList<E> selected = getExtTableModel().getSelectedObjects();
                         JPopupMenu popup = new JPopupMenu();
 
-                        if (popup != null) popup = onContextMenu(popup, obj, selected);
+                        popup = onContextMenu(popup, obj, selected);
 
-                        popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
+                        if (popup != null) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
                     }
 
                 }
