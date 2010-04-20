@@ -25,6 +25,7 @@ import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableCellEditor;
@@ -143,6 +144,49 @@ public class ExtTable<E> extends JTable {
             }
         });
 
+        this.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                ArrayList<E> sel = getExtTableModel().getSelectedObjects();
+                if (sel != null && sel.size() == 0) sel = null;
+                onSelectionChanged(sel);
+
+            }
+
+        });
+        this.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
+                    int row = rowAtPoint(e.getPoint());
+                    E obj = getExtTableModel().getObjectbyRow(row);
+                    if (obj == null || row == -1) {
+                        /* no object under mouse, lets clear the selection */
+                        clearSelection();
+                        JPopupMenu popup = new JPopupMenu();
+
+                        popup = onContextMenu(popup, null, null);
+                        if (popup != null) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
+                        return;
+                    } else {
+                        /* check if we need to select object */
+                        if (!isRowSelected(row)) {
+                            clearSelection();
+                            addRowSelectionInterval(row, row);
+                        }
+                        ArrayList<E> selected = getExtTableModel().getSelectedObjects();
+                        JPopupMenu popup = new JPopupMenu();
+
+                        if (popup != null) popup = onContextMenu(popup, obj, selected);
+
+                        popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
+                    }
+
+                }
+
+            }
+
+        });
         getTableHeader().setReorderingAllowed(true);
         getTableHeader().setResizingAllowed(true);
         setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
@@ -281,6 +325,16 @@ public class ExtTable<E> extends JTable {
     protected boolean onShortcutPaste(ArrayList<E> selectedObjects, KeyEvent evt) {
         // TODO Auto-generated method stub
         return false;
+    }
+
+    protected void onSelectionChanged(ArrayList<E> selected) {
+        // TODO Auto-generated method stub
+
+    }
+
+    protected JPopupMenu onContextMenu(JPopupMenu popup, E contextObject, ArrayList<E> selection) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /**
