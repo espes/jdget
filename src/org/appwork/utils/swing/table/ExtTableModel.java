@@ -116,6 +116,25 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
+     * @param latest
+     */
+    public void setSelectedObject(final E latest) {
+
+        new EDTHelper<Object>() {
+            @Override
+            public Object edtRun() {
+                if (latest == null) {
+                    clearSelection();
+                    return null;
+                }
+                int row = getRowforObject(latest);
+                table.addRowSelectionInterval(row, row);
+                return null;
+            }
+        }.start();
+    }
+
+    /**
      * Sets the current selection to the given objects
      * 
      * @param selections
@@ -386,4 +405,5 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public ExtColumn<E> getSortColumn() {
         return sortColumn;
     }
+
 }

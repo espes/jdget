@@ -107,6 +107,11 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
         return 30;
     }
 
+    public int getMinWidth() {
+        // TODO Auto-generated method stub
+        return 30;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {

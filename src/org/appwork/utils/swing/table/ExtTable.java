@@ -178,6 +178,9 @@ public class ExtTable<E> extends JTable {
                         if (popup != null && popup.getComponentCount() > 0) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
                     }
 
+                } else if (rowAtPoint(e.getPoint()) < 0) {
+                    clearSelection();
+
                 }
 
             }
@@ -222,6 +225,28 @@ public class ExtTable<E> extends JTable {
 
         });
 
+    }
+
+    protected void scrollToSelection() {
+
+        new EDTHelper<Object>() {
+
+            @Override
+            public Object edtRun() {
+                JViewport viewport = (JViewport) getParent();
+                if (viewport == null) return null;
+                int[] sel = getSelectedRows();
+                if (sel == null || sel.length == 0) return null;
+                Rectangle rect = getCellRect(sel[0], 0, true);
+                Rectangle rect2 = getCellRect(sel[sel.length - 1], 0, true);
+                rect.height += rect2.y - rect.y;
+                Point pt = viewport.getViewPosition();
+                rect.setLocation(rect.x - pt.x, rect.y - pt.y);
+                viewport.scrollRectToVisible(rect);
+                return null;
+            }
+
+        }.start();
     }
 
     public void scrollToRow(final int row) {
@@ -464,7 +489,13 @@ public class ExtTable<E> extends JTable {
                     }
                 }
             });
-            if (model.getExtColumn(j).getMaxWidth() >= 0) tableColumn.setMaxWidth(model.getExtColumn(j).getMaxWidth());
+            if (model.getExtColumn(j).getMaxWidth() >= 0) {
+                tableColumn.setMaxWidth(model.getExtColumn(j).getMaxWidth());
+            }
+            if (model.getExtColumn(j).getMinWidth() >= 0) {
+                tableColumn.setMinWidth(model.getExtColumn(j).getMinWidth());
+            }
+
             // Set stored columnwidth
             try {
                 int w = ConfigInterface.getStorage("ExtTable_" + tableID).get("WIDTH_COL_" + model.getExtColumn(j).getID(), model.getExtColumn(j).getDefaultWidth());

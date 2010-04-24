@@ -18,6 +18,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
      */
     private static final long serialVersionUID = -5812486934156037376L;
     protected RenderLabel label;
+    private long sizeValue;
 
     public ExtFileSizeColumn(String name, ExtTableModel<E> table) {
         super(name, table);
@@ -78,9 +79,20 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
     @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-
-        label.setText(SizeFormater.formatBytes(getBytes((E) value)));
+        if ((sizeValue = getBytes((E) value)) < 0) {
+            label.setText(getInvalidValue());
+        } else {
+            label.setText(SizeFormater.formatBytes(sizeValue));
+        }
 
         return label;
+    }
+
+    /**
+     * @return
+     */
+    protected String getInvalidValue() {
+        // TODO Auto-generated method stub
+        return "";
     }
 }
