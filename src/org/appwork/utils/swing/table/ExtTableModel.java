@@ -56,6 +56,16 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
         this.modelID = id;
         initColumns();
+
+        String columnId = ConfigInterface.getStorage("ExtTableModel_" + modelID).get("SORTCOLUMN", this.columns.get(0).getID());
+        for (ExtColumn<E> col : columns) {
+            if (col.getID().equals(columnId)) {
+                sortColumn = col;
+                break;
+            }
+        }
+        sortOrderToggle = ConfigInterface.getStorage("ExtTableModel_" + modelID).get("SORTORDER", false);
+        this.refreshSort();
     }
 
     /**
@@ -373,6 +383,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public void sort(ExtColumn<E> column, boolean sortOrderToggle) {
         this.sortColumn = column;
         this.sortOrderToggle = sortOrderToggle;
+
+        try {
+            ConfigInterface.getStorage("ExtTableModel_" + modelID).put("SORTCOLUMN", column.getID());
+            ConfigInterface.getStorage("ExtTableModel_" + modelID).put("SORTORDER", sortOrderToggle);
+        } catch (Exception e) {
+            Log.exception(e);
+        }
         Collections.sort(getTableData(), column.getRowSorter(sortOrderToggle));
     }
 
