@@ -5,7 +5,15 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 
 public abstract class ExtRowHighlighter {
+
     private Color borderColor;
+
+    private Color contentColor;
+
+    public ExtRowHighlighter(Color borderColor, Color contentColor) {
+        this.borderColor = borderColor;
+        this.contentColor = contentColor;
+    }
 
     /**
      * @return the {@link ExtRowHighlighter#borderColor}
@@ -41,30 +49,20 @@ public abstract class ExtRowHighlighter {
         this.contentColor = contentColor;
     }
 
-    private Color contentColor;
-
-    public ExtRowHighlighter(Color borderColor, Color contentColor) {
-
-        this.borderColor = borderColor;
-        this.contentColor = contentColor;
-    }
-
-    abstract public boolean doHighlight(ExtTable extTable, int row);
+    abstract public boolean doHighlight(ExtTable<?> extTable, int row);
 
     /**
      * Overwrite this method for custom highlighters
      * 
      * @param g
-     * @param i
+     * @param x
      * @param y
      * @param width
      * @param height
      */
     public void paint(Graphics2D g, int x, int y, int width, int height) {
-
         if (getBorderColor() != null) {
             g.setColor(getBorderColor());
-
             g.draw(new Rectangle2D.Float(0, y, width, height));
         }
         if (getContentColor() != null) {

@@ -44,28 +44,24 @@ import org.appwork.utils.swing.EDTHelper;
  * editing, easy rendering, sorting etc.
  * 
  * @author $Author: unknown$
- * 
  */
 public class ExtTable<E> extends JTable {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 2822230056021924679L;
     /**
      * Column background color if column is NOT selected
      */
     private Color columnBackground;
     /**
-     * columnbackgroundcolor of colum is selected
+     * Column background color if column is selected
      */
     private Color columnBackgroundSelected;
     /**
-     * column textcolor if colum is NOT selected
+     * Column textcolor if column is NOT selected
      */
     private Color columnForeground;
     /**
-     * COlumn textcolor if column is selected
+     * Column textcolor if column is selected
      */
     private Color columnForegroundSelected;
 
@@ -324,7 +320,6 @@ public class ExtTable<E> extends JTable {
      * @return
      */
     protected boolean onShortcutDelete(ArrayList<E> selectedObjects, KeyEvent evt) {
-        // TODO Auto-generated method stub
         return false;
     }
 
@@ -334,7 +329,6 @@ public class ExtTable<E> extends JTable {
      * @return
      */
     protected boolean onShortcutCopy(ArrayList<E> selectedObjects, KeyEvent evt) {
-        // TODO Auto-generated method stub
         return false;
     }
 
@@ -344,17 +338,13 @@ public class ExtTable<E> extends JTable {
      * @return
      */
     protected boolean onShortcutPaste(ArrayList<E> selectedObjects, KeyEvent evt) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     protected void onSelectionChanged(ArrayList<E> selected) {
-        // TODO Auto-generated method stub
-
     }
 
     protected JPopupMenu onContextMenu(JPopupMenu popup, E contextObject, ArrayList<E> selection) {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -364,7 +354,6 @@ public class ExtTable<E> extends JTable {
      * @return
      */
     protected boolean onShortcutCut(ArrayList<E> selectedObjects, KeyEvent evt) {
-        // TODO Auto-generated method stub
         return false;
     }
 
@@ -376,7 +365,6 @@ public class ExtTable<E> extends JTable {
     public void addRowHighlighter(ExtRowHighlighter highlighter) {
         removeRowHighlighter(highlighter);
         this.rowHighlighters.add(highlighter);
-
     }
 
     /**
@@ -388,6 +376,7 @@ public class ExtTable<E> extends JTable {
         this.rowHighlighters.remove(highlighter);
     }
 
+    @Override
     public void paintComponent(final Graphics g) {
 
         super.paintComponent(g);
@@ -418,13 +407,9 @@ public class ExtTable<E> extends JTable {
                     // RepaintManager.currentManager(this).addDirtyRegion(this,
                     // 0, first.y, width, first.height);
                     rh.paint((Graphics2D) g, 0, first.y, width, first.height);
-
                 }
-
             }
-
         }
-
     }
 
     /**
@@ -479,7 +464,7 @@ public class ExtTable<E> extends JTable {
             tableColumn.addPropertyChangeListener(new PropertyChangeListener() {
                 public void propertyChange(PropertyChangeEvent evt) {
                     if (evt.getPropertyName().equals("width")) {
-                        // TODO
+                        // TODO: What todo here?
                         try {
                             ConfigInterface.getStorage("ExtTable_" + tableID).put("WIDTH_COL_" + model.getExtColumn(j).getID(), (Integer) evt.getNewValue());
                         } catch (Exception e) {
@@ -619,7 +604,6 @@ public class ExtTable<E> extends JTable {
      * @return
      */
     public TableCellRenderer getLafCellRenderer(int row, int column) {
-
         return super.getCellRenderer(row, column);
     }
 
@@ -640,12 +624,9 @@ public class ExtTable<E> extends JTable {
      * 
      * @param point
      */
-    @SuppressWarnings("unchecked")
     public ExtColumn<E> getExtColumnAtPoint(Point point) {
-
         int x = getExtColumnIndexByPoint(point);
-        return ((ExtTableModel<E>) getModel()).getExtColumn(x);
-
+        return getExtTableModel().getExtColumn(x);
     }
 
     /*
@@ -655,7 +636,6 @@ public class ExtTable<E> extends JTable {
      */
     // @Override
     // public void keyPressed(KeyEvent e) {
-    // // TODO Auto-generated method stub
     // int leadSelectIndex, selectIndex;
     // switch (e.getKeyCode()) {
     // case KeyEvent.VK_UP:
