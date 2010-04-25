@@ -137,6 +137,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                     clearSelection();
                     return null;
                 }
+                clearSelection();
                 int row = getRowforObject(latest);
                 table.addRowSelectionInterval(row, row);
                 return null;
