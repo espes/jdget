@@ -142,7 +142,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 table.addRowSelectionInterval(row, row);
                 return null;
             }
-        }.start();
+        }.invokeLater();
     }
 
     /**
