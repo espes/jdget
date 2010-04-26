@@ -97,12 +97,16 @@ public abstract class EDTHelper<T> implements Runnable {
      */
     public void start() {
         setStarted(true);
-
         if (SwingUtilities.isEventDispatchThread()) {
             run();
         } else {
             SwingUtilities.invokeLater(this);
         }
+    }
+
+    public void invokeLater() {
+        setStarted(true);
+        SwingUtilities.invokeLater(this);
     }
 
     /**

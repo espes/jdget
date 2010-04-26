@@ -22,8 +22,19 @@ public class Queue extends Thread {
     protected QueueItem item = null;
     protected Thread thread = null;
 
-    public boolean isQueueThread() {
-        return currentThread() == thread;
+    /*
+     * this functions returns true if the current running Thread is our
+     * QueueThread OR the SourceQueueItem chain is rooted in current running
+     * QueueItem
+     */
+    public boolean isQueueThread(QueueItem item) {
+        if (currentThread() == thread) return true;
+        QueueItem source = item.getSourceQueueItem();
+        while (source != null) {
+            if (source.gotStarted()) return true;
+            source = source.getSourceQueueItem();
+        }
+        return false;
     }
 
     public Queue(String id) {
@@ -36,7 +47,7 @@ public class Queue extends Thread {
     }
 
     public void add(QueueItem item) {
-        if (isQueueThread()) {
+        if (isQueueThread(item)) {
             /*
              * call comes from current running item, so lets start item
              */
@@ -60,7 +71,7 @@ public class Queue extends Thread {
     }
 
     public Object addWait(QueueItem item) throws Exception {
-        if (isQueueThread()) {
+        if (isQueueThread(item)) {
             /*
              * call comes from current running item, so lets start item
              */

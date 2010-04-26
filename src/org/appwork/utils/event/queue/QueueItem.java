@@ -21,14 +21,25 @@ public abstract class QueueItem {
     private Exception exce = null;
     private volatile boolean finished = false;
     private volatile boolean killed = false;
+    private volatile boolean started = false;
     private Queue queue = null;
+    private QueueItem source = null;
 
     protected Queue getQueue() {
         return queue;
     }
 
+    public void setSourceQueueItem(QueueItem source) {
+        this.source = source;
+    }
+
+    public QueueItem getSourceQueueItem() {
+        return source;
+    }
+
     public void start(Queue queue) throws Exception {
         this.queue = queue;
+        this.started = true;
         try {
             result = run();
         } catch (Exception e) {
@@ -38,6 +49,10 @@ public abstract class QueueItem {
         } finally {
             finished = true;
         }
+    }
+
+    public boolean gotStarted() {
+        return started;
     }
 
     public void kill() {
