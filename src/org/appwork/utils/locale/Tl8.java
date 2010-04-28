@@ -43,7 +43,9 @@ public enum Tl8 implements Translate {
     DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER("Switch to Home"),
     DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER("Create new folder"),
     DIALOG_FILECHOOSER_TOOLTIP_DETAILS("Switch to detailed view"),
-    DIALOG_FILECHOOSER_TOOLTIP_LIST("Switch to list view");
+    DIALOG_FILECHOOSER_TOOLTIP_LIST("Switch to list view"),
+    EXTTABLE_SEARCH_DIALOG_TITLE("Search table"),
+    EXTTABLE_SEARCH_DIALOG_MESSAGE("Search:");
 
     /**
      * Stores the DefaultTranslation.

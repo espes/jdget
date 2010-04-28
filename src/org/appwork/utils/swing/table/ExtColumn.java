@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.EventObject;
+import java.util.regex.Pattern;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JTable;
@@ -78,6 +79,10 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     public boolean isDefaultVisible() {
         return true;
+    }
+
+    protected boolean matchSearch(E object, Pattern pattern) {
+        return false;
     }
 
     protected void doSort(final Object obj) {

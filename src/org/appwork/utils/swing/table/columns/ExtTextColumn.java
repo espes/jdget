@@ -1,6 +1,7 @@
 package org.appwork.utils.swing.table.columns;
 
 import java.awt.Component;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -67,10 +68,17 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
         label.setText(getStringValue((E) value));
         label.setToolTipText(getToolTip((E) value));
         return label;
+
         // isSelected = false;
         // return ((ExtTable) table).getLafCellRenderer(row,
         // column).getTableCellRendererComponent(table, getStringValue(value),
         // isSelected, false, row, column);
+    }
+
+    protected boolean matchSearch(E object, Pattern pattern) {
+
+        return pattern.matcher(getStringValue(object)).matches();
+
     }
 
     @Override

@@ -15,6 +15,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
@@ -75,6 +76,26 @@ public class ExtTable<E> extends JTable {
     private String tableID;
 
     final private ArrayList<ExtRowHighlighter> rowHighlighters;
+    /**
+     * true if search is enabled
+     */
+    private boolean searchEnabled = false;
+    private SearchDialog searchDialog;
+
+    /**
+     * @return the searchEnabled
+     */
+    public boolean isSearchEnabled() {
+        return searchEnabled;
+    }
+
+    /**
+     * @param searchEnabled
+     *            the searchEnabled to set
+     */
+    public void setSearchEnabled(boolean searchEnabled) {
+        this.searchEnabled = searchEnabled;
+    }
 
     /**
      * Create an Extended Table instance
@@ -223,6 +244,13 @@ public class ExtTable<E> extends JTable {
 
     }
 
+    /**
+     * @return the tableID
+     */
+    public String getTableID() {
+        return tableID;
+    }
+
     protected void scrollToSelection() {
 
         new EDTHelper<Object>() {
@@ -284,6 +312,10 @@ public class ExtTable<E> extends JTable {
 
             if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutDelete(getExtTableModel().getSelectedObjects(), evt); }
             break;
+        case KeyEvent.VK_F:
+
+            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutSearch(getExtTableModel().getSelectedObjects(), evt); }
+            break;
         case KeyEvent.VK_UP:
             if (getSelectedRow() == 0) {
                 if (getCellEditor() != null) {
@@ -312,6 +344,61 @@ public class ExtTable<E> extends JTable {
 
         }
         return super.processKeyBinding(stroke, evt, condition, pressed);
+    }
+
+    /**
+     * @param selectedObjects
+     * @param evt
+     * @return
+     */
+    protected boolean onShortcutSearch(ArrayList<E> selectedObjects, KeyEvent evt) {
+
+        if (searchEnabled && this.hasFocus()) {
+            this.startSearch();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 
+     */
+    private synchronized void startSearch() {
+
+        try {
+
+            if (searchDialog != null && searchDialog.isShowing()) {
+                searchDialog.requestFocus();
+            } else {
+                searchDialog = new SearchDialog(SearchDialog.NO_REGEX_FLAG, this) {
+
+                    /**
+                 * 
+                 */
+                    private static final long serialVersionUID = 2652101312418765845L;
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        String ret = searchDialog.getReturnID();
+                        if (ret != null) {
+                            int[] sel = getSelectedRows();
+                            int startRow = -1;
+                            if (sel != null & sel.length > 0) startRow = sel[sel.length - 1];
+                            E found = getExtTableModel().searchNextObject(startRow + 1, ret, searchDialog.isCaseSensitive(), searchDialog.isRegex());
+                            getExtTableModel().setSelectedObject(found);
+                            scrollToSelection();
+
+                        }
+                    }
+
+                };
+
+                addFocusListener(searchDialog);
+
+            }
+        } catch (IOException e) {
+            Log.exception(e);
+        }
     }
 
     /**
@@ -510,7 +597,7 @@ public class ExtTable<E> extends JTable {
                         TableColumn item = columns.remove(id);
 
                         if (item != null) {
-                            System.out.println(item);
+
                             addColumn(item);
                         }
                     }

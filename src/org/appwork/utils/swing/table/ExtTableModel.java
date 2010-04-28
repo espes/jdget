@@ -2,6 +2,7 @@ package org.appwork.utils.swing.table;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.regex.Pattern;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
@@ -427,6 +428,46 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public ExtColumn<E> getSortColumn() {
         return sortColumn;
+    }
+
+    /**
+     * @param startRow
+     * @param ret
+     * @param caseSensitive
+     * @param regex
+     * @return
+     */
+    public E searchNextObject(int startRow, String ret, boolean caseSensitive, boolean regex) {
+
+        Pattern p;
+        if (!regex) {
+            String[] pats = ret.split("\\*");
+            StringBuilder pattern = new StringBuilder();
+            for (String pp : pats) {
+                if (pattern.length() > 0) {
+                    pattern.append(".*?");
+                }
+                pattern.append(Pattern.quote(pp));
+            }
+            p = Pattern.compile(".*?" + pattern.toString() + ".*?", caseSensitive ? Pattern.CASE_INSENSITIVE : 0 | Pattern.DOTALL);
+        } else {
+            p = Pattern.compile(".*?" + ret + ".*?", caseSensitive ? Pattern.CASE_INSENSITIVE : 0 | Pattern.DOTALL);
+        }
+
+        for (int i = startRow; i < tableData.size(); i++) {
+            for (int c = 0; c < this.columns.size(); c++) {
+                if (columns.get(c).matchSearch(tableData.get(i), p)) { return tableData.get(i); }
+            }
+
+        }
+        for (int i = 0; i < startRow; i++) {
+            for (int c = 0; c < this.columns.size(); c++) {
+                if (columns.get(c).matchSearch(tableData.get(i), p)) { return tableData.get(i); }
+            }
+
+        }
+        return null;
+
     }
 
 }
