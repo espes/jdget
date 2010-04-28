@@ -35,6 +35,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import org.appwork.storage.ConfigInterface;
+import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
@@ -307,10 +308,11 @@ public class ExtTable<E> extends JTable {
             if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCopy(getExtTableModel().getSelectedObjects(), evt); }
             break;
         case KeyEvent.VK_DELETE:
-            return this.onShortcutDelete(getExtTableModel().getSelectedObjects(), evt);
+
+            return this.onShortcutDelete(getExtTableModel().getSelectedObjects(), evt, BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK));
         case KeyEvent.VK_BACK_SPACE:
 
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutDelete(getExtTableModel().getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutDelete(getExtTableModel().getSelectedObjects(), evt, false); }
             break;
         case KeyEvent.VK_F:
 
@@ -404,9 +406,11 @@ public class ExtTable<E> extends JTable {
     /**
      * @param selectedObjects
      * @param evt
+     * @param diorect
+     *            TODO
      * @return
      */
-    protected boolean onShortcutDelete(ArrayList<E> selectedObjects, KeyEvent evt) {
+    protected boolean onShortcutDelete(ArrayList<E> selectedObjects, KeyEvent evt, boolean direct) {
         return false;
     }
 

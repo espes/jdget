@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 
@@ -67,12 +68,22 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         label.setText(getStringValue((E) value));
         label.setToolTipText(getToolTip((E) value));
+        label.setIcon(getIcon((E) value));
         return label;
 
         // isSelected = false;
         // return ((ExtTable) table).getLafCellRenderer(row,
         // column).getTableCellRendererComponent(table, getStringValue(value),
         // isSelected, false, row, column);
+    }
+
+    /**
+     * @param value
+     * @return
+     */
+    protected Icon getIcon(E value) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     protected boolean matchSearch(E object, Pattern pattern) {

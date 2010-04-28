@@ -470,4 +470,86 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     }
 
+    /**
+     * @param selectedObjects
+     */
+    @SuppressWarnings("unchecked")
+    public void removeAll(ArrayList<E> selectedObjects) {
+
+        final ArrayList<E> tmp = (ArrayList<E>) tableData.clone();
+        tmp.removeAll(selectedObjects);
+
+        new EDTHelper<Object>() {
+            @Override
+            public Object edtRun() {
+                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
+                tableData = tmp;
+                refreshSort();
+                fireTableStructureChanged();
+
+                setSelectedObjects(selection);
+                return null;
+            }
+        }.start();
+
+    }
+
+    /**
+     * 
+     */
+    public void clear() {
+        new EDTHelper<Object>() {
+            @Override
+            public Object edtRun() {
+                tableData.clear();
+                fireTableStructureChanged();
+                return null;
+            }
+        }.start();
+    }
+
+    /**
+     * @return
+     */
+    public int size() {
+        // TODO Auto-generated method stub
+        return tableData.size();
+    }
+
+    /**
+     * @param i
+     * @return
+     */
+    public E getElementAt(int i) {
+        // TODO Auto-generated method stub
+        return tableData.get(i);
+    }
+
+    /**
+     * @param at
+     * @return
+     */
+    public boolean contains(E at) {
+        // TODO Auto-generated method stub
+        return tableData.contains(at);
+    }
+
+    /**
+     * @param at
+     */
+    public void addElement(final E at) {
+        new EDTHelper<Object>() {
+            @Override
+            public Object edtRun() {
+                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
+                tableData.add(at);
+                refreshSort();
+                fireTableStructureChanged();
+
+                setSelectedObjects(selection);
+                return null;
+            }
+        }.start();
+    }
+
 }
