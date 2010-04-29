@@ -59,4 +59,12 @@ public class StateEvent extends Event {
         return stateMachine;
     }
 
+    /**
+     * @return
+     */
+    public Throwable getCause() {
+        // TODO Auto-generated method stub
+        return getStateMachine().getCause(getNewState());
+    }
+
 }

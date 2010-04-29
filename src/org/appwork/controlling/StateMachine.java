@@ -1,6 +1,7 @@
 package org.appwork.controlling;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.appwork.utils.logging.Log;
 
@@ -30,6 +31,7 @@ public class StateMachine {
     private ArrayList<State> path;
     private StateMachineInterface owner;
     private Object lock = new Object();
+    private HashMap<State, Throwable> exceptionMap;
 
     /**
      * @param interfac
@@ -42,6 +44,7 @@ public class StateMachine {
         initState = startState;
         currentState = startState;
         finalState = endState;
+        exceptionMap = new HashMap<State, Throwable>();
         this.eventSender = new StateEventsender();
         this.path = new ArrayList<State>();
         path.add(initState);
@@ -202,6 +205,23 @@ public class StateMachine {
      */
     public State getState() {
         return currentState;
+    }
+
+    /**
+     * @param newState
+     * @return
+     */
+    public Throwable getCause(State newState) {
+        // TODO Auto-generated method stub
+        return exceptionMap.get(newState);
+    }
+
+    /**
+     * @param failedState
+     * @param e
+     */
+    public void setCause(State failedState, Throwable e) {
+        exceptionMap.put(failedState, e);
     }
 
 }

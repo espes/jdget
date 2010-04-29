@@ -67,21 +67,4 @@ public class State {
         return this.id;
     }
 
-    /**
-     * Sets the exception that is responsible for this state
-     * 
-     * @param e
-     */
-    public void setCause(Throwable e) {
-        cause = e;
-
-    }
-
-    /**
-     * @return the cause
-     */
-    public Throwable getCause() {
-        return cause;
-    }
-
 }
