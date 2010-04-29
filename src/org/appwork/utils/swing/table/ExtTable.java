@@ -173,37 +173,7 @@ public class ExtTable<E> extends JTable {
             }
 
         });
-        this.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
-                    int row = rowAtPoint(e.getPoint());
-                    E obj = getExtTableModel().getObjectbyRow(row);
-                    if (obj == null || row == -1) {
-                        /* no object under mouse, lets clear the selection */
-                        clearSelection();
-                        JPopupMenu popup = onContextMenu(new JPopupMenu(), null, null);
-                        if (popup != null && popup.getComponentCount() > 0) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
-                        return;
-                    } else {
-                        /* check if we need to select object */
-                        if (!isRowSelected(row)) {
-                            clearSelection();
-                            addRowSelectionInterval(row, row);
-                        }
-                        ArrayList<E> selected = getExtTableModel().getSelectedObjects();
-                        JPopupMenu popup = onContextMenu(new JPopupMenu(), obj, selected);
 
-                        if (popup != null && popup.getComponentCount() > 0) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
-                    }
-
-                } else if (rowAtPoint(e.getPoint()) < 0) {
-                    clearSelection();
-
-                }
-
-            }
-
-        });
         getTableHeader().setReorderingAllowed(true);
         getTableHeader().setResizingAllowed(true);
         setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
@@ -290,6 +260,38 @@ public class ExtTable<E> extends JTable {
 
         }.start();
 
+    }
+
+    protected void processMouseEvent(MouseEvent e) {
+        super.processMouseEvent(e);
+        if (e.getID() == MouseEvent.MOUSE_RELEASED) {
+            if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
+                int row = rowAtPoint(e.getPoint());
+                E obj = getExtTableModel().getObjectbyRow(row);
+                System.out.println(row);
+                if (obj == null || row == -1) {
+                    /* no object under mouse, lets clear the selection */
+                    clearSelection();
+                    JPopupMenu popup = onContextMenu(new JPopupMenu(), null, null);
+                    if (popup != null && popup.getComponentCount() > 0) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
+                    return;
+                } else {
+                    /* check if we need to select object */
+                    if (!isRowSelected(row)) {
+                        clearSelection();
+                        addRowSelectionInterval(row, row);
+                    }
+                    ArrayList<E> selected = getExtTableModel().getSelectedObjects();
+                    JPopupMenu popup = onContextMenu(new JPopupMenu(), obj, selected);
+
+                    if (popup != null && popup.getComponentCount() > 0) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
+                }
+
+            } else if (rowAtPoint(e.getPoint()) < 0) {
+                clearSelection();
+
+            }
+        }
     }
 
     // Key selection

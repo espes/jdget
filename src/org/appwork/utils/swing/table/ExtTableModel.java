@@ -143,7 +143,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 table.addRowSelectionInterval(row, row);
                 return null;
             }
-        }.invokeLater();
+        }.start();
     }
 
     /**
@@ -152,11 +152,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param selections
      */
     public void setSelectedObjects(final ArrayList<E> selections) {
-        /*
-         * has to be invoked later, because
-         * firetablechanged/fireTableStructureChanged are invoked later too and
-         * we have to make sure tablechange is done when selecting objects
-         */
+
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
@@ -178,7 +174,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 }
                 return null;
             }
-        }.invokeLater();
+        }.start();
     }
 
     /**
