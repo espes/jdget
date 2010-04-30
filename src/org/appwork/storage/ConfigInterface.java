@@ -116,10 +116,11 @@ public class ConfigInterface {
     public static <E> E restoreFrom(String string, TypeReference<E> type, E def) {
         try {
             if (!Application.getRessource(string).exists()) return def;
+            String str = IO.readFileToString(Application.getRessource(string));
             if (type != null) {
-                return (E) MAPPER.readValue(Application.getRessource(string), type);
+                return (E) MAPPER.readValue(str, type);
             } else {
-                return (E) MAPPER.readValue(Application.getRessource(string), def.getClass());
+                return (E) MAPPER.readValue(str, def.getClass());
             }
 
         } catch (JsonParseException e) {
