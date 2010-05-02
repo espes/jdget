@@ -15,7 +15,19 @@ package org.appwork.controlling;
  */
 public class StateExceptionException extends Exception {
 
+    private static final long serialVersionUID = 1920686119279132054L;
+
     private StateMachine stateMachine;
+    private State state;
+
+    /**
+     * @param stateMachine
+     * @paramstatee
+     */
+    public StateExceptionException(StateMachine stateMachine, State state) {
+        this.stateMachine = stateMachine;
+        this.state = state;
+    }
 
     /**
      * @return the stateMachine
@@ -45,19 +57,6 @@ public class StateExceptionException extends Exception {
      */
     public void setState(State state) {
         this.state = state;
-    }
-
-    private State state;
-
-    /**
-     * @param st
-     * @param e
-     */
-    public StateExceptionException(StateMachine st, State e) {
-
-        stateMachine = st;
-        state = e;
-
     }
 
 }

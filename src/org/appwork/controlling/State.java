@@ -24,12 +24,9 @@ public class State {
 
     private ArrayList<State> children;
     private int id;
-    private Throwable cause;
 
-    /**
-     * @param stateID
-     * @param string
-     */
+    // private Throwable cause;
+
     public State(int stateID, String label) {
         this.id = stateID;
         this.label = label;
@@ -37,33 +34,22 @@ public class State {
         children = new ArrayList<State>();
     }
 
-    /**
-     * @param string
-     */
     public State(String label) {
         this(INIT_STATE, label);
     }
 
-    /**
-     * @param addLink
-     * @param runningState
-     * @return
-     */
     public void addChildren(State... states) {
-        for (State s : states)
+        for (State s : states) {
             children.add(s);
-
+        }
     }
 
+    @Override
     public String toString() {
         return this.label + "-" + this.id + "(" + hashCode() + ")";
     }
 
-    /**
-     * @return
-     */
     public int getID() {
-        // TODO Auto-generated method stub
         return this.id;
     }
 
