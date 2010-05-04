@@ -29,7 +29,9 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
     private long lastLimitReached = 0;
     private int lastRead;
     private int lastRead2;
-    private final static int checkStep = 1024;
+    private final static int HIGHStep = 524288;
+    private final static int LOWStep = 1024;
+    private int checkStep = 10240;
     private int offset;
     private int todo;
     private int rest;
@@ -120,10 +122,21 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
                             e.printStackTrace();
                         }
                     }
+                    /* change checkStep according to limit */
+                    if (limitCurrent >= HIGHStep) {
+                        checkStep = HIGHStep + 1;
+                    } else if (limitCurrent <= LOWStep) {
+                        checkStep = LOWStep;
+                    } else {
+                        checkStep = (int) limitCurrent + 1;
+                    }
                 }
                 lastLimitReached = System.currentTimeMillis();
                 limitCounter = 0;
             }
+        } else {
+            /* increase step size up to HIGHStep limit */
+            checkStep = HIGHStep;
         }
     }
 
