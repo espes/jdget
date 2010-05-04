@@ -55,7 +55,7 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
 
     @Override
     public void write(int b) throws IOException {
-        write(b);
+        out.write(b);
         transfered++;
     }
 
