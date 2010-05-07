@@ -18,7 +18,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
      */
     private static final long serialVersionUID = -5812486934156037376L;
     protected RenderLabel label;
-    private long sizeValue;
+    protected long sizeValue;
 
     public ExtFileSizeColumn(String name, ExtTableModel<E> table) {
         super(name, table);

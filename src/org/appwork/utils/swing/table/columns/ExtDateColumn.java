@@ -22,6 +22,7 @@ public abstract class ExtDateColumn<E> extends ExtColumn<E> {
     private RenderLabel label;
     private SimpleDateFormat dateFormat;
     private Date date;
+    protected String badDateText = "~";
 
     public ExtDateColumn(String name, ExtTableModel<E> table) {
         super(name, table);
@@ -64,6 +65,15 @@ public abstract class ExtDateColumn<E> extends ExtColumn<E> {
             }
 
         });
+        init();
+    }
+
+    /**
+     * 
+     */
+    protected void init() {
+        // TODO Auto-generated method stub
+
     }
 
     /**
@@ -104,15 +114,20 @@ public abstract class ExtDateColumn<E> extends ExtColumn<E> {
 
     }
 
+    public String getToolTip(E obj) {
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         date = getDate((E) value);
         if (date == null) {
-            label.setText("~");
+            label.setText(badDateText);
         } else {
             label.setText(getDateFormat().format(date));
         }
+        label.setToolTipText(getToolTip((E) value));
         return label;
     }
 

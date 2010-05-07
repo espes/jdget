@@ -548,4 +548,24 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         }.start();
     }
 
+    /**
+     * @param files
+     */
+    @SuppressWarnings("unchecked")
+    public void addAllElements(ArrayList<E> files) {
+        final ArrayList<E> tmp = (ArrayList<E>) files.clone();
+        new EDTHelper<Object>() {
+            @Override
+            public Object edtRun() {
+                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
+                tableData.addAll(tmp);
+                refreshSort();
+                fireTableStructureChanged();
+                setSelectedObjects(selection);
+                return null;
+            }
+        }.start();
+
+    }
+
 }
