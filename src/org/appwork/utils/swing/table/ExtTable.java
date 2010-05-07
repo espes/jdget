@@ -337,6 +337,7 @@ public class ExtTable<E> extends JTable {
                 changeSelection(0, 0, false, false);
                 return true;
             }
+            break;
         case KeyEvent.VK_A:
             if (evt.isControlDown() || evt.isMetaDown()) {
                 if (getCellEditor() != null) {
@@ -345,7 +346,41 @@ public class ExtTable<E> extends JTable {
                 this.getSelectionModel().setSelectionInterval(0, getRowCount() - 1);
                 return true;
             }
-
+            break;
+        case KeyEvent.VK_HOME:
+            if (evt.isControlDown() || evt.isMetaDown() || evt.isShiftDown()) {
+                if (getCellEditor() != null) {
+                    getCellEditor().stopCellEditing();
+                }
+                if (this.getSelectedRow() != -1 && getRowCount() != 0) {
+                    this.getSelectionModel().setSelectionInterval(0, this.getSelectedRows()[this.getSelectedRows().length - 1]);
+                    /* to avoid selection by super.processKeyBinding */
+                    return true;
+                }
+            } else {
+                if (getCellEditor() != null) {
+                    getCellEditor().stopCellEditing();
+                }
+                this.getSelectionModel().setSelectionInterval(0, 0);
+            }
+            break;
+        case KeyEvent.VK_END:
+            if (evt.isControlDown() || evt.isMetaDown() || evt.isShiftDown()) {
+                if (getCellEditor() != null) {
+                    getCellEditor().stopCellEditing();
+                }
+                if (this.getSelectedRow() != -1 && getRowCount() != 0) {
+                    this.getSelectionModel().setSelectionInterval(this.getSelectedRow(), getRowCount() - 1);
+                    /* to avoid selection by super.processKeyBinding */
+                    return true;
+                }
+            } else {
+                if (getCellEditor() != null) {
+                    getCellEditor().stopCellEditing();
+                }
+                if (getRowCount() != 0) this.getSelectionModel().setSelectionInterval(getRowCount() - 1, getRowCount() - 1);
+            }
+            break;
         }
         return super.processKeyBinding(stroke, evt, condition, pressed);
     }
