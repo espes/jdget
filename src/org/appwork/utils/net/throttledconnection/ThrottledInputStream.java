@@ -36,6 +36,8 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
     private int todo;
     private int rest;
     private long ret;
+    private long timeForCheckStep = 0;
+    private int timeCheck = 0;
 
     /**
      * constructor for not managed ThrottledInputStream
@@ -77,8 +79,22 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
         while (rest != 0) {
             todo = rest;
             if (todo > checkStep) todo = checkStep;
-            lastRead = in.read(b, offset, todo);
-            if (lastRead == -1) break;
+            if (limitCurrent != 0) {
+                lastRead = in.read(b, offset, todo);
+            } else {
+                timeForCheckStep = System.currentTimeMillis();
+                lastRead = in.read(b, offset, todo);
+                timeCheck = (int) (System.currentTimeMillis() - timeForCheckStep);
+                if (lastRead == -1) break;
+                if (timeCheck > 1000) {
+                    /* we want 5 update per second */
+                    checkStep = Math.max(LOWStep, (todo / timeCheck) * 500);
+                } else if (timeCheck == 0) {
+                    /* we increase in little steps */
+                    checkStep += 1024;
+                    // checkStep = Math.min(HIGHStep, checkStep + 1024);
+                }
+            }
             lastRead2 += lastRead;
             increase(lastRead);
             rest -= lastRead;

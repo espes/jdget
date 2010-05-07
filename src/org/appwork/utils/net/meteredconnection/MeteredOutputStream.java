@@ -27,11 +27,15 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
     private long time = 0;
     private long speed = 0;
     private int offset;
-    private final static int checkStep = 1024;
+    private int checkStep = 1024;
+    private final static int HIGHStep = 524288;
+    private final static int LOWStep = 1024;
     private int rest;
     private int todo;
     private long lastTime;
     private long lastTrans;
+    private long timeForCheckStep = 0;
+    private int timeCheck = 0;
 
     /**
      * constructor for MeteredOutputStream
@@ -66,7 +70,17 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
         while (rest != 0) {
             todo = rest;
             if (todo > checkStep) todo = checkStep;
+            timeForCheckStep = System.currentTimeMillis();
             out.write(b, offset, todo);
+            timeCheck = (int) (System.currentTimeMillis() - timeForCheckStep);
+            if (timeCheck > 1000) {
+                /* we want 2 update per second */
+                checkStep = Math.max(LOWStep, (todo / timeCheck) * 500);
+            } else if (timeCheck == 0) {
+                /* we increase in little steps */
+                checkStep += 1024;
+                // checkStep = Math.min(HIGHStep, checkStep + 1024);
+            }
             transfered += todo;
             rest -= todo;
             offset += todo;

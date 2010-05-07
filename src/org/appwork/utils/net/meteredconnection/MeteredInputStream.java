@@ -28,13 +28,17 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
     private int readTmp1;
     private long speed = 0;
     private int offset;
-    private final static int checkStep = 1024;
+    private int checkStep = 1024;
+    private final static int HIGHStep = 524288;
+    private final static int LOWStep = 1024;
     private int todo;
     private int lastRead;
     private int rest;
     private int lastRead2;
     private long lastTime;
     private long lastTrans;
+    private long timeForCheckStep = 0;
+    private int timeCheck = 0;
 
     /**
      * constructor for MeterdInputStream
@@ -71,8 +75,18 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
         while (rest != 0) {
             todo = rest;
             if (todo > checkStep) todo = checkStep;
+            timeForCheckStep = System.currentTimeMillis();
             lastRead = in.read(b, offset, todo);
+            timeCheck = (int) (System.currentTimeMillis() - timeForCheckStep);
             if (lastRead == -1) break;
+            if (timeCheck > 1000) {
+                /* we want 5 update per second */
+                checkStep = Math.max(LOWStep, (todo / timeCheck) * 500);
+            } else if (timeCheck == 0) {
+                /* we increase in little steps */
+                checkStep += 1024;
+                // checkStep = Math.min(HIGHStep, checkStep + 1024);
+            }
             lastRead2 += lastRead;
             transfered += lastRead;
             rest -= lastRead;

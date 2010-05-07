@@ -35,6 +35,8 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     private int todo;
     private int rest;
     private long ret;
+    private long timeForCheckStep = 0;
+    private int timeCheck = 0;
 
     /**
      * constructor for not managed ThrottledOutputStream
@@ -84,7 +86,21 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
         while (rest != 0) {
             todo = rest;
             if (todo > checkStep) todo = checkStep;
-            out.write(b, offset, todo);
+            if (limitCurrent != 0) {
+                out.write(b, offset, todo);
+            } else {
+                timeForCheckStep = System.currentTimeMillis();
+                out.write(b, offset, todo);
+                timeCheck = (int) (System.currentTimeMillis() - timeForCheckStep);
+                if (timeCheck > 1000) {
+                    /* we want 2 update per second */
+                    checkStep = Math.max(LOWStep, (todo / timeCheck) * 500);
+                } else if (timeCheck == 0) {
+                    /* we increase in little steps */
+                    checkStep += 1024;
+                    // checkStep = Math.min(HIGHStep, checkStep + 1024);
+                }
+            }
             increase(todo);
             rest -= todo;
             offset += todo;
@@ -124,9 +140,6 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
                 lastLimitReached = System.currentTimeMillis();
                 limitCounter = 0;
             }
-        } else {
-            /* increase step size up to HIGHStep limit */
-            checkStep = HIGHStep;
         }
     }
 
