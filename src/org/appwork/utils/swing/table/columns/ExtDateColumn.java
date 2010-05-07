@@ -123,13 +123,28 @@ public abstract class ExtDateColumn<E> extends ExtColumn<E> {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         date = getDate((E) value);
         if (date == null) {
-            label.setText(badDateText);
+            label.setText(setText((E) value, badDateText));
         } else {
-            label.setText(getDateFormat().format(date));
+            label.setText(setText((E) value, getDateFormat().format(date)));
         }
         label.setToolTipText(getToolTip((E) value));
         return label;
     }
+
+    /**
+     * @param value
+     * @param badDateText2
+     * @return
+     */
+    protected String setText(E value, String badDateText2) {
+        // TODO Auto-generated method stub
+        return badDateText2;
+    }
+
+    /**
+     * @param format
+     * @return
+     */
 
     /**
      * Override this method to use a custom dateformat

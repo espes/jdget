@@ -568,4 +568,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     }
 
+    /**
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public ArrayList<E> getElements() {
+        // TODO Auto-generated method stub
+        return (ArrayList<E>) tableData.clone();
+    }
+
 }
