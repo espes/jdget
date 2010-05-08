@@ -34,6 +34,12 @@ public class ConfirmDialog extends AbstractDialog {
         init();
     }
 
+    public String toString() {
+
+        return ("dialog-" + this.getTitle() + "_" + message).replaceAll("\\W", "_");
+
+    }
+
     public JComponent layoutDialogContent() {
         textField = new JTextPane();
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {

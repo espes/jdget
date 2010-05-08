@@ -307,7 +307,10 @@ public class ExtTable<E> extends JTable {
             if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutPaste(getExtTableModel().getSelectedObjects(), evt); }
             break;
         case KeyEvent.VK_C:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCopy(getExtTableModel().getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) {
+                //
+                return this.onShortcutCopy(getExtTableModel().getSelectedObjects(), evt);
+            }
             break;
         case KeyEvent.VK_DELETE:
 
