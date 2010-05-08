@@ -43,9 +43,9 @@ public class MimeLinux extends MimeDefault {
 
             in.close();
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } catch (IOException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         }
 
         super.saveMimeDescriptionCache(mimeType, mime);

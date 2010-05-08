@@ -230,7 +230,7 @@ public class ThrottledConnectionManager {
                     try {
                         sleep(Math.max(1000, updateSpeed));
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        org.appwork.utils.logging.Log.exception(e);
                     }
                     IncommingBandwidthUsage = manageConnections(managedIn, IncommingBandwidthLimit);
                     OutgoingBandwidthUsage = manageConnections(managedOut, OutgoingBandwidthLimit);

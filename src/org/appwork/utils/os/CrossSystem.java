@@ -113,7 +113,7 @@ public class CrossSystem {
             try {
                 Runtime.getRuntime().exec("cmd /c \"" + file.getAbsolutePath() + "\"");
             } catch (IOException e) {
-                e.printStackTrace();
+                org.appwork.utils.logging.Log.exception(e);
             }
             return;
         }

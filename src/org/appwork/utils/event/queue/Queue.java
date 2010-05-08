@@ -121,7 +121,7 @@ public class Queue extends Thread {
                     try {
                         wait();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        org.appwork.utils.logging.Log.exception(e);
                     }
                 }
             }
@@ -146,7 +146,7 @@ public class Queue extends Thread {
             try {
                 item.exceptionHandler(e);
             } catch (Exception e2) {
-                e2.printStackTrace();
+                org.appwork.utils.logging.Log.exception(e2);
             }
         } finally {
             synchronized (item) {

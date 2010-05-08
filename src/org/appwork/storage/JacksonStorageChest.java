@@ -24,9 +24,9 @@ public class JacksonStorageChest extends Storage {
             HashMap<String, Object> load = ConfigInterface.getMapper().readValue(IO.readFileToString(Application.getRessource("cfg/" + name + ".json")), HashMap.class);
             map.putAll(load);
         } catch (JsonParseException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } catch (JsonMappingException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } catch (IOException e) {
         }
     }
@@ -109,11 +109,11 @@ public class JacksonStorageChest extends Storage {
             String json = ConfigInterface.getMapper().writeValueAsString(map);
             ConfigInterface.saveTo("cfg/" + name + ".json", json);
         } catch (JsonGenerationException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } catch (JsonMappingException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } catch (IOException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         }
 
     }

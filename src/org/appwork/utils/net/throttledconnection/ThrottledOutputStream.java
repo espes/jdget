@@ -125,7 +125,7 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
                         try {
                             wait(pause);
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            org.appwork.utils.logging.Log.exception(e);
                         }
                     }
                     /* change checkStep according to limit */

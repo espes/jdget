@@ -40,7 +40,7 @@ public class ConfigInterface {
                     try {
                         it.next().getValue().save();
                     } catch (Throwable e) {
-                        e.printStackTrace();
+                        org.appwork.utils.logging.Log.exception(e);
                         Log.exception(e);
                     }
                 }
@@ -87,13 +87,13 @@ public class ConfigInterface {
         try {
             saveTo(string, MAPPER.writeValueAsString(list));
         } catch (JsonGenerationException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } catch (JsonMappingException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } catch (StorageException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } catch (IOException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         }
     }
 
@@ -124,11 +124,11 @@ public class ConfigInterface {
             }
 
         } catch (JsonParseException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } catch (JsonMappingException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } catch (IOException e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         }
         return def;
 

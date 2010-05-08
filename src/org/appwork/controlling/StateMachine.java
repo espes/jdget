@@ -86,7 +86,7 @@ public class StateMachine {
             if (!currentState.getChildren().contains(newState)) {
 
                 StateConflictException e = new StateConflictException("Cannot change state from " + currentState + " to " + newState);
-                if (isDebug()) e.printStackTrace();
+                if (isDebug()) org.appwork.utils.logging.Log.exception(e);
                 throw e;
             }
 

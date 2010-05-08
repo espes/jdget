@@ -75,7 +75,7 @@ public abstract class EDTHelper<T> implements Runnable {
         try {
             this.returnValue = this.edtRun();
         } catch (Exception e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         }
         synchronized (lock) {
             lock.notify();

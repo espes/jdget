@@ -40,8 +40,21 @@ public class ConfirmDialog extends AbstractDialog {
 
     }
 
+    public Dimension getPreferredSize() {
+        if (!BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
+            return super.getPreferredSize();
+        } else {
+            return new Dimension(600, 450);
+        }
+    }
+
     public JComponent layoutDialogContent() {
-        textField = new JTextPane();
+        textField = new JTextPane() {
+            public boolean getScrollableTracksViewportWidth() {
+                return !BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE);
+
+            }
+        };
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
             textField.setContentType("text/html");
             textField.addHyperlinkListener(new HyperlinkListener() {
@@ -67,7 +80,6 @@ public class ConfirmDialog extends AbstractDialog {
 
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
             JScrollPane sp = new JScrollPane(textField);
-            sp.setMaximumSize(new Dimension(450, 600));
             return sp;
         } else {
             return textField;

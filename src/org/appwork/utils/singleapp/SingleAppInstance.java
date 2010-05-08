@@ -256,7 +256,7 @@ public class SingleAppInstance {
                             }
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        org.appwork.utils.logging.Log.exception(e);
                     } finally {
                         if (client != null) {
                             try {
@@ -278,7 +278,7 @@ public class SingleAppInstance {
                 try {
                     serverSocket.close();
                 } catch (Throwable e) {
-                    e.printStackTrace();
+                    org.appwork.utils.logging.Log.exception(e);
                 }
             }
         });

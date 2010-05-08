@@ -72,7 +72,7 @@ public class Files {
             byte[] digest = md.digest();
             return HexFormatter.byteArrayToHex(digest);
         } catch (Exception e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
             return null;
         }
     }

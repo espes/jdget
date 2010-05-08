@@ -88,7 +88,7 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
             regularExpression.addActionListener(saveListener);
         } catch (Exception e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         }
         caseSensitive.setVisible(BinaryLogic.containsNone(flag, NO_CASE_FLAG));
         regularExpression.setVisible(BinaryLogic.containsNone(flag, NO_REGEX_FLAG));

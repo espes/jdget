@@ -86,7 +86,7 @@ public class TreeModelStateSaver {
             treePath = new TreePath(path.toArray(new Object[] {}));
             expandCache.put(node, tree.isExpanded(treePath));
         } catch (Exception e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
 
         }
         int max = tree.getModel().getChildCount(node);
@@ -95,7 +95,7 @@ public class TreeModelStateSaver {
 
                 saveState(tree.getModel().getChild(node, i), (ArrayList<Object>) path.clone());
             } catch (Exception e) {
-                e.printStackTrace();
+                org.appwork.utils.logging.Log.exception(e);
 
             }
             tree.getModel().getChildCount(node);

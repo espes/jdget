@@ -9,16 +9,9 @@
  */
 package org.appwork.utils.logging;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.util.Date;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.appwork.utils.Application;
 
 /**
  * @author $Author: unknown$
@@ -46,8 +39,9 @@ public class Log {
             LOGGER.addHandler(fh);
         } catch (Exception e) {
 
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         }
+
         LOGGER.addHandler(LogEventHandler.getInstance());
         LOGGER.setLevel(Level.ALL);
 
@@ -74,32 +68,6 @@ public class Log {
      */
     public static void exception(Throwable e) {
         exception(Level.SEVERE, e);
-    }
-
-    /**
-     * Writes the log to log.txt
-     * 
-     * @param log
-     */
-    public static void logToFile(String log) {
-
-        File file = Application.getRessource("log.txt");
-        try {
-            if (!file.isFile()) file.createNewFile();
-
-            BufferedWriter f = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF8"));
-            f.write("\r\n\r\n");
-            f.write("------------------------------------------\r\n");
-            f.write(new Date().toString() + "\r\n");
-            f.write(log);
-            f.write("\r\n\r\n");
-            f.close();
-
-        } catch (Exception e) {
-            Log.exception(e);
-
-        }
-
     }
 
     /**

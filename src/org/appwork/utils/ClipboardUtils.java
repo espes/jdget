@@ -131,7 +131,7 @@ public class ClipboardUtils {
                 links.addAll(HTMLParser.findUrls(content));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         }
         return links;
     }
@@ -158,7 +158,7 @@ public class ClipboardUtils {
                 }
             } catch (Exception e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+                org.appwork.utils.logging.Log.exception(e);
             }
         }
         return files;

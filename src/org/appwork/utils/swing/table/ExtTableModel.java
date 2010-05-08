@@ -87,7 +87,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 if (column.getClass().equals(clazz)) return (T) column;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         }
         return null;
     }

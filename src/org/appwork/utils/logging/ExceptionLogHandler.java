@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 import org.appwork.utils.Application;
@@ -25,18 +24,19 @@ import org.appwork.utils.Application;
  * @author thomas
  * 
  */
-public class LogToFileHandler extends java.util.logging.Handler {
+public class ExceptionLogHandler extends java.util.logging.Handler {
 
     private File file;
     private BufferedWriter writer;
 
-    public LogToFileHandler() throws IOException {
+    public ExceptionLogHandler() throws IOException {
         super();
+
         Calendar cal = Calendar.getInstance();
 
         cal.setTimeInMillis(new Date().getTime());
 
-        file = Application.getRessource("logs/" + cal.get(Calendar.YEAR) + "-" + (1 + cal.get(Calendar.MONTH)) + "-" + cal.get(Calendar.DATE) + ".log");
+        file = Application.getRessource("logs/error_" + cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DATE) + "-" + System.currentTimeMillis() + ".log");
         file.getParentFile().mkdirs();
         if (!file.isFile()) file.createNewFile();
         writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF8"));
@@ -62,16 +62,21 @@ public class LogToFileHandler extends java.util.logging.Handler {
     }
 
     public void publish(LogRecord logRecord) {
-        if (logRecord.getLevel() == Level.INFO) {
 
-            try {
-                writer.write(this.getFormatter().format(logRecord));
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                org.appwork.utils.logging.Log.exception(e);
-            }
-
+        try {
+            writer.write(this.getFormatter().format(logRecord));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            org.appwork.utils.logging.Log.exception(e);
         }
 
+    }
+
+    /**
+     * @return
+     */
+    public File getFile() {
+        // TODO Auto-generated method stub
+        return file;
     }
 }

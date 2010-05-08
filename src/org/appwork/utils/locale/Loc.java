@@ -147,7 +147,7 @@ public class Loc {
                 Loc.parseLocalization(DEFAULT_LOCALIZATION);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         }
     }
 
@@ -187,13 +187,13 @@ public class Loc {
                 data.put(key.hashCode(), value);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            org.appwork.utils.logging.Log.exception(e);
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    org.appwork.utils.logging.Log.exception(e);
                 }
             }
         }
