@@ -84,17 +84,37 @@ public class ConfigInterface {
      * @param list
      */
     public static void storeTo(String string, Object list) {
+
         try {
-            saveTo(string, MAPPER.writeValueAsString(list));
+            saveTo(string, toString(list));
         } catch (JsonGenerationException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         } catch (JsonMappingException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         } catch (StorageException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         } catch (IOException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+
+    }
+
+    /**
+     * @param list
+     * @return
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonGenerationException
+     */
+    public static String toString(Object list) throws JsonGenerationException, JsonMappingException, IOException {
+        // TODO Auto-generated method stub
+
+        return MAPPER.writeValueAsString(list);
+
     }
 
     /**
@@ -117,11 +137,7 @@ public class ConfigInterface {
         try {
             if (!Application.getRessource(string).exists()) return def;
             String str = IO.readFileToString(Application.getRessource(string));
-            if (type != null) {
-                return (E) MAPPER.readValue(str, type);
-            } else {
-                return (E) MAPPER.readValue(str, def.getClass());
-            }
+            return restoreFromString(str, type, def);
 
         } catch (JsonParseException e) {
             org.appwork.utils.logging.Log.exception(e);
@@ -132,6 +148,16 @@ public class ConfigInterface {
         }
         return def;
 
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <E> E restoreFromString(String string, TypeReference<E> type, E def) throws JsonParseException, JsonMappingException, IOException {
+        if (string == null) return def;
+        if (type != null) {
+            return (E) MAPPER.readValue(string, type);
+        } else {
+            return (E) MAPPER.readValue(string, def.getClass());
+        }
     }
 
 }

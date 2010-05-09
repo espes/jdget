@@ -67,6 +67,7 @@ public class Application {
      * appworkutils.jar or HOME/
      */
     public static String getRoot(Class<?> rootOfClazz) {
+        if (ROOT != null) return ROOT;
         if (isJared()) {
             // this is the jar file
             String loc;
