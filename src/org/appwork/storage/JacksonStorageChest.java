@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
+import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
@@ -21,7 +22,9 @@ public class JacksonStorageChest extends Storage {
         this.name = name;
 
         try {
-            HashMap<String, Object> load = ConfigInterface.getMapper().readValue(IO.readFileToString(Application.getRessource("cfg/" + name + ".ejs")), HashMap.class);
+
+            String str = Crypto.decrypt(IO.readFile(Application.getRessource("cfg/" + name + ".ejs")), ConfigInterface.KEY);
+            HashMap<String, Object> load = ConfigInterface.getMapper().readValue(str, HashMap.class);
             map.putAll(load);
         } catch (JsonParseException e) {
             org.appwork.utils.logging.Log.exception(e);
