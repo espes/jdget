@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
+import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
@@ -19,6 +20,7 @@ public class ConfigInterface {
     private static final HashMap<String, Storage> MAP = new HashMap<String, Storage>();
     private static File path;
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final byte[] KEY = new byte[] { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };
 
     /**
      * Mapper is Thread safe according to <br>
@@ -69,7 +71,8 @@ public class ConfigInterface {
             File tmp = new File(path.getParentFile(), path.getName() + ".tmp");
             tmp.getParentFile().mkdirs();
             tmp.delete();
-            IO.writeStringToFile(tmp, json);
+
+            IO.writeToFile(tmp, Crypto.encrypt(json, KEY));
             if (path.exists()) {
                 if (!path.delete()) { throw new StorageException("Could not overwrite file: " + path); }
             }
@@ -136,8 +139,9 @@ public class ConfigInterface {
     public static <E> E restoreFrom(String string, TypeReference<E> type, E def) {
         try {
             if (!Application.getRessource(string).exists()) return def;
-            String str = IO.readFileToString(Application.getRessource(string));
-            return restoreFromString(str, type, def);
+            byte[] str = IO.readFile(Application.getRessource(string));
+
+            return restoreFromString(Crypto.decrypt(str, KEY), type, def);
 
         } catch (JsonParseException e) {
             org.appwork.utils.logging.Log.exception(e);

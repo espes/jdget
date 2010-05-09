@@ -4,9 +4,12 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Writer;
 
 public class IO {
@@ -38,12 +41,50 @@ public class IO {
         if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
 
         Writer output = new BufferedWriter(new FileWriter(file));
-        try {
 
+        try {
             output.write(string);
         } finally {
             output.close();
         }
 
+    }
+
+    /**
+     * @param tmp
+     * @param encrypt
+     * @throws IOException
+     */
+    public static void writeToFile(File file, byte[] data) throws IOException {
+        if (file == null) { throw new IllegalArgumentException("File is null."); }
+        if (file.exists()) { throw new IllegalArgumentException("File already exists: " + file); }
+        file.createNewFile();
+        if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
+        if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
+
+        OutputStream out = new FileOutputStream(file);
+        try {
+            out.write(data);
+        } finally {
+            out.close();
+        }
+    }
+
+    /**
+     * @param ressource
+     * @return
+     * @throws IOException
+     */
+    public static byte[] readFile(File ressource) throws IOException {
+        InputStream in = new FileInputStream(ressource);
+        byte[] bytes = null;
+        try {
+            bytes = new byte[(int) ressource.length()];
+            in.read(bytes);
+
+        } finally {
+            in.close();
+        }
+        return bytes;
     }
 }
