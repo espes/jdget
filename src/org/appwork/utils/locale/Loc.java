@@ -42,12 +42,12 @@ public class Loc {
     /**
      * The name of the default localization file. This is the english language.
      */
-    private static final String DEFAULE_LOCALIZATION_NAME = "en_GB";
+    private static final String FALLBACK_LOCALE = "en_GB";
 
     /**
      * The default localization file. This is the english language.
      */
-    private static final File DEFAULT_LOCALIZATION = new File(LOCALIZATION_DIR, DEFAULE_LOCALIZATION_NAME + ".loc");
+    private static final File DEFAULT_LOCALIZATION = new File(LOCALIZATION_DIR, getDefaultLocale() + ".loc");
 
     /**
      * The HashMap which contains all hashcodes of the keys and their translated
@@ -58,6 +58,7 @@ public class Loc {
     private static HashMap<Integer, String> data = null;
 
     private static String locale;
+    private static String DEFAULT_LOCALE_CACHE;
 
     /**
      * Returns the translated value for the translation-key. If the current
@@ -81,11 +82,11 @@ public class Loc {
         if (data == null) {
             Log.L.warning("No parsed localization found! Loading now from saved localization file!");
             try {
-                Loc.setLocale(CFG.get(PROPERTY_LOCALE, DEFAULE_LOCALIZATION_NAME));
+                Loc.setLocale(CFG.get(PROPERTY_LOCALE, FALLBACK_LOCALE));
             } catch (Exception e) {
 
                 Log.L.severe("Error while loading the stored localization name!");
-                Loc.setLocale(DEFAULE_LOCALIZATION_NAME);
+                Loc.setLocale(FALLBACK_LOCALE);
             }
             if (data == null) return "Error in Loc! No loaded data!";
         }
@@ -133,7 +134,7 @@ public class Loc {
         try {
             if (loc == null) {
 
-                loc = CFG.get(PROPERTY_LOCALE, DEFAULE_LOCALIZATION_NAME);
+                loc = CFG.get(PROPERTY_LOCALE, getDefaultLocale());
             }
             File file = new File(LOCALIZATION_DIR, loc + ".loc");
             locale = loc;
@@ -142,13 +143,65 @@ public class Loc {
                 CFG.put(PROPERTY_LOCALE, loc);
                 Loc.parseLocalization(file);
             } else {
-                Log.L.info("The language " + loc + " isn't available! Parsing default (" + DEFAULE_LOCALIZATION_NAME + ".loc) one!");
-                locale = DEFAULE_LOCALIZATION_NAME;
+                Log.L.info("The language " + loc + " isn't available! Parsing default (" + FALLBACK_LOCALE + ".loc) one!");
+                locale = getDefaultLocale();
                 Loc.parseLocalization(DEFAULT_LOCALIZATION);
             }
         } catch (Exception e) {
             org.appwork.utils.logging.Log.exception(e);
         }
+    }
+
+    /**
+     * @return
+     */
+    private static String getDefaultLocale() {
+        if (DEFAULT_LOCALE_CACHE != null) return DEFAULT_LOCALE_CACHE;
+        String sys = System.getProperty("user.language").toLowerCase();
+        String cou = System.getProperty("user.country").toUpperCase();
+
+        String[] locs = getLocales();
+        if (locs.length == 0) {
+            DEFAULT_LOCALE_CACHE = FALLBACK_LOCALE;
+
+        }
+        if (DEFAULT_LOCALE_CACHE == null) {
+            for (String l : locs) {
+
+                if (l.equals(sys + "_" + cou)) {
+                    DEFAULT_LOCALE_CACHE = l;
+                    break;
+                }
+            }
+        }
+        if (DEFAULT_LOCALE_CACHE == null) {
+            for (String l : locs) {
+
+                if (l.equals(sys)) {
+                    DEFAULT_LOCALE_CACHE = l;
+                    break;
+                }
+            }
+        }
+        if (DEFAULT_LOCALE_CACHE == null) {
+            for (String l : locs) {
+                if (l.startsWith(sys + "_")) {
+                    DEFAULT_LOCALE_CACHE = l;
+                    break;
+                }
+            }
+        }
+
+        if (DEFAULT_LOCALE_CACHE == null) {
+            for (String l : locs) {
+                if (l.equals(FALLBACK_LOCALE)) {
+                    DEFAULT_LOCALE_CACHE = l;
+                    break;
+                }
+            }
+        }
+        if (DEFAULT_LOCALE_CACHE == null) DEFAULT_LOCALE_CACHE = locs[0];
+        return DEFAULT_LOCALE_CACHE;
     }
 
     /**
