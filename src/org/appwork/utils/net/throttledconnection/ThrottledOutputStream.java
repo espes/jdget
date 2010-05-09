@@ -93,7 +93,8 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
                 out.write(b, offset, todo);
                 timeCheck = (int) (System.currentTimeMillis() - timeForCheckStep);
                 if (timeCheck > 1000) {
-                    /* we want 2 update per second */
+                    /* we want more than2 update per second */
+                    System.out.println("long " + todo + " " + timeCheck);
                     checkStep = Math.max(LOWStep, (todo / timeCheck) * 500);
                 } else if (timeCheck == 0) {
                     /* we increase in little steps */
