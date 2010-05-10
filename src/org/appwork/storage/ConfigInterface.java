@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
+import org.appwork.utils.Regex;
 import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.codehaus.jackson.JsonGenerationException;
@@ -68,8 +69,13 @@ public class ConfigInterface {
             File tmp = new File(path.getParentFile(), path.getName() + ".tmp");
             tmp.getParentFile().mkdirs();
             tmp.delete();
-
-            IO.writeToFile(tmp, Crypto.encrypt(json, KEY));
+            if (new Regex(pathname, ".+\\.json").matches()) {
+                /* uncrypted */
+                IO.writeToFile(tmp, json.getBytes("UTF-8"));
+            } else {
+                /* encrypted */
+                IO.writeToFile(tmp, Crypto.encrypt(json, KEY));
+            }
             if (path.exists()) {
                 if (!path.delete()) { throw new StorageException("Could not overwrite file: " + path); }
             }
@@ -127,8 +133,11 @@ public class ConfigInterface {
         try {
             if (!Application.getRessource(string).exists()) return def;
             byte[] str = IO.readFile(Application.getRessource(string));
-
-            return restoreFromString(Crypto.decrypt(str, KEY), type, def);
+            if (new Regex(string, ".+\\.json").matches()) {
+                return restoreFromString(new String(str, "UTF-8"), type, def);
+            } else {
+                return restoreFromString(Crypto.decrypt(str, KEY), type, def);
+            }
 
         } catch (JsonParseException e) {
             Log.exception(e);
