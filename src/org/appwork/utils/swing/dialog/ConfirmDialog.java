@@ -34,12 +34,12 @@ public class ConfirmDialog extends AbstractDialog {
         init();
     }
 
+    @Override
     public String toString() {
-
         return ("dialog-" + this.getTitle() + "_" + message).replaceAll("\\W", "_");
-
     }
 
+    @Override
     public Dimension getPreferredSize() {
         if (!BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
             return super.getPreferredSize();
@@ -48,11 +48,14 @@ public class ConfirmDialog extends AbstractDialog {
         }
     }
 
+    @Override
     public JComponent layoutDialogContent() {
         textField = new JTextPane() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
             public boolean getScrollableTracksViewportWidth() {
                 return !BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE);
-
             }
         };
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
@@ -63,7 +66,6 @@ public class ConfirmDialog extends AbstractDialog {
                     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
                         CrossSystem.openURL(e.getURL());
                     }
-
                 }
 
             });

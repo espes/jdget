@@ -28,7 +28,7 @@ public class MeteredOutputStream extends OutputStream implements SpeedMeterInter
     private long speed = 0;
     private int offset;
     private int checkStep = 1024;
-    private final static int HIGHStep = 524288;
+    // private final static int HIGHStep = 524288;
     private final static int LOWStep = 1024;
     private int rest;
     private int todo;

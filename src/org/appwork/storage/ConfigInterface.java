@@ -33,7 +33,6 @@ public class ConfigInterface {
     }
 
     static {
-
         // JsonGenerator.useDefaultPrettyPrinter();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -42,11 +41,9 @@ public class ConfigInterface {
                     try {
                         it.next().getValue().save();
                     } catch (Throwable e) {
-                        org.appwork.utils.logging.Log.exception(e);
                         Log.exception(e);
                     }
                 }
-
             }
         });
     }
@@ -61,9 +58,9 @@ public class ConfigInterface {
     }
 
     /**
-     * @param path2
-     * @param tmp2
+     * @param pathname
      * @param json
+     * @throws StorageException
      */
     public static void saveTo(String pathname, String json) throws StorageException {
         try {
@@ -87,23 +84,17 @@ public class ConfigInterface {
      * @param list
      */
     public static void storeTo(String string, Object list) {
-
         try {
             saveTo(string, toString(list));
         } catch (JsonGenerationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Log.exception(e);
         } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Log.exception(e);
         } catch (StorageException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Log.exception(e);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Log.exception(e);
         }
-
     }
 
     /**
@@ -114,10 +105,7 @@ public class ConfigInterface {
      * @throws JsonGenerationException
      */
     public static String toString(Object list) throws JsonGenerationException, JsonMappingException, IOException {
-        // TODO Auto-generated method stub
-
         return MAPPER.writeValueAsString(list);
-
     }
 
     /**
@@ -135,7 +123,6 @@ public class ConfigInterface {
      *            the class of def as restoreclass
      * @return
      */
-    @SuppressWarnings("unchecked")
     public static <E> E restoreFrom(String string, TypeReference<E> type, E def) {
         try {
             if (!Application.getRessource(string).exists()) return def;
@@ -144,11 +131,11 @@ public class ConfigInterface {
             return restoreFromString(Crypto.decrypt(str, KEY), type, def);
 
         } catch (JsonParseException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         } catch (JsonMappingException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         } catch (IOException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         }
         return def;
 
