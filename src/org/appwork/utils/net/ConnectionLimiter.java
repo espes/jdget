@@ -95,7 +95,7 @@ public class ConnectionLimiter {
                 synchronized (LOCK) {
                     if (connectioncount < maxConcurrent) break;
                 }
-                System.out.println("block 250 ms for " + maxConcurrent + " connectionlimit");
+                //System.out.println("block 250 ms for " + maxConcurrent + " connectionlimit");
                 Thread.sleep(250);
             }
         }
@@ -119,7 +119,7 @@ public class ConnectionLimiter {
                         /* calculate how long we have to wait */
                         wait = Math.max(250, it.next() - (System.currentTimeMillis() - timeTime));
                     }
-                    System.out.println("wait " + wait + " ms because we got " + list.size() + " connections the last minute");
+                    //System.out.println("wait " + wait + " ms because we got " + list.size() + " connections the last minute");
                     Thread.sleep(wait);
                 } else {
                     break;
