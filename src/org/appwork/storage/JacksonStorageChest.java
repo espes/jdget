@@ -52,6 +52,8 @@ public class JacksonStorageChest extends Storage {
                 put(key, (String) def);
             } else if (def instanceof Enum<?>) {
                 put(key, (Enum<?>) def);
+            } else if (def instanceof Double) {
+                put(key, (Double) def);
             } else {
                 throw new StorageException("Invalid datatype: " + def.getClass());
             }
@@ -124,6 +126,26 @@ public class JacksonStorageChest extends Storage {
     @Override
     public void clear() throws StorageException {
         map.clear();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.Storage#put(java.lang.String, java.lang.Double)
+     */
+    @Override
+    public void put(String key, Double value) throws StorageException {
+        map.put(key, value);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.Storage#put(java.lang.String, java.lang.Float)
+     */
+    @Override
+    public void put(String key, Float value) throws StorageException {
+        map.put(key, value);
     }
 
 }

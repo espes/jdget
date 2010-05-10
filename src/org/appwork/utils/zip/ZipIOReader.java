@@ -10,6 +10,7 @@
 package org.appwork.utils.zip;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public class ZipIOReader {
      * @throws ZipException
      * @throws IOException
      */
-    private void openZip() throws ZipIOException, ZipException, IOException {
+    private synchronized void openZip() throws ZipIOException, ZipException, IOException {
         if (zip != null) return;
         if (zipFile == null || zipFile.isDirectory() || !zipFile.exists()) throw new ZipIOException("invalid zipFile");
         this.zip = new ZipFile(zipFile);
@@ -107,6 +108,34 @@ public class ZipIOReader {
     public synchronized InputStream getInputStream(ZipEntry entry) throws ZipIOException, IOException {
         if (entry == null) throw new ZipIOException("invalid zipEntry");
         return zip.getInputStream(entry);
+    }
+
+    public synchronized void extract(ZipEntry entry, File output) throws ZipIOException, IOException {
+        if (entry.getName().endsWith("/")) throw new ZipIOException("Cannot extract a directory");
+        FileOutputStream stream = null;
+        InputStream in = null;
+        try {
+            stream = new FileOutputStream(output);
+            in = getInputStream(entry);
+            byte[] buffer = new byte[32767];
+            int len = 0;
+            while ((len = in.read(buffer)) != -1) {
+                stream.write(buffer, 0, len);
+            }
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (Exception e) {
+                }
+            }
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (Exception e) {
+                }
+            }
+        }
     }
 
     /**

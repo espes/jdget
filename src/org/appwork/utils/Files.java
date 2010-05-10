@@ -11,6 +11,7 @@ package org.appwork.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.FileNameMap;
 import java.net.URLConnection;
@@ -105,6 +106,21 @@ public class Files {
             }
         }
         return ret;
+    }
+
+    public static void deleteRecursiv(File... files) throws IOException {
+        ArrayList<File> ret = getFiles(files);
+        for (int i = ret.size() - 1; i >= 0; i--) {
+            File file = ret.get(i);
+            if (file.exists() && file.isFile() && !file.delete()) throw new IOException("could not delete " + file);
+            if (!file.exists() || file.isFile()) ret.remove(i);
+        }
+        ret = getFiles(files);
+        for (int i = ret.size() - 1; i >= 0; i--) {
+            File file = ret.get(i);
+            if (file.isDirectory()) ret.remove(i);
+            if (file.exists() && file.isDirectory() && !file.delete()) throw new IOException("could not delete " + file);
+        }
     }
 
 }

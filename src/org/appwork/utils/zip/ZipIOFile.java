@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.zip;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -150,10 +151,14 @@ public class ZipIOFile {
 
     @Override
     public String toString() {
+        return getAbsolutePath();
+    }
+
+    public void extract(File output) throws ZipIOException, IOException {
         if (isFile) {
-            return getAbsolutePath() + name;
+            zipFile.extract(file, output);
         } else {
-            return getAbsolutePath();
+            throw new ZipIOException("Cannot extract a directory");
         }
     }
 
