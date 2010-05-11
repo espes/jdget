@@ -72,6 +72,10 @@ public class Queue extends Thread {
         }
     }
 
+    public void enqueue(QueueItem item) {
+        internalAdd(item);
+    }
+
     protected void internalAdd(QueueItem item) {
         synchronized (queueLock) {
             queue.get(item.getQueuePrio()).add(item);
