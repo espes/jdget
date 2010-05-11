@@ -95,12 +95,11 @@ public class Queue extends Thread {
             internalAdd(item);
             /* wait till item is finished */
             while (!item.isFinished()) {
-                try {
-                    synchronized (item) {
-                        item.wait(1000);
-                    }
-                } catch (InterruptedException e) {
+
+                synchronized (item) {
+                    item.wait(1000);
                 }
+
             }
         }
         if (item.gotKilled()) throw new Exception("Queue got killed!");

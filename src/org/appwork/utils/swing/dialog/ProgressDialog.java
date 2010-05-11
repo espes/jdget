@@ -10,6 +10,8 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -17,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.Timer;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
@@ -24,7 +27,6 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.os.CrossSystem;
-import org.appwork.utils.swing.EDTHelper;
 
 /**
  * @author thomas
@@ -36,6 +38,8 @@ public class ProgressDialog extends AbstractDialog {
     private String message;
 
     private ProgressGetter getter;
+    private Timer updater;
+    private Thread executer;
 
     /**
      * @param progressGetter
@@ -49,15 +53,13 @@ public class ProgressDialog extends AbstractDialog {
         this.message = message;
         this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         getter = progressGetter;
-
+        setReturnmask(true);
         init();
     }
 
-    public boolean closeAllowed() {
-        return false;
-    }
-
     public interface ProgressGetter {
+        public void init();
+
         public int getProgress();
 
         public String getString();
@@ -96,6 +98,21 @@ public class ProgressDialog extends AbstractDialog {
         }
     }
 
+    public void dispose() {
+        super.dispose();
+
+        executer.interrupt();
+
+        boolean bool = executer.isInterrupted();
+        try {
+            executer.join(240000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+
     public JComponent layoutDialogContent() {
 
         JPanel p = new JPanel(new MigLayout("ins 0"));
@@ -103,41 +120,41 @@ public class ProgressDialog extends AbstractDialog {
         final JProgressBar bar;
         p.add(bar = new JProgressBar(0, 100), "growx,pushx,newline");
         bar.setStringPainted(true);
-        final Thread th = new Thread() {
-            public void run() {
-                while (true) {
-                    if (getter != null) {
-                        final int prg = getter.getProgress();
-                        final String text = getter.getString();
-                        new EDTHelper<Object>() {
 
-                            @Override
-                            public Object edtRun() {
-                                bar.setValue(prg);
-                                if (text == null) {
-                                    bar.setStringPainted(false);
-                                } else {
-                                    bar.setStringPainted(true);
-                                    bar.setString(text);
-                                }
-                                return null;
-                            }
+        updater = new Timer(50, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (getter != null) {
+                    final int prg = getter.getProgress();
+                    final String text = getter.getString();
 
-                        }.start();
-                        if (prg >= 100) {
-                            dispose();
-                            return;
-                        }
+                    bar.setValue(prg);
+                    if (text == null) {
+                        bar.setStringPainted(false);
+                    } else {
+                        bar.setStringPainted(true);
+                        bar.setString(text);
                     }
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        org.appwork.utils.logging.Log.exception(e);
+
+                    if (prg >= 100) {
+                        updater.stop();
+                        dispose();
+                        return;
                     }
                 }
             }
+        });
+        updater.setRepeats(true);
+        updater.setInitialDelay(50);
+        updater.start();
+        executer = new Thread("ProgressDialogExecuter") {
+            public void run() {
+                getter.init();
+
+            }
         };
-        th.start();
+        executer.start();
+
         return p;
     }
 
