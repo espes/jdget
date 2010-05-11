@@ -89,17 +89,20 @@ public class Files {
     }
 
     /**
-     * Returns all files which were find in a recursive search through all files
+     * return all files ( and folders if includeDirectories is true ) for the
+     * given files
      * 
+     * @param includeDirectories
      * @param files
      * @return
      */
-    public static ArrayList<File> getFiles(File... files) {
+    public static ArrayList<File> getFiles(boolean includeDirectories, File... files) {
         ArrayList<File> ret = new ArrayList<File>();
         if (files != null) {
             for (File f : files) {
                 if (f.isDirectory()) {
-                    ret.addAll(getFiles(f.listFiles()));
+                    if (includeDirectories) ret.add(f);
+                    ret.addAll(getFiles(includeDirectories, f.listFiles()));
                 } else {
                     ret.add(f);
                 }
@@ -108,14 +111,20 @@ public class Files {
         return ret;
     }
 
+    /**
+     * delete all files/folders that are given
+     * 
+     * @param files
+     * @throws IOException
+     */
     public static void deleteRecursiv(File... files) throws IOException {
-        ArrayList<File> ret = getFiles(files);
+        ArrayList<File> ret = getFiles(true, files);
         for (int i = ret.size() - 1; i >= 0; i--) {
             File file = ret.get(i);
-            if (file.exists() && file.isFile() && !file.delete()) throw new IOException("could not delete " + file);
             if (!file.exists() || file.isFile()) ret.remove(i);
+            if (file.exists() && file.isFile() && !file.delete()) throw new IOException("could not delete " + file);
+
         }
-        ret = getFiles(files);
         for (int i = ret.size() - 1; i >= 0; i--) {
             File file = ret.get(i);
             if (file.isDirectory()) ret.remove(i);

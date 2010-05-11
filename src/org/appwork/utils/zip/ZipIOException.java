@@ -9,6 +9,8 @@
  */
 package org.appwork.utils.zip;
 
+import java.util.zip.ZipEntry;
+
 /**
  * @author daniel
  * 
@@ -16,8 +18,18 @@ package org.appwork.utils.zip;
 public class ZipIOException extends Exception {
 
     private static final long serialVersionUID = 3395166938053581997L;
+    private ZipEntry entry = null;
 
     public ZipIOException(String message) {
         super(message);
+    }
+
+    public ZipIOException(String message, ZipEntry entry) {
+        super(message);
+        this.entry = entry;
+    }
+
+    public ZipEntry getZipEntry() {
+        return entry;
     }
 }

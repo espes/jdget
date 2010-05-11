@@ -154,11 +154,19 @@ public class ZipIOFile {
         return getAbsolutePath();
     }
 
+    /**
+     * extracts this ZipIOFile to given output File
+     * 
+     * @param output
+     *            File to extract this ZipIOFile to
+     * @throws ZipIOException
+     * @throws IOException
+     */
     public void extract(File output) throws ZipIOException, IOException {
         if (isFile) {
             zipFile.extract(file, output);
         } else {
-            throw new ZipIOException("Cannot extract a directory");
+            throw new ZipIOException("Cannot extract a directory", file);
         }
     }
 

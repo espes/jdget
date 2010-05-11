@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -110,18 +112,45 @@ public class ZipIOReader {
         return zip.getInputStream(entry);
     }
 
+    public synchronized void extractTo(File outputDirectory) throws ZipIOException, IOException {
+        if (outputDirectory.exists() && outputDirectory.isFile()) throw new IOException("cannot extract to a file " + outputDirectory);
+        if (!outputDirectory.exists() && !outputDirectory.mkdirs()) throw new IOException("could not create outputDirectory " + outputDirectory);
+        for (ZipEntry entry : getZipFiles()) {
+            File out = new File(outputDirectory, entry.getName());
+            if (entry.isDirectory()) {
+                if (!out.mkdir()) throw new IOException("could not create outputDirectory " + out);
+            } else {
+                extract(entry, out);
+            }
+        }
+    }
+
+    /**
+     * extract given ZipEntry to output File
+     * 
+     * @param entry
+     *            ZipEntry to extract
+     * @param output
+     *            File to extract to
+     * @throws ZipIOException
+     * @throws IOException
+     */
     public synchronized void extract(ZipEntry entry, File output) throws ZipIOException, IOException {
-        if (entry.getName().endsWith("/")) throw new ZipIOException("Cannot extract a directory");
+        if (entry.isDirectory()) throw new ZipIOException("Cannot extract a directory", entry);
+        if (output.exists() && output.isDirectory()) throw new IOException("Cannot extract File to Directory " + output);
+        if (output.exists() && !output.delete()) throw new IOException("Cannot overwrite File " + output);
+        if (!output.getParentFile().exists() && !output.mkdirs()) throw new IOException("Cannot create File " + output);
         FileOutputStream stream = null;
-        InputStream in = null;
+        CheckedInputStream in = null;
         try {
             stream = new FileOutputStream(output);
-            in = getInputStream(entry);
+            in = new CheckedInputStream(getInputStream(entry), new CRC32());
             byte[] buffer = new byte[32767];
             int len = 0;
             while ((len = in.read(buffer)) != -1) {
                 stream.write(buffer, 0, len);
             }
+            if (entry.getCrc() != -1 && (entry.getCrc() != in.getChecksum().getValue())) throw new ZipIOException("CRC32 Failed", entry);
         } finally {
             if (in != null) {
                 try {

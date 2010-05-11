@@ -30,7 +30,7 @@ public class Hash {
         if (arg == null || !arg.exists() || arg.isDirectory()) throw new NullPointerException();
 
         MessageDigest md = MessageDigest.getInstance(type);
-        byte[] b = new byte[1024];
+        byte[] b = new byte[32767];
         InputStream in = new FileInputStream(arg);
         for (int n = 0; (n = in.read(b)) > -1;) {
             md.update(b, 0, n);
@@ -71,12 +71,10 @@ public class Hash {
         CheckedInputStream cis = null;
         try {
             cis = new CheckedInputStream(fis, new CRC32());
-            byte readBuffer[] = new byte[4096];
-            long ret = 0;
+            byte readBuffer[] = new byte[32767];
             while (cis.read(readBuffer) >= 0) {
-                ret = cis.getChecksum().getValue();
             }
-            return ret;
+            return cis.getChecksum().getValue();
         } finally {
             if (cis != null) cis.close();
             fis.close();
