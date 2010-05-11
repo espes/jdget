@@ -84,7 +84,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
         } else {
             label.setText(SizeFormater.formatBytes(sizeValue));
         }
-
+        label.setEnabled(isEnabled((E) value));
         return label;
     }
 

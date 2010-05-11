@@ -118,6 +118,7 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
 
         label.setIcon(getIcon((E) value));
         label.setToolTipText(getToolTip((E) value));
+        label.setEnabled(isEnabled((E) value));
         return label;
     }
 

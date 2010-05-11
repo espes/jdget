@@ -11,7 +11,10 @@ package org.appwork.utils.swing.renderer;
 
 import java.awt.Rectangle;
 
+import javax.swing.Icon;
 import javax.swing.JLabel;
+
+import org.appwork.utils.ImageProvider.ImageProvider;
 
 /**
  * A Label for use in Renderers.
@@ -54,6 +57,31 @@ public class RenderLabel extends JLabel {
      * * Overridden for performance reasons.
      */
     public void repaint(Rectangle r) {
+    }
+
+    /**
+     * for renderer reasons, there is a bug in java, that disabled icons to not
+     * get cached properly. thats why we override the method here and extend it
+     * to use a cached disabled icon
+     */
+    public void setIcon(Icon icon) {
+        if (!isEnabled()) {
+            this.setDisabledIcon(ImageProvider.getDisabledIcon(icon));
+        }
+        super.setIcon(icon);
+    }
+
+    /**
+     * for renderer reasons, there is a bug in java, that disabled icons to not
+     * get cached properly. thats why we override the method here and extend it
+     * to use a cached disabled icon
+     */
+    public void setEnabled(boolean b) {
+        super.setEnabled(b);
+        if (!b && getIcon() != null) {
+            this.setDisabledIcon(ImageProvider.getDisabledIcon(getIcon()));
+        }
+
     }
 
     /**

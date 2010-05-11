@@ -73,6 +73,7 @@ public abstract class ExtEuroColumn<E> extends ExtColumn<E> {
 
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
@@ -81,7 +82,7 @@ public abstract class ExtEuroColumn<E> extends ExtColumn<E> {
         } catch (Exception e) {
             label.setText(format.format("0.0f") + " €");
         }
-
+        label.setEnabled(isEnabled((E) value));
         return label;
     }
 }

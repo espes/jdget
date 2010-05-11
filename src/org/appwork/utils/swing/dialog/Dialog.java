@@ -19,6 +19,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 
+import org.appwork.storage.ConfigInterface;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.interfaces.ValueConverter;
@@ -412,10 +413,12 @@ public class Dialog {
      *            filters the choosable files or null for default
      * @param multiSelection
      *            Multiple files choosable? or null for default
+     * @param preSelection
+     *            TODO
      * @return an array of files or null if the user cancel the dialog
      */
 
-    public File[] showFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final Integer dialogType) {
+    public File[] showFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final Integer dialogType, final File preSelection) {
         synchronized (this) {
             UIManager.put("FileChooser.homeFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
 
@@ -432,7 +435,7 @@ public class Dialog {
                 public File[] edtRun() {
                     try {
 
-                        JFileChooser fc = new JFileChooser(id);
+                        JFileChooser fc = new JFileChooser();
 
                         fc.setAccessory(new FilePreview(fc));
                         if (title != null) fc.setDialogTitle(title);
@@ -440,6 +443,33 @@ public class Dialog {
                         if (fileFilter != null) fc.setFileFilter(fileFilter);
                         if (multiSelection) fc.setMultiSelectionEnabled(multiSelection);
                         if (dialogType != null) fc.setDialogType(dialogType);
+                        if (preSelection != null) {
+                            if (preSelection.isDirectory()) {
+                                fc.setCurrentDirectory(preSelection);
+                                fc.setSelectedFile(preSelection);
+                            } else {
+                                fc.setSelectedFile(preSelection);
+                            }
+                        } else {
+                            String latest = ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION" + id, (String) null);
+                            if (latest != null) {
+                                File storeSelection = new File(latest);
+                                while (storeSelection != null) {
+                                    if (!storeSelection.exists()) {
+                                        storeSelection = storeSelection.getParentFile();
+                                    } else {
+                                        if (storeSelection.isDirectory()) {
+                                            fc.setCurrentDirectory(storeSelection);
+                                            fc.setSelectedFile(storeSelection);
+                                        } else {
+                                            fc.setSelectedFile(storeSelection);
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                         if (dialogType == null || dialogType == JFileChooser.OPEN_DIALOG) {
                             if (fc.showOpenDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
                                 if (multiSelection) {
@@ -449,6 +479,7 @@ public class Dialog {
 
                                 final File[] ret = new File[1];
                                 ret[0] = fc.getSelectedFile();
+                                ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION" + id, ret[0].getAbsolutePath());
                                 return ret;
                             }
                         } else if (dialogType == JFileChooser.SAVE_DIALOG) {
@@ -456,6 +487,7 @@ public class Dialog {
                                 if (multiSelection) return (File[]) (latestReturnMask = fc.getSelectedFiles());
                                 final File[] ret = new File[1];
                                 ret[0] = fc.getSelectedFile();
+                                ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION" + id, ret[0].getAbsolutePath());
                                 return ret;
                             }
                         }

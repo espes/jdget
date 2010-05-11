@@ -25,6 +25,7 @@ public class StateLocker implements StateEventListener {
     public void lockUntilAllHavePassed(final State state, final State... exceptions) throws InterruptedException, StateExceptionException {
         waitState = state;
         this.exceptions = exceptions;
+        if (stateMachines == null || stateMachines.length == 0) return;
         try {
             for (StateMachine st : stateMachines) {
                 for (State e : exceptions) {
@@ -39,7 +40,7 @@ public class StateLocker implements StateEventListener {
                 }
             }
 
-            main: while (true) {
+            main: while (counter < stateMachines.length) {
                 synchronized (this) {
                     this.wait(2000);
                 }

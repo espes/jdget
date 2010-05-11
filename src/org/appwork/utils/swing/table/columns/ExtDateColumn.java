@@ -128,6 +128,7 @@ public abstract class ExtDateColumn<E> extends ExtColumn<E> {
             label.setText(setText((E) value, getDateFormat().format(date)));
         }
         label.setToolTipText(getToolTip((E) value));
+        label.setEnabled(isEnabled((E) value));
         return label;
     }
 

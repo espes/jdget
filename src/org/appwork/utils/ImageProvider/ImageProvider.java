@@ -23,6 +23,7 @@ import java.util.HashMap;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.UIManager;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
@@ -41,6 +42,7 @@ public class ImageProvider {
      */
     private static HashMap<String, BufferedImage> IMAGE_CACHE = new HashMap<String, BufferedImage>();
     private static HashMap<String, ImageIcon> IMAGEICON_CACHE = new HashMap<String, ImageIcon>();
+    private static HashMap<Icon, Icon> DISABLED_ICON_CACHE = new HashMap<Icon, Icon>();
 
     private static Object LOCK = new Object();
     // stringbuilder die concat strings fast
@@ -202,5 +204,20 @@ public class ImageProvider {
         g2.drawImage(b, xoffset, yoffset, null);
         g2.dispose();
         return dest;
+    }
+
+    /**
+     * Uses the uimanager to get a grayscaled disabled Icon
+     * 
+     * @param icon
+     * @return
+     */
+    public static Icon getDisabledIcon(Icon icon) {
+        if (icon == null) return null;
+        Icon ret = DISABLED_ICON_CACHE.get(icon);
+        if (ret != null) return ret;
+        ret = UIManager.getLookAndFeel().getDisabledIcon(null, icon);
+        DISABLED_ICON_CACHE.put(icon, ret);
+        return ret;
     }
 }

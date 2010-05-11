@@ -120,7 +120,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         }
 
         bar.setOpaque(true);
-
+        bar.setEnabled(isEnabled((E) value));
         return bar;
     }
 

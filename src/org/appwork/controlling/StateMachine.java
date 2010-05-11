@@ -8,22 +8,6 @@ import org.appwork.utils.logging.Log;
 public class StateMachine {
 
     private State initState;
-    private boolean debug = false;
-
-    /**
-     * @return the debug
-     */
-    final public boolean isDebug() {
-        return debug;
-    }
-
-    /**
-     * @param debug
-     *            the debug to set
-     */
-    final public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
 
     private State currentState;
     private StateEventsender eventSender;
@@ -85,10 +69,7 @@ public class StateMachine {
             if (currentState == newState) return;
             if (!currentState.getChildren().contains(newState)) {
 
-                StateConflictException e = new StateConflictException("Cannot change state from " + currentState + " to " + newState);
-                if (isDebug()) org.appwork.utils.logging.Log.exception(e);
-                throw e;
-            }
+            throw new StateConflictException("Cannot change state from " + currentState + " to " + newState); }
 
         }
         this.forceState(newState);

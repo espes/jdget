@@ -68,13 +68,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         label.setText(getStringValue((E) value));
         label.setToolTipText(getToolTip((E) value));
-        label.setIcon(getIcon((E) value));
+        label.setEnabled(isEnabled((E) value));
         return label;
 
-        // isSelected = false;
-        // return ((ExtTable) table).getLafCellRenderer(row,
-        // column).getTableCellRendererComponent(table, getStringValue(value),
-        // isSelected, false, row, column);
     }
 
     /**

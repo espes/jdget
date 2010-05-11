@@ -79,7 +79,7 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
         label.setText(getLong((E) value) + "");
-
+        label.setEnabled(isEnabled((E) value));
         return label;
     }
 }
