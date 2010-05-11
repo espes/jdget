@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.event.queue;
 
+import org.appwork.utils.event.queue.Queue.QUEUEPRIO;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -24,9 +25,18 @@ public abstract class QueueItem {
     private volatile boolean started = false;
     private Queue queue = null;
     private QueueItem source = null;
+    private QUEUEPRIO prio = QUEUEPRIO.NORM;
 
     protected Queue getQueue() {
         return queue;
+    }
+
+    public QUEUEPRIO getQueuePrio() {
+        return prio;
+    }
+
+    public void setQueuePrio(QUEUEPRIO prio) {
+        this.prio = prio;
     }
 
     public void setSourceQueueItem(QueueItem source) {

@@ -96,14 +96,14 @@ public class Files {
      * @param files
      * @return
      */
-    public static ArrayList<File> getFiles(boolean includeDirectories, File... files) {
+    public static ArrayList<File> getFiles(boolean includeDirectories, boolean includeFiles, File... files) {
         ArrayList<File> ret = new ArrayList<File>();
         if (files != null) {
             for (File f : files) {
                 if (f.isDirectory()) {
                     if (includeDirectories) ret.add(f);
-                    ret.addAll(getFiles(includeDirectories, f.listFiles()));
-                } else {
+                    ret.addAll(getFiles(includeDirectories, includeFiles, f.listFiles()));
+                } else if (includeFiles) {
                     ret.add(f);
                 }
             }
@@ -118,7 +118,7 @@ public class Files {
      * @throws IOException
      */
     public static void deleteRecursiv(File... files) throws IOException {
-        ArrayList<File> ret = getFiles(true, files);
+        ArrayList<File> ret = getFiles(true, true, files);
         for (int i = ret.size() - 1; i >= 0; i--) {
             File file = ret.get(i);
             if (!file.exists() || file.isFile()) ret.remove(i);

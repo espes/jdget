@@ -10,6 +10,7 @@
 package org.appwork.utils.event.queue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * @author daniel
@@ -17,10 +18,18 @@ import java.util.ArrayList;
  */
 public class Queue extends Thread {
 
-    protected ArrayList<QueueItem> queue = new ArrayList<QueueItem>();
+    public enum QUEUEPRIO {
+        HIGH,
+        NORM,
+        LOW
+    }
+
+    protected HashMap<QUEUEPRIO, ArrayList<QueueItem>> queue = new HashMap<QUEUEPRIO, ArrayList<QueueItem>>();
+    protected final Object queueLock = new Object();
     protected boolean waitFlag = true;
     protected QueueItem item = null;
     protected Thread thread = null;
+    protected QUEUEPRIO[] prios;
 
     /*
      * this functions returns true if the current running Thread is our
@@ -39,6 +48,11 @@ public class Queue extends Thread {
 
     public Queue(String id) {
         super(id);
+        /* init queue */
+        prios = QUEUEPRIO.values();
+        for (QUEUEPRIO prio : prios) {
+            queue.put(prio, new ArrayList<QueueItem>());
+        }
         start();
     }
 
@@ -59,8 +73,8 @@ public class Queue extends Thread {
     }
 
     protected void internalAdd(QueueItem item) {
-        synchronized (queue) {
-            queue.add(item);
+        synchronized (queueLock) {
+            queue.get(item.getQueuePrio()).add(item);
         }
         synchronized (this) {
             if (waitFlag) {
@@ -95,20 +109,28 @@ public class Queue extends Thread {
     }
 
     public boolean isEmpty() {
-        synchronized (queue) {
-            return queue.isEmpty();
+        synchronized (queueLock) {
+            for (QUEUEPRIO prio : prios) {
+                if (!queue.get(prio).isEmpty()) return false;
+            }
+            return true;
         }
     }
 
     public void killQueue() {
-        synchronized (queue) {
-            for (QueueItem item : queue) {
-                item.kill();
-                synchronized (item) {
-                    item.notify();
+        synchronized (queueLock) {
+            for (QUEUEPRIO prio : prios) {
+                for (QueueItem item : queue.get(prio)) {
+                    /* kill item */
+                    item.kill();
+                    synchronized (item) {
+                        item.notify();
+                    }
                 }
+                /* clear queue */
+                queue.get(prio).clear();
             }
-            queue.clear();
+
         }
     }
 
@@ -125,12 +147,16 @@ public class Queue extends Thread {
                     }
                 }
             }
-            synchronized (queue) {
-                if (queue.size() > 0) {
-                    item = queue.remove(0);
-                } else {
+            synchronized (queueLock) {
+                item = null;
+                for (QUEUEPRIO prio : prios) {
+                    if (queue.get(prio).size() > 0) {
+                        item = queue.get(prio).remove(0);
+                        break;
+                    }
+                }
+                if (item == null) {
                     waitFlag = true;
-                    item = null;
                 }
             }
             if (item == null || waitFlag) continue;
@@ -150,7 +176,7 @@ public class Queue extends Thread {
             }
         } finally {
             synchronized (item) {
-                item.notifyAll();
+                item.notify();
             }
         }
     }
