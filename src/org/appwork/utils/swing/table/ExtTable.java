@@ -268,7 +268,7 @@ public class ExtTable<E> extends JTable {
             if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
                 int row = rowAtPoint(e.getPoint());
                 E obj = getExtTableModel().getObjectbyRow(row);
-                //System.out.println(row);
+                // System.out.println(row);
                 if (obj == null || row == -1) {
                     /* no object under mouse, lets clear the selection */
                     clearSelection();
@@ -287,7 +287,9 @@ public class ExtTable<E> extends JTable {
                     if (popup != null && popup.getComponentCount() > 0) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
                 }
 
-            } else if (rowAtPoint(e.getPoint()) < 0) {
+            }
+        } else if (e.getID() == MouseEvent.MOUSE_PRESSED) {
+            if (rowAtPoint(e.getPoint()) < 0) {
                 clearSelection();
 
             }
