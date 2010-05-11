@@ -58,7 +58,7 @@ public class ProgressDialog extends AbstractDialog {
     }
 
     public interface ProgressGetter {
-        public void init();
+        public void run() throws Exception;
 
         public int getProgress();
 
@@ -103,12 +103,10 @@ public class ProgressDialog extends AbstractDialog {
 
         executer.interrupt();
 
-        boolean bool = executer.isInterrupted();
         try {
-            executer.join(240000);
+            executer.join(20000);
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+
         }
 
     }
@@ -149,7 +147,15 @@ public class ProgressDialog extends AbstractDialog {
         updater.start();
         executer = new Thread("ProgressDialogExecuter") {
             public void run() {
-                getter.init();
+                try {
+                    getter.run();
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    setReturnmask(false);
+                } finally {
+                    dispose();
+                    updater.stop();
+                }
 
             }
         };
