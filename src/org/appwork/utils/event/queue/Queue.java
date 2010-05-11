@@ -18,18 +18,18 @@ import java.util.HashMap;
  */
 public class Queue extends Thread {
 
-    public enum QUEUEPRIO {
+    public enum QueuePriority {
         HIGH,
         NORM,
         LOW
     }
 
-    protected HashMap<QUEUEPRIO, ArrayList<QueueItem>> queue = new HashMap<QUEUEPRIO, ArrayList<QueueItem>>();
+    protected HashMap<QueuePriority, ArrayList<QueueItem>> queue = new HashMap<QueuePriority, ArrayList<QueueItem>>();
     protected final Object queueLock = new Object();
     protected boolean waitFlag = true;
     protected QueueItem item = null;
     protected Thread thread = null;
-    protected QUEUEPRIO[] prios;
+    protected QueuePriority[] prios;
 
     /*
      * this functions returns true if the current running Thread is our
@@ -49,8 +49,8 @@ public class Queue extends Thread {
     public Queue(String id) {
         super(id);
         /* init queue */
-        prios = QUEUEPRIO.values();
-        for (QUEUEPRIO prio : prios) {
+        prios = QueuePriority.values();
+        for (QueuePriority prio : prios) {
             queue.put(prio, new ArrayList<QueueItem>());
         }
         start();
@@ -110,7 +110,7 @@ public class Queue extends Thread {
 
     public boolean isEmpty() {
         synchronized (queueLock) {
-            for (QUEUEPRIO prio : prios) {
+            for (QueuePriority prio : prios) {
                 if (!queue.get(prio).isEmpty()) return false;
             }
             return true;
@@ -119,7 +119,7 @@ public class Queue extends Thread {
 
     public void killQueue() {
         synchronized (queueLock) {
-            for (QUEUEPRIO prio : prios) {
+            for (QueuePriority prio : prios) {
                 for (QueueItem item : queue.get(prio)) {
                     /* kill item */
                     item.kill();
@@ -149,7 +149,7 @@ public class Queue extends Thread {
             }
             synchronized (queueLock) {
                 item = null;
-                for (QUEUEPRIO prio : prios) {
+                for (QueuePriority prio : prios) {
                     if (queue.get(prio).size() > 0) {
                         item = queue.get(prio).remove(0);
                         break;
