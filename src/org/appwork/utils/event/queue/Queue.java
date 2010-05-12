@@ -16,7 +16,7 @@ import java.util.HashMap;
  * @author daniel
  * 
  */
-public class Queue extends Thread {
+public abstract class Queue<E extends QueueItem> extends Thread {
 
     public enum QueuePriority {
         HIGH,
@@ -24,10 +24,10 @@ public class Queue extends Thread {
         LOW
     }
 
-    protected HashMap<QueuePriority, ArrayList<QueueItem>> queue = new HashMap<QueuePriority, ArrayList<QueueItem>>();
+    protected HashMap<QueuePriority, ArrayList<E>> queue = new HashMap<QueuePriority, ArrayList<E>>();
     protected final Object queueLock = new Object();
     protected boolean waitFlag = true;
-    protected QueueItem item = null;
+    protected E item = null;
     protected Thread thread = null;
     protected QueuePriority[] prios;
 
@@ -36,7 +36,7 @@ public class Queue extends Thread {
      * QueueThread OR the SourceQueueItem chain is rooted in current running
      * QueueItem
      */
-    public boolean isQueueThread(QueueItem item) {
+    public boolean isQueueThread(E item) {
         if (currentThread() == thread) return true;
         QueueItem source = item.getSourceQueueItem();
         while (source != null) {
@@ -51,7 +51,7 @@ public class Queue extends Thread {
         /* init queue */
         prios = QueuePriority.values();
         for (QueuePriority prio : prios) {
-            queue.put(prio, new ArrayList<QueueItem>());
+            queue.put(prio, new ArrayList<E>());
         }
         start();
     }
@@ -60,7 +60,7 @@ public class Queue extends Thread {
         return waitFlag;
     }
 
-    public void add(QueueItem item) {
+    public void add(E item) {
         if (isQueueThread(item)) {
             /*
              * call comes from current running item, so lets start item
@@ -72,11 +72,11 @@ public class Queue extends Thread {
         }
     }
 
-    public void enqueue(QueueItem item) {
+    public void enqueue(E item) {
         internalAdd(item);
     }
 
-    protected void internalAdd(QueueItem item) {
+    protected void internalAdd(E item) {
         synchronized (queueLock) {
             queue.get(item.getQueuePrio()).add(item);
         }
@@ -88,7 +88,7 @@ public class Queue extends Thread {
         }
     }
 
-    public Object addWait(QueueItem item) throws Exception {
+    public Object addWait(E item) throws Exception {
         if (isQueueThread(item)) {
             /*
              * call comes from current running item, so lets start item
@@ -168,7 +168,7 @@ public class Queue extends Thread {
     }
 
     /* if you override this, DON'T forget to notify item when its done! */
-    protected void startItem(QueueItem item) {
+    protected void startItem(E item) {
         try {
             item.start(this);
         } catch (Exception e) {

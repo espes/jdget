@@ -23,11 +23,11 @@ public abstract class QueueItem {
     private volatile boolean finished = false;
     private volatile boolean killed = false;
     private volatile boolean started = false;
-    private Queue queue = null;
+    private Queue<?> queue = null;
     private QueueItem source = null;
     private QueuePriority prio = QueuePriority.NORM;
 
-    protected Queue getQueue() {
+    protected Queue<?> getQueue() {
         return queue;
     }
 
@@ -47,7 +47,7 @@ public abstract class QueueItem {
         return source;
     }
 
-    public void start(Queue queue) throws Exception {
+    public void start(Queue<?> queue) throws Exception {
         this.queue = queue;
         this.started = true;
         try {
