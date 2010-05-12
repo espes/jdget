@@ -38,6 +38,7 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
 
         file = Application.getRessource("logs/error_" + cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DATE) + "-" + System.currentTimeMillis() + ".log");
         file.getParentFile().mkdirs();
+        file.deleteOnExit();
         if (!file.isFile()) file.createNewFile();
         writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF8"));
 

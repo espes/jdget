@@ -127,7 +127,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         this.addWindowListener(this);
         // create panel for the dialog's buttons
-        this.defaultButtons = new JPanel(new MigLayout("ins 0", "[fill,grow]", "[fill,grow]"));
+        this.defaultButtons = getDefaultButtonPanel();
 
         okButton = new JButton(this.okOption);
         /*
@@ -243,6 +243,14 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
             Dialog.getInstance().getParentOwner().setAlwaysOnTop(false);
         }
 
+    }
+
+    /**
+     * @return
+     */
+    protected JPanel getDefaultButtonPanel() {
+        // TODO Auto-generated method stub
+        return new JPanel(new MigLayout("ins 0", "[fill,grow]", "[fill,grow]"));
     }
 
     /**
