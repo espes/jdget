@@ -45,7 +45,8 @@ public enum Tl8 implements Translate {
     DIALOG_FILECHOOSER_TOOLTIP_DETAILS("Switch to detailed view"),
     DIALOG_FILECHOOSER_TOOLTIP_LIST("Switch to list view"),
     EXTTABLE_SEARCH_DIALOG_TITLE("Search table"),
-    EXTTABLE_SEARCH_DIALOG_MESSAGE("Search:");
+    EXTTABLE_SEARCH_DIALOG_MESSAGE("Search:"),
+    DIALOG_ERROR_TITLE("Error Occured");
 
     /**
      * Stores the DefaultTranslation.

@@ -42,6 +42,7 @@ public class ContainerDialog extends AbstractDialog {
     public ContainerDialog(int flags, String title, JPanel panel, Image icon, String ok, String cancel) {
         super(flags, title, null, ok, cancel);
         this.panel = panel;
+
         this.setIconImage(icon);
         init();
     }

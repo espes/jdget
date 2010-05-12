@@ -766,4 +766,19 @@ public class Dialog {
         }
     }
 
+    /**
+     * @param s
+     */
+    public int showErrorDialog(String s) {
+
+        try {
+            return showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL, Tl8.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32), null, null);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return 0;
+
+    }
+
 }

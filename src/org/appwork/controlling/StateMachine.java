@@ -120,15 +120,16 @@ public class StateMachine {
         return finalState == currentState;
     }
 
-    public void forceState(int id) {
-
-        State newState;
-        synchronized (lock) {
-            newState = getStateById(this.initState, id, null);
-            if (newState == null) throw new StateConflictException("No State with ID " + id);
-        }
-        forceState(newState);
-    }
+    // public void forceState(int id) {
+    //
+    // State newState;
+    // synchronized (lock) {
+    // newState = getStateById(this.initState, id, null);
+    // if (newState == null) throw new
+    // StateConflictException("No State with ID " + id);
+    // }
+    // forceState(newState);
+    // }
 
     /**
      * @param newState

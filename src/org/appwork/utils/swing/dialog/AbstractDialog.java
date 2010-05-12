@@ -116,6 +116,9 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         } catch (Exception e) {
 
         }
+        if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isShowing()) {
+            this.setAlwaysOnTop(true);
+        }
         // The Dialog Modal
         this.setModal(true);
         // Layout manager
