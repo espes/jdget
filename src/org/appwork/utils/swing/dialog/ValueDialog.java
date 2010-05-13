@@ -179,7 +179,7 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             long value = Long.parseLong(editable.getText());
             slider.setValue((int) (value / faktor));
         } catch (Exception e) {
-            editable.setText((slider.getValue() * faktor) + "");
+            if (editable != null) editable.setText((slider.getValue() * faktor) + "");
         }
         // return null;
         // }

@@ -33,11 +33,11 @@ public class LogToFileHandler extends java.util.logging.Handler {
     public LogToFileHandler() throws IOException {
         super();
         Calendar cal = Calendar.getInstance();
-
         cal.setTimeInMillis(new Date().getTime());
 
         file = Application.getRessource("logs/" + cal.get(Calendar.YEAR) + "-" + (1 + cal.get(Calendar.MONTH)) + "-" + cal.get(Calendar.DATE) + ".log");
         file.getParentFile().mkdirs();
+        file.deleteOnExit();
         if (!file.isFile()) file.createNewFile();
         writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF8"));
 
