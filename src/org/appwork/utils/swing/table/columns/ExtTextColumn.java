@@ -69,6 +69,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
         label.setText(getStringValue((E) value));
         label.setToolTipText(getToolTip((E) value));
         label.setEnabled(isEnabled((E) value));
+        label.setIcon(getIcon((E) value));
         return label;
 
     }
