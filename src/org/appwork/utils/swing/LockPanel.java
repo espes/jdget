@@ -142,18 +142,20 @@ public class LockPanel extends JPanel {
     public void lock(int time) {
 
         screen = createScreenShot();
-        gray = ImageProvider.convertToGrayScale(screen);
+        if (screen != null) {
+            gray = ImageProvider.convertToGrayScale(screen);
 
-        float data[] = { 0.0625f, 0.125f, 0.0625f, 0.125f, 0.25f, 0.125f, 0.0625f, 0.125f, 0.0625f };
-        Kernel kernel = new Kernel(3, 3, data);
-        ConvolveOp convolve = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
-        BufferedImage dest = new BufferedImage(gray.getWidth(), gray.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
-        gray = convolve.filter(gray, dest);
-        frame.setGlassPane(this);
+            float data[] = { 0.0625f, 0.125f, 0.0625f, 0.125f, 0.25f, 0.125f, 0.0625f, 0.125f, 0.0625f };
+            Kernel kernel = new Kernel(3, 3, data);
+            ConvolveOp convolve = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
+            BufferedImage dest = new BufferedImage(gray.getWidth(), gray.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+            gray = convolve.filter(gray, dest);
+            frame.setGlassPane(this);
 
-        frame.getGlassPane().setVisible(true);
+            frame.getGlassPane().setVisible(true);
 
-        fadeIn(time);
+            fadeIn(time);
+        }
 
     }
 
@@ -254,13 +256,17 @@ public class LockPanel extends JPanel {
             return new EDTHelper<BufferedImage>() {
                 @Override
                 public BufferedImage edtRun() {
-                    frame.setAlwaysOnTop(true);
-                    Rectangle captureSize = new Rectangle(frame.getContentPane().getSize());
-                    Point loc = frame.getContentPane().getLocationOnScreen();
-                    captureSize.x = loc.x;
-                    captureSize.y = loc.y;
+                    if (frame.isShowing()) {
+                        frame.setAlwaysOnTop(true);
+                        Rectangle captureSize = new Rectangle(frame.getContentPane().getSize());
+                        Point loc = frame.getContentPane().getLocationOnScreen();
+                        captureSize.x = loc.x;
+                        captureSize.y = loc.y;
 
-                    return robot.createScreenCapture(captureSize);
+                        return robot.createScreenCapture(captureSize);
+                    } else {
+                        return null;
+                    }
 
                 }
             }.getReturnValue();
