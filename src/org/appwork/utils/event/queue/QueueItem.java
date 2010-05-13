@@ -27,6 +27,13 @@ public abstract class QueueItem {
     private QueueItem source = null;
     private QueuePriority prio = QueuePriority.NORM;
 
+    public QueueItem() {
+    }
+
+    public QueueItem(QueuePriority prio) {
+        this.prio = prio;
+    }
+
     protected Queue<?> getQueue() {
         return queue;
     }
