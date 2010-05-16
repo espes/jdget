@@ -175,7 +175,7 @@ public class LockPanel extends JPanel {
 
     public synchronized void fadeOut(int time) {
         fadeCounter--;
-        steps = (50 * 1.0) / (float) time;
+        steps = (50 * 1.0) / time;
         if (fadeCounter > 0) return;
         if (fadeTimer != null) {
             fadeTimer.stop();
@@ -206,7 +206,7 @@ public class LockPanel extends JPanel {
 
     public synchronized void fadeIn(int time) {
         fadeCounter++;
-        steps = (50 * 1.0) / (float) time;
+        steps = (50 * 1.0) / time;
         if (fadeTimer != null) {
             fadeTimer.stop();
             fadeTimer = null;
@@ -238,7 +238,7 @@ public class LockPanel extends JPanel {
         ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
         g.drawImage(screen, 0, 0, null);
-        ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) alpha));
+        ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
         g.drawImage(gray, 0, 0, null);
         ((Graphics2D) g).setComposite(comp);
 

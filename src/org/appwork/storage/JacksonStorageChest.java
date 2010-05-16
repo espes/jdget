@@ -61,7 +61,7 @@ public class JacksonStorageChest extends Storage {
 
         if (def instanceof Enum<?> && ret instanceof String) {
             try {
-                ret = (E) Enum.valueOf(((Enum<?>) def).getDeclaringClass(), (String) ret);
+                ret = Enum.valueOf(((Enum<?>) def).getDeclaringClass(), (String) ret);
             } catch (Throwable e) {
                 Log.exception(e);
                 put(key, (Enum<?>) def);

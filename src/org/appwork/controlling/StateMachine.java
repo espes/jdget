@@ -8,7 +8,6 @@ import org.appwork.utils.logging.Log;
 public class StateMachine {
 
     private State initState;
-
     private State currentState;
     private StateEventsender eventSender;
     private State finalState;
@@ -17,12 +16,6 @@ public class StateMachine {
     private Object lock = new Object();
     private HashMap<State, Throwable> exceptionMap;
 
-    /**
-     * @param interfac
-     *            TODO
-     * @param startState
-     * @param endState
-     */
     public StateMachine(StateMachineInterface interfac, State startState, State endState) {
         owner = interfac;
         initState = startState;
@@ -34,9 +27,6 @@ public class StateMachine {
         path.add(initState);
     }
 
-    /**
-     * @return the owner
-     */
     public StateMachineInterface getOwner() {
         return owner;
     }
@@ -113,9 +103,6 @@ public class StateMachine {
         eventSender.fireEvent(event);
     }
 
-    /**
-     * @return
-     */
     public boolean isFinal() {
         return finalState == currentState;
     }
@@ -131,9 +118,6 @@ public class StateMachine {
     // forceState(newState);
     // }
 
-    /**
-     * @param newState
-     */
     public void forceState(State newState) {
         StateEvent event;
         synchronized (lock) {
@@ -146,24 +130,21 @@ public class StateMachine {
         eventSender.fireEvent(event);
     }
 
-    /**
-     * @param id
-     * @return
-     */
-    private State getStateById(State startState, int id, ArrayList<State> foundStates) {
-
-        if (foundStates == null) foundStates = new ArrayList<State>();
-        if (foundStates.contains(startState)) return null;
-        foundStates.add(startState);
-        State ret = null;
-        for (State s : startState.getChildren()) {
-
-            if (s.getID() == id) return s;
-            ret = getStateById(s, id, foundStates);
-            if (ret != null) return ret;
-        }
-        return null;
-    }
+    // private State getStateById(State startState, int id, ArrayList<State>
+    // foundStates) {
+    //
+    // if (foundStates == null) foundStates = new ArrayList<State>();
+    // if (foundStates.contains(startState)) return null;
+    // foundStates.add(startState);
+    // State ret = null;
+    // for (State s : startState.getChildren()) {
+    //
+    // if (s.getID() == id) return s;
+    // ret = getStateById(s, id, foundStates);
+    // if (ret != null) return ret;
+    // }
+    // return null;
+    // }
 
     public boolean hasPassed(State... states) {
         for (State s : states) {
@@ -175,33 +156,19 @@ public class StateMachine {
 
     /**
      * returns if the statemachine is in startstate currently
-     * 
-     * @return
      */
     public boolean isStartState() {
         return currentState == this.initState;
     }
 
-    /**
-     * @return
-     */
     public State getState() {
         return currentState;
     }
 
-    /**
-     * @param newState
-     * @return
-     */
     public Throwable getCause(State newState) {
-        // TODO Auto-generated method stub
         return exceptionMap.get(newState);
     }
 
-    /**
-     * @param failedState
-     * @param e
-     */
     public void setCause(State failedState, Throwable e) {
         exceptionMap.put(failedState, e);
     }

@@ -45,35 +45,28 @@ public abstract class ExtEuroColumn<E> extends ExtColumn<E> {
 
     @Override
     public Object getCellEditorValue() {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public boolean isEditable(Object obj) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean isEnabled(Object obj) {
-        // TODO Auto-generated method stub
         return true;
     }
 
     @Override
     public boolean isSortable(Object obj) {
-        // TODO Auto-generated method stub
         return true;
     }
 
     @Override
     public void setValue(Object value, Object object) {
-        // TODO Auto-generated method stub
-
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
@@ -82,7 +75,7 @@ public abstract class ExtEuroColumn<E> extends ExtColumn<E> {
         } catch (Exception e) {
             label.setText(format.format("0.0f") + " €");
         }
-        label.setEnabled(isEnabled((E) value));
+        label.setEnabled(isEnabled(value));
         return label;
     }
 }

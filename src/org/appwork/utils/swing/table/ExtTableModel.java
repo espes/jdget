@@ -109,7 +109,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         ArrayList<E> ret = new ArrayList<E>();
         int[] rows = table.getSelectedRows();
         for (int row : rows) {
-            E elem = (E) getValueAt(row, 0);
+            E elem = getValueAt(row, 0);
             if (elem != null) ret.add(elem);
         }
         return ret;
@@ -508,7 +508,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public int size() {
-        // TODO Auto-generated method stub
         return tableData.size();
     }
 
@@ -517,7 +516,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public E getElementAt(int i) {
-        // TODO Auto-generated method stub
         return tableData.get(i);
     }
 
@@ -526,7 +524,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public boolean contains(E at) {
-        // TODO Auto-generated method stub
         return tableData.contains(at);
     }
 
@@ -571,10 +568,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * @return
      */
-    @SuppressWarnings("unchecked")
     public ArrayList<E> getElements() {
-        // TODO Auto-generated method stub
-        return (ArrayList<E>) tableData.clone();
+        return new ArrayList<E>(tableData);
     }
 
 }
