@@ -42,6 +42,8 @@ public class HTTP {
         final BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(file, true));
         BufferedInputStream input;
         URLConnection con = url.openConnection();
+        con.setConnectTimeout(15000);
+        con.setReadTimeout(15000);
         if (url.openConnection().getHeaderField("Content-Encoding") != null && con.getHeaderField("Content-Encoding").equalsIgnoreCase("gzip")) {
             input = new BufferedInputStream(new GZIPInputStream(con.getInputStream()));
         } else {
