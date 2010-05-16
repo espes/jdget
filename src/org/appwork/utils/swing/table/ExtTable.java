@@ -287,6 +287,13 @@ public class ExtTable<E> extends JTable {
                     if (popup != null && popup.getComponentCount() > 0) popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
                 }
 
+            } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
+                int row = rowAtPoint(e.getPoint());
+                E obj = getExtTableModel().getObjectbyRow(row);
+                // System.out.println(row);
+                if (obj == null || row == -1) {
+                    onDoubleClick(obj);
+                }
             }
         } else if (e.getID() == MouseEvent.MOUSE_PRESSED) {
             if (rowAtPoint(e.getPoint()) < 0) {
@@ -294,6 +301,14 @@ public class ExtTable<E> extends JTable {
 
             }
         }
+    }
+
+    /**
+     * @param obj
+     */
+    protected void onDoubleClick(E obj) {
+        // TODO Auto-generated method stub
+
     }
 
     // Key selection
