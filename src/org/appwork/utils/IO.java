@@ -11,6 +11,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.nio.channels.FileChannel;
+
+import org.appwork.utils.os.CrossSystem;
 
 public class IO {
     public static String readFileToString(File file) throws IOException {
@@ -87,4 +90,42 @@ public class IO {
         }
         return bytes;
     }
+
+    /**
+     * @param file
+     * @param file2
+     */
+    public static void copyFile(File in, File out) throws IOException {
+        FileChannel inChannel = new FileInputStream(in).getChannel();
+        FileChannel outChannel = new FileOutputStream(out).getChannel();
+        try {
+            if (CrossSystem.isWindows()) {
+                // magic number for Windows, 64Mb - 32Kb)
+                // On the Windows plateform, you can't copy a file bigger than
+                // 64Mb,
+                // an Exception in thread "main" java.io.IOException:
+                // Insufficient
+                // system resources exist to complete the requested service is
+                // thrown.
+                //
+                // For a discussion about this see :
+                // http://forum.java.sun.com/thread.jspa?threadID=439695&messageID=2917510
+                int maxCount = (64 * 1024 * 1024) - (32 * 1024);
+                long size = inChannel.size();
+                long position = 0;
+                while (position < size) {
+                    position += inChannel.transferTo(position, maxCount, outChannel);
+                }
+            } else {
+                inChannel.transferTo(0, inChannel.size(), outChannel);
+
+            }
+        } catch (IOException e) {
+            throw e;
+        } finally {
+            if (inChannel != null) inChannel.close();
+            if (outChannel != null) outChannel.close();
+        }
+    }
+
 }

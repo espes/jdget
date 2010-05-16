@@ -22,6 +22,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 import javax.swing.AbstractAction;
+import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -31,6 +32,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
@@ -122,7 +124,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         // The Dialog Modal
         this.setModal(true);
         // Layout manager
-        this.setLayout(new MigLayout("ins 5", "[fill,grow]", "[fill,grow][]"));
+        this.setLayout(new MigLayout("ins 5", "[]", "[fill,grow][]"));
         // Dispose dialog on close
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         this.addWindowListener(this);
@@ -148,16 +150,20 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         panel = layoutDialogContent();
         add(panel, "pushx,growx,pushy,growy,spanx,aligny center,wrap");
         // add the countdown timer
-        add(this.timerLbl, "split 3,growx");
+        add(this.timerLbl, "split 3,growx,hidemode 2");
         // if the flasg contains
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
             dontshowagain = new JCheckBox();
             dontshowagain.setHorizontalAlignment(JCheckBox.TRAILING);
-            add(new JLabel(Tl8.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.toString()));
-            add(dontshowagain, "alignx right");
+            JLabel lbl = new JLabel(Tl8.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.toString());
+            add(lbl, "growx,pushx,alignx right,gapleft 20");
+            lbl.setHorizontalAlignment(SwingConstants.RIGHT);
+            add(dontshowagain, "alignx right,width 24!");
+        } else {
+            add(Box.createHorizontalGlue(), "growx,pushx,alignx right,gapleft 20");
         }
-        add(defaultButtons, "alignx right");
+        add(defaultButtons, "alignx right,shrinkx");
         if ((flagMask & Dialog.BUTTONS_HIDE_OK) == 0) {
 
             // Set OK as defaultbutton
