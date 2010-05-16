@@ -100,6 +100,7 @@ public class Files {
         ArrayList<File> ret = new ArrayList<File>();
         if (files != null) {
             for (File f : files) {
+                if (!f.exists()) continue;
                 if (f.isDirectory()) {
                     if (includeDirectories) ret.add(f);
                     ret.addAll(getFiles(includeDirectories, includeFiles, f.listFiles()));
