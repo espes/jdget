@@ -26,7 +26,8 @@ public class HTMLParser {
         /* remove tags!! */
         final ArrayList<String> ret = new ArrayList<String>();
         try {
-            for (String link : new Regex(source, "((https?|ftp):((//)|(\\\\\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)($|<|\")").getColumn(0)) {
+
+            for (String link : new Regex(source, "((https?|ftp):((//)|(\\\\\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)(\n|\r|$|<|\")").getColumn(0)) {
                 try {
                     new URL(link);
                     if (!ret.contains(link)) ret.add(link);
