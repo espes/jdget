@@ -459,8 +459,9 @@ public class Dialog {
                                         storeSelection = storeSelection.getParentFile();
                                     } else {
                                         if (storeSelection.isDirectory()) {
-                                            fc.setCurrentDirectory(storeSelection);
                                             fc.setSelectedFile(storeSelection);
+                                            fc.setCurrentDirectory(storeSelection);
+
                                         } else {
                                             fc.setSelectedFile(storeSelection);
                                         }
@@ -474,6 +475,12 @@ public class Dialog {
                             if (fc.showOpenDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
                                 if (multiSelection) {
                                     latestReturnMask = fc.getSelectedFiles();
+                                    if (fc.getSelectedFiles().length > 0) {
+
+                                        File first = fc.getSelectedFiles()[0];
+                                        if (first.isFile()) first = first.getParentFile();
+                                        ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION" + id, first.getAbsolutePath());
+                                    }
                                     return (File[]) latestReturnMask;
                                 }
 
