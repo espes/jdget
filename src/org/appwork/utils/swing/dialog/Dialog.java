@@ -442,7 +442,7 @@ public class Dialog {
                         if (fileSelectionMode != null) fc.setFileSelectionMode(fileSelectionMode);
                         if (fileFilter != null) fc.setFileFilter(fileFilter);
 
-                        if (multiSelection && dialogType != JFileChooser.SAVE_DIALOG) fc.setMultiSelectionEnabled(multiSelection);
+                        if (multiSelection && (dialogType != null && dialogType != JFileChooser.SAVE_DIALOG)) fc.setMultiSelectionEnabled(multiSelection);
                         if (dialogType != null) fc.setDialogType(dialogType);
                         if (preSelection != null) {
                             if (preSelection.isDirectory()) {
