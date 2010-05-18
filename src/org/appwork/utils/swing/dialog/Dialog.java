@@ -441,17 +441,19 @@ public class Dialog {
                         if (title != null) fc.setDialogTitle(title);
                         if (fileSelectionMode != null) fc.setFileSelectionMode(fileSelectionMode);
                         if (fileFilter != null) fc.setFileFilter(fileFilter);
-                        if (multiSelection) fc.setMultiSelectionEnabled(multiSelection);
+
+                        if (multiSelection && dialogType != JFileChooser.SAVE_DIALOG) fc.setMultiSelectionEnabled(multiSelection);
                         if (dialogType != null) fc.setDialogType(dialogType);
                         if (preSelection != null) {
                             if (preSelection.isDirectory()) {
                                 fc.setCurrentDirectory(preSelection);
                                 fc.setSelectedFile(preSelection);
                             } else {
+                                fc.setCurrentDirectory(preSelection.getParentFile());
                                 fc.setSelectedFile(preSelection);
                             }
                         } else {
-                            String latest = ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION" + id, (String) null);
+                            String latest = ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null);
                             if (latest != null) {
                                 File storeSelection = new File(latest);
                                 while (storeSelection != null) {
@@ -463,6 +465,7 @@ public class Dialog {
                                             fc.setCurrentDirectory(storeSelection);
 
                                         } else {
+                                            fc.setCurrentDirectory(storeSelection.getParentFile());
                                             fc.setSelectedFile(storeSelection);
                                         }
 
@@ -479,22 +482,24 @@ public class Dialog {
 
                                         File first = fc.getSelectedFiles()[0];
                                         if (first.isFile()) first = first.getParentFile();
-                                        ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION" + id, first.getAbsolutePath());
+                                        ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
                                     }
                                     return (File[]) latestReturnMask;
                                 }
 
                                 final File[] ret = new File[1];
                                 ret[0] = fc.getSelectedFile();
-                                ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION" + id, ret[0].getAbsolutePath());
+                                latestReturnMask = ret;
+                                ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
                                 return ret;
                             }
                         } else if (dialogType == JFileChooser.SAVE_DIALOG) {
                             if (fc.showSaveDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
-                                if (multiSelection) return (File[]) (latestReturnMask = fc.getSelectedFiles());
+
                                 final File[] ret = new File[1];
                                 ret[0] = fc.getSelectedFile();
-                                ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION" + id, ret[0].getAbsolutePath());
+                                latestReturnMask = ret;
+                                ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
                                 return ret;
                             }
                         }
