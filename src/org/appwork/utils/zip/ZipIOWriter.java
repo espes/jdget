@@ -71,6 +71,7 @@ public class ZipIOWriter {
         if (fileStream != null && zipStream != null) return;
         if (zipFile == null || zipFile.isDirectory()) throw new ZipIOException("invalid zipFile");
         if (zipFile.exists() && !overwrite) throw new ZipIOException("zipFile already exists");
+
         fileStream = new FileOutputStream(zipFile);
         zipStream = new ZipOutputStream(fileStream);
     }
