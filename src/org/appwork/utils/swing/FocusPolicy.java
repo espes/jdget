@@ -8,12 +8,13 @@ import java.util.ArrayList;
 import javax.swing.JComponent;
 
 public class FocusPolicy extends FocusTraversalPolicy {
-    ArrayList<JComponent> order;
+    private ArrayList<JComponent> order;
 
     public FocusPolicy(JComponent... components) {
         this.order = new ArrayList<JComponent>(components.length);
-        for (JComponent c : components)
+        for (JComponent c : components) {
             order.add(c);
+        }
     }
 
     public JComponent getComponentAfter(Container focusCycleRoot, Component aJComponent) {

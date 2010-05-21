@@ -612,13 +612,11 @@ public class ExtTable<E> extends JTable {
             tableColumn.addPropertyChangeListener(new PropertyChangeListener() {
                 public void propertyChange(PropertyChangeEvent evt) {
                     if (evt.getPropertyName().equals("width")) {
-                        // TODO: What todo here?
                         try {
                             ConfigInterface.getStorage("ExtTable_" + tableID).put("WIDTH_COL_" + model.getExtColumn(j).getID(), (Integer) evt.getNewValue());
                         } catch (Exception e) {
                             Log.exception(e);
                         }
-
                     }
                 }
             });
