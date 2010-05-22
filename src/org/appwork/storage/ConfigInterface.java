@@ -21,6 +21,7 @@ public class ConfigInterface {
     private static final HashMap<String, Storage> MAP = new HashMap<String, Storage>();
     private static File path;
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
     static final byte[] KEY = new byte[] { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };
 
     /**
