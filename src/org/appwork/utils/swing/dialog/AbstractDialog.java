@@ -32,7 +32,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
@@ -151,15 +150,12 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         add(panel, "pushx,growx,pushy,growy,spanx,aligny center,wrap");
         // add the countdown timer
         add(this.timerLbl, "split 3,growx,hidemode 2");
-        // if the flasg contains
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-
-            dontshowagain = new JCheckBox();
+            dontshowagain = new JCheckBox(Tl8.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.toString());
             dontshowagain.setHorizontalAlignment(JCheckBox.TRAILING);
-            JLabel lbl = new JLabel(Tl8.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.toString());
-            add(lbl, "growx,pushx,alignx right,gapleft 20");
-            lbl.setHorizontalAlignment(SwingConstants.RIGHT);
-            add(dontshowagain, "alignx right,width 24!");
+            dontshowagain.setHorizontalTextPosition(JCheckBox.LEADING);
+
+            add(dontshowagain, "alignx right");
         } else {
             add(Box.createHorizontalGlue(), "growx,pushx,alignx right,gapleft 20");
         }

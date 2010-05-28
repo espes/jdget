@@ -304,41 +304,37 @@ public class ExtTable<E> extends JTable {
     }
 
     /**
+     * This method will be called when a doubleclick is performed on the object
+     * <code>obj</code>
+     * 
      * @param obj
      */
     protected void onDoubleClick(E obj) {
-        // TODO Auto-generated method stub
-
     }
 
-    // Key selection
+    /**
+     * Key selection
+     */
     protected boolean processKeyBinding(KeyStroke stroke, KeyEvent evt, int condition, boolean pressed) {
-        if (!pressed) { return super.processKeyBinding(stroke, evt, condition, pressed); }
+        if (!pressed) return super.processKeyBinding(stroke, evt, condition, pressed);
 
         switch (evt.getKeyCode()) {
-
         case KeyEvent.VK_X:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCut(getExtTableModel().getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) return this.onShortcutCut(getExtTableModel().getSelectedObjects(), evt);
             break;
         case KeyEvent.VK_V:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutPaste(getExtTableModel().getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) return this.onShortcutPaste(getExtTableModel().getSelectedObjects(), evt);
             break;
         case KeyEvent.VK_C:
-            if (evt.isControlDown() || evt.isMetaDown()) {
-                //
-                return this.onShortcutCopy(getExtTableModel().getSelectedObjects(), evt);
-            }
+            if (evt.isControlDown() || evt.isMetaDown()) return this.onShortcutCopy(getExtTableModel().getSelectedObjects(), evt);
             break;
         case KeyEvent.VK_DELETE:
-
             return this.onShortcutDelete(getExtTableModel().getSelectedObjects(), evt, BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK));
         case KeyEvent.VK_BACK_SPACE:
-
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutDelete(getExtTableModel().getSelectedObjects(), evt, false); }
+            if (evt.isControlDown() || evt.isMetaDown()) return this.onShortcutDelete(getExtTableModel().getSelectedObjects(), evt, false);
             break;
         case KeyEvent.VK_F:
-
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutSearch(getExtTableModel().getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) return this.onShortcutSearch(getExtTableModel().getSelectedObjects(), evt);
             break;
         case KeyEvent.VK_UP:
             if (getSelectedRow() == 0) {
@@ -350,7 +346,7 @@ public class ExtTable<E> extends JTable {
             }
             break;
         case KeyEvent.VK_DOWN:
-            if (getSelectedRow() == (getRowCount() - 1)) {
+            if (getSelectedRow() == getRowCount() - 1) {
                 if (getCellEditor() != null) {
                     getCellEditor().stopCellEditing();
                 }
@@ -423,17 +419,12 @@ public class ExtTable<E> extends JTable {
      * 
      */
     private synchronized void startSearch() {
-
         try {
-
             if (searchDialog != null && searchDialog.isShowing()) {
                 searchDialog.requestFocus();
             } else {
                 searchDialog = new SearchDialog(SearchDialog.NO_REGEX_FLAG, this) {
 
-                    /**
-                 * 
-                 */
                     private static final long serialVersionUID = 2652101312418765845L;
 
                     @Override
@@ -446,14 +437,12 @@ public class ExtTable<E> extends JTable {
                             E found = getExtTableModel().searchNextObject(startRow + 1, ret, searchDialog.isCaseSensitive(), searchDialog.isRegex());
                             getExtTableModel().setSelectedObject(found);
                             scrollToSelection();
-
                         }
                     }
 
                 };
 
                 addFocusListener(searchDialog);
-
             }
         } catch (IOException e) {
             Log.exception(e);
@@ -463,7 +452,7 @@ public class ExtTable<E> extends JTable {
     /**
      * @param selectedObjects
      * @param evt
-     * @param diorect
+     * @param direct
      *            TODO
      * @return
      */
@@ -526,7 +515,6 @@ public class ExtTable<E> extends JTable {
 
     @Override
     public void paintComponent(final Graphics g) {
-
         super.paintComponent(g);
         // highlighter
         // TODO: this might get slow for many rows
@@ -539,9 +527,9 @@ public class ExtTable<E> extends JTable {
         final int width = last.x + last.width - first.x;
 
         for (ExtRowHighlighter rh : this.rowHighlighters) {
-
             for (int i = 0; i < this.getRowCount(); i++) {
                 first = this.getCellRect(i, 0, true);
+
                 // skip if the row is not in visible rec
                 if (first.y + first.height < visibleRect.y) {
                     continue;
@@ -549,11 +537,7 @@ public class ExtTable<E> extends JTable {
                 if (first.y > visibleRect.y + visibleRect.height) {
                     continue;
                 }
-
                 if (rh.doHighlight(this, i)) {
-
-                    // RepaintManager.currentManager(this).addDirtyRegion(this,
-                    // 0, first.y, width, first.height);
                     rh.paint((Graphics2D) g, 0, first.y, width, first.height);
                 }
             }
@@ -656,11 +640,9 @@ public class ExtTable<E> extends JTable {
                         TableColumn item = columns.remove(id);
 
                         if (item != null) {
-
                             addColumn(item);
                         }
                     }
-
                 } catch (Exception e) {
                     Log.exception(e);
                 }
@@ -679,7 +661,6 @@ public class ExtTable<E> extends JTable {
     @Override
     public TableCellEditor getCellEditor(int row, int column) {
         return model.getCelleditorByColumn(convertColumnIndexToModel(column));
-
     }
 
     /**
@@ -688,7 +669,6 @@ public class ExtTable<E> extends JTable {
      */
     @Override
     public TableCellRenderer getCellRenderer(int row, int column) {
-
         return model.getCellrendererByColumn(convertColumnIndexToModel(column));
     }
 
@@ -774,33 +754,5 @@ public class ExtTable<E> extends JTable {
         int x = getExtColumnIndexByPoint(point);
         return getExtTableModel().getExtColumn(x);
     }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.awt.event.KeyListener#keyPressed(java.awt.event.KeyEvent)
-     */
-    // @Override
-    // public void keyPressed(KeyEvent e) {
-    // int leadSelectIndex, selectIndex;
-    // switch (e.getKeyCode()) {
-    // case KeyEvent.VK_UP:
-    // // getSelectionModel().getMinSelectionIndex()
-    // leadSelectIndex = Math.max(0, getSelectionModel().getLeadSelectionIndex()
-    // - 1);
-    // getSelectionModel().setLeadSelectionIndex(leadSelectIndex);
-    // break;
-    // case KeyEvent.VK_DOWN:
-    // leadSelectIndex = Math.min(this.getRowCount() - 1,
-    // getSelectionModel().getLeadSelectionIndex() + 1);
-    // getSelectionModel().setLeadSelectionIndex(leadSelectIndex);
-    // break;
-    // case KeyEvent.VK_A:
-    // if (e.isControlDown()) {
-    //
-    // }
-    // break;
-    // }
-    // }
 
 }
