@@ -664,11 +664,9 @@ public class Dialog {
      */
     public void showMessageDialog(int flag, String title, String message) {
         synchronized (this) {
-            try {
-                showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | flag, title, message, ImageProvider.getImageIcon(Dialog.ICON_INFO, 32, 32), null, null);
-            } catch (IOException e) {
-                Log.exception(e);
-            }
+
+            showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | flag, title, message, getIconByText(title + message), null, null);
+
         }
     }
 

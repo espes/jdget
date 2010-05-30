@@ -155,7 +155,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
             dontshowagain.setHorizontalAlignment(JCheckBox.TRAILING);
             dontshowagain.setHorizontalTextPosition(JCheckBox.LEADING);
 
-            add(dontshowagain, "alignx right");
+            add(dontshowagain, "growx,pushx,alignx right,gapleft 20");
         } else {
             add(Box.createHorizontalGlue(), "growx,pushx,alignx right,gapleft 20");
         }
@@ -204,7 +204,9 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
         this.toFront();
         this.setMinimumSize(this.getPreferredSize());
-        if (getDesiredSize() != null) this.setSize(getDesiredSize());
+        if (getDesiredSize() != null) {
+            this.setSize(getDesiredSize());
+        }
         if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isDisplayable() || !Dialog.getInstance().getParentOwner().isVisible()) {
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
