@@ -29,18 +29,21 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
     private File file;
     private BufferedWriter writer;
 
-    public ExceptionLogHandler() throws IOException {
+    public ExceptionLogHandler() {
         super();
+        try {
+            Calendar cal = Calendar.getInstance();
 
-        Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(new Date().getTime());
 
-        cal.setTimeInMillis(new Date().getTime());
-
-        file = Application.getRessource("logs/error_" + cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DATE) + "-" + System.currentTimeMillis() + ".log");
-        file.getParentFile().mkdirs();
-        file.deleteOnExit();
-        if (!file.isFile()) file.createNewFile();
-        writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF8"));
+            file = Application.getRessource("logs/error_" + cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DATE) + "-" + System.currentTimeMillis() + ".log");
+            file.getParentFile().mkdirs();
+            file.deleteOnExit();
+            if (!file.isFile()) file.createNewFile();
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF8"));
+        } catch (Exception e) {
+            Log.exception(e);
+        }
 
     }
 

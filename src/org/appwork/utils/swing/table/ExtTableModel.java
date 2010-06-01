@@ -96,6 +96,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * clears all selection models
      */
     public void clearSelection() {
+        if (table == null) return;
         table.getSelectionModel().clearSelection();
         table.getColumnModel().getSelectionModel().clearSelection();
     }
@@ -107,6 +108,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public ArrayList<E> getSelectedObjects() {
         ArrayList<E> ret = new ArrayList<E>();
+        if (table == null) return ret;
         int[] rows = table.getSelectedRows();
         for (int row : rows) {
             E elem = getValueAt(row, 0);
@@ -130,10 +132,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param latest
      */
     public void setSelectedObject(final E latest) {
-
+        if (table == null) return;
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
+                if (table == null) return null;
                 if (latest == null) {
                     clearSelection();
                     return null;
@@ -152,10 +155,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param selections
      */
     public void setSelectedObjects(final ArrayList<E> selections) {
-
+        if (table == null) return;
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
+                if (table == null) return null;
                 if (selections == null) {
                     clearSelection();
                     return null;
