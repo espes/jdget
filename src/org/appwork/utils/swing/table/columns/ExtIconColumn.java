@@ -13,9 +13,6 @@ import org.appwork.utils.swing.table.ExtTableModel;
 
 /**
  * Single icon column
- * 
- * @author $Author: unknown$
- * 
  */
 public abstract class ExtIconColumn<E> extends ExtColumn<E> {
 
@@ -23,11 +20,12 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
 
     public ExtIconColumn(String name, ExtTableModel<E> table) {
         super(name, table);
-        this.label = new RenderLabel();
-        label.setBorder(null);
+
+        label = new RenderLabel();
         label.setOpaque(false);
-        initIcons();
+        label.setHorizontalAlignment(RenderLabel.CENTER);
         label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+        initIcons();
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             /**
@@ -50,16 +48,9 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
         return null;
     }
 
-    /**
-     * 
-     */
     protected void initIcons() {
-
     }
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = -5751315870107507714L;
 
     /**
@@ -72,50 +63,44 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
 
     @Override
     public Object getCellEditorValue() {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public boolean isEditable(E obj) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean isEnabled(E obj) {
-        // TODO Auto-generated method stub
         return true;
     }
 
     @Override
     public boolean isSortable(E obj) {
-        // TODO Auto-generated method stub
         return true;
     }
 
     @Override
     public void setValue(Object value, E object) {
-        // TODO Auto-generated method stub
-
     }
 
     /**
      * Sets max width to 30. overwrite to set other maxsizes
      */
+    @Override
     protected int getMaxWidth() {
         return 30;
     }
 
+    @Override
     public int getMinWidth() {
-        // TODO Auto-generated method stub
         return 30;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-
         label.setIcon(getIcon((E) value));
         label.setToolTipText(getToolTip((E) value));
         label.setEnabled(isEnabled((E) value));

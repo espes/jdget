@@ -28,15 +28,15 @@ public class SpinnerFilesizeModel extends SpinnerNumberModel {
         Integer value = (Integer) this.getValue();
         int step;
         if (value < 10 * 1000) {
-            this.setStepSize(step = 1000);
+            step = 1000;
         } else {
             int base = (int) Math.pow(1000, (int) (Math.log(value) / Math.log(1000)));
             step = value / base;
             step = (int) (Math.log(step) / Math.log(10));
-            step = ((int) Math.pow(10, step) / 10);
+            step = (int) Math.pow(10, step) / 10;
             step = Math.max(step * base, base / 10);
-            this.setStepSize(step);
         }
+        this.setStepSize(step);
         return step;
     }
 
