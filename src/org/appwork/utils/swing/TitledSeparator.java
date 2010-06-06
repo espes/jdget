@@ -29,8 +29,7 @@ public class TitledSeparator extends JPanel {
         add(new JSeparator(), "gaptop 8,width 5!");
         add(label = new JLabel(title));
         if (color != null) label.setForeground(color);
-        Font f = label.getFont();
-        label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
+        label.setFont(label.getFont().deriveFont(Font.BOLD));
         add(new JSeparator(), "gaptop 8");
         this.setOpaque(false);
     }

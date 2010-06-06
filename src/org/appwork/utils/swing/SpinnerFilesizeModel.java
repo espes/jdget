@@ -2,22 +2,18 @@ package org.appwork.utils.swing;
 
 import javax.swing.SpinnerNumberModel;
 
+/**
+ * A spinnermodel for filesizes.
+ */
 public class SpinnerFilesizeModel extends SpinnerNumberModel {
 
-    /**
-     * A spinnermodel for filesizes. The stes
-     */
     private static final long serialVersionUID = 8892296746389046229L;
 
-    /**
-     * @param i
-     * @param j
-     * @param k
-     */
     public SpinnerFilesizeModel(int value, int minimum, int maximum) {
         super(value, minimum, maximum, 1);
     }
 
+    @Override
     public Object getNextValue() {
         try {
             int step = getStep();
@@ -26,16 +22,15 @@ public class SpinnerFilesizeModel extends SpinnerNumberModel {
         } catch (Exception e) {
             return null;
         }
-
     }
 
     private int getStep() {
         Integer value = (Integer) this.getValue();
         int step;
-        if (value < 10 * 1024) {
-            this.setStepSize(step = 1024);
+        if (value < 10 * 1000) {
+            this.setStepSize(step = 1000);
         } else {
-            int base = (int) Math.pow(1024, (int) (Math.log(value) / Math.log(1024)));
+            int base = (int) Math.pow(1000, (int) (Math.log(value) / Math.log(1000)));
             step = value / base;
             step = (int) (Math.log(step) / Math.log(10));
             step = ((int) Math.pow(10, step) / 10);
@@ -45,6 +40,7 @@ public class SpinnerFilesizeModel extends SpinnerNumberModel {
         return step;
     }
 
+    @Override
     public Object getPreviousValue() {
         try {
             int step = getStep();
@@ -53,7 +49,6 @@ public class SpinnerFilesizeModel extends SpinnerNumberModel {
         } catch (Exception e) {
             return null;
         }
-
     }
 
 }
