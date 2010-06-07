@@ -39,7 +39,6 @@ public class Application {
     public static boolean isJared() {
         String caller = (Thread.currentThread().getContextClassLoader().getResource("org/appwork") + "");
         return caller.matches("jar\\:.*\\.jar\\!.*");
-
     }
 
     /**
@@ -75,7 +74,7 @@ public class Application {
                 loc = URLDecoder.decode(rootOfClazz.getProtectionDomain().getCodeSource().getLocation().getFile(), "UTF-8");
             } catch (Exception e) {
                 loc = rootOfClazz.getProtectionDomain().getCodeSource().getLocation().getFile();
-                System.err.println("ailed urldecoding Location: " + loc);
+                System.err.println("failed urldecoding Location: " + loc);
             }
             File appRoot = new File(loc);
             if (appRoot.isFile()) appRoot = appRoot.getParentFile();

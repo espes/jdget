@@ -10,6 +10,9 @@
 package org.appwork.utils;
 
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+
+import javax.swing.TransferHandler.TransferSupport;
 
 /**
  * @author daniel
@@ -18,4 +21,16 @@ import java.awt.datatransfer.DataFlavor;
 public class RemoveMEDataFlavor {
     public static DataFlavor REMOVEME = new DataFlavor(RemoveMEDataFlavor.class, RemoveMEDataFlavor.class.getName());
 
+    public static boolean removeMe(TransferSupport info) {
+        return removeMe(info.getTransferable());
+    }
+
+    public static boolean removeMe(Transferable info) {
+        if (info == null) return false;
+        try {
+            if (info.isDataFlavorSupported(REMOVEME) && info.getTransferData(REMOVEME) == Boolean.TRUE) return true;
+        } catch (Exception e) {
+        }
+        return false;
+    }
 }
