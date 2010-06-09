@@ -33,4 +33,17 @@ public class RemoveMEDataFlavor {
         }
         return false;
     }
+
+    public static boolean supported(TransferSupport info) {
+        return supported(info.getTransferable());
+    }
+
+    public static boolean supported(Transferable info) {
+        if (info == null) return false;
+        try {
+            if (info.isDataFlavorSupported(REMOVEME)) return true;
+        } catch (Exception e) {
+        }
+        return false;
+    }
 }
