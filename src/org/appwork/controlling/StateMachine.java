@@ -11,7 +11,8 @@ public class StateMachine {
     private State currentState;
     private StateEventsender eventSender;
     private State finalState;
-    private ArrayList<State> path;
+    private ArrayList<StatePathEntry> path;
+
     private StateMachineInterface owner;
     private Object lock = new Object();
     private HashMap<State, Throwable> exceptionMap;
@@ -23,8 +24,8 @@ public class StateMachine {
         finalState = endState;
         exceptionMap = new HashMap<State, Throwable>();
         this.eventSender = new StateEventsender();
-        this.path = new ArrayList<State>();
-        path.add(initState);
+        this.path = new ArrayList<StatePathEntry>();
+        path.add(new StatePathEntry(initState));
     }
 
     public StateMachineInterface getOwner() {
@@ -98,9 +99,16 @@ public class StateMachine {
             this.currentState = this.initState;
 
             path.clear();
-            path.add(initState);
+            path.add(new StatePathEntry(initState));
         }
         eventSender.fireEvent(event);
+    }
+
+    /**
+     * @return the path
+     */
+    public ArrayList<StatePathEntry> getPath() {
+        return path;
     }
 
     public boolean isFinal() {
@@ -123,7 +131,7 @@ public class StateMachine {
         synchronized (lock) {
             if (currentState == newState) return;
             event = new StateEvent(this, StateEvent.CHANGED, currentState, newState);
-            path.add(newState);
+            path.add(new StatePathEntry(newState));
             Log.L.finest(owner + " State changed " + currentState + " -> " + newState);
             currentState = newState;
         }
@@ -148,7 +156,10 @@ public class StateMachine {
 
     public boolean hasPassed(State... states) {
         for (State s : states) {
-            if (path.contains(s)) return true;
+            for (StatePathEntry e : path) {
+                if (e.getState() == s) return true;
+            }
+
         }
         return false;
 
@@ -173,4 +184,23 @@ public class StateMachine {
         exceptionMap.put(failedState, e);
     }
 
+    /**
+     * TODO: not synchronized
+     * 
+     * @param failedState
+     * @return
+     */
+    public StatePathEntry getLatestStateEntry(State failedState) {
+        try {
+            StatePathEntry entry = null;
+            for (int i = path.size() - 1; i >= 0; i--) {
+                entry = path.get(i);
+                if (entry.getState() == failedState) return entry;
+
+            }
+        } catch (Exception e) {
+            // access to path is not synchronized. this may produce exceptions
+        }
+        return null;
+    }
 }

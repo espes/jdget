@@ -782,7 +782,7 @@ public class Dialog {
     public int showErrorDialog(String s) {
 
         try {
-            return showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL, Tl8.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32), null, null);
+            return showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, Tl8.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32), null, null);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
