@@ -23,12 +23,21 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
     private long speed = 0;
     private final Object LOCK = new Object();
     private long stalled = 0;
+    private long timeout = -1;/* no timeout for stalled connections */
 
     /**
      * constructor for AverageSpeedMeter with default size 5
      */
     public AverageSpeedMeter() {
         this(5);
+    }
+
+    public void setStallTimeout(long timeout) {
+        if (timeout <= 0) {
+            this.timeout = -1;
+        } else {
+            this.timeout = timeout;
+        }
     }
 
     /**
@@ -78,6 +87,9 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
             long put = Math.max(0, x);
             if (put == 0) {
                 stalled += Math.max(0, time);
+                if (timeout > 0 && stalled > timeout) {
+                    resetSpeedMeter();
+                }
             } else {
                 bytes[index] = put;
                 times[index] = Math.max(0, time) + stalled;
