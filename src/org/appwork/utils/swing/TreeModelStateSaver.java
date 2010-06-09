@@ -15,6 +15,8 @@ import java.util.HashMap;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
+import org.appwork.utils.logging.Log;
+
 /**
  * This class is used to save the selection states and expanded states of each
  * tree node before rebuilding the tree. After rebuilding, the model is able to
@@ -61,14 +63,12 @@ public class TreeModelStateSaver {
     public TreeModelStateSaver(JTree tree) {
         this.tree = tree;
         this.expandCache = new HashMap<Object, Boolean>();
-
     }
 
     /**
      * Save the current state of the tree
      */
     public void save() {
-
         saveState(tree.getModel().getRoot(), new ArrayList<Object>());
         selectedPathes = tree.getSelectionPaths();
     }
@@ -78,29 +78,24 @@ public class TreeModelStateSaver {
      * 
      * @param root
      */
-    @SuppressWarnings("unchecked")
     private void saveState(Object node, ArrayList<Object> path) {
-
         path.add(node);
         try {
             treePath = new TreePath(path.toArray(new Object[] {}));
             expandCache.put(node, tree.isExpanded(treePath));
         } catch (Exception e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
 
         }
         int max = tree.getModel().getChildCount(node);
         for (int i = 0; i < max; i++) {
             try {
-
-                saveState(tree.getModel().getChild(node, i), (ArrayList<Object>) path.clone());
+                saveState(tree.getModel().getChild(node, i), new ArrayList<Object>(path));
             } catch (Exception e) {
-                org.appwork.utils.logging.Log.exception(e);
-
+                Log.exception(e);
             }
             tree.getModel().getChildCount(node);
         }
-
     }
 
     /**
@@ -122,11 +117,6 @@ public class TreeModelStateSaver {
         return selectedPathes;
     }
 
-    /**
-     * @param root
-     * @param arrayList
-     */
-    @SuppressWarnings("unchecked")
     protected void restoreState(Object node, ArrayList<Object> path) {
         if (node == null) return;
         path.add(node);
@@ -137,9 +127,8 @@ public class TreeModelStateSaver {
         }
 
         for (int i = 0; i < tree.getModel().getChildCount(node); i++) {
-            restoreState(tree.getModel().getChild(node, i), (ArrayList<Object>) path.clone());
+            restoreState(tree.getModel().getChild(node, i), new ArrayList<Object>(path));
         }
-
     }
 
 }

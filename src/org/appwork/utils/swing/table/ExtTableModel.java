@@ -87,7 +87,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 if (column.getClass().equals(clazz)) return (T) column;
             }
         } catch (Exception e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         }
         return null;
     }
@@ -473,10 +473,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * @param selectedObjects
      */
-    @SuppressWarnings("unchecked")
     public void removeAll(ArrayList<E> selectedObjects) {
-
-        final ArrayList<E> tmp = (ArrayList<E>) tableData.clone();
+        final ArrayList<E> tmp = new ArrayList<E>(tableData);
         tmp.removeAll(selectedObjects);
 
         new EDTHelper<Object>() {
@@ -552,9 +550,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * @param files
      */
-    @SuppressWarnings("unchecked")
     public void addAllElements(ArrayList<E> files) {
-        final ArrayList<E> tmp = (ArrayList<E>) files.clone();
+        final ArrayList<E> tmp = new ArrayList<E>(files);
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {

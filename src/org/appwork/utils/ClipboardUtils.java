@@ -14,11 +14,11 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.StringTokenizer;
 
 import javax.swing.TransferHandler.TransferSupport;
 
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.parser.HTMLParser;
 
@@ -52,11 +52,7 @@ public class ClipboardUtils {
         return INSTANCE;
     }
 
-    public static void setInstance(ClipboardUtils instance) {
-        INSTANCE = instance;
-    }
-
-    public ClipboardUtils() {
+    private ClipboardUtils() {
     }
 
     public static boolean hasSupport(DataFlavor flavor) {
@@ -131,7 +127,7 @@ public class ClipboardUtils {
                 links.addAll(HTMLParser.findUrls(content));
             }
         } catch (Exception e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         }
         return links;
     }
@@ -142,10 +138,8 @@ public class ClipboardUtils {
         if (info != null) {
             try {
                 if (info.isDataFlavorSupported(fileListFlavor)) {
-                    List list = (List) info.getTransferable().getTransferData(fileListFlavor);
-                    ListIterator it = list.listIterator();
-                    while (it.hasNext()) {
-                        File f = (File) it.next();
+                    List<File> list = (List) info.getTransferable().getTransferData(fileListFlavor);
+                    for (File f : list) {
                         if (f.exists()) files.add(f);
                     }
                 } else if (uriListFlavor != null && info.isDataFlavorSupported(uriListFlavor)) {
@@ -157,8 +151,7 @@ public class ClipboardUtils {
                     }
                 }
             } catch (Exception e) {
-                // TODO Auto-generated catch block
-                org.appwork.utils.logging.Log.exception(e);
+                Log.exception(e);
             }
         }
         return files;

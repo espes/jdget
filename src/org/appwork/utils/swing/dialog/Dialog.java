@@ -33,7 +33,6 @@ import org.appwork.utils.swing.EDTHelper;
  * JOptionPane
  * 
  * @author $Author: unknown$
- * 
  */
 public class Dialog {
 
@@ -129,7 +128,9 @@ public class Dialog {
      */
     public static final int RETURN_OK = 1 << 1;
 
-    /* if user closed the window */
+    /**
+     * if user closed the window
+     */
     public static final int RETURN_CLOSED = 1 << 6;
     /**
      * If the dialog has been skipped due to previously selected
@@ -165,22 +166,21 @@ public class Dialog {
      * @return
      */
     public static Dialog getInstance() {
-
         return INSTANCE;
     }
 
     /**
-     * @return the {@link AbstractDialog#pARENT}
-     * @see AbstractDialog#pARENT
+     * @return the {@link Dialog#owner}
+     * @see Dialog#owner
      */
     public JFrame getParentOwner() {
         return owner;
     }
 
     /**
-     * @param pARENT
-     *            the {@link AbstractDialog#pARENT} to set
-     * @see AbstractDialog#pARENT
+     * @param parent
+     *            the {@link Dialog#owner} to set
+     * @see Dialog#owner
      */
     public void setParentOwner(JFrame parent) {
         owner = parent;
@@ -216,7 +216,6 @@ public class Dialog {
     private ImageIcon getIconByText(String text) {
         try {
             if (text.contains("?")) {
-
                 return ImageProvider.getImageIcon(ICON_QUESTION, 32, 32);
             } else if (text.matches(Loc.getErrorRegex())) {
                 return ImageProvider.getImageIcon(ICON_ERROR, 32, 32);
@@ -235,13 +234,11 @@ public class Dialog {
      * Returns true, if the latest answer contains the {@link #RETURN_OK} flag
      * WARNING: do not use this in single instance Dialog
      * 
-     * @param returnMask
-     * @return
+     * @deprecated Use {@link Dialog#isOK(Object)} with returnmask instead.
      */
     @Deprecated
     public boolean isOK() {
-        if (!(latestReturnMask instanceof Integer)) return false;
-        return BinaryLogic.containsSome((Integer) latestReturnMask, Dialog.RETURN_OK);
+        return isOK(latestReturnMask);
     }
 
     public static boolean isOK(Object value) {
@@ -776,19 +773,13 @@ public class Dialog {
         }
     }
 
-    /**
-     * @param s
-     */
     public int showErrorDialog(String s) {
-
         try {
             return showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, Tl8.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32), null, null);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return 0;
-
     }
 
 }

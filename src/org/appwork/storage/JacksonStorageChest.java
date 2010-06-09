@@ -13,23 +13,22 @@ import org.codehaus.jackson.map.JsonMappingException;
 
 public class JacksonStorageChest extends Storage {
 
-    private HashMap<String, Object> map;
-    private String name;
+    private final HashMap<String, Object> map;
+    private final String name;
 
     @SuppressWarnings("unchecked")
     public JacksonStorageChest(String name) throws StorageException {
-        map = new HashMap<String, Object>();
+        this.map = new HashMap<String, Object>();
         this.name = name;
 
         try {
-
             String str = Crypto.decrypt(IO.readFile(Application.getRessource("cfg/" + name + ".ejs")), ConfigInterface.KEY);
             HashMap<String, Object> load = ConfigInterface.getMapper().readValue(str, HashMap.class);
             map.putAll(load);
         } catch (JsonParseException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         } catch (JsonMappingException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         } catch (IOException e) {
         }
     }
@@ -72,10 +71,6 @@ public class JacksonStorageChest extends Storage {
 
     }
 
-    // private void initTransformer() {
-    // // f transformer.put(Enum.class, new EnumTransformer());
-    // }
-
     @Override
     public void put(String key, Boolean value) throws StorageException {
         map.put(key, value);
@@ -109,18 +104,16 @@ public class JacksonStorageChest extends Storage {
     @Override
     public void save() throws StorageException {
         // can reuse, share globally
-
         try {
             String json = ConfigInterface.getMapper().writeValueAsString(map);
             ConfigInterface.saveTo("cfg/" + name + ".ejs", json);
         } catch (JsonGenerationException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         } catch (JsonMappingException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         } catch (IOException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         }
-
     }
 
     @Override
@@ -128,21 +121,11 @@ public class JacksonStorageChest extends Storage {
         map.clear();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.Storage#put(java.lang.String, java.lang.Double)
-     */
     @Override
     public void put(String key, Double value) throws StorageException {
         map.put(key, value);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.Storage#put(java.lang.String, java.lang.Float)
-     */
     @Override
     public void put(String key, Float value) throws StorageException {
         map.put(key, value);

@@ -16,10 +16,9 @@ import org.appwork.utils.swing.EDTHelper;
 
 /**
  * ExtColums define a single column of an extended Table. It contains all
- * columdetails including renderer
+ * columndetails including renderer
  * 
  * @author $Author: unknown$
- * 
  */
 public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
 
@@ -27,11 +26,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     protected static Color backgroundselected = null;
 
     protected static Color foreground = null;
-
     protected static Color foregroundselected = null;
-    /**
-     * 
-     */
+
     private static final long serialVersionUID = -2662459732650363059L;
     /**
      * If this colum is editable, this parameter says how many clicks are
@@ -73,8 +69,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
         this.headerrenderer = new ExtTableCellHeaderRenderer(this);
         // sort function
-        rowSorter = new ExtDefaultRowSorter<E>();
-
+        this.rowSorter = new ExtDefaultRowSorter<E>();
     }
 
     public boolean isDefaultVisible() {
@@ -171,35 +166,19 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return name;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * javax.swing.table.TableCellEditor#getTableCellEditorComponent(javax.swing
-     * .JTable, java.lang.Object, boolean, int, int)
-     */
-
     @SuppressWarnings("unchecked")
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        // TODO Auto-generated method stub
         return ((ExtTable<E>) table).getLafCellEditor(row, column).getTableCellEditorComponent(table, value, isSelected, row, column);
     }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax
-     * .swing.JTable, java.lang.Object, boolean, boolean, int, int)
-     */
 
     @SuppressWarnings("unchecked")
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         return ((ExtTable<E>) table).getLafCellRenderer(row, column).getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     }
 
+    @Override
     public boolean isCellEditable(EventObject evt) {
-        if (evt instanceof MouseEvent) { return ((MouseEvent) evt).getClickCount() >= clickcount && clickcount > 0; }
+        if (evt instanceof MouseEvent) return ((MouseEvent) evt).getClickCount() >= clickcount && clickcount > 0;
         return true;
     }
 
@@ -278,6 +257,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         setValue(value, obj);
     }
 
+    @Override
     public boolean shouldSelectCell(EventObject anEvent) {
         return true;
     }
@@ -288,7 +268,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public TableCellRenderer getHeaderRenderer() {
-        // TODO Auto-generated method stub
         return headerrenderer;
     }
 
@@ -316,7 +295,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public int getDefaultWidth() {
-        // TODO Auto-generated method stub
         return 100;
     }
 
@@ -324,7 +302,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public int getMinWidth() {
-        // TODO Auto-generated method stub
         return 0;
     }
 

@@ -10,7 +10,6 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.AWTException;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -53,8 +52,6 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
     protected JButton okButton;
 
     protected JComponent panel;
-
-    protected static Color BACKGROUND_COLOR = new Color(0xeae9d7);
 
     protected int flagMask;
 
@@ -253,7 +250,6 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
      * @return
      */
     protected JPanel getDefaultButtonPanel() {
-        // TODO Auto-generated method stub
         return new JPanel(new MigLayout("ins 0", "[fill,grow]", "[fill,grow]"));
     }
 
