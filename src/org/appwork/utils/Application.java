@@ -34,10 +34,13 @@ public class Application {
     /**
      * Detects if the Application runs out of a jar or not.
      * 
+     * @param rootOfClazz
+     * 
      * @return
      */
-    public static boolean isJared() {
-        String caller = (Thread.currentThread().getContextClassLoader().getResource("org/appwork") + "");
+    public static boolean isJared(Class<?> rootOfClazz) {
+        String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";
+        String caller = (Thread.currentThread().getContextClassLoader().getResource(name) + "");
         return caller.matches("jar\\:.*\\.jar\\!.*");
     }
 
@@ -67,7 +70,7 @@ public class Application {
      */
     public static String getRoot(Class<?> rootOfClazz) {
         if (ROOT != null) return ROOT;
-        if (isJared()) {
+        if (isJared(rootOfClazz)) {
             // this is the jar file
             String loc;
             try {
