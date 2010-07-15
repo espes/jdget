@@ -25,6 +25,10 @@ public class ConfigInterface {
     static {
 
         MAPPER.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // TODO GP
+        // MAPPER.getSerializationConfig().set(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS,
+        // false);
+
     }
 
     static final byte[] KEY = new byte[] { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };
