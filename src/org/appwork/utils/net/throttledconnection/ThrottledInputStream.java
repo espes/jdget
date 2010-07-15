@@ -85,7 +85,6 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
                 timeForCheckStep = System.currentTimeMillis();
                 lastRead = in.read(b, offset, todo);
                 timeCheck = (int) (System.currentTimeMillis() - timeForCheckStep);
-                if (lastRead == -1) break;
                 if (timeCheck > 1000) {
                     /* we want 2 update per second */
                     checkStep = Math.max(LOWStep, (todo / timeCheck) * 500);
@@ -95,6 +94,7 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
                     // checkStep = Math.min(HIGHStep, checkStep + 1024);
                 }
             }
+            if (lastRead == -1) break;
             lastRead2 += lastRead;
             increase(lastRead);
             rest -= lastRead;
