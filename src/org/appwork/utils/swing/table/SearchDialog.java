@@ -87,7 +87,7 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
             caseSensitive.addActionListener(saveListener);
             regularExpression.addActionListener(saveListener);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
+            
             org.appwork.utils.logging.Log.exception(e);
         }
         caseSensitive.setVisible(BinaryLogic.containsNone(flag, NO_CASE_FLAG));
@@ -195,7 +195,7 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
 
     @Override
     public void focusGained(FocusEvent e) {
-        // TODO Auto-generated method stub
+        
 
     }
 
@@ -240,12 +240,12 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
     }
 
     public boolean isCaseSensitive() {
-        // TODO Auto-generated method stub
+        
         return this.caseSensitive.isSelected();
     }
 
     public boolean isRegex() {
-        // TODO Auto-generated method stub
+        
         return this.regularExpression.isSelected();
     }
 
@@ -256,7 +256,7 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
      */
     @Override
     public void keyPressed(KeyEvent e) {
-        // TODO Auto-generated method stub
+        
 
     }
 
@@ -267,7 +267,7 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
      */
     @Override
     public void keyReleased(KeyEvent e) {
-        // TODO Auto-generated method stub
+        
 
     }
 
@@ -278,7 +278,7 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
      */
     @Override
     public void keyTyped(KeyEvent e) {
-        // TODO Auto-generated method stub
+        
 
     }
 

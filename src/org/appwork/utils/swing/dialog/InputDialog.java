@@ -83,7 +83,7 @@ public class InputDialog extends AbstractDialog implements KeyListener, MouseLis
 
     public String getReturnID() {
         if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
-        if (input == null || input.getText() == null || input.getText().equals("")) return null;
+        if (input == null || input.getText() == null) return null;
         return input.getText();
     }
 

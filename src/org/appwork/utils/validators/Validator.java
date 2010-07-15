@@ -7,7 +7,7 @@ public class Validator {
      * @return
      */
     public static boolean isEmail(String mail) {
-        // TODO Auto-generated method stub
+        
         return false;
     }
 

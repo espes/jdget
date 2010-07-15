@@ -67,7 +67,7 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             valueConverter = new ValueConverter() {
 
                 public String toString(long value) {
-                    // TODO Auto-generated method stub
+                    
                     return (value * faktor) + "";
                 }
 
@@ -102,7 +102,7 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             editable.addFocusListener(new FocusListener() {
 
                 public void focusGained(FocusEvent e) {
-                    // TODO Auto-generated method stub
+                    
 
                 }
 
@@ -115,7 +115,7 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             editable.addKeyListener(new KeyListener() {
 
                 public void keyPressed(KeyEvent e) {
-                    // TODO Auto-generated method stub
+                    
 
                 }
 
@@ -127,7 +127,7 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
                 }
 
                 public void keyTyped(KeyEvent e) {
-                    // TODO Auto-generated method stub
+                    
 
                 }
 

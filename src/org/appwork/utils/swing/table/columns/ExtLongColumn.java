@@ -46,31 +46,31 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
 
     @Override
     public Object getCellEditorValue() {
-        // TODO Auto-generated method stub
+        
         return null;
     }
 
     @Override
     public boolean isEditable(E obj) {
-        // TODO Auto-generated method stub
+        
         return false;
     }
 
     @Override
     public boolean isEnabled(E obj) {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 
     @Override
     public boolean isSortable(Object obj) {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 
     @Override
     public void setValue(Object value, E object) {
-        // TODO Auto-generated method stub
+        
 
     }
 

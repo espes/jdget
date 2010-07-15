@@ -47,7 +47,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      */
     @Override
     public Object getCellEditorValue() {
-        // TODO Auto-generated method stub
+        
         return null;
     }
 
@@ -60,7 +60,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      */
     @Override
     public boolean isEditable(E obj) {
-        // TODO Auto-generated method stub
+        
         return false;
     }
 
@@ -73,7 +73,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      */
     @Override
     public boolean isEnabled(E obj) {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 
@@ -86,7 +86,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      */
     @Override
     public boolean isSortable(E obj) {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 
@@ -99,7 +99,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      */
     @Override
     public void setValue(Object value, E object) {
-        // TODO Auto-generated method stub
+        
 
     }
 

@@ -23,7 +23,7 @@ public class BasicProxySelector extends DefaultProxySelector {
      */
     @Override
     public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-        // TODO Auto-generated method stub
+        
         throw new IllegalArgumentException("Connections to " + uri + " is not possible. Wrong Proxy?");
     }
 
@@ -31,7 +31,7 @@ public class BasicProxySelector extends DefaultProxySelector {
      * @return
      */
     public static ProxySelector getInstance() {
-        // TODO Auto-generated method stub
+        
         return INSTANCE;
     }
 

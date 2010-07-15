@@ -284,7 +284,7 @@ public class Loc {
      * @return
      */
     public static String getLocale() {
-        // TODO Auto-generated method stub
+        
         return locale;
     }
 

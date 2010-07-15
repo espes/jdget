@@ -52,7 +52,7 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
 
             regularExpression.setSelected(ConfigInterface.getStorage("SearchDialog").get("regularExpression", false));
         } catch (Exception e) {
-            // TODO Auto-generated catch block
+            
             org.appwork.utils.logging.Log.exception(e);
         }
         this.message = message;
@@ -99,7 +99,7 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
 
             ConfigInterface.getStorage("SearchDialog").put("regularExpression", this.regularExpression.isSelected());
         } catch (Exception e) {
-            // TODO Auto-generated catch block
+            
             org.appwork.utils.logging.Log.exception(e);
         }
         return input.getText();
@@ -132,12 +132,12 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
     }
 
     public boolean isCaseSensitive() {
-        // TODO Auto-generated method stub
+        
         return this.caseSensitive.isSelected();
     }
 
     public boolean isRegex() {
-        // TODO Auto-generated method stub
+        
         return this.regularExpression.isSelected();
     }
 

@@ -150,7 +150,7 @@ public class ProgressDialog extends AbstractDialog {
                 try {
                     getter.run();
                 } catch (Exception e) {
-                    // TODO Auto-generated catch block
+                    
                     setReturnmask(false);
                 } finally {
                     dispose();

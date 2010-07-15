@@ -19,7 +19,7 @@ public class LogEvent extends Event {
 
     public LogEvent(Object caller, int eventID, Object parameter) {
         super(caller, eventID, parameter);
-        // TODO Auto-generated constructor stub
+        
     }
 
 }

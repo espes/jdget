@@ -79,7 +79,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
      * @return
      */
     protected Icon getIcon(E value) {
-        // TODO Auto-generated method stub
+        
         return null;
     }
 
@@ -95,13 +95,13 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     @Override
     public boolean isEnabled(E obj) {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 
     @Override
     public boolean isSortable(E obj) {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 

@@ -47,7 +47,7 @@ public class LogToFileHandler extends java.util.logging.Handler {
         try {
             writer.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
+            
             org.appwork.utils.logging.Log.exception(e);
         }
     }
@@ -56,7 +56,7 @@ public class LogToFileHandler extends java.util.logging.Handler {
         try {
             writer.flush();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
+            
             org.appwork.utils.logging.Log.exception(e);
         }
     }
@@ -67,7 +67,7 @@ public class LogToFileHandler extends java.util.logging.Handler {
             try {
                 writer.write(this.getFormatter().format(logRecord));
             } catch (IOException e) {
-                // TODO Auto-generated catch block
+                
                 org.appwork.utils.logging.Log.exception(e);
             }
 

@@ -109,7 +109,7 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
     }
 
     public String getTooltip(Object value) {
-        // TODO Auto-generated method stub
+        
         return null;
     }
 
@@ -119,7 +119,7 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
 
     @Override
     public boolean isEnabled(Object obj) {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 

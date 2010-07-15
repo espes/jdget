@@ -63,7 +63,7 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
      * 
      */
     protected void init() {
-        // TODO Auto-generated method stub
+        
 
     }
 
@@ -83,25 +83,25 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
 
     @Override
     public boolean isEditable(E obj) {
-        // TODO Auto-generated method stub
+        
         return false;
     }
 
     @Override
     public boolean isEnabled(E obj) {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 
     @Override
     public boolean isSortable(E obj) {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 
     @Override
     public void setValue(Object value, E object) {
-        // TODO Auto-generated method stub
+        
 
     }
 
@@ -121,7 +121,7 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
      * @return
      */
     protected String setText(E value, String badDateText2) {
-        // TODO Auto-generated method stub
+        
         return badDateText2;
     }
 
