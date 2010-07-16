@@ -120,7 +120,7 @@ public class ProgressDialog extends AbstractDialog {
         bar.setStringPainted(true);
 
         updater = new Timer(50, new ActionListener() {
-            @Override
+
             public void actionPerformed(ActionEvent e) {
                 if (getter != null) {
                     final int prg = getter.getProgress();
@@ -150,7 +150,7 @@ public class ProgressDialog extends AbstractDialog {
                 try {
                     getter.run();
                 } catch (Exception e) {
-                    
+
                     setReturnmask(false);
                 } finally {
                     dispose();

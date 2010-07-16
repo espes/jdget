@@ -164,7 +164,6 @@ public class ExtTable<E> extends JTable {
 
         this.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
-            @Override
             public void valueChanged(ListSelectionEvent e) {
                 ArrayList<E> sel = getExtTableModel().getSelectedObjects();
                 if (sel != null && sel.size() == 0) sel = null;

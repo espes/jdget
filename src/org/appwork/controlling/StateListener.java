@@ -12,7 +12,6 @@ public abstract class StateListener implements StateEventListener {
 
     }
 
-    @Override
     public void onStateChange(StateEvent event) {
         if (event.getNewState() == state) onStateReached(event);
     }
@@ -22,9 +21,7 @@ public abstract class StateListener implements StateEventListener {
      */
     public abstract void onStateReached(StateEvent event);
 
-    @Override
     public void onStateUpdate(StateEvent event) {
-        
 
     }
 

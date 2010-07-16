@@ -62,7 +62,6 @@ public enum Tl8 implements Translate {
         this.defaultTranslation = defaultString;
     }
 
-    @Override
     public String s() {
         return toString();
     }

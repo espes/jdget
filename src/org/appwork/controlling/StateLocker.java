@@ -69,7 +69,6 @@ public class StateLocker implements StateEventListener {
         return ++counter;
     }
 
-    @Override
     public void onStateChange(StateEvent event) {
         if (event.getNewState() == waitState) {
             if (increaseCounter() == stateMachines.length) {
@@ -92,9 +91,7 @@ public class StateLocker implements StateEventListener {
         }
     }
 
-    @Override
     public void onStateUpdate(StateEvent event) {
-        
 
     }
 

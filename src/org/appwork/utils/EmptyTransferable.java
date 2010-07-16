@@ -32,7 +32,7 @@ public class EmptyTransferable implements Transferable {
      * java.awt.datatransfer.Transferable#getTransferData(java.awt.datatransfer
      * .DataFlavor)
      */
-    @Override
+
     public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
         throw new UnsupportedFlavorException(flavor);
     }
@@ -42,7 +42,7 @@ public class EmptyTransferable implements Transferable {
      * 
      * @see java.awt.datatransfer.Transferable#getTransferDataFlavors()
      */
-    @Override
+
     public DataFlavor[] getTransferDataFlavors() {
         return new DataFlavor[] {};
     }
@@ -53,7 +53,7 @@ public class EmptyTransferable implements Transferable {
      * @seejava.awt.datatransfer.Transferable#isDataFlavorSupported(java.awt.
      * datatransfer.DataFlavor)
      */
-    @Override
+
     public boolean isDataFlavorSupported(DataFlavor flavor) {
         return false;
     }
