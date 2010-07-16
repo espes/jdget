@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -45,11 +46,13 @@ public class ProgressDialog extends AbstractDialog {
      * @param progressGetter
      * @param flags
      *            TODO
+     * @param icon
+     *            TODO
      * @param s
      * @param s2
      */
-    public ProgressDialog(ProgressGetter progressGetter, int flags, String title, String message) {
-        super(flags | Dialog.BUTTONS_HIDE_OK, title, null, null, null);
+    public ProgressDialog(ProgressGetter progressGetter, int flags, String title, String message, ImageIcon icon) {
+        super(flags | Dialog.BUTTONS_HIDE_OK, title, icon, null, null);
         this.message = message;
         this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         getter = progressGetter;
@@ -114,6 +117,7 @@ public class ProgressDialog extends AbstractDialog {
     public JComponent layoutDialogContent() {
 
         JPanel p = new JPanel(new MigLayout("ins 0"));
+
         p.add(getTextfield(), "growx,pushx");
         final JProgressBar bar;
         p.add(bar = new JProgressBar(0, 100), "growx,pushx,newline");
