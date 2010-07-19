@@ -16,8 +16,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
@@ -40,54 +38,49 @@ import org.appwork.storage.ConfigInterface;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.Tl8;
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.SwingUtils;
 import org.appwork.utils.swing.dialog.Dialog;
 
-public abstract class SearchDialog extends JDialog implements KeyListener, WindowListener, ActionListener, FocusListener {
+public abstract class SearchDialog extends JDialog implements WindowListener, ActionListener, FocusListener {
 
     private static final long serialVersionUID = 9206575398715006581L;
 
     public static final int NO_REGEX_FLAG = 1 << 0;
-
     public static final int NO_CASE_FLAG = 1 << 1;
 
-    private JTextComponent input;
+    private final ExtTable<?> owner;
+    private final JTextComponent input;
+    private final JCheckBox caseSensitive;
+    private final JCheckBox regularExpression;
+    private final JButton okButton;
 
-    private JCheckBox caseSensitive;
+    public SearchDialog(int flag, final ExtTable<?> owner) throws IOException {
+        super(Dialog.getInstance().getParentOwner(), Tl8.EXTTABLE_SEARCH_DIALOG_TITLE.toString());
 
-    private JCheckBox regularExpression;
-
-    private JButton okButton;
-
-    private ExtTable<?> owner;
-
-    public SearchDialog(int flag, ExtTable<?> extTable) throws IOException {
-        super(Dialog.getInstance().getParentOwner());
-
-        owner = extTable;
-        setTitle(Tl8.EXTTABLE_SEARCH_DIALOG_TITLE.toString());
+        this.owner = owner;
+        this.owner.addFocusListener(this);
 
         this.caseSensitive = new JCheckBox(Tl8.SEARCHDIALOG_CHECKBOX_CASESENSITIVE.toString());
         this.regularExpression = new JCheckBox(Tl8.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.toString());
 
         try {
             caseSensitive.setSelected(ConfigInterface.getStorage("SearchDialog_" + owner.getTableID()).get("caseSensitive", false));
-
             regularExpression.setSelected(ConfigInterface.getStorage("SearchDialog_" + owner.getTableID()).get("regularExpression", false));
+
             ActionListener saveListener = new ActionListener() {
 
                 public void actionPerformed(ActionEvent e) {
                     ConfigInterface.getStorage("SearchDialog_" + owner.getTableID()).put("caseSensitive", caseSensitive.isSelected());
                     ConfigInterface.getStorage("SearchDialog_" + owner.getTableID()).put("regularExpression", regularExpression.isSelected());
-
                 }
 
             };
+
             caseSensitive.addActionListener(saveListener);
             regularExpression.addActionListener(saveListener);
         } catch (Exception e) {
-
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         }
         caseSensitive.setVisible(BinaryLogic.containsNone(flag, NO_CASE_FLAG));
         regularExpression.setVisible(BinaryLogic.containsNone(flag, NO_REGEX_FLAG));
@@ -97,7 +90,6 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
 
         this.addWindowListener(this);
         okButton = new JButton(Tl8.SEARCHDIALOG_BUTTON_FIND.toString());
-
         okButton.addActionListener(this);
 
         add(new JLabel(ImageProvider.getImageIcon("find", 32, 32)), "alignx left,aligny center,shrinkx,gapright 10,spany");
@@ -105,14 +97,12 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
         input = new JTextField();
         input.setBorder(BorderFactory.createEtchedBorder());
 
-        input.addKeyListener(this);
-
         add(input, "pushy,growy,spanx,wrap");
 
         input.selectAll();
 
-        add(regularExpression, "");
-        add(caseSensitive, "");
+        add(regularExpression);
+        add(caseSensitive);
         add(okButton, "skip 2,alignx right,wrap");
 
         // pack dialog
@@ -122,12 +112,10 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
 
         this.toFront();
 
-        // this.setSize(new Dimension(400, 200));
         if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isDisplayable() || !Dialog.getInstance().getParentOwner().isVisible()) {
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
             this.setLocation(new Point((int) (screenSize.getWidth() - this.getWidth()) / 2, (int) (screenSize.getHeight() - this.getHeight()) / 2));
-
         } else if ((Dialog.getInstance().getParentOwner().getExtendedState() == JFrame.ICONIFIED)) {
             // dock dialog at bottom right if mainframe is not visible
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -152,23 +140,19 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
 
         });
 
-        AbstractAction enterAction = new AbstractAction() {
+        ks = KeyStroke.getKeyStroke("ENTER");
+        okButton.getInputMap().put(ks, "ENTER");
+        okButton.getInputMap(JButton.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ENTER");
+        okButton.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(ks, "ENTER");
+        okButton.getActionMap().put("ENTER", new AbstractAction() {
 
-            /**
-             * 
-             */
             private static final long serialVersionUID = -1331741306700505613L;
 
             public void actionPerformed(ActionEvent e) {
                 okButton.doClick();
             }
 
-        };
-        ks = KeyStroke.getKeyStroke("ENTER");
-        okButton.getInputMap().put(ks, "ENTER");
-        okButton.getInputMap(JButton.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ENTER");
-        okButton.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(ks, "ENTER");
-        okButton.getActionMap().put("ENTER", enterAction);
+        });
 
         this.setVisible(true);
 
@@ -193,7 +177,6 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
     }
 
     public void focusGained(FocusEvent e) {
-
     }
 
     public void focusLost(FocusEvent e) {
@@ -208,7 +191,6 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
     }
 
     public void windowClosing(WindowEvent arg0) {
-
         close();
     }
 
@@ -231,56 +213,16 @@ public abstract class SearchDialog extends JDialog implements KeyListener, Windo
     }
 
     public String getReturnID() {
-
         return input.getText();
     }
 
     public boolean isCaseSensitive() {
-
         return this.caseSensitive.isSelected();
     }
 
     public boolean isRegex() {
-
         return this.regularExpression.isSelected();
     }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.awt.event.KeyListener#keyPressed(java.awt.event.KeyEvent)
-     */
-
-    public void keyPressed(KeyEvent e) {
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.awt.event.KeyListener#keyReleased(java.awt.event.KeyEvent)
-     */
-
-    public void keyReleased(KeyEvent e) {
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.awt.event.KeyListener#keyTyped(java.awt.event.KeyEvent)
-     */
-
-    public void keyTyped(KeyEvent e) {
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
 
     abstract public void actionPerformed(ActionEvent e);
 

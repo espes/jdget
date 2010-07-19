@@ -440,8 +440,6 @@ public class ExtTable<E> extends JTable {
                     }
 
                 };
-
-                addFocusListener(searchDialog);
             }
         } catch (IOException e) {
             Log.exception(e);
