@@ -78,6 +78,7 @@ public class ComboBoxDialog extends AbstractDialog {
         textpane.setBorder(null);
         textpane.setBackground(null);
         textpane.setOpaque(false);
+        textpane.putClientProperty("Synthetica.opaque", Boolean.FALSE);
         textpane.setText(this.message);
         textpane.setEditable(false);
 
