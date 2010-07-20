@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.Locale;
 
 import org.appwork.storage.ConfigInterface;
 import org.appwork.storage.Storage;
@@ -140,11 +141,15 @@ public class Loc {
             locale = loc;
             if (file != null && file.exists()) {
 
+                String[] locs = loc.split("_");
+                Locale.setDefault(new Locale(locs[0], locs[1]));
                 CFG.put(PROPERTY_LOCALE, loc);
                 Loc.parseLocalization(file);
             } else {
                 Log.L.info("The language " + loc + " isn't available! Parsing default (" + FALLBACK_LOCALE + ".loc) one!");
                 locale = getDefaultLocale();
+                String[] locs = locale.split("_");
+                Locale.setDefault(new Locale(locs[0], locs[1]));
                 Loc.parseLocalization(DEFAULT_LOCALIZATION);
             }
         } catch (Exception e) {
@@ -284,7 +289,7 @@ public class Loc {
      * @return
      */
     public static String getLocale() {
-        
+
         return locale;
     }
 
