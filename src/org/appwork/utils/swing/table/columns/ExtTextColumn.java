@@ -70,6 +70,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
         label.setToolTipText(getToolTip((E) value));
         label.setEnabled(isEnabled((E) value));
         label.setIcon(getIcon((E) value));
+
         return label;
 
     }
@@ -79,7 +80,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
      * @return
      */
     protected Icon getIcon(E value) {
-        
+
         return null;
     }
 
@@ -95,13 +96,13 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     @Override
     public boolean isEnabled(E obj) {
-        
+
         return true;
     }
 
     @Override
     public boolean isSortable(E obj) {
-        
+
         return true;
     }
 
