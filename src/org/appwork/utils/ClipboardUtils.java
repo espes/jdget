@@ -135,6 +135,7 @@ public class ClipboardUtils {
     @SuppressWarnings("unchecked")
     public static ArrayList<File> getFiles(TransferSupport info) {
         ArrayList<File> files = new ArrayList<File>();
+        String verbose = null;
         if (info != null) {
             try {
                 if (info.isDataFlavorSupported(fileListFlavor)) {
@@ -145,12 +146,15 @@ public class ClipboardUtils {
                 } else if (uriListFlavor != null && info.isDataFlavorSupported(uriListFlavor)) {
                     StringTokenizer izer = new StringTokenizer((String) info.getTransferable().getTransferData(uriListFlavor), "\r\n");
                     while (izer.hasMoreTokens()) {
-                        URI fi = new URI(izer.nextToken());
+                        String token = izer.nextToken();
+                        URI fi = new URI(token);
+                        verbose = fi.toString() + " " + token;
                         File f = new File(fi.getPath());
                         if (f.exists()) files.add(f);
                     }
                 }
             } catch (Exception e) {
+                Log.L.severe(verbose);
                 Log.exception(e);
             }
         }

@@ -88,7 +88,7 @@ public class SingleAppInstance {
                     BufferedInputStream in = new BufferedInputStream(runninginstance.getInputStream());
                     OutputStream out = runninginstance.getOutputStream();
                     String response = readLine(in);
-                    if (!response.equalsIgnoreCase(SINGLEAPP)) {
+                    if (response == null || !response.equalsIgnoreCase(SINGLEAPP)) {
                         /* invalid server response */
                         return false;
                     }
@@ -240,7 +240,7 @@ public class SingleAppInstance {
                         OutputStream out = client.getOutputStream();
                         writeLine(out, SINGLEAPP);
                         String line = readLine(in);
-                        if (line.length() > 0) {
+                        if (line != null && line.length() > 0) {
                             final int lines = Integer.parseInt(line);
                             if (lines != 0) {
                                 final String[] message = new String[lines];
