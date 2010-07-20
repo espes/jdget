@@ -146,9 +146,10 @@ public class ClipboardUtils {
                 } else if (uriListFlavor != null && info.isDataFlavorSupported(uriListFlavor)) {
                     StringTokenizer izer = new StringTokenizer((String) info.getTransferable().getTransferData(uriListFlavor), "\r\n");
                     while (izer.hasMoreTokens()) {
-                        String token = izer.nextToken();
+                        String token = izer.nextToken().trim();
+                        verbose = token + " ";
                         URI fi = new URI(token);
-                        verbose = fi.toString() + " " + token;
+                        verbose = verbose + fi.toString();
                         File f = new File(fi.getPath());
                         if (f.exists()) files.add(f);
                     }
