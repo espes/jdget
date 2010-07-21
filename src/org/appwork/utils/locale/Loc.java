@@ -142,7 +142,11 @@ public class Loc {
             if (file != null && file.exists()) {
 
                 String[] locs = loc.split("_");
-                Locale.setDefault(new Locale(locs[0], locs[1]));
+                if (locs.length == 1) {
+                    Locale.setDefault(new Locale(locs[0]));
+                } else {
+                    Locale.setDefault(new Locale(locs[0], locs[1]));
+                }
                 CFG.put(PROPERTY_LOCALE, loc);
                 Loc.parseLocalization(file);
             } else {
