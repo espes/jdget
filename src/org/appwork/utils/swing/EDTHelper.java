@@ -27,19 +27,20 @@ public abstract class EDTHelper<T> implements Runnable {
      * flag. If Runnable has terminated yet
      */
     private boolean done = false;
+
+    /**
+     * flag, has runnable already started, invoked in edt
+     */
+    private boolean started = false;
     /**
      * lock used for EDT waiting
      */
     private Object lock = new Object();
+
     /**
      * Stores The returnvalue. This Value if of the Generic Datatype T
      */
     private T returnValue;
-
-    /**
-     * flag. If Runnable has started yet
-     */
-    private boolean started = false;
 
     /**
      * Implement this method. Gui code should be used ONLY in this Method.
@@ -61,17 +62,12 @@ public abstract class EDTHelper<T> implements Runnable {
     }
 
     /**
-     * @return the {@link EDTHelper#started}
-     * @see EDTHelper#started
-     */
-    public boolean isStarted() {
-        return started;
-    }
-
-    /**
      * Run the runnable
      */
     public void run() {
+        synchronized (lock) {
+            started = true;
+        }
         try {
             this.returnValue = this.edtRun();
         } catch (Exception e) {
@@ -79,34 +75,30 @@ public abstract class EDTHelper<T> implements Runnable {
         }
         synchronized (lock) {
             lock.notify();
-            lock = null;
         }
+        done = true;
     }
 
     /**
-     * @param started
-     *            the {@link EDTHelper#started} to set
-     * @see EDTHelper#started
+     * starts the runnable
+     * 
+     * returns true in case we are in EDT or false if it got invoked later
      */
-    public void setStarted(boolean started) {
-        this.started = started;
-    }
-
-    /**
-     * Startes the Runnable and enqueues it to the EDT.
-     */
-    public void start() {
-        setStarted(true);
-        if (SwingUtilities.isEventDispatchThread()) {
+    public boolean start(boolean invokeLater) {
+        synchronized (lock) {
+            started = true;
+        }
+        if (!invokeLater && SwingUtilities.isEventDispatchThread()) {
             run();
+            return true;
         } else {
             SwingUtilities.invokeLater(this);
+            return false;
         }
     }
 
-    public void invokeLater() {
-        setStarted(true);
-        SwingUtilities.invokeLater(this);
+    public boolean start() {
+        return start(false);
     }
 
     /**
@@ -115,20 +107,22 @@ public abstract class EDTHelper<T> implements Runnable {
      */
     public void waitForEDT() {
         if (done) return;
-        if (!isStarted()) start();
-        if (!SwingUtilities.isEventDispatchThread()) {
-            if (lock != null) {
+        boolean waitForFinish = true;
+        synchronized (lock) {
+            if (started == false) {
+                waitForFinish = !start(false);
+            }
+        }
+        if (waitForFinish) {
+            while (!done) {
                 synchronized (lock) {
                     try {
-                        if (lock != null) {
-                            lock.wait();
-                        }
+                        lock.wait(1000);
                     } catch (InterruptedException e) {
                     }
                 }
             }
         }
-        done = true;
     }
 
 }
