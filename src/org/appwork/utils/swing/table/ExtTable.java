@@ -29,6 +29,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
+import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -113,8 +114,26 @@ public class ExtTable<E> extends JTable {
         this.tableID = id;
         rowHighlighters = new ArrayList<ExtRowHighlighter>();
         this.model = model;
+        setColumnModel(new DefaultTableColumnModel() {
 
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public TableColumn getColumn(int columnIndex) {
+                /*
+                 * Math.max(0, columnIndex)
+                 * 
+                 * WORKAROUND for -1 column access,Index out of Bound,Unknown
+                 * why it happens but this workaround seems to do its job
+                 */
+                return (TableColumn) tableColumns.elementAt(Math.max(0, columnIndex));
+            }
+        });
         model.setTable(this);
+        createColumns();
         // get defaultbackground and Foregroundcolors
         Component c = super.getCellRenderer(0, 0).getTableCellRendererComponent(this, "", true, false, 0, 0);
         columnBackgroundSelected = c.getBackground();
@@ -123,7 +142,6 @@ public class ExtTable<E> extends JTable {
         c = super.getCellRenderer(0, 0).getTableCellRendererComponent(this, "", false, false, 0, 0);
         columnBackground = c.getBackground();
         columnForeground = c.getForeground();
-        createColumns();
 
         // Mouselistener for columnselection Menu and sort on click
         getTableHeader().addMouseListener(new MouseAdapter() {
@@ -578,7 +596,6 @@ public class ExtTable<E> extends JTable {
      * Creates the columns based on the model
      */
     private void createColumns() {
-        setAutoCreateColumnsFromModel(false);
         TableColumnModel tcm = getColumnModel();
 
         while (tcm.getColumnCount() > 0) {
@@ -752,6 +769,12 @@ public class ExtTable<E> extends JTable {
     public ExtColumn<E> getExtColumnAtPoint(Point point) {
         int x = getExtColumnIndexByPoint(point);
         return getExtTableModel().getExtColumn(x);
+    }
+
+    /* we do always create columsn ourself */
+    @Override
+    public boolean getAutoCreateColumnsFromModel() {
+        return false;
     }
 
 }

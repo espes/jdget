@@ -200,7 +200,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public TableCellEditor getCelleditorByColumn(int columnIndex) {
-        return columns.get(columnIndex);
+        /*
+         * Math.max(0, columnIndex)
+         * 
+         * WORKAROUND for -1 column access,Index out of Bound,Unknown why it
+         * happens but this workaround seems to do its job
+         */
+        return columns.get(Math.max(0, columnIndex));
     }
 
     /**
@@ -210,7 +216,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public ExtColumn<E> getCellrendererByColumn(int columnIndex) {
-        return columns.get(columnIndex);
+        /*
+         * Math.max(0, columnIndex)
+         * 
+         * WORKAROUND for -1 column access,Index out of Bound,Unknown why it
+         * happens but this workaround seems to do its job
+         */
+        return columns.get(Math.max(0, columnIndex));
     }
 
     @Override
@@ -231,7 +243,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     @Override
     public String getColumnName(int column) {
-        return columns.get(column).getName();
+        /*
+         * Math.max(0, columnIndex)
+         * 
+         * WORKAROUND for -1 column access,Index out of Bound,Unknown why it
+         * happens but this workaround seems to do its job
+         */
+        return columns.get(Math.max(0, column)).getName();
     }
 
     /**
@@ -241,7 +259,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public ExtColumn<E> getExtColumn(int columnIndex) {
-        return columns.get(columnIndex);
+        return columns.get(Math.max(0, columnIndex));
     }
 
     /**

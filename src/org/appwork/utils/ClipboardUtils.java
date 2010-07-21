@@ -127,7 +127,7 @@ public class ClipboardUtils {
                 links.addAll(HTMLParser.findUrls(content));
             }
         } catch (Exception e) {
-            Log.exception(e);
+            Log.L.info(e.getMessage());
         }
         return links;
     }
