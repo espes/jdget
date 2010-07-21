@@ -135,6 +135,7 @@ public class ExtTable<E> extends JTable {
                     if (e.getButton() == MouseEvent.BUTTON1) {
                         if (columnPressed != columnAtPoint(e.getPoint())) return;
                         int col = getExtColumnIndexByPoint(e.getPoint());
+                        if (col == -1) return;
                         if (getExtTableModel().getExtColumn(col).isSortable(null)) getExtTableModel().getExtColumn(col).doSort(null);
                     }
                 }
@@ -158,7 +159,7 @@ public class ExtTable<E> extends JTable {
             @Override
             public void mouseMoved(MouseEvent e) {
                 int col = getExtColumnIndexByPoint(e.getPoint());
-                getTableHeader().setToolTipText(getExtTableModel().getExtColumn(col).getName());
+                if (col >= 0) getTableHeader().setToolTipText(getExtTableModel().getExtColumn(col).getName());
             }
         });
 
@@ -579,6 +580,7 @@ public class ExtTable<E> extends JTable {
     private void createColumns() {
         setAutoCreateColumnsFromModel(false);
         TableColumnModel tcm = getColumnModel();
+
         while (tcm.getColumnCount() > 0) {
             tcm.removeColumn(tcm.getColumn(0));
         }
@@ -612,7 +614,6 @@ public class ExtTable<E> extends JTable {
             try {
                 int w = ConfigInterface.getStorage("ExtTable_" + tableID).get("WIDTH_COL_" + model.getExtColumn(j).getID(), model.getExtColumn(j).getDefaultWidth());
                 tableColumn.setPreferredWidth(w);
-
                 if (!model.isVisible(i)) {
                     continue;
                 }
@@ -650,6 +651,7 @@ public class ExtTable<E> extends JTable {
                 break;
             }
         }
+
     }
 
     /**
