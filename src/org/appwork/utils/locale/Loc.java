@@ -89,7 +89,7 @@ public class Loc {
                 Log.L.severe("Error while loading the stored localization name!");
                 Loc.setLocale(FALLBACK_LOCALE);
             }
-            if (data == null) return "Error in Loc! No loaded data!";
+            if (data == null) return def == null ? "Error in Loc! No loaded data!" : def;
         }
 
         String loc = data.get(key.toLowerCase().hashCode());
@@ -283,6 +283,7 @@ public class Loc {
             }
 
         });
+        if (files == null) return new String[] {};
         for (int i = 0; i < files.length; i++) {
             files[i] = files[i].replace(".loc", "");
         }
