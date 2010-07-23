@@ -60,7 +60,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
     }
 
     public String getToolTip(E obj) {
-        return null;
+        return this.getStringValue(obj);
     }
 
     @SuppressWarnings("unchecked")
