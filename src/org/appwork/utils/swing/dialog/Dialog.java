@@ -417,20 +417,20 @@ public class Dialog {
 
     public File[] showFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final Integer dialogType, final File preSelection) {
         synchronized (this) {
-            UIManager.put("FileChooser.homeFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
-
-            UIManager.put("FileChooser.newFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.toString());
-
-            UIManager.put("FileChooser.upFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.toString());
-
-            UIManager.put("FileChooser.detailsViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.toString());
-            UIManager.put("FileChooser.listViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
 
             return new EDTHelper<File[]>() {
 
                 @Override
                 public File[] edtRun() {
                     try {
+                        UIManager.put("FileChooser.homeFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
+
+                        UIManager.put("FileChooser.newFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.toString());
+
+                        UIManager.put("FileChooser.upFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.toString());
+
+                        UIManager.put("FileChooser.detailsViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.toString());
+                        UIManager.put("FileChooser.listViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
 
                         JFileChooser fc = new JFileChooser();
 
