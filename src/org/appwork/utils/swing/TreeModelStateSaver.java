@@ -102,11 +102,19 @@ public class TreeModelStateSaver {
      * Restore the saved tree state
      */
     public void restore() {
-        restoreState(tree.getModel().getRoot(), new ArrayList<Object>());
-        if (selectedPathes != null && selectedPathes.length > 0) {
-            tree.getSelectionModel().clearSelection();
-            tree.getSelectionModel().setSelectionPaths(selectedPathes);
-        }
+        new EDTHelper<Object>() {
+
+            @Override
+            public Object edtRun() {
+                restoreState(tree.getModel().getRoot(), new ArrayList<Object>());
+                if (selectedPathes != null && selectedPathes.length > 0) {
+                    tree.getSelectionModel().clearSelection();
+                    tree.getSelectionModel().setSelectionPaths(selectedPathes);
+                }
+                return null;
+            }
+
+        }.start();
     }
 
     /**
@@ -117,18 +125,27 @@ public class TreeModelStateSaver {
         return selectedPathes;
     }
 
-    protected void restoreState(Object node, ArrayList<Object> path) {
-        if (node == null) return;
-        path.add(node);
-        treePath = new TreePath(path.toArray(new Object[] {}));
-        Boolean bo = expandCache.get(node);
-        if (bo != null && bo.booleanValue()) {
-            tree.expandPath(treePath);
-        }
+    protected void restoreState(final Object node, final ArrayList<Object> path) {
+        new EDTHelper<Object>() {
 
-        for (int i = 0; i < tree.getModel().getChildCount(node); i++) {
-            restoreState(tree.getModel().getChild(node, i), new ArrayList<Object>(path));
-        }
+            @Override
+            public Object edtRun() {
+                if (node == null) return null;
+                path.add(node);
+                treePath = new TreePath(path.toArray(new Object[] {}));
+                Boolean bo = expandCache.get(node);
+                if (bo != null && bo.booleanValue()) {
+                    tree.expandPath(treePath);
+                }
+
+                for (int i = 0; i < tree.getModel().getChildCount(node); i++) {
+                    restoreState(tree.getModel().getChild(node, i), new ArrayList<Object>(path));
+                }
+                return null;
+            }
+
+        }.start();
+
     }
 
 }
