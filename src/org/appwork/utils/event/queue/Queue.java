@@ -14,9 +14,11 @@ import java.util.HashMap;
 
 /**
  * @author daniel
+ * @param <D>
+ * @param <T>
  * 
  */
-public abstract class Queue<E extends QueueItem> extends Thread {
+public abstract class Queue extends Thread {
 
     public enum QueuePriority {
         HIGH,
@@ -24,21 +26,21 @@ public abstract class Queue<E extends QueueItem> extends Thread {
         LOW
     }
 
-    protected HashMap<QueuePriority, ArrayList<E>> queue = new HashMap<QueuePriority, ArrayList<E>>();
+    protected HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>> queue = new HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>>();
     protected final Object queueLock = new Object();
     protected boolean waitFlag = true;
-    protected E item = null;
+
     protected Thread thread = null;
     protected QueuePriority[] prios;
 
-    /*
+    /**
      * this functions returns true if the current running Thread is our
      * QueueThread OR the SourceQueueItem chain is rooted in current running
      * QueueItem
      */
-    public boolean isQueueThread(E item) {
+    public boolean isQueueThread(QueueAction<?, ? extends Throwable> item) {
         if (currentThread() == thread) return true;
-        QueueItem source = item.getSourceQueueItem();
+        QueueAction<?, ? extends Throwable> source = item.getSourceQueueItem();
         while (source != null) {
             if (source.gotStarted()) return true;
             source = source.getSourceQueueItem();
@@ -51,7 +53,7 @@ public abstract class Queue<E extends QueueItem> extends Thread {
         /* init queue */
         prios = QueuePriority.values();
         for (QueuePriority prio : prios) {
-            queue.put(prio, new ArrayList<E>());
+            queue.put(prio, new ArrayList<QueueAction<?, ? extends Throwable>>());
         }
         start();
     }
@@ -60,25 +62,56 @@ public abstract class Queue<E extends QueueItem> extends Thread {
         return waitFlag;
     }
 
-    public void add(E item) {
-        if (isQueueThread(item)) {
+    /**
+     * This method adds an action to the queue. if the caller is a queueaction
+     * itself, the action will be executed directly. In this case, this method
+     * can throw Exceptions. If the caller is not the QUeuethread, this method
+     * is not able to throw exceptions, but the exceptions are passed to the
+     * exeptionhandler method of the queueaction
+     * 
+     * @param <T>
+     * @param <E>
+     * @param item
+     * @throws T
+     */
+    public <E, T extends Throwable> void add(QueueAction<?, T> action) throws T {
+        if (isQueueThread(action)) {
             /*
              * call comes from current running item, so lets start item
              */
-            startItem(item);
+            startItem(action, false);
         } else {
             /* call does not come from current running item, so lets queue it */
-            internalAdd(item);
+            internalAdd(action);
         }
     }
 
-    public void enqueue(E item) {
-        internalAdd(item);
+    /**
+     * Only use this method if you can asure that the caller is NEVER the queue
+     * itself. if you are not sure use #add
+     * 
+     * @param <E>
+     * @param <T>
+     * @param action
+     * @throws T
+     */
+    public <E, T extends Throwable> void addAsynch(QueueAction<?, T> action) {
+        if (isQueueThread(action)) {
+            throw new RuntimeException("called addAsynch from the queue itself");
+        } else {
+
+            internalAdd(action);
+        }
+
     }
 
-    protected void internalAdd(E item) {
+    public void enqueue(QueueAction<?, ?> action) {
+        internalAdd(action);
+    }
+
+    protected void internalAdd(QueueAction<?, ?> action) {
         synchronized (queueLock) {
-            queue.get(item.getQueuePrio()).add(item);
+            queue.get(action.getQueuePrio()).add(action);
         }
         synchronized (this) {
             if (waitFlag) {
@@ -88,12 +121,13 @@ public abstract class Queue<E extends QueueItem> extends Thread {
         }
     }
 
-    public Object addWait(E item) throws Exception {
+    @SuppressWarnings("unchecked")
+    public <E, T extends Throwable> E addWait(QueueAction<E, T> item) throws T, InterruptedException {
         if (isQueueThread(item)) {
             /*
              * call comes from current running item, so lets start item
              */
-            startItem(item);
+            startItem(item, false);
         } else {
             /* call does not come from current running item, so lets queue it */
             internalAdd(item);
@@ -106,8 +140,15 @@ public abstract class Queue<E extends QueueItem> extends Thread {
 
             }
         }
-        if (item.gotKilled()) throw new Exception("Queue got killed!");
-        if (item.getException() != null) throw item.getException();
+        if (item.gotKilled()) { throw new InterruptedException("Queue got killed!"); }
+        if (item.getExeption() != null) {
+            if (item.getExeption() instanceof RuntimeException) {
+                throw (RuntimeException) item.getExeption();
+            } else {
+                throw (T) item.getExeption();
+            }
+
+        }
         return item.getResult();
     }
 
@@ -123,7 +164,7 @@ public abstract class Queue<E extends QueueItem> extends Thread {
     public void killQueue() {
         synchronized (queueLock) {
             for (QueuePriority prio : prios) {
-                for (QueueItem item : queue.get(prio)) {
+                for (QueueAction<?, ? extends Throwable> item : queue.get(prio)) {
                     /* kill item */
                     item.kill();
                     synchronized (item) {
@@ -140,7 +181,9 @@ public abstract class Queue<E extends QueueItem> extends Thread {
     public void run() {
         if (thread != null) return;
         thread = this;
+        QueueAction<?, ? extends Throwable> item = null;
         while (true) {
+            handlePreRun();
             synchronized (this) {
                 while (waitFlag) {
                     try {
@@ -163,21 +206,34 @@ public abstract class Queue<E extends QueueItem> extends Thread {
                 }
             }
             if (item == null || waitFlag) continue;
-            startItem(item);
+            try {
+                startItem(item, true);
+            } catch (Throwable e) {
+
+            }
         }
     }
 
+    /**
+     * Overwrite this to hook before a action execution
+     */
+    protected void handlePreRun() {
+        // TODO Auto-generated method stub
+
+    }
+
     /* if you override this, DON'T forget to notify item when its done! */
-    protected void startItem(E item) {
+    protected <T extends Throwable> void startItem(QueueAction<?, T> item, boolean callExceptionhandler) throws T {
         try {
             item.start(this);
-        } catch (Exception e) {
-            try {
-                item.exceptionHandler(e);
-            } catch (Exception e2) {
-                org.appwork.utils.logging.Log.exception(e2);
-            }
+
         } finally {
+            if (item.getExeption() != null && callExceptionhandler) {
+                if (!item.exceptionHandler(item.getExeption())) {
+                    // print out exception if code does not handle it
+                    // Log.exception(item.getExeption());
+                }
+            }
             synchronized (item) {
                 item.notify();
             }

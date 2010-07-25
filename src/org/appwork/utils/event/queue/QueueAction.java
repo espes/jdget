@@ -15,25 +15,27 @@ import org.appwork.utils.event.queue.Queue.QueuePriority;
  * @author daniel
  * 
  */
-public abstract class QueueItem {
+public abstract class QueueAction<T, E extends Throwable> {
 
-    private Object result = null;
-    private Exception exce = null;
+    private T result = null;
+
     private volatile boolean finished = false;
     private volatile boolean killed = false;
     private volatile boolean started = false;
-    private Queue<?> queue = null;
-    private QueueItem source = null;
+    private Queue queue = null;
+    private QueueAction<?, ? extends Throwable> source = null;
     private QueuePriority prio = QueuePriority.NORM;
 
-    public QueueItem() {
+    private Throwable exeption;
+
+    public QueueAction() {
     }
 
-    public QueueItem(QueuePriority prio) {
+    public QueueAction(QueuePriority prio) {
         this.prio = prio;
     }
 
-    protected Queue<?> getQueue() {
+    protected Queue getQueue() {
         return queue;
     }
 
@@ -45,25 +47,37 @@ public abstract class QueueItem {
         this.prio = prio;
     }
 
-    public void setSourceQueueItem(QueueItem source) {
+    public void setSourceQueueItem(QueueAction<?, ? extends Throwable> source) {
         this.source = source;
     }
 
-    public QueueItem getSourceQueueItem() {
+    public QueueAction<?, ? extends Throwable> getSourceQueueItem() {
         return source;
     }
 
-    public void start(Queue<?> queue) throws Exception {
+    @SuppressWarnings("unchecked")
+    final public void start(Queue queue) throws E {
         this.queue = queue;
         this.started = true;
         try {
             result = run();
-        } catch (Exception e) {
-            exce = e;
-            throw e;
+        } catch (Throwable th) {
+            exeption = th;
+            if (th instanceof RuntimeException) {
+                throw (RuntimeException) th;
+            } else {
+                throw (E) th;
+            }
         } finally {
             finished = true;
         }
+    }
+
+    /**
+     * @return the exeption
+     */
+    public Throwable getExeption() {
+        return exeption;
     }
 
     public boolean gotStarted() {
@@ -84,22 +98,21 @@ public abstract class QueueItem {
         return finished;
     }
 
-    public Object getResult() {
+    public T getResult() {
         return result;
     }
 
-    public Exception getException() {
-        return exce;
-    }
-
-    protected abstract Object run() throws Exception;
+    protected abstract T run() throws E;
 
     /**
-     * override this if you want customized exceptionhandling
+     * Callback for asynchron queuecalls if exceptions occured. has to return
+     * true if exception got handled
      * 
      * @param e
+     * @return
      */
-    public void exceptionHandler(Exception e) {
-    }
+    public boolean exceptionHandler(Throwable e) {
+        return false;
 
+    }
 }
