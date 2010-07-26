@@ -13,20 +13,19 @@ package org.appwork.utils;
  * This class helps you to handle binary flags
  * 
  * @author $Author: unknown$
- * 
  */
 public class BinaryLogic {
     /**
-     * Returns true of all flags are contained in status<br>
+     * Returns true if all flagBitmask are contained in bitmask<br>
      * example:<br>
      * <code>
-     * flags: 0001, 1000,0100
-     * status: 1101  
+     * flags: 0001, 1000, 0100<br>
+     * status: 1101<br>
      * returns: true
- * </code>
+     * </code>
      * 
-     * @param status
-     * @param flags
+     * @param bitmask
+     * @param flagBitmask
      * @return
      */
     public static boolean containsAll(int bitmask, int... flagBitmask) {
@@ -41,9 +40,9 @@ public class BinaryLogic {
      * example:<br>
      * <code>
      * bitmask: 1001<br>
-     * flagBitmask: 0100,0010<br>
+     * flagBitmask: 0100, 0010<br>
      * returns: true
- * </code>
+     * </code>
      * 
      * @param bitmask
      * @param flagBitmask

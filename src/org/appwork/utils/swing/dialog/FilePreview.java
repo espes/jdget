@@ -30,26 +30,27 @@ import org.appwork.utils.swing.EDTHelper;
 
 /**
  * @author thomas
- * 
  */
 public class FilePreview extends JPanel implements PropertyChangeListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 68064282036848471L;
-    private File file;
-    private JLabel label;
-    private JPanel panel;
-    private JFileChooser fileChooser;
 
-    public FilePreview(JFileChooser fc) {
-        this.setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
-        add(new JScrollPane(panel = new JPanel(new MigLayout("ins 5", "[grow,fill]", "[grow,fill]"))), "hidemode 3,gapleft 5");
+    private final JFileChooser fileChooser;
+    private final JPanel panel;
+    private final JLabel label;
+
+    private File file;
+
+    public FilePreview(JFileChooser fileChooser) {
+        this.fileChooser = fileChooser;
+        this.fileChooser.addPropertyChangeListener(this);
+
+        panel = new JPanel(new MigLayout("ins 5", "[grow,fill]", "[grow,fill]"));
         panel.add(label = new JLabel());
+
+        this.setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
+        this.add(new JScrollPane(panel), "hidemode 3,gapleft 5");
         this.setPreferredSize(new Dimension(200, 100));
-        fc.addPropertyChangeListener(this);
-        this.fileChooser = fc;
     }
 
     public void propertyChange(PropertyChangeEvent e) {
@@ -67,26 +68,21 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
 
     private void update() {
         if (file != null && file.isFile()) {
-
             try {
                 String ext = Files.getExtension(file.getName());
                 BufferedImage image = null;
 
-                if (ext.equalsIgnoreCase("png")) {
-                    image = ImageIO.read(file);
-                } else if (ext.equalsIgnoreCase("jpg")) {
-                    image = ImageIO.read(file);
-                } else if (ext.equalsIgnoreCase("gif")) {
+                if (ext.equalsIgnoreCase("png") || ext.equalsIgnoreCase("jpg") || ext.equalsIgnoreCase("gif")) {
                     image = ImageIO.read(file);
                 }
-                final ImageIcon ii = new ImageIcon(ImageProvider.scaleBufferedImage(image, 160, 160));
+
                 if (image != null) {
+                    final ImageIcon ii = new ImageIcon(ImageProvider.scaleBufferedImage(image, 160, 160));
                     new EDTHelper<Object>() {
 
                         @Override
                         public Object edtRun() {
                             label.setIcon(ii);
-                            // sp.setVisible(true);
                             int w = fileChooser.getWidth() / 3;
                             setPreferredSize(new Dimension(w, 100));
                             fileChooser.revalidate();
@@ -100,6 +96,7 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
             } catch (Exception e) {
             }
         }
+
         new EDTHelper<Object>() {
 
             @Override
@@ -113,4 +110,5 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
 
         }.start();
     }
+
 }

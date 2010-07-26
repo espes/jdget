@@ -139,7 +139,7 @@ public class ClipboardUtils {
         if (info != null) {
             try {
                 if (info.isDataFlavorSupported(fileListFlavor)) {
-                    List<File> list = (List) info.getTransferable().getTransferData(fileListFlavor);
+                    List<File> list = (List<File>) info.getTransferable().getTransferData(fileListFlavor);
                     for (File f : list) {
                         if (f.exists()) files.add(f);
                     }
