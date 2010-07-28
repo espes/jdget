@@ -478,16 +478,20 @@ public class Dialog {
                                     if (fc.getSelectedFiles().length > 0) {
 
                                         File first = fc.getSelectedFiles()[0];
-                                        if (first.isFile()) first = first.getParentFile();
-                                        ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
+                                        if (first != null) {
+                                            if (first.isFile()) first = first.getParentFile();
+                                            ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
+                                        }
                                     }
                                     return (File[]) latestReturnMask;
                                 }
 
                                 final File[] ret = new File[1];
                                 ret[0] = fc.getSelectedFile();
-                                latestReturnMask = ret;
-                                ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
+                                if (ret[0] != null) {
+                                    latestReturnMask = ret;
+                                    ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
+                                }
                                 return ret;
                             }
                         } else if (dialogType == JFileChooser.SAVE_DIALOG) {
@@ -495,8 +499,10 @@ public class Dialog {
 
                                 final File[] ret = new File[1];
                                 ret[0] = fc.getSelectedFile();
-                                latestReturnMask = ret;
-                                ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
+                                if (ret[0] != null) {
+                                    latestReturnMask = ret;
+                                    ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
+                                }
                                 return ret;
                             }
                         }

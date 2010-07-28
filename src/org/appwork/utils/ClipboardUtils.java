@@ -135,8 +135,9 @@ public class ClipboardUtils {
     @SuppressWarnings("unchecked")
     public static ArrayList<File> getFiles(TransferSupport info) {
         ArrayList<File> files = new ArrayList<File>();
-        String verbose = null;
+        String inString = null;
         if (info != null) {
+            StringTokenizer izer;
             try {
                 if (info.isDataFlavorSupported(fileListFlavor)) {
                     List<File> list = (List<File>) info.getTransferable().getTransferData(fileListFlavor);
@@ -144,18 +145,20 @@ public class ClipboardUtils {
                         if (f.exists()) files.add(f);
                     }
                 } else if (uriListFlavor != null && info.isDataFlavorSupported(uriListFlavor)) {
-                    StringTokenizer izer = new StringTokenizer((String) info.getTransferable().getTransferData(uriListFlavor), "\r\n");
+                    inString = (String) info.getTransferable().getTransferData(uriListFlavor);
+                    izer = new StringTokenizer(inString, "\r\n");
                     while (izer.hasMoreTokens()) {
                         String token = izer.nextToken().trim();
-                        verbose = token + " ";
-                        URI fi = new URI(token);
-                        verbose = verbose + fi.toString();
-                        File f = new File(fi.getPath());
-                        if (f.exists()) files.add(f);
+                        try {
+                            URI fi = new URI(token);
+                            File f = new File(fi.getPath());
+                            if (f.exists()) files.add(f);
+                        } catch (Throwable e) {
+                        }
                     }
                 }
             } catch (Exception e) {
-                Log.L.severe(verbose);
+                Log.L.severe(inString);
                 Log.exception(e);
             }
         }

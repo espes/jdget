@@ -29,6 +29,7 @@ public class HTMLParser {
 
             for (String link : new Regex(source, "((https?|ftp):((//)|(\\\\\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)(\n|\r|$|<|\")").getColumn(0)) {
                 try {
+                    if (link != null) link = link.trim();
                     new URL(link);
                     if (!ret.contains(link)) ret.add(link);
                 } catch (MalformedURLException e) {

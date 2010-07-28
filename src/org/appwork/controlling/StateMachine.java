@@ -169,7 +169,7 @@ public class StateMachine {
      * returns if the statemachine is in startstate currently
      */
     public boolean isStartState() {
-        return currentState == this.initState;
+        return currentState == initState;
     }
 
     public State getState() {
