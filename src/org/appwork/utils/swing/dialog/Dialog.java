@@ -160,6 +160,8 @@ public class Dialog {
      */
     public static final int STYLE_SHOW_DO_NOT_DISPLAY_AGAIN = 1 << 5;
 
+    private static boolean ShellFolderIDWorkaround = false;
+
     /**
      * Return the singleton instance of Dialog
      * 
@@ -422,95 +424,106 @@ public class Dialog {
 
                 @Override
                 public File[] edtRun() {
-                    try {
-                        UIManager.put("FileChooser.homeFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
-
-                        UIManager.put("FileChooser.newFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.toString());
-
-                        UIManager.put("FileChooser.upFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.toString());
-
-                        UIManager.put("FileChooser.detailsViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.toString());
-                        UIManager.put("FileChooser.listViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
-
-                        JFileChooser fc = new JFileChooser();
-
-                        fc.setAccessory(new FilePreview(fc));
-                        if (title != null) fc.setDialogTitle(title);
-                        if (fileSelectionMode != null) fc.setFileSelectionMode(fileSelectionMode);
-                        if (fileFilter != null) fc.setFileFilter(fileFilter);
-
-                        if (multiSelection && (dialogType == null || dialogType != JFileChooser.SAVE_DIALOG)) fc.setMultiSelectionEnabled(multiSelection);
-                        if (dialogType != null) fc.setDialogType(dialogType);
-                        if (preSelection != null) {
-                            if (preSelection.isDirectory()) {
-                                fc.setCurrentDirectory(preSelection);
-                                fc.setSelectedFile(preSelection);
-                            } else {
-                                fc.setCurrentDirectory(preSelection.getParentFile());
-                                fc.setSelectedFile(preSelection);
-                            }
-                        } else {
-                            String latest = ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null);
-                            if (latest != null) {
-                                File storeSelection = new File(latest);
-                                while (storeSelection != null) {
-                                    if (!storeSelection.exists()) {
-                                        storeSelection = storeSelection.getParentFile();
-                                    } else {
-                                        if (storeSelection.isDirectory()) {
-                                            fc.setSelectedFile(storeSelection);
-                                            fc.setCurrentDirectory(storeSelection);
-
-                                        } else {
-                                            fc.setCurrentDirectory(storeSelection.getParentFile());
-                                            fc.setSelectedFile(storeSelection);
-                                        }
-
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (dialogType == null || dialogType == JFileChooser.OPEN_DIALOG) {
-                            if (fc.showOpenDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
-                                if (multiSelection) {
-                                    latestReturnMask = fc.getSelectedFiles();
-                                    if (fc.getSelectedFiles().length > 0) {
-
-                                        File first = fc.getSelectedFiles()[0];
-                                        if (first != null) {
-                                            if (first.isFile()) first = first.getParentFile();
-                                            ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
-                                        }
-                                    }
-                                    return (File[]) latestReturnMask;
-                                }
-
-                                final File[] ret = new File[1];
-                                ret[0] = fc.getSelectedFile();
-                                if (ret[0] != null) {
-                                    latestReturnMask = ret;
-                                    ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
-                                }
-                                return ret;
-                            }
-                        } else if (dialogType == JFileChooser.SAVE_DIALOG) {
-                            if (fc.showSaveDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
-
-                                final File[] ret = new File[1];
-                                ret[0] = fc.getSelectedFile();
-                                if (ret[0] != null) {
-                                    latestReturnMask = ret;
-                                    ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
-                                }
-                                return ret;
-                            }
-                        }
-                        return null;
-                    } catch (Exception e) {
-                        Log.exception(e);
-                        return null;
+                    if (ShellFolderIDWorkaround) {
+                        UIManager.put("FileChooser.useShellFolder", false);
+                    } else {
+                        UIManager.put("FileChooser.useShellFolder", true);
                     }
+                    for (int tried = 0; tried < 2; tried++) {
+                        try {
+                            UIManager.put("FileChooser.homeFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
+                            UIManager.put("FileChooser.newFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.toString());
+                            UIManager.put("FileChooser.upFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.toString());
+                            UIManager.put("FileChooser.detailsViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.toString());
+                            UIManager.put("FileChooser.listViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
+
+                            JFileChooser fc = new JFileChooser();
+                            if (ShellFolderIDWorkaround == false) throw new Exception("shell");
+                            fc.setAccessory(new FilePreview(fc));
+                            if (title != null) fc.setDialogTitle(title);
+                            if (fileSelectionMode != null) fc.setFileSelectionMode(fileSelectionMode);
+                            if (fileFilter != null) fc.setFileFilter(fileFilter);
+
+                            if (multiSelection && (dialogType == null || dialogType != JFileChooser.SAVE_DIALOG)) fc.setMultiSelectionEnabled(multiSelection);
+                            if (dialogType != null) fc.setDialogType(dialogType);
+                            if (preSelection != null) {
+                                if (preSelection.isDirectory()) {
+                                    fc.setCurrentDirectory(preSelection);
+                                    fc.setSelectedFile(preSelection);
+                                } else {
+                                    fc.setCurrentDirectory(preSelection.getParentFile());
+                                    fc.setSelectedFile(preSelection);
+                                }
+                            } else {
+                                String latest = ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null);
+                                if (latest != null) {
+                                    File storeSelection = new File(latest);
+                                    while (storeSelection != null) {
+                                        if (!storeSelection.exists()) {
+                                            storeSelection = storeSelection.getParentFile();
+                                        } else {
+                                            if (storeSelection.isDirectory()) {
+                                                fc.setSelectedFile(storeSelection);
+                                                fc.setCurrentDirectory(storeSelection);
+
+                                            } else {
+                                                fc.setCurrentDirectory(storeSelection.getParentFile());
+                                                fc.setSelectedFile(storeSelection);
+                                            }
+
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (dialogType == null || dialogType == JFileChooser.OPEN_DIALOG) {
+                                if (fc.showOpenDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
+                                    if (multiSelection) {
+                                        latestReturnMask = fc.getSelectedFiles();
+                                        if (fc.getSelectedFiles().length > 0) {
+
+                                            File first = fc.getSelectedFiles()[0];
+                                            if (first != null) {
+                                                if (first.isFile()) first = first.getParentFile();
+                                                ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
+                                            }
+                                        }
+                                        return (File[]) latestReturnMask;
+                                    }
+
+                                    final File[] ret = new File[1];
+                                    ret[0] = fc.getSelectedFile();
+                                    if (ret[0] != null) {
+                                        latestReturnMask = ret;
+                                        ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
+                                    }
+                                    return ret;
+                                }
+                            } else if (dialogType == JFileChooser.SAVE_DIALOG) {
+                                if (fc.showSaveDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
+
+                                    final File[] ret = new File[1];
+                                    ret[0] = fc.getSelectedFile();
+                                    if (ret[0] != null) {
+                                        latestReturnMask = ret;
+                                        ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
+                                    }
+                                    return ret;
+                                }
+                            }
+                            return null;
+                        } catch (Exception e) {
+                            Log.exception(e);
+                            if (e.getMessage().contains("shell") && !ShellFolderIDWorkaround) {
+                                ShellFolderIDWorkaround = true;
+                                UIManager.put("FileChooser.useShellFolder", false);
+                            } else {
+                                Log.exception(e);
+                                return null;
+                            }
+                        }
+                    }
+                    return null;
                 }
 
             }.getReturnValue();
