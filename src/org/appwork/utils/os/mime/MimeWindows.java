@@ -30,25 +30,29 @@ public class MimeWindows extends MimeDefault {
         ImageIcon ret = super.getCacheIcon(iconKey);
         if (ret == null) {
             final File path = Application.getRessource("tmp/images/" + extension + ".png");
-            if (path.exists()) {
-                ret = new ImageIcon(ImageIO.read(path));
-            } else {
-                File file = null;
-                try {
-                    file = File.createTempFile("icon", "." + extension);
-                    ShellFolder shellFolder = ShellFolder.getShellFolder(file);
-                    ret = new ImageIcon(shellFolder.getIcon(true));
-                    path.mkdirs();
-                    ImageIO.write((RenderedImage) ret.getImage(), "png", path);
-                } catch (Throwable e) {
-                    ret = ImageProvider.toImageIcon(FileSystemView.getFileSystemView().getSystemIcon(file));
+            try {
+                if (path.exists() && path.isFile()) {
+                    ret = new ImageIcon(ImageIO.read(path));
+                } else {
+                    File file = null;
+                    try {
+                        file = File.createTempFile("icon", "." + extension);
+                        ShellFolder shellFolder = ShellFolder.getShellFolder(file);
+                        ret = new ImageIcon(shellFolder.getIcon(true));
+                        path.mkdirs();
+                        ImageIO.write((RenderedImage) ret.getImage(), "png", path);
+                    } catch (Throwable e) {
+                        ret = ImageProvider.toImageIcon(FileSystemView.getFileSystemView().getSystemIcon(file));
 
-                } finally {
-                    if (file != null) file.delete();
+                    } finally {
+                        if (file != null) file.delete();
+                    }
+                    if (ret == null || ret.getIconWidth() < width || ret.getIconHeight() < height) {
+                        ret = super.getFileIcon(extension, width, height);
+                    }
                 }
-                if (ret == null || ret.getIconWidth() < width || ret.getIconHeight() < height) {
-                    ret = super.getFileIcon(extension, width, height);
-                }
+            } catch (Throwable e) {
+                return null;
             }
         }
         ret = ImageProvider.scaleImageIcon(ret, width, height);

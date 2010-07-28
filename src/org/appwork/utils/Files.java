@@ -28,7 +28,7 @@ public class Files {
      * @return
      */
     public static String getExtension(String name) {
-
+        if (name == null) return null;
         final int index = name.lastIndexOf(".");
         if (index < 0) return null;
         return name.substring(index + 1).toLowerCase();
@@ -43,6 +43,7 @@ public class Files {
      * @return
      */
     public static String getMimeType(String name) {
+        if (name == null) return null;
         FileNameMap fileNameMap = URLConnection.getFileNameMap();
         String ret = fileNameMap.getContentTypeFor(name);
         if (ret == null) {
