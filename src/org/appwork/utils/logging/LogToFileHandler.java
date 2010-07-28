@@ -47,7 +47,7 @@ public class LogToFileHandler extends java.util.logging.Handler {
         try {
             writer.close();
         } catch (IOException e) {
-            
+
             org.appwork.utils.logging.Log.exception(e);
         }
     }
@@ -56,19 +56,21 @@ public class LogToFileHandler extends java.util.logging.Handler {
         try {
             writer.flush();
         } catch (IOException e) {
-            
+
             org.appwork.utils.logging.Log.exception(e);
         }
     }
 
     public void publish(LogRecord logRecord) {
         if (logRecord.getLevel() == Level.INFO) {
-
             try {
                 writer.write(this.getFormatter().format(logRecord));
             } catch (IOException e) {
-                
-                org.appwork.utils.logging.Log.exception(e);
+                if (e.getMessage().contains("not enough")) {
+                    org.appwork.utils.logging.Log.L.severe("Cannot write log, Disk is full!");
+                } else {
+                    org.appwork.utils.logging.Log.exception(e);
+                }
             }
 
         }
