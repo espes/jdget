@@ -406,7 +406,7 @@ public class Dialog {
      * @param title
      *            The Dialog's Window Title dialog-title or null for default
      * @param fileSelectionMode
-     *            mode for selecting files (like JDFileChooser.FILES_ONLY) or
+     *            mode for selecting files (like JFileChooser.FILES_ONLY) or
      *            null for default
      * @param fileFilter
      *            filters the choosable files or null for default
@@ -424,13 +424,13 @@ public class Dialog {
 
                 @Override
                 public File[] edtRun() {
-                    if (ShellFolderIDWorkaround) {
-                        UIManager.put("FileChooser.useShellFolder", false);
-                    } else {
-                        UIManager.put("FileChooser.useShellFolder", true);
-                    }
                     for (int tried = 0; tried < 2; tried++) {
                         try {
+                            if (ShellFolderIDWorkaround) {
+                                UIManager.put("FileChooser.useShellFolder", false);
+                            } else {
+                                UIManager.put("FileChooser.useShellFolder", true);
+                            }
                             UIManager.put("FileChooser.homeFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
                             UIManager.put("FileChooser.newFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.toString());
                             UIManager.put("FileChooser.upFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.toString());
@@ -438,7 +438,6 @@ public class Dialog {
                             UIManager.put("FileChooser.listViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
 
                             JFileChooser fc = new JFileChooser();
-                            if (ShellFolderIDWorkaround == false) throw new Exception("shell");
                             fc.setAccessory(new FilePreview(fc));
                             if (title != null) fc.setDialogTitle(title);
                             if (fileSelectionMode != null) fc.setFileSelectionMode(fileSelectionMode);
@@ -513,10 +512,9 @@ public class Dialog {
                             }
                             return null;
                         } catch (Exception e) {
-                            Log.exception(e);
                             if (e.getMessage().contains("shell") && !ShellFolderIDWorkaround) {
+                                Log.L.info("Enabling Workaround for \"Could not get shell folder ID list\"");
                                 ShellFolderIDWorkaround = true;
-                                UIManager.put("FileChooser.useShellFolder", false);
                             } else {
                                 Log.exception(e);
                                 return null;
