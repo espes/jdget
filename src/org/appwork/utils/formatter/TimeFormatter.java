@@ -14,9 +14,9 @@ import org.appwork.utils.Regex;
 
 public class TimeFormatter {
 
-    public static final int HIDE_SECONDS = 1;
-    public static final int HIDE_MARKER = 2;
-    public static final int CLOCK = 3;
+    public static final int HIDE_SECONDS = 1 << 1;
+    public static final int HIDE_MARKER = 1 << 2;
+    public static final int CLOCK = 1 << 3;
 
     public static String formatMilliSeconds(long totalSeconds, int flags) {
         return formatSeconds(totalSeconds / 1000, flags);

@@ -19,7 +19,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 
-import org.appwork.storage.ConfigInterface;
+import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.interfaces.ValueConverter;
@@ -456,7 +456,7 @@ public class Dialog {
                                     fc.setSelectedFile(preSelection);
                                 }
                             } else {
-                                String latest = ConfigInterface.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null);
+                                String latest = JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null);
                                 if (latest != null) {
                                     File storeSelection = new File(latest);
                                     while (storeSelection != null) {
@@ -486,7 +486,7 @@ public class Dialog {
                                             File first = fc.getSelectedFiles()[0];
                                             if (first != null) {
                                                 if (first.isFile()) first = first.getParentFile();
-                                                ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
+                                                JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
                                             }
                                         }
                                         return (File[]) latestReturnMask;
@@ -496,7 +496,7 @@ public class Dialog {
                                     ret[0] = fc.getSelectedFile();
                                     if (ret[0] != null) {
                                         latestReturnMask = ret;
-                                        ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
+                                        JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
                                     }
                                     return ret;
                                 }
@@ -507,7 +507,7 @@ public class Dialog {
                                     ret[0] = fc.getSelectedFile();
                                     if (ret[0] != null) {
                                         latestReturnMask = ret;
-                                        ConfigInterface.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
+                                        JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
                                     }
                                     return ret;
                                 }

@@ -18,12 +18,20 @@ public class JacksonStorageChest extends Storage {
 
     @SuppressWarnings("unchecked")
     public JacksonStorageChest(String name) throws StorageException {
+        this(name, false);
+    }
+
+    /**
+     * @param name2
+     * @param b
+     */
+    public JacksonStorageChest(String name, boolean plain) {
         this.map = new HashMap<String, Object>();
         this.name = name;
 
         try {
-            String str = Crypto.decrypt(IO.readFile(Application.getRessource("cfg/" + name + ".ejs")), ConfigInterface.KEY);
-            HashMap<String, Object> load = ConfigInterface.getMapper().readValue(str, HashMap.class);
+            String str = Crypto.decrypt(IO.readFile(Application.getRessource("cfg/" + name + (plain ? ".json" : ".ejs"))), JSonStorage.KEY);
+            HashMap<String, Object> load = JSonStorage.getMapper().readValue(str, HashMap.class);
             map.putAll(load);
         } catch (JsonParseException e) {
             Log.exception(e);
@@ -105,8 +113,8 @@ public class JacksonStorageChest extends Storage {
     public void save() throws StorageException {
         // can reuse, share globally
         try {
-            String json = ConfigInterface.getMapper().writeValueAsString(map);
-            ConfigInterface.saveTo("cfg/" + name + ".ejs", json);
+            String json = JSonStorage.getMapper().writeValueAsString(map);
+            JSonStorage.saveTo("cfg/" + name + ".ejs", json);
         } catch (JsonGenerationException e) {
             Log.exception(e);
         } catch (JsonMappingException e) {

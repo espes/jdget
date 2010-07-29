@@ -16,7 +16,7 @@ import org.appwork.utils.swing.table.ExtTableModel;
 public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     private static final long serialVersionUID = 2114805529462086691L;
-    private RenderLabel label;
+    protected RenderLabel label;
 
     public ExtTextColumn(String name, ExtTableModel<E> table) {
         super(name, table);
@@ -38,6 +38,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
             }
 
         });
+
     }
 
     /**
@@ -66,12 +67,21 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
     @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        prepareLabel((E) value);
         label.setText(getStringValue((E) value));
         label.setToolTipText(getToolTip((E) value));
         label.setEnabled(isEnabled((E) value));
         label.setIcon(getIcon((E) value));
 
         return label;
+
+    }
+
+    /**
+     * @param value
+     */
+    protected void prepareLabel(E value) {
+        // TODO Auto-generated method stub
 
     }
 

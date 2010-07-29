@@ -34,7 +34,7 @@ import javax.swing.text.JTextComponent;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.appwork.storage.ConfigInterface;
+import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.Tl8;
@@ -65,14 +65,14 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
         this.regularExpression = new JCheckBox(Tl8.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.toString());
 
         try {
-            caseSensitive.setSelected(ConfigInterface.getStorage("SearchDialog_" + owner.getTableID()).get("caseSensitive", false));
-            regularExpression.setSelected(ConfigInterface.getStorage("SearchDialog_" + owner.getTableID()).get("regularExpression", false));
+            caseSensitive.setSelected(JSonStorage.getStorage("SearchDialog_" + owner.getTableID()).get("caseSensitive", false));
+            regularExpression.setSelected(JSonStorage.getStorage("SearchDialog_" + owner.getTableID()).get("regularExpression", false));
 
             ActionListener saveListener = new ActionListener() {
 
                 public void actionPerformed(ActionEvent e) {
-                    ConfigInterface.getStorage("SearchDialog_" + owner.getTableID()).put("caseSensitive", caseSensitive.isSelected());
-                    ConfigInterface.getStorage("SearchDialog_" + owner.getTableID()).put("regularExpression", regularExpression.isSelected());
+                    JSonStorage.getStorage("SearchDialog_" + owner.getTableID()).put("caseSensitive", caseSensitive.isSelected());
+                    JSonStorage.getStorage("SearchDialog_" + owner.getTableID()).put("regularExpression", regularExpression.isSelected());
                 }
 
             };

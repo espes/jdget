@@ -17,7 +17,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Locale;
 
-import org.appwork.storage.ConfigInterface;
+import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storage;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
@@ -29,7 +29,7 @@ import org.appwork.utils.logging.Log;
  */
 public class Loc {
 
-    public static final Storage CFG = ConfigInterface.getStorage("Locale");
+    public static final Storage CFG = JSonStorage.getStorage("Locale");
     /**
      * The key (String) under which the saved localization-name is stored.
      */

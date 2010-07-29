@@ -35,7 +35,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import org.appwork.storage.ConfigInterface;
+import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
@@ -215,7 +215,7 @@ public class ExtTable<E> extends JTable {
                 TableColumnModel tcm = getColumnModel();
                 for (int i = 0; i < tcm.getColumnCount(); i++) {
                     try {
-                        ConfigInterface.getStorage("ExtTable_" + tableID).put("POS_COL_" + i, getExtTableModel().getExtColumn(tcm.getColumn(i).getModelIndex()).getID());
+                        JSonStorage.getStorage("ExtTable_" + tableID).put("POS_COL_" + i, getExtTableModel().getExtColumn(tcm.getColumn(i).getModelIndex()).getID());
                     } catch (Exception e1) {
                         Log.exception(e1);
                     }
@@ -613,7 +613,7 @@ public class ExtTable<E> extends JTable {
                 public void propertyChange(PropertyChangeEvent evt) {
                     if (evt.getPropertyName().equals("width")) {
                         try {
-                            ConfigInterface.getStorage("ExtTable_" + tableID).put("WIDTH_COL_" + model.getExtColumn(j).getID(), (Integer) evt.getNewValue());
+                            JSonStorage.getStorage("ExtTable_" + tableID).put("WIDTH_COL_" + model.getExtColumn(j).getID(), (Integer) evt.getNewValue());
                         } catch (Exception e) {
                             Log.exception(e);
                         }
@@ -629,7 +629,7 @@ public class ExtTable<E> extends JTable {
 
             // Set stored columnwidth
             try {
-                int w = ConfigInterface.getStorage("ExtTable_" + tableID).get("WIDTH_COL_" + model.getExtColumn(j).getID(), model.getExtColumn(j).getDefaultWidth());
+                int w = JSonStorage.getStorage("ExtTable_" + tableID).get("WIDTH_COL_" + model.getExtColumn(j).getID(), model.getExtColumn(j).getDefaultWidth());
                 tableColumn.setPreferredWidth(w);
                 if (!model.isVisible(i)) {
                     continue;
@@ -648,7 +648,7 @@ public class ExtTable<E> extends JTable {
             if (index < getModel().getColumnCount()) {
                 String id;
                 try {
-                    id = ConfigInterface.getStorage("ExtTable_" + tableID).get("POS_COL_" + index, "");
+                    id = JSonStorage.getStorage("ExtTable_" + tableID).get("POS_COL_" + index, "");
 
                     index++;
                     if (id != null) {

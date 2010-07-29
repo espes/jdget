@@ -36,7 +36,7 @@ import javax.swing.WindowConstants;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.appwork.storage.ConfigInterface;
+import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale.Tl8;
 import org.appwork.utils.logging.Log;
@@ -83,7 +83,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         dont: if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
             try {
-                int i = ConfigInterface.getStorage("Dialogs").get(getDontShowAgainKey(), -1);
+                int i = JSonStorage.getStorage("Dialogs").get(getDontShowAgainKey(), -1);
 
                 if (i >= 0) {
                     // filter saved return value
@@ -347,7 +347,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             if (dontshowagain.isSelected() && dontshowagain.isEnabled()) {
                 returnBitMask |= Dialog.RETURN_DONT_SHOW_AGAIN;
                 try {
-                    ConfigInterface.getStorage("Dialogs").put(getDontShowAgainKey(), returnBitMask);
+                    JSonStorage.getStorage("Dialogs").put(getDontShowAgainKey(), returnBitMask);
                 } catch (Exception e) {
                     Log.exception(e);
                 }
@@ -366,7 +366,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     public static void resetDialogInformations() {
         try {
-            ConfigInterface.getStorage("Dialogs").clear();
+            JSonStorage.getStorage("Dialogs").clear();
         } catch (Exception e) {
             Log.exception(e);
         }

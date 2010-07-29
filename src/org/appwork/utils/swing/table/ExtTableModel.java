@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 
-import org.appwork.storage.ConfigInterface;
+import org.appwork.storage.JSonStorage;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
@@ -58,14 +58,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.modelID = id;
         initColumns();
 
-        String columnId = ConfigInterface.getStorage("ExtTableModel_" + modelID).get("SORTCOLUMN", this.columns.get(0).getID());
+        String columnId = JSonStorage.getStorage("ExtTableModel_" + modelID).get("SORTCOLUMN", this.columns.get(0).getID());
         for (ExtColumn<E> col : columns) {
             if (col.getID().equals(columnId)) {
                 sortColumn = col;
                 break;
             }
         }
-        sortOrderToggle = ConfigInterface.getStorage("ExtTableModel_" + modelID).get("SORTORDER", false);
+        sortOrderToggle = JSonStorage.getStorage("ExtTableModel_" + modelID).get("SORTORDER", false);
         this.refreshSort();
     }
 
@@ -332,7 +332,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
         ExtColumn<E> col = getExtColumn(column);
         try {
-            return ConfigInterface.getStorage("ExtTableModel_" + modelID).get("VISABLE_COL_" + col.getName(), col.isDefaultVisible());
+            return JSonStorage.getStorage("ExtTableModel_" + modelID).get("VISABLE_COL_" + col.getName(), col.isDefaultVisible());
         } catch (Exception e) {
             Log.exception(e);
             return true;
@@ -366,7 +366,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public void setVisible(int column, boolean visible) {
         ExtColumn<E> col = getExtColumn(column);
         try {
-            ConfigInterface.getStorage("ExtTableModel_" + modelID).put("VISABLE_COL_" + col.getName(), visible);
+            JSonStorage.getStorage("ExtTableModel_" + modelID).put("VISABLE_COL_" + col.getName(), visible);
         } catch (Exception e) {
             Log.exception(e);
         }
@@ -410,8 +410,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.sortOrderToggle = sortOrderToggle;
 
         try {
-            ConfigInterface.getStorage("ExtTableModel_" + modelID).put("SORTCOLUMN", column.getID());
-            ConfigInterface.getStorage("ExtTableModel_" + modelID).put("SORTORDER", sortOrderToggle);
+            JSonStorage.getStorage("ExtTableModel_" + modelID).put("SORTCOLUMN", column.getID());
+            JSonStorage.getStorage("ExtTableModel_" + modelID).put("SORTORDER", sortOrderToggle);
         } catch (Exception e) {
             Log.exception(e);
         }
