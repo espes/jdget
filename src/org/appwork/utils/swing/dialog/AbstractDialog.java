@@ -79,7 +79,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     /* this function will init and show the dialog */
-    public void init() {
+    protected void init() {
         dont: if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
             try {
