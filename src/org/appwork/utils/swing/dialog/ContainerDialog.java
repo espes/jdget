@@ -21,7 +21,7 @@ import javax.swing.JPanel;
  * @author $Author: unknown$
  * 
  */
-public class ContainerDialog extends AbstractDialog {
+public class ContainerDialog extends AbstractDialog<Object> {
 
     /**
      * 
@@ -44,12 +44,22 @@ public class ContainerDialog extends AbstractDialog {
         this.panel = panel;
 
         this.setIconImage(icon);
-        init();
     }
 
     @Override
     public JComponent layoutDialogContent() {
         return panel;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
+    @Override
+    public Object getRetValue() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

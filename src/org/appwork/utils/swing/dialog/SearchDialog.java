@@ -29,7 +29,7 @@ import org.appwork.storage.ConfigInterface;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.Tl8;
 
-public class SearchDialog extends AbstractDialog implements KeyListener, MouseListener {
+public class SearchDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
     private static final long serialVersionUID = 9206575398715006581L;
 
@@ -52,12 +52,10 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
 
             regularExpression.setSelected(ConfigInterface.getStorage("SearchDialog").get("regularExpression", false));
         } catch (Exception e) {
-            
+
             org.appwork.utils.logging.Log.exception(e);
         }
         this.message = message;
-
-        init();
     }
 
     @Override
@@ -99,7 +97,7 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
 
             ConfigInterface.getStorage("SearchDialog").put("regularExpression", this.regularExpression.isSelected());
         } catch (Exception e) {
-            
+
             org.appwork.utils.logging.Log.exception(e);
         }
         return input.getText();
@@ -132,13 +130,23 @@ public class SearchDialog extends AbstractDialog implements KeyListener, MouseLi
     }
 
     public boolean isCaseSensitive() {
-        
+
         return this.caseSensitive.isSelected();
     }
 
     public boolean isRegex() {
-        
+
         return this.regularExpression.isSelected();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
+    @Override
+    public String getRetValue() {
+        return getReturnID();
     }
 
 }

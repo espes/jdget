@@ -43,7 +43,7 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.SwingUtils;
 
-public abstract class AbstractDialog extends TimerDialog implements ActionListener, WindowListener {
+public abstract class AbstractDialog<T> extends TimerDialog implements ActionListener, WindowListener {
 
     private static final long serialVersionUID = 1831761858087385862L;
 
@@ -78,6 +78,7 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
         this.cancelOption = (cancelOption == null) ? Tl8.ABSTRACTDIALOG_BUTTON_CANCEL.toString() : cancelOption;
     }
 
+    /* this function will init and show the dialog */
     public void init() {
         dont: if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
@@ -404,4 +405,6 @@ public abstract class AbstractDialog extends TimerDialog implements ActionListen
 
     public void windowOpened(WindowEvent arg0) {
     }
+
+    abstract public T getRetValue();
 }

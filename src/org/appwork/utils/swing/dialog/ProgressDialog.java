@@ -33,7 +33,7 @@ import org.appwork.utils.os.CrossSystem;
  * @author thomas
  * 
  */
-public class ProgressDialog extends AbstractDialog {
+public class ProgressDialog extends AbstractDialog<Object> {
     private static final long serialVersionUID = -7420852517889843489L;
     private JTextPane textField;
     private String message;
@@ -57,7 +57,6 @@ public class ProgressDialog extends AbstractDialog {
         this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         getter = progressGetter;
         setReturnmask(true);
-        init();
     }
 
     public interface ProgressGetter {
@@ -166,6 +165,17 @@ public class ProgressDialog extends AbstractDialog {
         executer.start();
 
         return p;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
+    @Override
+    public Object getRetValue() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

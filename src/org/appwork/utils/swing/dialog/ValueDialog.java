@@ -32,7 +32,7 @@ import net.miginfocom.swing.MigLayout;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.interfaces.ValueConverter;
 
-public class ValueDialog extends AbstractDialog implements KeyListener, MouseListener {
+public class ValueDialog extends AbstractDialog<Long> implements KeyListener, MouseListener {
 
     private static final long serialVersionUID = 9206575398715006581L;
     private String message;
@@ -67,15 +67,13 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             valueConverter = new ValueConverter() {
 
                 public String toString(long value) {
-                    
+
                     return (value * faktor) + "";
                 }
 
             };
         }
         this.valueconverter = valueConverter;
-
-        init();
     }
 
     public JComponent layoutDialogContent() {
@@ -102,7 +100,6 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             editable.addFocusListener(new FocusListener() {
 
                 public void focusGained(FocusEvent e) {
-                    
 
                 }
 
@@ -115,7 +112,6 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
             editable.addKeyListener(new KeyListener() {
 
                 public void keyPressed(KeyEvent e) {
-                    
 
                 }
 
@@ -127,7 +123,6 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
                 }
 
                 public void keyTyped(KeyEvent e) {
-                    
 
                 }
 
@@ -226,6 +221,16 @@ public class ValueDialog extends AbstractDialog implements KeyListener, MouseLis
     }
 
     public void mouseReleased(MouseEvent e) {
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
+    @Override
+    public Long getRetValue() {
+        return getReturnValue();
     }
 
 }

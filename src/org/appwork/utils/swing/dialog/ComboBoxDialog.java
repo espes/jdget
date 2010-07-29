@@ -22,7 +22,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.logging.Log;
 
-public class ComboBoxDialog extends AbstractDialog {
+public class ComboBoxDialog extends AbstractDialog<Integer> {
     /**
      * 
      */
@@ -63,7 +63,6 @@ public class ComboBoxDialog extends AbstractDialog {
         this.renderer = renderer;
         this.defaultAnswer = defaultSelection;
         this.options = options;
-        init();
     }
 
     /*
@@ -105,8 +104,18 @@ public class ComboBoxDialog extends AbstractDialog {
     }
 
     public Integer getReturnIndex() {
-        if ((this.getReturnmask() & Dialog.RETURN_OK) == 0) return -1;
-        return box.getSelectedIndex();
+        if ((this.getReturnmask() & Dialog.RETURN_OK) == 0) return Integer.valueOf(-1);
+        return Integer.valueOf(box.getSelectedIndex());
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
+    @Override
+    public Integer getRetValue() {
+        return getReturnIndex();
     }
 
 }

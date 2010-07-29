@@ -20,7 +20,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.ImageProvider.ImageProvider;
 
-public class TextAreaDialog extends AbstractDialog {
+public class TextAreaDialog extends AbstractDialog<String> {
 
     private static final long serialVersionUID = 5129590048597691591L;
 
@@ -34,7 +34,6 @@ public class TextAreaDialog extends AbstractDialog {
         super(0, title, ImageProvider.getImageIcon("info", 32, 32), null, null);
         this.message = message;
         this.def = def;
-        init();
     }
 
     @Override
@@ -47,6 +46,16 @@ public class TextAreaDialog extends AbstractDialog {
 
     public String getResult() {
         return txtArea.getText();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
+    @Override
+    public String getRetValue() {
+        return getResult();
     }
 
 }

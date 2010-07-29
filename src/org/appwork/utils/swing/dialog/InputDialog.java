@@ -27,7 +27,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.BinaryLogic;
 
-public class InputDialog extends AbstractDialog implements KeyListener, MouseListener {
+public class InputDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
     private static final long serialVersionUID = 9206575398715006581L;
     private String defaultMessage;
@@ -40,8 +40,6 @@ public class InputDialog extends AbstractDialog implements KeyListener, MouseLis
 
         this.defaultMessage = defaultMessage;
         this.message = message;
-
-        init();
     }
 
     @Override
@@ -111,6 +109,16 @@ public class InputDialog extends AbstractDialog implements KeyListener, MouseLis
     }
 
     public void mouseReleased(MouseEvent e) {
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
+    @Override
+    public String getRetValue() {
+        return getReturnID();
     }
 
 }

@@ -21,7 +21,7 @@ import javax.swing.event.HyperlinkListener;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.os.CrossSystem;
 
-public class ConfirmDialog extends AbstractDialog {
+public class ConfirmDialog extends AbstractDialog<Object> {
 
     private static final long serialVersionUID = -7647771640756844691L;
 
@@ -31,7 +31,6 @@ public class ConfirmDialog extends AbstractDialog {
     public ConfirmDialog(int flag, String title, String message, ImageIcon icon, String okOption, String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
         this.message = message;
-        init();
     }
 
     @Override
@@ -86,6 +85,17 @@ public class ConfirmDialog extends AbstractDialog {
         } else {
             return textField;
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
+    @Override
+    public Object getRetValue() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
