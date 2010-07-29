@@ -32,7 +32,12 @@ public class JacksonStorageChest extends Storage {
         this.plain = plain;
 
         try {
-            String str = Crypto.decrypt(IO.readFile(Application.getRessource("cfg/" + name + (plain ? ".json" : ".ejs"))), JSonStorage.KEY);
+            String str;
+            if (plain) {
+                str = new String(IO.readFile(Application.getRessource("cfg/" + name + (plain ? ".json" : ".ejs"))));
+            } else {
+                str = Crypto.decrypt(IO.readFile(Application.getRessource("cfg/" + name + ".ejs")), JSonStorage.KEY);
+            }
             HashMap<String, Object> load = JSonStorage.getMapper().readValue(str, HashMap.class);
             map.putAll(load);
         } catch (JsonParseException e) {
