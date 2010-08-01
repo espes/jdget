@@ -78,7 +78,7 @@ public class Dialog {
      */
     private static final Dialog INSTANCE = new Dialog();
     /**
-     *LOGIC_BYPASS all dialogs. Try to fill automatically or return null
+     * LOGIC_BYPASS all dialogs. Try to fill automatically or return null
      */
     public static final int LOGIC_BYPASS = 1 << 1;
     /**
@@ -314,7 +314,7 @@ public class Dialog {
      * @return
      */
     public int showConfirmDialog(int flag, String question) {
-        return showConfirmDialog(flag, Tl8.DIALOG_CONFIRMDIALOG_TITLE.toString(), question, this.getIconByText(question), null, null);
+        return showConfirmDialog(flag, Tl8.DIALOG_CONFIRMDIALOG_TITLE.toString(), question, getIconByText(question), null, null);
     }
 
     /**
@@ -329,7 +329,7 @@ public class Dialog {
      * @return
      */
     public int showConfirmDialog(int flag, String title, String question) {
-        return showConfirmDialog(flag, title, question, this.getIconByText(title + question), null, null);
+        return showConfirmDialog(flag, title, question, getIconByText(title + question), null, null);
     }
 
     /**
@@ -543,7 +543,7 @@ public class Dialog {
      * @return
      */
     public String showInputDialog(int flag, String question, String defaultvalue) {
-        return showInputDialog(flag, Tl8.DIALOG_INPUT_TITLE.toString(), question, defaultvalue, this.getIconByText(question), null, null);
+        return showInputDialog(flag, Tl8.DIALOG_INPUT_TITLE.toString(), question, defaultvalue, getIconByText(question), null, null);
     }
 
     /**
@@ -603,7 +603,7 @@ public class Dialog {
      * @return
      */
     public String showPasswordDialog(int flag, String question, String defaultvalue) {
-        return showPasswordDialog(flag, Tl8.DIALOG_PASSWORD_TITLE.toString(), question, defaultvalue, this.getIconByText(question), null, null);
+        return showPasswordDialog(flag, Tl8.DIALOG_PASSWORD_TITLE.toString(), question, defaultvalue, getIconByText(question), null, null);
     }
 
     /**
@@ -735,7 +735,7 @@ public class Dialog {
      * @return
      */
     public long showValueDialog(int flag, String question, long defaultvalue, long min, long max, long step, ValueConverter valueConverter) {
-        return showValueDialog(flag, Tl8.DIALOG_SLIDER_TITLE.toString(), question, defaultvalue, this.getIconByText(question), null, null, min, max, step, valueConverter);
+        return showValueDialog(flag, Tl8.DIALOG_SLIDER_TITLE.toString(), question, defaultvalue, getIconByText(question), null, null, min, max, step, valueConverter);
     }
 
     /**

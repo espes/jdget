@@ -40,13 +40,13 @@ public class Application {
      */
     public static boolean isJared(Class<?> rootOfClazz) {
         String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";
-        String caller = (Thread.currentThread().getContextClassLoader().getResource(name) + "");
+        URL caller = Thread.currentThread().getContextClassLoader().getResource(name);
         /*
          * caller is null in case the ressource is not found or not enough
          * rights, in that case we assume its not jared
          */
         if (caller == null) return false;
-        return caller.matches("jar\\:.*\\.jar\\!.*");
+        return caller.toString().matches("jar\\:.*\\.jar\\!.*");
     }
 
     /**

@@ -17,7 +17,6 @@ public class JacksonStorageChest extends Storage {
     private final String name;
     private boolean plain;
 
-    @SuppressWarnings("unchecked")
     public JacksonStorageChest(String name) throws StorageException {
         this(name, false);
     }
@@ -26,6 +25,7 @@ public class JacksonStorageChest extends Storage {
      * @param name2
      * @param b
      */
+    @SuppressWarnings("unchecked")
     public JacksonStorageChest(String name, boolean plain) {
         this.map = new HashMap<String, Object>();
         this.name = name;
