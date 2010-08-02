@@ -51,7 +51,6 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
         try {
             writer.close();
         } catch (IOException e) {
-            
             org.appwork.utils.logging.Log.exception(e);
         }
     }
@@ -60,27 +59,23 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
         try {
             writer.flush();
         } catch (IOException e) {
-            
+
             org.appwork.utils.logging.Log.exception(e);
         }
     }
 
     public void publish(LogRecord logRecord) {
-
         try {
             writer.write(this.getFormatter().format(logRecord));
         } catch (IOException e) {
-            
             org.appwork.utils.logging.Log.exception(e);
         }
-
     }
 
     /**
      * @return
      */
     public File getFile() {
-        
         return file;
     }
 }

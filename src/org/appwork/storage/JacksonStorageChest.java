@@ -30,9 +30,8 @@ public class JacksonStorageChest extends Storage {
         this.map = new HashMap<String, Object>();
         this.name = name;
         this.plain = plain;
-
+        String str = null;
         try {
-            String str;
             if (plain) {
                 str = new String(IO.readFile(Application.getRessource("cfg/" + name + (plain ? ".json" : ".ejs"))));
             } else {
@@ -41,8 +40,10 @@ public class JacksonStorageChest extends Storage {
             HashMap<String, Object> load = JSonStorage.getMapper().readValue(str, HashMap.class);
             map.putAll(load);
         } catch (JsonParseException e) {
+            Log.L.severe(str);
             Log.exception(e);
         } catch (JsonMappingException e) {
+            Log.L.severe(str);
             Log.exception(e);
         } catch (IOException e) {
         }

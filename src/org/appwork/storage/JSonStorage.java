@@ -146,18 +146,21 @@ public class JSonStorage {
      * @return
      */
     public static <E> E restoreFrom(String string, TypeReference<E> type, E def) {
+        String stri = null;
         try {
             if (!Application.getRessource(string).exists()) return def;
             byte[] str = IO.readFile(Application.getRessource(string));
             if (new Regex(string, ".+\\.json").matches()) {
-                return restoreFromString(new String(str, "UTF-8"), type, def);
+                return restoreFromString(stri = new String(str, "UTF-8"), type, def);
             } else {
-                return restoreFromString(Crypto.decrypt(str, KEY), type, def);
+                return restoreFromString(stri = Crypto.decrypt(str, KEY), type, def);
             }
 
         } catch (JsonParseException e) {
+            Log.L.severe(stri);
             Log.exception(e);
         } catch (JsonMappingException e) {
+            Log.L.severe(stri);
             Log.exception(e);
         } catch (IOException e) {
             Log.exception(e);

@@ -24,11 +24,14 @@ import java.util.Vector;
 
 public abstract class Eventsender<T extends EventListener, TT extends Event> {
 
+    private final Object LOCK = new Object();
+    private volatile long WriteR = 0;
+    private volatile long ReadR = 0;
     /**
      * List of registered Eventlistener
      */
     // TODO: DO we really need Vectors here?
-    transient protected Vector<T> listeners = null;
+    transient volatile protected Vector<T> listeners = null;
     /**
      * List of Listeners that are requested for removal
      * 
@@ -36,12 +39,15 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
     // We use a removeList to avoid threating problems
     transient protected Vector<T> removeRequestedListeners = null;
 
+    transient protected Vector<T> addRequestedListeners = null;
+
     /**
      * Creates a new Eventsender Instance
      */
     public Eventsender() {
         listeners = new Vector<T>();
         removeRequestedListeners = new Vector<T>();
+        addRequestedListeners = new Vector<T>();
     }
 
     /**
@@ -60,9 +66,22 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
      * 
      * @param listener
      */
-    public void addListener(T listener) {
-        if (removeRequestedListeners.contains(listener)) removeRequestedListeners.remove(listener);
-        if (!listeners.contains(listener)) listeners.add(listener);
+    public void addListener(T t) {
+        synchronized (LOCK) {
+            /* decrease WriteCounter in case we remove the removeRequested */
+            if (removeRequestedListeners.contains(t)) {
+                removeRequestedListeners.remove(t);
+                WriteR--;
+            }
+            /*
+             * increase WriteCounter in case we add addRequestedListeners and t
+             * is not in current listeners list
+             */
+            if (!addRequestedListeners.contains(t) && !listeners.contains(t)) {
+                addRequestedListeners.add(t);
+                WriteR++;
+            }
+        }
     }
 
     /**
@@ -79,29 +98,63 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
      * @param event
      * @return
      */
-    // synchronized to avoid parallel runs
+
     public void fireEvent(TT event) {
-        // first handle removelist
-        synchronized (removeRequestedListeners) {
-            listeners.removeAll(removeRequestedListeners);
-            removeRequestedListeners.clear();
-        }
-        // then run through residual listeners
-        for (int i = listeners.size() - 1; i >= 0; i--) {
-            this.fireEvent(listeners.get(i), event);
-        }
-        // clean up listenerslist again. maybe there are new entries in removal
-        // list
-        if (removeRequestedListeners.size() > 0) {
-            synchronized (removeRequestedListeners) {
+        Vector<T> listeners;
+        synchronized (LOCK) {
+            if (WriteR == ReadR) {
+                /* nothing changed, we can use old pointer to listeners */
+                if (this.listeners.size() == 0) return;
+                listeners = this.listeners;
+            } else {
+                /* create new list with copy of old one */
+                listeners = new Vector<T>(this.listeners);
+                /* remove and add wished items */
                 listeners.removeAll(removeRequestedListeners);
                 removeRequestedListeners.clear();
+                listeners.addAll(addRequestedListeners);
+                addRequestedListeners.clear();
+                /* update ReadCounter and pointer to listeners */
+                ReadR = WriteR;
+                this.listeners = listeners;
+                if (this.listeners.size() == 0) return;
             }
         }
-
+        for (T t : listeners) {
+            this.fireEvent(t, event);
+        }
+        synchronized (LOCK) {
+            if (WriteR != ReadR) {
+                /* something changed, lets update the list */
+                /* create new list with copy of old one */
+                listeners = new Vector<T>(this.listeners);
+                /* remove and add wished items */
+                listeners.removeAll(removeRequestedListeners);
+                removeRequestedListeners.clear();
+                listeners.addAll(addRequestedListeners);
+                addRequestedListeners.clear();
+                /* update ReadCounter and pointer to listeners */
+                ReadR = WriteR;
+                this.listeners = listeners;
+            }
+        }
     }
 
-    public void removeListener(T listener) {
-        if (!removeRequestedListeners.contains(listener)) removeRequestedListeners.add(listener);
+    public void removeListener(T t) {
+        synchronized (LOCK) {
+            /* decrease WriteCounter in case we remove the addRequest */
+            if (addRequestedListeners.contains(t)) {
+                addRequestedListeners.remove(t);
+                WriteR--;
+            }
+            /*
+             * increase WriteCounter in case we add removeRequest and t is in
+             * current listeners list
+             */
+            if (!removeRequestedListeners.contains(t) && listeners.contains(t)) {
+                removeRequestedListeners.add(t);
+                WriteR++;
+            }
+        }
     }
 }

@@ -8,13 +8,14 @@ import org.appwork.utils.logging.Log;
 public class StateMachine {
 
     private State initState;
-    private State currentState;
+    private volatile State currentState;
     private StateEventsender eventSender;
     private State finalState;
     private ArrayList<StatePathEntry> path;
 
     private StateMachineInterface owner;
     private Object lock = new Object();
+    private Object lock2 = new Object();
     private HashMap<State, Throwable> exceptionMap;
 
     public StateMachine(StateMachineInterface interfac, State startState, State endState) {
@@ -58,25 +59,26 @@ public class StateMachine {
     public void setStatus(State newState) {
         synchronized (lock) {
             if (currentState == newState) return;
-            if (!currentState.getChildren().contains(newState)) {
-
-            throw new StateConflictException("Cannot change state from " + currentState + " to " + newState); }
-
+            if (!currentState.getChildren().contains(newState)) { throw new StateConflictException("Cannot change state from " + currentState + " to " + newState); }
         }
         this.forceState(newState);
     }
 
     public void fireUpdate(State currentState) {
         if (currentState != null) {
-            if (this.currentState != currentState) throw new StateConflictException("Cannot update state " + currentState + " because current state is " + this.currentState);
+            synchronized (lock) {
+                if (this.currentState != currentState) throw new StateConflictException("Cannot update state " + currentState + " because current state is " + this.currentState);
+            }
         }
         StateEvent event = new StateEvent(this, StateEvent.UPDATED, currentState, currentState);
         eventSender.fireEvent(event);
     }
 
     public boolean isState(State... states) {
-        for (State s : states) {
-            if (s == currentState) return true;
+        synchronized (lock) {
+            for (State s : states) {
+                if (s == currentState) return true;
+            }
         }
         return false;
     }
@@ -97,9 +99,10 @@ public class StateMachine {
             event = new StateEvent(this, StateEvent.CHANGED, currentState, initState);
             Log.L.finest(owner + " State changed (reset) " + currentState + " -> " + initState);
             this.currentState = this.initState;
-
-            path.clear();
-            path.add(new StatePathEntry(initState));
+            synchronized (lock2) {
+                path.clear();
+                path.add(new StatePathEntry(initState));
+            }
         }
         eventSender.fireEvent(event);
     }
@@ -112,7 +115,9 @@ public class StateMachine {
     }
 
     public boolean isFinal() {
-        return finalState == currentState;
+        synchronized (lock) {
+            return finalState == currentState;
+        }
     }
 
     // public void forceState(int id) {
@@ -131,7 +136,9 @@ public class StateMachine {
         synchronized (lock) {
             if (currentState == newState) return;
             event = new StateEvent(this, StateEvent.CHANGED, currentState, newState);
-            path.add(new StatePathEntry(newState));
+            synchronized (lock2) {
+                path.add(new StatePathEntry(newState));
+            }
             Log.L.finest(owner + " State changed " + currentState + " -> " + newState);
             currentState = newState;
         }
@@ -155,11 +162,12 @@ public class StateMachine {
     // }
 
     public boolean hasPassed(State... states) {
-        for (State s : states) {
-            for (StatePathEntry e : path) {
-                if (e.getState() == s) return true;
+        synchronized (lock2) {
+            for (State s : states) {
+                for (StatePathEntry e : path) {
+                    if (e.getState() == s) return true;
+                }
             }
-
         }
         return false;
 
@@ -169,7 +177,9 @@ public class StateMachine {
      * returns if the statemachine is in startstate currently
      */
     public boolean isStartState() {
-        return currentState == initState;
+        synchronized (lock) {
+            return currentState == initState;
+        }
     }
 
     public State getState() {
@@ -193,13 +203,13 @@ public class StateMachine {
     public StatePathEntry getLatestStateEntry(State failedState) {
         try {
             StatePathEntry entry = null;
-            for (int i = path.size() - 1; i >= 0; i--) {
-                entry = path.get(i);
-                if (entry.getState() == failedState) return entry;
-
+            synchronized (lock2) {
+                for (int i = path.size() - 1; i >= 0; i--) {
+                    entry = path.get(i);
+                    if (entry.getState() == failedState) return entry;
+                }
             }
         } catch (Exception e) {
-            // access to path is not synchronized. this may produce exceptions
         }
         return null;
     }
