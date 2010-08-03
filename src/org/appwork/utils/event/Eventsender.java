@@ -25,8 +25,8 @@ import java.util.Vector;
 public abstract class Eventsender<T extends EventListener, TT extends Event> {
 
     private final Object LOCK = new Object();
-    private volatile long WriteR = 0;
-    private volatile long ReadR = 0;
+    private volatile long writeR = 0;
+    private volatile long readR = 0;
     /**
      * List of registered Eventlistener
      */
@@ -71,7 +71,7 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
             /* decrease WriteCounter in case we remove the removeRequested */
             if (removeRequestedListeners.contains(t)) {
                 removeRequestedListeners.remove(t);
-                WriteR--;
+                writeR--;
             }
             /*
              * increase WriteCounter in case we add addRequestedListeners and t
@@ -79,7 +79,7 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
              */
             if (!addRequestedListeners.contains(t) && !listeners.contains(t)) {
                 addRequestedListeners.add(t);
-                WriteR++;
+                writeR++;
             }
         }
     }
@@ -102,7 +102,7 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
     public void fireEvent(TT event) {
         Vector<T> listeners;
         synchronized (LOCK) {
-            if (WriteR == ReadR) {
+            if (writeR == readR) {
                 /* nothing changed, we can use old pointer to listeners */
                 if (this.listeners.size() == 0) return;
                 listeners = this.listeners;
@@ -115,7 +115,7 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
                 listeners.addAll(addRequestedListeners);
                 addRequestedListeners.clear();
                 /* update ReadCounter and pointer to listeners */
-                ReadR = WriteR;
+                readR = writeR;
                 this.listeners = listeners;
                 if (this.listeners.size() == 0) return;
             }
@@ -124,7 +124,7 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
             this.fireEvent(t, event);
         }
         synchronized (LOCK) {
-            if (WriteR != ReadR) {
+            if (writeR != readR) {
                 /* something changed, lets update the list */
                 /* create new list with copy of old one */
                 listeners = new Vector<T>(this.listeners);
@@ -134,7 +134,7 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
                 listeners.addAll(addRequestedListeners);
                 addRequestedListeners.clear();
                 /* update ReadCounter and pointer to listeners */
-                ReadR = WriteR;
+                readR = writeR;
                 this.listeners = listeners;
             }
         }
@@ -145,7 +145,7 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
             /* decrease WriteCounter in case we remove the addRequest */
             if (addRequestedListeners.contains(t)) {
                 addRequestedListeners.remove(t);
-                WriteR--;
+                writeR--;
             }
             /*
              * increase WriteCounter in case we add removeRequest and t is in
@@ -153,7 +153,7 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
              */
             if (!removeRequestedListeners.contains(t) && listeners.contains(t)) {
                 removeRequestedListeners.add(t);
-                WriteR++;
+                writeR++;
             }
         }
     }
