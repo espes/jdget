@@ -28,8 +28,8 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     private long limitCustom = 0;
     private long limitCounter = 0;
     private long lastLimitReached = 0;
-    private final static int HIGHStep = 524288;
-    private final static int LOWStep = 1024;
+    public final static int HIGHStep = 524288;
+    public final static int LOWStep = 1024;
     private int checkStep = 10240;
     private int offset;
     private int todo;
@@ -77,6 +77,15 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     public void write(int b) throws IOException {
         out.write(b);
         increase(1);
+    }
+
+    public int getCheckStepSize() {
+        return checkStep;
+    }
+
+    public void setCheckStepSize(int step) {
+        checkStep = Math.max(HIGHStep, step);
+        checkStep = Math.min(LOWStep, checkStep);
     }
 
     @Override

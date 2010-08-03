@@ -29,8 +29,8 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
     private long lastLimitReached = 0;
     private int lastRead;
     private int lastRead2;
-    private final static int HIGHStep = 524288;
-    private final static int LOWStep = 1024;
+    public final static int HIGHStep = 524288;
+    public final static int LOWStep = 1024;
     private int checkStep = 10240;
     private int offset;
     private int todo;
@@ -69,6 +69,15 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
     protected ThrottledInputStream(InputStream in, ThrottledConnectionManager manager) {
         this.manager = manager;
         this.in = in;
+    }
+
+    public int getCheckStepSize() {
+        return checkStep;
+    }
+
+    public void setCheckStepSize(int step) {
+        checkStep = Math.max(HIGHStep, step);
+        checkStep = Math.min(LOWStep, checkStep);
     }
 
     @Override

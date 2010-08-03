@@ -30,7 +30,7 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
     private int offset;
     private int checkStep = 1024;
     // private final static int HIGHStep = 524288;
-    private final static int LOWStep = 1024;
+    public final static int LOWStep = 1024;
     private int todo;
     private int lastRead;
     private int rest;
@@ -65,6 +65,14 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
         readTmp1 = in.read();
         if (readTmp1 != -1) transfered++;
         return readTmp1;
+    }
+
+    public int getCheckStepSize() {
+        return checkStep;
+    }
+
+    public void setCheckStepSize(int step) {
+        checkStep = Math.min(LOWStep, checkStep);
     }
 
     @Override
