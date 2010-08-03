@@ -16,6 +16,7 @@ public class JacksonStorageChest extends Storage {
     private final HashMap<String, Object> map;
     private final String name;
     private boolean plain;
+    private final Object LOCK = new Object();
 
     public JacksonStorageChest(String name) throws StorageException {
         this(name, false);
@@ -122,7 +123,9 @@ public class JacksonStorageChest extends Storage {
         // can reuse, share globally
         try {
             String json = JSonStorage.getMapper().writeValueAsString(map);
-            JSonStorage.saveTo("cfg/" + name + (plain ? ".json" : ".ejs"), json);
+            synchronized (LOCK) {
+                JSonStorage.saveTo("cfg/" + name + (plain ? ".json" : ".ejs"), json);
+            }
         } catch (JsonGenerationException e) {
             Log.exception(e);
         } catch (JsonMappingException e) {

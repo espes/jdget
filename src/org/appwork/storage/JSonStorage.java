@@ -23,9 +23,7 @@ public class JSonStorage {
     private static File path;
     private static final ObjectMapper MAPPER = new ObjectMapper(new ExtJsonFactory());
     static {
-
         MAPPER.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     }
 
     static public byte[] KEY = new byte[] { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };

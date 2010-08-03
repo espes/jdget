@@ -170,7 +170,29 @@ public class StateMachine {
             }
         }
         return false;
+    }
 
+    /*
+     * synchronized hasPassed/addListener to start run when state has
+     * reached/passed
+     */
+    public void executeOnState(final Runnable run, State state) {
+        if (run == null || state == null) return;
+        boolean reached = false;
+        synchronized (lock) {
+            if (hasPassed(state)) {
+                reached = true;
+            } else {
+                addListener(new StateListener(state) {
+                    @Override
+                    public void onStateReached(StateEvent event) {
+                        removeListener(this);
+                        run.run();
+                    }
+                });
+            }
+        }
+        if (reached) run.run();
     }
 
     /**
