@@ -12,7 +12,7 @@ public class StateLocker implements StateEventListener {
     /**
      * @param machines
      */
-    public StateLocker(StateMachine[] machines) {
+    public StateLocker(StateMachine... machines) {
         stateMachines = machines.clone();
         counter = 0;
     }

@@ -82,12 +82,16 @@ public class Dialog {
      */
     public static final int LOGIC_BYPASS = 1 << 1;
     /**
+     * Use this flag to avoid display of the Timer
+     */
+    public static final int LOGIC_COUNTDOWN = 1 << 2;
+
+    /**
      * Often, the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} option does not make
      * sense for the cancel option. Use this flag if the option should be
      * ignored if the user selects Cancel
      */
     public static final int LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL = 1 << 9;
-
     /**
      * Often, the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} option does not make
      * sense for the ok option. Use this flag if the option should be ignored if
@@ -95,22 +99,13 @@ public class Dialog {
      */
     public static final int LOGIC_DONT_SHOW_AGAIN_IGNORES_OK = 1 << 10;
     /**
-     * Use this flag to avoid display of the Timer
-     */
-    public static final int LOGIC_COUNTDOWN = 1 << 2;
-    /**
-     * Parent window for all dialogs created with abstractdialog
-     */
-    private JFrame owner = new JFrame();
-    /**
      * if the user pressed cancel, the return mask will contain this mask
      */
     public static final int RETURN_CANCEL = 1 << 2;
     /**
-     * If the Timeout ({@link #LOGIC_COUNTDOWN}) has run out, the return mask
-     * contains this flag
+     * if user closed the window
      */
-    public static final int RETURN_TIMEOUT = 1 << 5;
+    public static final int RETURN_CLOSED = 1 << 6;
     /**
      * this return flag can be set in two situations:<br>
      * a) The user selected the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option<br>
@@ -127,11 +122,6 @@ public class Dialog {
      * If the user pressed OK, the return mask will contain this flag
      */
     public static final int RETURN_OK = 1 << 1;
-
-    /**
-     * if user closed the window
-     */
-    public static final int RETURN_CLOSED = 1 << 6;
     /**
      * If the dialog has been skipped due to previously selected
      * {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option, this return flag is set.
@@ -139,6 +129,13 @@ public class Dialog {
      * @see #RETURN_DONT_SHOW_AGAIN
      */
     public static final int RETURN_SKIPPED_BY_DONT_SHOW = 1 << 4;
+
+    /**
+     * If the Timeout ({@link #LOGIC_COUNTDOWN}) has run out, the return mask
+     * contains this flag
+     */
+    public static final int RETURN_TIMEOUT = 1 << 5;
+    private static boolean ShellFolderIDWorkaround = false;
     /**
      * Do Not use an Icon. By default dialogs have an Icon
      */
@@ -160,7 +157,29 @@ public class Dialog {
      */
     public static final int STYLE_SHOW_DO_NOT_DISPLAY_AGAIN = 1 << 5;
 
-    private static boolean ShellFolderIDWorkaround = false;
+    /**
+     * tries to find some special markers in the text and selects an appropriate
+     * icon
+     * 
+     * @param text
+     * @return
+     */
+    public static ImageIcon getIconByText(final String text) {
+        try {
+            if (text.contains("?")) {
+                return ImageProvider.getImageIcon(Dialog.ICON_QUESTION, 32, 32);
+            } else if (text.matches(Loc.getErrorRegex())) {
+                return ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32);
+            } else if (text.contains("!")) {
+                return ImageProvider.getImageIcon(Dialog.ICON_WARNING, 32, 32);
+            } else {
+                return ImageProvider.getImageIcon(Dialog.ICON_INFO, 32, 32);
+            }
+        } catch (final IOException e) {
+            Log.exception(e);
+            return null;
+        }
+    }
 
     /**
      * Return the singleton instance of Dialog
@@ -168,24 +187,17 @@ public class Dialog {
      * @return
      */
     public static Dialog getInstance() {
-        return INSTANCE;
+        return Dialog.INSTANCE;
     }
 
-    /**
-     * @return the {@link Dialog#owner}
-     * @see Dialog#owner
-     */
-    public JFrame getParentOwner() {
-        return owner;
+    public static boolean isClosed(final Object value) {
+        if (!(value instanceof Integer)) { return false; }
+        return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_CLOSED);
     }
 
-    /**
-     * @param parent
-     *            the {@link Dialog#owner} to set
-     * @see Dialog#owner
-     */
-    public void setParentOwner(JFrame parent) {
-        owner = parent;
+    public static boolean isOK(final Object value) {
+        if (!(value instanceof Integer)) { return false; }
+        return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_OK);
     }
 
     /**
@@ -201,35 +213,24 @@ public class Dialog {
     private Object latestReturnMask;
 
     /**
+     * Parent window for all dialogs created with abstractdialog
+     */
+    private JFrame owner = new JFrame();
+
+    /**
      * @return the {@link Dialog#coundownTime}
      * @see Dialog#coundownTime
      */
     protected int getCoundownTime() {
-        return coundownTime;
+        return this.coundownTime;
     }
 
     /**
-     * tries to find some special markers in the text and selects an appropriate
-     * icon
-     * 
-     * @param text
-     * @return
+     * @return the {@link Dialog#owner}
+     * @see Dialog#owner
      */
-    public static ImageIcon getIconByText(String text) {
-        try {
-            if (text.contains("?")) {
-                return ImageProvider.getImageIcon(ICON_QUESTION, 32, 32);
-            } else if (text.matches(Loc.getErrorRegex())) {
-                return ImageProvider.getImageIcon(ICON_ERROR, 32, 32);
-            } else if (text.contains("!")) {
-                return ImageProvider.getImageIcon(ICON_WARNING, 32, 32);
-            } else {
-                return ImageProvider.getImageIcon(ICON_INFO, 32, 32);
-            }
-        } catch (IOException e) {
-            Log.exception(e);
-            return null;
-        }
+    public JFrame getParentOwner() {
+        return this.owner;
     }
 
     /**
@@ -240,17 +241,7 @@ public class Dialog {
      */
     @Deprecated
     public boolean isOK() {
-        return isOK(latestReturnMask);
-    }
-
-    public static boolean isOK(Object value) {
-        if (!(value instanceof Integer)) return false;
-        return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_OK);
-    }
-
-    public static boolean isClosed(Object value) {
-        if (!(value instanceof Integer)) return false;
-        return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_CLOSED);
+        return Dialog.isOK(this.latestReturnMask);
     }
 
     /**
@@ -258,8 +249,17 @@ public class Dialog {
      *            the {@link Dialog#coundownTime} to set
      * @see Dialog#coundownTime
      */
-    protected void setCoundownTime(int coundownTime) {
+    protected void setCoundownTime(final int coundownTime) {
         this.coundownTime = coundownTime;
+    }
+
+    /**
+     * @param parent
+     *            the {@link Dialog#owner} to set
+     * @see Dialog#owner
+     */
+    public void setParentOwner(final JFrame parent) {
+        this.owner = parent;
     }
 
     /**
@@ -288,19 +288,19 @@ public class Dialog {
      * @return
      */
     public int showComboDialog(final int flag, final String title, final String question, final Object[] options, final int defaultSelection, final ImageIcon icon, final String okOption, final String cancelOption, final ListCellRenderer renderer) {
-        if ((flag & LOGIC_BYPASS) > 0) return defaultSelection;
+        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultSelection; }
         Integer ret = 0;
         try {
             return ret = new EDTHelper<Integer>() {
                 @Override
                 public Integer edtRun() {
-                    ComboBoxDialog dialog = new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okOption, cancelOption, renderer);
+                    final ComboBoxDialog dialog = new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okOption, cancelOption, renderer);
                     dialog.init();
                     return dialog.getReturnIndex();
                 }
             }.getReturnValue();
         } finally {
-            latestReturnMask = ret;
+            this.latestReturnMask = ret;
         }
     }
 
@@ -313,8 +313,8 @@ public class Dialog {
      *            The Dialog is able to show a question to the user.
      * @return
      */
-    public int showConfirmDialog(int flag, String question) {
-        return showConfirmDialog(flag, Tl8.DIALOG_CONFIRMDIALOG_TITLE.toString(), question, getIconByText(question), null, null);
+    public int showConfirmDialog(final int flag, final String question) {
+        return this.showConfirmDialog(flag, Tl8.DIALOG_CONFIRMDIALOG_TITLE.toString(), question, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -328,8 +328,8 @@ public class Dialog {
      *            The Dialog is able to show a question to the user.
      * @return
      */
-    public int showConfirmDialog(int flag, String title, String question) {
-        return showConfirmDialog(flag, title, question, getIconByText(title + question), null, null);
+    public int showConfirmDialog(final int flag, final String title, final String question) {
+        return this.showConfirmDialog(flag, title, question, Dialog.getIconByText(title + question), null, null);
     }
 
     /**
@@ -361,10 +361,10 @@ public class Dialog {
      */
 
     public int showConfirmDialog(final int flag, final String title, final String message, final ImageIcon tmpicon, final String okOption, final String cancelOption) {
-        if ((flag & LOGIC_BYPASS) > 0) return 0;
+        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return 0; }
         final ImageIcon icon;
         if (tmpicon == null) {
-            icon = getIconByText(title + message);
+            icon = Dialog.getIconByText(title + message);
         } else {
             icon = tmpicon;
         }
@@ -373,26 +373,48 @@ public class Dialog {
             return ret = new EDTHelper<Integer>() {
                 @Override
                 public Integer edtRun() {
-                    ConfirmDialog dialog = new ConfirmDialog(flag, title, message, icon, okOption, cancelOption);
+                    final ConfirmDialog dialog = new ConfirmDialog(flag, title, message, icon, okOption, cancelOption);
                     dialog.init();
                     return dialog.getReturnmask();
                 }
             }.getReturnValue();
         } finally {
-            latestReturnMask = ret;
+            this.latestReturnMask = ret;
         }
 
     }
 
     /**
+     * note: showdialog must not call init itself!!
      * 
-     * @param title
-     *            The Dialog's Window Title
-     * @param message
-     *            The Dialog is able to show a message to the user
+     * @param <T>
+     * @param showDialog
+     * @param retType
+     * @return
      */
-    public void showMessageDialog(String title, String message) {
-        showMessageDialog(0, title, message);
+    @SuppressWarnings("unchecked")
+    public <T> T showDialog(final AbstractDialog<T> showDialog) {
+        if (showDialog == null) { return null; }
+        synchronized (this) {
+            return (T) (this.latestReturnMask = new EDTHelper<T>() {
+
+                @Override
+                public T edtRun() {
+                    showDialog.init();
+                    return showDialog.getRetValue();
+                }
+
+            }.getReturnValue());
+        }
+    }
+
+    public int showErrorDialog(final String s) {
+        try {
+            return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, Tl8.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32), null, null);
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     /**
@@ -423,7 +445,7 @@ public class Dialog {
                 public File[] edtRun() {
                     for (int tried = 0; tried < 2; tried++) {
                         try {
-                            if (ShellFolderIDWorkaround) {
+                            if (Dialog.ShellFolderIDWorkaround) {
                                 UIManager.put("FileChooser.useShellFolder", false);
                             } else {
                                 UIManager.put("FileChooser.useShellFolder", true);
@@ -434,19 +456,29 @@ public class Dialog {
                             UIManager.put("FileChooser.detailsViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.toString());
                             UIManager.put("FileChooser.listViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
 
-                            JFileChooser fc = new JFileChooser();
-                            if (ShellFolderIDWorkaround) {
+                            final JFileChooser fc = new JFileChooser();
+                            if (Dialog.ShellFolderIDWorkaround) {
                                 fc.putClientProperty("FileChooser.useShellFolder", false);
                             } else {
                                 fc.putClientProperty("FileChooser.useShellFolder", true);
                             }
                             fc.setAccessory(new FilePreview(fc));
-                            if (title != null) fc.setDialogTitle(title);
-                            if (fileSelectionMode != null) fc.setFileSelectionMode(fileSelectionMode);
-                            if (fileFilter != null) fc.setFileFilter(fileFilter);
+                            if (title != null) {
+                                fc.setDialogTitle(title);
+                            }
+                            if (fileSelectionMode != null) {
+                                fc.setFileSelectionMode(fileSelectionMode);
+                            }
+                            if (fileFilter != null) {
+                                fc.setFileFilter(fileFilter);
+                            }
 
-                            if (multiSelection && (dialogType == null || dialogType != JFileChooser.SAVE_DIALOG)) fc.setMultiSelectionEnabled(multiSelection);
-                            if (dialogType != null) fc.setDialogType(dialogType);
+                            if (multiSelection && ((dialogType == null) || (dialogType != JFileChooser.SAVE_DIALOG))) {
+                                fc.setMultiSelectionEnabled(multiSelection);
+                            }
+                            if (dialogType != null) {
+                                fc.setDialogType(dialogType);
+                            }
                             if (preSelection != null) {
                                 if (preSelection.isDirectory()) {
                                     fc.setCurrentDirectory(preSelection);
@@ -456,7 +488,7 @@ public class Dialog {
                                     fc.setSelectedFile(preSelection);
                                 }
                             } else {
-                                String latest = JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null);
+                                final String latest = JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null);
                                 if (latest != null) {
                                     File storeSelection = new File(latest);
                                     while (storeSelection != null) {
@@ -477,46 +509,48 @@ public class Dialog {
                                     }
                                 }
                             }
-                            if (dialogType == null || dialogType == JFileChooser.OPEN_DIALOG) {
-                                if (fc.showOpenDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
+                            if ((dialogType == null) || (dialogType == JFileChooser.OPEN_DIALOG)) {
+                                if (fc.showOpenDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
                                     if (multiSelection) {
-                                        latestReturnMask = fc.getSelectedFiles();
+                                        Dialog.this.latestReturnMask = fc.getSelectedFiles();
                                         if (fc.getSelectedFiles().length > 0) {
 
                                             File first = fc.getSelectedFiles()[0];
                                             if (first != null) {
-                                                if (first.isFile()) first = first.getParentFile();
+                                                if (first.isFile()) {
+                                                    first = first.getParentFile();
+                                                }
                                                 JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
                                             }
                                         }
-                                        return (File[]) latestReturnMask;
+                                        return (File[]) Dialog.this.latestReturnMask;
                                     }
 
                                     final File[] ret = new File[1];
                                     ret[0] = fc.getSelectedFile();
                                     if (ret[0] != null) {
-                                        latestReturnMask = ret;
+                                        Dialog.this.latestReturnMask = ret;
                                         JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
                                     }
                                     return ret;
                                 }
                             } else if (dialogType == JFileChooser.SAVE_DIALOG) {
-                                if (fc.showSaveDialog(getParentOwner()) == JFileChooser.APPROVE_OPTION) {
+                                if (fc.showSaveDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
 
                                     final File[] ret = new File[1];
                                     ret[0] = fc.getSelectedFile();
                                     if (ret[0] != null) {
-                                        latestReturnMask = ret;
+                                        Dialog.this.latestReturnMask = ret;
                                         JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret[0].getAbsolutePath());
                                     }
                                     return ret;
                                 }
                             }
                             return null;
-                        } catch (Exception e) {
-                            if (e.getMessage().contains("shell") && !ShellFolderIDWorkaround) {
+                        } catch (final Exception e) {
+                            if (e.getMessage().contains("shell") && !Dialog.ShellFolderIDWorkaround) {
                                 Log.L.info("Enabling Workaround for \"Could not get shell folder ID list\"");
-                                ShellFolderIDWorkaround = true;
+                                Dialog.ShellFolderIDWorkaround = true;
                             } else {
                                 Log.exception(e);
                                 return null;
@@ -542,8 +576,8 @@ public class Dialog {
      *            defaultvalue
      * @return
      */
-    public String showInputDialog(int flag, String question, String defaultvalue) {
-        return showInputDialog(flag, Tl8.DIALOG_INPUT_TITLE.toString(), question, defaultvalue, getIconByText(question), null, null);
+    public String showInputDialog(final int flag, final String question, final String defaultvalue) {
+        return this.showInputDialog(flag, Tl8.DIALOG_INPUT_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -568,11 +602,11 @@ public class Dialog {
      * @return
      */
     public String showInputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
-        if ((flag & LOGIC_BYPASS) > 0) return defaultMessage;
-        return (String) (latestReturnMask = new EDTHelper<String>() {
+        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
+        return (String) (this.latestReturnMask = new EDTHelper<String>() {
             @Override
             public String edtRun() {
-                InputDialog dialog = new InputDialog(flag, title, message, defaultMessage, icon, okOption, cancelOption);
+                final InputDialog dialog = new InputDialog(flag, title, message, defaultMessage, icon, okOption, cancelOption);
                 dialog.init();
                 return dialog.getRetValue();
             }
@@ -586,8 +620,58 @@ public class Dialog {
      *            The Dialog is able to show a message to the user
      * @return
      */
-    public String showInputDialog(String message) {
-        return showInputDialog(0, message, null);
+    public String showInputDialog(final String message) {
+        return this.showInputDialog(0, message, null);
+    }
+
+    /**
+     * 
+     * @param flag
+     *            see {@link Dialog} - Flags. There are various flags to
+     *            customize the dialog
+     * @param message
+     *            The Dialog is able to show a message to the user
+     */
+    public void showMessageDialog(final int flag, final String message) {
+        this.showMessageDialog(flag, Tl8.DIALOG_MESSAGE_TITLE.toString(), message);
+    }
+
+    /**
+     * 
+     * @param flag
+     *            see {@link Dialog} - Flags. There are various flags to
+     *            customize the dialog
+     * @param title
+     *            The Dialog's Window Title
+     * @param message
+     *            The Dialog is able to show a message to the user
+     */
+    public void showMessageDialog(final int flag, final String title, final String message) {
+        synchronized (this) {
+
+            this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | flag, title, message, Dialog.getIconByText(title + message), null, null);
+
+        }
+    }
+
+    /**
+     * 
+     * @param message
+     *            The Dialog is able to show a message to the user
+     */
+    public void showMessageDialog(final String message) {
+        this.showMessageDialog(0, Tl8.DIALOG_MESSAGE_TITLE.toString(), message);
+    }
+
+    /**
+     * 
+     * @param title
+     *            The Dialog's Window Title
+     * @param message
+     *            The Dialog is able to show a message to the user
+     */
+    public void showMessageDialog(final String title, final String message) {
+        this.showMessageDialog(0, title, message);
     }
 
     /**
@@ -602,8 +686,8 @@ public class Dialog {
      *            defaultvalue
      * @return
      */
-    public String showPasswordDialog(int flag, String question, String defaultvalue) {
-        return showPasswordDialog(flag, Tl8.DIALOG_PASSWORD_TITLE.toString(), question, defaultvalue, getIconByText(question), null, null);
+    public String showPasswordDialog(final int flag, final String question, final String defaultvalue) {
+        return this.showPasswordDialog(flag, Tl8.DIALOG_PASSWORD_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -628,11 +712,11 @@ public class Dialog {
      * @return
      */
     protected String showPasswordDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
-        if ((flag & LOGIC_BYPASS) > 0) return defaultMessage;
-        return (String) (latestReturnMask = new EDTHelper<String>() {
+        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
+        return (String) (this.latestReturnMask = new EDTHelper<String>() {
             @Override
             public String edtRun() {
-                PasswordDialog dialog = new PasswordDialog(flag, title, message, icon, okOption, cancelOption);
+                final PasswordDialog dialog = new PasswordDialog(flag, title, message, icon, okOption, cancelOption);
                 dialog.init();
                 return dialog.getRetValue();
             }
@@ -646,47 +730,8 @@ public class Dialog {
      *            The Dialog is able to show a message to the user
      * @return
      */
-    public String showPasswordDialog(String message) {
-        return showPasswordDialog(0, message, null);
-    }
-
-    /**
-     * 
-     * @param flag
-     *            see {@link Dialog} - Flags. There are various flags to
-     *            customize the dialog
-     * @param message
-     *            The Dialog is able to show a message to the user
-     */
-    public void showMessageDialog(int flag, String message) {
-        showMessageDialog(flag, Tl8.DIALOG_MESSAGE_TITLE.toString(), message);
-    }
-
-    /**
-     * 
-     * @param flag
-     *            see {@link Dialog} - Flags. There are various flags to
-     *            customize the dialog
-     * @param title
-     *            The Dialog's Window Title
-     * @param message
-     *            The Dialog is able to show a message to the user
-     */
-    public void showMessageDialog(int flag, String title, String message) {
-        synchronized (this) {
-
-            showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | flag, title, message, getIconByText(title + message), null, null);
-
-        }
-    }
-
-    /**
-     * 
-     * @param message
-     *            The Dialog is able to show a message to the user
-     */
-    public void showMessageDialog(String message) {
-        showMessageDialog(0, Tl8.DIALOG_MESSAGE_TITLE.toString(), message);
+    public String showPasswordDialog(final String message) {
+        return this.showPasswordDialog(0, message, null);
     }
 
     /**
@@ -699,14 +744,14 @@ public class Dialog {
      * @return
      */
     protected String showTextAreaDialog(final String title, final String message, final String def) {
-        return (String) (latestReturnMask = new EDTHelper<String>() {
+        return (String) (this.latestReturnMask = new EDTHelper<String>() {
             @Override
             public String edtRun() {
                 try {
-                    TextAreaDialog dialog = new TextAreaDialog(title, message, def);
+                    final TextAreaDialog dialog = new TextAreaDialog(title, message, def);
                     dialog.init();
-                    if (BinaryLogic.containsAll(dialog.getReturnmask(), RETURN_OK)) return dialog.getResult();
-                } catch (IOException e) {
+                    if (BinaryLogic.containsAll(dialog.getReturnmask(), Dialog.RETURN_OK)) { return dialog.getResult(); }
+                } catch (final IOException e) {
                     Log.exception(e);
                 }
                 return null;
@@ -734,8 +779,8 @@ public class Dialog {
      *            TODO
      * @return
      */
-    public long showValueDialog(int flag, String question, long defaultvalue, long min, long max, long step, ValueConverter valueConverter) {
-        return showValueDialog(flag, Tl8.DIALOG_SLIDER_TITLE.toString(), question, defaultvalue, getIconByText(question), null, null, min, max, step, valueConverter);
+    public long showValueDialog(final int flag, final String question, final long defaultvalue, final long min, final long max, final long step, final ValueConverter valueConverter) {
+        return this.showValueDialog(flag, Tl8.DIALOG_SLIDER_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null, min, max, step, valueConverter);
     }
 
     /**
@@ -767,49 +812,16 @@ public class Dialog {
      * @return
      */
     protected long showValueDialog(final int flag, final String title, final String message, final long defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption, final long min, final long max, final long step, final ValueConverter valueConverter) {
-        if ((flag & LOGIC_BYPASS) > 0) return defaultMessage;
+        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
 
-        return (Long) (latestReturnMask = new EDTHelper<Long>() {
+        return (Long) (this.latestReturnMask = new EDTHelper<Long>() {
             @Override
             public Long edtRun() {
-                ValueDialog dialog = new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter);
+                final ValueDialog dialog = new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter);
                 dialog.init();
                 return dialog.getRetValue();
             }
         }.getReturnValue());
-    }
-
-    public int showErrorDialog(String s) {
-        try {
-            return showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, Tl8.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32), null, null);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    /**
-     * note: showdialog must not call init itself!!
-     * 
-     * @param <T>
-     * @param showDialog
-     * @param retType
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T showDialog(final AbstractDialog<T> showDialog) {
-        if (showDialog == null) return null;
-        synchronized (this) {
-            return (T) (latestReturnMask = new EDTHelper<T>() {
-
-                @Override
-                public T edtRun() {
-                    showDialog.init();
-                    return (T) showDialog.getRetValue();
-                }
-
-            }.getReturnValue());
-        }
     }
 
 }

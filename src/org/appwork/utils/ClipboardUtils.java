@@ -142,7 +142,9 @@ public class ClipboardUtils {
                 if (info.isDataFlavorSupported(fileListFlavor)) {
                     List<File> list = (List<File>) info.getTransferable().getTransferData(fileListFlavor);
                     for (File f : list) {
-                        if (f.exists()) files.add(f);
+                        if (f.exists()) {
+                            files.add(f);
+                        }
                     }
                 } else if (uriListFlavor != null && info.isDataFlavorSupported(uriListFlavor)) {
                     inString = (String) info.getTransferable().getTransferData(uriListFlavor);

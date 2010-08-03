@@ -9,8 +9,8 @@
  */
 package org.appwork.utils.event;
 
+import java.util.ArrayList;
 import java.util.EventListener;
-import java.util.Vector;
 
 /**
  * The Eventsenderclass is the core of the Eventsystem. it can be used to design
@@ -24,30 +24,30 @@ import java.util.Vector;
 
 public abstract class Eventsender<T extends EventListener, TT extends Event> {
 
-    private final Object LOCK = new Object();
-    private volatile long writeR = 0;
-    private volatile long readR = 0;
+    transient protected ArrayList<T> addRequestedListeners = null;
     /**
      * List of registered Eventlistener
      */
-    // TODO: DO we really need Vectors here?
-    transient volatile protected Vector<T> listeners = null;
+    // TODO: DO we really need ArrayLists here?
+    transient volatile protected ArrayList<T> listeners = null;
+    private final Object LOCK = new Object();
+    private volatile long readR = 0;
     /**
      * List of Listeners that are requested for removal
      * 
      */
     // We use a removeList to avoid threating problems
-    transient protected Vector<T> removeRequestedListeners = null;
+    transient protected ArrayList<T> removeRequestedListeners = null;
 
-    transient protected Vector<T> addRequestedListeners = null;
+    private volatile long writeR = 0;
 
     /**
      * Creates a new Eventsender Instance
      */
     public Eventsender() {
-        listeners = new Vector<T>();
-        removeRequestedListeners = new Vector<T>();
-        addRequestedListeners = new Vector<T>();
+        this.listeners = new ArrayList<T>();
+        this.removeRequestedListeners = new ArrayList<T>();
+        this.addRequestedListeners = new ArrayList<T>();
     }
 
     /**
@@ -55,9 +55,10 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
      * 
      * @param listener
      */
-    public void addAllListener(Vector<T> listener) {
-        for (T l : listener)
+    public void addAllListener(final ArrayList<T> listener) {
+        for (final T l : listener) {
             this.addListener(l);
+        }
 
     }
 
@@ -66,20 +67,20 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
      * 
      * @param listener
      */
-    public void addListener(T t) {
-        synchronized (LOCK) {
+    public void addListener(final T t) {
+        synchronized (this.LOCK) {
             /* decrease WriteCounter in case we remove the removeRequested */
-            if (removeRequestedListeners.contains(t)) {
-                removeRequestedListeners.remove(t);
-                writeR--;
+            if (this.removeRequestedListeners.contains(t)) {
+                this.removeRequestedListeners.remove(t);
+                this.writeR--;
             }
             /*
              * increase WriteCounter in case we add addRequestedListeners and t
              * is not in current listeners list
              */
-            if (!addRequestedListeners.contains(t) && !listeners.contains(t)) {
-                addRequestedListeners.add(t);
-                writeR++;
+            if (!this.addRequestedListeners.contains(t) && !this.listeners.contains(t)) {
+                this.addRequestedListeners.add(t);
+                this.writeR++;
             }
         }
     }
@@ -99,61 +100,61 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
      * @return
      */
 
-    public void fireEvent(TT event) {
-        Vector<T> listeners;
-        synchronized (LOCK) {
-            if (writeR == readR) {
+    public void fireEvent(final TT event) {
+        ArrayList<T> listeners;
+        synchronized (this.LOCK) {
+            if (this.writeR == this.readR) {
                 /* nothing changed, we can use old pointer to listeners */
-                if (this.listeners.size() == 0) return;
+                if (this.listeners.size() == 0) { return; }
                 listeners = this.listeners;
             } else {
                 /* create new list with copy of old one */
-                listeners = new Vector<T>(this.listeners);
+                listeners = new ArrayList<T>(this.listeners);
                 /* remove and add wished items */
-                listeners.removeAll(removeRequestedListeners);
-                removeRequestedListeners.clear();
-                listeners.addAll(addRequestedListeners);
-                addRequestedListeners.clear();
+                listeners.removeAll(this.removeRequestedListeners);
+                this.removeRequestedListeners.clear();
+                listeners.addAll(this.addRequestedListeners);
+                this.addRequestedListeners.clear();
                 /* update ReadCounter and pointer to listeners */
-                readR = writeR;
+                this.readR = this.writeR;
                 this.listeners = listeners;
-                if (this.listeners.size() == 0) return;
+                if (this.listeners.size() == 0) { return; }
             }
         }
-        for (T t : listeners) {
+        for (final T t : listeners) {
             this.fireEvent(t, event);
         }
-        synchronized (LOCK) {
-            if (writeR != readR) {
+        synchronized (this.LOCK) {
+            if (this.writeR != this.readR) {
                 /* something changed, lets update the list */
                 /* create new list with copy of old one */
-                listeners = new Vector<T>(this.listeners);
+                listeners = new ArrayList<T>(this.listeners);
                 /* remove and add wished items */
-                listeners.removeAll(removeRequestedListeners);
-                removeRequestedListeners.clear();
-                listeners.addAll(addRequestedListeners);
-                addRequestedListeners.clear();
+                listeners.removeAll(this.removeRequestedListeners);
+                this.removeRequestedListeners.clear();
+                listeners.addAll(this.addRequestedListeners);
+                this.addRequestedListeners.clear();
                 /* update ReadCounter and pointer to listeners */
-                readR = writeR;
+                this.readR = this.writeR;
                 this.listeners = listeners;
             }
         }
     }
 
-    public void removeListener(T t) {
-        synchronized (LOCK) {
+    public void removeListener(final T t) {
+        synchronized (this.LOCK) {
             /* decrease WriteCounter in case we remove the addRequest */
-            if (addRequestedListeners.contains(t)) {
-                addRequestedListeners.remove(t);
-                writeR--;
+            if (this.addRequestedListeners.contains(t)) {
+                this.addRequestedListeners.remove(t);
+                this.writeR--;
             }
             /*
              * increase WriteCounter in case we add removeRequest and t is in
              * current listeners list
              */
-            if (!removeRequestedListeners.contains(t) && listeners.contains(t)) {
-                removeRequestedListeners.add(t);
-                writeR++;
+            if (!this.removeRequestedListeners.contains(t) && this.listeners.contains(t)) {
+                this.removeRequestedListeners.add(t);
+                this.writeR++;
             }
         }
     }
