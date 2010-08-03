@@ -176,7 +176,7 @@ public class StateMachine {
      * synchronized hasPassed/addListener to start run when state has
      * reached/passed
      */
-    public void executeOnState(final Runnable run, State state) {
+    public void executeOnceOnState(final Runnable run, State state) {
         if (run == null || state == null) return;
         boolean reached = false;
         synchronized (lock) {
