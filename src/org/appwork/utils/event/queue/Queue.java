@@ -174,6 +174,7 @@ public abstract class Queue extends Thread {
      */
     public boolean isQueueThread(final QueueAction<?, ? extends Throwable> item) {
         if (Thread.currentThread() == thread) return true;
+        if (item==null) return false;
         QueueAction<?, ? extends Throwable> last = item;
         Thread t = null;
         /*
@@ -187,6 +188,7 @@ public abstract class Queue extends Thread {
                     return true;
                 }
                 last = ((Queue) t).getLastHistoryItem();
+                if (last == null) break;
             } else {
                 break;
             }
