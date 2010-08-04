@@ -180,7 +180,10 @@ public abstract class Queue extends Thread {
          */
         while ((t = last.getCallerThread()) != null) {
             if (t != null && t instanceof Queue) {
-                if (t == this.thread) return true;
+                if (t == this.thread){                    
+                    org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! "+item );
+                    return true;
+                }
                 last = ((Queue) t).getLastHistoryItem();
             } else {
                 break;
