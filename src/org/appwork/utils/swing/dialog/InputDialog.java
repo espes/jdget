@@ -58,7 +58,7 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
             input = new JTextPane();
             input.setText(this.defaultMessage);
             input.addKeyListener(this);
-            input.addMouseListener(this);
+            input.addMouseListener(this);            
             contentpane.add(new JScrollPane(input), "height 20:60:n,pushy,growy,w 450");
         } else {
             input = new JTextField();
