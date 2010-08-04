@@ -22,8 +22,7 @@ public abstract class QueueAction<T, E extends Throwable> {
     private volatile boolean finished = false;
     private volatile boolean killed = false;
     private volatile boolean started = false;
-    private Queue queue = null;
-    private QueueAction<?, ? extends Throwable> source = null;
+    private Queue queue = null;    
     private QueuePriority prio = QueuePriority.NORM;
 
     private Throwable exeption;

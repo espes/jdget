@@ -12,6 +12,8 @@ package org.appwork.utils.event.queue;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.appwork.utils.logging.Log;
+
 /**
  * @author daniel
  * @param <D>
@@ -59,7 +61,7 @@ public abstract class Queue extends Thread {
      * @throws T
      */
     public <E, T extends Throwable> void add(final QueueAction<?, T> action) throws T {
-        /*set calling Thread to current item*/
+        /* set calling Thread to current item */
         action.setCallerThread(Thread.currentThread());
         if (this.isQueueThread(action)) {
             /*
@@ -82,7 +84,7 @@ public abstract class Queue extends Thread {
      * @throws T
      */
     public <E, T extends Throwable> void addAsynch(final QueueAction<?, T> action) {
-        /*set calling Thread to current item*/
+        /* set calling Thread to current item */
         action.setCallerThread(Thread.currentThread());
         if (this.isQueueThread(action)) {
             throw new RuntimeException("called addAsynch from the queue itself");
@@ -94,7 +96,7 @@ public abstract class Queue extends Thread {
 
     @SuppressWarnings("unchecked")
     public <E, T extends Throwable> E addWait(final QueueAction<E, T> item) throws T, InterruptedException {
-        /*set calling Thread to current item*/
+        /* set calling Thread to current item */
         item.setCallerThread(Thread.currentThread());
         if (this.isQueueThread(item)) {
             /*
@@ -144,7 +146,7 @@ public abstract class Queue extends Thread {
 
     }
 
-    protected void internalAdd(final QueueAction<?, ?> action) {        
+    protected void internalAdd(final QueueAction<?, ?> action) {
         synchronized (this.queueLock) {
             this.queue.get(action.getQueuePrio()).add(action);
         }
@@ -180,8 +182,8 @@ public abstract class Queue extends Thread {
          */
         while ((t = last.getCallerThread()) != null) {
             if (t != null && t instanceof Queue) {
-                if (t == this.thread){                    
-                    org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! "+item );
+                if (t == this.thread) {
+                    org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! " + item);
                     return true;
                 }
                 last = ((Queue) t).getLastHistoryItem();
@@ -219,35 +221,40 @@ public abstract class Queue extends Thread {
         this.thread = this;
         QueueAction<?, ? extends Throwable> item = null;
         while (true) {
-            this.handlePreRun();
-            synchronized (this) {
-                while (this.waitFlag) {
-                    try {
-                        this.wait();
-                    } catch (final Exception e) {
-                        org.appwork.utils.logging.Log.exception(e);
-                    }
-                }
-            }
-            synchronized (this.queueLock) {
-                item = null;
-                for (final QueuePriority prio : this.prios) {
-                    if (this.queue.get(prio).size() > 0) {
-                        item = this.queue.get(prio).remove(0);
-                        break;
-                    }
-                }
-                if (item == null) {
-                    this.waitFlag = true;
-                }
-            }
-            if ((item == null) || this.waitFlag) {
-                continue;
-            }
             try {
-                this.startItem(item, true);
-            } catch (final Throwable e) {
+                this.handlePreRun();
+                synchronized (this) {
+                    while (this.waitFlag) {
+                        try {
+                            this.wait();
+                        } catch (final Exception e) {
+                            org.appwork.utils.logging.Log.exception(e);
+                        }
+                    }
+                }
+                synchronized (this.queueLock) {
+                    item = null;
+                    for (final QueuePriority prio : this.prios) {
+                        if (this.queue.get(prio).size() > 0) {
+                            item = this.queue.get(prio).remove(0);
+                            break;
+                        }
+                    }
+                    if (item == null) {
+                        this.waitFlag = true;
+                    }
+                }
+                if ((item == null) || this.waitFlag) {
+                    continue;
+                }
+                try {
+                    this.startItem(item, true);
+                } catch (final Throwable e) {
 
+                }
+            } catch (Throwable e) {
+                Log.L.info("Queue rescued!");
+                Log.exception(e);
             }
         }
     }
@@ -256,7 +263,11 @@ public abstract class Queue extends Thread {
     @SuppressWarnings("unchecked")
     protected <T extends Throwable> void startItem(final QueueAction<?, T> item, final boolean callExceptionhandler) throws T {
         try {
-            if (thread != item.getCallerThread()) queueThreadHistory.add(item);
+            if (thread != item.getCallerThread()) {
+                synchronized (queueThreadHistory) {
+                    queueThreadHistory.add(item);
+                }
+            }
             item.start(this);
         } catch (final Throwable e) {
 
@@ -270,7 +281,9 @@ public abstract class Queue extends Thread {
             }
         } finally {
             if (thread != item.getCallerThread()) {
-                if (queueThreadHistory.size() != 0) queueThreadHistory.remove(queueThreadHistory.size() - 1);
+                synchronized (queueThreadHistory) {
+                    if (queueThreadHistory.size() != 0) queueThreadHistory.remove(queueThreadHistory.size() - 1);
+                }
             }
             synchronized (item) {
                 item.notify();
@@ -280,7 +293,9 @@ public abstract class Queue extends Thread {
     }
 
     protected QueueAction<?, ? extends Throwable> getLastHistoryItem() {
-        if (queueThreadHistory.size() == 0) return null;
-        return queueThreadHistory.get(queueThreadHistory.size() - 1);
+        synchronized (queueThreadHistory) {
+            if (queueThreadHistory.size() == 0) return null;
+            return queueThreadHistory.get(queueThreadHistory.size() - 1);
+        }
     }
 }
