@@ -29,6 +29,7 @@ public abstract class Queue extends Thread {
     protected QueuePriority[] prios;
     protected HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>> queue = new HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>>();
     protected final Object queueLock = new Object();
+    protected ArrayList<QueueAction<?, ? extends Throwable>> queueThreadHistory = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
 
     protected Thread thread = null;
     protected boolean waitFlag = true;
@@ -40,6 +41,8 @@ public abstract class Queue extends Thread {
         for (final QueuePriority prio : this.prios) {
             this.queue.put(prio, new ArrayList<QueueAction<?, ? extends Throwable>>());
         }
+        /* jvm should not wait for waiting queues */
+        this.setDaemon(true);
         this.start();
     }
 
@@ -56,6 +59,8 @@ public abstract class Queue extends Thread {
      * @throws T
      */
     public <E, T extends Throwable> void add(final QueueAction<?, T> action) throws T {
+        /*set calling Thread to current item*/
+        action.setCallerThread(Thread.currentThread());
         if (this.isQueueThread(action)) {
             /*
              * call comes from current running item, so lets start item
@@ -77,10 +82,11 @@ public abstract class Queue extends Thread {
      * @throws T
      */
     public <E, T extends Throwable> void addAsynch(final QueueAction<?, T> action) {
+        /*set calling Thread to current item*/
+        action.setCallerThread(Thread.currentThread());
         if (this.isQueueThread(action)) {
             throw new RuntimeException("called addAsynch from the queue itself");
         } else {
-
             this.internalAdd(action);
         }
 
@@ -88,6 +94,8 @@ public abstract class Queue extends Thread {
 
     @SuppressWarnings("unchecked")
     public <E, T extends Throwable> E addWait(final QueueAction<E, T> item) throws T, InterruptedException {
+        /*set calling Thread to current item*/
+        item.setCallerThread(Thread.currentThread());
         if (this.isQueueThread(item)) {
             /*
              * call comes from current running item, so lets start item
@@ -95,7 +103,6 @@ public abstract class Queue extends Thread {
              * exception in error case
              */
             this.startItem(item, false);
-
         } else {
             /* call does not come from current running item, so lets queue it */
             this.internalAdd(item);
@@ -137,7 +144,7 @@ public abstract class Queue extends Thread {
 
     }
 
-    protected void internalAdd(final QueueAction<?, ?> action) {
+    protected void internalAdd(final QueueAction<?, ?> action) {        
         synchronized (this.queueLock) {
             this.queue.get(action.getQueuePrio()).add(action);
         }
@@ -164,11 +171,20 @@ public abstract class Queue extends Thread {
      * QueueItem
      */
     public boolean isQueueThread(final QueueAction<?, ? extends Throwable> item) {
-        if (Thread.currentThread() == this.thread) { return true; }
-        QueueAction<?, ? extends Throwable> source = item.getSourceQueueItem();
-        while (source != null) {
-            if (source.gotStarted()) { return true; }
-            source = source.getSourceQueueItem();
+        if (Thread.currentThread() == thread) return true;
+        QueueAction<?, ? extends Throwable> last = item;
+        Thread t = null;
+        /*
+         * we walk through actionHistory to check if we are still in our
+         * QueueThread
+         */
+        while ((t = last.getCallerThread()) != null) {
+            if (t != null && t instanceof Queue) {
+                if (t == this.thread) return true;
+                last = ((Queue) t).getLastHistoryItem();
+            } else {
+                break;
+            }
         }
         return false;
     }
@@ -237,6 +253,7 @@ public abstract class Queue extends Thread {
     @SuppressWarnings("unchecked")
     protected <T extends Throwable> void startItem(final QueueAction<?, T> item, final boolean callExceptionhandler) throws T {
         try {
+            if (thread != item.getCallerThread()) queueThreadHistory.add(item);
             item.start(this);
         } catch (final Throwable e) {
 
@@ -249,10 +266,18 @@ public abstract class Queue extends Thread {
 
             }
         } finally {
+            if (thread != item.getCallerThread()) {
+                if (queueThreadHistory.size() != 0) queueThreadHistory.remove(queueThreadHistory.size() - 1);
+            }
             synchronized (item) {
                 item.notify();
             }
 
         }
+    }
+
+    protected QueueAction<?, ? extends Throwable> getLastHistoryItem() {
+        if (queueThreadHistory.size() == 0) return null;
+        return queueThreadHistory.get(queueThreadHistory.size() - 1);
     }
 }

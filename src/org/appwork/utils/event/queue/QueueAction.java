@@ -28,6 +28,8 @@ public abstract class QueueAction<T, E extends Throwable> {
 
     private Throwable exeption;
 
+    private Thread thread = null;
+
     public QueueAction() {
     }
 
@@ -45,14 +47,6 @@ public abstract class QueueAction<T, E extends Throwable> {
 
     public void setQueuePrio(QueuePriority prio) {
         this.prio = prio;
-    }
-
-    public void setSourceQueueItem(QueueAction<?, ? extends Throwable> source) {
-        this.source = source;
-    }
-
-    public QueueAction<?, ? extends Throwable> getSourceQueueItem() {
-        return source;
     }
 
     @SuppressWarnings("unchecked")
@@ -113,6 +107,13 @@ public abstract class QueueAction<T, E extends Throwable> {
      */
     public boolean exceptionHandler(Throwable e) {
         return false;
+    }
 
+    protected Thread getCallerThread() {
+        return thread;
+    }
+
+    protected void setCallerThread(Thread thread) {
+        this.thread = thread;
     }
 }
