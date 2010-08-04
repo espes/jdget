@@ -396,17 +396,14 @@ public class Dialog {
     @SuppressWarnings("unchecked")
     public <T> T showDialog(final AbstractDialog<T> dialog) {
         if (dialog == null) { return null; }
-        synchronized (this) {
-            return (T) (this.latestReturnMask = new EDTHelper<T>() {
+        return (T) (this.latestReturnMask = new EDTHelper<T>() {
+            @Override
+            public T edtRun() {
+                dialog.displayDialog();
+                return dialog.getReturnValue();
+            }
 
-                @Override
-                public T edtRun() {
-                    dialog.displayDialog();
-                    return dialog.getReturnValue();
-                }
-
-            }.getReturnValue());
-        }
+        }.getReturnValue());
     }
 
     public int showErrorDialog(final String s) {
@@ -438,159 +435,155 @@ public class Dialog {
      */
 
     public File[] showFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final Integer dialogType, final File preSelection) {
-        synchronized (this) {
 
-            return new EDTHelper<File[]>() {
+        return new EDTHelper<File[]>() {
 
-                @Override
-                public File[] edtRun() {
-                    for (int tried = 0; tried < 2; tried++) {
-                        try {
-                            if (Dialog.ShellFolderIDWorkaround) {
-                                UIManager.put("FileChooser.useShellFolder", false);
+            @Override
+            public File[] edtRun() {
+                for (int tried = 0; tried < 2; tried++) {
+                    try {
+                        if (Dialog.ShellFolderIDWorkaround) {
+                            UIManager.put("FileChooser.useShellFolder", false);
+                        } else {
+                            UIManager.put("FileChooser.useShellFolder", true);
+                        }
+                        UIManager.put("FileChooser.homeFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
+                        UIManager.put("FileChooser.newFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.toString());
+                        UIManager.put("FileChooser.upFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.toString());
+                        UIManager.put("FileChooser.detailsViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.toString());
+                        UIManager.put("FileChooser.listViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
+
+                        final JFileChooser fc = new JFileChooser();
+                        if (Dialog.ShellFolderIDWorkaround) {
+                            fc.putClientProperty("FileChooser.useShellFolder", false);
+                        } else {
+                            fc.putClientProperty("FileChooser.useShellFolder", true);
+                        }
+                        fc.setAccessory(new FilePreview(fc));
+                        if (title != null) {
+                            fc.setDialogTitle(title);
+                        }
+                        if (fileSelectionMode != null) {
+                            fc.setFileSelectionMode(fileSelectionMode);
+                        }
+                        if (fileFilter != null) {
+                            fc.setFileFilter(fileFilter);
+                        }
+
+                        if (multiSelection && ((dialogType == null) || (dialogType != JFileChooser.SAVE_DIALOG))) {
+                            fc.setMultiSelectionEnabled(true);
+                        } else {
+                            fc.setMultiSelectionEnabled(false);
+                        }
+                        if (dialogType != null) {
+                            fc.setDialogType(dialogType);
+                        }
+                        if (preSelection != null) {
+                            if (preSelection.isDirectory()) {
+                                fc.setCurrentDirectory(preSelection);
                             } else {
-                                UIManager.put("FileChooser.useShellFolder", true);
-                            }
-                            UIManager.put("FileChooser.homeFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
-                            UIManager.put("FileChooser.newFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.toString());
-                            UIManager.put("FileChooser.upFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.toString());
-                            UIManager.put("FileChooser.detailsViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.toString());
-                            UIManager.put("FileChooser.listViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
-
-                            final JFileChooser fc = new JFileChooser();
-                            if (Dialog.ShellFolderIDWorkaround) {
-                                fc.putClientProperty("FileChooser.useShellFolder", false);
-                            } else {
-                                fc.putClientProperty("FileChooser.useShellFolder", true);
-                            }
-                            fc.setAccessory(new FilePreview(fc));
-                            if (title != null) {
-                                fc.setDialogTitle(title);
-                            }
-                            if (fileSelectionMode != null) {
-                                fc.setFileSelectionMode(fileSelectionMode);
-                            }
-                            if (fileFilter != null) {
-                                fc.setFileFilter(fileFilter);
-                            }
-
-                            if (multiSelection && ((dialogType == null) || (dialogType != JFileChooser.SAVE_DIALOG))) {
-                                fc.setMultiSelectionEnabled(true);
-                            } else {
-                                fc.setMultiSelectionEnabled(false);
-                            }
-                            if (dialogType != null) {
-                                fc.setDialogType(dialogType);
-                            }
-                            if (preSelection != null) {
-                                if (preSelection.isDirectory()) {
-                                    fc.setCurrentDirectory(preSelection);
-                                } else {
-                                    fc.setCurrentDirectory(preSelection.getParentFile());
-                                    /* only preselect file in savedialog */
-                                    if (dialogType != null && dialogType == JFileChooser.SAVE_DIALOG) {
-                                        if (fileSelectionMode != null && fileSelectionMode != JFileChooser.DIRECTORIES_ONLY) {
-                                            fc.setSelectedFile(preSelection);
-                                        }
+                                fc.setCurrentDirectory(preSelection.getParentFile());
+                                /* only preselect file in savedialog */
+                                if (dialogType != null && dialogType == JFileChooser.SAVE_DIALOG) {
+                                    if (fileSelectionMode != null && fileSelectionMode != JFileChooser.DIRECTORIES_ONLY) {
+                                        fc.setSelectedFile(preSelection);
                                     }
                                 }
-                            } else {
-                                final String latest = JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null);
-                                if (latest != null) {
-                                    File storeSelection = new File(latest);
-                                    while (storeSelection != null) {
-                                        if (!storeSelection.exists()) {
-                                            storeSelection = storeSelection.getParentFile();
+                            }
+                        } else {
+                            final String latest = JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null);
+                            if (latest != null) {
+                                File storeSelection = new File(latest);
+                                while (storeSelection != null) {
+                                    if (!storeSelection.exists()) {
+                                        storeSelection = storeSelection.getParentFile();
+                                    } else {
+                                        if (storeSelection.isDirectory()) {
+                                            fc.setCurrentDirectory(storeSelection);
                                         } else {
-                                            if (storeSelection.isDirectory()) {
-                                                fc.setCurrentDirectory(storeSelection);
-                                            } else {
-                                                fc.setCurrentDirectory(storeSelection.getParentFile());
-                                                /*
-                                                 * only preselect file in
-                                                 * savedialog
-                                                 */
-                                                if (dialogType != null && dialogType == JFileChooser.SAVE_DIALOG) {
-                                                    if (fileSelectionMode != null && fileSelectionMode != JFileChooser.DIRECTORIES_ONLY) {
-                                                        fc.setSelectedFile(preSelection);
-                                                    }
+                                            fc.setCurrentDirectory(storeSelection.getParentFile());
+                                            /*
+                                             * only preselect file in savedialog
+                                             */
+                                            if (dialogType != null && dialogType == JFileChooser.SAVE_DIALOG) {
+                                                if (fileSelectionMode != null && fileSelectionMode != JFileChooser.DIRECTORIES_ONLY) {
+                                                    fc.setSelectedFile(preSelection);
                                                 }
-
                                             }
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            if ((dialogType == null) || (dialogType == JFileChooser.OPEN_DIALOG)) {
-                                if (fc.showOpenDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
-                                    if (multiSelection) {
-                                        ArrayList<File> rets = new ArrayList<File>();
-                                        for (File ret : fc.getSelectedFiles()) {
-                                            ret = validateFileType(ret, fileSelectionMode, false);
-                                            if (ret != null) rets.add(ret);
-                                        }
 
-                                        if (rets.size() > 0) {
-                                            Dialog.this.latestReturnMask = rets.toArray(new File[rets.size()]);
-                                            File first = rets.get(0);
-                                            if (first != null) {
-                                                JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
-                                            }
-                                            return (File[]) Dialog.this.latestReturnMask;
-                                        } else {
-                                            return null;
                                         }
-                                    }
-
-                                    File ret = fc.getSelectedFile();
-                                    /*
-                                     * validate selectedFile against
-                                     * fileSelectionMode
-                                     */
-                                    ret = validateFileType(ret, fileSelectionMode, false);
-                                    if (ret != null) {
-                                        Dialog.this.latestReturnMask = ret;
-                                        JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
-                                        return new File[] { ret };
-                                    } else {
-                                        return null;
+                                        break;
                                     }
                                 }
-                            } else if (dialogType == JFileChooser.SAVE_DIALOG) {
-                                if (fc.showSaveDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
-                                    File ret = fc.getSelectedFile();
-                                    /*
-                                     * validate selectedFile against
-                                     * fileSelectionMode
-                                     */
-                                    ret = validateFileType(ret, fileSelectionMode, true);
-                                    if (ret != null) {
-                                        Dialog.this.latestReturnMask = ret;
-                                        JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
-                                        return new File[] { ret };
-                                    } else {
-                                        return null;
-                                    }
-                                }
-                            }
-                            return null;
-                        } catch (final Exception e) {
-                            if (e != null && e.getMessage() != null && e.getMessage().contains("shell") && !Dialog.ShellFolderIDWorkaround) {
-                                Log.L.info("Enabling Workaround for \"Could not get shell folder ID list\"");
-                                Dialog.ShellFolderIDWorkaround = true;
-                            } else {
-                                Log.exception(e);
-                                return null;
                             }
                         }
+                        if ((dialogType == null) || (dialogType == JFileChooser.OPEN_DIALOG)) {
+                            if (fc.showOpenDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
+                                if (multiSelection) {
+                                    ArrayList<File> rets = new ArrayList<File>();
+                                    for (File ret : fc.getSelectedFiles()) {
+                                        ret = validateFileType(ret, fileSelectionMode, false);
+                                        if (ret != null) rets.add(ret);
+                                    }
+
+                                    if (rets.size() > 0) {
+                                        Dialog.this.latestReturnMask = rets.toArray(new File[rets.size()]);
+                                        File first = rets.get(0);
+                                        if (first != null) {
+                                            JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
+                                        }
+                                        return (File[]) Dialog.this.latestReturnMask;
+                                    } else {
+                                        return null;
+                                    }
+                                }
+
+                                File ret = fc.getSelectedFile();
+                                /*
+                                 * validate selectedFile against
+                                 * fileSelectionMode
+                                 */
+                                ret = validateFileType(ret, fileSelectionMode, false);
+                                if (ret != null) {
+                                    Dialog.this.latestReturnMask = ret;
+                                    JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
+                                    return new File[] { ret };
+                                } else {
+                                    return null;
+                                }
+                            }
+                        } else if (dialogType == JFileChooser.SAVE_DIALOG) {
+                            if (fc.showSaveDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
+                                File ret = fc.getSelectedFile();
+                                /*
+                                 * validate selectedFile against
+                                 * fileSelectionMode
+                                 */
+                                ret = validateFileType(ret, fileSelectionMode, true);
+                                if (ret != null) {
+                                    Dialog.this.latestReturnMask = ret;
+                                    JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
+                                    return new File[] { ret };
+                                } else {
+                                    return null;
+                                }
+                            }
+                        }
+                        return null;
+                    } catch (final Exception e) {
+                        if (e != null && e.getMessage() != null && e.getMessage().contains("shell") && !Dialog.ShellFolderIDWorkaround) {
+                            Log.L.info("Enabling Workaround for \"Could not get shell folder ID list\"");
+                            Dialog.ShellFolderIDWorkaround = true;
+                        } else {
+                            Log.exception(e);
+                            return null;
+                        }
                     }
-                    return null;
                 }
+                return null;
+            }
 
-            }.getReturnValue();
-
-        }
+        }.getReturnValue();
     }
 
     private File validateFileType(File ret, Integer fileSelectionMode, boolean mkdir) {
@@ -703,11 +696,7 @@ public class Dialog {
      *            The Dialog is able to show a message to the user
      */
     public void showMessageDialog(final int flag, final String title, final String message) {
-        synchronized (this) {
-
-            this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | flag, title, message, Dialog.getIconByText(title + message), null, null);
-
-        }
+        this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | flag, title, message, Dialog.getIconByText(title + message), null, null);
     }
 
     /**
