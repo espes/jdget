@@ -391,7 +391,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @param b
      */
     protected void setReturnmask(final boolean b) {
-        if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
         this.returnBitMask = b ? Dialog.RETURN_OK : Dialog.RETURN_CANCEL;
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
             if (this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) {
