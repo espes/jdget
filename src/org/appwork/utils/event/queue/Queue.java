@@ -173,22 +173,20 @@ public abstract class Queue extends Thread {
      * QueueItem
      */
     public boolean isQueueThread(final QueueAction<?, ? extends Throwable> item) {
-        if (Thread.currentThread() == thread) return true;
-        if (item==null) return false;
+        if (Thread.currentThread() == thread) return true;        
         QueueAction<?, ? extends Throwable> last = item;
         Thread t = null;
         /*
          * we walk through actionHistory to check if we are still in our
          * QueueThread
          */
-        while ((t = last.getCallerThread()) != null) {
+        while (last!=null && (t = last.getCallerThread()) != null) {
             if (t != null && t instanceof Queue) {
                 if (t == this.thread) {
                     org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! " + item);
                     return true;
                 }
-                last = ((Queue) t).getLastHistoryItem();
-                if (last == null) break;
+                last = ((Queue) t).getLastHistoryItem();                
             } else {
                 break;
             }
