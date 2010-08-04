@@ -28,6 +28,11 @@ import org.appwork.utils.logging.Log;
  * @author Christian
  */
 public class Loc {
+    /**
+     * The directory, where all localization files are located. A_ because this
+     * the order is important.
+     */
+    public static final File A_LOCALIZATION_DIR = Application.getRessource("languages/");
 
     public static final Storage CFG = JSonStorage.getStorage("Locale");
     /**
@@ -43,7 +48,7 @@ public class Loc {
     /**
      * The default localization file. This is the english language.
      */
-    private static final File DEFAULT_LOCALIZATION = new File(Loc.LOCALIZATION_DIR, Loc.getDefaultLocale() + ".loc");
+    private static final File DEFAULT_LOCALIZATION = new File(Loc.A_LOCALIZATION_DIR, Loc.getDefaultLocale() + ".loc");
 
     /**
      * The name of the default localization file. This is the english language.
@@ -52,10 +57,6 @@ public class Loc {
 
     private static String locale;
 
-    /**
-     * The directory, where all localization files are located.
-     */
-    public static final File LOCALIZATION_DIR = Application.getRessource("languages/");
     /**
      * The key (String) under which the saved localization-name is stored.
      */
@@ -137,7 +138,7 @@ public class Loc {
      * @return
      */
     public static String[] getLocales() {
-        final String[] files = Loc.LOCALIZATION_DIR.list(new FilenameFilter() {
+        final String[] files = Loc.A_LOCALIZATION_DIR.list(new FilenameFilter() {
 
             public boolean accept(final File dir, final String name) {
                 return name.endsWith(".loc");
@@ -282,7 +283,7 @@ public class Loc {
 
                 loc = Loc.CFG.get(Loc.PROPERTY_LOCALE, Loc.getDefaultLocale());
             }
-            final File file = new File(Loc.LOCALIZATION_DIR, loc + ".loc");
+            final File file = new File(Loc.A_LOCALIZATION_DIR, loc + ".loc");
             Loc.locale = loc;
             if ((file != null) && file.exists()) {
 
