@@ -87,7 +87,7 @@ public class InputDialogLimited extends AbstractDialog<String> implements KeyLis
     }
 
     @Override
-    public String getRetValue() {
+    protected String createReturnValue() {
         return getReturnID();
     }
 

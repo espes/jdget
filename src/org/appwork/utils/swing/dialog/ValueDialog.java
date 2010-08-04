@@ -24,6 +24,7 @@ import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -35,20 +36,20 @@ import org.appwork.utils.interfaces.ValueConverter;
 public class ValueDialog extends AbstractDialog<Long> implements KeyListener, MouseListener {
 
     private static final long serialVersionUID = 9206575398715006581L;
-    private String message;
-    private JTextPane messageArea;
-    private JSlider slider;
-    private long min;
-    private long max;
-    private long step;
     private JTextArea converted;
-    private ValueConverter valueconverter;
+    private final long defaultValue;
+    private JTextField editable;
     // faktor to downscale long to integervalues
     private int faktor = 1;
-    private long defaultValue;
-    private JTextField editable;
+    private final long max;
+    private final String message;
+    private JTextPane messageArea;
+    private final long min;
+    private JSlider slider;
+    private final long step;
+    private final ValueConverter valueconverter;
 
-    public ValueDialog(int flag, String title, String message, ImageIcon icon, String okOption, String cancelOption, long defaultValue, long min, long max, long step, ValueConverter valueConverter) {
+    public ValueDialog(final int flag, final String title, final String message, final ImageIcon icon, final String okOption, final String cancelOption, long defaultValue, long min, long max, long step, ValueConverter valueConverter) {
         super(flag, title, icon, okOption, cancelOption);
         this.message = message;
         while (max > Integer.MAX_VALUE) {
@@ -56,7 +57,7 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
             defaultValue /= 2;
             min /= 2;
             step = Math.max(step / 2, 1);
-            faktor *= 2;
+            this.faktor *= 2;
 
         }
         this.defaultValue = defaultValue;
@@ -66,9 +67,9 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
         if (valueConverter == null) {
             valueConverter = new ValueConverter() {
 
-                public String toString(long value) {
+                public String toString(final long value) {
 
-                    return (value * faktor) + "";
+                    return (value * ValueDialog.this.faktor) + "";
                 }
 
             };
@@ -76,91 +77,136 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
         this.valueconverter = valueConverter;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
+    @Override
+    protected Long createReturnValue() {
+        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return 0l; }
+        this.updateSlider();
+        return (long) this.slider.getValue() * (long) this.faktor;
+    }
+
+    public void keyPressed(final KeyEvent e) {
+        this.cancel();
+    }
+
+    public void keyReleased(final KeyEvent e) {
+    }
+
+    public void keyTyped(final KeyEvent e) {
+    }
+
+    @Override
     public JComponent layoutDialogContent() {
-        JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
-        messageArea = new JTextPane();
-        messageArea.setBorder(null);
-        messageArea.setBackground(null);
-        messageArea.setOpaque(false);
-        messageArea.setText(this.message);
-        messageArea.setEditable(false);
-        messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
+        this.messageArea = new JTextPane();
+        this.messageArea.setBorder(null);
+        this.messageArea.setBackground(null);
+        this.messageArea.setOpaque(false);
+        this.messageArea.setText(this.message);
+        this.messageArea.setEditable(false);
+        this.messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
-        contentpane.add(messageArea);
-        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
-            converted = new JTextArea(valueconverter.toString(defaultValue));
-            converted.setEditable(false);
-            converted.setBackground(null);
-            slider = new JSlider(JSlider.HORIZONTAL, (int) min, (int) max, (int) defaultValue);
-            slider.setMajorTickSpacing((int) step);
-            slider.setSnapToTicks(true);
-            slider.addKeyListener(this);
-            slider.addMouseListener(this);
-            editable = new JTextField();
-            editable.addFocusListener(new FocusListener() {
+        contentpane.add(this.messageArea);
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
+            this.converted = new JTextArea(this.valueconverter.toString(this.defaultValue));
+            this.converted.setEditable(false);
+            this.converted.setBackground(null);
+            this.slider = new JSlider(SwingConstants.HORIZONTAL, (int) this.min, (int) this.max, (int) this.defaultValue);
+            this.slider.setMajorTickSpacing((int) this.step);
+            this.slider.setSnapToTicks(true);
+            this.slider.addKeyListener(this);
+            this.slider.addMouseListener(this);
+            this.editable = new JTextField();
+            this.editable.addFocusListener(new FocusListener() {
 
-                public void focusGained(FocusEvent e) {
+                public void focusGained(final FocusEvent e) {
 
                 }
 
-                public void focusLost(FocusEvent e) {
-                    updateSlider();
+                public void focusLost(final FocusEvent e) {
+                    ValueDialog.this.updateSlider();
 
                 }
 
             });
-            editable.addKeyListener(new KeyListener() {
+            this.editable.addKeyListener(new KeyListener() {
 
-                public void keyPressed(KeyEvent e) {
+                public void keyPressed(final KeyEvent e) {
 
                 }
 
-                public void keyReleased(KeyEvent e) {
+                public void keyReleased(final KeyEvent e) {
                     if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                        updateSlider();
+                        ValueDialog.this.updateSlider();
                     }
 
                 }
 
-                public void keyTyped(KeyEvent e) {
+                public void keyTyped(final KeyEvent e) {
 
                 }
 
             });
-            slider.addChangeListener(new ChangeListener() {
+            this.slider.addChangeListener(new ChangeListener() {
 
-                public void stateChanged(ChangeEvent arg0) {
-                    converted.setText(valueconverter.toString((slider.getValue() * faktor)));
-                    editable.setText((slider.getValue() * faktor) + "");
+                public void stateChanged(final ChangeEvent arg0) {
+                    ValueDialog.this.converted.setText(ValueDialog.this.valueconverter.toString((ValueDialog.this.slider.getValue() * ValueDialog.this.faktor)));
+                    ValueDialog.this.editable.setText((ValueDialog.this.slider.getValue() * ValueDialog.this.faktor) + "");
                 }
 
             });
-            editable.setText(this.defaultValue + "");
-            contentpane.add(slider, "split 2,pushy,growy,w 250");
-            contentpane.add(editable, "growx,pushx,width 80:n:n");
-            contentpane.add(converted, "pushy,growy,w 250");
+            this.editable.setText(this.defaultValue + "");
+            contentpane.add(this.slider, "split 2,pushy,growy,w 250");
+            contentpane.add(this.editable, "growx,pushx,width 80:n:n");
+            contentpane.add(this.converted, "pushy,growy,w 250");
         } else {
-            converted = new JTextArea(valueconverter.toString(defaultValue));
-            slider = new JSlider(JSlider.HORIZONTAL, (int) min, (int) max, (int) defaultValue);
-            slider.setMajorTickSpacing((int) step);
-            slider.setSnapToTicks(true);
-            slider.setBorder(BorderFactory.createEtchedBorder());
-            slider.addKeyListener(this);
-            slider.addMouseListener(this);
-            slider.addChangeListener(new ChangeListener() {
+            this.converted = new JTextArea(this.valueconverter.toString(this.defaultValue));
+            this.slider = new JSlider(SwingConstants.HORIZONTAL, (int) this.min, (int) this.max, (int) this.defaultValue);
+            this.slider.setMajorTickSpacing((int) this.step);
+            this.slider.setSnapToTicks(true);
+            this.slider.setBorder(BorderFactory.createEtchedBorder());
+            this.slider.addKeyListener(this);
+            this.slider.addMouseListener(this);
+            this.slider.addChangeListener(new ChangeListener() {
 
-                public void stateChanged(ChangeEvent arg0) {
-                    converted.setText(valueconverter.toString((slider.getValue() * faktor)));
-                    editable.setText((slider.getValue() * faktor) + "");
+                public void stateChanged(final ChangeEvent arg0) {
+                    ValueDialog.this.converted.setText(ValueDialog.this.valueconverter.toString((ValueDialog.this.slider.getValue() * ValueDialog.this.faktor)));
+                    ValueDialog.this.editable.setText((ValueDialog.this.slider.getValue() * ValueDialog.this.faktor) + "");
                 }
 
             });
 
-            contentpane.add(slider, "pushy,growy,w 250");
-            contentpane.add(converted, "pushy,growy,w 250");
+            contentpane.add(this.slider, "pushy,growy,w 250");
+            contentpane.add(this.converted, "pushy,growy,w 250");
         }
 
         return contentpane;
+    }
+
+    public void mouseClicked(final MouseEvent e) {
+        this.cancel();
+    }
+
+    public void mouseEntered(final MouseEvent e) {
+    }
+
+    public void mouseExited(final MouseEvent e) {
+    }
+
+    public void mousePressed(final MouseEvent e) {
+    }
+
+    public void mouseReleased(final MouseEvent e) {
+    }
+
+    @Override
+    protected void packed() {
+        this.requestFocus();
+        this.slider.requestFocusInWindow();
     }
 
     private void updateSlider() {
@@ -171,10 +217,12 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
         // 
         // public Object edtRun() {
         try {
-            long value = Long.parseLong(editable.getText());
-            slider.setValue((int) (value / faktor));
-        } catch (Exception e) {
-            if (editable != null) editable.setText((slider.getValue() * faktor) + "");
+            final long value = Long.parseLong(this.editable.getText());
+            this.slider.setValue((int) (value / this.faktor));
+        } catch (final Exception e) {
+            if (this.editable != null) {
+                this.editable.setText((this.slider.getValue() * this.faktor) + "");
+            }
         }
         // return null;
         // }
@@ -184,53 +232,6 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
         // }
         // }.start();
 
-    }
-
-    protected void packed() {
-        requestFocus();
-        slider.requestFocusInWindow();
-    }
-
-    public long getReturnValue() {
-        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return 0; }
-        updateSlider();
-        return slider.getValue() * faktor;
-    }
-
-    public void keyPressed(KeyEvent e) {
-        this.cancel();
-    }
-
-    public void keyReleased(KeyEvent e) {
-    }
-
-    public void keyTyped(KeyEvent e) {
-    }
-
-    public void mouseClicked(MouseEvent e) {
-        this.cancel();
-    }
-
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    public void mouseExited(MouseEvent e) {
-    }
-
-    public void mousePressed(MouseEvent e) {
-    }
-
-    public void mouseReleased(MouseEvent e) {
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
-     */
-    @Override
-    public Long getRetValue() {
-        return getReturnValue();
     }
 
 }

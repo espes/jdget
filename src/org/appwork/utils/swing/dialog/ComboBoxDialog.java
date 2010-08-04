@@ -114,7 +114,7 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
      * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
      */
     @Override
-    public Integer getRetValue() {
+    protected Integer createReturnValue() {
         return getReturnIndex();
     }
 

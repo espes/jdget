@@ -295,7 +295,7 @@ public class Dialog {
                 @Override
                 public Integer edtRun() {
                     final ComboBoxDialog dialog = new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okOption, cancelOption, renderer);
-                    dialog.init();
+                    dialog.displayDialog();
                     return dialog.getReturnIndex();
                 }
             }.getReturnValue();
@@ -374,7 +374,7 @@ public class Dialog {
                 @Override
                 public Integer edtRun() {
                     final ConfirmDialog dialog = new ConfirmDialog(flag, title, message, icon, okOption, cancelOption);
-                    dialog.init();
+                    dialog.displayDialog();
                     return dialog.getReturnmask();
                 }
             }.getReturnValue();
@@ -388,20 +388,20 @@ public class Dialog {
      * note: showdialog must not call init itself!!
      * 
      * @param <T>
-     * @param showDialog
+     * @param dialog
      * @param retType
      * @return
      */
     @SuppressWarnings("unchecked")
-    public <T> T showDialog(final AbstractDialog<T> showDialog) {
-        if (showDialog == null) { return null; }
+    public <T> T showDialog(final AbstractDialog<T> dialog) {
+        if (dialog == null) { return null; }
         synchronized (this) {
             return (T) (this.latestReturnMask = new EDTHelper<T>() {
 
                 @Override
                 public T edtRun() {
-                    showDialog.init();
-                    return showDialog.getRetValue();
+                    dialog.displayDialog();
+                    return dialog.getReturnValue();
                 }
 
             }.getReturnValue());
@@ -607,8 +607,8 @@ public class Dialog {
             @Override
             public String edtRun() {
                 final InputDialog dialog = new InputDialog(flag, title, message, defaultMessage, icon, okOption, cancelOption);
-                dialog.init();
-                return dialog.getRetValue();
+                dialog.displayDialog();
+                return dialog.getReturnValue();
             }
 
         }.getReturnValue());
@@ -717,8 +717,8 @@ public class Dialog {
             @Override
             public String edtRun() {
                 final PasswordDialog dialog = new PasswordDialog(flag, title, message, icon, okOption, cancelOption);
-                dialog.init();
-                return dialog.getRetValue();
+                dialog.displayDialog();
+                return dialog.getReturnValue();
             }
 
         }.getReturnValue());
@@ -749,7 +749,7 @@ public class Dialog {
             public String edtRun() {
                 try {
                     final TextAreaDialog dialog = new TextAreaDialog(title, message, def);
-                    dialog.init();
+                    dialog.displayDialog();
                     if (BinaryLogic.containsAll(dialog.getReturnmask(), Dialog.RETURN_OK)) { return dialog.getResult(); }
                 } catch (final IOException e) {
                     Log.exception(e);
@@ -818,8 +818,8 @@ public class Dialog {
             @Override
             public Long edtRun() {
                 final ValueDialog dialog = new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter);
-                dialog.init();
-                return dialog.getRetValue();
+                dialog.displayDialog();
+                return dialog.getReturnValue();
             }
         }.getReturnValue());
     }

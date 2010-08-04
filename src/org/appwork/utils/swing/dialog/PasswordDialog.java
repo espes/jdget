@@ -143,7 +143,7 @@ public class PasswordDialog extends AbstractDialog<String> implements KeyListene
      * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
      */
     @Override
-    public String getRetValue() {
+    protected String createReturnValue() {
         return getReturnID();
     }
 

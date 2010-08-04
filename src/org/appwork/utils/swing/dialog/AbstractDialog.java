@@ -11,6 +11,7 @@ package org.appwork.utils.swing.dialog;
 
 import java.awt.AWTException;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -26,11 +27,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
@@ -47,31 +48,41 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private static final long serialVersionUID = 1831761858087385862L;
 
+    public static void resetDialogInformations() {
+        try {
+            JSonStorage.getStorage("Dialogs").clear();
+        } catch (final Exception e) {
+            Log.exception(e);
+        }
+    }
+
     protected JButton cancelButton;
 
-    protected JButton okButton;
-
-    protected JComponent panel;
-
-    protected int flagMask;
-
-    private int returnBitMask = 0;
-
-    private ImageIcon icon;
-
-    private String okOption;
-
-    private String cancelOption;
-
-    private JCheckBox dontshowagain;
+    private final String cancelOption;
 
     private JPanel defaultButtons;
 
-    public AbstractDialog(int flag, String title, ImageIcon icon, String okOption, String cancelOption) {
+    private JCheckBox dontshowagain;
+
+    protected int flagMask;
+
+    private final ImageIcon icon;
+
+    private boolean initialized = false;
+
+    protected JButton okButton;
+
+    private final String okOption;
+
+    protected JComponent panel;
+
+    private int returnBitMask = 0;
+
+    public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super(Dialog.getInstance().getParentOwner());
 
         this.flagMask = flag;
-        setTitle(title);
+        this.setTitle(title);
 
         this.icon = (BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON)) ? null : icon;
         this.okOption = (okOption == null) ? Tl8.ABSTRACTDIALOG_BUTTON_OK.toString() : okOption;
@@ -79,11 +90,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     /* this function will init and show the dialog */
-    protected void init() {
-        dont: if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
+    private void _init() {
+        dont: if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
             try {
-                int i = JSonStorage.getStorage("Dialogs").get(getDontShowAgainKey(), -1);
+                final int i = JSonStorage.getStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
 
                 if (i >= 0) {
                     // filter saved return value
@@ -96,26 +107,28 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                      * LOGIC_DONT_SHOW_AGAIN_IGNORES_OK are used, we check here
                      * if we should handle the dont show again feature
                      */
-                    if (BinaryLogic.containsAll(flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) {
+                    if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) {
                         break dont;
                     }
-                    if (BinaryLogic.containsAll(flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_OK) && BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) {
+                    if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_OK) && BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) {
                         break dont;
                     }
 
                     this.returnBitMask = ret;
                     return;
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 Log.exception(e);
             }
         }
         try {
-            if (Dialog.getInstance().getParentOwner() != null) LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
-        } catch (Exception e) {
+            if (Dialog.getInstance().getParentOwner() != null) {
+                LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
+            }
+        } catch (final Exception e) {
 
         }
-        if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isShowing()) {
+        if ((Dialog.getInstance().getParentOwner() == null) || !Dialog.getInstance().getParentOwner().isShowing()) {
             this.setAlwaysOnTop(true);
         }
         // The Dialog Modal
@@ -126,73 +139,73 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         this.addWindowListener(this);
         // create panel for the dialog's buttons
-        this.defaultButtons = getDefaultButtonPanel();
+        this.defaultButtons = this.getDefaultButtonPanel();
 
-        okButton = new JButton(this.okOption);
+        this.okButton = new JButton(this.okOption);
         /*
          * We set the focus on the ok button. if no ok button is shown, we set
          * the focus on cancel button
          */
-        JButton focus = okButton;
+        JButton focus = this.okButton;
 
-        cancelButton = new JButton(this.cancelOption);
+        this.cancelButton = new JButton(this.cancelOption);
         // add listeners here
-        okButton.addActionListener(this);
-        cancelButton.addActionListener(this);
+        this.okButton.addActionListener(this);
+        this.cancelButton.addActionListener(this);
         // add icon if available
-        if (icon != null) {
-            add(new JLabel(this.icon), "split 2,alignx left,aligny center,shrinkx,gapright 10");
+        if (this.icon != null) {
+            this.add(new JLabel(this.icon), "split 2,alignx left,aligny center,shrinkx,gapright 10");
         }
         // Layout the dialog content and add it to the contentpane
-        panel = layoutDialogContent();
-        add(panel, "pushx,growx,pushy,growy,spanx,aligny center,wrap");
+        this.panel = this.layoutDialogContent();
+        this.add(this.panel, "pushx,growx,pushy,growy,spanx,aligny center,wrap");
         // add the countdown timer
-        add(this.timerLbl, "split 3,growx,hidemode 2");
-        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-            dontshowagain = new JCheckBox(Tl8.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.toString());
-            dontshowagain.setHorizontalAlignment(JCheckBox.TRAILING);
-            dontshowagain.setHorizontalTextPosition(JCheckBox.LEADING);
+        this.add(this.timerLbl, "split 3,growx,hidemode 2");
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
+            this.dontshowagain = new JCheckBox(Tl8.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.toString());
+            this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
+            this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
 
-            add(dontshowagain, "growx,pushx,alignx right,gapleft 20");
+            this.add(this.dontshowagain, "growx,pushx,alignx right,gapleft 20");
         } else {
-            add(Box.createHorizontalGlue(), "growx,pushx,alignx right,gapleft 20");
+            this.add(Box.createHorizontalGlue(), "growx,pushx,alignx right,gapleft 20");
         }
-        add(defaultButtons, "alignx right,shrinkx");
-        if ((flagMask & Dialog.BUTTONS_HIDE_OK) == 0) {
+        this.add(this.defaultButtons, "alignx right,shrinkx");
+        if ((this.flagMask & Dialog.BUTTONS_HIDE_OK) == 0) {
 
             // Set OK as defaultbutton
-            getRootPane().setDefaultButton(okButton);
-            okButton.addHierarchyListener(new HierarchyListener() {
-                public void hierarchyChanged(HierarchyEvent e) {
+            this.getRootPane().setDefaultButton(this.okButton);
+            this.okButton.addHierarchyListener(new HierarchyListener() {
+                public void hierarchyChanged(final HierarchyEvent e) {
                     if ((e.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0) {
-                        JButton defaultButton = (JButton) e.getComponent();
-                        JRootPane root = SwingUtilities.getRootPane(defaultButton);
+                        final JButton defaultButton = (JButton) e.getComponent();
+                        final JRootPane root = SwingUtilities.getRootPane(defaultButton);
                         if (root != null) {
                             root.setDefaultButton(defaultButton);
                         }
                     }
                 }
             });
-            focus = okButton;
-            defaultButtons.add(okButton, "alignx right,tag ok,sizegroup confirms");
+            focus = this.okButton;
+            this.defaultButtons.add(this.okButton, "alignx right,tag ok,sizegroup confirms");
         }
-        if (!BinaryLogic.containsAll(flagMask, Dialog.BUTTONS_HIDE_CANCEL)) {
+        if (!BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_CANCEL)) {
 
-            defaultButtons.add(cancelButton, "alignx right,tag cancel,sizegroup confirms");
-            if (BinaryLogic.containsAll(flagMask, Dialog.BUTTONS_HIDE_OK)) {
-                getRootPane().setDefaultButton(cancelButton);
-                cancelButton.requestFocusInWindow();
+            this.defaultButtons.add(this.cancelButton, "alignx right,tag cancel,sizegroup confirms");
+            if (BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_OK)) {
+                this.getRootPane().setDefaultButton(this.cancelButton);
+                this.cancelButton.requestFocusInWindow();
                 // focus is on cancel if OK is hidden
-                focus = cancelButton;
+                focus = this.cancelButton;
             }
         }
-        this.addButtons(defaultButtons);
+        this.addButtons(this.defaultButtons);
 
-        if (BinaryLogic.containsAll(flagMask, Dialog.LOGIC_COUNTDOWN)) {
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_COUNTDOWN)) {
             // show timer
             this.initTimer(Dialog.getInstance().getCoundownTime());
         } else {
-            timerLbl.setVisible(false);
+            this.timerLbl.setVisible(false);
         }
 
         // pack dialog
@@ -202,33 +215,33 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
         this.toFront();
         this.setMinimumSize(this.getPreferredSize());
-        if (getDesiredSize() != null) {
-            this.setSize(getDesiredSize());
+        if (this.getDesiredSize() != null) {
+            this.setSize(this.getDesiredSize());
         }
-        if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isDisplayable() || !Dialog.getInstance().getParentOwner().isVisible()) {
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        if ((Dialog.getInstance().getParentOwner() == null) || !Dialog.getInstance().getParentOwner().isDisplayable() || !Dialog.getInstance().getParentOwner().isVisible()) {
+            final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
             this.setLocation(new Point((int) (screenSize.getWidth() - this.getWidth()) / 2, (int) (screenSize.getHeight() - this.getHeight()) / 2));
 
-        } else if ((Dialog.getInstance().getParentOwner().getExtendedState() == JFrame.ICONIFIED)) {
+        } else if ((Dialog.getInstance().getParentOwner().getExtendedState() == Frame.ICONIFIED)) {
             // dock dialog at bottom right if mainframe is not visible
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
             this.setLocation(new Point((int) (screenSize.getWidth() - this.getWidth() - 20), (int) (screenSize.getHeight() - this.getHeight() - 60)));
         } else {
             this.setLocation(SwingUtils.getCenter(Dialog.getInstance().getParentOwner(), this));
         }
         // register an escape listener to cancel the dialog
-        KeyStroke ks = KeyStroke.getKeyStroke("ESCAPE");
+        final KeyStroke ks = KeyStroke.getKeyStroke("ESCAPE");
         focus.getInputMap().put(ks, "ESCAPE");
-        focus.getInputMap(JButton.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ESCAPE");
-        focus.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
+        focus.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ESCAPE");
+        focus.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
         focus.getActionMap().put("ESCAPE", new AbstractAction() {
 
             private static final long serialVersionUID = -6666144330707394562L;
 
-            public void actionPerformed(ActionEvent e) {
-                dispose();
+            public void actionPerformed(final ActionEvent e) {
+                AbstractDialog.this.dispose();
             }
         });
 
@@ -245,6 +258,62 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             Dialog.getInstance().getParentOwner().setAlwaysOnTop(false);
         }
 
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @seeorg.appwork.utils.event.Event.ActionListener#actionPerformed(com.
+     * rapidshare.utils.event.Event.ActionEvent)
+     */
+    public void actionPerformed(final ActionEvent e) {
+        if (e.getSource() == this.okButton) {
+            this.setReturnmask(true);
+        } else if (e.getSource() == this.cancelButton) {
+            this.setReturnmask(false);
+        }
+        this.dispose();
+    }
+
+    /**
+     * Overwrite this method to add additional buttons
+     */
+    protected void addButtons(final JPanel buttonBar) {
+    }
+
+    /**
+     * called when user closes the window
+     * 
+     * @return <code>true</code>, if and only if the dialog should be closeable
+     **/
+    public boolean closeAllowed() {
+        return true;
+    }
+
+    protected abstract T createReturnValue();
+
+    /**
+     * This method has to be called to display the dialog. make sure that all
+     * settings have beens et before, becvause this call very likly display a
+     * dialog that blocks the rest of the gui until it is closed
+     */
+    public AbstractDialog<T> displayDialog() {
+        if (this.initialized) { return this; }
+        this.initialized = true;
+        this._init();
+        return this;
+    }
+
+    @Override
+    public void dispose() {
+        if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
+        try {
+            if (Dialog.getInstance().getParentOwner() != null) {
+                LockPanel.create(Dialog.getInstance().getParentOwner()).unlock(300);
+            }
+        } catch (final AWTException e1) {
+        }
+        super.dispose();
     }
 
     /**
@@ -265,12 +334,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     /**
-     * Overwrite this method to add additional buttons
-     */
-    protected void addButtons(JPanel buttonBar) {
-    }
-
-    /**
      * Create the key to save the don't showmagain state in database. should be
      * overwritten in same dialogs. by default, the dialogs get differed by
      * their title and their classname
@@ -282,9 +345,64 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     /**
+     * Return the returnbitmask
+     * 
+     * @return
+     */
+    public int getReturnmask() {
+        if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
+        return this.returnBitMask;
+    }
+
+    public T getReturnValue() {
+        if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
+
+        return this.createReturnValue();
+    }
+
+    /**
+     * This method has to be overwritten to implement custom content
+     * 
+     * @return musst return a JComponent
+     */
+    abstract public JComponent layoutDialogContent();
+
+    /**
+     * Handle timeout
+     */
+    @Override
+    protected void onTimeout() {
+        this.setReturnmask(false);
+        this.returnBitMask |= Dialog.RETURN_TIMEOUT;
+
+        this.dispose();
+    }
+
+    /**
      * may be overwritten to set focus to special components etc.
      */
     protected void packed() {
+    }
+
+    /**
+     * Sets the returnvalue and saves the don't show again states to the
+     * database
+     * 
+     * @param b
+     */
+    protected void setReturnmask(final boolean b) {
+        if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
+        this.returnBitMask = b ? Dialog.RETURN_OK : Dialog.RETURN_CANCEL;
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
+            if (this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) {
+                this.returnBitMask |= Dialog.RETURN_DONT_SHOW_AGAIN;
+                try {
+                    JSonStorage.getStorage("Dialogs").put(this.getDontShowAgainKey(), this.returnBitMask);
+                } catch (final Exception e) {
+                    Log.exception(e);
+                }
+            }
+        }
     }
 
     /**
@@ -295,116 +413,28 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         return ("dialog-" + this.getTitle()).replaceAll("\\W", "_");
     }
 
-    /**
-     * This method has to be overwritten to implement custom content
-     * 
-     * @return musst return a JComponent
-     */
-    abstract public JComponent layoutDialogContent();
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.appwork.utils.event.Event.ActionListener#actionPerformed(com.
-     * rapidshare.utils.event.Event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == okButton) {
-            setReturnmask(true);
-        } else if (e.getSource() == cancelButton) {
-            setReturnmask(false);
-        }
-        dispose();
+    public void windowActivated(final WindowEvent arg0) {
     }
 
-    public void dispose() {
-        try {
-            if (Dialog.getInstance().getParentOwner() != null) LockPanel.create(Dialog.getInstance().getParentOwner()).unlock(300);
-        } catch (AWTException e1) {
-        }
-        super.dispose();
+    public void windowClosed(final WindowEvent arg0) {
     }
 
-    /**
-     * Handle timeout
-     */
-    protected void onTimeout() {
-        setReturnmask(false);
-        returnBitMask |= Dialog.RETURN_TIMEOUT;
-
-        this.dispose();
-    }
-
-    /**
-     * Sets the returnvalue and saves the don't show again states to the
-     * database
-     * 
-     * @param b
-     */
-    protected void setReturnmask(boolean b) {
-        returnBitMask = b ? Dialog.RETURN_OK : Dialog.RETURN_CANCEL;
-        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-            if (dontshowagain.isSelected() && dontshowagain.isEnabled()) {
-                returnBitMask |= Dialog.RETURN_DONT_SHOW_AGAIN;
-                try {
-                    JSonStorage.getStorage("Dialogs").put(getDontShowAgainKey(), returnBitMask);
-                } catch (Exception e) {
-                    Log.exception(e);
-                }
-            }
+    public void windowClosing(final WindowEvent arg0) {
+        if (this.closeAllowed()) {
+            this.returnBitMask |= Dialog.RETURN_CLOSED;
+            this.dispose();
         }
     }
 
-    /**
-     * Return the returnbitmask
-     * 
-     * @return
-     */
-    public int getReturnmask() {
-        return returnBitMask;
+    public void windowDeactivated(final WindowEvent arg0) {
     }
 
-    public static void resetDialogInformations() {
-        try {
-            JSonStorage.getStorage("Dialogs").clear();
-        } catch (Exception e) {
-            Log.exception(e);
-        }
+    public void windowDeiconified(final WindowEvent arg0) {
     }
 
-    /**
-     * called when user closes the window
-     * 
-     * @return <code>true</code>, if and only if the dialog should be closeable
-     **/
-    public boolean closeAllowed() {
-        return true;
+    public void windowIconified(final WindowEvent arg0) {
     }
 
-    public void windowClosing(WindowEvent arg0) {
-        if (closeAllowed()) {
-            returnBitMask |= Dialog.RETURN_CLOSED;
-            dispose();
-        }
+    public void windowOpened(final WindowEvent arg0) {
     }
-
-    public void windowDeactivated(WindowEvent arg0) {
-    }
-
-    public void windowClosed(WindowEvent arg0) {
-    }
-
-    public void windowActivated(WindowEvent arg0) {
-    }
-
-    public void windowDeiconified(WindowEvent arg0) {
-    }
-
-    public void windowIconified(WindowEvent arg0) {
-    }
-
-    public void windowOpened(WindowEvent arg0) {
-    }
-
-    abstract public T getRetValue();
 }

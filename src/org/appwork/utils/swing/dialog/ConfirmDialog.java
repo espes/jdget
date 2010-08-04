@@ -93,7 +93,7 @@ public class ConfirmDialog extends AbstractDialog<Object> {
      * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
      */
     @Override
-    public Object getRetValue() {
+    protected Object createReturnValue() {
         // TODO Auto-generated method stub
         return null;
     }
