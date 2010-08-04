@@ -22,44 +22,25 @@ public abstract class Queue extends Thread {
 
     public enum QueuePriority {
         HIGH,
-        NORM,
-        LOW
+        LOW,
+        NORM
     }
 
+    protected QueuePriority[] prios;
     protected HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>> queue = new HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>>();
     protected final Object queueLock = new Object();
-    protected boolean waitFlag = true;
 
     protected Thread thread = null;
-    protected QueuePriority[] prios;
+    protected boolean waitFlag = true;
 
-    /**
-     * this functions returns true if the current running Thread is our
-     * QueueThread OR the SourceQueueItem chain is rooted in current running
-     * QueueItem
-     */
-    public boolean isQueueThread(QueueAction<?, ? extends Throwable> item) {
-        if (currentThread() == thread) return true;
-        QueueAction<?, ? extends Throwable> source = item.getSourceQueueItem();
-        while (source != null) {
-            if (source.gotStarted()) return true;
-            source = source.getSourceQueueItem();
-        }
-        return false;
-    }
-
-    public Queue(String id) {
+    public Queue(final String id) {
         super(id);
         /* init queue */
-        prios = QueuePriority.values();
-        for (QueuePriority prio : prios) {
-            queue.put(prio, new ArrayList<QueueAction<?, ? extends Throwable>>());
+        this.prios = QueuePriority.values();
+        for (final QueuePriority prio : this.prios) {
+            this.queue.put(prio, new ArrayList<QueueAction<?, ? extends Throwable>>());
         }
-        start();
-    }
-
-    public boolean isWaiting() {
-        return waitFlag;
+        this.start();
     }
 
     /**
@@ -74,15 +55,15 @@ public abstract class Queue extends Thread {
      * @param item
      * @throws T
      */
-    public <E, T extends Throwable> void add(QueueAction<?, T> action) throws T {
-        if (isQueueThread(action)) {
+    public <E, T extends Throwable> void add(final QueueAction<?, T> action) throws T {
+        if (this.isQueueThread(action)) {
             /*
              * call comes from current running item, so lets start item
              */
-            startItem(action, false);
+            this.startItem(action, false);
         } else {
             /* call does not come from current running item, so lets queue it */
-            internalAdd(action);
+            this.internalAdd(action);
         }
     }
 
@@ -95,42 +76,29 @@ public abstract class Queue extends Thread {
      * @param action
      * @throws T
      */
-    public <E, T extends Throwable> void addAsynch(QueueAction<?, T> action) {
-        if (isQueueThread(action)) {
+    public <E, T extends Throwable> void addAsynch(final QueueAction<?, T> action) {
+        if (this.isQueueThread(action)) {
             throw new RuntimeException("called addAsynch from the queue itself");
         } else {
 
-            internalAdd(action);
+            this.internalAdd(action);
         }
 
-    }
-
-    public void enqueue(QueueAction<?, ?> action) {
-        internalAdd(action);
-    }
-
-    protected void internalAdd(QueueAction<?, ?> action) {
-        synchronized (queueLock) {
-            queue.get(action.getQueuePrio()).add(action);
-        }
-        synchronized (this) {
-            if (waitFlag) {
-                waitFlag = false;
-                notify();
-            }
-        }
     }
 
     @SuppressWarnings("unchecked")
-    public <E, T extends Throwable> E addWait(QueueAction<E, T> item) throws T, InterruptedException {
-        if (isQueueThread(item)) {
+    public <E, T extends Throwable> E addWait(final QueueAction<E, T> item) throws T, InterruptedException {
+        if (this.isQueueThread(item)) {
             /*
              * call comes from current running item, so lets start item
+             * excaption handling is passed to top item. startItem throws an
+             * exception in error case
              */
-            startItem(item, false);
+            this.startItem(item, false);
+
         } else {
             /* call does not come from current running item, so lets queue it */
-            internalAdd(item);
+            this.internalAdd(item);
             /* wait till item is finished */
             while (!item.isFinished()) {
 
@@ -139,79 +107,26 @@ public abstract class Queue extends Thread {
                 }
 
             }
-        }
-        if (item.gotKilled()) { throw new InterruptedException("Queue got killed!"); }
-        if (item.getExeption() != null) {
-            if (item.getExeption() instanceof RuntimeException) {
-                throw (RuntimeException) item.getExeption();
-            } else {
-                throw (T) item.getExeption();
+            if (item.getExeption() != null) {
+                // throw exception if item canot handle the exception itself
+                if (!item.exceptionHandler(item.getExeption())) {
+                    if (item.getExeption() instanceof RuntimeException) {
+                        throw (RuntimeException) item.getExeption();
+                    } else {
+                        throw (T) item.getExeption();
+                    }
+                }
+
             }
+            if (item.gotKilled() && !item.gotStarted()) { throw new InterruptedException("Queue got killed!"); }
 
         }
+
         return item.getResult();
     }
 
-    public boolean isEmpty() {
-        synchronized (queueLock) {
-            for (QueuePriority prio : prios) {
-                if (!queue.get(prio).isEmpty()) return false;
-            }
-            return true;
-        }
-    }
-
-    public void killQueue() {
-        synchronized (queueLock) {
-            for (QueuePriority prio : prios) {
-                for (QueueAction<?, ? extends Throwable> item : queue.get(prio)) {
-                    /* kill item */
-                    item.kill();
-                    synchronized (item) {
-                        item.notify();
-                    }
-                }
-                /* clear queue */
-                queue.get(prio).clear();
-            }
-
-        }
-    }
-
-    public void run() {
-        if (thread != null) return;
-        thread = this;
-        QueueAction<?, ? extends Throwable> item = null;
-        while (true) {
-            handlePreRun();
-            synchronized (this) {
-                while (waitFlag) {
-                    try {
-                        wait();
-                    } catch (Exception e) {
-                        org.appwork.utils.logging.Log.exception(e);
-                    }
-                }
-            }
-            synchronized (queueLock) {
-                item = null;
-                for (QueuePriority prio : prios) {
-                    if (queue.get(prio).size() > 0) {
-                        item = queue.get(prio).remove(0);
-                        break;
-                    }
-                }
-                if (item == null) {
-                    waitFlag = true;
-                }
-            }
-            if (item == null || waitFlag) continue;
-            try {
-                startItem(item, true);
-            } catch (Throwable e) {
-
-            }
-        }
+    public void enqueue(final QueueAction<?, ?> action) {
+        this.internalAdd(action);
     }
 
     /**
@@ -222,21 +137,122 @@ public abstract class Queue extends Thread {
 
     }
 
-    /* if you override this, DON'T forget to notify item when its done! */
-    protected <T extends Throwable> void startItem(QueueAction<?, T> item, boolean callExceptionhandler) throws T {
-        try {
-            item.start(this);
+    protected void internalAdd(final QueueAction<?, ?> action) {
+        synchronized (this.queueLock) {
+            this.queue.get(action.getQueuePrio()).add(action);
+        }
+        synchronized (this) {
+            if (this.waitFlag) {
+                this.waitFlag = false;
+                this.notify();
+            }
+        }
+    }
 
-        } finally {
-            if (item.getExeption() != null && callExceptionhandler) {
-                if (!item.exceptionHandler(item.getExeption())) {
-                    // print out exception if code does not handle it
-                    // Log.exception(item.getExeption());
+    public boolean isEmpty() {
+        synchronized (this.queueLock) {
+            for (final QueuePriority prio : this.prios) {
+                if (!this.queue.get(prio).isEmpty()) { return false; }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * this functions returns true if the current running Thread is our
+     * QueueThread OR the SourceQueueItem chain is rooted in current running
+     * QueueItem
+     */
+    public boolean isQueueThread(final QueueAction<?, ? extends Throwable> item) {
+        if (Thread.currentThread() == this.thread) { return true; }
+        QueueAction<?, ? extends Throwable> source = item.getSourceQueueItem();
+        while (source != null) {
+            if (source.gotStarted()) { return true; }
+            source = source.getSourceQueueItem();
+        }
+        return false;
+    }
+
+    public boolean isWaiting() {
+        return this.waitFlag;
+    }
+
+    public void killQueue() {
+        synchronized (this.queueLock) {
+            for (final QueuePriority prio : this.prios) {
+                for (final QueueAction<?, ? extends Throwable> item : this.queue.get(prio)) {
+                    /* kill item */
+                    item.kill();
+                    synchronized (item) {
+                        item.notify();
+                    }
+                }
+                /* clear queue */
+                this.queue.get(prio).clear();
+            }
+
+        }
+    }
+
+    @Override
+    public void run() {
+        if (this.thread != null) { return; }
+        this.thread = this;
+        QueueAction<?, ? extends Throwable> item = null;
+        while (true) {
+            this.handlePreRun();
+            synchronized (this) {
+                while (this.waitFlag) {
+                    try {
+                        this.wait();
+                    } catch (final Exception e) {
+                        org.appwork.utils.logging.Log.exception(e);
+                    }
                 }
             }
+            synchronized (this.queueLock) {
+                item = null;
+                for (final QueuePriority prio : this.prios) {
+                    if (this.queue.get(prio).size() > 0) {
+                        item = this.queue.get(prio).remove(0);
+                        break;
+                    }
+                }
+                if (item == null) {
+                    this.waitFlag = true;
+                }
+            }
+            if ((item == null) || this.waitFlag) {
+                continue;
+            }
+            try {
+                this.startItem(item, true);
+            } catch (final Throwable e) {
+
+            }
+        }
+    }
+
+    /* if you override this, DON'T forget to notify item when its done! */
+    @SuppressWarnings("unchecked")
+    protected <T extends Throwable> void startItem(final QueueAction<?, T> item, final boolean callExceptionhandler) throws T {
+        try {
+            item.start(this);
+        } catch (final Throwable e) {
+
+            if (!callExceptionhandler || !item.exceptionHandler(e)) {
+                if (e instanceof RuntimeException) {
+                    throw (RuntimeException) e;
+                } else {
+                    throw (T) e;
+                }
+
+            }
+        } finally {
             synchronized (item) {
                 item.notify();
             }
+
         }
     }
 }
