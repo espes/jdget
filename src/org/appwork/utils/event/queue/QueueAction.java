@@ -17,85 +17,68 @@ import org.appwork.utils.event.queue.Queue.QueuePriority;
  */
 public abstract class QueueAction<T, E extends Throwable> {
 
-    private T result = null;
+    private Throwable exeption;
 
     private volatile boolean finished = false;
     private volatile boolean killed = false;
-    private volatile boolean started = false;
-    private Queue queue = null;    
     private QueuePriority prio = QueuePriority.NORM;
+    private Queue queue = null;
+    private T result = null;
 
-    private Throwable exeption;
+    private volatile boolean started = false;
 
     private Thread thread = null;
 
     public QueueAction() {
     }
 
-    public QueueAction(QueuePriority prio) {
+    public QueueAction(final QueuePriority prio) {
         this.prio = prio;
     }
 
-    protected Queue getQueue() {
-        return queue;
-    }
+    /**
+     * @param e
+     * @return
+     */
+    protected synchronized boolean callExceptionHandler() {
 
-    public QueuePriority getQueuePrio() {
-        return prio;
-    }
-
-    public void setQueuePrio(QueuePriority prio) {
-        this.prio = prio;
-    }
-
-    @SuppressWarnings("unchecked")
-    final public void start(Queue queue) throws E {
-        this.queue = queue;
-        this.started = true;
-        try {
-            result = run();
-        } catch (Throwable th) {
-            exeption = th;
-            if (th instanceof RuntimeException) {
-                throw (RuntimeException) th;
-            } else {
-                throw (E) th;
-            }
-        } finally {
-            finished = true;
+        if ((this.exeption != null) && this.handleException(this.exeption)) {
+            this.exeption = null;
+            return true;
         }
+        return false;
+    }
+
+    protected Thread getCallerThread() {
+        return this.thread;
     }
 
     /**
      * @return the exeption
      */
     public Throwable getExeption() {
-        return exeption;
+        return this.exeption;
     }
 
-    public boolean gotStarted() {
-        return started;
+    protected Queue getQueue() {
+        return this.queue;
     }
 
-    public void kill() {
-        if (finished == true) return;
-        killed = true;
-        finished = true;
-    }
-
-    public boolean gotKilled() {
-        return killed;
-    }
-
-    public boolean isFinished() {
-        return finished;
+    public QueuePriority getQueuePrio() {
+        return this.prio;
     }
 
     public T getResult() {
-        return result;
+        return this.result;
     }
 
-    protected abstract T run() throws E;
+    public boolean gotKilled() {
+        return this.killed;
+    }
+
+    public boolean gotStarted() {
+        return this.started;
+    }
 
     /**
      * Callback for asynchron queuecalls if exceptions occured. has to return
@@ -104,15 +87,51 @@ public abstract class QueueAction<T, E extends Throwable> {
      * @param e
      * @return
      */
-    public boolean exceptionHandler(Throwable e) {
+    public boolean handleException(final Throwable e) {
         return false;
     }
 
-    protected Thread getCallerThread() {
-        return thread;
+    public boolean isFinished() {
+        return this.finished;
     }
 
-    protected void setCallerThread(Thread thread) {
+    public void kill() {
+        if (this.finished == true) { return; }
+        this.killed = true;
+        this.finished = true;
+    }
+
+    protected void reset() {
+        this.exeption = null;
+        this.killed = false;
+        this.finished = false;
+    }
+
+    protected abstract T run() throws E;
+
+    protected void setCallerThread(final Thread thread) {
         this.thread = thread;
+    }
+
+    public void setQueuePrio(final QueuePriority prio) {
+        this.prio = prio;
+    }
+
+    @SuppressWarnings("unchecked")
+    final public void start(final Queue queue) throws E {
+        this.queue = queue;
+        this.started = true;
+        try {
+            this.result = this.run();
+        } catch (final Throwable th) {
+            this.exeption = th;
+            if (th instanceof RuntimeException) {
+                throw (RuntimeException) th;
+            } else {
+                throw (E) th;
+            }
+        } finally {
+            this.finished = true;
+        }
     }
 }
