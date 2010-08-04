@@ -21,41 +21,48 @@ import org.appwork.utils.logging.Log;
  * 
  */
 public class HTMLParser {
-    public static ArrayList<String> findUrls(String source) {
+    public static ArrayList<String> findUrls(final String source) {
         /* TODO: better parsing */
         /* remove tags!! */
+
         final ArrayList<String> ret = new ArrayList<String>();
         try {
 
-            for (String link : new Regex(source, "((https?|ftp):((//)|(\\\\\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)(\n|\r|$|<|\")").getColumn(0)) {
+            for (String link : new Regex(source, "\\(?\\b(ftp://|http://)[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]").getColumn(-1)) {
                 try {
-                    if (link != null) link = link.trim();
+                    if (link != null) {
+                        link = link.trim();
+                    }
                     new URL(link);
-                    if (!ret.contains(link)) ret.add(link);
-                } catch (MalformedURLException e) {
+                    if (!ret.contains(link)) {
+                        ret.add(link);
+                    }
+                } catch (final MalformedURLException e) {
 
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             Log.exception(e);
         }
-        return removeDuplicates(ret);
+        return HTMLParser.removeDuplicates(ret);
     }
 
-    public static ArrayList<String> removeDuplicates(ArrayList<String> links) {
-        ArrayList<String> tmplinks = new ArrayList<String>();
-        if (links == null || links.size() == 0) return tmplinks;
-        for (String link : links) {
+    public static ArrayList<String> removeDuplicates(final ArrayList<String> links) {
+        final ArrayList<String> tmplinks = new ArrayList<String>();
+        if ((links == null) || (links.size() == 0)) { return tmplinks; }
+        for (final String link : links) {
             if (link.contains("...")) {
-                String check = link.substring(0, link.indexOf("..."));
+                final String check = link.substring(0, link.indexOf("..."));
                 String found = link;
-                for (String link2 : links) {
+                for (final String link2 : links) {
                     if (link2.startsWith(check) && !link2.contains("...")) {
                         found = link2;
                         break;
                     }
                 }
-                if (!tmplinks.contains(found)) tmplinks.add(found);
+                if (!tmplinks.contains(found)) {
+                    tmplinks.add(found);
+                }
             } else {
                 tmplinks.add(link);
             }
