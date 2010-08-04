@@ -41,7 +41,7 @@ public abstract class QueueAction<T, E extends Throwable> {
      * @return
      */
     protected synchronized boolean callExceptionHandler() {
-
+        if (this.exeption == null) return true;
         if ((this.exeption != null) && this.handleException(this.exeption)) {
             this.exeption = null;
             return true;
