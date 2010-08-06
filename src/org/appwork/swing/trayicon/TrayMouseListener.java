@@ -13,7 +13,7 @@ import java.awt.event.MouseEvent;
 
 /**
  * @author thomas
- *
+ * 
  */
 public interface TrayMouseListener {
 

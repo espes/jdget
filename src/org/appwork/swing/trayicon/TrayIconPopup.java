@@ -36,69 +36,106 @@ public abstract class TrayIconPopup extends JWindow {
      */
     private static final long serialVersionUID = -6632773260637754243L;
     private boolean enteredPopup;
-    private boolean hideThreadrunning = false;
+    private transient final Thread hideThread;
 
-    private transient Thread hideThread;
+    private boolean hideThreadrunning = false;
 
     /**
      * @param awTrayIcon
      */
-    public TrayIconPopup(AWTrayIcon awTrayIcon) {
+    public TrayIconPopup(final AWTrayIcon awTrayIcon) {
         super(awTrayIcon.getFrame());
 
         this.init();
-        setAlwaysOnTop(true);
-        pack();
+        this.setAlwaysOnTop(true);
+        this.pack();
         this.addMouseListener(new MouseListener() {
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(final MouseEvent e) {
             }
 
-            public void mouseEntered(MouseEvent e) {
-                enteredPopup = true;
+            public void mouseEntered(final MouseEvent e) {
+                TrayIconPopup.this.enteredPopup = true;
             }
 
-            public void mouseExited(MouseEvent e) {
+            public void mouseExited(final MouseEvent e) {
             }
 
-            public void mousePressed(MouseEvent e) {
+            public void mousePressed(final MouseEvent e) {
             }
 
-            public void mouseReleased(MouseEvent e) {
+            public void mouseReleased(final MouseEvent e) {
             }
         });
-        hideThread = new Thread() {
+        this.hideThread = new Thread() {
             /*
              * this thread handles closing of popup because enter/exit/move
              * events are too slow and can miss the exitevent
              */
+            @Override
             public void run() {
-                while (true && hideThreadrunning) {
+                while (true && TrayIconPopup.this.hideThreadrunning) {
                     try {
-                        sleep(500);
-                    } catch (InterruptedException e) {
+                        Thread.sleep(500);
+                    } catch (final InterruptedException e) {
                     }
-                    if (enteredPopup && hideThreadrunning) {
-                        PointerInfo mouse = MouseInfo.getPointerInfo();
-                        Point current = TrayIconPopup.this.getLocation();
-                        if (mouse.getLocation().x < current.x || mouse.getLocation().x > current.x + TrayIconPopup.this.getSize().width) {
-                            dispose();
+                    if (TrayIconPopup.this.enteredPopup && TrayIconPopup.this.hideThreadrunning) {
+                        final PointerInfo mouse = MouseInfo.getPointerInfo();
+                        final Point current = TrayIconPopup.this.getLocation();
+                        if ((mouse.getLocation().x < current.x) || (mouse.getLocation().x > current.x + TrayIconPopup.this.getSize().width)) {
+                            TrayIconPopup.this.dispose();
                             break;
-                        } else if (mouse.getLocation().y < current.y || mouse.getLocation().y > current.y + TrayIconPopup.this.getSize().height) {
-                            dispose();
+                        } else if ((mouse.getLocation().y < current.y) || (mouse.getLocation().y > current.y + TrayIconPopup.this.getSize().height)) {
+                            TrayIconPopup.this.dispose();
                             break;
                         }
                     }
                 }
             }
         };
-        hideThreadrunning = true;
-        hideThread.start();
+        this.hideThreadrunning = true;
+        this.hideThread.start();
     }
 
     /**
      * layout window
      */
     abstract protected void init();
+
+    /**
+     * @param point
+     */
+    public void setPosition(final Point p) {
+
+        final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        final int limitX = (int) screenSize.getWidth() / 2;
+        final int limitY = (int) screenSize.getHeight() / 2;
+        if (!CrossSystem.isMac()) {
+            if (p.x <= limitX) {
+                if (p.y <= limitY) {
+                    // top left
+                    this.setLocation(p.x, p.y);
+                } else {
+                    // bottom left
+                    this.setLocation(p.x, p.y - this.getHeight());
+                }
+            } else {
+                if (p.y <= limitY) {
+                    // top right
+                    this.setLocation(p.x - this.getWidth(), p.y);
+                } else {
+                    // bottom right
+                    this.setLocation(p.x - this.getWidth(), p.y - this.getHeight());
+                }
+            }
+        } else {
+            if (p.getX() <= (screenSize.getWidth() - this.getWidth())) {
+                this.setLocation((int) p.getX(), 22);
+            } else {
+                this.setLocation(p.x - this.getWidth(), 22);
+            }
+        }
+
+    }
 
     /**
      * start autohide in 3 secs if mouse did not enter popup before
@@ -109,14 +146,14 @@ public abstract class TrayIconPopup extends JWindow {
             public void run() {
                 try {
                     Thread.sleep(3000);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                 }
-                if (!enteredPopup) {
+                if (!TrayIconPopup.this.enteredPopup) {
                     new EDTHelper<Object>() {
                         @Override
                         public Object edtRun() {
-                            hideThreadrunning = false;
-                            dispose();
+                            TrayIconPopup.this.hideThreadrunning = false;
+                            TrayIconPopup.this.dispose();
                             return null;
                         }
 
@@ -124,42 +161,6 @@ public abstract class TrayIconPopup extends JWindow {
                 }
             }
         }.start();
-    }
-
-    /**
-     * @param point
-     */
-    public void setPosition(Point p) {
-
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int limitX = (int) screenSize.getWidth() / 2;
-        int limitY = (int) screenSize.getHeight() / 2;
-        if (!CrossSystem.isMac()) {
-            if (p.x <= limitX) {
-                if (p.y <= limitY) {
-                    // top left
-                    setLocation(p.x, p.y);
-                } else {
-                    // bottom left
-                    setLocation(p.x, p.y - getHeight());
-                }
-            } else {
-                if (p.y <= limitY) {
-                    // top right
-                    setLocation(p.x - getWidth(), p.y);
-                } else {
-                    // bottom right
-                    setLocation(p.x - getWidth(), p.y - getHeight());
-                }
-            }
-        } else {
-            if (p.getX() <= (screenSize.getWidth() - getWidth())) {
-                setLocation((int) p.getX(), 22);
-            } else {
-                setLocation(p.x - getWidth(), 22);
-            }
-        }
-
     }
 
 }

@@ -26,41 +26,35 @@ import java.util.ArrayList;
  */
 public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionListener {
 
-    private ArrayList<MouseListener> mouseListeners;
-    private ArrayList<TrayMouseListener> traymouseListeners;
+    private static int TOOLTIP_DELAY = 1000;
+    private Component dummy;
+
+    private MouseEvent lastEvent;
+
+    private Point max;
+    // private TrayIcon trayIcon;
+    private Point min;
+    private final ArrayList<MouseListener> mouseListeners;
+    private Thread mouseLocationObserver;
+    private boolean mouseover;
+    private Dimension size;
+    private final ArrayList<TrayMouseListener> traymouseListeners;
 
     /**
      * @param icon
      * @param title
      */
-    public ExtTrayIcon(Image icon, String title) {
+    public ExtTrayIcon(final Image icon, final String title) {
         super(icon, title);
         this.setImageAutoSize(true);
-        mouseListeners = new ArrayList<MouseListener>();
-        traymouseListeners = new ArrayList<TrayMouseListener>();
+        this.mouseListeners = new ArrayList<MouseListener>();
+        this.traymouseListeners = new ArrayList<TrayMouseListener>();
         super.addMouseListener(this);
         super.addMouseMotionListener(this);
     }
 
-    private boolean mouseover;
-    private Thread mouseLocationObserver;
-    // private TrayIcon trayIcon;
-    private Point min;
-    private Point max;
-    private Dimension size;
-    private MouseEvent lastEvent;
-    private Component dummy;
-
-    private static int TOOLTIP_DELAY = 1000;
-
-    public void removeMouseListener(MouseListener listener) {
-        if (listener == null) { return; }
-        synchronized (this.mouseListeners) {
-            this.mouseListeners.remove(listener);
-        }
-    }
-
-    public void addMouseListener(MouseListener listener) {
+    @Override
+    public void addMouseListener(final MouseListener listener) {
         if (listener == null) { return; }
         synchronized (this.mouseListeners) {
             this.mouseListeners.add(listener);
@@ -68,22 +62,7 @@ public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionL
 
     }
 
-    public void mouseClicked(MouseEvent e) {
-        synchronized (this.mouseListeners) {
-            for (MouseListener l : mouseListeners) {
-                l.mouseClicked(e);
-            }
-        }
-    }
-
-    public void removeTrayMouseListener(TrayMouseListener listener) {
-        if (listener == null) { return; }
-        synchronized (this.traymouseListeners) {
-            this.traymouseListeners.remove(listener);
-        }
-    }
-
-    public void addTrayMouseListener(TrayMouseListener listener) {
+    public void addTrayMouseListener(final TrayMouseListener listener) {
         if (listener == null) { return; }
         synchronized (this.traymouseListeners) {
             this.traymouseListeners.add(listener);
@@ -91,127 +70,11 @@ public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionL
 
     }
 
-    public void mouseEntered(MouseEvent e) {
-        mouseover = true;
-        final long enterTime = System.currentTimeMillis();
-        mouseLocationObserver = new Thread() {
-            public void run() {
-                try {
-                    boolean mouseStay = false;
-                    while (true) {
-                        Point point = MouseInfo.getPointerInfo().getLocation();
-                        if (!isOver(point)) {
-                            MouseEvent me;
-                            me = new MouseEvent(dummy, 0, System.currentTimeMillis(), 0, point.x, point.y, 0, false);
-                            me.setSource(lastEvent.getSource());
-
-                            synchronized (mouseListeners) {
-                                for (MouseListener l : mouseListeners) {
-                                    l.mouseExited(me);
-                                }
-                            }
-                            return;
-
-                        } else {
-                            if ((System.currentTimeMillis() - enterTime) >= TOOLTIP_DELAY && !mouseStay) {
-                                mouseStay = true;
-                                MouseEvent me;
-                                me = new MouseEvent(dummy, 0, System.currentTimeMillis(), 0, point.x, point.y, 0, false);
-                                // me.setSource(MouseAdapter.this);
-                                // deligate.mouseStay(me);
-
-                                synchronized (traymouseListeners) {
-                                    for (TrayMouseListener l : traymouseListeners) {
-                                        l.mouseMoveOverTray(me);
-                                    }
-                                }
-
-                            }
-                        }
-
-                        Thread.sleep(100);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    return;
-                } finally {
-                    mouseLocationObserver = null;
-                }
-            }
-
-        };
-        mouseLocationObserver.start();
-
-    }
-
-    public void mouseExited(MouseEvent e) {
-        mouseover = false;
-
-        min = max = null;
-
-        synchronized (mouseListeners) {
-            for (MouseListener l : mouseListeners) {
-                l.mouseExited(e);
-            }
-        }
-
-    }
-
-    public void mousePressed(MouseEvent e) {
-       
-        synchronized (mouseListeners) {
-            for (MouseListener l : mouseListeners) {
-                l.mousePressed(e);
-            }
-        }
-
-    }
-
-    public void mouseReleased(MouseEvent e) {
-        synchronized (mouseListeners) {
-            for (MouseListener l : mouseListeners) {
-                l.mouseReleased(e);
-            }
-        }
-    }
-
-    public void mouseMoved(MouseEvent e) {
-        lastEvent = e;
-        /**
-         * the more the user moves over the tray, the better we know it's
-         * location *
-         */
-
-        if (this.min == null) {
-            this.min = new Point(e.getPoint().x, e.getPoint().y);
-            this.max = new Point(e.getPoint().x, e.getPoint().y);
-        } else {
-            min.x = Math.min(e.getPoint().x, min.x);
-            min.y = Math.min(e.getPoint().y, min.y);
-            max.x = Math.max(e.getPoint().x, max.x);
-            max.y = Math.max(e.getPoint().y, max.y);
-            // System.out.println(min+" - "+max);
-        }
-
-        if (!this.mouseover) {
-
-            synchronized (mouseListeners) {
-                for (MouseListener l : mouseListeners) {
-                    l.mouseEntered(e);
-                }
-            }
-        } else {
-
-            // deligate.mouseMoved(e);
-        }
-
-    }
-
     public Point getEstimatedTopLeft() {
-        int midx = (max.x + min.x) / 2;
-        int midy = (max.y + min.y) / 2;
+        final int midx = (this.max.x + this.min.x) / 2;
+        final int midy = (this.max.y + this.min.y) / 2;
 
-        return new Point(midx - size.width / 2, midy - size.height / 2);
+        return new Point(midx - this.size.width / 2, midy - this.size.height / 2);
     }
 
     /**
@@ -221,23 +84,31 @@ public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionL
      * @param point
      * @return
      */
-    protected boolean isOver(Point point) {
-        int midx = (max.x + min.x) / 2;
-        int midy = (max.y + min.y) / 2;
+    protected boolean isOver(final Point point) {
+        final int midx = (this.max.x + this.min.x) / 2;
+        final int midy = (this.max.y + this.min.y) / 2;
 
-        int width = Math.min(size.width, max.x - min.x);
-        int height = Math.min(size.height, max.y - min.y);
+        final int width = Math.min(this.size.width, this.max.x - this.min.x);
+        final int height = Math.min(this.size.height, this.max.y - this.min.y);
 
-        int minx = midx - width / 2;
-        int miny = midy - height / 2;
-        int maxx = midx + width / 2;
-        int maxy = midy + height / 2;
+        final int minx = midx - width / 2;
+        final int miny = midy - height / 2;
+        final int maxx = midx + width / 2;
+        final int maxy = midy + height / 2;
         // java.awt.Point[x=1274,y=1175] - java.awt.Point[x=1309,y=1185]
-        if (point.x >= minx && point.x <= maxx) {
-            if (point.y >= miny && point.y <= maxy) { return true; }
+        if ((point.x >= minx) && (point.x <= maxx)) {
+            if ((point.y >= miny) && (point.y <= maxy)) { return true; }
 
         }
         return false;
+    }
+
+    public void mouseClicked(final MouseEvent e) {
+        synchronized (this.mouseListeners) {
+            for (final MouseListener l : this.mouseListeners) {
+                l.mouseClicked(e);
+            }
+        }
     }
 
     /*
@@ -248,9 +119,141 @@ public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionL
      * )
      */
     @Override
-    public void mouseDragged(MouseEvent e) {
+    public void mouseDragged(final MouseEvent e) {
         // TODO Auto-generated method stub
 
+    }
+
+    public void mouseEntered(final MouseEvent e) {
+        this.mouseover = true;
+        final long enterTime = System.currentTimeMillis();
+        this.mouseLocationObserver = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    boolean mouseStay = false;
+                    while (true) {
+                        final Point point = MouseInfo.getPointerInfo().getLocation();
+                        if (!ExtTrayIcon.this.isOver(point)) {
+                            MouseEvent me;
+                            me = new MouseEvent(ExtTrayIcon.this.dummy, 0, System.currentTimeMillis(), 0, point.x, point.y, 0, false);
+                            me.setSource(ExtTrayIcon.this.lastEvent.getSource());
+
+                            synchronized (ExtTrayIcon.this.mouseListeners) {
+                                for (final MouseListener l : ExtTrayIcon.this.mouseListeners) {
+                                    l.mouseExited(me);
+                                }
+                            }
+                            return;
+
+                        } else {
+                            if (((System.currentTimeMillis() - enterTime) >= ExtTrayIcon.TOOLTIP_DELAY) && !mouseStay) {
+                                mouseStay = true;
+                                MouseEvent me;
+                                me = new MouseEvent(ExtTrayIcon.this.dummy, 0, System.currentTimeMillis(), 0, point.x, point.y, 0, false);
+                                // me.setSource(MouseAdapter.this);
+                                // deligate.mouseStay(me);
+
+                                synchronized (ExtTrayIcon.this.traymouseListeners) {
+                                    for (final TrayMouseListener l : ExtTrayIcon.this.traymouseListeners) {
+                                        l.mouseMoveOverTray(me);
+                                    }
+                                }
+
+                            }
+                        }
+
+                        Thread.sleep(100);
+                    }
+                } catch (final InterruptedException e) {
+                    e.printStackTrace();
+                    return;
+                } finally {
+                    ExtTrayIcon.this.mouseLocationObserver = null;
+                }
+            }
+
+        };
+        this.mouseLocationObserver.start();
+
+    }
+
+    public void mouseExited(final MouseEvent e) {
+        this.mouseover = false;
+
+        this.min = this.max = null;
+
+        synchronized (this.mouseListeners) {
+            for (final MouseListener l : this.mouseListeners) {
+                l.mouseExited(e);
+            }
+        }
+
+    }
+
+    public void mouseMoved(final MouseEvent e) {
+        this.lastEvent = e;
+        /**
+         * the more the user moves over the tray, the better we know it's
+         * location *
+         */
+
+        if (this.min == null) {
+            this.min = new Point(e.getPoint().x, e.getPoint().y);
+            this.max = new Point(e.getPoint().x, e.getPoint().y);
+        } else {
+            this.min.x = Math.min(e.getPoint().x, this.min.x);
+            this.min.y = Math.min(e.getPoint().y, this.min.y);
+            this.max.x = Math.max(e.getPoint().x, this.max.x);
+            this.max.y = Math.max(e.getPoint().y, this.max.y);
+            // System.out.println(min+" - "+max);
+        }
+
+        if (!this.mouseover) {
+
+            synchronized (this.mouseListeners) {
+                for (final MouseListener l : this.mouseListeners) {
+                    l.mouseEntered(e);
+                }
+            }
+        } else {
+
+            // deligate.mouseMoved(e);
+        }
+
+    }
+
+    public void mousePressed(final MouseEvent e) {
+
+        synchronized (this.mouseListeners) {
+            for (final MouseListener l : this.mouseListeners) {
+                l.mousePressed(e);
+            }
+        }
+
+    }
+
+    public void mouseReleased(final MouseEvent e) {
+        synchronized (this.mouseListeners) {
+            for (final MouseListener l : this.mouseListeners) {
+                l.mouseReleased(e);
+            }
+        }
+    }
+
+    @Override
+    public void removeMouseListener(final MouseListener listener) {
+        if (listener == null) { return; }
+        synchronized (this.mouseListeners) {
+            this.mouseListeners.remove(listener);
+        }
+    }
+
+    public void removeTrayMouseListener(final TrayMouseListener listener) {
+        if (listener == null) { return; }
+        synchronized (this.traymouseListeners) {
+            this.traymouseListeners.remove(listener);
+        }
     }
 
 }
