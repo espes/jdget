@@ -16,8 +16,7 @@ public class JacksonStorageChest extends Storage {
     private final HashMap<String, Object> map;
     private final String name;
     private boolean plain;
-    private final Object LOCK = new Object();
-    private final Object JLOCK = new Object();
+    private final Object LOCK = new Object();    
 
     public JacksonStorageChest(String name) throws StorageException {
         this(name, false);
@@ -39,11 +38,11 @@ public class JacksonStorageChest extends Storage {
             } else {
                 str = Crypto.decrypt(IO.readFile(Application.getRessource("cfg/" + name + ".ejs")), JSonStorage.KEY);
             }
-            synchronized (JLOCK) {
+            synchronized (JSonStorage.MAPPERLOCK) {
                 /*
                  * reader are not threadsafe,
                  * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
-                 */
+                 */                
                 HashMap<String, Object> load = JSonStorage.getMapper().readValue(str, HashMap.class);
                 map.putAll(load);
             }
@@ -130,7 +129,7 @@ public class JacksonStorageChest extends Storage {
         // can reuse, share globally
         try {
             String json = null;
-            synchronized (JLOCK) {
+            synchronized (JSonStorage.MAPPERLOCK) {
                 /*
                  * writer are not threadsafe,
                  * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety

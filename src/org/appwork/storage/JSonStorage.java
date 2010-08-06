@@ -22,6 +22,7 @@ public class JSonStorage {
     private static final HashMap<String, Storage> MAP = new HashMap<String, Storage>();
     private static File path;
     private static final ObjectMapper MAPPER = new ObjectMapper(new ExtJsonFactory());
+    public static final Object MAPPERLOCK = new Object();
     static {
         MAPPER.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
@@ -125,7 +126,9 @@ public class JSonStorage {
      * @throws JsonGenerationException
      */
     public static String toString(Object list) throws JsonGenerationException, JsonMappingException, IOException {
-        return MAPPER.writeValueAsString(list);
+        synchronized (MAPPERLOCK) {
+            return MAPPER.writeValueAsString(list);
+        }
     }
 
     /**
@@ -170,10 +173,12 @@ public class JSonStorage {
     @SuppressWarnings("unchecked")
     public static <E> E restoreFromString(String string, TypeReference<E> type, E def) throws JsonParseException, JsonMappingException, IOException {
         if (string == null) return def;
-        if (type != null) {
-            return (E) MAPPER.readValue(string, type);
-        } else {
-            return (E) MAPPER.readValue(string, def.getClass());
+        synchronized (MAPPERLOCK) {
+            if (type != null) {
+                return (E) MAPPER.readValue(string, type);
+            } else {
+                return (E) MAPPER.readValue(string, def.getClass());
+            }
         }
     }
 
