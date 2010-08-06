@@ -9,6 +9,8 @@
  */
 package org.appwork.utils.ImageProvider;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -219,5 +221,46 @@ public class ImageProvider {
         ret = UIManager.getLookAndFeel().getDisabledIcon(null, icon);
         DISABLED_ICON_CACHE.put(icon, ret);
         return ret;
+    }
+
+    /**
+     * Creates a dummy Icon
+     * 
+     * @param string
+     * @param i
+     * @param j
+     * @return
+     */
+    public static Image createIcon(String string, int width, int height) {
+        int w = width;
+        int h = height;
+
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice gd = ge.getDefaultScreenDevice();
+        GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.BITMASK);
+
+        Graphics2D g = image.createGraphics();
+        int size = 1 + width / string.length();
+        // find max font size
+        int ww = 0;
+        int hh=0;
+        while (size > 0) {
+            size--;
+            g.setFont(new Font("Arial", Font.BOLD, size));
+            ww = g.getFontMetrics().stringWidth(string);
+            hh=g.getFontMetrics().getAscent();
+            if (ww < w - 4&&hh<h-2) {
+                break;
+            }
+        }
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, w - 1, h - 1);
+        g.draw3DRect(0, 0, w - 1, h - 1, true);
+        g.setColor(Color.BLACK);
+        g.drawString(string, (w - ww) / 2, hh);
+        g.dispose();
+        return image;
+       
     }
 }
