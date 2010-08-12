@@ -22,7 +22,7 @@ public class JSonStorage {
     private static final HashMap<String, Storage> MAP = new HashMap<String, Storage>();
     private static File path;
     private static final ObjectMapper MAPPER = new ObjectMapper(new ExtJsonFactory());
-    public static final Object MAPPERLOCK = new Object();
+    public static final Object LOCK = new Object();    
     static {
         MAPPER.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
@@ -79,24 +79,26 @@ public class JSonStorage {
      * @throws StorageException
      */
     public static void saveTo(String pathname, String json) throws StorageException {
-        try {
-            path = Application.getRessource(pathname);
-            File tmp = new File(path.getParentFile(), path.getName() + ".tmp");
-            tmp.getParentFile().mkdirs();
-            tmp.delete();
-            if (new Regex(pathname, ".+\\.json").matches()) {
-                /* uncrypted */
-                IO.writeToFile(tmp, json.getBytes("UTF-8"));
-            } else {
-                /* encrypted */
-                IO.writeToFile(tmp, Crypto.encrypt(json, KEY));
+        synchronized (LOCK) {
+            try {
+                path = Application.getRessource(pathname);
+                File tmp = new File(path.getParentFile(), path.getName() + ".tmp");
+                tmp.getParentFile().mkdirs();
+                tmp.delete();
+                if (new Regex(pathname, ".+\\.json").matches()) {
+                    /* uncrypted */
+                    IO.writeToFile(tmp, json.getBytes("UTF-8"));
+                } else {
+                    /* encrypted */
+                    IO.writeToFile(tmp, Crypto.encrypt(json, KEY));
+                }
+                if (path.exists()) {
+                    if (!path.delete()) { throw new StorageException("Could not overwrite file: " + path); }
+                }
+                if (!tmp.renameTo(path)) { throw new StorageException("Could not rename file: " + tmp + " to " + path); }
+            } catch (IOException e) {
+                throw new StorageException(e);
             }
-            if (path.exists()) {
-                if (!path.delete()) { throw new StorageException("Could not overwrite file: " + path); }
-            }
-            if (!tmp.renameTo(path)) { throw new StorageException("Could not rename file: " + tmp + " to " + path); }
-        } catch (IOException e) {
-            throw new StorageException(e);
         }
     }
 
@@ -126,7 +128,7 @@ public class JSonStorage {
      * @throws JsonGenerationException
      */
     public static String toString(Object list) throws JsonGenerationException, JsonMappingException, IOException {
-        synchronized (MAPPERLOCK) {
+        synchronized (LOCK) {
             return MAPPER.writeValueAsString(list);
         }
     }
@@ -147,33 +149,33 @@ public class JSonStorage {
      * @return
      */
     public static <E> E restoreFrom(String string, TypeReference<E> type, E def) {
-        String stri = null;
-        try {
-            if (!Application.getRessource(string).exists()) return def;
-            byte[] str = IO.readFile(Application.getRessource(string));
-            if (new Regex(string, ".+\\.json").matches()) {
-                return restoreFromString(stri = new String(str, "UTF-8"), type, def);
-            } else {
-                return restoreFromString(stri = Crypto.decrypt(str, KEY), type, def);
+        synchronized (LOCK) {
+            String stri = null;
+            try {
+                if (!Application.getRessource(string).exists()) return def;
+                byte[] str = IO.readFile(Application.getRessource(string));
+                if (new Regex(string, ".+\\.json").matches()) {
+                    return restoreFromString(stri = new String(str, "UTF-8"), type, def);
+                } else {
+                    return restoreFromString(stri = Crypto.decrypt(str, KEY), type, def);
+                }
+            } catch (JsonParseException e) {
+                Log.L.severe(stri);
+                Log.exception(e);
+            } catch (JsonMappingException e) {
+                Log.L.severe(stri);
+                Log.exception(e);
+            } catch (IOException e) {
+                Log.exception(e);
             }
-
-        } catch (JsonParseException e) {
-            Log.L.severe(stri);
-            Log.exception(e);
-        } catch (JsonMappingException e) {
-            Log.L.severe(stri);
-            Log.exception(e);
-        } catch (IOException e) {
-            Log.exception(e);
+            return def;
         }
-        return def;
-
     }
 
     @SuppressWarnings("unchecked")
     public static <E> E restoreFromString(String string, TypeReference<E> type, E def) throws JsonParseException, JsonMappingException, IOException {
         if (string == null) return def;
-        synchronized (MAPPERLOCK) {
+        synchronized (LOCK) {
             if (type != null) {
                 return (E) MAPPER.readValue(string, type);
             } else {

@@ -16,7 +16,6 @@ public class JacksonStorageChest extends Storage {
     private final HashMap<String, Object> map;
     private final String name;
     private boolean plain;
-    private final Object LOCK = new Object();    
 
     public JacksonStorageChest(String name) throws StorageException {
         this(name, false);
@@ -32,27 +31,27 @@ public class JacksonStorageChest extends Storage {
         this.name = name;
         this.plain = plain;
         String str = null;
-        try {
-            if (plain) {
-                str = new String(IO.readFile(Application.getRessource("cfg/" + name + (plain ? ".json" : ".ejs"))));
-            } else {
-                str = Crypto.decrypt(IO.readFile(Application.getRessource("cfg/" + name + ".ejs")), JSonStorage.KEY);
-            }
-            synchronized (JSonStorage.MAPPERLOCK) {
+        synchronized (JSonStorage.LOCK) {
+            try {
+                if (plain) {
+                    str = new String(IO.readFile(Application.getRessource("cfg/" + name + (plain ? ".json" : ".ejs"))));
+                } else {
+                    str = Crypto.decrypt(IO.readFile(Application.getRessource("cfg/" + name + ".ejs")), JSonStorage.KEY);
+                }
                 /*
                  * reader are not threadsafe,
                  * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
-                 */                
+                 */
                 HashMap<String, Object> load = JSonStorage.getMapper().readValue(str, HashMap.class);
                 map.putAll(load);
+            } catch (JsonParseException e) {
+                Log.L.severe(str);
+                Log.exception(e);
+            } catch (JsonMappingException e) {
+                Log.L.severe(str);
+                Log.exception(e);
+            } catch (IOException e) {
             }
-        } catch (JsonParseException e) {
-            Log.L.severe(str);
-            Log.exception(e);
-        } catch (JsonMappingException e) {
-            Log.L.severe(str);
-            Log.exception(e);
-        } catch (IOException e) {
         }
     }
 
@@ -126,26 +125,22 @@ public class JacksonStorageChest extends Storage {
 
     @Override
     public void save() throws StorageException {
-        // can reuse, share globally
-        try {
-            String json = null;
-            synchronized (JSonStorage.MAPPERLOCK) {
+        synchronized (JSonStorage.LOCK) {
+            try {
+                String json = null;
                 /*
                  * writer are not threadsafe,
                  * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
                  */
                 json = JSonStorage.getMapper().writeValueAsString(map);
-
-            }
-            synchronized (LOCK) {
                 JSonStorage.saveTo("cfg/" + name + (plain ? ".json" : ".ejs"), json);
+            } catch (JsonGenerationException e) {
+                Log.exception(e);
+            } catch (JsonMappingException e) {
+                Log.exception(e);
+            } catch (IOException e) {
+                Log.exception(e);
             }
-        } catch (JsonGenerationException e) {
-            Log.exception(e);
-        } catch (JsonMappingException e) {
-            Log.exception(e);
-        } catch (IOException e) {
-            Log.exception(e);
         }
     }
 
