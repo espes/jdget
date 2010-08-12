@@ -10,6 +10,7 @@
 package org.appwork.utils.event.queue;
 
 import org.appwork.utils.event.queue.Queue.QueuePriority;
+import org.appwork.utils.logging.Log;
 
 /**
  * @author daniel
@@ -24,6 +25,7 @@ public abstract class QueueAction<T, E extends Throwable> {
     private QueuePriority prio = QueuePriority.NORM;
     private Queue queue = null;
     private T result = null;
+    private String callerStackTrace = null;
 
     private volatile boolean started = false;
 
@@ -34,6 +36,10 @@ public abstract class QueueAction<T, E extends Throwable> {
 
     public QueueAction(final QueuePriority prio) {
         this.prio = prio;
+    }
+
+    protected String getCallerStackTrace() {
+        return callerStackTrace;
     }
 
     /**
@@ -105,12 +111,24 @@ public abstract class QueueAction<T, E extends Throwable> {
         this.exeption = null;
         this.killed = false;
         this.finished = false;
+        this.callerStackTrace = null;
+        this.thread = null;
+        this.queue = null;
     }
 
     protected abstract T run() throws E;
 
-    protected void setCallerThread(final Thread thread) {
+    protected void setCallerThread(final Queue queue, final Thread thread) {
         this.thread = thread;
+        this.queue = queue;
+        if (queue != null && queue.isDebug() && thread != null) {
+            StringBuilder sb = new StringBuilder();
+            for (StackTraceElement elem : thread.getStackTrace()) {
+                sb.append(elem.toString() + "\r\n");
+            }
+            callerStackTrace = sb.toString();
+            sb = null;
+        }
     }
 
     public void setQueuePrio(final QueuePriority prio) {
@@ -124,6 +142,9 @@ public abstract class QueueAction<T, E extends Throwable> {
         try {
             this.result = this.run();
         } catch (final Throwable th) {
+            if (queue != null && queue.isDebug()) {
+                Log.L.severe("QueueActionCallerStackTrace:\r\n" + callerStackTrace);
+            }
             this.exeption = th;
             if (th instanceof RuntimeException) {
                 throw (RuntimeException) th;

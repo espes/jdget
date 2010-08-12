@@ -35,6 +35,7 @@ public abstract class Queue extends Thread {
 
     protected Thread thread = null;
     protected boolean waitFlag = true;
+    protected boolean debugFlag = false;
 
     public Queue(final String id) {
         super(id);
@@ -46,6 +47,24 @@ public abstract class Queue extends Thread {
         /* jvm should not wait for waiting queues */
         this.setDaemon(true);
         this.start();
+    }
+
+    /**
+     * returns true if this queue shows debug info
+     * 
+     * @return
+     */
+    public boolean isDebug() {
+        return debugFlag;
+    }
+
+    /**
+     * changes this queue's debugFlag
+     * 
+     * @param b
+     */
+    public void setDebug(boolean b) {
+        debugFlag = b;
     }
 
     /**
@@ -63,7 +82,7 @@ public abstract class Queue extends Thread {
     public <E, T extends Throwable> void add(final QueueAction<?, T> action) throws T {
         /* set calling Thread to current item */
         action.reset();
-        action.setCallerThread(Thread.currentThread());
+        action.setCallerThread(this, Thread.currentThread());
         if (this.isQueueThread(action)) {
             /*
              * call comes from current running item, so lets start item
@@ -87,7 +106,7 @@ public abstract class Queue extends Thread {
     public <E, T extends Throwable> void addAsynch(final QueueAction<?, T> action) {
         /* set calling Thread to current item */
         action.reset();
-        action.setCallerThread(Thread.currentThread());
+        action.setCallerThread(this, Thread.currentThread());
         if (this.isQueueThread(action)) {
             throw new RuntimeException("called addAsynch from the queue itself");
         } else {
@@ -100,7 +119,7 @@ public abstract class Queue extends Thread {
     public <E, T extends Throwable> E addWait(final QueueAction<E, T> item) throws T, InterruptedException {
         /* set calling Thread to current item */
         item.reset();
-        item.setCallerThread(Thread.currentThread());
+        item.setCallerThread(this, Thread.currentThread());
         if (this.isQueueThread(item)) {
             /*
              * call comes from current running item, so lets start item
@@ -138,6 +157,9 @@ public abstract class Queue extends Thread {
     }
 
     public void enqueue(final QueueAction<?, ?> action) {
+        /* set calling Thread to current item */
+        action.reset();
+        action.setCallerThread(this,Thread.currentThread());
         this.internalAdd(action);
     }
 
@@ -193,7 +215,7 @@ public abstract class Queue extends Thread {
         while ((last != null) && ((t = last.getCallerThread()) != null)) {
             if ((t != null) && (t instanceof Queue)) {
                 if (t == this.thread) {
-                    org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! " + item);
+                    if (debugFlag) org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! " + item);
                     return true;
                 }
                 last = ((Queue) t).getLastHistoryItem();
@@ -267,7 +289,7 @@ public abstract class Queue extends Thread {
                 Log.exception(e);
             }
         }
-    }
+    }   
 
     /* if you override this, DON'T forget to notify item when its done! */
     @SuppressWarnings("unchecked")
@@ -280,14 +302,12 @@ public abstract class Queue extends Thread {
             }
             item.start(this);
         } catch (final Throwable e) {
-
             if (!callExceptionhandler || !item.callExceptionHandler()) {
-                if (e instanceof RuntimeException) {
+                if (e instanceof RuntimeException) {                    
                     throw (RuntimeException) e;
                 } else {
                     throw (T) e;
                 }
-
             }
         } finally {
             if (this.thread != item.getCallerThread()) {
