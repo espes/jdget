@@ -88,6 +88,11 @@ public class Dialog {
     public static final int LOGIC_COUNTDOWN = 1 << 2;
 
     /**
+     * Don't show again is only valid for this session, but is not saved for
+     * further sessions
+     */
+    public static final int LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT = 1 << 11;
+    /**
      * Often, the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} option does not make
      * sense for the cancel option. Use this flag if the option should be
      * ignored if the user selects Cancel
@@ -123,6 +128,7 @@ public class Dialog {
      * If the user pressed OK, the return mask will contain this flag
      */
     public static final int RETURN_OK = 1 << 1;
+
     /**
      * If the dialog has been skipped due to previously selected
      * {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option, this return flag is set.
@@ -130,18 +136,17 @@ public class Dialog {
      * @see #RETURN_DONT_SHOW_AGAIN
      */
     public static final int RETURN_SKIPPED_BY_DONT_SHOW = 1 << 4;
-
     /**
      * If the Timeout ({@link #LOGIC_COUNTDOWN}) has run out, the return mask
      * contains this flag
      */
     public static final int RETURN_TIMEOUT = 1 << 5;
     private static boolean ShellFolderIDWorkaround = false;
+
     /**
      * Do Not use an Icon. By default dialogs have an Icon
      */
     public static final int STYLE_HIDE_ICON = 1 << 8;
-
     /**
      * Some dialogs are able to render HTML. Use this switch to enable html
      */
@@ -484,8 +489,8 @@ public class Dialog {
                             } else {
                                 fc.setCurrentDirectory(preSelection.getParentFile());
                                 /* only preselect file in savedialog */
-                                if (dialogType != null && dialogType == JFileChooser.SAVE_DIALOG) {
-                                    if (fileSelectionMode != null && fileSelectionMode != JFileChooser.DIRECTORIES_ONLY) {
+                                if ((dialogType != null) && (dialogType == JFileChooser.SAVE_DIALOG)) {
+                                    if ((fileSelectionMode != null) && (fileSelectionMode != JFileChooser.DIRECTORIES_ONLY)) {
                                         fc.setSelectedFile(preSelection);
                                     }
                                 }
@@ -505,8 +510,8 @@ public class Dialog {
                                             /*
                                              * only preselect file in savedialog
                                              */
-                                            if (dialogType != null && dialogType == JFileChooser.SAVE_DIALOG) {
-                                                if (fileSelectionMode != null && fileSelectionMode != JFileChooser.DIRECTORIES_ONLY) {
+                                            if ((dialogType != null) && (dialogType == JFileChooser.SAVE_DIALOG)) {
+                                                if ((fileSelectionMode != null) && (fileSelectionMode != JFileChooser.DIRECTORIES_ONLY)) {
                                                     fc.setSelectedFile(preSelection);
                                                 }
                                             }
@@ -520,15 +525,17 @@ public class Dialog {
                         if ((dialogType == null) || (dialogType == JFileChooser.OPEN_DIALOG)) {
                             if (fc.showOpenDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
                                 if (multiSelection) {
-                                    ArrayList<File> rets = new ArrayList<File>();
+                                    final ArrayList<File> rets = new ArrayList<File>();
                                     for (File ret : fc.getSelectedFiles()) {
-                                        ret = validateFileType(ret, fileSelectionMode, false);
-                                        if (ret != null) rets.add(ret);
+                                        ret = Dialog.this.validateFileType(ret, fileSelectionMode, false);
+                                        if (ret != null) {
+                                            rets.add(ret);
+                                        }
                                     }
 
                                     if (rets.size() > 0) {
                                         Dialog.this.latestReturnMask = rets.toArray(new File[rets.size()]);
-                                        File first = rets.get(0);
+                                        final File first = rets.get(0);
                                         if (first != null) {
                                             JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
                                         }
@@ -543,7 +550,7 @@ public class Dialog {
                                  * validate selectedFile against
                                  * fileSelectionMode
                                  */
-                                ret = validateFileType(ret, fileSelectionMode, false);
+                                ret = Dialog.this.validateFileType(ret, fileSelectionMode, false);
                                 if (ret != null) {
                                     Dialog.this.latestReturnMask = ret;
                                     JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
@@ -559,7 +566,7 @@ public class Dialog {
                                  * validate selectedFile against
                                  * fileSelectionMode
                                  */
-                                ret = validateFileType(ret, fileSelectionMode, true);
+                                ret = Dialog.this.validateFileType(ret, fileSelectionMode, true);
                                 if (ret != null) {
                                     Dialog.this.latestReturnMask = ret;
                                     JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
@@ -571,7 +578,7 @@ public class Dialog {
                         }
                         return null;
                     } catch (final Exception e) {
-                        if (e != null && e.getMessage() != null && e.getMessage().contains("shell") && !Dialog.ShellFolderIDWorkaround) {
+                        if ((e != null) && (e.getMessage() != null) && e.getMessage().contains("shell") && !Dialog.ShellFolderIDWorkaround) {
                             Log.L.info("Enabling Workaround for \"Could not get shell folder ID list\"");
                             Dialog.ShellFolderIDWorkaround = true;
                         } else {
@@ -584,34 +591,6 @@ public class Dialog {
             }
 
         }.getReturnValue();
-    }
-
-    private File validateFileType(File ret, Integer fileSelectionMode, boolean mkdir) {
-        if (ret == null) return null;
-        if (fileSelectionMode != null) {
-            if (fileSelectionMode == JFileChooser.DIRECTORIES_ONLY) {
-                if (ret.isFile()) {
-                    /*
-                     * is file, we need parent folder here
-                     */
-                    return ret.getParentFile();
-                } else if (!ret.exists() && mkdir) {
-                    /*
-                     * folder but it does not exist yet, we create it
-                     */
-                    ret.mkdirs();
-                    ret.mkdir();
-                } else if (!ret.exists()) { return null; }
-            } else if (fileSelectionMode == JFileChooser.FILES_ONLY) {
-                if (ret.isDirectory()) {
-                    /*
-                     * we return null cause directory is not a file
-                     */
-                    return null;
-                }
-            }
-        }
-        return ret;
     }
 
     /**
@@ -867,6 +846,34 @@ public class Dialog {
                 return dialog.getReturnValue();
             }
         }.getReturnValue());
+    }
+
+    private File validateFileType(final File ret, final Integer fileSelectionMode, final boolean mkdir) {
+        if (ret == null) { return null; }
+        if (fileSelectionMode != null) {
+            if (fileSelectionMode == JFileChooser.DIRECTORIES_ONLY) {
+                if (ret.isFile()) {
+                    /*
+                     * is file, we need parent folder here
+                     */
+                    return ret.getParentFile();
+                } else if (!ret.exists() && mkdir) {
+                    /*
+                     * folder but it does not exist yet, we create it
+                     */
+                    ret.mkdirs();
+                    ret.mkdir();
+                } else if (!ret.exists()) { return null; }
+            } else if (fileSelectionMode == JFileChooser.FILES_ONLY) {
+                if (ret.isDirectory()) {
+                    /*
+                     * we return null cause directory is not a file
+                     */
+                    return null;
+                }
+            }
+        }
+        return ret;
     }
 
 }

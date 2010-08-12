@@ -20,6 +20,7 @@ import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.HashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.Box;
@@ -48,8 +49,21 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private static final long serialVersionUID = 1831761858087385862L;
 
+    private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN = new HashMap<String, Integer>();
+
+    /**
+     * @return
+     */
+    private static Integer getSessionDontShowAgainValue(final String key) {
+        final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
+        if (ret == null) { return -1; }
+
+        return ret;
+    }
+
     public static void resetDialogInformations() {
         try {
+            AbstractDialog.SESSION_DONTSHOW_AGAIN.clear();
             JSonStorage.getStorage("Dialogs").clear();
         } catch (final Exception e) {
             Log.exception(e);
@@ -94,7 +108,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         dont: if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
             try {
-                final int i = JSonStorage.getStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
+                final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
 
                 if (i >= 0) {
                     // filter saved return value
@@ -396,7 +410,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             if (this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) {
                 this.returnBitMask |= Dialog.RETURN_DONT_SHOW_AGAIN;
                 try {
-                    JSonStorage.getStorage("Dialogs").put(this.getDontShowAgainKey(), this.returnBitMask);
+                    if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT)) {
+                        AbstractDialog.SESSION_DONTSHOW_AGAIN.put(this.getDontShowAgainKey(), this.returnBitMask);
+                    } else {
+                        JSonStorage.getStorage("Dialogs").put(this.getDontShowAgainKey(), this.returnBitMask);
+                    }
+
                 } catch (final Exception e) {
                     Log.exception(e);
                 }
