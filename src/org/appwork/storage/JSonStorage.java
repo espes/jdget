@@ -22,7 +22,7 @@ public class JSonStorage {
     private static final HashMap<String, Storage> MAP = new HashMap<String, Storage>();
     private static File path;
     private static final ObjectMapper MAPPER = new ObjectMapper(new ExtJsonFactory());
-    public static final Object LOCK = new Object();    
+    public static final Object LOCK = new Object();
     static {
         MAPPER.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
@@ -107,16 +107,18 @@ public class JSonStorage {
      * @param list
      */
     public static void storeTo(String string, Object list) {
-        try {
-            saveTo(string, toString(list));
-        } catch (JsonGenerationException e) {
-            Log.exception(e);
-        } catch (JsonMappingException e) {
-            Log.exception(e);
-        } catch (StorageException e) {
-            Log.exception(e);
-        } catch (IOException e) {
-            Log.exception(e);
+        synchronized (LOCK) {
+            try {
+                saveTo(string, toString(list));
+            } catch (JsonGenerationException e) {
+                Log.exception(e);
+            } catch (JsonMappingException e) {
+                Log.exception(e);
+            } catch (StorageException e) {
+                Log.exception(e);
+            } catch (IOException e) {
+                Log.exception(e);
+            }
         }
     }
 

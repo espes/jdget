@@ -160,8 +160,8 @@ public class ClipboardUtils {
                     }
                 }
             } catch (Exception e) {
-                Log.L.severe(inString);
-                Log.exception(e);
+                Log.L.warning(inString);
+                Log.L.warning(e.getMessage());
             }
         }
         return files;

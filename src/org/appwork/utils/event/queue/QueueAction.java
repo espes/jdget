@@ -94,6 +94,7 @@ public abstract class QueueAction<T, E extends Throwable> {
      * @return
      */
     public boolean handleException(final Throwable e) {
+        Log.exception(e);
         return false;
     }
 

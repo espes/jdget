@@ -107,6 +107,7 @@ public class TreeModelStateSaver {
             @Override
             public Object edtRun() {
                 restoreState(tree.getModel().getRoot(), new ArrayList<Object>());
+                final TreePath[] selectedPathes = getSelectedPathes();
                 if (selectedPathes != null && selectedPathes.length > 0) {
                     tree.getSelectionModel().clearSelection();
                     tree.getSelectionModel().setSelectionPaths(selectedPathes);
