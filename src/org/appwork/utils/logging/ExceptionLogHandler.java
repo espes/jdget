@@ -32,43 +32,41 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
     public ExceptionLogHandler() {
         super();
         try {
-            Calendar cal = Calendar.getInstance();
+            final Calendar cal = Calendar.getInstance();
 
             cal.setTimeInMillis(new Date().getTime());
 
-            file = Application.getRessource("logs/error_" + cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DATE) + "-" + System.currentTimeMillis() + ".log");
-            file.getParentFile().mkdirs();
-            file.deleteOnExit();
-            if (!file.isFile()) file.createNewFile();
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF8"));
-        } catch (Exception e) {
-            Log.exception(e);
+            this.file = Application.getRessource("logs/error_" + cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DATE) + "-" + System.currentTimeMillis() + ".log");
+            this.file.getParentFile().mkdirs();
+            this.file.deleteOnExit();
+            if (!this.file.isFile()) {
+                this.file.createNewFile();
+            }
+            this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(this.file, true), "UTF8"));
+        } catch (final Exception e) {
+            e.printStackTrace();
+
         }
 
     }
 
+    @Override
     public void close() {
         try {
-            writer.close();
-        } catch (IOException e) {
-            org.appwork.utils.logging.Log.exception(e);
+            this.writer.close();
+        } catch (final IOException e) {
+            e.printStackTrace();
+
         }
     }
 
+    @Override
     public void flush() {
         try {
-            writer.flush();
-        } catch (IOException e) {
+            this.writer.flush();
+        } catch (final IOException e) {
+            e.printStackTrace();
 
-            org.appwork.utils.logging.Log.exception(e);
-        }
-    }
-
-    public void publish(LogRecord logRecord) {
-        try {
-            writer.write(this.getFormatter().format(logRecord));
-        } catch (IOException e) {
-            org.appwork.utils.logging.Log.exception(e);
         }
     }
 
@@ -76,6 +74,16 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
      * @return
      */
     public File getFile() {
-        return file;
+        return this.file;
+    }
+
+    @Override
+    public void publish(final LogRecord logRecord) {
+        try {
+            this.writer.write(this.getFormatter().format(logRecord));
+        } catch (final IOException e) {
+            e.printStackTrace();
+
+        }
     }
 }

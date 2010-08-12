@@ -21,21 +21,27 @@ import javax.swing.event.HyperlinkListener;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.os.CrossSystem;
 
-public class ConfirmDialog extends AbstractDialog<Object> {
+public class ConfirmDialog extends AbstractDialog<Integer> {
 
     private static final long serialVersionUID = -7647771640756844691L;
 
+    private final String message;
     private JTextPane textField;
-    private String message;
 
-    public ConfirmDialog(int flag, String title, String message, ImageIcon icon, String okOption, String cancelOption) {
+    public ConfirmDialog(final int flag, final String title, final String message, final ImageIcon icon, final String okOption, final String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
         this.message = message;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
     @Override
-    public String toString() {
-        return ("dialog-" + this.getTitle() + "_" + message).replaceAll("\\W", "_");
+    protected Integer createReturnValue() {
+        // TODO Auto-generated method stub
+        return this.getReturnmask();
     }
 
     @Override
@@ -49,19 +55,19 @@ public class ConfirmDialog extends AbstractDialog<Object> {
 
     @Override
     public JComponent layoutDialogContent() {
-        textField = new JTextPane() {
+        this.textField = new JTextPane() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean getScrollableTracksViewportWidth() {
-                return !BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE);
+                return !BinaryLogic.containsAll(ConfirmDialog.this.flagMask, Dialog.STYLE_LARGE);
             }
         };
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
-            textField.setContentType("text/html");
-            textField.addHyperlinkListener(new HyperlinkListener() {
+            this.textField.setContentType("text/html");
+            this.textField.addHyperlinkListener(new HyperlinkListener() {
 
-                public void hyperlinkUpdate(HyperlinkEvent e) {
+                public void hyperlinkUpdate(final HyperlinkEvent e) {
                     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
                         CrossSystem.openURL(e.getURL());
                     }
@@ -69,33 +75,27 @@ public class ConfirmDialog extends AbstractDialog<Object> {
 
             });
         } else {
-            textField.setContentType("text");
-            textField.setMaximumSize(new Dimension(450, 600));
+            this.textField.setContentType("text");
+            this.textField.setMaximumSize(new Dimension(450, 600));
         }
 
-        textField.setText(this.message);
-        textField.setEditable(false);
-        textField.setBackground(null);
-        textField.setOpaque(false);
-        textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        this.textField.setText(this.message);
+        this.textField.setEditable(false);
+        this.textField.setBackground(null);
+        this.textField.setOpaque(false);
+        this.textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
-            JScrollPane sp = new JScrollPane(textField);
+            final JScrollPane sp = new JScrollPane(this.textField);
             return sp;
         } else {
-            return textField;
+            return this.textField;
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
-     */
     @Override
-    protected Object createReturnValue() {
-        // TODO Auto-generated method stub
-        return null;
+    public String toString() {
+        return ("dialog-" + this.getTitle() + "_" + this.message).replaceAll("\\W", "_");
     }
 
 }

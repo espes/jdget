@@ -33,7 +33,7 @@ import org.appwork.utils.os.CrossSystem;
  * @author thomas
  * 
  */
-public class ProgressDialog extends AbstractDialog<Object> {
+public class ProgressDialog extends AbstractDialog<Integer> {
     public interface ProgressGetter {
         public int getProgress();
 
@@ -43,12 +43,13 @@ public class ProgressDialog extends AbstractDialog<Object> {
     }
 
     private static final long serialVersionUID = -7420852517889843489L;
-    private Thread executer;
+    private boolean disposed;
 
+    private Thread executer;
     private final ProgressGetter getter;
     private final String message;
-    private JTextPane textField;
 
+    private JTextPane textField;
     private Timer updater;
 
     /**
@@ -74,15 +75,16 @@ public class ProgressDialog extends AbstractDialog<Object> {
      * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
      */
     @Override
-    protected Object createReturnValue() {
+    protected Integer createReturnValue() {
         // TODO Auto-generated method stub
-        return null;
+        return this.getReturnmask();
     }
 
     @Override
     public void dispose() {
+        if (this.disposed) { return; }
         super.dispose();
-
+        this.disposed = true;
         this.executer.interrupt();
 
         try {
@@ -142,8 +144,12 @@ public class ProgressDialog extends AbstractDialog<Object> {
                 if (ProgressDialog.this.getter != null) {
                     final int prg = ProgressDialog.this.getter.getProgress();
                     final String text = ProgressDialog.this.getter.getString();
-
-                    bar.setValue(prg);
+                    if (prg < 0) {
+                        bar.setIndeterminate(true);
+                        bar.setValue(prg);
+                    } else {
+                        bar.setIndeterminate(false);
+                    }
                     if (text == null) {
                         bar.setStringPainted(false);
                     } else {
