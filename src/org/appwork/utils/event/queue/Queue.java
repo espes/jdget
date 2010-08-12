@@ -28,14 +28,14 @@ public abstract class Queue extends Thread {
         NORM
     }
 
+    protected boolean debugFlag = false;
     protected QueuePriority[] prios;
     protected HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>> queue = new HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>>();
     protected final Object queueLock = new Object();
-    protected ArrayList<QueueAction<?, ? extends Throwable>> queueThreadHistory = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
 
+    protected ArrayList<QueueAction<?, ? extends Throwable>> queueThreadHistory = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
     protected Thread thread = null;
     protected boolean waitFlag = true;
-    protected boolean debugFlag = false;
 
     public Queue(final String id) {
         super(id);
@@ -47,24 +47,6 @@ public abstract class Queue extends Thread {
         /* jvm should not wait for waiting queues */
         this.setDaemon(true);
         this.start();
-    }
-
-    /**
-     * returns true if this queue shows debug info
-     * 
-     * @return
-     */
-    public boolean isDebug() {
-        return debugFlag;
-    }
-
-    /**
-     * changes this queue's debugFlag
-     * 
-     * @param b
-     */
-    public void setDebug(boolean b) {
-        debugFlag = b;
     }
 
     /**
@@ -105,11 +87,12 @@ public abstract class Queue extends Thread {
      */
     public <E, T extends Throwable> void addAsynch(final QueueAction<?, T> action) {
         /* set calling Thread to current item */
-        action.reset();
-        action.setCallerThread(this, Thread.currentThread());
         if (this.isQueueThread(action)) {
             throw new RuntimeException("called addAsynch from the queue itself");
         } else {
+            action.reset();
+            action.setCallerThread(this, Thread.currentThread());
+
             this.internalAdd(action);
         }
 
@@ -159,7 +142,7 @@ public abstract class Queue extends Thread {
     public void enqueue(final QueueAction<?, ?> action) {
         /* set calling Thread to current item */
         action.reset();
-        action.setCallerThread(this,Thread.currentThread());
+        action.setCallerThread(this, Thread.currentThread());
         this.internalAdd(action);
     }
 
@@ -190,6 +173,15 @@ public abstract class Queue extends Thread {
         }
     }
 
+    /**
+     * returns true if this queue shows debug info
+     * 
+     * @return
+     */
+    public boolean isDebug() {
+        return this.debugFlag;
+    }
+
     public boolean isEmpty() {
         synchronized (this.queueLock) {
             for (final QueuePriority prio : this.prios) {
@@ -215,7 +207,9 @@ public abstract class Queue extends Thread {
         while ((last != null) && ((t = last.getCallerThread()) != null)) {
             if ((t != null) && (t instanceof Queue)) {
                 if (t == this.thread) {
-                    if (debugFlag) org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! " + item);
+                    if (this.debugFlag) {
+                        org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! " + item);
+                    }
                     return true;
                 }
                 last = ((Queue) t).getLastHistoryItem();
@@ -289,7 +283,16 @@ public abstract class Queue extends Thread {
                 Log.exception(e);
             }
         }
-    }   
+    }
+
+    /**
+     * changes this queue's debugFlag
+     * 
+     * @param b
+     */
+    public void setDebug(final boolean b) {
+        this.debugFlag = b;
+    }
 
     /* if you override this, DON'T forget to notify item when its done! */
     @SuppressWarnings("unchecked")
@@ -303,7 +306,7 @@ public abstract class Queue extends Thread {
             item.start(this);
         } catch (final Throwable e) {
             if (!callExceptionhandler || !item.callExceptionHandler()) {
-                if (e instanceof RuntimeException) {                    
+                if (e instanceof RuntimeException) {
                     throw (RuntimeException) e;
                 } else {
                     throw (T) e;
