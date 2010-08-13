@@ -27,16 +27,14 @@ public class TrayIconTest {
      * @param args
      */
     public static void main(String[] args) {
-        String title = "Frame Title";
-        JFrame frame = new JFrame(title);
         JComponent comp = new JTextArea();
+
+        JFrame frame = new JFrame("Frame Title");
         frame.getContentPane().add(comp, BorderLayout.CENTER);
         frame.setSize(400, 300);
         frame.setVisible(true);
 
-        AWTrayIcon trayIcon = new AWTrayIcon(frame);
-
-        // trayIcon.setFrameVisible(visible)
+        new AWTrayIcon(frame);
     }
 
 }

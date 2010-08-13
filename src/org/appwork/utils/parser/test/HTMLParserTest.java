@@ -31,7 +31,7 @@ public class HTMLParserTest {
          * @param string
          */
         public TestEntry(final int i, final String string) {
-            this(i, string, null);
+            this(i, string, (String) null);
         }
 
         /**

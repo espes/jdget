@@ -11,7 +11,6 @@ package org.appwork.utils.logging;
 
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
 
@@ -31,7 +30,6 @@ public class LogFormatter extends SimpleFormatter {
      * Dateformat to convert timestamp to a readable format
      */
     private final DateFormat longTimestamp = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
-    private final HashMap<Integer, String> map = new HashMap<Integer, String>();
     /**
      * Strigbuilder is used to create Strings with less memory and CPU usage
      */

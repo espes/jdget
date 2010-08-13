@@ -26,7 +26,6 @@ import org.appwork.utils.swing.EDTHelper;
 
 /**
  * @author thomas
- * 
  */
 public class AWTrayIcon implements MouseListener, TrayMouseListener {
 
@@ -39,15 +38,9 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
     private final int visibleToggleClickCount = 2;
 
     public AWTrayIcon(final JFrame frame) {
-
         this(frame, ((frame.getIconImages() == null) || (frame.getIconImages().size() == 0)) ? ImageProvider.createIcon(((frame.getTitle() != null) && (frame.getTitle().length() > 0)) ? frame.getTitle().charAt(0) + "" : "T", 32, 32) : frame.getIconImages().get(0));
-
     }
 
-    /**
-     * @param frame
-     * @param image
-     */
     public AWTrayIcon(final JFrame frame, final Image icon) {
         this.frame = frame;
 
@@ -68,36 +61,15 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
         }
     }
 
-    /**
-     * @return
-     */
     public TrayIconPopup createPopup() {
-        // TODO Auto-generated method stub
         return null;
-        // return new TrayIconPopup(this) {
-        //
-        // /**
-        // *
-        // */
-        // private static final long serialVersionUID = 1L;
-        //
-        // @Override
-        // protected void init() {
-        // this.setLayout(new MigLayout("ins 5,wrap 1", "[grow,fill]",
-        // "[grow,fill]"));
-        // add(new JButton("blabla"));
-        // add(new JSeparator());
-        // add(new JButton("Exit"));
-        // }
-        //
-        // };
     }
 
-    /**
-     * 
-     */
     public void displayToolTip() {
         // trayIcon.getEstimatedTopLeft();
+    }
+
+    private void hideToolTip() {
     }
 
     public void dispose() {
@@ -114,85 +86,33 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
         }
     }
 
-    /**
-     * @return
-     */
     public JFrame getFrame() {
-        // TODO Auto-generated method stub
         return this.frame;
     }
 
-    /**
-     * 
-     */
-    private void hideToolTip() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * @return
-     */
     private boolean isFrameVisible() {
-        // TODO Auto-generated method stub
         return this.frame.isVisible();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-     */
     @Override
     public void mouseClicked(final MouseEvent e) {
-        // TODO Auto-generated method stub
-
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
-     */
     @Override
     public void mouseEntered(final MouseEvent e) {
-        // TODO Auto-generated method stub
-
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
-     */
     @Override
     public void mouseExited(final MouseEvent e) {
         this.hideToolTip();
-
     }
 
-    /**
-     * @param b
-     */
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.appwork.swing.trayicon.view.TrayMouseListener#mouseStay(java.awt.
-     * event.MouseEvent)
-     */
     @Override
     public void mouseMoveOverTray(final MouseEvent me) {
         if ((this.trayIconPopup != null) && this.trayIconPopup.isVisible()) { return; }
         this.displayToolTip();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
-     */
     @Override
     public void mousePressed(final MouseEvent e) {
         this.hideToolTip();
@@ -240,21 +160,10 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
-     */
     @Override
     public void mouseReleased(final MouseEvent e) {
-        // TODO Auto-generated method stub
-
     }
 
-    /**
-     * 
-     */
     public void setFrameVisible(final boolean visible) {
 
         new EDTHelper<Object>() {
@@ -287,9 +196,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
 
                         @Override
                         public void run() {
-
                             resetAlwaysOnTop.setAlwaysOnTop(false);
-
                         }
 
                     });
@@ -298,19 +205,12 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
             }
 
         }.start();
-
     }
 
-    /**
-     * @param icon
-     */
     public void setImage(final Image icon) {
         this.trayIcon.setImage(icon);
     }
 
-    /**
-     * @param tooltip
-     */
     public void setToolTip(final String tooltip) {
         this.trayIcon.setToolTip(tooltip);
     }
