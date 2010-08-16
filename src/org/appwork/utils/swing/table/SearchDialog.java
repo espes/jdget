@@ -37,7 +37,7 @@ import net.miginfocom.swing.MigLayout;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.ImageProvider.ImageProvider;
-import org.appwork.utils.locale.Tl8;
+import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.SwingUtils;
 import org.appwork.utils.swing.dialog.Dialog;
@@ -56,13 +56,13 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
     private final JButton okButton;
 
     public SearchDialog(int flag, final ExtTable<?> owner) throws IOException {
-        super(Dialog.getInstance().getParentOwner(), Tl8.EXTTABLE_SEARCH_DIALOG_TITLE.toString());
+        super(Dialog.getInstance().getParentOwner(), APPWORKUTILS.EXTTABLE_SEARCH_DIALOG_TITLE.toString());
 
         this.owner = owner;
         this.owner.addFocusListener(this);
 
-        this.caseSensitive = new JCheckBox(Tl8.SEARCHDIALOG_CHECKBOX_CASESENSITIVE.toString());
-        this.regularExpression = new JCheckBox(Tl8.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.toString());
+        this.caseSensitive = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_CASESENSITIVE.toString());
+        this.regularExpression = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.toString());
 
         try {
             caseSensitive.setSelected(JSonStorage.getStorage("SearchDialog_" + owner.getTableID()).get("caseSensitive", false));
@@ -89,7 +89,7 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         this.addWindowListener(this);
-        okButton = new JButton(Tl8.SEARCHDIALOG_BUTTON_FIND.toString());
+        okButton = new JButton(APPWORKUTILS.SEARCHDIALOG_BUTTON_FIND.toString());
         okButton.addActionListener(this);
 
         add(new JLabel(ImageProvider.getImageIcon("find", 32, 32)), "alignx left,aligny center,shrinkx,gapright 10,spany");

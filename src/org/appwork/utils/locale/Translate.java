@@ -14,6 +14,13 @@ package org.appwork.utils.locale;
  * 
  */
 public interface Translate {
+    public String getDefaultTranslation();
+
+    /**
+     * @return
+     */
+    public int getWildCardCount();
+
     public String s();
 
     public String toString();

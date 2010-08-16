@@ -25,7 +25,7 @@ import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.interfaces.ValueConverter;
 import org.appwork.utils.locale.Loc;
-import org.appwork.utils.locale.Tl8;
+import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
@@ -320,7 +320,7 @@ public class Dialog {
      * @return
      */
     public int showConfirmDialog(final int flag, final String question) {
-        return this.showConfirmDialog(flag, Tl8.DIALOG_CONFIRMDIALOG_TITLE.toString(), question, Dialog.getIconByText(question), null, null);
+        return this.showConfirmDialog(flag, APPWORKUTILS.DIALOG_CONFIRMDIALOG_TITLE.toString(), question, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -413,7 +413,7 @@ public class Dialog {
 
     public int showErrorDialog(final String s) {
         try {
-            return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, Tl8.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32), null, null);
+            return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32), null, null);
         } catch (final IOException e) {
             e.printStackTrace();
         }
@@ -452,11 +452,11 @@ public class Dialog {
                         } else {
                             UIManager.put("FileChooser.useShellFolder", true);
                         }
-                        UIManager.put("FileChooser.homeFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
-                        UIManager.put("FileChooser.newFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.toString());
-                        UIManager.put("FileChooser.upFolderToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.toString());
-                        UIManager.put("FileChooser.detailsViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.toString());
-                        UIManager.put("FileChooser.listViewButtonToolTipText", Tl8.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
+                        UIManager.put("FileChooser.homeFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
+                        UIManager.put("FileChooser.newFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.toString());
+                        UIManager.put("FileChooser.upFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.toString());
+                        UIManager.put("FileChooser.detailsViewButtonToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.toString());
+                        UIManager.put("FileChooser.listViewButtonToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
 
                         final JFileChooser fc = new JFileChooser();
                         if (Dialog.ShellFolderIDWorkaround) {
@@ -605,7 +605,7 @@ public class Dialog {
      * @return
      */
     public String showInputDialog(final int flag, final String question, final String defaultvalue) {
-        return this.showInputDialog(flag, Tl8.DIALOG_INPUT_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null);
+        return this.showInputDialog(flag, APPWORKUTILS.DIALOG_INPUT_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -661,7 +661,7 @@ public class Dialog {
      *            The Dialog is able to show a message to the user
      */
     public void showMessageDialog(final int flag, final String message) {
-        this.showMessageDialog(flag, Tl8.DIALOG_MESSAGE_TITLE.toString(), message);
+        this.showMessageDialog(flag, APPWORKUTILS.DIALOG_MESSAGE_TITLE.toString(), message);
     }
 
     /**
@@ -684,7 +684,7 @@ public class Dialog {
      *            The Dialog is able to show a message to the user
      */
     public void showMessageDialog(final String message) {
-        this.showMessageDialog(0, Tl8.DIALOG_MESSAGE_TITLE.toString(), message);
+        this.showMessageDialog(0, APPWORKUTILS.DIALOG_MESSAGE_TITLE.toString(), message);
     }
 
     /**
@@ -711,7 +711,7 @@ public class Dialog {
      * @return
      */
     public String showPasswordDialog(final int flag, final String question, final String defaultvalue) {
-        return this.showPasswordDialog(flag, Tl8.DIALOG_PASSWORD_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null);
+        return this.showPasswordDialog(flag, APPWORKUTILS.DIALOG_PASSWORD_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -804,7 +804,7 @@ public class Dialog {
      * @return
      */
     public long showValueDialog(final int flag, final String question, final long defaultvalue, final long min, final long max, final long step, final ValueConverter valueConverter) {
-        return this.showValueDialog(flag, Tl8.DIALOG_SLIDER_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null, min, max, step, valueConverter);
+        return this.showValueDialog(flag, APPWORKUTILS.DIALOG_SLIDER_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null, min, max, step, valueConverter);
     }
 
     /**

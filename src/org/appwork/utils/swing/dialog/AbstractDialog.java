@@ -40,7 +40,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.locale.Tl8;
+import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.SwingUtils;
@@ -99,8 +99,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.setTitle(title);
 
         this.icon = (BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON)) ? null : icon;
-        this.okOption = (okOption == null) ? Tl8.ABSTRACTDIALOG_BUTTON_OK.toString() : okOption;
-        this.cancelOption = (cancelOption == null) ? Tl8.ABSTRACTDIALOG_BUTTON_CANCEL.toString() : cancelOption;
+        this.okOption = (okOption == null) ? APPWORKUTILS.ABSTRACTDIALOG_BUTTON_OK.toString() : okOption;
+        this.cancelOption = (cancelOption == null) ? APPWORKUTILS.ABSTRACTDIALOG_BUTTON_CANCEL.toString() : cancelOption;
     }
 
     /* this function will init and show the dialog */
@@ -176,7 +176,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         // add the countdown timer
         this.add(this.timerLbl, "split 3,growx,hidemode 2");
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-            this.dontshowagain = new JCheckBox(Tl8.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.toString());
+            this.dontshowagain = new JCheckBox(APPWORKUTILS.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.toString());
             this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
             this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
 

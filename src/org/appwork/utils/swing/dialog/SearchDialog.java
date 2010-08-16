@@ -27,7 +27,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.ImageProvider.ImageProvider;
-import org.appwork.utils.locale.Tl8;
+import org.appwork.utils.locale.APPWORKUTILS;
 
 public class SearchDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
@@ -42,10 +42,10 @@ public class SearchDialog extends AbstractDialog<String> implements KeyListener,
     private JCheckBox regularExpression;
 
     public SearchDialog(int flag, String title, String message) throws IOException {
-        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32), Tl8.SEARCHDIALOG_BUTTON_FIND.toString(), null);
+        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32), APPWORKUTILS.SEARCHDIALOG_BUTTON_FIND.toString(), null);
 
-        this.caseSensitive = new JCheckBox(Tl8.SEARCHDIALOG_CHECKBOX_CASESENSITIVE.toString());
-        this.regularExpression = new JCheckBox(Tl8.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.toString());
+        this.caseSensitive = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_CASESENSITIVE.toString());
+        this.regularExpression = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.toString());
 
         try {
             caseSensitive.setSelected(JSonStorage.getStorage("SearchDialog").get("caseSensitive", false));

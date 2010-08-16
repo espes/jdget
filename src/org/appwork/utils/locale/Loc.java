@@ -62,6 +62,14 @@ public class Loc {
      */
     public static final String PROPERTY_LOCALE = "PROPERTY_LOCALE2";
 
+    public static String _(final Translate t) {
+        return t.s();
+    }
+
+    public static String _(final Translate t, final Object... parameter) {
+        return t.toString(parameter);
+    }
+
     /**
      * @return
      */
