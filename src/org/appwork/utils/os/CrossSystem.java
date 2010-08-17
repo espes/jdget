@@ -104,6 +104,10 @@ public class CrossSystem {
         try {
             desktop.browse(url.toURI());
         } catch (Exception e) {
+            try {
+                Log.L.severe(url.toURI().toString());
+            } catch (Exception e1) {                
+            }
             Log.exception(Level.WARNING, e);
         }
     }
@@ -121,10 +125,10 @@ public class CrossSystem {
             // see http://bugs.sun.com/view_bug.do?bug_id=6599987
             try {
                 Runtime.getRuntime().exec(new String[] { "rundll32.exe","url.dll,FileProtocolHandler", file.getAbsolutePath() });
+                return;
             } catch (IOException e) {
                 Log.exception(e);
-            }
-            return;
+            }            
         }
         if (!Desktop.isDesktopSupported()) {
             Log.L.severe("Desktop is not supported (fatal)");
@@ -139,6 +143,10 @@ public class CrossSystem {
             URI uri = file.getCanonicalFile().toURI();
             desktop.open(new File(uri));
         } catch (Exception e) {
+            try {
+                Log.L.severe(file.getCanonicalFile().toURI().toString());
+            } catch (Exception e1) {                
+            }
             Log.exception(e);
         }
     }

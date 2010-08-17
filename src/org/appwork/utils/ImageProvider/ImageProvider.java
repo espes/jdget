@@ -63,12 +63,25 @@ public class ImageProvider {
 
             File absolutePath = Application.getRessource("images/" + name + ".png");
             try {
+                Log.L.info("Init Image: " + absolutePath.getAbsolutePath());
                 BufferedImage image = ImageIO.read(absolutePath);
-
                 IMAGE_CACHE.put(name, image);
                 return image;
             } catch (IOException e) {
                 Log.L.severe("Could not Init Image: " + absolutePath.getAbsolutePath());
+                Log.L.severe("Image exists: " + absolutePath.exists());
+                try {
+                    File images = Application.getRessource("images/");
+                    String[] list = images.list();
+                    if (list != null && list.length > 0) {
+                        for (String image : list) {
+                            Log.L.severe("Existing images: " + image);
+                        }
+                    } else {
+                        Log.L.severe("empty or not a folder: " + images);
+                    }
+                } catch (Throwable e2) {
+                }
                 throw e;
             }
         }
@@ -244,13 +257,13 @@ public class ImageProvider {
         int size = 1 + width / string.length();
         // find max font size
         int ww = 0;
-        int hh=0;
+        int hh = 0;
         while (size > 0) {
             size--;
             g.setFont(new Font("Arial", Font.BOLD, size));
             ww = g.getFontMetrics().stringWidth(string);
-            hh=g.getFontMetrics().getAscent();
-            if (ww < w - 4&&hh<h-2) {
+            hh = g.getFontMetrics().getAscent();
+            if (ww < w - 4 && hh < h - 2) {
                 break;
             }
         }
@@ -261,6 +274,6 @@ public class ImageProvider {
         g.drawString(string, (w - ww) / 2, hh);
         g.dispose();
         return image;
-       
+
     }
 }
