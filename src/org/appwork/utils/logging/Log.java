@@ -25,39 +25,41 @@ public class Log {
      */
 
     static {
-        LOGGER = Logger.getLogger("org.appwork");
-        LOGGER.setUseParentHandlers(false);
-        ConsoleHandler cHandler = new ConsoleHandler();
+        Log.LOGGER = Logger.getLogger("org.appwork");
+        Log.LOGGER.setUseParentHandlers(false);
+        final ConsoleHandler cHandler = new ConsoleHandler();
         cHandler.setLevel(Level.ALL);
         cHandler.setFormatter(new LogFormatter());
-        LOGGER.addHandler(cHandler);
+        Log.LOGGER.addHandler(cHandler);
         LogToFileHandler fh;
         try {
             fh = new LogToFileHandler();
 
             fh.setFormatter(new FileLogFormatter());
-            LOGGER.addHandler(fh);
-        } catch (Exception e) {
+            Log.LOGGER.addHandler(fh);
+        } catch (final Exception e) {
 
             org.appwork.utils.logging.Log.exception(e);
         }
 
-        LOGGER.addHandler(LogEventHandler.getInstance());
-        LOGGER.setLevel(Level.ALL);
+        Log.LOGGER.addHandler(LogEventHandler.getInstance());
+        Log.LOGGER.setLevel(Level.ALL);
 
     }
     /**
      * For shorter access
      */
-    public static Logger L = LOGGER;
+    public static Logger L = Log.LOGGER;
 
     /**
-     * Returns the loggerinstance for logging events
+     * Adds an exception to the logger. USe this instead of e.printStackTrace if
+     * you like the exception appear in log
      * 
-     * @return
+     * @param level
+     * @param e
      */
-    public static Logger getLogger() {
-        return LOGGER;
+    public static void exception(final Level level, final Throwable e) {
+        Log.getLogger().log(level, level.getName() + " Exception occurred", e);
     }
 
     /**
@@ -67,18 +69,23 @@ public class Log {
      * @param e
      */
     public static void exception(Throwable e) {
-        exception(Level.SEVERE, e);
+        if (e == null) {
+            try {
+                throw new NullPointerException("e is null");
+            } catch (final NullPointerException e1) {
+                e = e1;
+            }
+        }
+        Log.exception(Level.SEVERE, e);
     }
 
     /**
-     * Adds an exception to the logger. USe this instead of e.printStackTrace if
-     * you like the exception appear in log
+     * Returns the loggerinstance for logging events
      * 
-     * @param level
-     * @param e
+     * @return
      */
-    public static void exception(Level level, Throwable e) {
-        getLogger().log(level, level.getName() + " Exception occurred", e);
+    public static Logger getLogger() {
+        return Log.LOGGER;
     }
 
 }

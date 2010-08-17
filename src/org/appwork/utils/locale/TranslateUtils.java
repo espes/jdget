@@ -14,6 +14,7 @@ import java.io.FilenameFilter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
@@ -31,9 +32,11 @@ public class TranslateUtils {
      * @param sourceParser
      * @param clazz
      * @param path
+     * @return
      * @throws Exception
      */
-    public static void checkTranslateFiles(final SourceParser sourceParser, final Class<?> clazz, final String path) throws Exception {
+    public static String checkTranslateFiles(final SourceParser sourceParser, final Class<?> clazz, final boolean write) throws Exception {
+        final String path = clazz.getName().replaceAll("\\.", "/") + ".java";
         final File file = new File(sourceParser.getSource(), path);
         if (!file.exists()) { throw new Exception("File " + file + " does not exist"); }
         sourceParser.setFilter(new FilenameFilter() {
@@ -45,11 +48,11 @@ public class TranslateUtils {
         });
 
         sourceParser.scan();
-        final String source = IO.readFileToString(file);
-        final Regex reg = new Regex(source, "(.*?\\{\\s*)\\w+\\(\".*?(?<!\\\\)\"\\)[\\,].*?\\w+\\(\".*?(?<!\\\\)\"\\)[\\;](.*)");
+        String source = IO.readFileToString(file);
+        final Regex reg = new Regex(source, "(.*?\\{)");
         final String pre = reg.getMatch(0);
-        final String post = reg.getMatch(1);
-        if (post == null) { throw new Exception("Translate Enum requires at least 2 entries"); }
+        final String post = new Regex(source, "(//\\s*ENDOFENUMS.*)").getMatch(0);
+        if (post == null) { throw new Exception("Translate Enum must end with //ENDOFENUMS"); }
         // final String pre = new Regex(source,
         // ".*?public enum \\w+ implements Translate \\{").getMatch(-1);
         final StringBuilder fin = new StringBuilder();
@@ -65,22 +68,35 @@ public class TranslateUtils {
 
                 fin.append("\r\n");
                 String line = new Regex(source, f.getName() + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\, \\d+\\)[\\,\\;]").getMatch(-1);
+
                 if (line == null) {
                     line = new Regex(source, f.getName() + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\)[\\,\\;]").getMatch(-1);
                 }
-                if (line.contains("autofilter")) {
-                    line = line;
+
+                final String comment = new Regex(source, "\\/\\*(.*?)\\*\\/\\s*" + Pattern.quote(line)).getMatch(0);
+                if (comment != null) {
+                    fin.append("/*\r\n");
+                    fin.append(comment.trim());
+                    fin.append("\r\n*/\r\n");
+                    final String full = new Regex(source, "(\\/\\*.*?\\*\\/)\\s*" + Pattern.quote(line)).getMatch(0);
+                    source = source.replace(full, "---");
                 }
+
                 fin.append(line);
 
             }
 
         }
+
         fin.append("\r\n");
         fin.append(post);
         System.out.println(fin);
-        file.delete();
-        IO.writeStringToFile(file, fin.toString());
+        if (write) {
+            file.delete();
+
+            IO.writeStringToFile(file, fin.toString());
+        }
+        return fin.toString();
 
     }
 
@@ -105,27 +121,32 @@ public class TranslateUtils {
     }
 
     /**
+     * @param files
      * @param string
      * @param class1
      * @param class2
      * @param class3
      * @throws Exception
      */
-    public static String createLocFile(final String lng, final Class<?>... classes) throws Exception {
+    public static String createLocFile(final String lng, final File[] files, final Class<?>[] classes) throws Exception {
 
         final StringBuilder sb = new StringBuilder();
 
         sb.append("\r\n####  Translation: " + lng + "\r\n");
         Loc.setLocale(lng);
-        for (final Class<?> c : classes) {
+
+        for (int i = 0; i < classes.length; i++) {
+            final Class<?> c = classes[i];
+            final File file = new File(files[i], c.getName().replaceAll("\\.", "/") + ".java");
+            String source = IO.readFileToString(file);
+            source = new Regex(source, "public\\s+enum.*?implements\\s+Translate\\s+\\{(.*)").getMatch(0);
             final StringBuilder untrans = new StringBuilder();
             final StringBuilder equals = new StringBuilder();
             // final String text = c.getMethod("list", new Class<?>[]
             // {}).invoke(null, new Object[] {}) + "";
 
-            Translate[] values = (Translate[]) c.getMethod("values", new Class<?>[] {}).invoke(null, new Object[] {});
+            final Translate[] values = (Translate[]) c.getMethod("values", new Class<?>[] {}).invoke(null, new Object[] {});
 
-            values = values;
             sb.append("\r\n############################ " + c.getSimpleName() + " Entries: ");
             int max = 0;
             for (final Translate entry : values) {
@@ -134,13 +155,30 @@ public class TranslateUtils {
             }
             for (final Translate entry : values) {
                 final String def = entry.getDefaultTranslation();
+                final String name = TranslateUtils.getName(entry);
                 if (TranslateUtils.countWildcards(def) != entry.getWildCardCount()) {
                     //
-                    throw new Exception("Wrong wildcard count in defaulttranslation: " + TranslateUtils.getName(entry) + "=" + entry.getDefaultTranslation() + " WCC: " + entry.getWildCardCount());
+                    throw new Exception("Wrong wildcard count in defaulttranslation: " + name + "=" + entry.getDefaultTranslation() + " WCC: " + entry.getWildCardCount());
                 }
 
                 StringBuilder dest = sb;
-                final String translated = Loc.L(c.getSimpleName() + ":::" + TranslateUtils.getName(entry), entry.getDefaultTranslation()).replace("\r", "\\r").replace("\n", "\\n");
+
+                String line = new Regex(source, name + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\, \\d+\\)[\\,\\;]").getMatch(-1);
+
+                if (line == null) {
+                    line = new Regex(source, name + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\)[\\,\\;]").getMatch(-1);
+                }
+
+                String comment = new Regex(source, "\\/\\*(.*?)\\*\\/\\s*" + Pattern.quote(line)).getMatch(0);
+                if (comment != null) {
+                    comment = comment.replaceAll("\\s*\\*\\s*", " ");
+                    comment = new Regex(comment, "###" + lng + ":([^\r^\n]+)").getMatch(0);
+                    if (comment != null) {
+                        comment = comment.split("###")[0].trim();
+                    }
+                    source = source.replace(new Regex(source, "(\\/\\*.*?\\*\\/)\\s*" + Pattern.quote(line)).getMatch(0), "---");
+                }
+                final String translated = Loc.L(c.getSimpleName() + ":::" + name, comment != null ? comment : entry.getDefaultTranslation()).replace("\r", "\\r").replace("\n", "\\n");
 
                 if (translated.equals(entry.getDefaultTranslation())) {
                     dest = equals;
@@ -151,15 +189,15 @@ public class TranslateUtils {
 
                 if (entry.getWildCardCount() > 0) {
                     dest.append("\r\n######");
-                    dest.append(TranslateUtils.getName(entry));
+                    dest.append(name);
                     dest.append("-wildcards: ");
                     dest.append(entry.getWildCardCount());
                 }
 
                 dest.append("\r\n" + c.getSimpleName() + ":::");
-                dest.append(TranslateUtils.getName(entry));
+                dest.append(name);
                 dest.append("      ");
-                for (int i = TranslateUtils.getName(entry).length(); i < max; i++) {
+                for (int ii = name.length(); ii < max; ii++) {
                     dest.append(" ");
                 }
                 dest.append(" = ");
