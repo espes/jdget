@@ -86,7 +86,7 @@ public class CrossSystem {
         if (url == null) return;
         if (isWindows()) {
             try {
-                Runtime.getRuntime().exec(new String[] { "rundll32 url.dll,FileProtocolHandler", url.toString() });
+                Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", url.toString() });
                 return;
             } catch (IOException e) {
                 Log.exception(e);
@@ -120,7 +120,7 @@ public class CrossSystem {
             // workaround for windows
             // see http://bugs.sun.com/view_bug.do?bug_id=6599987
             try {
-                Runtime.getRuntime().exec(new String[] { "rundll32 url.dll,FileProtocolHandler", file.getAbsolutePath() });
+                Runtime.getRuntime().exec(new String[] { "rundll32.exe","url.dll,FileProtocolHandler", file.getAbsolutePath() });
             } catch (IOException e) {
                 Log.exception(e);
             }
