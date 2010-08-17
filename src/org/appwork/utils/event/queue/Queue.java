@@ -92,7 +92,6 @@ public abstract class Queue extends Thread {
         } else {
             action.reset();
             action.setCallerThread(this, Thread.currentThread());
-
             this.internalAdd(action);
         }
 

@@ -38,27 +38,40 @@ public class HTTP {
             parentFile.mkdirs();
         }
         file.createNewFile();
+        BufferedInputStream input = null;
+        BufferedOutputStream output = null;
+        FileOutputStream fos = null;
+        try {
+            output = new BufferedOutputStream(fos = new FileOutputStream(file, true));
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setInstanceFollowRedirects(true);
+            con.setConnectTimeout(15000);
+            con.setReadTimeout(15000);
+            if (url.openConnection().getHeaderField("Content-Encoding") != null && con.getHeaderField("Content-Encoding").equalsIgnoreCase("gzip")) {
+                input = new BufferedInputStream(new GZIPInputStream(con.getInputStream()));
+            } else {
+                input = new BufferedInputStream(con.getInputStream());
+            }
 
-        final BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(file, true));
-        BufferedInputStream input;
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setInstanceFollowRedirects(true);
-        con.setConnectTimeout(15000);
-        con.setReadTimeout(15000);
-        if (url.openConnection().getHeaderField("Content-Encoding") != null && con.getHeaderField("Content-Encoding").equalsIgnoreCase("gzip")) {
-            input = new BufferedInputStream(new GZIPInputStream(con.getInputStream()));
-        } else {
-            input = new BufferedInputStream(con.getInputStream());
+            final byte[] b = new byte[1024];
+            int len;
+            while ((len = input.read(b)) != -1) {
+                output.write(b, 0, len);
+            }
+        } finally {
+            try {
+                input.close();
+            } catch (Throwable e) {
+            }
+            try {
+                output.close();
+            } catch (Throwable e) {
+            }
+            try {
+                fos.close();
+            } catch (Throwable e) {
+            }
         }
-
-        final byte[] b = new byte[1024];
-        int len;
-        while ((len = input.read(b)) != -1) {
-            output.write(b, 0, len);
-        }
-        output.close();
-        input.close();
-
     }
 
 }
