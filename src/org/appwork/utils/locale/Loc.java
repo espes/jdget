@@ -67,7 +67,7 @@ public class Loc {
     }
 
     public static String _(final Translate t, final Object... parameter) {
-        return t.toString(parameter);
+        return t.s(parameter);
     }
 
     /**

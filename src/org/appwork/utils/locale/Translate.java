@@ -25,5 +25,5 @@ public interface Translate {
 
     public String toString();
 
-    public String toString(Object... args);
+    public String s(Object... args);
 }

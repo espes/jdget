@@ -138,7 +138,7 @@ public enum APPWORKUTILS implements Translate {
     @Deprecated
     public String toString() {
 
-        return this.toString((Object[]) null);
+        return this.s((Object[]) null);
     }
 
     /*
@@ -146,7 +146,7 @@ public enum APPWORKUTILS implements Translate {
      * 
      * @see org.appwork.utils.locale.Translate#toString(java.lang.Object[])
      */
-    public String toString(final Object... args) {
+    public String s(final Object... args) {
         if (args != null && args.length > 0) {
             return Loc.LF("APPWORKUTILS:::" + this.name(), this.defaultTranslation, args);
         } else {
