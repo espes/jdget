@@ -50,28 +50,28 @@ public class Dialog {
      * Icon Key for Error Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
-     *      int, int)
+     *      int, int, boolean)
      */
     public static final String ICON_ERROR = "error";
     /**
      * Icon Key for Information Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
-     *      int, int)
+     *      int, int, boolean)
      */
     public static final String ICON_INFO = "info";
     /**
      * Icon Key for Question Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
-     *      int, int)
+     *      int, int, boolean)
      */
     public static final String ICON_QUESTION = "help";
     /**
      * Icon Key for Warning Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
-     *      int, int)
+     *      int, int, boolean)
      */
     public static final String ICON_WARNING = "warning";
     /**
@@ -173,13 +173,13 @@ public class Dialog {
     public static ImageIcon getIconByText(final String text) {
         try {
             if (text.contains("?")) {
-                return ImageProvider.getImageIcon(Dialog.ICON_QUESTION, 32, 32);
+                return ImageProvider.getImageIcon(Dialog.ICON_QUESTION, 32, 32, true);
             } else if (text.matches(Loc.getErrorRegex())) {
-                return ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32);
+                return ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true);
             } else if (text.contains("!")) {
-                return ImageProvider.getImageIcon(Dialog.ICON_WARNING, 32, 32);
+                return ImageProvider.getImageIcon(Dialog.ICON_WARNING, 32, 32, true);
             } else {
-                return ImageProvider.getImageIcon(Dialog.ICON_INFO, 32, 32);
+                return ImageProvider.getImageIcon(Dialog.ICON_INFO, 32, 32, true);
             }
         } catch (final IOException e) {
             Log.exception(e);
@@ -413,7 +413,7 @@ public class Dialog {
 
     public int showErrorDialog(final String s) {
         try {
-            return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32), null, null);
+            return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true), null, null);
         } catch (final IOException e) {
             e.printStackTrace();
         }

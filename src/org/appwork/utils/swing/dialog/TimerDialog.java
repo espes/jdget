@@ -65,7 +65,7 @@ public abstract class TimerDialog extends JDialog {
         timerLbl.setToolTipText(APPWORKUTILS.TIMERDIALOG_TOOLTIP_TIMERLABEL.toString());
 
         try {
-            timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16));
+            timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));
         } catch (IOException e1) {
             Log.exception(e1);
         }

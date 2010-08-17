@@ -87,7 +87,7 @@ public class MimeDefault implements Mime {
     }
 
     public ImageIcon getFileIcon(String extension, int width, int height) throws IOException {
-        return ImageProvider.getImageIcon("fileIcon", width, height);
+        return ImageProvider.getImageIcon("fileIcon", width, height, true);
     }
 
     public String getMimeDescription(String mimetype) {

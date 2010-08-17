@@ -42,7 +42,7 @@ public class SearchDialog extends AbstractDialog<String> implements KeyListener,
     private JCheckBox regularExpression;
 
     public SearchDialog(int flag, String title, String message) throws IOException {
-        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32), APPWORKUTILS.SEARCHDIALOG_BUTTON_FIND.toString(), null);
+        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32, true), APPWORKUTILS.SEARCHDIALOG_BUTTON_FIND.toString(), null);
 
         this.caseSensitive = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_CASESENSITIVE.toString());
         this.regularExpression = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.toString());

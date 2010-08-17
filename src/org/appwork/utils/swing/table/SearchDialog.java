@@ -92,7 +92,7 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
         okButton = new JButton(APPWORKUTILS.SEARCHDIALOG_BUTTON_FIND.toString());
         okButton.addActionListener(this);
 
-        add(new JLabel(ImageProvider.getImageIcon("find", 32, 32)), "alignx left,aligny center,shrinkx,gapright 10,spany");
+        add(new JLabel(ImageProvider.getImageIcon("find", 32, 32, true)), "alignx left,aligny center,shrinkx,gapright 10,spany");
 
         input = new JTextField();
         input.setBorder(BorderFactory.createEtchedBorder());

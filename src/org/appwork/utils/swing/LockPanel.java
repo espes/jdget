@@ -113,7 +113,7 @@ public class LockPanel extends JPanel {
         waitingPanel.setContentPane(p = new JPanel());
         p.setLayout(new MigLayout("ins 10", "[][fill,grow]", "[fill,grow]"));
         try {
-            p.add(new JLabel(ImageProvider.getImageIcon("wait", 32, 32)));
+            p.add(new JLabel(ImageProvider.getImageIcon("wait", 32, 32, true)));
         } catch (IOException e) {
             Log.exception(e);
         }

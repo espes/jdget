@@ -51,189 +51,16 @@ public class ImageProvider {
     private static StringBuilder SB = new StringBuilder();
 
     /**
-     * 
-     * @param name
-     *            to the png file
-     * @return
-     * @throws IOException
-     */
-    public static Image getBufferedImage(String name) throws IOException {
-        synchronized (LOCK) {
-            if (IMAGE_CACHE.containsKey(name)) { return IMAGE_CACHE.get(name); }
-
-            File absolutePath = Application.getRessource("images/" + name + ".png");
-            try {
-                Log.L.info("Init Image: " + absolutePath.getAbsolutePath());
-                BufferedImage image = ImageIO.read(absolutePath);
-                IMAGE_CACHE.put(name, image);
-                return image;
-            } catch (IOException e) {
-                Log.L.severe("Could not Init Image: " + absolutePath.getAbsolutePath());
-                Log.L.severe("Image exists: " + absolutePath.exists());
-                try {
-                    File images = Application.getRessource("images/");
-                    String[] list = images.list();
-                    if (list != null && list.length > 0) {
-                        for (String image : list) {
-                            Log.L.severe("Existing images: " + image);
-                        }
-                    } else {
-                        Log.L.severe("empty or not a folder: " + images);
-                    }
-                } catch (Throwable e2) {
-                }
-                throw e;
-            }
-        }
-    }
-
-    /**
-     * Loads the image, scales it to the desired size and returns it as an
-     * imageicon
-     * 
-     * @param name
-     * @param width
-     * @param height
-     * @return
-     * @throws IOException
-     */
-    public static ImageIcon getImageIcon(String name, int width, int height) throws IOException {
-        synchronized (LOCK) {
-            SB.delete(0, SB.capacity());
-            SB.append(name);
-            SB.append('_');
-            SB.append(width);
-            SB.append('_');
-            SB.append(height);
-            String key;
-            if (IMAGEICON_CACHE.containsKey(key = SB.toString())) { return IMAGEICON_CACHE.get(key); }
-            Image image = getBufferedImage(name);
-            double faktor = Math.max((double) image.getWidth(null) / width, (double) image.getHeight(null) / height);
-            width = (int) (image.getWidth(null) / faktor);
-            height = (int) (image.getHeight(null) / faktor);
-            ImageIcon imageicon = new ImageIcon(image.getScaledInstance(width, height, Image.SCALE_SMOOTH));
-            IMAGEICON_CACHE.put(key, imageicon);
-            return imageicon;
-        }
-    }
-
-    /**
-     * Converts an Icon to an Imageicon.
-     * 
-     * @param icon
-     * @return
-     */
-    public static ImageIcon toImageIcon(Icon icon) {
-
-        if (icon == null) return null;
-        if (icon instanceof ImageIcon) {
-            return ((ImageIcon) icon);
-        } else {
-            int w = icon.getIconWidth();
-            int h = icon.getIconHeight();
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            GraphicsDevice gd = ge.getDefaultScreenDevice();
-            GraphicsConfiguration gc = gd.getDefaultConfiguration();
-            BufferedImage image = gc.createCompatibleImage(w, h, Transparency.BITMASK);
-            Graphics2D g = image.createGraphics();
-            icon.paintIcon(null, g, 0, 0);
-            g.dispose();
-            return new ImageIcon(image);
-
-        }
-
-    }
-
-    /**
-     * Scales a buffered Image to the given size. This method is NOT cached. so
-     * take care to cache it externally if you use it frequently
-     * 
-     * @param img
-     * @param width
-     * @param height
-     * @return
-     */
-    public static Image scaleBufferedImage(BufferedImage img, int width, int height) {
-        if (img == null) return null;
-        final double faktor = Math.max((double) img.getWidth() / width, (double) img.getHeight() / height);
-        width = (int) (img.getWidth() / faktor);
-        height = (int) (img.getHeight() / faktor);
-        if (faktor == 1.0) return img;
-        return img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-
-    }
-
-    /**
-     * Scales an imageicon to w x h.<br>
-     * like {@link #scaleBufferedImage(BufferedImage, int, int)}, this Function
-     * is NOT cached. USe an external cache if you use it frequently
-     * 
-     * @param img
-     * @param w
-     * @param h
-     * @return
-     */
-    public static ImageIcon scaleImageIcon(ImageIcon img, int w, int h) {
-        // already has the desired size?
-        if (img.getIconHeight() == h && img.getIconWidth() == w) return img;
-
-        BufferedImage dest;
-
-        if (img.getImage() instanceof ToolkitImage) {
-            dest = new BufferedImage(w, h, BufferedImage.TRANSLUCENT);
-            Graphics2D g2 = dest.createGraphics();
-            g2.drawImage(img.getImage(), 0, 0, null);
-            g2.dispose();
-        } else {
-            dest = (BufferedImage) img.getImage();
-        }
-
-        return new ImageIcon(scaleBufferedImage(dest, w, h));
-    }
-
-    /**
      * @param bufferedImage
      * @return
      */
-    public static BufferedImage convertToGrayScale(BufferedImage bufferedImage) {
-        BufferedImage dest = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
-        Graphics2D g2 = dest.createGraphics();
+    public static BufferedImage convertToGrayScale(final BufferedImage bufferedImage) {
+        final BufferedImage dest = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+        final Graphics2D g2 = dest.createGraphics();
         g2.drawImage(bufferedImage, 0, 0, null);
         g2.dispose();
         return dest;
 
-    }
-
-    /**
-     * @param image
-     * @param imageIcon
-     * @param i
-     * @param j
-     */
-    public static BufferedImage merge(Image image, Image b, int xoffset, int yoffset) {
-        int width = Math.max(image.getWidth(null), xoffset + b.getWidth(null));
-        int height = Math.max(image.getHeight(null), yoffset + b.getHeight(null));
-        BufferedImage dest = new BufferedImage(width, height, BufferedImage.TRANSLUCENT);
-        Graphics2D g2 = dest.createGraphics();
-        g2.drawImage(image, 0, 0, null);
-        g2.drawImage(b, xoffset, yoffset, null);
-        g2.dispose();
-        return dest;
-    }
-
-    /**
-     * Uses the uimanager to get a grayscaled disabled Icon
-     * 
-     * @param icon
-     * @return
-     */
-    public static Icon getDisabledIcon(Icon icon) {
-        if (icon == null) return null;
-        Icon ret = DISABLED_ICON_CACHE.get(icon);
-        if (ret != null) return ret;
-        ret = UIManager.getLookAndFeel().getDisabledIcon(null, icon);
-        DISABLED_ICON_CACHE.put(icon, ret);
-        return ret;
     }
 
     /**
@@ -244,16 +71,16 @@ public class ImageProvider {
      * @param j
      * @return
      */
-    public static Image createIcon(String string, int width, int height) {
-        int w = width;
-        int h = height;
+    public static Image createIcon(final String string, final int width, final int height) {
+        final int w = width;
+        final int h = height;
 
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice gd = ge.getDefaultScreenDevice();
-        GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice gd = ge.getDefaultScreenDevice();
+        final GraphicsConfiguration gc = gd.getDefaultConfiguration();
         final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.BITMASK);
 
-        Graphics2D g = image.createGraphics();
+        final Graphics2D g = image.createGraphics();
         int size = 1 + width / string.length();
         // find max font size
         int ww = 0;
@@ -271,9 +98,188 @@ public class ImageProvider {
         g.fillRect(0, 0, w - 1, h - 1);
         g.draw3DRect(0, 0, w - 1, h - 1, true);
         g.setColor(Color.BLACK);
-        g.drawString(string, (w - ww) / 2, hh);
+        g.drawString(string, (w - ww) / 2, hh + (h - hh) / 2);
         g.dispose();
         return image;
+
+    }
+
+    /**
+     * 
+     * @param name
+     *            to the png file
+     * @param createDummy
+     *            TODO
+     * @return
+     * @throws IOException
+     */
+    public static Image getBufferedImage(final String name, final boolean createDummy) throws IOException {
+        synchronized (ImageProvider.LOCK) {
+            if (ImageProvider.IMAGE_CACHE.containsKey(name)) { return ImageProvider.IMAGE_CACHE.get(name); }
+
+            final File absolutePath = Application.getRessource("images/" + name + ".png");
+            try {
+                Log.L.info("Init Image: " + absolutePath.getAbsolutePath());
+                final BufferedImage image = ImageIO.read(absolutePath);
+                ImageProvider.IMAGE_CACHE.put(name, image);
+                return image;
+            } catch (final IOException e) {
+                Log.L.severe("Could not Init Image: " + absolutePath.getAbsolutePath());
+                Log.L.severe("Image exists: " + absolutePath.exists());
+                try {
+                    final File images = Application.getRessource("images/");
+                    final String[] list = images.list();
+                    if (list != null && list.length > 0) {
+                        for (final String image : list) {
+                            Log.L.severe("Existing images: " + image);
+                        }
+                    } else {
+                        Log.L.severe("empty or not a folder: " + images);
+                    }
+                } catch (final Throwable e2) {
+                }
+                Log.exception(e);
+                return ImageProvider.createIcon(name.toUpperCase(), 48, 48);
+
+            }
+        }
+    }
+
+    /**
+     * Uses the uimanager to get a grayscaled disabled Icon
+     * 
+     * @param icon
+     * @return
+     */
+    public static Icon getDisabledIcon(final Icon icon) {
+        if (icon == null) { return null; }
+        Icon ret = ImageProvider.DISABLED_ICON_CACHE.get(icon);
+        if (ret != null) { return ret; }
+        ret = UIManager.getLookAndFeel().getDisabledIcon(null, icon);
+        ImageProvider.DISABLED_ICON_CACHE.put(icon, ret);
+        return ret;
+    }
+
+    /**
+     * Loads the image, scales it to the desired size and returns it as an
+     * imageicon
+     * 
+     * @param name
+     * @param width
+     * @param height
+     * @param createDummy
+     *            TODO
+     * @return
+     * @throws IOException
+     */
+    public static ImageIcon getImageIcon(final String name, int width, int height, final boolean createDummy) throws IOException {
+        synchronized (ImageProvider.LOCK) {
+            ImageProvider.SB.delete(0, ImageProvider.SB.capacity());
+            ImageProvider.SB.append(name);
+            ImageProvider.SB.append('_');
+            ImageProvider.SB.append(width);
+            ImageProvider.SB.append('_');
+            ImageProvider.SB.append(height);
+            String key;
+            if (ImageProvider.IMAGEICON_CACHE.containsKey(key = ImageProvider.SB.toString())) { return ImageProvider.IMAGEICON_CACHE.get(key); }
+            final Image image = ImageProvider.getBufferedImage(name, createDummy);
+            final double faktor = Math.max((double) image.getWidth(null) / width, (double) image.getHeight(null) / height);
+            width = (int) (image.getWidth(null) / faktor);
+            height = (int) (image.getHeight(null) / faktor);
+            final ImageIcon imageicon = new ImageIcon(image.getScaledInstance(width, height, Image.SCALE_SMOOTH));
+            ImageProvider.IMAGEICON_CACHE.put(key, imageicon);
+            return imageicon;
+        }
+    }
+
+    /**
+     * @param image
+     * @param imageIcon
+     * @param i
+     * @param j
+     */
+    public static BufferedImage merge(final Image image, final Image b, final int xoffset, final int yoffset) {
+        final int width = Math.max(image.getWidth(null), xoffset + b.getWidth(null));
+        final int height = Math.max(image.getHeight(null), yoffset + b.getHeight(null));
+        final BufferedImage dest = new BufferedImage(width, height, Transparency.TRANSLUCENT);
+        final Graphics2D g2 = dest.createGraphics();
+        g2.drawImage(image, 0, 0, null);
+        g2.drawImage(b, xoffset, yoffset, null);
+        g2.dispose();
+        return dest;
+    }
+
+    /**
+     * Scales a buffered Image to the given size. This method is NOT cached. so
+     * take care to cache it externally if you use it frequently
+     * 
+     * @param img
+     * @param width
+     * @param height
+     * @return
+     */
+    public static Image scaleBufferedImage(final BufferedImage img, int width, int height) {
+        if (img == null) { return null; }
+        final double faktor = Math.max((double) img.getWidth() / width, (double) img.getHeight() / height);
+        width = (int) (img.getWidth() / faktor);
+        height = (int) (img.getHeight() / faktor);
+        if (faktor == 1.0) { return img; }
+        return img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+
+    }
+
+    /**
+     * Scales an imageicon to w x h.<br>
+     * like {@link #scaleBufferedImage(BufferedImage, int, int)}, this Function
+     * is NOT cached. USe an external cache if you use it frequently
+     * 
+     * @param img
+     * @param w
+     * @param h
+     * @return
+     */
+    public static ImageIcon scaleImageIcon(final ImageIcon img, final int w, final int h) {
+        // already has the desired size?
+        if (img.getIconHeight() == h && img.getIconWidth() == w) { return img; }
+
+        BufferedImage dest;
+
+        if (img.getImage() instanceof ToolkitImage) {
+            dest = new BufferedImage(w, h, Transparency.TRANSLUCENT);
+            final Graphics2D g2 = dest.createGraphics();
+            g2.drawImage(img.getImage(), 0, 0, null);
+            g2.dispose();
+        } else {
+            dest = (BufferedImage) img.getImage();
+        }
+
+        return new ImageIcon(ImageProvider.scaleBufferedImage(dest, w, h));
+    }
+
+    /**
+     * Converts an Icon to an Imageicon.
+     * 
+     * @param icon
+     * @return
+     */
+    public static ImageIcon toImageIcon(final Icon icon) {
+
+        if (icon == null) { return null; }
+        if (icon instanceof ImageIcon) {
+            return (ImageIcon) icon;
+        } else {
+            final int w = icon.getIconWidth();
+            final int h = icon.getIconHeight();
+            final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            final GraphicsDevice gd = ge.getDefaultScreenDevice();
+            final GraphicsConfiguration gc = gd.getDefaultConfiguration();
+            final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.BITMASK);
+            final Graphics2D g = image.createGraphics();
+            icon.paintIcon(null, g, 0, 0);
+            g.dispose();
+            return new ImageIcon(image);
+
+        }
 
     }
 }
