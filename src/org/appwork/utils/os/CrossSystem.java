@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.util.logging.Level;
 
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.mime.Mime;
@@ -82,20 +83,28 @@ public class CrossSystem {
      * @param url
      */
     public static void openURL(URL url) {
+        if (url == null) return;
+        if (isWindows()) {
+            try {
+                Runtime.getRuntime().exec(new String[] { "rundll32 url.dll,FileProtocolHandler", url.toString() });
+                return;
+            } catch (IOException e) {
+                Log.exception(e);
+            }
+        }
         if (!Desktop.isDesktopSupported()) {
             Log.L.severe("Desktop is not supported (fatal)");
+            return;
         }
-
         Desktop desktop = Desktop.getDesktop();
-
         if (!desktop.isSupported(Desktop.Action.BROWSE)) {
             Log.L.severe("Desktop doesn't support the browse action (fatal)");
+            return;
         }
-
         try {
             desktop.browse(url.toURI());
         } catch (Exception e) {
-            Log.exception(e);
+            Log.exception(Level.WARNING, e);
         }
     }
 
@@ -106,32 +115,30 @@ public class CrossSystem {
      * @param file
      */
     public static void openFile(File file) {
-
-        if (isWindows() && file.isFile()) {
+        if (file == null) return;
+        if (isWindows()) {
             // workaround for windows
             // see http://bugs.sun.com/view_bug.do?bug_id=6599987
             try {
-                Runtime.getRuntime().exec("cmd /c \"" + file.getAbsolutePath() + "\"");
+                Runtime.getRuntime().exec(new String[] { "rundll32 url.dll,FileProtocolHandler", file.getAbsolutePath() });
             } catch (IOException e) {
-                org.appwork.utils.logging.Log.exception(e);
+                Log.exception(e);
             }
             return;
         }
-
         if (!Desktop.isDesktopSupported()) {
             Log.L.severe("Desktop is not supported (fatal)");
+            return;
         }
-
         Desktop desktop = Desktop.getDesktop();
-
         if (!desktop.isSupported(Desktop.Action.OPEN)) {
             Log.L.severe("Desktop doesn't support the OPEN action (fatal)");
+            return;
         }
-
         try {
             URI uri = file.getCanonicalFile().toURI();
             desktop.open(new File(uri));
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.exception(e);
         }
     }
