@@ -12,6 +12,8 @@ package org.appwork.utils.net;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.appwork.utils.event.BasicEvent;
+import org.appwork.utils.event.BasicEventSender;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -21,13 +23,36 @@ import org.appwork.utils.logging.Log;
 public class ConnectionLimiter {
 
     private static final Object LOCK = new Object();
+    public static final int CONNECTION_OPENED = 0;
+    public static final int CONNECTION_CLOSED = 1;
+    /**
+     * fired when more than {@link #getMaxConcurrent()} connections are open.
+     * waits until {@link #WAIT_DUETO_MAXSIMULTAN_LIMIT_END} is called. No
+     * parameter:ms waited until noe
+     */
+    public static final int WAIT_DUETO_MAXSIMULTAN_LIMIT_END = 2;
+    /**
+     * @see #WAIT_DUETO_MAXSIMULTAN_LIMIT_START parameter: ms waited total
+     */
+    public static final int WAIT_DUETO_MAXSIMULTAN_LIMIT_START = 3;
+    /**
+     * IOs fired when the {@link #getConnectionTimeLimit()} limit is reached.
+     * 
+     * parameter: ms to wait
+     * 
+     */
+    public static final int WAIT_DUETO_CONNECTIONSPERMINUTE_LIMIT_START = 4;
+
+    public static final int WAIT_DUETO_CONNECTIONSPERMINUTE_LIMIT_END = 5;
     private int connectioncount;
     private final ArrayList<Long> list = new ArrayList<Long>();
     private int maxConcurrent = -1;
     private int timeConnections = -1;
     private long timeTime = -1;
+    private final BasicEventSender<Long> eventSender;
 
     public ConnectionLimiter() {
+        this.eventSender = new BasicEventSender<Long>();
     }
 
     /**
@@ -37,6 +62,8 @@ public class ConnectionLimiter {
         synchronized (ConnectionLimiter.LOCK) {
             this.connectioncount--;
         }
+        this.eventSender.fireEvent(new BasicEvent<Long>(this, ConnectionLimiter.CONNECTION_CLOSED, null, null));
+
     }
 
     /**
@@ -46,6 +73,13 @@ public class ConnectionLimiter {
      */
     public long[] getConnectionTimeLimit() {
         return new long[] { this.timeConnections, this.timeTime };
+    }
+
+    /**
+     * @return the eventSender
+     */
+    public BasicEventSender<Long> getEventSender() {
+        return this.eventSender;
     }
 
     /**
@@ -65,16 +99,28 @@ public class ConnectionLimiter {
      */
     public synchronized void openedConnection() throws InterruptedException {
         if (this.maxConcurrent > 0) {
+            boolean waiting = false;
+            long ms = -1;
             while (true) {
                 synchronized (ConnectionLimiter.LOCK) {
                     if (this.connectioncount < this.maxConcurrent) {
+                        if (waiting) {
+                            this.eventSender.fireEvent(new BasicEvent<Long>(this, ConnectionLimiter.WAIT_DUETO_MAXSIMULTAN_LIMIT_END, System.currentTimeMillis() - ms, null));
+
+                        }
                         break;
                     }
                 }
+                if (ms < 0) {
+                    ms = System.currentTimeMillis();
+                }
                 Log.L.warning("block 250 ms for " + this.maxConcurrent + " connectionlimit");
+                this.eventSender.fireEvent(new BasicEvent<Long>(this, ConnectionLimiter.WAIT_DUETO_MAXSIMULTAN_LIMIT_START, System.currentTimeMillis() - ms, null));
+                waiting = true;
                 Thread.sleep(250);
             }
         }
+        boolean waiting = false;
         if (this.timeConnections > 0) {
             while (true) {
                 final Iterator<Long> it = this.list.iterator();
@@ -95,7 +141,10 @@ public class ConnectionLimiter {
                         /* calculate how long we have to wait */
                         wait = Math.max(250, it.next() - (System.currentTimeMillis() - this.timeTime));
                     }
+                    waiting = true;
                     Log.L.warning("wait " + wait + " ms because we got " + this.list.size() + " connections the last minute");
+                    this.eventSender.fireEvent(new BasicEvent<Long>(this, ConnectionLimiter.WAIT_DUETO_CONNECTIONSPERMINUTE_LIMIT_START, wait, null));
+
                     Thread.sleep(wait);
                 } else {
                     break;
@@ -107,6 +156,12 @@ public class ConnectionLimiter {
         synchronized (ConnectionLimiter.LOCK) {
             this.connectioncount++;
         }
+        if (waiting) {
+            this.eventSender.fireEvent(new BasicEvent<Long>(this, ConnectionLimiter.WAIT_DUETO_CONNECTIONSPERMINUTE_LIMIT_END, null, null));
+
+        }
+        this.eventSender.fireEvent(new BasicEvent<Long>(this, ConnectionLimiter.CONNECTION_OPENED, null, null));
+
     }
 
     /**

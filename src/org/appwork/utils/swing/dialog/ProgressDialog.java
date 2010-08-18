@@ -28,6 +28,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.os.CrossSystem;
+import org.appwork.utils.swing.EDTHelper;
 
 /**
  * @author thomas
@@ -177,7 +178,16 @@ public class ProgressDialog extends AbstractDialog<Integer> {
 
                     ProgressDialog.this.setReturnmask(false);
                 } finally {
-                    ProgressDialog.this.dispose();
+                    new EDTHelper<Object>() {
+
+                        @Override
+                        public Object edtRun() {
+                            ProgressDialog.this.dispose();
+                            return null;
+                        }
+
+                    }.start();
+
                     ProgressDialog.this.updater.stop();
                 }
 
