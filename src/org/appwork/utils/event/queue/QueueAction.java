@@ -38,21 +38,21 @@ public abstract class QueueAction<T, E extends Throwable> {
         this.prio = prio;
     }
 
-    protected String getCallerStackTrace() {
-        return callerStackTrace;
-    }
-
     /**
      * @param e
      * @return
      */
     protected synchronized boolean callExceptionHandler() {
-        if (this.exeption == null) return true;
-        if ((this.exeption != null) && this.handleException(this.exeption)) {
+        if (this.exeption == null) { return true; }
+        if (this.exeption != null && this.handleException(this.exeption)) {
             this.exeption = null;
             return true;
         }
         return false;
+    }
+
+    protected String getCallerStackTrace() {
+        return this.callerStackTrace;
     }
 
     protected Thread getCallerThread() {
@@ -124,12 +124,20 @@ public abstract class QueueAction<T, E extends Throwable> {
         this.queue = queue;
         if (queue != null && queue.isDebug() && thread != null) {
             StringBuilder sb = new StringBuilder();
-            for (StackTraceElement elem : thread.getStackTrace()) {
+            for (final StackTraceElement elem : thread.getStackTrace()) {
                 sb.append(elem.toString() + "\r\n");
             }
-            callerStackTrace = sb.toString();
+            this.callerStackTrace = sb.toString();
             sb = null;
         }
+    }
+
+    /**
+     * @param finished
+     *            the finished to set
+     */
+    public void setFinished(final boolean finished) {
+        this.finished = finished;
     }
 
     public void setQueuePrio(final QueuePriority prio) {
@@ -144,7 +152,7 @@ public abstract class QueueAction<T, E extends Throwable> {
             this.result = this.run();
         } catch (final Throwable th) {
             if (queue != null && queue.isDebug()) {
-                Log.L.severe("QueueActionCallerStackTrace:\r\n" + callerStackTrace);
+                Log.L.severe("QueueActionCallerStackTrace:\r\n" + this.callerStackTrace);
             }
             this.exeption = th;
             if (th instanceof RuntimeException) {
@@ -152,8 +160,6 @@ public abstract class QueueAction<T, E extends Throwable> {
             } else {
                 throw (E) th;
             }
-        } finally {
-            this.finished = true;
         }
     }
 }

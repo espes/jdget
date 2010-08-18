@@ -160,7 +160,7 @@ public abstract class Queue extends Thread {
 
     }
 
-    protected void internalAdd(final QueueAction<?, ?> action) {
+    public void internalAdd(final QueueAction<?, ?> action) {
         synchronized (this.queueLock) {
             this.queue.get(action.getQueuePrio()).add(action);
         }
@@ -203,8 +203,8 @@ public abstract class Queue extends Thread {
          * we walk through actionHistory to check if we are still in our
          * QueueThread
          */
-        while ((last != null) && ((t = last.getCallerThread()) != null)) {
-            if ((t != null) && (t instanceof Queue)) {
+        while (last != null && (t = last.getCallerThread()) != null) {
+            if (t != null && t instanceof Queue) {
                 if (t == this.thread) {
                     if (this.debugFlag) {
                         org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! " + item);
@@ -269,7 +269,7 @@ public abstract class Queue extends Thread {
                         this.waitFlag = true;
                     }
                 }
-                if ((item == null) || this.waitFlag) {
+                if (item == null || this.waitFlag) {
                     continue;
                 }
                 try {
@@ -312,6 +312,7 @@ public abstract class Queue extends Thread {
                 }
             }
         } finally {
+            item.setFinished(true);
             if (this.thread != item.getCallerThread()) {
                 synchronized (this.queueThreadHistory) {
                     if (this.queueThreadHistory.size() != 0) {
