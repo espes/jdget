@@ -11,6 +11,7 @@ public class JacksonStorageChest extends Storage {
 
     private final HashMap<String, Object> map;
     private final String name;
+    private String filename = null;
     private boolean plain;
 
     public JacksonStorageChest(String name) throws StorageException {
@@ -25,12 +26,24 @@ public class JacksonStorageChest extends Storage {
     public JacksonStorageChest(String name, boolean plain) {
         this.map = new HashMap<String, Object>();
         this.name = name;
-        this.plain = plain;        
+        this.plain = plain;
+        this.filename = "cfg/" + name + (plain ? ".json" : ".ejs");
         synchronized (JSonStorage.LOCK) {
-            String filename = "cfg/" + name + (plain ? ".json" : ".ejs");
             HashMap<String, Object> load = JSonStorage.restoreFrom(filename, null, new HashMap<String, Object>());
             map.putAll(load);
         }
+    }
+
+    public boolean isPlain() {
+        return plain;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @SuppressWarnings("unchecked")
@@ -111,7 +124,7 @@ public class JacksonStorageChest extends Storage {
                  * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
                  */
                 json = JSonStorage.getMapper().writeValueAsString(map);
-                JSonStorage.saveTo("cfg/" + name + (plain ? ".json" : ".ejs"), json);
+                JSonStorage.saveTo(filename, json);
             } catch (JsonGenerationException e) {
                 Log.exception(e);
             } catch (JsonMappingException e) {
