@@ -27,15 +27,13 @@ import org.appwork.utils.Application;
 public class ExceptionLogHandler extends java.util.logging.Handler {
 
     private File file;
-    private BufferedWriter writer;
+    private BufferedWriter writer = null;
 
     public ExceptionLogHandler() {
         super();
         try {
             final Calendar cal = Calendar.getInstance();
-
             cal.setTimeInMillis(new Date().getTime());
-
             this.file = Application.getRessource("logs/error_" + cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DATE) + "-" + System.currentTimeMillis() + ".log");
             this.file.getParentFile().mkdirs();
             this.file.deleteOnExit();
@@ -45,9 +43,7 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
             this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(this.file, true), "UTF8"));
         } catch (final Exception e) {
             e.printStackTrace();
-
         }
-
     }
 
     @Override
@@ -56,17 +52,18 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
             this.writer.close();
         } catch (final IOException e) {
             e.printStackTrace();
-
+        } finally {
+            this.writer = null;
         }
     }
 
     @Override
     public void flush() {
         try {
+            if (this.writer == null) return;
             this.writer.flush();
         } catch (final IOException e) {
             e.printStackTrace();
-
         }
     }
 
@@ -80,10 +77,18 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
     @Override
     public void publish(final LogRecord logRecord) {
         try {
+            if (this.writer == null) return;
             this.writer.write(this.getFormatter().format(logRecord));
         } catch (final IOException e) {
+            /*
+             * in case write does not work, we close the file and no further
+             * logging to file
+             */
             e.printStackTrace();
-
+            try {
+                close();
+            } catch (Throwable e2) {
+            }
         }
     }
 }
