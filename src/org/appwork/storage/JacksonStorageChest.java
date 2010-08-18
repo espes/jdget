@@ -3,12 +3,8 @@ package org.appwork.storage;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.appwork.utils.Application;
-import org.appwork.utils.IO;
-import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 
 public class JacksonStorageChest extends Storage {
@@ -25,33 +21,15 @@ public class JacksonStorageChest extends Storage {
      * @param name2
      * @param b
      */
-    @SuppressWarnings("unchecked")
+
     public JacksonStorageChest(String name, boolean plain) {
         this.map = new HashMap<String, Object>();
         this.name = name;
-        this.plain = plain;
-        String str = null;
+        this.plain = plain;        
         synchronized (JSonStorage.LOCK) {
-            try {
-                if (plain) {
-                    str = new String(IO.readFile(Application.getRessource("cfg/" + name + (plain ? ".json" : ".ejs"))));
-                } else {
-                    str = Crypto.decrypt(IO.readFile(Application.getRessource("cfg/" + name + ".ejs")), JSonStorage.KEY);
-                }
-                /*
-                 * reader are not threadsafe,
-                 * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
-                 */
-                HashMap<String, Object> load = JSonStorage.getMapper().readValue(str, HashMap.class);
-                map.putAll(load);
-            } catch (JsonParseException e) {
-                Log.L.severe(str);
-                Log.exception(e);
-            } catch (JsonMappingException e) {
-                Log.L.severe(str);
-                Log.exception(e);
-            } catch (IOException e) {
-            }
+            String filename = "cfg/" + name + (plain ? ".json" : ".ejs");
+            HashMap<String, Object> load = JSonStorage.restoreFrom(filename, null, new HashMap<String, Object>());
+            map.putAll(load);
         }
     }
 

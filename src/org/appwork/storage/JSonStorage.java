@@ -91,8 +91,8 @@ public class JSonStorage {
         synchronized (JSonStorage.LOCK) {
             String stri = null;
             try {
-                // check wether tmp file exists
                 if (Application.getRessource(string + ".tmp").exists()) {
+                    /* tmp files exists, try to restore */
                     Log.L.severe("TMP file " + Application.getRessource(string + ".tmp").getAbsolutePath() + " found");
                     try {
                         // load it
@@ -110,19 +110,19 @@ public class JSonStorage {
                         Application.getRessource(string).delete();
                         Application.getRessource(string + ".tmp").renameTo(Application.getRessource(string));
                         return ret;
-                    } catch (final Exception e) {
+                    } catch (final Exception e) {                       
                         Log.exception(e);
+                    } finally {
+                        /* tmp file must be gone after read */
+                        Application.getRessource(string + ".tmp").delete();
                     }
-
+                }
+                if (!Application.getRessource(string).exists()) { return def; }
+                final byte[] str = IO.readFile(Application.getRessource(string));
+                if (new Regex(string, ".+\\.json").matches()) {
+                    return JSonStorage.restoreFromString(stri = new String(str, "UTF-8"), type, def);
                 } else {
-                    if (!Application.getRessource(string).exists()) { return def; }
-
-                    final byte[] str = IO.readFile(Application.getRessource(string));
-                    if (new Regex(string, ".+\\.json").matches()) {
-                        return JSonStorage.restoreFromString(stri = new String(str, "UTF-8"), type, def);
-                    } else {
-                        return JSonStorage.restoreFromString(stri = Crypto.decrypt(str, JSonStorage.KEY), type, def);
-                    }
+                    return JSonStorage.restoreFromString(stri = Crypto.decrypt(str, JSonStorage.KEY), type, def);
                 }
             } catch (final JsonParseException e) {
                 Log.L.severe(stri);
