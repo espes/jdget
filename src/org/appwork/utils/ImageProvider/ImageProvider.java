@@ -138,8 +138,12 @@ public class ImageProvider {
                     }
                 } catch (final Throwable e2) {
                 }
-                Log.exception(e);
-                return ImageProvider.createIcon(name.toUpperCase(), 48, 48);
+                if (createDummy) {
+                    Log.exception(e);
+                    return ImageProvider.createIcon(name.toUpperCase(), 48, 48);
+                } else {
+                    throw e;
+                }
 
             }
         }
