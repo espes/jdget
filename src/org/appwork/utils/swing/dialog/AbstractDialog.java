@@ -98,9 +98,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.flagMask = flag;
         this.setTitle(title);
 
-        this.icon = (BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON)) ? null : icon;
-        this.okOption = (okOption == null) ? APPWORKUTILS.ABSTRACTDIALOG_BUTTON_OK.toString() : okOption;
-        this.cancelOption = (cancelOption == null) ? APPWORKUTILS.ABSTRACTDIALOG_BUTTON_CANCEL.toString() : cancelOption;
+        this.icon = BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON) ? null : icon;
+        this.okOption = okOption == null ? APPWORKUTILS.ABSTRACTDIALOG_BUTTON_OK.s() : okOption;
+        this.cancelOption = cancelOption == null ? APPWORKUTILS.ABSTRACTDIALOG_BUTTON_CANCEL.s() : cancelOption;
     }
 
     /* this function will init and show the dialog */
@@ -112,7 +112,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
                 if (i >= 0) {
                     // filter saved return value
-                    int ret = (i & (Dialog.RETURN_OK | Dialog.RETURN_CANCEL));
+                    int ret = i & (Dialog.RETURN_OK | Dialog.RETURN_CANCEL);
                     // add flags
                     ret |= Dialog.RETURN_DONT_SHOW_AGAIN | Dialog.RETURN_SKIPPED_BY_DONT_SHOW;
 
@@ -142,7 +142,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         } catch (final Exception e) {
 
         }
-        if ((Dialog.getInstance().getParentOwner() == null) || !Dialog.getInstance().getParentOwner().isShowing()) {
+        if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isShowing()) {
             this.setAlwaysOnTop(true);
         }
         // The Dialog Modal
@@ -176,7 +176,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         // add the countdown timer
         this.add(this.timerLbl, "split 3,growx,hidemode 2");
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-            this.dontshowagain = new JCheckBox(APPWORKUTILS.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.toString());
+            this.dontshowagain = new JCheckBox(APPWORKUTILS.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.s());
             this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
             this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
 
@@ -224,20 +224,21 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
         // pack dialog
         this.invalidate();
+        // this.setMinimumSize(this.getPreferredSize());
         this.pack();
         this.setResizable(true);
-
-        this.toFront();
         this.setMinimumSize(this.getPreferredSize());
+        this.toFront();
+
         if (this.getDesiredSize() != null) {
             this.setSize(this.getDesiredSize());
         }
-        if ((Dialog.getInstance().getParentOwner() == null) || !Dialog.getInstance().getParentOwner().isDisplayable() || !Dialog.getInstance().getParentOwner().isVisible()) {
+        if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isDisplayable() || !Dialog.getInstance().getParentOwner().isVisible()) {
             final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
             this.setLocation(new Point((int) (screenSize.getWidth() - this.getWidth()) / 2, (int) (screenSize.getHeight() - this.getHeight()) / 2));
 
-        } else if ((Dialog.getInstance().getParentOwner().getExtendedState() == Frame.ICONIFIED)) {
+        } else if (Dialog.getInstance().getParentOwner().getExtendedState() == Frame.ICONIFIED) {
             // dock dialog at bottom right if mainframe is not visible
             final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
