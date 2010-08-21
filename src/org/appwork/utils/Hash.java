@@ -26,58 +26,60 @@ public class Hash {
 
     public static String HASH_TYPE_SHA1 = "SHA-1";
 
-    public static String getFileHash(File arg, String type) throws NoSuchAlgorithmException, IOException {
-        if (arg == null || !arg.exists() || arg.isDirectory()) throw new NullPointerException();
+    public static long getCRC32(final File arg) throws IOException {
+        final FileInputStream fis = new FileInputStream(arg);
+        CheckedInputStream cis = null;
+        try {
+            cis = new CheckedInputStream(fis, new CRC32());
+            final byte readBuffer[] = new byte[32767];
+            while (cis.read(readBuffer) >= 0) {
+            }
+            return cis.getChecksum().getValue();
+        } finally {
+            if (cis != null) {
+                cis.close();
+            }
+            fis.close();
+        }
+    }
 
-        MessageDigest md = MessageDigest.getInstance(type);
-        byte[] b = new byte[32767];
-        InputStream in = new FileInputStream(arg);
+    public static String getFileHash(final File arg, final String type) throws NoSuchAlgorithmException, IOException {
+        if (arg == null || !arg.exists() || arg.isDirectory()) { throw new NullPointerException(); }
+        final MessageDigest md = MessageDigest.getInstance(type);
+        // if (true) { throw new IOException("Any IOEXCeption"); }
+        final byte[] b = new byte[32767];
+        final InputStream in = new FileInputStream(arg);
         for (int n = 0; (n = in.read(b)) > -1;) {
             md.update(b, 0, n);
 
         }
         in.close();
-        byte[] digest = md.digest();
+        final byte[] digest = md.digest();
         return HexFormatter.byteArrayToHex(digest);
 
     }
 
-    public static String getStringHash(String arg, String type) throws NoSuchAlgorithmException {
+    public static String getMD5(final File arg) throws NoSuchAlgorithmException, IOException {
+        return Hash.getFileHash(arg, Hash.HASH_TYPE_MD5);
+    }
 
-        MessageDigest md = MessageDigest.getInstance(type);
-        byte[] digest = md.digest(arg.getBytes());
+    public static String getMD5(final String arg) throws NoSuchAlgorithmException {
+        return Hash.getStringHash(arg, Hash.HASH_TYPE_MD5);
+    }
+
+    public static String getSHA1(final File arg) throws NoSuchAlgorithmException, IOException {
+        return Hash.getFileHash(arg, Hash.HASH_TYPE_SHA1);
+    }
+
+    public static String getSHA1(final String arg) throws NoSuchAlgorithmException {
+        return Hash.getStringHash(arg, Hash.HASH_TYPE_SHA1);
+    }
+
+    public static String getStringHash(final String arg, final String type) throws NoSuchAlgorithmException {
+
+        final MessageDigest md = MessageDigest.getInstance(type);
+        final byte[] digest = md.digest(arg.getBytes());
         return HexFormatter.byteArrayToHex(digest);
 
-    }
-
-    public static String getMD5(String arg) throws NoSuchAlgorithmException {
-        return getStringHash(arg, HASH_TYPE_MD5);
-    }
-
-    public static String getMD5(File arg) throws NoSuchAlgorithmException, IOException {
-        return getFileHash(arg, HASH_TYPE_MD5);
-    }
-
-    public static String getSHA1(String arg) throws NoSuchAlgorithmException {
-        return getStringHash(arg, HASH_TYPE_SHA1);
-    }
-
-    public static String getSHA1(File arg) throws NoSuchAlgorithmException, IOException {
-        return getFileHash(arg, HASH_TYPE_SHA1);
-    }
-
-    public static long getCRC32(File arg) throws IOException {
-        FileInputStream fis = new FileInputStream(arg);
-        CheckedInputStream cis = null;
-        try {
-            cis = new CheckedInputStream(fis, new CRC32());
-            byte readBuffer[] = new byte[32767];
-            while (cis.read(readBuffer) >= 0) {
-            }
-            return cis.getChecksum().getValue();
-        } finally {
-            if (cis != null) cis.close();
-            fis.close();
-        }
     }
 }

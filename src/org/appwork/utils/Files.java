@@ -10,83 +10,49 @@
 package org.appwork.utils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.FileNameMap;
 import java.net.URLConnection;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 
-import org.appwork.utils.formatter.HexFormatter;
-
 public class Files {
+    /**
+     * delete all files/folders that are given
+     * 
+     * @param files
+     * @throws IOException
+     */
+    public static void deleteRecursiv(final File... files) throws IOException {
+        final ArrayList<File> ret = Files.getFiles(true, true, files);
+        for (int i = ret.size() - 1; i >= 0; i--) {
+            final File file = ret.get(i);
+            if (!file.exists() || file.isFile()) {
+                ret.remove(i);
+            }
+            if (file.exists() && file.isFile() && !file.delete()) { throw new IOException("could not delete " + file); }
+
+        }
+        for (int i = ret.size() - 1; i >= 0; i--) {
+            final File file = ret.get(i);
+            if (file.isDirectory()) {
+                ret.remove(i);
+            }
+            if (file.exists() && file.isDirectory() && !file.delete()) { throw new IOException("could not delete " + file); }
+        }
+    }
+
     /**
      * Returns the fileextension for a file with the given name
      * 
      * @param name
      * @return
      */
-    public static String getExtension(String name) {
-        if (name == null) return null;
+    public static String getExtension(final String name) {
+        if (name == null) { return null; }
         final int index = name.lastIndexOf(".");
-        if (index < 0) return null;
+        if (index < 0) { return null; }
         return name.substring(index + 1).toLowerCase();
 
-    }
-
-    /**
-     * Returns the mikmetype of the file. If unknown, it returns
-     * Unknown/extension
-     * 
-     * @param name
-     * @return
-     */
-    public static String getMimeType(String name) {
-        if (name == null) return null;
-        FileNameMap fileNameMap = URLConnection.getFileNameMap();
-        String ret = fileNameMap.getContentTypeFor(name);
-        if (ret == null) {
-            ret = "unknown/" + getExtension(name);
-        }
-        return ret;
-    }
-
-    /**
-     * 
-     * Returns the hash checksum for the given file.
-     * 
-     * @param arg
-     * @param type
-     *            e.g. md5 or sha1
-     * @return
-     */
-    public static String getHash(File arg, String type) {
-        if (arg == null || !arg.exists() || arg.isDirectory()) return null;
-        try {
-            MessageDigest md = MessageDigest.getInstance(type);
-            byte[] b = new byte[4096];
-            InputStream in = new FileInputStream(arg);
-            for (int n = 0; (n = in.read(b)) > -1;) {
-                md.update(b, 0, n);
-            }
-            in.close();
-            byte[] digest = md.digest();
-            return HexFormatter.byteArrayToHex(digest);
-        } catch (Exception e) {
-            org.appwork.utils.logging.Log.exception(e);
-            return null;
-        }
-    }
-
-    /**
-     * Returns the MD5 Hashsum for the file arg
-     * 
-     * @param arg
-     * @return
-     */
-    public static String getMD5(File arg) {
-        return getHash(arg, "md5");
     }
 
     /**
@@ -97,14 +63,18 @@ public class Files {
      * @param files
      * @return
      */
-    public static ArrayList<File> getFiles(boolean includeDirectories, boolean includeFiles, File... files) {
-        ArrayList<File> ret = new ArrayList<File>();
+    public static ArrayList<File> getFiles(final boolean includeDirectories, final boolean includeFiles, final File... files) {
+        final ArrayList<File> ret = new ArrayList<File>();
         if (files != null) {
-            for (File f : files) {
-                if (!f.exists()) continue;
+            for (final File f : files) {
+                if (!f.exists()) {
+                    continue;
+                }
                 if (f.isDirectory()) {
-                    if (includeDirectories) ret.add(f);
-                    ret.addAll(getFiles(includeDirectories, includeFiles, f.listFiles()));
+                    if (includeDirectories) {
+                        ret.add(f);
+                    }
+                    ret.addAll(Files.getFiles(includeDirectories, includeFiles, f.listFiles()));
                 } else if (includeFiles) {
                     ret.add(f);
                 }
@@ -114,24 +84,20 @@ public class Files {
     }
 
     /**
-     * delete all files/folders that are given
+     * Returns the mikmetype of the file. If unknown, it returns
+     * Unknown/extension
      * 
-     * @param files
-     * @throws IOException
+     * @param name
+     * @return
      */
-    public static void deleteRecursiv(File... files) throws IOException {
-        ArrayList<File> ret = getFiles(true, true, files);
-        for (int i = ret.size() - 1; i >= 0; i--) {
-            File file = ret.get(i);
-            if (!file.exists() || file.isFile()) ret.remove(i);
-            if (file.exists() && file.isFile() && !file.delete()) throw new IOException("could not delete " + file);
-
+    public static String getMimeType(final String name) {
+        if (name == null) { return null; }
+        final FileNameMap fileNameMap = URLConnection.getFileNameMap();
+        String ret = fileNameMap.getContentTypeFor(name);
+        if (ret == null) {
+            ret = "unknown/" + Files.getExtension(name);
         }
-        for (int i = ret.size() - 1; i >= 0; i--) {
-            File file = ret.get(i);
-            if (file.isDirectory()) ret.remove(i);
-            if (file.exists() && file.isDirectory() && !file.delete()) throw new IOException("could not delete " + file);
-        }
+        return ret;
     }
 
 }

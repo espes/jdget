@@ -18,22 +18,22 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
     private static final long serialVersionUID = 2114805529462086691L;
     protected RenderLabel label;
 
-    public ExtTextColumn(String name, ExtTableModel<E> table) {
+    public ExtTextColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 
-        label = new RenderLabel();
-        label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-        label.setOpaque(false);
-        prepareTableCellRendererComponent(label);
+        this.label = new RenderLabel();
+        this.label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+        this.label.setOpaque(false);
+        this.prepareTableCellRendererComponent(this.label);
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
-            public int compare(E o1, E o2) {
+            public int compare(final E o1, final E o2) {
                 if (this.isSortOrderToggle()) {
-                    return getStringValue(o1).compareTo(getStringValue(o2));
+                    return ExtTextColumn.this.getStringValue(o1).compareTo(ExtTextColumn.this.getStringValue(o2));
                 } else {
-                    return getStringValue(o2).compareTo(getStringValue(o1));
+                    return ExtTextColumn.this.getStringValue(o2).compareTo(ExtTextColumn.this.getStringValue(o1));
                 }
             }
 
@@ -41,79 +41,80 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     }
 
-    /**
-     * Should be overwritten to prepare the componente for the TableCellRenderer
-     * (e.g. setting tooltips)
-     */
-    protected void prepareTableCellRendererComponent(JLabel jlr) {
-    }
-
-    protected abstract String getStringValue(E value);
-
     @Override
     public Object getCellEditorValue() {
         return null;
-    }
-
-    @Override
-    public boolean isEditable(E obj) {
-        return false;
-    }
-
-    public String getToolTip(E obj) {
-        return this.getStringValue(obj);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        prepareLabel((E) value);
-        label.setText(getStringValue((E) value));
-        label.setToolTipText(getToolTip((E) value));
-        label.setEnabled(isEnabled((E) value));
-        label.setIcon(getIcon((E) value));
-
-        return label;
-
-    }
-
-    /**
-     * @param value
-     */
-    protected void prepareLabel(E value) {
-        // TODO Auto-generated method stub
-
     }
 
     /**
      * @param value
      * @return
      */
-    protected Icon getIcon(E value) {
+    protected Icon getIcon(final E value) {
 
         return null;
     }
 
-    protected boolean matchSearch(E object, Pattern pattern) {
+    protected abstract String getStringValue(E value);
 
-        return pattern.matcher(getStringValue(object)).matches();
+    @SuppressWarnings("unchecked")
+    @Override
+    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.prepareLabel((E) value);
+        this.label.setText(this.getStringValue((E) value));
+        this.label.setToolTipText(this.getToolTip((E) value));
+        this.label.setEnabled(this.isEnabled((E) value));
+        this.label.setIcon(this.getIcon((E) value));
+
+        return this.label;
 
     }
 
-    @Override
-    public void setValue(Object value, E object) {
+    public String getToolTip(final E obj) {
+        return "<html>" + this.getStringValue(obj).replaceAll("\r\n", "<br>") + "</html>";
     }
 
     @Override
-    public boolean isEnabled(E obj) {
+    public boolean isEditable(final E obj) {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled(final E obj) {
 
         return true;
     }
 
     @Override
-    public boolean isSortable(E obj) {
+    public boolean isSortable(final E obj) {
 
         return true;
+    }
+
+    @Override
+    protected boolean matchSearch(final E object, final Pattern pattern) {
+
+        return pattern.matcher(this.getStringValue(object)).matches();
+
+    }
+
+    /**
+     * @param value
+     */
+    protected void prepareLabel(final E value) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * Should be overwritten to prepare the componente for the TableCellRenderer
+     * (e.g. setting tooltips)
+     */
+    protected void prepareTableCellRendererComponent(final JLabel jlr) {
+    }
+
+    @Override
+    public void setValue(final Object value, final E object) {
     }
 
 }
