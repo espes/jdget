@@ -9,6 +9,7 @@
  */
 package org.appwork.swing.trayicon.test;
 
+import java.awt.AWTException;
 import java.awt.BorderLayout;
 
 import javax.swing.JComponent;
@@ -25,16 +26,19 @@ public class TrayIconTest {
 
     /**
      * @param args
+     * @throws AWTException
      */
-    public static void main(String[] args) {
-        JComponent comp = new JTextArea();
+    public static void main(final String[] args) throws AWTException {
+        final JComponent comp = new JTextArea();
 
-        JFrame frame = new JFrame("Frame Title");
+        final JFrame frame = new JFrame("Frame Title");
         frame.getContentPane().add(comp, BorderLayout.CENTER);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 300);
         frame.setVisible(true);
 
-        new AWTrayIcon(frame);
+        final AWTrayIcon ti = new AWTrayIcon(frame);
+
     }
 
 }

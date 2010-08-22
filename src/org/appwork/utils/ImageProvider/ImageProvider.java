@@ -165,6 +165,23 @@ public class ImageProvider {
     }
 
     /**
+     * @param string
+     * @param i
+     * @param j
+     * @return
+     */
+    public static Icon getImageIcon(final String name, final int x, final int y) {
+        // TODO Auto-generated method stub
+        try {
+            return ImageProvider.getImageIcon(name, x, y, true);
+        } catch (final IOException e) {
+            // can not happen. true creates a dummyicon in case of io errors
+            Log.exception(e);
+            return null;
+        }
+    }
+
+    /**
      * Loads the image, scales it to the desired size and returns it as an
      * imageicon
      * 

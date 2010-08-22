@@ -16,16 +16,29 @@
 
 package org.appwork.swing.trayicon;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import javax.swing.JWindow;
+import javax.swing.SwingConstants;
 
+import net.miginfocom.swing.MigLayout;
+
+import org.appwork.utils.event.BasicEvent;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
 
@@ -39,14 +52,22 @@ public abstract class TrayIconPopup extends JWindow {
     private transient final Thread hideThread;
 
     private boolean hideThreadrunning = false;
+    private final AWTrayIcon owner;
 
     /**
      * @param awTrayIcon
      */
     public TrayIconPopup(final AWTrayIcon awTrayIcon) {
         super(awTrayIcon.getFrame());
+        this.owner = awTrayIcon;
+        this.setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
+        JPanel content = new JPanel(new MigLayout("ins 5, wrap 1", "[grow,fill]", "[]"));
 
-        this.init();
+        content.setBorder(BorderFactory.createLineBorder(content.getBackground().darker()));
+        content = this.init(content);
+        if (content != null) {
+            this.add(content);
+        }
         this.setAlwaysOnTop(true);
         this.pack();
         this.addMouseListener(new MouseListener() {
@@ -81,10 +102,10 @@ public abstract class TrayIconPopup extends JWindow {
                     if (TrayIconPopup.this.enteredPopup && TrayIconPopup.this.hideThreadrunning) {
                         final PointerInfo mouse = MouseInfo.getPointerInfo();
                         final Point current = TrayIconPopup.this.getLocation();
-                        if ((mouse.getLocation().x < current.x) || (mouse.getLocation().x > current.x + TrayIconPopup.this.getSize().width)) {
+                        if (mouse.getLocation().x < current.x || mouse.getLocation().x > current.x + TrayIconPopup.this.getSize().width) {
                             TrayIconPopup.this.dispose();
                             break;
-                        } else if ((mouse.getLocation().y < current.y) || (mouse.getLocation().y > current.y + TrayIconPopup.this.getSize().height)) {
+                        } else if (mouse.getLocation().y < current.y || mouse.getLocation().y > current.y + TrayIconPopup.this.getSize().height) {
                             TrayIconPopup.this.dispose();
                             break;
                         }
@@ -96,10 +117,48 @@ public abstract class TrayIconPopup extends JWindow {
         this.hideThread.start();
     }
 
+    protected Component createButton(final AbstractAction action) {
+
+        final JToggleButton bt = new JToggleButton(action);
+        bt.setOpaque(false);
+        bt.setContentAreaFilled(false);
+        bt.setBorderPainted(false);
+
+        bt.setIcon((Icon) action.getValue(Action.SMALL_ICON));
+        bt.addActionListener(new ActionListener() {
+            public void actionPerformed(final ActionEvent e) {
+                TrayIconPopup.this.dispose();
+            }
+        });
+        bt.setFocusPainted(false);
+        bt.setHorizontalAlignment(SwingConstants.LEFT);
+        bt.setIconTextGap(5);
+        bt.addMouseListener(new HoverEffect(bt));
+        return bt;
+    }
+
+    @Override
+    public void dispose() {
+        this.hideThreadrunning = false;
+        super.dispose();
+        this.owner.getEventSender().fireEvent(new BasicEvent<AWTrayIcon>(this.owner, AWTrayIcon.EVENT_HIDE_POPUP, this.owner, null));
+
+    }
+
+    /**
+     * @return the owner
+     */
+
+    public AWTrayIcon getTrayIcon() {
+        return this.owner;
+    }
+
     /**
      * layout window
+     * 
+     * @param content
      */
-    abstract protected void init();
+    abstract protected JPanel init(JPanel content);
 
     /**
      * @param point
@@ -128,7 +187,7 @@ public abstract class TrayIconPopup extends JWindow {
                 }
             }
         } else {
-            if (p.getX() <= (screenSize.getWidth() - this.getWidth())) {
+            if (p.getX() <= screenSize.getWidth() - this.getWidth()) {
                 this.setLocation((int) p.getX(), 22);
             } else {
                 this.setLocation(p.x - this.getWidth(), 22);
@@ -139,6 +198,8 @@ public abstract class TrayIconPopup extends JWindow {
 
     /**
      * start autohide in 3 secs if mouse did not enter popup before
+     * 
+     * @param awTrayIcon
      */
     public void startAutoHide() {
         new Thread() {
@@ -152,8 +213,9 @@ public abstract class TrayIconPopup extends JWindow {
                     new EDTHelper<Object>() {
                         @Override
                         public Object edtRun() {
-                            TrayIconPopup.this.hideThreadrunning = false;
+
                             TrayIconPopup.this.dispose();
+
                             return null;
                         }
 
