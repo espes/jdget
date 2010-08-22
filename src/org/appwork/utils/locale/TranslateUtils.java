@@ -52,6 +52,7 @@ public class TranslateUtils {
         final Regex reg = new Regex(source, "(.*?\\{)");
         final String pre = reg.getMatch(0);
         final String post = new Regex(source, "(//\\s*ENDOFENUMS.*)").getMatch(0);
+        source = source.replace(pre, "<pre>");
         if (post == null) { throw new Exception("Translate Enum must end with //ENDOFENUMS"); }
         // final String pre = new Regex(source,
         // ".*?public enum \\w+ implements Translate \\{").getMatch(-1);
@@ -87,7 +88,7 @@ public class TranslateUtils {
             }
 
         }
-
+        fin.append("");
         fin.append("\r\n");
         fin.append(post);
         System.out.println(fin);
@@ -168,7 +169,9 @@ public class TranslateUtils {
                 if (line == null) {
                     line = new Regex(source, name + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\)[\\,\\;]").getMatch(-1);
                 }
+                if (line == null) {
 
+                throw new Exception("SYNTAX line. PLease recompile"); }
                 String comment = new Regex(source, "\\/\\*(.*?)\\*\\/\\s*" + Pattern.quote(line)).getMatch(0);
                 if (comment != null) {
                     comment = comment.replaceAll("\\s*\\*\\s*", " ");
