@@ -439,7 +439,7 @@ public class Dialog {
      * @return an array of files or null if the user cancel the dialog
      */
 
-    public File[] showFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final Integer dialogType, final File preSelection) {
+    public File[] showFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final Integer dialogType, final File preSelect) {
 
         return new EDTHelper<File[]>() {
 
@@ -452,11 +452,11 @@ public class Dialog {
                         } else {
                             UIManager.put("FileChooser.useShellFolder", true);
                         }
-                        UIManager.put("FileChooser.homeFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.toString());
-                        UIManager.put("FileChooser.newFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.toString());
-                        UIManager.put("FileChooser.upFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.toString());
-                        UIManager.put("FileChooser.detailsViewButtonToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.toString());
-                        UIManager.put("FileChooser.listViewButtonToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_LIST.toString());
+                        UIManager.put("FileChooser.homeFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.s());
+                        UIManager.put("FileChooser.newFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.s());
+                        UIManager.put("FileChooser.upFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.s());
+                        UIManager.put("FileChooser.detailsViewButtonToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.s());
+                        UIManager.put("FileChooser.listViewButtonToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_LIST.s());
 
                         final JFileChooser fc = new JFileChooser();
                         if (Dialog.ShellFolderIDWorkaround) {
@@ -483,43 +483,44 @@ public class Dialog {
                         if (dialogType != null) {
                             fc.setDialogType(dialogType);
                         }
-                        if (preSelection != null) {
-                            if (preSelection.isDirectory()) {
-                                fc.setCurrentDirectory(preSelection);
+
+                        /* preSelection */
+                        File preSelection = preSelect;
+                        if (preSelection == null && JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null) != null) {
+                            preSelection = new File(JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null));
+                        }
+                        while (preSelection != null) {
+                            if (!preSelection.exists()) {
+                                /* file does not exist, try ParentFile */
+                                preSelection = preSelection.getParentFile();
                             } else {
-                                fc.setCurrentDirectory(preSelection.getParentFile());
-                                /* only preselect file in savedialog */
-                                if ((dialogType != null) && (dialogType == JFileChooser.SAVE_DIALOG)) {
-                                    if ((fileSelectionMode != null) && (fileSelectionMode != JFileChooser.DIRECTORIES_ONLY)) {
+                                if (preSelection.isDirectory()) {
+                                    fc.setCurrentDirectory(preSelection);
+                                    /*
+                                     * we have to setSelectedFile here too, so
+                                     * the folder is preselected
+                                     */
+                                    /*
+                                     * only preselect folder in case of
+                                     * savedialog
+                                     */
+                                    if ((dialogType != null) && (dialogType == JFileChooser.SAVE_DIALOG)) {
                                         fc.setSelectedFile(preSelection);
                                     }
-                                }
-                            }
-                        } else {
-                            final String latest = JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null);
-                            if (latest != null) {
-                                File storeSelection = new File(latest);
-                                while (storeSelection != null) {
-                                    if (!storeSelection.exists()) {
-                                        storeSelection = storeSelection.getParentFile();
-                                    } else {
-                                        if (storeSelection.isDirectory()) {
-                                            fc.setCurrentDirectory(storeSelection);
-                                        } else {
-                                            fc.setCurrentDirectory(storeSelection.getParentFile());
-                                            /*
-                                             * only preselect file in savedialog
-                                             */
-                                            if ((dialogType != null) && (dialogType == JFileChooser.SAVE_DIALOG)) {
-                                                if ((fileSelectionMode != null) && (fileSelectionMode != JFileChooser.DIRECTORIES_ONLY)) {
-                                                    fc.setSelectedFile(preSelection);
-                                                }
+                                } else {
+                                    fc.setCurrentDirectory(preSelection.getParentFile());
+                                    /* only preselect file in savedialog */
+                                    if ((dialogType != null) && (dialogType == JFileChooser.SAVE_DIALOG)) {
+                                        if (fileSelectionMode != null) {
+                                            if (fileSelectionMode == JFileChooser.DIRECTORIES_ONLY) {
+                                                fc.setSelectedFile(preSelection.getParentFile());
+                                            } else {
+                                                fc.setSelectedFile(preSelection);
                                             }
-
                                         }
-                                        break;
                                     }
                                 }
+                                break;
                             }
                         }
                         if ((dialogType == null) || (dialogType == JFileChooser.OPEN_DIALOG)) {
