@@ -51,7 +51,7 @@ public abstract class TimerDialog extends JDialog {
     }
 
     protected void layoutDialog() {
-        this.timerLbl = new JLabel(APPWORKUTILS.TIMERDIALOG_MESSAGE_COUNTDOWN_STARTING.toString());
+        this.timerLbl = new JLabel(APPWORKUTILS.TIMERDIALOG_MESSAGE_COUNTDOWN_STARTING.s());
 
         timerLbl.addMouseListener(new MouseAdapter() {
 
@@ -62,7 +62,7 @@ public abstract class TimerDialog extends JDialog {
             }
 
         });
-        timerLbl.setToolTipText(APPWORKUTILS.TIMERDIALOG_TOOLTIP_TIMERLABEL.toString());
+        timerLbl.setToolTipText(APPWORKUTILS.TIMERDIALOG_TOOLTIP_TIMERLABEL.s());
 
         try {
             timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));

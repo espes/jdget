@@ -5,7 +5,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
@@ -23,35 +22,21 @@ public class SourceParser extends Object {
 
     private FilenameFilter filter;
 
-    /**
-     * @param file
-     * @param string
-     * @param string
-     * @throws IOException
-     */
     public SourceParser(final File file) throws IOException {
         this.map = new HashMap<File, String[]>();
         this.sourceFolder = file;
         this.filter = null;
-
     }
 
-    /**
-     * @param f
-     * @return
-     */
     public HashMap<File, String> findOccurancesOf(final Field f) {
         final HashMap<File, String> found = new HashMap<File, String>();
 
-        Entry<File, String[]> next;
-        for (final Iterator<Entry<File, String[]>> it = this.map.entrySet().iterator(); it.hasNext();) {
-            next = it.next();
-
+        for (Entry<File, String[]> next : this.map.entrySet()) {
             for (String statement : next.getValue()) {
-
                 if (statement.contains(f.getName())) {
                     if (statement.contains("//") || statement.contains("/*")) {
-                        statement = statement;
+                        // TODO: Old assignment made no sense
+                        // statement = statement;
                     }
                     found.put(next.getKey(), statement);
                 }
@@ -60,16 +45,11 @@ public class SourceParser extends Object {
         return found;
     }
 
-    /**
-     * @return
-     */
     public File getSource() {
-        // TODO Auto-generated method stub
         return this.sourceFolder;
     }
 
     private void getSourceFiles(final File file) throws IOException {
-
         for (final File f : file.listFiles(new FilenameFilter() {
 
             @Override
@@ -87,24 +67,15 @@ public class SourceParser extends Object {
                 this.map.put(f, statement.split("[\\{\\}\\;]"));
             }
         }
-
     }
 
-    /**
-     * @throws IOException
-     * 
-     */
     public void scan() throws IOException {
         this.map = new HashMap<File, String[]>();
         this.getSourceFiles(this.sourceFolder);
     }
 
-    /**
-     * @param filenameFilter
-     */
     public void setFilter(final FilenameFilter filenameFilter) {
         this.filter = filenameFilter;
-
     }
 
 }

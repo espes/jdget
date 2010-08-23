@@ -20,14 +20,9 @@ import org.appwork.swing.trayicon.AWTrayIcon;
 
 /**
  * @author thomas
- * 
  */
 public class TrayIconTest {
 
-    /**
-     * @param args
-     * @throws AWTException
-     */
     public static void main(final String[] args) throws AWTException {
         final JComponent comp = new JTextArea();
 
@@ -37,8 +32,7 @@ public class TrayIconTest {
         frame.setSize(400, 300);
         frame.setVisible(true);
 
-        final AWTrayIcon ti = new AWTrayIcon(frame);
-
+        new AWTrayIcon(frame);
     }
 
 }

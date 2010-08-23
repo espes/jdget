@@ -320,7 +320,7 @@ public class Dialog {
      * @return
      */
     public int showConfirmDialog(final int flag, final String question) {
-        return this.showConfirmDialog(flag, APPWORKUTILS.DIALOG_CONFIRMDIALOG_TITLE.toString(), question, Dialog.getIconByText(question), null, null);
+        return this.showConfirmDialog(flag, APPWORKUTILS.DIALOG_CONFIRMDIALOG_TITLE.s(), question, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -606,7 +606,7 @@ public class Dialog {
      * @return
      */
     public String showInputDialog(final int flag, final String question, final String defaultvalue) {
-        return this.showInputDialog(flag, APPWORKUTILS.DIALOG_INPUT_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null);
+        return this.showInputDialog(flag, APPWORKUTILS.DIALOG_INPUT_TITLE.s(), question, defaultvalue, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -662,7 +662,7 @@ public class Dialog {
      *            The Dialog is able to show a message to the user
      */
     public void showMessageDialog(final int flag, final String message) {
-        this.showMessageDialog(flag, APPWORKUTILS.DIALOG_MESSAGE_TITLE.toString(), message);
+        this.showMessageDialog(flag, APPWORKUTILS.DIALOG_MESSAGE_TITLE.s(), message);
     }
 
     /**
@@ -685,7 +685,7 @@ public class Dialog {
      *            The Dialog is able to show a message to the user
      */
     public void showMessageDialog(final String message) {
-        this.showMessageDialog(0, APPWORKUTILS.DIALOG_MESSAGE_TITLE.toString(), message);
+        this.showMessageDialog(0, APPWORKUTILS.DIALOG_MESSAGE_TITLE.s(), message);
     }
 
     /**
@@ -712,7 +712,7 @@ public class Dialog {
      * @return
      */
     public String showPasswordDialog(final int flag, final String question, final String defaultvalue) {
-        return this.showPasswordDialog(flag, APPWORKUTILS.DIALOG_PASSWORD_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null);
+        return this.showPasswordDialog(flag, APPWORKUTILS.DIALOG_PASSWORD_TITLE.s(), question, defaultvalue, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -805,7 +805,7 @@ public class Dialog {
      * @return
      */
     public long showValueDialog(final int flag, final String question, final long defaultvalue, final long min, final long max, final long step, final ValueConverter valueConverter) {
-        return this.showValueDialog(flag, APPWORKUTILS.DIALOG_SLIDER_TITLE.toString(), question, defaultvalue, Dialog.getIconByText(question), null, null, min, max, step, valueConverter);
+        return this.showValueDialog(flag, APPWORKUTILS.DIALOG_SLIDER_TITLE.s(), question, defaultvalue, Dialog.getIconByText(question), null, null, min, max, step, valueConverter);
     }
 
     /**
