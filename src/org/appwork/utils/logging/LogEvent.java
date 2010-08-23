@@ -9,9 +9,9 @@
  */
 package org.appwork.utils.logging;
 
-import org.appwork.utils.event.Event;
+import org.appwork.utils.event.DefaultEvent;
 
-public class LogEvent extends Event {
+public class LogEvent extends DefaultEvent {
     /**
      * parameter is of type LogRecord
      */

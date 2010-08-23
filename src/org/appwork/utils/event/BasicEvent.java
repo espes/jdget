@@ -2,9 +2,9 @@ package org.appwork.utils.event;
 
 import java.util.EventObject;
 
-import org.appwork.utils.event.Event;
+import org.appwork.utils.event.DefaultEvent;
 
-public class BasicEvent<E> extends Event {
+public class BasicEvent<E> extends DefaultEvent {
 
     private EventObject sourceEvent;
 

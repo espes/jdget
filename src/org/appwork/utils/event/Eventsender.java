@@ -22,7 +22,7 @@ import java.util.EventListener;
  * 
  */
 
-public abstract class Eventsender<T extends EventListener, TT extends Event> {
+public abstract class Eventsender<T extends EventListener, TT extends DefaultEvent> {
 
     transient protected ArrayList<T> addRequestedListeners = null;
     /**
@@ -101,6 +101,7 @@ public abstract class Eventsender<T extends EventListener, TT extends Event> {
      */
 
     public void fireEvent(final TT event) {
+        if (event == null) { return; }
         ArrayList<T> listeners;
         synchronized (this.LOCK) {
             if (this.writeR == this.readR) {

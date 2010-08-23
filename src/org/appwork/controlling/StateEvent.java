@@ -9,13 +9,13 @@
  */
 package org.appwork.controlling;
 
-import org.appwork.utils.event.Event;
+import org.appwork.utils.event.DefaultEvent;
 
 /**
  * @author thomas
  * 
  */
-public class StateEvent extends Event {
+public class StateEvent extends DefaultEvent {
 
     private State oldState;
     private State newState;

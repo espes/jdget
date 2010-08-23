@@ -2,6 +2,8 @@ package org.appwork.storage;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import org.appwork.utils.logging.Log;
 import org.codehaus.jackson.JsonGenerationException;
@@ -12,9 +14,9 @@ public class JacksonStorageChest extends Storage {
     private final HashMap<String, Object> map;
     private final String name;
     private String filename = null;
-    private boolean plain;
+    private final boolean plain;
 
-    public JacksonStorageChest(String name) throws StorageException {
+    public JacksonStorageChest(final String name) throws StorageException {
         this(name, false);
     }
 
@@ -23,49 +25,48 @@ public class JacksonStorageChest extends Storage {
      * @param b
      */
 
-    public JacksonStorageChest(String name, boolean plain) {
+    public JacksonStorageChest(final String name, final boolean plain) {
         this.map = new HashMap<String, Object>();
         this.name = name;
         this.plain = plain;
         this.filename = "cfg/" + name + (plain ? ".json" : ".ejs");
         synchronized (JSonStorage.LOCK) {
-            HashMap<String, Object> load = JSonStorage.restoreFrom(filename, null, new HashMap<String, Object>());
-            map.putAll(load);
+            final HashMap<String, Object> load = JSonStorage.restoreFrom(this.filename, null, new HashMap<String, Object>());
+            this.map.putAll(load);
         }
     }
 
-    public boolean isPlain() {
-        return plain;
-    }
+    @Override
+    public void clear() throws StorageException {
+        Entry<String, Object> next;
+        for (final Iterator<Entry<String, Object>> it = this.map.entrySet().iterator(); it.hasNext();) {
+            next = it.next();
+            this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, next.getKey(), next.getValue(), null));
+        }
 
-    public String getFilename() {
-        return filename;
-    }
-
-    public String getName() {
-        return name;
+        this.map.clear();
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <E> E get(String key, E def) throws StorageException {
-        Object ret = map.get(key);
+    public <E> E get(final String key, final E def) throws StorageException {
+        Object ret = this.map.get(key);
         if (ret == null && def != null) {
             ret = def;
             if (def instanceof Boolean) {
-                put(key, (Boolean) def);
+                this.put(key, (Boolean) def);
             } else if (def instanceof Long) {
-                put(key, (Long) def);
+                this.put(key, (Long) def);
             } else if (def instanceof Integer) {
-                put(key, (Integer) def);
+                this.put(key, (Integer) def);
             } else if (def instanceof Byte) {
-                put(key, (Byte) def);
+                this.put(key, (Byte) def);
             } else if (def instanceof String) {
-                put(key, (String) def);
+                this.put(key, (String) def);
             } else if (def instanceof Enum<?>) {
-                put(key, (Enum<?>) def);
+                this.put(key, (Enum<?>) def);
             } else if (def instanceof Double) {
-                put(key, (Double) def);
+                this.put(key, (Double) def);
             } else {
                 throw new StorageException("Invalid datatype: " + def.getClass());
             }
@@ -74,9 +75,9 @@ public class JacksonStorageChest extends Storage {
         if (def instanceof Enum<?> && ret instanceof String) {
             try {
                 ret = Enum.valueOf(((Enum<?>) def).getDeclaringClass(), (String) ret);
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 Log.exception(e);
-                put(key, (Enum<?>) def);
+                this.put(key, (Enum<?>) def);
                 ret = def;
             }
         }
@@ -84,34 +85,71 @@ public class JacksonStorageChest extends Storage {
 
     }
 
-    @Override
-    public void put(String key, Boolean value) throws StorageException {
-        map.put(key, value);
+    public String getFilename() {
+        return this.filename;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public boolean isPlain() {
+        return this.plain;
     }
 
     @Override
-    public void put(String key, Byte value) throws StorageException {
-        map.put(key, value);
+    public void put(final String key, final Boolean value) throws StorageException {
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+        this.map.put(key, value);
     }
 
     @Override
-    public void put(String key, Enum<?> value) throws StorageException {
-        map.put(key, value);
+    public void put(final String key, final Byte value) throws StorageException {
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+
+        this.map.put(key, value);
     }
 
     @Override
-    public void put(String key, Integer value) throws StorageException {
-        map.put(key, value);
+    public void put(final String key, final Double value) throws StorageException {
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+
+        this.map.put(key, value);
     }
 
     @Override
-    public void put(String key, Long value) throws StorageException {
-        map.put(key, value);
+    public void put(final String key, final Enum<?> value) throws StorageException {
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+
+        this.map.put(key, value);
     }
 
     @Override
-    public void put(String key, String value) throws StorageException {
-        map.put(key, value);
+    public void put(final String key, final Float value) throws StorageException {
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+
+        this.map.put(key, value);
+    }
+
+    @Override
+    public void put(final String key, final Integer value) throws StorageException {
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+
+        this.map.put(key, value);
+    }
+
+    @Override
+    public void put(final String key, final Long value) throws StorageException {
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+
+        this.map.put(key, value);
+    }
+
+    @Override
+    public void put(final String key, final String value) throws StorageException {
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+
+        this.map.put(key, value);
     }
 
     @Override
@@ -119,35 +157,21 @@ public class JacksonStorageChest extends Storage {
         synchronized (JSonStorage.LOCK) {
             try {
                 String json = null;
+
                 /*
                  * writer are not threadsafe,
                  * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
                  */
-                json = JSonStorage.getMapper().writeValueAsString(map);
-                JSonStorage.saveTo(filename, json);
-            } catch (JsonGenerationException e) {
+                json = JSonStorage.getMapper().writeValueAsString(this.map);
+                JSonStorage.saveTo(this.filename, json);
+            } catch (final JsonGenerationException e) {
                 Log.exception(e);
-            } catch (JsonMappingException e) {
+            } catch (final JsonMappingException e) {
                 Log.exception(e);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 Log.exception(e);
             }
         }
-    }
-
-    @Override
-    public void clear() throws StorageException {
-        map.clear();
-    }
-
-    @Override
-    public void put(String key, Double value) throws StorageException {
-        map.put(key, value);
-    }
-
-    @Override
-    public void put(String key, Float value) throws StorageException {
-        map.put(key, value);
     }
 
 }

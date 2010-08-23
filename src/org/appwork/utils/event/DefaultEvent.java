@@ -16,7 +16,7 @@ package org.appwork.utils.event;
  * @author $Author: unknown$
  * 
  */
-public abstract class Event {
+public abstract class DefaultEvent {
     /**
      * The caller that fired this event
      */
@@ -39,7 +39,7 @@ public abstract class Event {
      * @param eventID
      *            The Event's id
      */
-    public Event(Object caller, int eventID) {
+    public DefaultEvent(Object caller, int eventID) {
         this.caller = caller;
         this.eventID = eventID;
     }
@@ -53,30 +53,30 @@ public abstract class Event {
      * @param parameter
      *            a parameter object
      */
-    public Event(Object caller, int eventID, Object parameter) {
+    public DefaultEvent(Object caller, int eventID, Object parameter) {
         this(caller, eventID);
         this.parameter = parameter;
     }
 
     /**
-     * @return the {@link Event#caller}
-     * @see Event#caller
+     * @return the {@link DefaultEvent#caller}
+     * @see DefaultEvent#caller
      */
     public Object getCaller() {
         return caller;
     }
 
     /**
-     * @return the {@link Event#eventID}
-     * @see Event#eventID
+     * @return the {@link DefaultEvent#eventID}
+     * @see DefaultEvent#eventID
      */
     public int getEventID() {
         return eventID;
     }
 
     /**
-     * @return the {@link Event#parameter}
-     * @see Event#parameter
+     * @return the {@link DefaultEvent#parameter}
+     * @see DefaultEvent#parameter
      */
     public Object getParameter() {
         return parameter;
