@@ -14,51 +14,51 @@ package org.appwork.utils.locale;
  * 
  */
 public enum APPWORKUTILS implements Translate {
-    /*
-     * ###de_DE:Ok
-     */
-    ABSTRACTDIALOG_BUTTON_OK("Ok"),
-    /*
-     * ###de_DE:Abbrechen
-     */
-    ABSTRACTDIALOG_BUTTON_CANCEL("Cancel"),
-    ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN("Don't show this again"),
-    /*
-     * ###de_DE:Bitte bestätigen!
-     */
-    DIALOG_CONFIRMDIALOG_TITLE("Please confirm!"),
-    /*
-     * ###de_DE:Bitte eingeben
-     */
-    DIALOG_INPUT_TITLE("Please enter!"),
-    DIALOG_PASSWORD_TITLE("Please enter!"),
-    /*
-     * ###de_DE:Nachricht
-     */
-    DIALOG_MESSAGE_TITLE("Message"),
-    DIALOG_SLIDER_TITLE("Please enter!"),
-    LOGINDIALOG_LABEL_USERNAME("Login"),
-    LOGINDIALOG_LABEL_PASSWORD("Password"),
-    LOGINDIALOG_LABEL_PASSWORD_REPEAT("Repeat Password"),
-    LOGINDIALOG_BUTTON_REGISTER("Create new User"),
-    LOGINDIALOG_CHECKBOX_REMEMBER("Remember"),
-    LOGINDIALOG_BUTTON_LOGIN("Login"),
-    PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD("Old Password:"),
-    PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD_REPEAT("Confirm Password:"),
-    PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD("New Password:"),
-    SEARCHDIALOG_BUTTON_FIND("Find"),
-    SEARCHDIALOG_CHECKBOX_CASESENSITIVE("Case sensitive"),
-    SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION("Regular Expressions"),
-    TIMERDIALOG_MESSAGE_COUNTDOWN_STARTING("Countdown starting..."),
-    TIMERDIALOG_TOOLTIP_TIMERLABEL("This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"),
-    DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER("Switch to parent folder"),
-    DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER("Switch to Home"),
-    DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER("Create new folder"),
-    DIALOG_FILECHOOSER_TOOLTIP_DETAILS("Switch to detailed view"),
-    DIALOG_FILECHOOSER_TOOLTIP_LIST("Switch to list view"),
-    EXTTABLE_SEARCH_DIALOG_TITLE("Search table"),
-    DIALOG_ERROR_TITLE("Error Occured");
-    // ENDOFENUMS
+/*
+* ###de_DE:Ok
+*/
+ABSTRACTDIALOG_BUTTON_OK("Ok"),
+/*
+* ###de_DE:Abbrechen
+*/
+ABSTRACTDIALOG_BUTTON_CANCEL("Cancel"),
+ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN("Don't show this again"),
+/*
+* ###de_DE:Bitte bestätigen!
+*/
+DIALOG_CONFIRMDIALOG_TITLE("Please confirm!"),
+/*
+* ###de_DE:Bitte eingeben
+*/
+DIALOG_INPUT_TITLE("Please enter!"),
+DIALOG_PASSWORD_TITLE("Please enter!"),
+/*
+* ###de_DE:Nachricht
+*/
+DIALOG_MESSAGE_TITLE("Message"),
+DIALOG_SLIDER_TITLE("Please enter!"),
+LOGINDIALOG_LABEL_USERNAME("Login"),
+LOGINDIALOG_LABEL_PASSWORD("Password"),
+LOGINDIALOG_LABEL_PASSWORD_REPEAT("Repeat Password"),
+LOGINDIALOG_BUTTON_REGISTER("Create new User"),
+LOGINDIALOG_CHECKBOX_REMEMBER("Remember"),
+LOGINDIALOG_BUTTON_LOGIN("Login"),
+PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD("Old Password:"),
+PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD_REPEAT("Confirm Password:"),
+PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD("New Password:"),
+SEARCHDIALOG_BUTTON_FIND("Find"),
+SEARCHDIALOG_CHECKBOX_CASESENSITIVE("Case sensitive"),
+SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION("Regular Expressions"),
+TIMERDIALOG_MESSAGE_COUNTDOWN_STARTING("Countdown starting..."),
+TIMERDIALOG_TOOLTIP_TIMERLABEL("This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"),
+DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER("Switch to parent folder"),
+DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER("Switch to Home"),
+DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER("Create new folder"),
+DIALOG_FILECHOOSER_TOOLTIP_DETAILS("Switch to detailed view"),
+DIALOG_FILECHOOSER_TOOLTIP_LIST("Switch to list view"),
+EXTTABLE_SEARCH_DIALOG_TITLE("Search table"),
+DIALOG_ERROR_TITLE("Error Occured");
+// ENDOFENUMS
     /**
      * @return
      */

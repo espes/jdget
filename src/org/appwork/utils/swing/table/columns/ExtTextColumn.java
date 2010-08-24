@@ -16,7 +16,7 @@ import org.appwork.utils.swing.table.ExtTableModel;
 public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     private static final long serialVersionUID = 2114805529462086691L;
-    protected RenderLabel label;
+    protected RenderLabel     label;
 
     public ExtTextColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
@@ -71,7 +71,12 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
     }
 
     public String getToolTip(final E obj) {
-        return "<html>" + this.getStringValue(obj).replaceAll("\r\n", "<br>") + "</html>";
+        final String v = this.getStringValue(obj);
+        if (v != null) {
+            return "<html>" + v.replaceAll("\r\n", "<br>") + "</html>";
+        } else {
+            return v;
+        }
     }
 
     @Override
