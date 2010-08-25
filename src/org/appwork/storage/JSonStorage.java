@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
@@ -110,8 +111,9 @@ public class JSonStorage {
                         Application.getRessource(string).delete();
                         Application.getRessource(string + ".tmp").renameTo(Application.getRessource(string));
                         return ret;
-                    } catch (final Exception e) {                       
-                        Log.exception(e);
+                    } catch (final Exception e) {
+                        Log.L.warning("Could not restore tmp file");
+                        Log.exception(Level.WARNING,e);
                     } finally {
                         /* tmp file must be gone after read */
                         Application.getRessource(string + ".tmp").delete();
