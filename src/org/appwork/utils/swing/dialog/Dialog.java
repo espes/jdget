@@ -490,7 +490,7 @@ public class Dialog {
                             preSelection = new File(JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null));
                         }
                         while (preSelection != null) {
-                            if (!preSelection.exists()) {
+                            if (!preSelection.exists() && (dialogType != null) && (dialogType == JFileChooser.OPEN_DIALOG)) {
                                 /* file does not exist, try ParentFile */
                                 preSelection = preSelection.getParentFile();
                             } else {
