@@ -27,7 +27,7 @@ public class ContainerDialog extends AbstractDialog<Object> {
      * 
      */
     private static final long serialVersionUID = -8767494769584526940L;
-    private JPanel panel;
+    protected JPanel          panel;
 
     /**
      * 
@@ -39,16 +39,11 @@ public class ContainerDialog extends AbstractDialog<Object> {
      * @param ok
      * @param cancel
      */
-    public ContainerDialog(int flags, String title, JPanel panel, Image icon, String ok, String cancel) {
+    public ContainerDialog(final int flags, final String title, final JPanel panel, final Image icon, final String ok, final String cancel) {
         super(flags, title, null, ok, cancel);
         this.panel = panel;
 
         this.setIconImage(icon);
-    }
-
-    @Override
-    public JComponent layoutDialogContent() {
-        return panel;
     }
 
     /*
@@ -60,6 +55,11 @@ public class ContainerDialog extends AbstractDialog<Object> {
     protected Object createReturnValue() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public JComponent layoutDialogContent() {
+        return this.panel;
     }
 
 }
