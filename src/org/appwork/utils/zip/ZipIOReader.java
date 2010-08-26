@@ -27,9 +27,9 @@ import java.util.zip.ZipFile;
  */
 public class ZipIOReader {
 
-    private File zipFile = null;
-    private ZipFile zip = null;
-    private ZipIOFile rootFS = null;
+    private File      zipFile = null;
+    private ZipFile   zip     = null;
+    private ZipIOFile rootFS  = null;
 
     /**
      * open the zipFile for this ZipIOReader
@@ -65,9 +65,7 @@ public class ZipIOReader {
      */
     public synchronized void close() throws IOException {
         try {
-            if (zip != null) {
-                zip.close();
-            }
+            if (zip != null) zip.close();
         } finally {
             zip = null;
         }
@@ -152,17 +150,13 @@ public class ZipIOReader {
             }
             if (entry.getCrc() != -1 && (entry.getCrc() != in.getChecksum().getValue())) throw new ZipIOException("CRC32 Failed", entry);
         } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (Exception e) {
-                }
+            try {
+                in.close();
+            } catch (Throwable e) {
             }
-            if (stream != null) {
-                try {
-                    stream.close();
-                } catch (Exception e) {
-                }
+            try {
+                stream.close();
+            } catch (Throwable e) {
             }
         }
     }
@@ -178,10 +172,6 @@ public class ZipIOReader {
     public synchronized ZipEntry getZipFile(String fileName) throws ZipIOException {
         if (fileName == null) throw new ZipIOException("invalid fileName");
         return zip.getEntry(fileName);
-    }
-
-    protected void finalize() throws IOException {
-        close();
     }
 
     /**

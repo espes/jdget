@@ -25,11 +25,11 @@ import org.appwork.utils.Hash;
  */
 public class ZipIOWriter {
 
-    private ZipOutputStream zipStream = null;
+    private ZipOutputStream  zipStream  = null;
     private FileOutputStream fileStream = null;
-    private File zipFile = null;
+    private File             zipFile    = null;
 
-    private byte[] buf = new byte[8192];
+    private byte[]           buf        = new byte[8192];
 
     /**
      * constructor for ZipIOWriter
@@ -78,27 +78,36 @@ public class ZipIOWriter {
 
     /**
      * closes the ZipFile
-     * 
-     * @throws IOException
+     * @throws Throwable 
      */
     public synchronized void close() throws IOException {
+        Throwable e = null;
         try {
-            if (zipStream != null) {
+            try {
                 zipStream.flush();
-                zipStream.close();
+            } catch (Throwable e2) {
+                if (e == null) e = e2;
             }
-            if (fileStream != null) {
+            try {
                 fileStream.flush();
+            } catch (Throwable e2) {
+                if (e == null) e = e2;
+            }
+            try {
+                zipStream.close();
+            } catch (Throwable e2) {
+                if (e == null) e = e2;
+            }
+            try {
                 fileStream.close();
+            } catch (Throwable e2) {
+                if (e == null) e = e2;
             }
         } finally {
             zipStream = null;
             fileStream = null;
         }
-    }
-
-    protected void finalize() throws IOException {
-        close();
+        if (e != null) throw new IOException(e);
     }
 
     /**
@@ -197,14 +206,5 @@ public class ZipIOWriter {
         }
     }
 
-    /**
-     * @param args
-     * @throws IOException
-     * @throws ZipIOException
-     */
-    public static void main(String[] args) throws ZipIOException, IOException {
-        ZipIOWriter zip = new ZipIOWriter(new File("/home/daniel/test.zip"), true);
-        zip.add(new File("/home/daniel/Rain-OST"), true, "home/uu");
-        zip.close();
-    }
+    
 }
