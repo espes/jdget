@@ -72,10 +72,10 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     public String getToolTip(final E obj) {
         final String v = this.getStringValue(obj);
-        if (v != null) {
+        if (v != null && v.length()>0) {
             return "<html>" + v.replaceAll("\r\n", "<br>") + "</html>";
         } else {
-            return v;
+            return null;
         }
     }
 
