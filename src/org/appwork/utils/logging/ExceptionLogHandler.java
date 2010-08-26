@@ -26,8 +26,10 @@ import org.appwork.utils.Application;
  */
 public class ExceptionLogHandler extends java.util.logging.Handler {
 
-    private File file;
-    private BufferedWriter writer = null;
+    private File               file;
+    private BufferedWriter     writer = null;
+    private OutputStreamWriter osw    = null;
+    private FileOutputStream   fos    = null;
 
     public ExceptionLogHandler() {
         super();
@@ -40,20 +42,28 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
             if (!this.file.isFile()) {
                 this.file.createNewFile();
             }
-            this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(this.file, true), "UTF8"));
+            this.writer = new BufferedWriter(osw = new OutputStreamWriter(fos = new FileOutputStream(this.file, true), "UTF8"));
         } catch (final Exception e) {
             e.printStackTrace();
+            close();
         }
     }
 
     @Override
     public void close() {
         try {
-            this.writer.close();
-        } catch (final IOException e) {
-            e.printStackTrace();
+            writer.close();
+        } catch (Throwable e) {
         } finally {
             this.writer = null;
+        }
+        try {
+            osw.close();
+        } catch (Throwable e) {
+        }
+        try {
+            fos.close();
+        } catch (Throwable e) {
         }
     }
 

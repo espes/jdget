@@ -22,7 +22,7 @@ import org.appwork.utils.formatter.HexFormatter;
 
 public class Hash {
 
-    public static String HASH_TYPE_MD5 = "md5";
+    public static String HASH_TYPE_MD5  = "md5";
 
     public static String HASH_TYPE_SHA1 = "SHA-1";
 
@@ -36,10 +36,14 @@ public class Hash {
             }
             return cis.getChecksum().getValue();
         } finally {
-            if (cis != null) {
+            try {
                 cis.close();
+            } catch (Throwable e) {
             }
-            fis.close();
+            try {
+                fis.close();
+            } catch (Throwable e) {
+            }
         }
     }
 
@@ -48,12 +52,18 @@ public class Hash {
         final MessageDigest md = MessageDigest.getInstance(type);
         // if (true) { throw new IOException("Any IOEXCeption"); }
         final byte[] b = new byte[32767];
-        final InputStream in = new FileInputStream(arg);
-        for (int n = 0; (n = in.read(b)) > -1;) {
-            md.update(b, 0, n);
 
+        final FileInputStream fis = new FileInputStream(arg);
+        try {
+            for (int n = 0; (n = fis.read(b)) > -1;) {
+                md.update(b, 0, n);
+            }
+        } finally {
+            try {
+                fis.close();
+            } catch (Throwable e) {
+            }            
         }
-        in.close();
         final byte[] digest = md.digest();
         return HexFormatter.byteArrayToHex(digest);
 

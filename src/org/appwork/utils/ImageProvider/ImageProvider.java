@@ -22,7 +22,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
+import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.UIManager;
@@ -42,13 +44,13 @@ public class ImageProvider {
     /**
      * Hashcashmap to cache images.
      */
-    private static HashMap<String, BufferedImage> IMAGE_CACHE = new HashMap<String, BufferedImage>();
-    private static HashMap<String, ImageIcon> IMAGEICON_CACHE = new HashMap<String, ImageIcon>();
-    private static HashMap<Icon, Icon> DISABLED_ICON_CACHE = new HashMap<Icon, Icon>();
+    private static HashMap<String, BufferedImage> IMAGE_CACHE         = new HashMap<String, BufferedImage>();
+    private static HashMap<String, ImageIcon>     IMAGEICON_CACHE     = new HashMap<String, ImageIcon>();
+    private static HashMap<Icon, Icon>            DISABLED_ICON_CACHE = new HashMap<Icon, Icon>();
 
-    private static Object LOCK = new Object();
+    private static Object                         LOCK                = new Object();
     // stringbuilder die concat strings fast
-    private static StringBuilder SB = new StringBuilder();
+    private static StringBuilder                  SB                  = new StringBuilder();
 
     /**
      * @param bufferedImage
@@ -104,6 +106,25 @@ public class ImageProvider {
 
     }
 
+    /* copied from ImageIO, to close the inputStream */
+    public static BufferedImage read(File input) throws IOException {
+        if (input == null) { throw new IllegalArgumentException("input == null!"); }
+        if (!input.canRead()) { throw new IIOException("Can't read input file!"); }
+
+        ImageInputStream stream = ImageIO.createImageInputStream(input);
+        BufferedImage bi = null;
+        try {
+            if (stream == null) { throw new IIOException("Can't create an ImageInputStream!"); }
+            bi = ImageIO.read(stream);
+        } finally {
+            try {
+                stream.close();
+            } catch (Throwable e) {
+            }
+        }
+        return bi;
+    }
+
     /**
      * 
      * @param name
@@ -120,7 +141,7 @@ public class ImageProvider {
             final File absolutePath = Application.getRessource("images/" + name + ".png");
             try {
                 Log.L.info("Init Image: " + absolutePath.getAbsolutePath());
-                final BufferedImage image = ImageIO.read(absolutePath);
+                final BufferedImage image = read(absolutePath);
                 ImageProvider.IMAGE_CACHE.put(name, image);
                 return image;
             } catch (final IOException e) {

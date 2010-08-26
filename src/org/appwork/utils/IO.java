@@ -7,9 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.channels.FileChannel;
 
@@ -17,19 +15,32 @@ import org.appwork.utils.os.CrossSystem;
 
 public class IO {
     public static String readFileToString(File file) throws IOException {
-
-        final BufferedReader f;
-
-        f = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
-        String line;
-        final StringBuilder ret = new StringBuilder();
-        String sep = System.getProperty("line.separator");
-        while ((line = f.readLine()) != null) {
-            ret.append(line + sep);
+        BufferedReader f = null;
+        InputStreamReader isr = null;
+        FileInputStream fis = null;
+        try {
+            f = new BufferedReader(isr = new InputStreamReader(fis = new FileInputStream(file), "UTF8"));
+            String line;
+            final StringBuilder ret = new StringBuilder();
+            String sep = System.getProperty("line.separator");
+            while ((line = f.readLine()) != null) {
+                ret.append(line + sep);
+            }
+            return ret.toString();
+        } finally {
+            try {
+                f.close();
+            } catch (Throwable e) {
+            }
+            try {
+                isr.close();
+            } catch (Throwable e) {
+            }
+            try {
+                fis.close();
+            } catch (Throwable e) {
+            }
         }
-        f.close();
-        return ret.toString();
-
     }
 
     /**
@@ -42,13 +53,20 @@ public class IO {
         file.createNewFile();
         if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
         if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
-
-        Writer output = new BufferedWriter(new FileWriter(file));
+        FileWriter fw = null;
+        Writer output = new BufferedWriter(fw = new FileWriter(file));
 
         try {
             output.write(string);
         } finally {
-            output.close();
+            try {
+                output.close();
+            } catch (Throwable e) {
+            }
+            try {
+                fw.close();
+            } catch (Throwable e) {
+            }
         }
 
     }
@@ -65,11 +83,14 @@ public class IO {
         if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
         if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
 
-        OutputStream out = new FileOutputStream(file);
+        FileOutputStream out = new FileOutputStream(file);
         try {
             out.write(data);
         } finally {
-            out.close();
+            try {
+                out.close();
+            } catch (Throwable e) {
+            }
         }
     }
 
@@ -79,14 +100,16 @@ public class IO {
      * @throws IOException
      */
     public static byte[] readFile(File ressource) throws IOException {
-        InputStream in = new FileInputStream(ressource);
+        FileInputStream in = new FileInputStream(ressource);
         byte[] bytes = null;
         try {
             bytes = new byte[(int) ressource.length()];
             in.read(bytes);
-
         } finally {
-            in.close();
+            try {
+                in.close();
+            } catch (Throwable e) {
+            }
         }
         return bytes;
     }
@@ -96,8 +119,10 @@ public class IO {
      * @param file2
      */
     public static void copyFile(File in, File out) throws IOException {
-        FileChannel inChannel = new FileInputStream(in).getChannel();
-        FileChannel outChannel = new FileOutputStream(out).getChannel();
+        FileInputStream fis = null;
+        FileOutputStream fos = null;
+        FileChannel inChannel = (fis = new FileInputStream(in)).getChannel();
+        FileChannel outChannel = (fos = new FileOutputStream(out)).getChannel();
         try {
             if (CrossSystem.isWindows()) {
                 // magic number for Windows, 64Mb - 32Kb)
@@ -123,9 +148,22 @@ public class IO {
         } catch (IOException e) {
             throw e;
         } finally {
-            if (inChannel != null) inChannel.close();
-            if (outChannel != null) outChannel.close();
+            try{
+                outChannel.close();
+            }catch(Throwable e){                
+            }
+            try{
+                fos.close();
+            }catch(Throwable e){                
+            }
+            try{
+                inChannel.close();
+            }catch(Throwable e){                
+            }
+            try{
+                fis.close();
+            }catch(Throwable e){                
+            }
         }
     }
-
 }

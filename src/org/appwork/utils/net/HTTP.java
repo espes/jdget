@@ -18,6 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
+
 /**
  * @author thomas
  * 
@@ -31,45 +32,57 @@ public class HTTP {
      * @param cache
      * @throws IOException
      */
-    public static void download(URL url, File file) throws IOException {
-
+    public static void download(URL url, File file, DownloadProgress progress) throws IOException {
         final File parentFile = file.getParentFile();
         if (parentFile != null && !parentFile.exists()) {
             parentFile.mkdirs();
         }
         file.createNewFile();
-        BufferedInputStream input = null;
-        BufferedOutputStream output = null;
         FileOutputStream fos = null;
+        BufferedOutputStream output = null;
+        BufferedInputStream input = null;
+        GZIPInputStream gzi = null;
+        boolean deleteInterrupted = false;
         try {
-            output = new BufferedOutputStream(fos = new FileOutputStream(file, true));
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            output = new BufferedOutputStream(fos = new FileOutputStream(file, false));
+            final HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setInstanceFollowRedirects(true);
             con.setConnectTimeout(15000);
-            con.setReadTimeout(15000);
+            con.setReadTimeout(30000);
             if (url.openConnection().getHeaderField("Content-Encoding") != null && con.getHeaderField("Content-Encoding").equalsIgnoreCase("gzip")) {
-                input = new BufferedInputStream(new GZIPInputStream(con.getInputStream()));
+                input = new BufferedInputStream(gzi = new GZIPInputStream(con.getInputStream()));
             } else {
                 input = new BufferedInputStream(con.getInputStream());
             }
-
-            final byte[] b = new byte[1024];
+            if (progress != null) progress.setTotal(con.getContentLength());
+            final byte[] b = new byte[32767];
             int len;
             while ((len = input.read(b)) != -1) {
+                if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
                 output.write(b, 0, len);
+                if (progress != null) progress.increaseLoaded(len);
             }
+        } catch (final InterruptedException e) {
+            deleteInterrupted = true;
         } finally {
             try {
                 input.close();
-            } catch (Throwable e) {
+            } catch (final Exception e) {
+            }
+            try {
+                gzi.close();
+            } catch (final Exception e) {
             }
             try {
                 output.close();
-            } catch (Throwable e) {
+            } catch (final Exception e) {
             }
             try {
                 fos.close();
-            } catch (Throwable e) {
+            } catch (final Exception e) {
+            }
+            if (deleteInterrupted) {
+                file.delete();
             }
         }
     }

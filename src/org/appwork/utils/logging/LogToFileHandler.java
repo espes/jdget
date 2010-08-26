@@ -27,8 +27,10 @@ import org.appwork.utils.Application;
  */
 public class LogToFileHandler extends java.util.logging.Handler {
 
-    private File file;
-    private BufferedWriter writer;
+    private File               file;
+    private BufferedWriter     writer;
+    private OutputStreamWriter osw = null;
+    private FileOutputStream   fos = null;
 
     public LogToFileHandler() throws IOException {
         super();
@@ -39,16 +41,26 @@ public class LogToFileHandler extends java.util.logging.Handler {
         file.getParentFile().mkdirs();
         file.deleteOnExit();
         if (!file.isFile()) file.createNewFile();
-        writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF8"));
-
+        try {
+            writer = new BufferedWriter(osw = new OutputStreamWriter(fos = new FileOutputStream(file, true), "UTF8"));
+        } catch (Throwable e) {
+            e.printStackTrace();
+            close();
+        }
     }
 
     public void close() {
         try {
             writer.close();
-        } catch (IOException e) {
-
-            org.appwork.utils.logging.Log.exception(e);
+        } catch (Throwable e) {
+        }
+        try {
+            osw.close();
+        } catch (Throwable e) {
+        }
+        try {
+            fos.close();
+        } catch (Throwable e) {
         }
     }
 
@@ -56,7 +68,6 @@ public class LogToFileHandler extends java.util.logging.Handler {
         try {
             writer.flush();
         } catch (IOException e) {
-
             org.appwork.utils.logging.Log.exception(e);
         }
     }

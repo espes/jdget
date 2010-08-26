@@ -32,35 +32,35 @@ public class Loc {
      * The directory, where all localization files are located. A_ because this
      * the order is important.
      */
-    public static final File A_LOCALIZATION_DIR = Application.getRessource("languages/");
+    public static final File                A_LOCALIZATION_DIR   = Application.getRessource("languages/");
 
-    public static final Storage CFG = JSonStorage.getStorage("Locale");
+    public static final Storage             CFG                  = JSonStorage.getStorage("Locale");
     /**
      * The HashMap which contains all hashcodes of the keys and their translated
      * values.
      * 
      * @see Loc#parseLocalization(RFSFile)
      */
-    private static HashMap<Integer, String> DATA = null;
+    private static HashMap<Integer, String> DATA                 = null;
 
-    private static String DEFAULT_LOCALE_CACHE;
+    private static String                   DEFAULT_LOCALE_CACHE;
 
     /**
      * The default localization file. This is the english language.
      */
-    private static final File DEFAULT_LOCALIZATION = new File(Loc.A_LOCALIZATION_DIR, Loc.getDefaultLocale() + ".loc");
+    private static final File               DEFAULT_LOCALIZATION = new File(Loc.A_LOCALIZATION_DIR, Loc.getDefaultLocale() + ".loc");
 
     /**
      * The name of the default localization file. This is the english language.
      */
-    private static final String FALLBACK_LOCALE = "en_GB";
+    private static final String             FALLBACK_LOCALE      = "en_GB";
 
-    private static String locale;
+    private static String                   locale;
 
     /**
      * The key (String) under which the saved localization-name is stored.
      */
-    public static final String PROPERTY_LOCALE = "PROPERTY_LOCALE2";
+    public static final String              PROPERTY_LOCALE      = "PROPERTY_LOCALE2";
 
     public static String _(final Translate t) {
         return t.s();
@@ -243,8 +243,10 @@ public class Loc {
         Loc.DATA = new HashMap<Integer, String>();
 
         BufferedReader reader = null;
+        InputStreamReader isr = null;
+        FileInputStream fis = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
+            reader = new BufferedReader(isr = new InputStreamReader(fis = new FileInputStream(file), "UTF8"));
 
             String line;
             String key;
@@ -268,12 +270,17 @@ public class Loc {
         } catch (final Exception e) {
             org.appwork.utils.logging.Log.exception(e);
         } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final Exception e) {
-                    org.appwork.utils.logging.Log.exception(e);
-                }
+            try {
+                reader.close();
+            } catch (Throwable e) {
+            }
+            try {
+                isr.close();
+            } catch (Throwable e) {
+            }
+            try {
+                fis.close();
+            } catch (Throwable e) {
             }
         }
     }
