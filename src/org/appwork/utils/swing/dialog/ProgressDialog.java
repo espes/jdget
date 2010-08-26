@@ -43,15 +43,15 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         public void run() throws Exception;
     }
 
-    private static final long serialVersionUID = -7420852517889843489L;
-    private boolean disposed;
+    private static final long    serialVersionUID = -7420852517889843489L;
+    private boolean              disposed;
 
-    private Thread executer;
+    private Thread               executer;
     private final ProgressGetter getter;
-    private final String message;
+    private final String         message;
 
-    private JTextPane textField;
-    private Timer updater;
+    private JTextPane            textField;
+    private Timer                updater;
 
     /**
      * @param progressGetter
@@ -147,9 +147,11 @@ public class ProgressDialog extends AbstractDialog<Integer> {
                     final String text = ProgressDialog.this.getter.getString();
                     if (prg < 0) {
                         bar.setIndeterminate(true);
-                        bar.setValue(prg);
+
                     } else {
                         bar.setIndeterminate(false);
+                        bar.setValue(prg);
+
                     }
                     if (text == null) {
                         bar.setStringPainted(false);
