@@ -29,13 +29,14 @@ import javax.swing.Timer;
 abstract public class Graph extends JPanel {
 
     private static final long serialVersionUID = 6943108941655020136L;
-    private int i;
-    private int[] cache;
-    private transient Thread fetcherThread;
-    private int interval = 1000;
-    private Timer painter;
+    private int               i;
+    private int[]             cache;
+    private transient Thread  fetcherThread;
+    private int               interval         = 1000;
+    private Timer             painter;
+    private final Object      LOCK             = new Object();
 
-    private Color colorA;
+    private Color             colorA;
 
     /**
      * @return the colorA
@@ -68,7 +69,7 @@ abstract public class Graph extends JPanel {
     }
 
     private Color colorB;
-    private int max;
+    private int   max;
 
     public Graph() {
         colorA = new Color(100, 100, 100, 40);
@@ -90,39 +91,39 @@ abstract public class Graph extends JPanel {
     }
 
     public void start() {
+        synchronized (LOCK) {
+            painter = new Timer(1000, new ActionListener() {
 
-        painter = new Timer(1000, new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    repaint();
+                }
+            });
+            painter.setRepeats(true);
+            painter.setInitialDelay(0);
 
-            public void actionPerformed(ActionEvent e) {
-                repaint();
-            }
-        });
-        painter.setRepeats(true);
-        painter.setInitialDelay(0);
+            i = 0;
+            fetcherThread = new Thread("Speedmeter updater") {
 
-        i = 0;
-        fetcherThread = new Thread("Speedmeter updater") {
+                @Override
+                public void run() {
 
-            @Override
-            public void run() {
+                    while (!this.isInterrupted()) {
 
-                while (!this.isInterrupted()) {
+                        cache[i] = getValue();
+                        i++;
+                        i = i % cache.length;
 
-                    cache[i] = getValue();
-                    i++;
-                    i = i % cache.length;
-
-                    try {
-                        Thread.sleep(interval);
-                    } catch (InterruptedException e) {
-                        return;
+                        try {
+                            Thread.sleep(interval);
+                        } catch (InterruptedException e) {
+                            return;
+                        }
                     }
                 }
-            }
-        };
-        fetcherThread.start();
-        painter.start();
-
+            };
+            fetcherThread.start();
+            painter.start();
+        }
     }
 
     /**
@@ -131,16 +132,16 @@ abstract public class Graph extends JPanel {
     abstract public int getValue();
 
     public void stop() {
-
-        if (fetcherThread != null) {
-            fetcherThread.interrupt();
-            fetcherThread = null;
+        synchronized (LOCK) {
+            if (fetcherThread != null) {
+                fetcherThread.interrupt();
+                fetcherThread = null;
+            }
+            if (painter != null) {
+                painter.stop();
+                painter = null;
+            }
         }
-        if (painter != null) {
-            painter.stop();
-            painter = null;
-        }
-
     }
 
     @Override

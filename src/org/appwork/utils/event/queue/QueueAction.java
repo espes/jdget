@@ -108,7 +108,7 @@ public abstract class QueueAction<T, E extends Throwable> {
         this.finished = true;
     }
 
-    protected void reset() {
+    public void reset() {
         this.exeption = null;
         this.killed = false;
         this.finished = false;
@@ -119,7 +119,7 @@ public abstract class QueueAction<T, E extends Throwable> {
 
     protected abstract T run() throws E;
 
-    protected void setCallerThread(final Queue queue, final Thread thread) {
+    public void setCallerThread(final Queue queue, final Thread thread) {
         this.thread = thread;
         this.queue = queue;
         if (queue != null && queue.isDebug() && thread != null) {
