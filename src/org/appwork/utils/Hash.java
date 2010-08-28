@@ -12,7 +12,6 @@ package org.appwork.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.CRC32;
@@ -62,7 +61,7 @@ public class Hash {
             try {
                 fis.close();
             } catch (Throwable e) {
-            }            
+            }
         }
         final byte[] digest = md.digest();
         return HexFormatter.byteArrayToHex(digest);
