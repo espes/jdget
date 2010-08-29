@@ -137,7 +137,7 @@ public class ZipIOReader {
         if (entry.isDirectory()) throw new ZipIOException("Cannot extract a directory", entry);
         if (output.exists() && output.isDirectory()) throw new IOException("Cannot extract File to Directory " + output);
         if (output.exists() && !output.delete()) throw new IOException("Cannot overwrite File " + output);
-        if (!output.getParentFile().exists() && !output.mkdirs()) throw new IOException("Cannot create File " + output);
+        if (!output.getParentFile().exists() && !output.getParentFile().mkdirs()) throw new IOException("Cannot create folder for File " + output);
         FileOutputStream stream = null;
         CheckedInputStream in = null;
         try {
