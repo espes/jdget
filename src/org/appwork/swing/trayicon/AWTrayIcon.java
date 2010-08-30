@@ -25,25 +25,26 @@ import org.appwork.utils.event.BasicEvent;
 import org.appwork.utils.event.BasicEventSender;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
+import org.appwork.utils.swing.EDTRunner;
 
 /**
  * @author thomas
  */
 public class AWTrayIcon implements MouseListener, TrayMouseListener {
 
-    public static final int EVENT_TOGGLE_FRAME_VISIBILITY = 0;
+    public static final int                    EVENT_TOGGLE_FRAME_VISIBILITY = 0;
 
-    public static final int EVENT_SHOW_POPUP = 1;
+    public static final int                    EVENT_SHOW_POPUP              = 1;
 
-    public static final int EVENT_HIDE_POPUP = 2;
+    public static final int                    EVENT_HIDE_POPUP              = 2;
 
-    private final JFrame frame;
+    private final JFrame                       frame;
 
-    private ExtTrayIcon trayIcon;
+    private ExtTrayIcon                        trayIcon;
 
-    private TrayIconPopup trayIconPopup;
+    private TrayIconPopup                      trayIconPopup;
 
-    private final int visibleToggleClickCount = 2;
+    private final int                          visibleToggleClickCount       = 2;
 
     private final BasicEventSender<AWTrayIcon> eventSender;
 
@@ -77,17 +78,32 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
     }
 
     public void dispose() {
-        try {
-            if (this.trayIcon != null) {
 
-                SystemTray.getSystemTray().remove(this.trayIcon);
-                this.trayIcon.removeMouseListener(this);
-                this.trayIcon.removeTrayMouseListener(this);
-                this.trayIcon = null;
+        new EDTRunner() {
 
+            @Override
+            protected void runInEDT() {
+                try {
+                    if (AWTrayIcon.this.trayIcon != null) {
+
+                        SystemTray.getSystemTray().remove(AWTrayIcon.this.trayIcon);
+                        AWTrayIcon.this.trayIcon.removeMouseListener(AWTrayIcon.this);
+                        AWTrayIcon.this.trayIcon.removeTrayMouseListener(AWTrayIcon.this);
+                        AWTrayIcon.this.trayIcon = null;
+                        AWTrayIcon.this.hideToolTip();
+                        if (AWTrayIcon.this.trayIconPopup != null) {
+                            AWTrayIcon.this.trayIconPopup.dispose();
+
+                            AWTrayIcon.this.trayIconPopup = null;
+                            AWTrayIcon.this.eventSender.fireEvent(new BasicEvent<AWTrayIcon>(AWTrayIcon.this, AWTrayIcon.EVENT_HIDE_POPUP, AWTrayIcon.this, null));
+                        }
+                    }
+                } catch (final Exception e) {
+                }
             }
-        } catch (final Exception e) {
-        }
+
+        };
+
     }
 
     /**
