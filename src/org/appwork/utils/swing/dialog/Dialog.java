@@ -24,8 +24,8 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.interfaces.ValueConverter;
-import org.appwork.utils.locale.Loc;
 import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale.Loc;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
@@ -40,11 +40,11 @@ public class Dialog {
     /**
      * Hide the cancel Button
      */
-    public static final int BUTTONS_HIDE_CANCEL = 1 << 4;
+    public static final int     BUTTONS_HIDE_CANCEL                  = 1 << 4;
     /**
      * Hide the OK button
      */
-    public static final int BUTTONS_HIDE_OK = 1 << 3;
+    public static final int     BUTTONS_HIDE_OK                      = 1 << 3;
 
     /**
      * Icon Key for Error Icons
@@ -52,66 +52,66 @@ public class Dialog {
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String ICON_ERROR = "error";
+    public static final String  ICON_ERROR                           = "error";
     /**
      * Icon Key for Information Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String ICON_INFO = "info";
+    public static final String  ICON_INFO                            = "info";
     /**
      * Icon Key for Question Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String ICON_QUESTION = "help";
+    public static final String  ICON_QUESTION                        = "help";
     /**
      * Icon Key for Warning Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String ICON_WARNING = "warning";
+    public static final String  ICON_WARNING                         = "warning";
     /**
      * internal singleton instance to access the instance of this class
      */
-    private static final Dialog INSTANCE = new Dialog();
+    private static final Dialog INSTANCE                             = new Dialog();
     /**
      * LOGIC_BYPASS all dialogs. Try to fill automatically or return null
      */
-    public static final int LOGIC_BYPASS = 1 << 1;
+    public static final int     LOGIC_BYPASS                         = 1 << 1;
     /**
      * Use this flag to avoid display of the Timer
      */
-    public static final int LOGIC_COUNTDOWN = 1 << 2;
+    public static final int     LOGIC_COUNTDOWN                      = 1 << 2;
 
     /**
      * Don't show again is only valid for this session, but is not saved for
      * further sessions
      */
-    public static final int LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT = 1 << 11;
+    public static final int     LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT = 1 << 11;
     /**
      * Often, the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} option does not make
      * sense for the cancel option. Use this flag if the option should be
      * ignored if the user selects Cancel
      */
-    public static final int LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL = 1 << 9;
+    public static final int     LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL = 1 << 9;
     /**
      * Often, the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} option does not make
      * sense for the ok option. Use this flag if the option should be ignored if
      * the user selects OK
      */
-    public static final int LOGIC_DONT_SHOW_AGAIN_IGNORES_OK = 1 << 10;
+    public static final int     LOGIC_DONT_SHOW_AGAIN_IGNORES_OK     = 1 << 10;
     /**
      * if the user pressed cancel, the return mask will contain this mask
      */
-    public static final int RETURN_CANCEL = 1 << 2;
+    public static final int     RETURN_CANCEL                        = 1 << 2;
     /**
      * if user closed the window
      */
-    public static final int RETURN_CLOSED = 1 << 6;
+    public static final int     RETURN_CLOSED                        = 1 << 6;
     /**
      * this return flag can be set in two situations:<br>
      * a) The user selected the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option<br>
@@ -123,11 +123,11 @@ public class Dialog {
      * 
      */
 
-    public static final int RETURN_DONT_SHOW_AGAIN = 1 << 3;
+    public static final int     RETURN_DONT_SHOW_AGAIN               = 1 << 3;
     /**
      * If the user pressed OK, the return mask will contain this flag
      */
-    public static final int RETURN_OK = 1 << 1;
+    public static final int     RETURN_OK                            = 1 << 1;
 
     /**
      * If the dialog has been skipped due to previously selected
@@ -135,33 +135,33 @@ public class Dialog {
      * 
      * @see #RETURN_DONT_SHOW_AGAIN
      */
-    public static final int RETURN_SKIPPED_BY_DONT_SHOW = 1 << 4;
+    public static final int     RETURN_SKIPPED_BY_DONT_SHOW          = 1 << 4;
     /**
      * If the Timeout ({@link #LOGIC_COUNTDOWN}) has run out, the return mask
      * contains this flag
      */
-    public static final int RETURN_TIMEOUT = 1 << 5;
-    private static boolean ShellFolderIDWorkaround = false;
+    public static final int     RETURN_TIMEOUT                       = 1 << 5;
+    private static boolean      ShellFolderIDWorkaround              = false;
 
     /**
      * Do Not use an Icon. By default dialogs have an Icon
      */
-    public static final int STYLE_HIDE_ICON = 1 << 8;
+    public static final int     STYLE_HIDE_ICON                      = 1 << 8;
     /**
      * Some dialogs are able to render HTML. Use this switch to enable html
      */
-    public static final int STYLE_HTML = 1 << 7;
+    public static final int     STYLE_HTML                           = 1 << 7;
     /**
      * Some dialogs are able to layout themselves in a large mode. E:g. to
      * display a huge text.
      */
-    public static final int STYLE_LARGE = 1 << 6;
+    public static final int     STYLE_LARGE                          = 1 << 6;
     /**
      * Displays a Checkbox with "do not show this again" text. If the user
      * selects this box, the UserInteraktion class will remember the answer and
      * will not disturb the user with the same question (same title)
      */
-    public static final int STYLE_SHOW_DO_NOT_DISPLAY_AGAIN = 1 << 5;
+    public static final int     STYLE_SHOW_DO_NOT_DISPLAY_AGAIN      = 1 << 5;
 
     /**
      * tries to find some special markers in the text and selects an appropriate
@@ -209,7 +209,7 @@ public class Dialog {
     /**
      * The max counter value for a timeout Dialog
      */
-    private int coundownTime = 20;
+    private int    coundownTime = 20;
 
     /**
      * the latest return value is stored in this variable for internal use
@@ -221,7 +221,7 @@ public class Dialog {
     /**
      * Parent window for all dialogs created with abstractdialog
      */
-    private JFrame owner = new JFrame();
+    private JFrame owner        = new JFrame();
 
     /**
      * @return the {@link Dialog#coundownTime}
@@ -380,6 +380,7 @@ public class Dialog {
                 @Override
                 public Integer edtRun() {
                     final ConfirmDialog dialog = new ConfirmDialog(flag, title, message, icon, okOption, cancelOption);
+
                     dialog.displayDialog();
                     return dialog.getReturnmask();
                 }
@@ -475,7 +476,7 @@ public class Dialog {
                             fc.setFileFilter(fileFilter);
                         }
 
-                        if (multiSelection && ((dialogType == null) || (dialogType != JFileChooser.SAVE_DIALOG))) {
+                        if (multiSelection && (dialogType == null || dialogType != JFileChooser.SAVE_DIALOG)) {
                             fc.setMultiSelectionEnabled(true);
                         } else {
                             fc.setMultiSelectionEnabled(false);
@@ -490,7 +491,7 @@ public class Dialog {
                             preSelection = new File(JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null));
                         }
                         while (preSelection != null) {
-                            if (!preSelection.exists() && (dialogType != null) && (dialogType == JFileChooser.OPEN_DIALOG)) {
+                            if (!preSelection.exists() && dialogType != null && dialogType == JFileChooser.OPEN_DIALOG) {
                                 /* file does not exist, try ParentFile */
                                 preSelection = preSelection.getParentFile();
                             } else {
@@ -504,13 +505,13 @@ public class Dialog {
                                      * only preselect folder in case of
                                      * savedialog
                                      */
-                                    if ((dialogType != null) && (dialogType == JFileChooser.SAVE_DIALOG)) {
+                                    if (dialogType != null && dialogType == JFileChooser.SAVE_DIALOG) {
                                         fc.setSelectedFile(preSelection);
                                     }
                                 } else {
                                     fc.setCurrentDirectory(preSelection.getParentFile());
                                     /* only preselect file in savedialog */
-                                    if ((dialogType != null) && (dialogType == JFileChooser.SAVE_DIALOG)) {
+                                    if (dialogType != null && dialogType == JFileChooser.SAVE_DIALOG) {
                                         if (fileSelectionMode != null) {
                                             if (fileSelectionMode == JFileChooser.DIRECTORIES_ONLY) {
                                                 fc.setSelectedFile(preSelection.getParentFile());
@@ -523,7 +524,7 @@ public class Dialog {
                                 break;
                             }
                         }
-                        if ((dialogType == null) || (dialogType == JFileChooser.OPEN_DIALOG)) {
+                        if (dialogType == null || dialogType == JFileChooser.OPEN_DIALOG) {
                             if (fc.showOpenDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
                                 if (multiSelection) {
                                     final ArrayList<File> rets = new ArrayList<File>();
@@ -579,7 +580,7 @@ public class Dialog {
                         }
                         return null;
                     } catch (final Exception e) {
-                        if ((e != null) && (e.getMessage() != null) && e.getMessage().contains("shell") && !Dialog.ShellFolderIDWorkaround) {
+                        if (e != null && e.getMessage() != null && e.getMessage().contains("shell") && !Dialog.ShellFolderIDWorkaround) {
                             Log.L.info("Enabling Workaround for \"Could not get shell folder ID list\"");
                             Dialog.ShellFolderIDWorkaround = true;
                         } else {

@@ -19,17 +19,20 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import org.appwork.utils.BinaryLogic;
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
 public class ConfirmDialog extends AbstractDialog<Integer> {
 
     private static final long serialVersionUID = -7647771640756844691L;
 
-    private final String message;
-    private JTextPane textField;
+    private final String      message;
+    private JTextPane         textField;
 
     public ConfirmDialog(final int flag, final String title, final String message, final ImageIcon icon, final String okOption, final String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
+        Log.L.fine("Dialog    [" + okOption + "][" + cancelOption + "]\r\nflag:  " + Integer.toBinaryString(flag) + "\r\ntitle: " + title + "\r\nmsg:   \r\n" + message);
+
         this.message = message;
     }
 

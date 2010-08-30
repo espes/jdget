@@ -28,14 +28,14 @@ public abstract class Queue extends Thread {
         NORM
     }
 
-    protected boolean debugFlag = false;
-    protected QueuePriority[] prios;
-    protected HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>> queue = new HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>>();
-    protected final Object queueLock = new Object();
+    protected boolean                                                                debugFlag          = false;
+    protected QueuePriority[]                                                        prios;
+    protected HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>> queue              = new HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>>();
+    protected final Object                                                           queueLock          = new Object();
 
-    protected ArrayList<QueueAction<?, ? extends Throwable>> queueThreadHistory = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
-    protected Thread thread = null;
-    protected boolean waitFlag = true;
+    protected ArrayList<QueueAction<?, ? extends Throwable>>                         queueThreadHistory = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
+    protected Thread                                                                 thread             = null;
+    protected boolean                                                                waitFlag           = true;
 
     public Queue(final String id) {
         super(id);
@@ -98,7 +98,7 @@ public abstract class Queue extends Thread {
     }
 
     @SuppressWarnings("unchecked")
-    public <E, T extends Throwable> E addWait(final QueueAction<E, T> item) throws T, InterruptedException {
+    public <E, T extends Throwable> E addWait(final QueueAction<E, T> item) throws T {
         /* set calling Thread to current item */
         item.reset();
         item.setCallerThread(this, Thread.currentThread());
@@ -113,12 +113,18 @@ public abstract class Queue extends Thread {
             /* call does not come from current running item, so lets queue it */
             this.internalAdd(item);
             /* wait till item is finished */
-            while (!item.isFinished()) {
+            try {
+                while (!item.isFinished()) {
 
-                synchronized (item) {
-                    item.wait(1000);
+                    synchronized (item) {
+
+                        item.wait(1000);
+
+                    }
+
                 }
-
+            } catch (final InterruptedException e) {
+                item.handleException(e);
             }
             if (item.getExeption() != null) {
                 // throw exception if item canot handle the exception itself
@@ -131,7 +137,10 @@ public abstract class Queue extends Thread {
                 }
 
             }
-            if (item.gotKilled() && !item.gotStarted()) { throw new InterruptedException("Queue got killed!"); }
+            if (item.gotKilled() && !item.gotStarted()) {
+
+                item.handleException(new InterruptedException("Queue got killed!"));
+            }
 
         }
 

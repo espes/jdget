@@ -10,6 +10,7 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Dimension;
+import java.util.Arrays;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -26,86 +27,45 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
     /**
      * 
      */
-    private static final long serialVersionUID = 3779238515088665521L;
+    private static final long      serialVersionUID = 3779238515088665521L;
     /**
      * The Comboxbox to display the options
      */
-    private JComboBox box;
+    private JComboBox              box;
     /**
      * Stores an additional message
      */
-    private String message;
+    private final String           message;
     /**
      * Textpane to display th {@link #message}
      */
-    private JTextPane textpane;
+    private JTextPane              textpane;
     /**
      * Defaultanswer. Answers are given as optionindex
      */
-    private int defaultAnswer;
+    private final int              defaultAnswer;
     /**
      * Available options
      */
-    private Object[] options;
+    private final Object[]         options;
     /**
      * Listrenderer to render the optionobjects
      */
-    private ListCellRenderer renderer;
+    private final ListCellRenderer renderer;
 
     /**
      * 
      *@see Dialog#showComboDialog(int, String, String, Object[], int,
      *      ImageIcon, String, String, ListCellRenderer)
      */
-    public ComboBoxDialog(int flag, String title, String question, Object[] options, int defaultSelection, ImageIcon icon, String okText, String cancelText, ListCellRenderer renderer) {
+    public ComboBoxDialog(final int flag, final String title, final String question, final Object[] options, final int defaultSelection, final ImageIcon icon, final String okText, final String cancelText, final ListCellRenderer renderer) {
         super(flag, title, icon, okText, cancelText);
-        message = question;
+        Log.L.fine("Dialog    [" + okText + "][" + cancelText + "]\r\nflag:  " + Integer.toBinaryString(flag) + "\r\ntitle: " + title + "\r\nmsg:   \r\n" + question + "\r\noptions:   \r\n" + Arrays.toString(options) + "\r\ndef:" + defaultSelection);
+
+        this.message = question;
         this.renderer = renderer;
         this.defaultAnswer = defaultSelection;
         this.options = options;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.swing.dialog.AbstractDialog#layoutDialogContent()
-     */
-    @Override
-    public JComponent layoutDialogContent() {
-        JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
-        textpane = new JTextPane();
-        textpane.setBorder(null);
-        textpane.setBackground(null);
-        textpane.setOpaque(false);
-        textpane.putClientProperty("Synthetica.opaque", Boolean.FALSE);
-        textpane.setText(this.message);
-        textpane.setEditable(false);
-
-        contentpane.add(textpane);
-
-        box = new JComboBox(options);
-        if (renderer != null) box.setRenderer(renderer);
-        try {
-
-            box.setSelectedIndex(this.defaultAnswer);
-        } catch (Exception e) {
-            Log.exception(e);
-        }
-        if (getDesiredSize() != null) {
-            box.setBounds(0, 0, (int) getDesiredSize().getWidth(), (int) getDesiredSize().getHeight());
-            box.setMaximumSize(getDesiredSize());
-        } else {
-            box.setBounds(0, 0, 450, 600);
-            box.setMaximumSize(new Dimension(450, 600));
-        }
-        contentpane.add(box, "pushy,growy, width n:n:450");
-
-        return contentpane;
-    }
-
-    public Integer getReturnIndex() {
-        if ((this.getReturnmask() & Dialog.RETURN_OK) == 0) return Integer.valueOf(-1);
-        return Integer.valueOf(box.getSelectedIndex());
     }
 
     /*
@@ -115,7 +75,52 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
      */
     @Override
     protected Integer createReturnValue() {
-        return getReturnIndex();
+        return this.getReturnIndex();
+    }
+
+    public Integer getReturnIndex() {
+        if ((this.getReturnmask() & Dialog.RETURN_OK) == 0) { return Integer.valueOf(-1); }
+        return Integer.valueOf(this.box.getSelectedIndex());
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#layoutDialogContent()
+     */
+    @Override
+    public JComponent layoutDialogContent() {
+        final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
+        this.textpane = new JTextPane();
+        this.textpane.setBorder(null);
+        this.textpane.setBackground(null);
+        this.textpane.setOpaque(false);
+        this.textpane.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        this.textpane.setText(this.message);
+        this.textpane.setEditable(false);
+
+        contentpane.add(this.textpane);
+
+        this.box = new JComboBox(this.options);
+        if (this.renderer != null) {
+            this.box.setRenderer(this.renderer);
+        }
+        try {
+
+            this.box.setSelectedIndex(this.defaultAnswer);
+        } catch (final Exception e) {
+            Log.exception(e);
+        }
+        if (this.getDesiredSize() != null) {
+            this.box.setBounds(0, 0, (int) this.getDesiredSize().getWidth(), (int) this.getDesiredSize().getHeight());
+            this.box.setMaximumSize(this.getDesiredSize());
+        } else {
+            this.box.setBounds(0, 0, 450, 600);
+            this.box.setMaximumSize(new Dimension(450, 600));
+        }
+        contentpane.add(this.box, "pushy,growy, width n:n:450");
+
+        return contentpane;
     }
 
 }

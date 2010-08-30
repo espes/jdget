@@ -19,33 +19,25 @@ import javax.swing.JTextArea;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.utils.logging.Log;
 
 public class TextAreaDialog extends AbstractDialog<String> {
 
     private static final long serialVersionUID = 5129590048597691591L;
 
-    private String message;
+    private final String      message;
 
-    private String def;
+    private final String      def;
 
-    private JTextArea txtArea;
+    private JTextArea         txtArea;
 
-    public TextAreaDialog(String title, String message, String def) throws IOException {
+    public TextAreaDialog(final String title, final String message, final String def) throws IOException {
         super(0, title, ImageProvider.getImageIcon("info", 32, 32, true), null, null);
+
+        Log.L.fine("Dialog \r\ntitle: " + title + "\r\nmsg:   \r\n" + message + "\r\ndef:   \r\n" + def);
+
         this.message = message;
         this.def = def;
-    }
-
-    @Override
-    public JComponent layoutDialogContent() {
-        JPanel panel = new JPanel(new MigLayout("ins 0, wrap 1", "[grow, fill]", "[]5[]"));
-        panel.add(new JLabel(message));
-        panel.add(txtArea = new JTextArea(def), "h 100!");
-        return panel;
-    }
-
-    public String getResult() {
-        return txtArea.getText();
     }
 
     /*
@@ -55,7 +47,19 @@ public class TextAreaDialog extends AbstractDialog<String> {
      */
     @Override
     protected String createReturnValue() {
-        return getResult();
+        return this.getResult();
+    }
+
+    public String getResult() {
+        return this.txtArea.getText();
+    }
+
+    @Override
+    public JComponent layoutDialogContent() {
+        final JPanel panel = new JPanel(new MigLayout("ins 0, wrap 1", "[grow, fill]", "[]5[]"));
+        panel.add(new JLabel(this.message));
+        panel.add(this.txtArea = new JTextArea(this.def), "h 100!");
+        return panel;
     }
 
 }
