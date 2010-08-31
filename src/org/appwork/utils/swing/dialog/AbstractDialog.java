@@ -47,7 +47,7 @@ import org.appwork.utils.swing.SwingUtils;
 
 public abstract class AbstractDialog<T> extends TimerDialog implements ActionListener, WindowListener {
 
-    private static final long serialVersionUID = 1831761858087385862L;
+    private static final long                     serialVersionUID       = 1831761858087385862L;
 
     private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN = new HashMap<String, Integer>();
 
@@ -70,27 +70,27 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         }
     }
 
-    protected JButton cancelButton;
+    protected JButton       cancelButton;
 
-    private final String cancelOption;
+    private final String    cancelOption;
 
-    private JPanel defaultButtons;
+    private JPanel          defaultButtons;
 
-    private JCheckBox dontshowagain;
+    private JCheckBox       dontshowagain;
 
-    protected int flagMask;
+    protected int           flagMask;
 
     private final ImageIcon icon;
 
-    private boolean initialized = false;
+    private boolean         initialized   = false;
 
-    protected JButton okButton;
+    protected JButton       okButton;
 
-    private final String okOption;
+    private final String    okOption;
 
-    protected JComponent panel;
+    protected JComponent    panel;
 
-    private int returnBitMask = 0;
+    private int             returnBitMask = 0;
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super(Dialog.getInstance().getParentOwner());
@@ -256,6 +256,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             private static final long serialVersionUID = -6666144330707394562L;
 
             public void actionPerformed(final ActionEvent e) {
+                Log.L.fine("Answer: Key<ESCAPE>");
                 AbstractDialog.this.dispose();
             }
         });
@@ -283,8 +284,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     public void actionPerformed(final ActionEvent e) {
         if (e.getSource() == this.okButton) {
+            Log.L.fine("Answer: Button<OK:" + this.okButton.getText() + ">");
             this.setReturnmask(true);
         } else if (e.getSource() == this.cancelButton) {
+            Log.L.fine("Answer: Button<CANCEL:" + this.cancelButton.getText() + ">");
             this.setReturnmask(false);
         }
         this.dispose();
@@ -406,6 +409,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @param b
      */
     protected void setReturnmask(final boolean b) {
+
         this.returnBitMask = b ? Dialog.RETURN_OK : Dialog.RETURN_CANCEL;
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
             if (this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) {
@@ -440,8 +444,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     public void windowClosing(final WindowEvent arg0) {
         if (this.closeAllowed()) {
+            Log.L.fine("Answer: Button<[X]>");
             this.returnBitMask |= Dialog.RETURN_CLOSED;
             this.dispose();
+        } else {
+            Log.L.fine("(Answer: Tried [X] bot not allowed)");
         }
     }
 
