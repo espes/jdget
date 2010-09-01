@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -29,6 +30,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 
+
 import org.appwork.utils.Application;
 
 /**
@@ -37,17 +39,17 @@ import org.appwork.utils.Application;
  */
 public class SingleAppInstance {
 
-    private String appID;
-    private InstanceMessageListener listener = null;
-    private File lockFile = null;
-    private FileLock fileLock = null;
-    private FileChannel lockChannel = null;
-    private boolean daemonRunning = false;
-    private boolean alreadyUsed = false;
-    private ServerSocket serverSocket = null;
-    private final String SINGLEAPP = "SingleAppInstance";
-    private Thread daemon = null;
-    private File portFile = null;
+    private String                  appID;
+    private InstanceMessageListener listener      = null;
+    private File                    lockFile      = null;
+    private FileLock                fileLock      = null;
+    private FileChannel             lockChannel   = null;
+    private boolean                 daemonRunning = false;
+    private boolean                 alreadyUsed   = false;
+    private ServerSocket            serverSocket  = null;
+    private final String            SINGLEAPP     = "SingleAppInstance";
+    private Thread                  daemon        = null;
+    private File                    portFile      = null;
 
     public SingleAppInstance(final String appID) {
         this(appID, new File(Application.getRoot()));
@@ -67,12 +69,13 @@ public class SingleAppInstance {
     private InetAddress getLocalHost() {
         InetAddress localhost = null;
         try {
-            localhost = InetAddress.getByName("127.0.0.1");
+            localhost = Inet4Address.getByName("127.0.0.1");
         } catch (UnknownHostException e1) {
-            try {
-                localhost = InetAddress.getByName(null);
-            } catch (UnknownHostException e2) {
-            }
+        }
+        if (localhost != null) return localhost;
+        try {
+            localhost = Inet4Address.getByName(null);
+        } catch (UnknownHostException e1) {
         }
         return localhost;
     }

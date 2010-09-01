@@ -43,6 +43,12 @@ public class IO {
         }
     }
 
+    public static String importFileToString(File file) throws IOException {
+        final byte[] bytes = readFile(file);
+        if (bytes == null) return null;
+        return new String(bytes, "UTF-8");
+    }
+
     /**
      * @param file
      * @param string
@@ -148,21 +154,21 @@ public class IO {
         } catch (IOException e) {
             throw e;
         } finally {
-            try{
+            try {
                 outChannel.close();
-            }catch(Throwable e){                
+            } catch (Throwable e) {
             }
-            try{
+            try {
                 fos.close();
-            }catch(Throwable e){                
+            } catch (Throwable e) {
             }
-            try{
+            try {
                 inChannel.close();
-            }catch(Throwable e){                
+            } catch (Throwable e) {
             }
-            try{
+            try {
                 fis.close();
-            }catch(Throwable e){                
+            } catch (Throwable e) {
             }
         }
     }
