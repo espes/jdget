@@ -106,25 +106,6 @@ public class ImageProvider {
 
     }
 
-    /* copied from ImageIO, to close the inputStream */
-    public static BufferedImage read(File input) throws IOException {
-        if (input == null) { throw new IllegalArgumentException("input == null!"); }
-        if (!input.canRead()) { throw new IIOException("Can't read input file!"); }
-
-        ImageInputStream stream = ImageIO.createImageInputStream(input);
-        BufferedImage bi = null;
-        try {
-            if (stream == null) { throw new IIOException("Can't create an ImageInputStream!"); }
-            bi = ImageIO.read(stream);
-        } finally {
-            try {
-                stream.close();
-            } catch (Throwable e) {
-            }
-        }
-        return bi;
-    }
-
     /**
      * 
      * @param name
@@ -141,7 +122,7 @@ public class ImageProvider {
             final File absolutePath = Application.getRessource("images/" + name + ".png");
             try {
                 Log.L.info("Init Image: " + absolutePath.getAbsolutePath());
-                final BufferedImage image = read(absolutePath);
+                final BufferedImage image = ImageProvider.read(absolutePath);
                 ImageProvider.IMAGE_CACHE.put(name, image);
                 return image;
             } catch (final IOException e) {
@@ -191,7 +172,7 @@ public class ImageProvider {
      * @param j
      * @return
      */
-    public static Icon getImageIcon(final String name, final int x, final int y) {
+    public static ImageIcon getImageIcon(final String name, final int x, final int y) {
         // TODO Auto-generated method stub
         try {
             return ImageProvider.getImageIcon(name, x, y, true);
@@ -249,6 +230,25 @@ public class ImageProvider {
         g2.drawImage(b, xoffset, yoffset, null);
         g2.dispose();
         return dest;
+    }
+
+    /* copied from ImageIO, to close the inputStream */
+    public static BufferedImage read(final File input) throws IOException {
+        if (input == null) { throw new IllegalArgumentException("input == null!"); }
+        if (!input.canRead()) { throw new IIOException("Can't read input file!"); }
+
+        final ImageInputStream stream = ImageIO.createImageInputStream(input);
+        BufferedImage bi = null;
+        try {
+            if (stream == null) { throw new IIOException("Can't create an ImageInputStream!"); }
+            bi = ImageIO.read(stream);
+        } finally {
+            try {
+                stream.close();
+            } catch (final Throwable e) {
+            }
+        }
+        return bi;
     }
 
     /**

@@ -436,7 +436,8 @@ public class Dialog {
      * @param multiSelection
      *            Multiple files choosable? or null for default
      * @param preSelection
-     *            TODO
+     *            File which will be selected by default. leave null for
+     *            automode
      * @return an array of files or null if the user cancel the dialog
      */
 

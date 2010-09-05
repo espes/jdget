@@ -32,7 +32,7 @@ public class TextAreaDialog extends AbstractDialog<String> {
     private JTextArea         txtArea;
 
     public TextAreaDialog(final String title, final String message, final String def) throws IOException {
-        super(0, title, ImageProvider.getImageIcon("info", 32, 32, true), null, null);
+        super(0, title, ImageProvider.getImageIcon("info", 32, 32), null, null);
 
         Log.L.fine("Dialog \r\ntitle: " + title + "\r\nmsg:   \r\n" + message + "\r\ndef:   \r\n" + def);
 
