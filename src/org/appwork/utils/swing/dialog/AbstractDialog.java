@@ -51,6 +51,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN = new HashMap<String, Integer>();
 
+    private static boolean                        USE_LOCKPANEL          = false;
+
     /**
      * @return
      */
@@ -68,6 +70,15 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         } catch (final Exception e) {
             Log.exception(e);
         }
+    }
+
+    /**
+     * set to true if you want the class to control a global LockPanel
+     * 
+     * @param b
+     */
+    public static void setLockpanel(final boolean b) {
+        AbstractDialog.USE_LOCKPANEL = b;
     }
 
     protected JButton        cancelButton;
@@ -137,7 +148,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             }
         }
         try {
-            if (Dialog.getInstance().getParentOwner() != null) {
+            if (Dialog.getInstance().getParentOwner() != null && AbstractDialog.USE_LOCKPANEL) {
                 LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
             }
         } catch (final Exception e) {
@@ -327,7 +338,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     public void dispose() {
         if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
         try {
-            if (Dialog.getInstance().getParentOwner() != null) {
+            if (Dialog.getInstance().getParentOwner() != null && AbstractDialog.USE_LOCKPANEL) {
                 LockPanel.create(Dialog.getInstance().getParentOwner()).unlock(300);
             }
         } catch (final AWTException e1) {
