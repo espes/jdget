@@ -18,6 +18,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
@@ -57,6 +58,7 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
     public String getReturnID() {
         if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
         if (this.input == null || this.input.getText() == null) { return null; }
+        if (this.input instanceof JPasswordField) { return new String(((JPasswordField) this.input).getPassword()); }
         return this.input.getText();
     }
 
@@ -80,16 +82,19 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
         this.messageArea.setText(this.message);
         this.messageArea.setEditable(false);
         this.messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
-
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
+            this.messageArea.setContentType("text/html");
+        }
         contentpane.add(this.messageArea);
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
             this.input = new JTextPane();
+
             this.input.setText(this.defaultMessage);
             this.input.addKeyListener(this);
             this.input.addMouseListener(this);
             contentpane.add(new JScrollPane(this.input), "height 20:60:n,pushy,growy,w 450");
         } else {
-            this.input = new JTextField();
+            this.input = BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_PASSWORD) ? new JPasswordField() : new JTextField();
             this.input.setBorder(BorderFactory.createEtchedBorder());
             this.input.setText(this.defaultMessage);
             this.input.addKeyListener(this);

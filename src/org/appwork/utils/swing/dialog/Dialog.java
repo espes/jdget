@@ -162,6 +162,10 @@ public class Dialog {
      * will not disturb the user with the same question (same title)
      */
     public static final int     STYLE_SHOW_DO_NOT_DISPLAY_AGAIN      = 1 << 5;
+    /**
+     * Inputdialogs will use passwordfields instead of textfields
+     */
+    public static final int     STYLE_PASSWORD                       = 1 << 9;
 
     /**
      * tries to find some special markers in the text and selects an appropriate
