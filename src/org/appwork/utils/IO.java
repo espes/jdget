@@ -74,26 +74,7 @@ public class IO {
         return new String(bytes, "UTF-8");
     }
 
-    /**
-     * @param ressource
-     * @return
-     * @throws IOException
-     */
-    public static byte[] readFile(final File ressource) throws IOException {
-        Log.L.fine("Read file: " + ressource.getAbsolutePath() + "(" + ressource.length() + " bytes)");
-        final FileInputStream in = new FileInputStream(ressource);
-        byte[] bytes = null;
-        try {
-            bytes = new byte[(int) ressource.length()];
-            in.read(bytes);
-        } finally {
-            try {
-                in.close();
-            } catch (final Throwable e) {
-            }
-        }
-        return bytes;
-    }
+
 
     public static String readFileToString(final File file) throws IOException {
         BufferedReader f = null;
@@ -173,5 +154,25 @@ public class IO {
             } catch (final Throwable e) {
             }
         }
+    }
+
+    /**
+     * @param ressource
+     * @return
+     * @throws IOException
+     */
+    public static byte[] readFile(File ressource) throws IOException {
+        FileInputStream in = new FileInputStream(ressource);
+        byte[] bytes = null;
+        try {
+            bytes = new byte[(int) ressource.length()];
+            in.read(bytes);
+        } finally {
+            try {                
+                in.close();
+            } catch (final Throwable e) {
+            }
+        }
+        return bytes;
     }
 }
