@@ -70,27 +70,28 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         }
     }
 
-    protected JButton       cancelButton;
+    protected JButton        cancelButton;
+    private final String     cancelOption;
 
-    private final String    cancelOption;
+    private JPanel           defaultButtons;
 
-    private JPanel          defaultButtons;
+    private JCheckBox        dontshowagain;
 
-    private JCheckBox       dontshowagain;
+    protected int            flagMask;
 
-    protected int           flagMask;
+    private final ImageIcon  icon;
 
-    private final ImageIcon icon;
+    private boolean          initialized   = false;
 
-    private boolean         initialized   = false;
+    protected JButton        okButton;
 
-    protected JButton       okButton;
+    private final String     okOption;
 
-    private final String    okOption;
+    protected JComponent     panel;
 
-    protected JComponent    panel;
+    private int              returnBitMask = 0;
 
-    private int             returnBitMask = 0;
+    private AbstractAction[] actions       = null;
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super(Dialog.getInstance().getParentOwner());
@@ -201,11 +202,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 }
             });
             focus = this.okButton;
-            this.defaultButtons.add(this.okButton, "alignx right,tag ok,sizegroup confirms");
+            this.defaultButtons.add(this.okButton, "alignx right,tag ok,sizegroup confirms,growx,pushx");
         }
         if (!BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_CANCEL)) {
 
-            this.defaultButtons.add(this.cancelButton, "alignx right,tag cancel,sizegroup confirms");
+            this.defaultButtons.add(this.cancelButton, "alignx right,tag cancel,sizegroup confirms,growx,pushx");
             if (BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_OK)) {
                 this.getRootPane().setDefaultButton(this.cancelButton);
                 this.cancelButton.requestFocusInWindow();
@@ -338,7 +339,18 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @return
      */
     protected JPanel getDefaultButtonPanel() {
-        return new JPanel(new MigLayout("ins 0", "[fill,grow]", "[fill,grow]"));
+        final JPanel ret = new JPanel(new MigLayout("ins 0", "[]", "0[]0"));
+        if (this.actions != null) {
+            for (final AbstractAction a : this.actions) {
+                String tag = (String) a.getValue("tag");
+                if (tag == null) {
+                    tag = "help";
+                }
+                ret.add(new JButton(a), "alignx right,tag " + tag + ",sizegroup confirms,growx,pushx");
+            }
+        }
+        return ret;
+
     }
 
     /**
@@ -400,6 +412,24 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * may be overwritten to set focus to special components etc.
      */
     protected void packed() {
+    }
+
+    /**
+     * Add Additional BUttons on the left side of ok and cancel button. You can
+     * add a "tag" property to the action in ordner to help the layouter,
+     * 
+     * <pre>
+     * abstractActions[0].putValue(&quot;tag&quot;, &quot;ok&quot;)
+     * </pre>
+     * 
+     * 
+     * @param abstractAction
+     *            list
+     */
+    public void setLeftActions(final AbstractAction... abstractActions) {
+        // TODO Auto-generated method stub
+        this.actions = abstractActions;
+
     }
 
     /**
