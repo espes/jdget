@@ -9,8 +9,6 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import java.awt.Dimension;
-
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
@@ -47,14 +45,14 @@ public class ConfirmDialog extends AbstractDialog<Integer> {
         return this.getReturnmask();
     }
 
-    @Override
-    public Dimension getPreferredSize() {
-        if (!BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
-            return super.getPreferredSize();
-        } else {
-            return new Dimension(600, 450);
-        }
-    }
+    // @Override
+    // public Dimension getPreferredSize() {
+    // if (!BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
+    // return super.getPreferredSize();
+    // } else {
+    // return new Dimension(600, 450);
+    // }
+    // }
 
     @Override
     public JComponent layoutDialogContent() {
@@ -79,7 +77,7 @@ public class ConfirmDialog extends AbstractDialog<Integer> {
             });
         } else {
             this.textField.setContentType("text");
-            this.textField.setMaximumSize(new Dimension(450, 600));
+            // this.textField.setMaximumSize(new Dimension(450, 600));
         }
 
         this.textField.setText(this.message);
