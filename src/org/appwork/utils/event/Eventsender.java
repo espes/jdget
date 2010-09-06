@@ -24,22 +24,22 @@ import java.util.EventListener;
 
 public abstract class Eventsender<T extends EventListener, TT extends DefaultEvent> {
 
-    transient protected ArrayList<T> addRequestedListeners = null;
+    transient protected ArrayList<T>          addRequestedListeners    = null;
     /**
      * List of registered Eventlistener
      */
     // TODO: DO we really need ArrayLists here?
-    transient volatile protected ArrayList<T> listeners = null;
-    private final Object LOCK = new Object();
-    private volatile long readR = 0;
+    transient volatile protected ArrayList<T> listeners                = null;
+    private final Object                      LOCK                     = new Object();
+    private volatile long                     readR                    = 0;
     /**
      * List of Listeners that are requested for removal
      * 
      */
     // We use a removeList to avoid threating problems
-    transient protected ArrayList<T> removeRequestedListeners = null;
+    transient protected ArrayList<T>          removeRequestedListeners = null;
 
-    private volatile long writeR = 0;
+    private volatile long                     writeR                   = 0;
 
     /**
      * Creates a new Eventsender Instance
@@ -157,6 +157,18 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
                 this.removeRequestedListeners.add(t);
                 this.writeR++;
             }
+        }
+    }
+
+    public boolean hasListener() {
+        synchronized (this.LOCK) {
+            return listeners.size() > 0;
+        }
+    }
+    
+    public ArrayList<T> getListener(){
+        synchronized (this.LOCK) {
+            return new ArrayList<T>(this.listeners);
         }
     }
 }
