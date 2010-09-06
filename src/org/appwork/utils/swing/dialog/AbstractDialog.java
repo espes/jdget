@@ -53,12 +53,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private static boolean                        USE_LOCKPANEL          = false;
 
-    /**
-     * @return
-     */
     private static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
-        if (ret == null) { return -1; }
+        if (ret == null) return -1;
 
         return ret;
     }
@@ -115,7 +112,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.cancelOption = cancelOption == null ? APPWORKUTILS.ABSTRACTDIALOG_BUTTON_CANCEL.s() : cancelOption;
     }
 
-    /* this function will init and show the dialog */
+    /**
+     * this function will init and show the dialog
+     */
     private void _init() {
         dont: if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
@@ -290,12 +289,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.appwork.utils.event.Event.ActionListener#actionPerformed(com.
-     * rapidshare.utils.event.Event.ActionEvent)
-     */
     public void actionPerformed(final ActionEvent e) {
         if (e.getSource() == this.okButton) {
             Log.L.fine("Answer: Button<OK:" + this.okButton.getText() + ">");
@@ -435,14 +428,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * abstractActions[0].putValue(&quot;tag&quot;, &quot;ok&quot;)
      * </pre>
      * 
-     * 
-     * @param abstractAction
+     * @param abstractActions
      *            list
      */
     public void setLeftActions(final AbstractAction... abstractActions) {
-        // TODO Auto-generated method stub
         this.actions = abstractActions;
-
     }
 
     /**

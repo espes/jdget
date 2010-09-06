@@ -13,17 +13,13 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * @author $Author: unknown$
- * 
- */
 public class Log {
 
     private static Logger LOGGER;
-    /**
-     * CReate the singleton logger instance
-     */
 
+    /**
+     * Create the singleton logger instance
+     */
     static {
         Log.LOGGER = Logger.getLogger("org.appwork");
         Log.LOGGER.setUseParentHandlers(false);
@@ -31,25 +27,21 @@ public class Log {
         cHandler.setLevel(Level.ALL);
         cHandler.setFormatter(new LogFormatter());
         Log.LOGGER.addHandler(cHandler);
-        LogToFileHandler fh;
         try {
-            fh = new LogToFileHandler();
-
+            LogToFileHandler fh = new LogToFileHandler();
             fh.setFormatter(new FileLogFormatter());
             Log.LOGGER.addHandler(fh);
         } catch (final Exception e) {
-
-            org.appwork.utils.logging.Log.exception(e);
+            Log.exception(e);
         }
 
         Log.LOGGER.addHandler(LogEventHandler.getInstance());
         Log.LOGGER.setLevel(Level.ALL);
-
     }
     /**
      * For shorter access
      */
-    public static Logger L = Log.LOGGER;
+    public static Logger  L = Log.LOGGER;
 
     /**
      * Adds an exception to the logger. USe this instead of e.printStackTrace if
@@ -70,11 +62,7 @@ public class Log {
      */
     public static void exception(Throwable e) {
         if (e == null) {
-            try {
-                throw new NullPointerException("e is null");
-            } catch (final NullPointerException e1) {
-                e = e1;
-            }
+            e = new NullPointerException("e is null");
         }
         Log.exception(Level.SEVERE, e);
     }

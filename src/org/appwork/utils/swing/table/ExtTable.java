@@ -50,39 +50,39 @@ import org.appwork.utils.swing.EDTHelper;
  */
 public class ExtTable<E> extends JTable {
 
-    private static final long serialVersionUID = 2822230056021924679L;
+    private static final long                  serialVersionUID = 2822230056021924679L;
     /**
      * Column background color if column is NOT selected
      */
-    private final Color columnBackground;
+    private final Color                        columnBackground;
     /**
      * Column background color if column is selected
      */
-    private final Color columnBackgroundSelected;
+    private final Color                        columnBackgroundSelected;
     /**
      * Column textcolor if column is NOT selected
      */
-    private final Color columnForeground;
+    private final Color                        columnForeground;
     /**
      * Column textcolor if column is selected
      */
-    private final Color columnForegroundSelected;
+    private final Color                        columnForegroundSelected;
 
     /**
      * The underlaying datamodel
      */
-    private final ExtTableModel<E> model;
+    private final ExtTableModel<E>             model;
     /**
      * TableID. Used to generate a key for saving internal data to database
      */
-    private final String tableID;
+    private final String                       tableID;
 
     final private ArrayList<ExtRowHighlighter> rowHighlighters;
     /**
      * true if search is enabled
      */
-    private boolean searchEnabled = false;
-    private SearchDialog searchDialog;
+    private boolean                            searchEnabled    = false;
+    private SearchDialog                       searchDialog;
 
     /**
      * Create an Extended Table instance
@@ -540,9 +540,11 @@ public class ExtTable<E> extends JTable {
     @Override
     public void paintComponent(final Graphics g) {
         super.paintComponent(g);
-        // highlighter
-        // TODO: this might get slow for many rows
-        if (this.getRowCount() == 0) { return; }
+        /*
+         * highlighter TODO: this might get slow for many rows TODO: change
+         * order? highlighting columns "overpaint" the text
+         */
+        if (this.getRowCount() == 0) return;
         final Rectangle visibleRect = this.getVisibleRect();
         Rectangle first, last;
         // get current width;

@@ -11,14 +11,10 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.nio.channels.FileChannel;
 
-import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
 public class IO {
-    /**
-     * @param file
-     * @param file2
-     */
+
     public static void copyFile(final File in, final File out) throws IOException {
         FileInputStream fis = null;
         FileOutputStream fos = null;
@@ -44,7 +40,6 @@ public class IO {
                 }
             } else {
                 inChannel.transferTo(0, inChannel.size(), outChannel);
-
             }
         } catch (final IOException e) {
             throw e;
@@ -73,8 +68,6 @@ public class IO {
         if (bytes == null) { return null; }
         return new String(bytes, "UTF-8");
     }
-
-
 
     public static String readFileToString(final File file) throws IOException {
         BufferedReader f = null;
@@ -105,10 +98,6 @@ public class IO {
         }
     }
 
-    /**
-     * @param file
-     * @param string
-     */
     public static void writeStringToFile(final File file, final String string) throws IOException {
         if (file == null) { throw new IllegalArgumentException("File is null."); }
         if (file.exists()) { throw new IllegalArgumentException("File already exists: " + file); }
@@ -133,11 +122,6 @@ public class IO {
 
     }
 
-    /**
-     * @param tmp
-     * @param encrypt
-     * @throws IOException
-     */
     public static void writeToFile(final File file, final byte[] data) throws IOException {
         if (file == null) { throw new IllegalArgumentException("File is null."); }
         if (file.exists()) { throw new IllegalArgumentException("File already exists: " + file); }
@@ -156,11 +140,6 @@ public class IO {
         }
     }
 
-    /**
-     * @param ressource
-     * @return
-     * @throws IOException
-     */
     public static byte[] readFile(File ressource) throws IOException {
         FileInputStream in = new FileInputStream(ressource);
         byte[] bytes = null;
@@ -168,11 +147,12 @@ public class IO {
             bytes = new byte[(int) ressource.length()];
             in.read(bytes);
         } finally {
-            try {                
+            try {
                 in.close();
             } catch (final Throwable e) {
             }
         }
         return bytes;
     }
+
 }
