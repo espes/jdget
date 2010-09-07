@@ -12,9 +12,9 @@ import org.codehaus.jackson.map.JsonMappingException;
 public class JacksonStorageChest extends Storage {
 
     private final HashMap<String, Object> map;
-    private final String name;
-    private String filename = null;
-    private final boolean plain;
+    private final String                  name;
+    private String                        filename = null;
+    private final boolean                 plain;
 
     public JacksonStorageChest(final String name) throws StorageException {
         this(name, false);
@@ -99,57 +99,74 @@ public class JacksonStorageChest extends Storage {
 
     @Override
     public void put(final String key, final Boolean value) throws StorageException {
-        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+        final Boolean old = this.map.containsKey(key) ? this.get(key, value) : null;
+
         this.map.put(key, value);
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
+
     }
 
     @Override
     public void put(final String key, final Byte value) throws StorageException {
-        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+        final Byte old = this.map.containsKey(key) ? this.get(key, value) : null;
 
         this.map.put(key, value);
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
+
     }
 
     @Override
     public void put(final String key, final Double value) throws StorageException {
-        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+
+        final Double old = this.map.containsKey(key) ? this.get(key, value) : null;
 
         this.map.put(key, value);
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
+
     }
 
     @Override
     public void put(final String key, final Enum<?> value) throws StorageException {
-        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+        final Enum<?> old = this.map.containsKey(key) ? this.get(key, value) : null;
 
         this.map.put(key, value);
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
+
     }
 
     @Override
     public void put(final String key, final Float value) throws StorageException {
-        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+        final Float old = this.map.containsKey(key) ? this.get(key, value) : null;
 
         this.map.put(key, value);
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
+
     }
 
     @Override
     public void put(final String key, final Integer value) throws StorageException {
-        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+        final Integer old = this.map.containsKey(key) ? this.get(key, value) : null;
 
         this.map.put(key, value);
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
+
     }
 
     @Override
     public void put(final String key, final Long value) throws StorageException {
-        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
+        final Long old = this.map.containsKey(key) ? this.get(key, value) : null;
 
         this.map.put(key, value);
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
+
     }
 
     @Override
     public void put(final String key, final String value) throws StorageException {
-        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, this.map.containsKey(key) ? this.get(key, value) : null, value));
-
+        final String old = this.map.containsKey(key) ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
+
     }
 
     @Override
