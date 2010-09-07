@@ -32,9 +32,11 @@ import org.appwork.utils.logging.Log;
 public class InputDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
     private static final long serialVersionUID = 9206575398715006581L;
-    private final String      defaultMessage;
-    private final String      message;
+    protected String          defaultMessage;
+    protected String          message;
+
     private JTextPane         messageArea;
+
     private JTextComponent    input;
 
     public InputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
@@ -53,6 +55,14 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
     @Override
     protected String createReturnValue() {
         return this.getReturnID();
+    }
+
+    public String getDefaultMessage() {
+        return this.defaultMessage;
+    }
+
+    public String getMessage() {
+        return this.message;
     }
 
     public String getReturnID() {
@@ -126,6 +136,17 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
         this.input.selectAll();
         this.requestFocus();
         this.input.requestFocusInWindow();
+    }
+
+    public void setDefaultMessage(final String defaultMessage) {
+        this.defaultMessage = defaultMessage;
+        if (this.input != null) {
+            this.input.setText(defaultMessage);
+        }
+    }
+
+    public void setMessage(final String message) {
+        this.message = message;
     }
 
 }
