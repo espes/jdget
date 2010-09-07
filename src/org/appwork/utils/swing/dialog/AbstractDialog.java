@@ -55,7 +55,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
-        if (ret == null) return -1;
+        if (ret == null) { return -1; }
 
         return ret;
     }
@@ -184,6 +184,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         // Layout the dialog content and add it to the contentpane
         this.panel = this.layoutDialogContent();
         this.add(this.panel, "pushx,growx,pushy,growy,spanx,aligny center,wrap");
+
         // add the countdown timer
         this.add(this.timerLbl, "split 3,growx,hidemode 2");
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
@@ -240,7 +241,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.setResizable(true);
         final Dimension dim = this.getPreferredSize();
         // minimum size foir a dialog
-        this.setMinimumSize(new Dimension(Math.max(300, dim.width), Math.max(130, dim.height)));
+        this.setMinimumSize(new Dimension(Math.max(300, dim.width), Math.max(80, dim.height)));
         this.toFront();
 
         if (this.getDesiredSize() != null) {

@@ -55,7 +55,7 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
 
     /**
      * 
-     *@see Dialog#showComboDialog(int, String, String, Object[], int,
+     * @see Dialog#showComboDialog(int, String, String, Object[], int,
      *      ImageIcon, String, String, ListCellRenderer)
      */
     public ComboBoxDialog(final int flag, final String title, final String question, final Object[] options, final int defaultSelection, final ImageIcon icon, final String okText, final String cancelText, final ListCellRenderer renderer) {
