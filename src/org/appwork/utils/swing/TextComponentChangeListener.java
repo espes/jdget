@@ -20,7 +20,7 @@ public abstract class TextComponentChangeListener implements DocumentListener {
      * @see javax.swing.event.DocumentListener#changedUpdate(javax.swing.event.
      * DocumentEvent)
      */
-    @Override
+
     public void changedUpdate(final DocumentEvent e) {
         this.onChanged(e);
     }
@@ -31,7 +31,7 @@ public abstract class TextComponentChangeListener implements DocumentListener {
      * @see javax.swing.event.DocumentListener#insertUpdate(javax.swing.event.
      * DocumentEvent)
      */
-    @Override
+
     public void insertUpdate(final DocumentEvent e) {
         this.onChanged(e);
     }
@@ -47,7 +47,7 @@ public abstract class TextComponentChangeListener implements DocumentListener {
      * @see javax.swing.event.DocumentListener#removeUpdate(javax.swing.event.
      * DocumentEvent)
      */
-    @Override
+   
     public void removeUpdate(final DocumentEvent e) {
         this.onChanged(e);
     }
