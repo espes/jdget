@@ -58,7 +58,7 @@ public abstract class ExtTextEditorColumn<E> extends ExtTextColumn<E> implements
         return text;
     }
 
-    @Override
+  
     public void actionPerformed(ActionEvent e) {
         text.removeActionListener(this);
         this.fireEditingStopped();
