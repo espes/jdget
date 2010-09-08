@@ -21,7 +21,7 @@ import javax.swing.JPanel;
  * @author $Author: unknown$
  * 
  */
-public class ContainerDialog extends AbstractDialog<Object> {
+public class ContainerDialog extends AbstractDialog<Integer> {
 
     /**
      * 
@@ -52,9 +52,9 @@ public class ContainerDialog extends AbstractDialog<Object> {
      * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
      */
     @Override
-    protected Object createReturnValue() {
+    protected Integer createReturnValue() {
         // TODO Auto-generated method stub
-        return null;
+        return this.getReturnmask();
     }
 
     @Override
