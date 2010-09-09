@@ -37,7 +37,7 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
         });
     }
 
-    protected abstract long getLong(E o2);
+    protected abstract long getLong(E value);
 
     @Override
     public Object getCellEditorValue() {

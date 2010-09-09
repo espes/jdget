@@ -70,9 +70,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     }
 
-    public String getToolTip(final E obj) {
+    protected String getToolTip(final E obj) {
         final String v = this.getStringValue(obj);
-        if (v != null && v.length()>0) {
+        if (v != null && v.length() > 0) {
             return "<html>" + v.replaceAll("\r\n", "<br>") + "</html>";
         } else {
             return null;
@@ -86,29 +86,23 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     @Override
     public boolean isEnabled(final E obj) {
-
         return true;
     }
 
     @Override
     public boolean isSortable(final E obj) {
-
         return true;
     }
 
     @Override
     protected boolean matchSearch(final E object, final Pattern pattern) {
-
         return pattern.matcher(this.getStringValue(object)).matches();
-
     }
 
     /**
      * @param value
      */
     protected void prepareLabel(final E value) {
-        // TODO Auto-generated method stub
-
     }
 
     /**
