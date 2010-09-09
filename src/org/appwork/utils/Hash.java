@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 
@@ -46,17 +45,23 @@ public class Hash {
         }
     }
 
-    public static String getFileHash(final File arg, final String type) throws NoSuchAlgorithmException, IOException {
-        if (arg == null || !arg.exists() || arg.isDirectory()) { throw new NullPointerException(); }
-        final MessageDigest md = MessageDigest.getInstance(type);
-        // if (true) { throw new IOException("Any IOEXCeption"); }
-        final byte[] b = new byte[32767];
-
-        final FileInputStream fis = new FileInputStream(arg);
+    public static String getFileHash(final File arg, final String type) {
+        if (arg == null || !arg.exists() || arg.isDirectory()) { return null; }
+        FileInputStream fis = null;
+        MessageDigest md = null;
         try {
+            md = MessageDigest.getInstance(type);
+            // if (true) { throw new IOException("Any IOEXCeption"); }
+            final byte[] b = new byte[32767];
+
+            fis = new FileInputStream(arg);
+
             for (int n = 0; (n = fis.read(b)) > -1;) {
                 md.update(b, 0, n);
             }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return null;
         } finally {
             try {
                 fis.close();
@@ -68,27 +73,31 @@ public class Hash {
 
     }
 
-    public static String getMD5(final File arg) throws NoSuchAlgorithmException, IOException {
+    public static String getMD5(final File arg)  {
         return Hash.getFileHash(arg, Hash.HASH_TYPE_MD5);
     }
 
-    public static String getMD5(final String arg) throws NoSuchAlgorithmException {
+    public static String getMD5(final String arg)  {
         return Hash.getStringHash(arg, Hash.HASH_TYPE_MD5);
     }
 
-    public static String getSHA1(final File arg) throws NoSuchAlgorithmException, IOException {
+    public static String getSHA1(final File arg)  {
         return Hash.getFileHash(arg, Hash.HASH_TYPE_SHA1);
     }
 
-    public static String getSHA1(final String arg) throws NoSuchAlgorithmException {
+    public static String getSHA1(final String arg)  {
         return Hash.getStringHash(arg, Hash.HASH_TYPE_SHA1);
     }
 
-    public static String getStringHash(final String arg, final String type) throws NoSuchAlgorithmException {
-
-        final MessageDigest md = MessageDigest.getInstance(type);
-        final byte[] digest = md.digest(arg.getBytes());
-        return HexFormatter.byteArrayToHex(digest);
+    public static String getStringHash(final String arg, final String type) {
+        try {
+            final MessageDigest md = MessageDigest.getInstance(type);
+            final byte[] digest = md.digest(arg.getBytes());
+            return HexFormatter.byteArrayToHex(digest);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return null;
 
     }
 }
