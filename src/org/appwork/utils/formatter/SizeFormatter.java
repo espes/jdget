@@ -18,7 +18,7 @@ import org.appwork.utils.Regex;
  * @author $Author: unknown$
  * 
  */
-public class SizeFormater {
+public class SizeFormatter {
 
     /**
      * Formats filesize from Bytes to the best readable form

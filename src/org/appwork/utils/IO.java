@@ -79,7 +79,7 @@ public class IO {
             final StringBuilder ret = new StringBuilder();
             final String sep = System.getProperty("line.separator");
             while ((line = f.readLine()) != null) {
-                ret.append(line + sep);
+                ret.append(line).append(sep);
             }
             return ret.toString();
         } finally {

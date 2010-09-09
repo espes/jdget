@@ -261,4 +261,5 @@ public class Regex {
     public static boolean matches(final Object page, final String string) {
         return new Regex(page, string).matches();
     }
+
 }

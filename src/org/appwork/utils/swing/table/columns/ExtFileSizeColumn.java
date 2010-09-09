@@ -5,7 +5,7 @@ import java.awt.Component;
 import javax.swing.BorderFactory;
 import javax.swing.JTable;
 
-import org.appwork.utils.formatter.SizeFormater;
+import org.appwork.utils.formatter.SizeFormatter;
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
@@ -82,7 +82,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
         if ((sizeValue = getBytes((E) value)) < 0) {
             label.setText(getInvalidValue());
         } else {
-            label.setText(SizeFormater.formatBytes(sizeValue));
+            label.setText(SizeFormatter.formatBytes(sizeValue));
         }
         label.setEnabled(isEnabled((E) value));
         return label;
