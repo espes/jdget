@@ -32,13 +32,15 @@ public abstract class ExtTextEditorColumn<E> extends ExtTextColumn<E> implements
         setClickcount(2);
     }
 
+    protected abstract void setStringValue(String value, E object);
+
     @Override
     public boolean isEditable(E obj) {
         return true;
     }
 
     /**
-     * Should be overwritten to prepare the componente for the TableCellEditor
+     * Should be overwritten to prepare the component for the TableCellEditor
      * (e.g. setting tooltips)
      */
     protected void prepareTableCellEditorComponent(JTextField text) {
@@ -58,10 +60,14 @@ public abstract class ExtTextEditorColumn<E> extends ExtTextColumn<E> implements
         return text;
     }
 
-  
     public void actionPerformed(ActionEvent e) {
         text.removeActionListener(this);
         this.fireEditingStopped();
+    }
+
+    @Override
+    public final void setValue(Object value, E object) {
+        setStringValue((String) value, object);
     }
 
 }

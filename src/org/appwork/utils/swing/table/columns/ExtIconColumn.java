@@ -44,7 +44,7 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
         });
     }
 
-    public String getToolTip(E obj) {
+    protected String getToolTip(E obj) {
         return null;
     }
 
@@ -55,11 +55,8 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
 
     /**
      * Returns the icon for o1;
-     * 
-     * @param o1
-     * @return
      */
-    abstract protected Icon getIcon(E o1);
+    protected abstract Icon getIcon(E value);
 
     @Override
     public Object getCellEditorValue() {

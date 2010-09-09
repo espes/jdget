@@ -12,23 +12,18 @@ import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtLongColumn<E> extends ExtColumn<E> {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = -6917352290094392921L;
-    private RenderLabel label;
+    private final RenderLabel label;
 
     public ExtLongColumn(String name, ExtTableModel<E> table) {
         super(name, table);
-        this.label = new RenderLabel();
+
+        label = new RenderLabel();
         label.setBorder(null);
         label.setOpaque(false);
         label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
-            /**
-             * sorts the icon by hashcode
-             */
             @Override
             public int compare(E o1, E o2) {
                 if (getLong(o1) == getLong(o2)) return 0;
@@ -42,42 +37,35 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
         });
     }
 
-    abstract protected long getLong(E o2);
+    protected abstract long getLong(E o2);
 
     @Override
     public Object getCellEditorValue() {
-        
         return null;
     }
 
     @Override
     public boolean isEditable(E obj) {
-        
         return false;
     }
 
     @Override
     public boolean isEnabled(E obj) {
-        
         return true;
     }
 
     @Override
     public boolean isSortable(Object obj) {
-        
         return true;
     }
 
     @Override
     public void setValue(Object value, E object) {
-        
-
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-
         label.setText(getLong((E) value) + "");
         label.setEnabled(isEnabled((E) value));
         return label;
