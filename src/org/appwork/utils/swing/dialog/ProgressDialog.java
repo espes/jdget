@@ -84,7 +84,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     @Override
     public void dispose() {
         if (this.disposed) { return; }
-        super.dispose();
+
         this.disposed = true;
         this.executer.interrupt();
 
@@ -93,6 +93,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         } catch (final InterruptedException e) {
 
         }
+        super.dispose();
 
     }
 

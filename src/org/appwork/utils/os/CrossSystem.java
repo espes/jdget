@@ -28,15 +28,15 @@ import org.appwork.utils.os.mime.MimeWindows;
  * @author $Author: unknown$
  */
 public class CrossSystem {
-    public static final byte OS_LINUX_OTHER = 6;
-    public static final byte OS_MAC_OTHER = 5;
-    public static final byte OS_WINDOWS_OTHER = 4;
-    public static final byte OS_WINDOWS_NT = 3;
-    public static final byte OS_WINDOWS_2000 = 2;
-    public static final byte OS_WINDOWS_XP = 0;
-    public static final byte OS_WINDOWS_2003 = 7;
-    public static final byte OS_WINDOWS_VISTA = 1;
-    public static final byte OS_WINDOWS_7 = 8;
+    public static final byte  OS_LINUX_OTHER   = 6;
+    public static final byte  OS_MAC_OTHER     = 5;
+    public static final byte  OS_WINDOWS_OTHER = 4;
+    public static final byte  OS_WINDOWS_NT    = 3;
+    public static final byte  OS_WINDOWS_2000  = 2;
+    public static final byte  OS_WINDOWS_XP    = 0;
+    public static final byte  OS_WINDOWS_2003  = 7;
+    public static final byte  OS_WINDOWS_VISTA = 1;
+    public static final byte  OS_WINDOWS_7     = 8;
 
     /**
      * Cache to store the OSID in
@@ -50,27 +50,27 @@ public class CrossSystem {
     static {
         final String OS = System.getProperty("os.name").toLowerCase();
         if (OS.indexOf("windows 7") > -1) {
-            OS_ID = OS_WINDOWS_7;
+            OS_ID = CrossSystem.OS_WINDOWS_7;
         } else if (OS.indexOf("windows xp") > -1) {
-            OS_ID = OS_WINDOWS_XP;
+            OS_ID = CrossSystem.OS_WINDOWS_XP;
         } else if (OS.indexOf("windows vista") > -1) {
-            OS_ID = OS_WINDOWS_VISTA;
+            OS_ID = CrossSystem.OS_WINDOWS_VISTA;
         } else if (OS.indexOf("windows 2000") > -1) {
-            OS_ID = OS_WINDOWS_2000;
+            OS_ID = CrossSystem.OS_WINDOWS_2000;
         } else if (OS.indexOf("windows 2003") > -1) {
-            OS_ID = OS_WINDOWS_2003;
+            OS_ID = CrossSystem.OS_WINDOWS_2003;
         } else if (OS.indexOf("nt") > -1) {
-            OS_ID = OS_WINDOWS_NT;
+            OS_ID = CrossSystem.OS_WINDOWS_NT;
         } else if (OS.indexOf("windows") > -1) {
-            OS_ID = OS_WINDOWS_OTHER;
+            OS_ID = CrossSystem.OS_WINDOWS_OTHER;
         } else if (OS.indexOf("mac") > -1) {
-            OS_ID = OS_MAC_OTHER;
+            OS_ID = CrossSystem.OS_MAC_OTHER;
         } else {
-            OS_ID = OS_LINUX_OTHER;
+            OS_ID = CrossSystem.OS_LINUX_OTHER;
         }
-        if (isWindows()) {
+        if (CrossSystem.isWindows()) {
             MIME = new MimeWindows();
-        } else if (isLinux()) {
+        } else if (CrossSystem.isLinux()) {
             MIME = new MimeLinux();
         } else {
             MIME = new MimeDefault();
@@ -78,77 +78,21 @@ public class CrossSystem {
     }
 
     /**
-     * Open an url in the systems default browser
-     * 
-     * @param url
+     * @return
      */
-    public static void openURL(URL url) {
-        if (url == null) return;
-        if (isWindows()) {
-            try {
-                Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", url.toString() });
-                return;
-            } catch (IOException e) {
-                Log.exception(e);
-            }
-        }
-        if (!Desktop.isDesktopSupported()) {
-            Log.L.severe("Desktop is not supported (fatal)");
-            return;
-        }
-        Desktop desktop = Desktop.getDesktop();
-        if (!desktop.isSupported(Desktop.Action.BROWSE)) {
-            Log.L.severe("Desktop doesn't support the browse action (fatal)");
-            return;
-        }
-        try {
-            desktop.browse(url.toURI());
-        } catch (Exception e) {
-            try {
-                Log.L.severe(url.toURI().toString());
-            } catch (Exception e1) {                
-            }
-            Log.exception(Level.WARNING, e);
-        }
+    public static byte getID() {
+        // TODO Auto-generated method stub
+        return CrossSystem.OS_ID;
     }
 
     /**
-     * Opens a file or directory
+     * Returns the Mime Class for the current OS
      * 
-     * @see java.awt.Desktop#open(File)
-     * @param file
+     * @return
+     * @see Mime
      */
-    public static void openFile(File file) {
-        if (file == null) return;
-        if (isWindows()) {
-            // workaround for windows
-            // see http://bugs.sun.com/view_bug.do?bug_id=6599987
-            try {
-                Runtime.getRuntime().exec(new String[] { "rundll32.exe","url.dll,FileProtocolHandler", file.getAbsolutePath() });
-                return;
-            } catch (IOException e) {
-                Log.exception(e);
-            }            
-        }
-        if (!Desktop.isDesktopSupported()) {
-            Log.L.severe("Desktop is not supported (fatal)");
-            return;
-        }
-        Desktop desktop = Desktop.getDesktop();
-        if (!desktop.isSupported(Desktop.Action.OPEN)) {
-            Log.L.severe("Desktop doesn't support the OPEN action (fatal)");
-            return;
-        }
-        try {
-            URI uri = file.getCanonicalFile().toURI();
-            desktop.open(new File(uri));
-        } catch (Exception e) {
-            try {
-                Log.L.severe(file.getCanonicalFile().toURI().toString());
-            } catch (Exception e1) {                
-            }
-            Log.exception(e);
-        }
+    public static Mime getMime() {
+        return CrossSystem.MIME;
     }
 
     /**
@@ -157,7 +101,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isLinux() {
-        return OS_ID == OS_LINUX_OTHER;
+        return CrossSystem.OS_ID == CrossSystem.OS_LINUX_OTHER;
     }
 
     /**
@@ -166,7 +110,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isMac() {
-        return OS_ID == OS_MAC_OTHER;
+        return CrossSystem.OS_ID == CrossSystem.OS_MAC_OTHER;
     }
 
     /**
@@ -175,7 +119,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isWindows() {
-        switch (OS_ID) {
+        switch (CrossSystem.OS_ID) {
         case OS_WINDOWS_XP:
         case OS_WINDOWS_VISTA:
         case OS_WINDOWS_2000:
@@ -189,13 +133,77 @@ public class CrossSystem {
     }
 
     /**
-     * Returns the Mime Class for the current OS
+     * Opens a file or directory
      * 
-     * @return
-     * @see Mime
+     * @see java.awt.Desktop#open(File)
+     * @param file
      */
-    public static Mime getMime() {
-        return MIME;
+    public static void openFile(final File file) {
+        if (file == null) { return; }
+        if (CrossSystem.isWindows()) {
+            // workaround for windows
+            // see http://bugs.sun.com/view_bug.do?bug_id=6599987
+            try {
+                Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", file.getAbsolutePath() });
+                return;
+            } catch (final IOException e) {
+                Log.exception(e);
+            }
+        }
+        if (!Desktop.isDesktopSupported()) {
+            Log.L.severe("Desktop is not supported (fatal)");
+            return;
+        }
+        final Desktop desktop = Desktop.getDesktop();
+        if (!desktop.isSupported(Desktop.Action.OPEN)) {
+            Log.L.severe("Desktop doesn't support the OPEN action (fatal)");
+            return;
+        }
+        try {
+            final URI uri = file.getCanonicalFile().toURI();
+            desktop.open(new File(uri));
+        } catch (final Exception e) {
+            try {
+                Log.L.severe(file.getCanonicalFile().toURI().toString());
+            } catch (final Exception e1) {
+            }
+            Log.exception(e);
+        }
+    }
+
+    /**
+     * Open an url in the systems default browser
+     * 
+     * @param url
+     */
+    public static void openURL(final URL url) {
+        if (url == null) { return; }
+        if (CrossSystem.isWindows()) {
+            try {
+                Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", url.toString() });
+                return;
+            } catch (final IOException e) {
+                Log.exception(e);
+            }
+        }
+        if (!Desktop.isDesktopSupported()) {
+            Log.L.severe("Desktop is not supported (fatal)");
+            return;
+        }
+        final Desktop desktop = Desktop.getDesktop();
+        if (!desktop.isSupported(Desktop.Action.BROWSE)) {
+            Log.L.severe("Desktop doesn't support the browse action (fatal)");
+            return;
+        }
+        try {
+            desktop.browse(url.toURI());
+        } catch (final Exception e) {
+            try {
+                Log.L.severe(url.toURI().toString());
+            } catch (final Exception e1) {
+            }
+            Log.exception(Level.WARNING, e);
+        }
     }
 
 }
