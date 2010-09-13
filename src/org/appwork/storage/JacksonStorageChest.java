@@ -47,6 +47,18 @@ public class JacksonStorageChest extends Storage {
         this.map.clear();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.Storage#decrease(java.lang.String)
+     */
+    @Override
+    public long decrease(final String key) {
+        long ret;
+        this.put(key, ret = this.get(key, 0l) - 1);
+        return ret;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public <E> E get(final String key, final E def) throws StorageException {
@@ -91,6 +103,18 @@ public class JacksonStorageChest extends Storage {
 
     public String getName() {
         return this.name;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.Storage#increase(java.lang.String)
+     */
+    @Override
+    public long increase(final String key) {
+        long ret;
+        this.put(key, ret = this.get(key, 0l) + 1);
+        return ret;
     }
 
     public boolean isPlain() {

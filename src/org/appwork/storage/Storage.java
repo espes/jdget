@@ -17,6 +17,8 @@ public abstract class Storage {
      */
     abstract public void clear() throws StorageException;
 
+    public abstract long decrease(String key);
+
     abstract public <E> E get(String key, E def) throws StorageException;
 
     /**
@@ -25,6 +27,11 @@ public abstract class Storage {
     public DefaultEventSender<StorageEvent> getEventSender() {
         return this.eventSender;
     }
+
+    /**
+     * @param string
+     */
+    public abstract long increase(String key);
 
     abstract public void put(String key, Boolean value) throws StorageException;
 
