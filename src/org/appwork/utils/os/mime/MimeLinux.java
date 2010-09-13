@@ -25,7 +25,7 @@ public class MimeLinux extends MimeDefault {
 
         File file = new File("/usr/share/mime/" + mimeType + ".xml");
 
-        if (!file.exists()) { return "Unkown"; }
+        if (!file.exists()) { return "Unknown"; }
 
         String mime = "Unkown";
 

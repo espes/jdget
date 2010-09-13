@@ -28,42 +28,48 @@ import org.appwork.utils.os.mime.MimeWindows;
  * @author $Author: unknown$
  */
 public class CrossSystem {
-    public static final byte  OS_LINUX_OTHER   = 6;
-    public static final byte  OS_MAC_OTHER     = 5;
-    public static final byte  OS_WINDOWS_OTHER = 4;
-    public static final byte  OS_WINDOWS_NT    = 3;
-    public static final byte  OS_WINDOWS_2000  = 2;
-    public static final byte  OS_WINDOWS_XP    = 0;
-    public static final byte  OS_WINDOWS_2003  = 7;
-    public static final byte  OS_WINDOWS_VISTA = 1;
-    public static final byte  OS_WINDOWS_7     = 8;
+    public static final byte    OS_LINUX_OTHER   = 6;
+    public static final byte    OS_MAC_OTHER     = 5;
+    public static final byte    OS_WINDOWS_OTHER = 4;
+    public static final byte    OS_WINDOWS_NT    = 3;
+    public static final byte    OS_WINDOWS_2000  = 2;
+    public static final byte    OS_WINDOWS_XP    = 0;
+    public static final byte    OS_WINDOWS_2003  = 7;
+    public static final byte    OS_WINDOWS_VISTA = 1;
+    public static final byte    OS_WINDOWS_7     = 8;
 
     /**
-     * Cache to store the OSID in
+     * Cache to store the OS string in
      */
-    private final static byte OS_ID;
+    private final static String OS_STRING;
+
+    /**
+     * Cache to store the OS ID in
+     */
+    private final static byte   OS_ID;
 
     /**
      * Cache to store the Mime Class in
      */
-    private static final Mime MIME;
+    private static final Mime   MIME;
     static {
-        final String OS = System.getProperty("os.name").toLowerCase();
-        if (OS.indexOf("windows 7") > -1) {
+        OS_STRING = System.getProperty("os.name");
+        final String OS = OS_STRING.toLowerCase();
+        if (OS.contains("windows 7")) {
             OS_ID = CrossSystem.OS_WINDOWS_7;
-        } else if (OS.indexOf("windows xp") > -1) {
+        } else if (OS.contains("windows xp")) {
             OS_ID = CrossSystem.OS_WINDOWS_XP;
-        } else if (OS.indexOf("windows vista") > -1) {
+        } else if (OS.contains("windows vista")) {
             OS_ID = CrossSystem.OS_WINDOWS_VISTA;
-        } else if (OS.indexOf("windows 2000") > -1) {
+        } else if (OS.contains("windows 2000")) {
             OS_ID = CrossSystem.OS_WINDOWS_2000;
-        } else if (OS.indexOf("windows 2003") > -1) {
+        } else if (OS.contains("windows 2003")) {
             OS_ID = CrossSystem.OS_WINDOWS_2003;
-        } else if (OS.indexOf("nt") > -1) {
+        } else if (OS.contains("nt")) {
             OS_ID = CrossSystem.OS_WINDOWS_NT;
-        } else if (OS.indexOf("windows") > -1) {
+        } else if (OS.contains("windows")) {
             OS_ID = CrossSystem.OS_WINDOWS_OTHER;
-        } else if (OS.indexOf("mac") > -1) {
+        } else if (OS.contains("mac")) {
             OS_ID = CrossSystem.OS_MAC_OTHER;
         } else {
             OS_ID = CrossSystem.OS_LINUX_OTHER;
@@ -77,12 +83,12 @@ public class CrossSystem {
         }
     }
 
-    /**
-     * @return
-     */
     public static byte getID() {
-        // TODO Auto-generated method stub
         return CrossSystem.OS_ID;
+    }
+
+    public static String getOSString() {
+        return CrossSystem.OS_STRING;
     }
 
     /**
