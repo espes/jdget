@@ -9,7 +9,12 @@
  */
 package org.appwork.utils.swing.dialog.test;
 
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+
 import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.dialog.InputDialog;
 
 /**
  * @author thomas
@@ -18,15 +23,29 @@ import org.appwork.utils.swing.dialog.Dialog;
 public class DialogOrder {
 
     /**
+     * 
+     * closeord: 0 1 2 3 4 5 6 7 8 9 A B
+     * 
      * @param args
      */
     public static void main(final String[] args) {
         for (int i = 0; i < 10; i++) {
             DialogOrder.startDialogInThread(i);
         }
+        try {
+            Thread.sleep(11000);
+        } catch (final InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        DialogOrder.test2();
+
     }
 
     /**
+     * 
+     * close order should run from 0 to 9
+     * 
      * @param i
      */
     private static void startDialogInThread(final int i) {
@@ -39,8 +58,28 @@ public class DialogOrder {
                     e.printStackTrace();
                 }
                 Dialog.getInstance().showInputDialog("Dialog " + i);
+                System.out.println("CLosed " + i);
             }
         }.start();
+    }
+
+    /**
+     * closeorder: A B
+     */
+    private static void test2() {
+        final InputDialog dialog = new InputDialog(0, "title", "message", "defaultMessage", null, null, null);
+
+        dialog.setLeftActions(new AbstractAction("CLICK HERE!!!") {
+
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+                Dialog.getInstance().showMessageDialog("INTERNAL");
+                System.out.println("A");
+            }
+
+        });
+        Dialog.getInstance().showDialog(dialog);
+        System.out.println("B");
     }
 
 }
