@@ -32,11 +32,11 @@ import org.appwork.utils.locale.APPWORKUTILS;
 public class PasswordDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
     private static final long serialVersionUID = 9206575398715006581L;
-    private String message;
-    private JTextPane messageArea;
-    private JTextComponent input1;
-    private JTextComponent input2;
-    private JTextComponent input3;
+    private String            message;
+    private JTextPane         messageArea;
+    private JTextComponent    input1;
+    private JTextComponent    input2;
+    private JTextComponent    input3;
 
     public PasswordDialog(int flag, String title, String message, ImageIcon icon, String okOption, String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
@@ -105,12 +105,6 @@ public class PasswordDialog extends AbstractDialog<String> implements KeyListene
         input1.requestFocusInWindow();
     }
 
-    public String getReturnID() {
-        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
-        String dump = new String(((JPasswordField) input1).getPassword()) + ";" + new String(((JPasswordField) input2).getPassword()) + ";" + new String(((JPasswordField) input3).getPassword());
-        return dump;
-    }
-
     public void keyPressed(KeyEvent e) {
         this.cancel();
     }
@@ -137,14 +131,10 @@ public class PasswordDialog extends AbstractDialog<String> implements KeyListene
     public void mouseReleased(MouseEvent e) {
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
-     */
     @Override
     protected String createReturnValue() {
-        return getReturnID();
+        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
+        return new String(((JPasswordField) input1).getPassword()) + ";" + new String(((JPasswordField) input2).getPassword()) + ";" + new String(((JPasswordField) input3).getPassword());
     }
 
 }

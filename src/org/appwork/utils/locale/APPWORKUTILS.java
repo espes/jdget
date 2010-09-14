@@ -49,7 +49,6 @@ PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD("New Password:"),
 SEARCHDIALOG_BUTTON_FIND("Find"),
 SEARCHDIALOG_CHECKBOX_CASESENSITIVE("Case sensitive"),
 SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION("Regular Expressions"),
-TIMERDIALOG_MESSAGE_COUNTDOWN_STARTING("Countdown starting..."),
 TIMERDIALOG_TOOLTIP_TIMERLABEL("This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"),
 DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER("Switch to parent folder"),
 DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER("Switch to Home"),
@@ -126,11 +125,6 @@ DIALOG_ERROR_TITLE("Error Occured");
         return this.toString();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.locale.Translate#toString(java.lang.Object[])
-     */
     public String s(final Object... args) {
         if (args != null && args.length > 0) {
             return Loc.LF("APPWORKUTILS:::" + this.name(), this.defaultTranslation, args);
@@ -144,7 +138,6 @@ DIALOG_ERROR_TITLE("Error Occured");
     @Override
     @Deprecated
     public String toString() {
-
         return this.s((Object[]) null);
     }
 }

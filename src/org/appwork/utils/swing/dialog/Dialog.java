@@ -32,8 +32,6 @@ import org.appwork.utils.swing.EDTHelper;
 /**
  * A Dialog Instance which provides extended Dialog features and thus replaces
  * JOptionPane
- * 
- * @author $Author: unknown$
  */
 public class Dialog {
 
@@ -118,11 +116,9 @@ public class Dialog {
      * b) The dialog has been skipped because the DO NOT SHOW AGAIN flag has
      * been set previously<br>
      * <br>
-     * Check {@link #RETURN_SKIPPED_BY_DONT_SHOW} to know of the dialog has been
+     * Check {@link #RETURN_SKIPPED_BY_DONT_SHOW} to know if the dialog has been
      * visible or autoskipped
-     * 
      */
-
     public static final int     RETURN_DONT_SHOW_AGAIN               = 1 << 3;
     /**
      * If the user pressed OK, the return mask will contain this flag
@@ -216,13 +212,6 @@ public class Dialog {
     private int    coundownTime = 20;
 
     /**
-     * the latest return value is stored in this variable for internal use
-     * 
-     * @see #isOK()
-     */
-    private Object latestReturnMask;
-
-    /**
      * Parent window for all dialogs created with abstractdialog
      */
     private JFrame owner        = new JFrame();
@@ -241,17 +230,6 @@ public class Dialog {
      */
     public JFrame getParentOwner() {
         return this.owner;
-    }
-
-    /**
-     * Returns true, if the latest answer contains the {@link #RETURN_OK} flag
-     * WARNING: do not use this in single instance Dialog
-     * 
-     * @deprecated Use {@link Dialog#isOK(Object)} with returnmask instead.
-     */
-    @Deprecated
-    public boolean isOK() {
-        return Dialog.isOK(this.latestReturnMask);
     }
 
     /**
@@ -299,19 +277,7 @@ public class Dialog {
      */
     public int showComboDialog(final int flag, final String title, final String question, final Object[] options, final int defaultSelection, final ImageIcon icon, final String okOption, final String cancelOption, final ListCellRenderer renderer) {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultSelection; }
-        Integer ret = 0;
-        try {
-            return ret = new EDTHelper<Integer>() {
-                @Override
-                public Integer edtRun() {
-                    final ComboBoxDialog dialog = new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okOption, cancelOption, renderer);
-                    dialog.displayDialog();
-                    return dialog.getReturnIndex();
-                }
-            }.getReturnValue();
-        } finally {
-            this.latestReturnMask = ret;
-        }
+        return showDialog(new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okOption, cancelOption, renderer));
     }
 
     /**
@@ -348,19 +314,14 @@ public class Dialog {
      * @param flag
      *            see {@link Dialog} - Flags. There are various flags to
      *            customize the dialog
-     * 
      * @param title
      *            The Dialog's Window Title
-     * 
      * @param message
      *            The Dialog is able to show a message to the user
-     * 
      * @param icon
      *            The dialog is able to display an Icon If this is null, the
      *            dialog might select an Icon derived from the message and title
      *            text
-     * 
-     * 
      * @param okOption
      *            Text for OK Button [null for default] Text for OK Button [null
      *            for default]
@@ -369,7 +330,6 @@ public class Dialog {
      *            Button [null for default]
      * @return
      */
-
     public int showConfirmDialog(final int flag, final String title, final String message, final ImageIcon tmpicon, final String okOption, final String cancelOption) {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return 0; }
         final ImageIcon icon;
@@ -378,21 +338,7 @@ public class Dialog {
         } else {
             icon = tmpicon;
         }
-        Integer ret = 0;
-        try {
-            return ret = new EDTHelper<Integer>() {
-                @Override
-                public Integer edtRun() {
-                    final ConfirmDialog dialog = new ConfirmDialog(flag, title, message, icon, okOption, cancelOption);
-
-                    dialog.displayDialog();
-                    return dialog.getReturnmask();
-                }
-            }.getReturnValue();
-        } finally {
-            this.latestReturnMask = ret;
-        }
-
+        return showDialog(new ConfirmDialog(flag, title, message, icon, okOption, cancelOption));
     }
 
     /**
@@ -400,20 +346,18 @@ public class Dialog {
      * 
      * @param <T>
      * @param dialog
-     * @param retType
      * @return
      */
-    @SuppressWarnings("unchecked")
     public <T> T showDialog(final AbstractDialog<T> dialog) {
         if (dialog == null) { return null; }
-        return (T) (this.latestReturnMask = new EDTHelper<T>() {
+        return (T) new EDTHelper<T>() {
             @Override
             public T edtRun() {
                 dialog.displayDialog();
                 return dialog.getReturnValue();
             }
 
-        }.getReturnValue());
+        }.getReturnValue();
     }
 
     public int showErrorDialog(final String s) {
@@ -541,12 +485,12 @@ public class Dialog {
                                     }
 
                                     if (rets.size() > 0) {
-                                        Dialog.this.latestReturnMask = rets.toArray(new File[rets.size()]);
-                                        final File first = rets.get(0);
+                                        File[] files = rets.toArray(new File[rets.size()]);
+                                        final File first = files[0];
                                         if (first != null) {
                                             JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
                                         }
-                                        return (File[]) Dialog.this.latestReturnMask;
+                                        return files;
                                     } else {
                                         return null;
                                     }
@@ -559,7 +503,6 @@ public class Dialog {
                                  */
                                 ret = Dialog.this.validateFileType(ret, fileSelectionMode, false);
                                 if (ret != null) {
-                                    Dialog.this.latestReturnMask = ret;
                                     JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
                                     return new File[] { ret };
                                 } else {
@@ -575,7 +518,6 @@ public class Dialog {
                                  */
                                 ret = Dialog.this.validateFileType(ret, fileSelectionMode, true);
                                 if (ret != null) {
-                                    Dialog.this.latestReturnMask = ret;
                                     JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
                                     return new File[] { ret };
                                 } else {
@@ -638,15 +580,7 @@ public class Dialog {
      */
     public String showInputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
-        return (String) (this.latestReturnMask = new EDTHelper<String>() {
-            @Override
-            public String edtRun() {
-                final InputDialog dialog = new InputDialog(flag, title, message, defaultMessage, icon, okOption, cancelOption);
-                dialog.displayDialog();
-                return dialog.getReturnValue();
-            }
-
-        }.getReturnValue());
+        return showDialog(new InputDialog(flag, title, message, defaultMessage, icon, okOption, cancelOption));
     }
 
     /**
@@ -744,15 +678,7 @@ public class Dialog {
      */
     protected String showPasswordDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
-        return (String) (this.latestReturnMask = new EDTHelper<String>() {
-            @Override
-            public String edtRun() {
-                final PasswordDialog dialog = new PasswordDialog(flag, title, message, icon, okOption, cancelOption);
-                dialog.displayDialog();
-                return dialog.getReturnValue();
-            }
-
-        }.getReturnValue());
+        return showDialog(new PasswordDialog(flag, title, message, icon, okOption, cancelOption));
     }
 
     /**
@@ -774,21 +700,8 @@ public class Dialog {
      * @param def
      * @return
      */
-    protected String showTextAreaDialog(final String title, final String message, final String def) {
-        return (String) (this.latestReturnMask = new EDTHelper<String>() {
-            @Override
-            public String edtRun() {
-                try {
-                    final TextAreaDialog dialog = new TextAreaDialog(title, message, def);
-                    dialog.displayDialog();
-                    if (BinaryLogic.containsAll(dialog.getReturnmask(), Dialog.RETURN_OK)) { return dialog.getResult(); }
-                } catch (final IOException e) {
-                    Log.exception(e);
-                }
-                return null;
-            }
-
-        }.getReturnValue());
+    public String showTextAreaDialog(final String title, final String message, final String def) {
+        return showDialog(new TextAreaDialog(title, message, def));
     }
 
     /**
@@ -844,15 +757,7 @@ public class Dialog {
      */
     protected long showValueDialog(final int flag, final String title, final String message, final long defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption, final long min, final long max, final long step, final ValueConverter valueConverter) {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
-
-        return (Long) (this.latestReturnMask = new EDTHelper<Long>() {
-            @Override
-            public Long edtRun() {
-                final ValueDialog dialog = new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter);
-                dialog.displayDialog();
-                return dialog.getReturnValue();
-            }
-        }.getReturnValue());
+        return showDialog(new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter));
     }
 
     private File validateFileType(final File ret, final Integer fileSelectionMode, final boolean mkdir) {

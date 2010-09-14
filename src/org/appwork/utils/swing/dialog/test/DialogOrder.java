@@ -18,15 +18,11 @@ import org.appwork.utils.swing.dialog.InputDialog;
 
 /**
  * @author thomas
- * 
  */
 public class DialogOrder {
 
     /**
-     * 
      * closeord: 0 1 2 3 4 5 6 7 8 9 A B
-     * 
-     * @param args
      */
     public static void main(final String[] args) {
         for (int i = 0; i < 10; i++) {
@@ -35,7 +31,6 @@ public class DialogOrder {
         try {
             Thread.sleep(11000);
         } catch (final InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         DialogOrder.test2();
@@ -43,10 +38,7 @@ public class DialogOrder {
     }
 
     /**
-     * 
      * close order should run from 0 to 9
-     * 
-     * @param i
      */
     private static void startDialogInThread(final int i) {
         new Thread(i + "") {
@@ -54,7 +46,6 @@ public class DialogOrder {
                 try {
                     Thread.sleep(1000 * i);
                 } catch (final InterruptedException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
                 Dialog.getInstance().showInputDialog("Dialog " + i);
@@ -70,6 +61,8 @@ public class DialogOrder {
         final InputDialog dialog = new InputDialog(0, "title", "message", "defaultMessage", null, null, null);
 
         dialog.setLeftActions(new AbstractAction("CLICK HERE!!!") {
+
+            private static final long serialVersionUID = 3916626551625222343L;
 
             @Override
             public void actionPerformed(final ActionEvent e) {

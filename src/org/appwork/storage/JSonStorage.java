@@ -19,15 +19,15 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 public class JSonStorage {
-    private static final HashMap<String, Storage> MAP = new HashMap<String, Storage>();
-    private static File path;
-    private static final ObjectMapper MAPPER = new ObjectMapper(new ExtJsonFactory());
-    public static final Object LOCK = new Object();
+    private static final HashMap<String, Storage> MAP    = new HashMap<String, Storage>();
+    private static File                           path;
+    private static final ObjectMapper             MAPPER = new ObjectMapper(new ExtJsonFactory());
+    public static final Object                    LOCK   = new Object();
     static {
         JSonStorage.MAPPER.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    static public byte[] KEY = new byte[] { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };
+    static public byte[]                          KEY    = new byte[] { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };
 
     static {
 
@@ -55,6 +55,9 @@ public class JSonStorage {
         return JSonStorage.MAPPER;
     }
 
+    /**
+     * TODO: Difference to {@link #getStorage(String)} ?
+     */
     public synchronized static Storage getPlainStorage(final String name) throws StorageException {
         Storage ret = JSonStorage.MAP.get(name);
         if (ret == null) {
@@ -64,6 +67,9 @@ public class JSonStorage {
         return ret;
     }
 
+    /**
+     * TODO: Difference to {@link #getPlainStorage(String)} ?
+     */
     public synchronized static Storage getStorage(final String name) throws StorageException {
         Storage ret = JSonStorage.MAP.get(name);
         if (ret == null) {
@@ -113,7 +119,7 @@ public class JSonStorage {
                         return ret;
                     } catch (final Exception e) {
                         Log.L.warning("Could not restore tmp file");
-                        Log.exception(Level.WARNING,e);
+                        Log.exception(Level.WARNING, e);
                     } finally {
                         /* tmp file must be gone after read */
                         Application.getRessource(string + ".tmp").delete();

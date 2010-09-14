@@ -9,8 +9,6 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import java.io.IOException;
-
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -31,7 +29,7 @@ public class TextAreaDialog extends AbstractDialog<String> {
 
     private JTextArea         txtArea;
 
-    public TextAreaDialog(final String title, final String message, final String def) throws IOException {
+    public TextAreaDialog(final String title, final String message, final String def) {
         super(0, title, ImageProvider.getImageIcon("info", 32, 32), null, null);
 
         Log.L.fine("Dialog \r\ntitle: " + title + "\r\nmsg:   \r\n" + message + "\r\ndef:   \r\n" + def);
@@ -40,17 +38,9 @@ public class TextAreaDialog extends AbstractDialog<String> {
         this.def = def;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
-     */
     @Override
     protected String createReturnValue() {
-        return this.getResult();
-    }
-
-    public String getResult() {
+        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
         return this.txtArea.getText();
     }
 

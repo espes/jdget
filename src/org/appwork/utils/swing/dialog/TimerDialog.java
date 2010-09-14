@@ -25,35 +25,34 @@ import org.appwork.utils.swing.EDTHelper;
 
 public abstract class TimerDialog extends JDialog {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = -7551772010164684078L;
     /**
      * Timer Thread to count down the {@link #counter}
      */
-    protected Thread timer;
+    protected Thread          timer;
     /**
      * Current timer value
      */
-    protected int counter;
+    protected int             counter;
     /**
      * Label to display the timervalue
      */
-    protected JLabel timerLbl;
+    protected JLabel          timerLbl;
 
     public TimerDialog(JFrame parentframe) {
         super(parentframe, ModalityType.TOOLKIT_MODAL);
         // avoids always On Top BUg
-        if (parentframe != null) parentframe.setAlwaysOnTop(true);
-        if (parentframe != null) parentframe.setAlwaysOnTop(false);
+        if (parentframe != null) {
+            parentframe.setAlwaysOnTop(true);
+            parentframe.setAlwaysOnTop(false);
+        }
         layoutDialog();
     }
 
     protected void layoutDialog() {
-        this.timerLbl = new JLabel(APPWORKUTILS.TIMERDIALOG_MESSAGE_COUNTDOWN_STARTING.s());
+        this.timerLbl = new JLabel(TimeFormatter.formatSeconds(Dialog.getInstance().getCoundownTime(), 0));
 
-        timerLbl.addMouseListener(new MouseAdapter() {
+        this.timerLbl.addMouseListener(new MouseAdapter() {
 
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -62,10 +61,10 @@ public abstract class TimerDialog extends JDialog {
             }
 
         });
-        timerLbl.setToolTipText(APPWORKUTILS.TIMERDIALOG_TOOLTIP_TIMERLABEL.s());
+        this.timerLbl.setToolTipText(APPWORKUTILS.TIMERDIALOG_TOOLTIP_TIMERLABEL.s());
 
         try {
-            timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));
+            this.timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));
         } catch (IOException e1) {
             Log.exception(e1);
         }
@@ -130,7 +129,6 @@ public abstract class TimerDialog extends JDialog {
         };
 
         timer.start();
-
     }
 
 }
