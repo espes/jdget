@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import java.awt.AWTException;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Point;
@@ -151,7 +150,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
             }
         } catch (final Exception e) {
-
         }
         if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isShowing()) {
             this.setAlwaysOnTop(true);
@@ -323,11 +321,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * settings have beens et before, becvause this call very likly display a
      * dialog that blocks the rest of the gui until it is closed
      */
-    public AbstractDialog<T> displayDialog() {
-        if (this.initialized) { return this; }
+    public void displayDialog() {
+        if (this.initialized) { return; }
         this.initialized = true;
         this._init();
-        return this;
     }
 
     @Override
@@ -337,7 +334,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             if (Dialog.getInstance().getParentOwner() != null && AbstractDialog.USE_LOCKPANEL) {
                 LockPanel.create(Dialog.getInstance().getParentOwner()).unlock(300);
             }
-        } catch (final AWTException e1) {
+        } catch (final Exception e1) {
         }
         super.dispose();
     }

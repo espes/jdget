@@ -350,7 +350,7 @@ public class Dialog {
      */
     public <T> T showDialog(final AbstractDialog<T> dialog) {
         if (dialog == null) { return null; }
-        return (T) new EDTHelper<T>() {
+        return new EDTHelper<T>() {
             @Override
             public T edtRun() {
                 dialog.displayDialog();

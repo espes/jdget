@@ -22,7 +22,7 @@ import org.appwork.utils.swing.dialog.InputDialog;
 public class DialogOrder {
 
     /**
-     * closeord: 0 1 2 3 4 5 6 7 8 9 A B
+     * Close Order: 0 1 2 3 4 5 6 7 8 9 A B
      */
     public static void main(final String[] args) {
         for (int i = 0; i < 10; i++) {
@@ -34,11 +34,10 @@ public class DialogOrder {
             e.printStackTrace();
         }
         DialogOrder.test2();
-
     }
 
     /**
-     * close order should run from 0 to 9
+     * Close Order: 0 1 2 3 4 5 6 7 8 9
      */
     private static void startDialogInThread(final int i) {
         new Thread(i + "") {
@@ -49,13 +48,13 @@ public class DialogOrder {
                     e.printStackTrace();
                 }
                 Dialog.getInstance().showInputDialog("Dialog " + i);
-                System.out.println("CLosed " + i);
+                System.out.println("Closed " + i);
             }
         }.start();
     }
 
     /**
-     * closeorder: A B
+     * Close Order: A B
      */
     private static void test2() {
         final InputDialog dialog = new InputDialog(0, "title", "message", "defaultMessage", null, null, null);
@@ -67,12 +66,12 @@ public class DialogOrder {
             @Override
             public void actionPerformed(final ActionEvent e) {
                 Dialog.getInstance().showMessageDialog("INTERNAL");
-                System.out.println("A");
+                System.out.println("Closed A");
             }
 
         });
         Dialog.getInstance().showDialog(dialog);
-        System.out.println("B");
+        System.out.println("Closed B");
     }
 
 }
