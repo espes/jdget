@@ -63,7 +63,7 @@ public class DialogOrder {
 
             private static final long serialVersionUID = 3916626551625222343L;
 
-            @Override
+            
             public void actionPerformed(final ActionEvent e) {
                 Dialog.getInstance().showMessageDialog("INTERNAL");
                 System.out.println("Closed A");
