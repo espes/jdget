@@ -81,7 +81,7 @@ public class Dialog {
      */
     public static final int     LOGIC_BYPASS                         = 1 << 1;
     /**
-     * Use this flag to avoid display of the Timer
+     * Use this flag to show display of the Timer
      */
     public static final int     LOGIC_COUNTDOWN                      = 1 << 2;
 
@@ -414,13 +414,15 @@ public class Dialog {
                         } else {
                             fc.putClientProperty("FileChooser.useShellFolder", true);
                         }
-                        fc.setAccessory(new FilePreview(fc));
                         if (title != null) {
                             fc.setDialogTitle(title);
                         }
+                        boolean allowFilePreview = true;
                         if (fileSelectionMode != null) {
                             fc.setFileSelectionMode(fileSelectionMode);
+                            if (fileSelectionMode == JFileChooser.DIRECTORIES_ONLY) allowFilePreview = false;
                         }
+
                         if (fileFilter != null) {
                             fc.setFileFilter(fileFilter);
                         }
@@ -432,7 +434,10 @@ public class Dialog {
                         }
                         if (dialogType != null) {
                             fc.setDialogType(dialogType);
+                            if (dialogType != JFileChooser.OPEN_DIALOG) allowFilePreview = false;
                         }
+
+                        if (allowFilePreview) fc.setAccessory(new FilePreview(fc));
 
                         /* preSelection */
                         File preSelection = preSelect;
