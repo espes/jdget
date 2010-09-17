@@ -107,7 +107,7 @@ public class JacksonStorageChest extends Storage {
             } else if (def instanceof Double) {
                 this.put(key, (Double) def);
             } else {
-                throw new StorageException("Invalid datatype: " + def.getClass());
+                throw new StorageException("Invalid datatype: " + (def != null ? def.getClass() : "null"));
             }
         }
 
