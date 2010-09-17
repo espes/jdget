@@ -63,8 +63,10 @@ public class JacksonStorageChest extends Storage {
     @SuppressWarnings("unchecked")
     @Override
     public <E> E get(final String key, final E def) throws StorageException {
-        Object ret = this.map.get(key);
-        if (ret != null && ret.getClass() != def.getClass()) {
+        final boolean contains = this.map.containsKey(key);
+        Object ret = contains ? this.map.get(key) : null;
+
+        if (ret != null && def != null && ret.getClass() != def.getClass()) {
             // Housten we have...
             // ... to convert
 
@@ -84,7 +86,8 @@ public class JacksonStorageChest extends Storage {
                 }
             }
         }
-        if (ret == null && def != null) {
+        // put entry if we have no entry
+        if (!contains) {
             ret = def;
             if (def instanceof Boolean) {
                 this.put(key, (Boolean) def);
@@ -212,6 +215,17 @@ public class JacksonStorageChest extends Storage {
         this.map.put(key, value);
         this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
 
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.Storage#remove(java.lang.String)
+     */
+    @Override
+    public Object remove(final String key) {
+        // TODO Auto-generated method stub
+        return this.map.remove(key);
     }
 
     @Override

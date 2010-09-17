@@ -49,6 +49,15 @@ public abstract class Storage {
 
     abstract public void put(String key, String value) throws StorageException;
 
+    /**
+     * 
+     * Removes The entry. This is not the same as {@code put(key,null)}
+     * 
+     * @param key
+     * @return the removed value
+     */
+    public abstract Object remove(String key);
+
     abstract public void save() throws StorageException;
 
 }
