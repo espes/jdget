@@ -100,7 +100,7 @@ public class JacksonStorageChest extends Storage {
                 this.put(key, (Integer) def);
             } else if (def instanceof Byte) {
                 this.put(key, (Byte) def);
-            } else if (def instanceof String) {
+            } else if (def instanceof String || def == null) {
                 this.put(key, (String) def);
             } else if (def instanceof Enum<?>) {
                 this.put(key, (Enum<?>) def);
