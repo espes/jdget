@@ -50,4 +50,23 @@ public class StorageTest {
 
     }
 
+    @Test
+    public void NullTest() {
+        try {
+            // this test has to be executed several times, because it writes on
+            // app exit data to disk and evaluates it on the next start
+            final Storage s = JSonStorage.getPlainStorage("org.appwork.storage.test.StorageTest");
+            s.put("NULL", (String) null);
+            s.put("NULL", "UNNULLER");
+            s.put("NOTNULL", "imnotnull");
+            // nullit
+            s.put("NOTNULL", (String) null);
+
+        } catch (final Exception e) {
+            Log.exception(e);
+            Assert.assertTrue(e.getMessage(), false);
+
+        }
+
+    }
 }
