@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import org.appwork.utils.logging.Log;
 import org.codehaus.jackson.JsonGenerationException;
@@ -54,8 +55,8 @@ public class JacksonStorageChest extends Storage {
      */
     @Override
     public long decrease(final String key) {
-        long ret;
-        this.put(key, ret = this.get(key, 0l) - 1);
+        long ret = this.get(key, 0l).intValue();
+        this.put(key, ret--);
         return ret;
     }
 
@@ -63,6 +64,26 @@ public class JacksonStorageChest extends Storage {
     @Override
     public <E> E get(final String key, final E def) throws StorageException {
         Object ret = this.map.get(key);
+        if (ret != null && ret.getClass() != def.getClass()) {
+            // Housten we have...
+            // ... to convert
+
+            if (def instanceof Long) {
+                if (ret instanceof Integer) {
+
+                    Log.exception(Level.FINE, new Exception("Had to convert integer to long for storage " + this.name + "." + key + "=" + ret));
+
+                    ret = new Long(((Integer) ret).longValue());
+                }
+
+            } else if (def instanceof Integer) {
+                if (ret instanceof Long) {
+
+                    Log.exception(Level.FINE, new Exception("Had to convert long to integer for storage " + this.name + "." + key + "=" + ret));
+                    ret = new Integer(((Long) ret).intValue());
+                }
+            }
+        }
         if (ret == null && def != null) {
             ret = def;
             if (def instanceof Boolean) {
@@ -112,8 +133,8 @@ public class JacksonStorageChest extends Storage {
      */
     @Override
     public long increase(final String key) {
-        long ret;
-        this.put(key, ret = this.get(key, 0l) + 1);
+        long ret = this.get(key, 0).intValue();
+        this.put(key, ret++);
         return ret;
     }
 
