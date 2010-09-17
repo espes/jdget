@@ -56,7 +56,7 @@ public class JacksonStorageChest extends Storage {
     @Override
     public long decrease(final String key) {
         long ret = this.get(key, 0l).intValue();
-        this.put(key, ret--);
+        this.put(key, --ret);
         return ret;
     }
 
@@ -72,8 +72,11 @@ public class JacksonStorageChest extends Storage {
 
             if (def instanceof Long) {
                 if (ret instanceof Integer) {
-
-                    Log.exception(Level.FINE, new Exception("Had to convert integer to long for storage " + this.name + "." + key + "=" + ret));
+                    // this is normal, because jackson converts tiny longs to
+                    // ints automatically
+                    // Log.exception(Level.FINE, new
+                    // Exception("Had to convert integer to long for storage " +
+                    // this.name + "." + key + "=" + ret));
 
                     ret = new Long(((Integer) ret).longValue());
                 }
@@ -137,7 +140,7 @@ public class JacksonStorageChest extends Storage {
     @Override
     public long increase(final String key) {
         long ret = this.get(key, 0).intValue();
-        this.put(key, ret++);
+        this.put(key, ++ret);
         return ret;
     }
 
