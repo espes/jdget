@@ -21,12 +21,7 @@ public class JacksonStorageChest extends Storage {
         this(name, false);
     }
 
-    /**
-     * @param name2
-     * @param b
-     */
-
-    public JacksonStorageChest(final String name, final boolean plain) {
+    public JacksonStorageChest(final String name, final boolean plain) throws StorageException {
         this.map = new HashMap<String, Object>();
         this.name = name;
         this.plain = plain;
@@ -44,15 +39,9 @@ public class JacksonStorageChest extends Storage {
             next = it.next();
             this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, next.getKey(), next.getValue(), null));
         }
-
         this.map.clear();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.Storage#decrease(java.lang.String)
-     */
     @Override
     public long decrease(final String key) {
         long ret = this.get(key, 0l).intValue();
@@ -132,11 +121,6 @@ public class JacksonStorageChest extends Storage {
         return this.name;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.Storage#increase(java.lang.String)
-     */
     @Override
     public long increase(final String key) {
         long ret = this.get(key, 0).intValue();
@@ -151,65 +135,50 @@ public class JacksonStorageChest extends Storage {
     @Override
     public void put(final String key, final Boolean value) throws StorageException {
         final Boolean old = this.map.containsKey(key) ? this.get(key, value) : null;
-
         this.map.put(key, value);
         this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
-
     }
 
     @Override
     public void put(final String key, final Byte value) throws StorageException {
         final Byte old = this.map.containsKey(key) ? this.get(key, value) : null;
-
         this.map.put(key, value);
         this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
-
     }
 
     @Override
     public void put(final String key, final Double value) throws StorageException {
-
         final Double old = this.map.containsKey(key) ? this.get(key, value) : null;
-
         this.map.put(key, value);
         this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
-
     }
 
     @Override
     public void put(final String key, final Enum<?> value) throws StorageException {
         final Enum<?> old = this.map.containsKey(key) ? this.get(key, value) : null;
-
         this.map.put(key, value);
         this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
-
     }
 
     @Override
     public void put(final String key, final Float value) throws StorageException {
         final Float old = this.map.containsKey(key) ? this.get(key, value) : null;
-
         this.map.put(key, value);
         this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
-
     }
 
     @Override
     public void put(final String key, final Integer value) throws StorageException {
         final Integer old = this.map.containsKey(key) ? this.get(key, value) : null;
-
         this.map.put(key, value);
         this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
-
     }
 
     @Override
     public void put(final String key, final Long value) throws StorageException {
         final Long old = this.map.containsKey(key) ? this.get(key, value) : null;
-
         this.map.put(key, value);
         this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
-
     }
 
     @Override
@@ -217,17 +186,10 @@ public class JacksonStorageChest extends Storage {
         final String old = this.map.containsKey(key) ? this.get(key, value) : null;
         this.map.put(key, value);
         this.getEventSender().fireEvent(StorageEvent.createChangeEvent(this, key, old, value));
-
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.Storage#remove(java.lang.String)
-     */
     @Override
     public Object remove(final String key) {
-        // TODO Auto-generated method stub
         return this.map.remove(key);
     }
 

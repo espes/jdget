@@ -35,17 +35,14 @@ public class StorageTest {
             Assert.assertTrue("Restore error", myInt == -1);
 
             s.put("TINYLONG", 100l);
-
             final long mytinylong = s.get("TINYLONG", 0l);
             Assert.assertTrue("Restore error", mytinylong == 100l);
             // tiny long to int conversions should work
             final long mytinyint = s.get("TINYLONG", 0);
             Assert.assertTrue("Restore error", mytinyint == 100l);
-
         } catch (final Exception e) {
             Log.exception(e);
-            Assert.assertTrue(e.getMessage(), false);
-
+            Assert.fail(e.getMessage());
         }
 
     }
@@ -64,8 +61,7 @@ public class StorageTest {
 
         } catch (final Exception e) {
             Log.exception(e);
-            Assert.assertTrue(e.getMessage(), false);
-
+            Assert.fail(e.getMessage());
         }
 
     }

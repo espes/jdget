@@ -209,7 +209,7 @@ public class Dialog {
     /**
      * The max counter value for a timeout Dialog
      */
-    private int    coundownTime = 20;
+    private int    countdownTime = 20;
 
     /**
      * Parent window for all dialogs created with abstractdialog
@@ -217,11 +217,11 @@ public class Dialog {
     private JFrame owner        = new JFrame();
 
     /**
-     * @return the {@link Dialog#coundownTime}
-     * @see Dialog#coundownTime
+     * @return the {@link Dialog#countdownTime}
+     * @see Dialog#countdownTime
      */
-    protected int getCoundownTime() {
-        return this.coundownTime;
+    protected int getCountdownTime() {
+        return this.countdownTime;
     }
 
     /**
@@ -233,12 +233,12 @@ public class Dialog {
     }
 
     /**
-     * @param coundownTime
-     *            the {@link Dialog#coundownTime} to set
-     * @see Dialog#coundownTime
+     * @param countdownTime
+     *            the {@link Dialog#countdownTime} to set
+     * @see Dialog#countdownTime
      */
-    protected void setCoundownTime(final int coundownTime) {
-        this.coundownTime = coundownTime;
+    public void setCountdownTime(final int countdownTime) {
+        this.countdownTime = countdownTime;
     }
 
     /**

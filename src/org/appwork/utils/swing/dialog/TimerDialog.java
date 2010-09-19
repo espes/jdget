@@ -50,7 +50,7 @@ public abstract class TimerDialog extends JDialog {
     }
 
     protected void layoutDialog() {
-        this.timerLbl = new JLabel(TimeFormatter.formatSeconds(Dialog.getInstance().getCoundownTime(), 0));
+        this.timerLbl = new JLabel(TimeFormatter.formatSeconds(Dialog.getInstance().getCountdownTime(), 0));
 
         this.timerLbl.addMouseListener(new MouseAdapter() {
 
