@@ -214,7 +214,7 @@ public class Dialog {
     /**
      * Parent window for all dialogs created with abstractdialog
      */
-    private JFrame owner        = new JFrame();
+    private JFrame owner         = null;
 
     /**
      * @return the {@link Dialog#countdownTime}
@@ -229,6 +229,7 @@ public class Dialog {
      * @see Dialog#owner
      */
     public JFrame getParentOwner() {
+        if (this.owner == null) this.owner = new JFrame();
         return this.owner;
     }
 
