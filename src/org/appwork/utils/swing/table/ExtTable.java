@@ -718,6 +718,7 @@ public class ExtTable<E> extends JTable {
     }
 
     public void scrollToRow(final int row) {
+        System.out.println("Scrol " + row);
         if (row < 0) { return; }
         new EDTHelper<Object>() {
 
@@ -728,7 +729,9 @@ public class ExtTable<E> extends JTable {
                 final Rectangle rect = ExtTable.this.getCellRect(row, 0, true);
                 final Point pt = viewport.getViewPosition();
                 rect.setLocation(rect.x - pt.x, rect.y - pt.y);
+
                 viewport.scrollRectToVisible(rect);
+                System.out.println("Scrol " + rect);
                 return null;
             }
 

@@ -27,75 +27,43 @@ import org.appwork.utils.logging.Log;
  */
 public class TreeModelStateSaver {
 
-    protected JTree tree;
+    protected JTree                        tree;
     /**
      * Stores for each node the expanded state
      */
-    private HashMap<Object, Boolean> expandCache;
+    private final HashMap<Object, Boolean> expandCache;
 
     /**
-     * @param selectedPathes
-     *            the selectedPathes to set
+     * treePath for internal use
      */
-    public void setSelectedPathes(TreePath[] selectedPathes) {
-        this.selectedPathes = selectedPathes;
+    private TreePath                       treePath;
+
+    /**
+     * Stores all selected Pathes
+     */
+    protected TreePath[]                   selectedPathes;
+
+    /**
+     * @param tree
+     */
+    public TreeModelStateSaver(final JTree tree) {
+        this.tree = tree;
+        this.expandCache = new HashMap<Object, Boolean>();
     }
 
     /**
      * @return the expandCache
      */
     public HashMap<Object, Boolean> getExpandCache() {
-        return expandCache;
+        return this.expandCache;
     }
 
     /**
-     * treePath for internal use
+     * @return the {@link TreeModelStateSaver#selectedPathes}
+     * @see TreeModelStateSaver#selectedPathes
      */
-    private TreePath treePath;
-    /**
-     * Stores all selected Pathes
-     */
-    protected TreePath[] selectedPathes;
-
-    /**
-     * @param tree
-     */
-    public TreeModelStateSaver(JTree tree) {
-        this.tree = tree;
-        this.expandCache = new HashMap<Object, Boolean>();
-    }
-
-    /**
-     * Save the current state of the tree
-     */
-    public void save() {
-        saveState(tree.getModel().getRoot(), new ArrayList<Object>());
-        selectedPathes = tree.getSelectionPaths();
-    }
-
-    /**
-     * Saves the expaned states of each node to cacheMap runs rekursive
-     * 
-     * @param root
-     */
-    private void saveState(Object node, ArrayList<Object> path) {
-        path.add(node);
-        try {
-            treePath = new TreePath(path.toArray(new Object[] {}));
-            expandCache.put(node, tree.isExpanded(treePath));
-        } catch (Exception e) {
-            Log.exception(e);
-
-        }
-        int max = tree.getModel().getChildCount(node);
-        for (int i = 0; i < max; i++) {
-            try {
-                saveState(tree.getModel().getChild(node, i), new ArrayList<Object>(path));
-            } catch (Exception e) {
-                Log.exception(e);
-            }
-            tree.getModel().getChildCount(node);
-        }
+    public TreePath[] getSelectedPathes() {
+        return this.selectedPathes;
     }
 
     /**
@@ -106,24 +74,18 @@ public class TreeModelStateSaver {
 
             @Override
             public Object edtRun() {
-                restoreState(tree.getModel().getRoot(), new ArrayList<Object>());
-                final TreePath[] selectedPathes = getSelectedPathes();
+                if (TreeModelStateSaver.this.tree.getModel() != null) {
+                    TreeModelStateSaver.this.restoreState(TreeModelStateSaver.this.tree.getModel().getRoot(), new ArrayList<Object>());
+                }
+                final TreePath[] selectedPathes = TreeModelStateSaver.this.getSelectedPathes();
                 if (selectedPathes != null && selectedPathes.length > 0) {
-                    tree.getSelectionModel().clearSelection();
-                    tree.getSelectionModel().setSelectionPaths(selectedPathes);
+                    TreeModelStateSaver.this.tree.getSelectionModel().clearSelection();
+                    TreeModelStateSaver.this.tree.getSelectionModel().setSelectionPaths(selectedPathes);
                 }
                 return null;
             }
 
         }.start();
-    }
-
-    /**
-     * @return the {@link TreeModelStateSaver#selectedPathes}
-     * @see TreeModelStateSaver#selectedPathes
-     */
-    public TreePath[] getSelectedPathes() {
-        return selectedPathes;
     }
 
     protected void restoreState(final Object node, final ArrayList<Object> path) {
@@ -131,22 +93,65 @@ public class TreeModelStateSaver {
 
             @Override
             public Object edtRun() {
-                if (node == null) return null;
+                if (node == null) { return null; }
                 path.add(node);
-                treePath = new TreePath(path.toArray(new Object[] {}));
-                Boolean bo = expandCache.get(node);
+                TreeModelStateSaver.this.treePath = new TreePath(path.toArray(new Object[] {}));
+                final Boolean bo = TreeModelStateSaver.this.expandCache.get(node);
                 if (bo != null && bo.booleanValue()) {
-                    tree.expandPath(treePath);
+                    TreeModelStateSaver.this.tree.expandPath(TreeModelStateSaver.this.treePath);
                 }
 
-                for (int i = 0; i < tree.getModel().getChildCount(node); i++) {
-                    restoreState(tree.getModel().getChild(node, i), new ArrayList<Object>(path));
+                for (int i = 0; i < TreeModelStateSaver.this.tree.getModel().getChildCount(node); i++) {
+                    TreeModelStateSaver.this.restoreState(TreeModelStateSaver.this.tree.getModel().getChild(node, i), new ArrayList<Object>(path));
                 }
                 return null;
             }
 
         }.start();
 
+    }
+
+    /**
+     * Save the current state of the tree
+     */
+    public void save() {
+        if (this.tree.getModel() != null) {
+            this.saveState(this.tree.getModel().getRoot(), new ArrayList<Object>());
+        }
+        this.selectedPathes = this.tree.getSelectionPaths();
+    }
+
+    /**
+     * Saves the expaned states of each node to cacheMap runs rekursive
+     * 
+     * @param root
+     */
+    private void saveState(final Object node, final ArrayList<Object> path) {
+        path.add(node);
+        try {
+            this.treePath = new TreePath(path.toArray(new Object[] {}));
+            this.expandCache.put(node, this.tree.isExpanded(this.treePath));
+        } catch (final Exception e) {
+            Log.exception(e);
+
+        }
+        final int max = this.tree.getModel().getChildCount(node);
+        for (int i = 0; i < max; i++) {
+            try {
+                this.saveState(this.tree.getModel().getChild(node, i), new ArrayList<Object>(path));
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+            this.tree.getModel().getChildCount(node);
+        }
+    }
+
+    /**
+     * @param selectedPathes
+     *            the selectedPathes to set
+     */
+    public void setSelectedPathes(final TreePath[] selectedPathes) {
+        this.selectedPathes = selectedPathes;
     }
 
 }

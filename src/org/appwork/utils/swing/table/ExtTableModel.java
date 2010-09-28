@@ -16,32 +16,32 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * 
      */
-    private static final long serialVersionUID = 939549808899567618L;
+    private static final long         serialVersionUID = 939549808899567618L;
     /**
      * complete table structure has changed
      */
-    protected static final int UPDATE_STRUCTURE = 1;
+    protected static final int        UPDATE_STRUCTURE = 1;
     /**
      * Column instances
      */
-    protected ArrayList<ExtColumn<E>> columns = new ArrayList<ExtColumn<E>>();
+    protected ArrayList<ExtColumn<E>> columns          = new ArrayList<ExtColumn<E>>();
 
     /**
      * Modelid to have an seperate key for database savong
      */
-    private String modelID;
+    private final String              modelID;
 
     /**
      * the table that uses this model
      */
-    private ExtTable<E> table = null;
+    private ExtTable<E>               table            = null;
 
     /**
      * a list of objects. Each object represents one table row
      */
-    protected ArrayList<E> tableData = new ArrayList<E>();
-    private ExtColumn<E> sortColumn;
-    private boolean sortOrderToggle = true;
+    protected ArrayList<E>            tableData        = new ArrayList<E>();
+    private ExtColumn<E>              sortColumn;
+    private boolean                   sortOrderToggle  = true;
 
     /**
      * Create a new ExtTableModel.
@@ -52,21 +52,40 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param id
      *            storageID.
      */
-    public ExtTableModel(String id) {
+    public ExtTableModel(final String id) {
         super();
 
         this.modelID = id;
-        initColumns();
+        this.initColumns();
 
-        String columnId = JSonStorage.getStorage("ExtTableModel_" + modelID).get("SORTCOLUMN", this.columns.get(0).getID());
-        for (ExtColumn<E> col : columns) {
+        final String columnId = JSonStorage.getStorage("ExtTableModel_" + this.modelID).get("SORTCOLUMN", this.columns.get(0).getID());
+        for (final ExtColumn<E> col : this.columns) {
             if (col.getID().equals(columnId)) {
-                sortColumn = col;
+                this.sortColumn = col;
                 break;
             }
         }
-        sortOrderToggle = JSonStorage.getStorage("ExtTableModel_" + modelID).get("SORTORDER", false);
+        this.sortOrderToggle = JSonStorage.getStorage("ExtTableModel_" + this.modelID).get("SORTORDER", false);
         this.refreshSort();
+    }
+
+    /**
+     * @param files
+     */
+    public void addAllElements(final ArrayList<E> files) {
+        final ArrayList<E> tmp = new ArrayList<E>(files);
+        new EDTHelper<Object>() {
+            @Override
+            public Object edtRun() {
+                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
+                ExtTableModel.this.tableData.addAll(tmp);
+                ExtTableModel.this.refreshSort();
+                ExtTableModel.this.fireTableStructureChanged();
+                ExtTableModel.this.setSelectedObjects(selection);
+                return null;
+            }
+        }.start();
+
     }
 
     /**
@@ -75,110 +94,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param e
      * @see #columns
      */
-    public void addColumn(ExtColumn<E> e) {
+    public void addColumn(final ExtColumn<E> e) {
         e.setModel(this);
-        columns.add(e);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends ExtColumn<E>> T getColumnByClass(Class<T> clazz) {
-        try {
-            for (ExtColumn<?> column : columns) {
-                if (column.getClass().equals(clazz)) return (T) column;
-            }
-        } catch (Exception e) {
-            Log.exception(e);
-        }
-        return null;
-    }
-
-    /**
-     * clears all selection models
-     */
-    public void clearSelection() {
-        if (table == null) return;
-        table.getSelectionModel().clearSelection();
-        table.getColumnModel().getSelectionModel().clearSelection();
-    }
-
-    /**
-     * Returns all selected Objects
-     * 
-     * @return
-     */
-    public ArrayList<E> getSelectedObjects() {
-        ArrayList<E> ret = new ArrayList<E>();
-        if (table == null) return ret;
-        int[] rows = table.getSelectedRows();
-        for (int row : rows) {
-            E elem = getValueAt(row, 0);
-            if (elem != null) ret.add(elem);
-        }
-        return ret;
-    }
-
-    /**
-     * returns a copy of current objects in tablemodel
-     * 
-     * @return
-     */
-    public ArrayList<E> getTableObjects() {
-        ArrayList<E> ret = new ArrayList<E>();
-        ret.addAll(tableData);
-        return ret;
-    }
-
-    /**
-     * @param latest
-     */
-    public void setSelectedObject(final E latest) {
-        if (table == null) return;
-        new EDTHelper<Object>() {
-            @Override
-            public Object edtRun() {
-                if (table == null) return null;
-                if (latest == null) {
-                    clearSelection();
-                    return null;
-                }
-                clearSelection();
-                int row = getRowforObject(latest);
-                table.addRowSelectionInterval(row, row);
-                return null;
-            }
-        }.start();
-    }
-
-    /**
-     * Sets the current selection to the given objects
-     * 
-     * @param selections
-     */
-    public void setSelectedObjects(final ArrayList<E> selections) {
-        if (table == null) return;
-        new EDTHelper<Object>() {
-            @Override
-            public Object edtRun() {
-                if (table == null) return null;
-                if (selections == null) {
-                    clearSelection();
-                    return null;
-                }
-                if (selections.size() == 0) return null;
-                // Transform to rowindex list
-                ArrayList<Integer> selectedRows = new ArrayList<Integer>();
-                int rowIndex = -1;
-                for (E obj : selections) {
-                    rowIndex = getRowforObject(obj);
-                    if (rowIndex >= 0) selectedRows.add(rowIndex);
-                }
-                Collections.sort(selectedRows);
-                for (Integer row : selectedRows) {
-                    table.addRowSelectionInterval(row, row);
-                }
-                return null;
-            }
-        }.start();
+        this.columns.add(e);
     }
 
     /**
@@ -188,9 +106,58 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param index
      * @see #addColumn(ExtColumn)
      */
-    public void addColumn(ExtColumn<E> e, int index) {
+    public void addColumn(final ExtColumn<E> e, final int index) {
         e.setModel(this);
-        columns.add(index, e);
+        this.columns.add(index, e);
+    }
+
+    /**
+     * @param at
+     */
+    public void addElement(final E at) {
+        new EDTHelper<Object>() {
+            @Override
+            public Object edtRun() {
+                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
+                ExtTableModel.this.tableData.add(at);
+                ExtTableModel.this.refreshSort();
+                ExtTableModel.this.fireTableStructureChanged();
+
+                ExtTableModel.this.setSelectedObjects(selection);
+                return null;
+            }
+        }.start();
+    }
+
+    /**
+     * 
+     */
+    public void clear() {
+        new EDTHelper<Object>() {
+            @Override
+            public Object edtRun() {
+                ExtTableModel.this.tableData.clear();
+                ExtTableModel.this.fireTableStructureChanged();
+                return null;
+            }
+        }.start();
+    }
+
+    /**
+     * clears all selection models
+     */
+    public void clearSelection() {
+        if (this.table == null) { return; }
+        this.table.getSelectionModel().clearSelection();
+        this.table.getColumnModel().getSelectionModel().clearSelection();
+    }
+
+    /**
+     * @param at
+     * @return
+     */
+    public boolean contains(final E at) {
+        return this.tableData.contains(at);
     }
 
     /**
@@ -199,14 +166,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param convertColumnIndexToModel
      * @return
      */
-    public TableCellEditor getCelleditorByColumn(int columnIndex) {
+    public TableCellEditor getCelleditorByColumn(final int columnIndex) {
         /*
          * Math.max(0, columnIndex)
          * 
          * WORKAROUND for -1 column access,Index out of Bound,Unknown why it
          * happens but this workaround seems to do its job
          */
-        return columns.get(Math.max(0, columnIndex));
+        return this.columns.get(Math.max(0, columnIndex));
     }
 
     /**
@@ -215,18 +182,30 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param columnIndex
      * @return
      */
-    public ExtColumn<E> getCellrendererByColumn(int columnIndex) {
+    public ExtColumn<E> getCellrendererByColumn(final int columnIndex) {
         /*
          * Math.max(0, columnIndex)
          * 
          * WORKAROUND for -1 column access,Index out of Bound,Unknown why it
          * happens but this workaround seems to do its job
          */
-        return columns.get(Math.max(0, columnIndex));
+        return this.columns.get(Math.max(0, columnIndex));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends ExtColumn<E>> T getColumnByClass(final Class<T> clazz) {
+        try {
+            for (final ExtColumn<?> column : this.columns) {
+                if (column.getClass().equals(clazz)) { return (T) column; }
+            }
+        } catch (final Exception e) {
+            Log.exception(e);
+        }
+        return null;
     }
 
     @Override
-    public Class<?> getColumnClass(int columnIndex) {
+    public Class<?> getColumnClass(final int columnIndex) {
         return Object.class;
     }
 
@@ -234,7 +213,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return Returns the number of columns defined (incl. invisible columns)
      */
     public int getColumnCount() {
-        return columns.size();
+        return this.columns.size();
     }
 
     /**
@@ -242,14 +221,29 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @see ExtColumn#getName()
      */
     @Override
-    public String getColumnName(int column) {
+    public String getColumnName(final int column) {
         /*
          * Math.max(0, columnIndex)
          * 
          * WORKAROUND for -1 column access,Index out of Bound,Unknown why it
          * happens but this workaround seems to do its job
          */
-        return columns.get(Math.max(0, column)).getName();
+        return this.columns.get(Math.max(0, column)).getName();
+    }
+
+    /**
+     * @param i
+     * @return
+     */
+    public E getElementAt(final int i) {
+        return this.tableData.get(i);
+    }
+
+    /**
+     * @return
+     */
+    public ArrayList<E> getElements() {
+        return new ArrayList<E>(this.tableData);
     }
 
     /**
@@ -258,8 +252,22 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param columnIndex
      * @return
      */
-    public ExtColumn<E> getExtColumn(int columnIndex) {
-        return columns.get(Math.max(0, columnIndex));
+    public ExtColumn<E> getExtColumn(final int columnIndex) {
+        return this.columns.get(Math.max(0, columnIndex));
+    }
+
+    /**
+     * Returns the object that represents the row
+     * 
+     * @param index
+     * @return
+     */
+    public E getObjectbyRow(final int index) {
+
+        synchronized (this.tableData) {
+            if (index >= 0 && index < this.tableData.size()) { return this.tableData.get(index); }
+            return null;
+        }
     }
 
     /**
@@ -268,7 +276,47 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @see #tableData
      */
     public int getRowCount() {
-        return tableData.size();
+        return this.tableData.size();
+    }
+
+    /**
+     * Returns the row index for a given Object
+     * 
+     * @param o
+     * @return
+     */
+    public int getRowforObject(final E o) {
+        synchronized (this.tableData) {
+            return this.tableData.indexOf(o);
+        }
+    }
+
+    /**
+     * Returns all selected Objects
+     * 
+     * @return
+     */
+    public ArrayList<E> getSelectedObjects() {
+        final ArrayList<E> ret = new ArrayList<E>();
+        if (this.table == null) { return ret; }
+        final int[] rows = this.table.getSelectedRows();
+        for (final int row : rows) {
+            final E elem = this.getValueAt(row, 0);
+            if (elem != null) {
+                ret.add(elem);
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Returns the currently row sort column
+     * 
+     * @return the {@link ExtTableModel#sortColumn}
+     * @see ExtTableModel#sortColumn
+     */
+    public ExtColumn<E> getSortColumn() {
+        return this.sortColumn;
     }
 
     /**
@@ -276,7 +324,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @see ExtTableModel#table
      */
     public ExtTable<E> getTable() {
-        return table;
+        return this.table;
     }
 
     /**
@@ -284,7 +332,18 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @see ExtTableModel#tableData
      */
     public ArrayList<E> getTableData() {
-        return tableData;
+        return this.tableData;
+    }
+
+    /**
+     * returns a copy of current objects in tablemodel
+     * 
+     * @return
+     */
+    public ArrayList<E> getTableObjects() {
+        final ArrayList<E> ret = new ArrayList<E>();
+        ret.addAll(this.tableData);
+        return ret;
     }
 
     /**
@@ -292,11 +351,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * represented By one single object. the ExtColums renderer just renders
      * each object in its way
      */
-    public E getValueAt(int rowIndex, int columnIndex) {
+    public E getValueAt(final int rowIndex, final int columnIndex) {
         try {
 
-            return tableData.get(rowIndex);
-        } catch (IndexOutOfBoundsException e) {
+            return this.tableData.get(rowIndex);
+        } catch (final IndexOutOfBoundsException e) {
             return null;
         }
     }
@@ -317,115 +376,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @see ExtColumn#isCellEditable(int, int)
      */
     @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columns.get(columnIndex).isCellEditable(rowIndex, columnIndex);
-    }
-
-    /**
-     * Retrieves visible information form database interface to determine if the
-     * column is visible or not
-     * 
-     * @param column
-     * @return
-     */
-    public boolean isVisible(int column) {
-
-        ExtColumn<E> col = getExtColumn(column);
-        try {
-            return JSonStorage.getStorage("ExtTableModel_" + modelID).get("VISABLE_COL_" + col.getName(), col.isDefaultVisible());
-        } catch (Exception e) {
-            Log.exception(e);
-            return true;
-        }
-    }
-
-    /**
-     * Sets the table in which the model is used. This method should only be
-     * used internally.
-     * 
-     * @param table
-     */
-    protected void setTable(ExtTable<E> table) {
-        this.table = table;
-    }
-
-    // TODO docu
-    @Override
-    public void setValueAt(Object value, int rowIndex, int columnIndex) {
-        columns.get(columnIndex).setValueAt(value, rowIndex, columnIndex);
-    }
-
-    /**
-     * Sets the column visible or invisible. This information is stored in
-     * database interface for cross session use.
-     * 
-     * 
-     * @param column
-     * @param visible
-     */
-    public void setVisible(int column, boolean visible) {
-        ExtColumn<E> col = getExtColumn(column);
-        try {
-            JSonStorage.getStorage("ExtTableModel_" + modelID).put("VISABLE_COL_" + col.getName(), visible);
-        } catch (Exception e) {
-            Log.exception(e);
-        }
-
-    }
-
-    /**
-     * Returns the object that represents the row
-     * 
-     * @param index
-     * @return
-     */
-    public E getObjectbyRow(int index) {
-
-        synchronized (tableData) {
-            if (index >= 0 && index < tableData.size()) return tableData.get(index);
-            return null;
-        }
-    }
-
-    /**
-     * Returns the row index for a given Object
-     * 
-     * @param o
-     * @return
-     */
-    public int getRowforObject(E o) {
-        synchronized (tableData) {
-            return tableData.indexOf(o);
-        }
-    }
-
-    /**
-     * Sorts the model with the column's rowsorter
-     * 
-     * @param column
-     * @param sortOrderToggle
-     */
-    public void sort(ExtColumn<E> column, boolean sortOrderToggle) {
-        this.sortColumn = column;
-        this.sortOrderToggle = sortOrderToggle;
-
-        try {
-            JSonStorage.getStorage("ExtTableModel_" + modelID).put("SORTCOLUMN", column.getID());
-            JSonStorage.getStorage("ExtTableModel_" + modelID).put("SORTORDER", sortOrderToggle);
-        } catch (Exception e) {
-            Log.exception(e);
-        }
-        Collections.sort(getTableData(), column.getRowSorter(sortOrderToggle));
-    }
-
-    /**
-     * Restores the sort order according to {@link #getSortColumn()} and
-     * {@link #isSortOrderToggle()}
-     * 
-     * 
-     */
-    public void refreshSort() {
-        sort(sortColumn == null ? this.getExtColumn(0) : sortColumn, sortOrderToggle);
+    public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+        return this.columns.get(columnIndex).isCellEditable(rowIndex, columnIndex);
     }
 
     /**
@@ -435,17 +387,57 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @see ExtTableModel#sortOrderToggle
      */
     public boolean isSortOrderToggle() {
-        return sortOrderToggle;
+        return this.sortOrderToggle;
     }
 
     /**
-     * Returns the currently row sort column
+     * Retrieves visible information form database interface to determine if the
+     * column is visible or not
      * 
-     * @return the {@link ExtTableModel#sortColumn}
-     * @see ExtTableModel#sortColumn
+     * @param column
+     * @return
      */
-    public ExtColumn<E> getSortColumn() {
-        return sortColumn;
+    public boolean isVisible(final int column) {
+
+        final ExtColumn<E> col = this.getExtColumn(column);
+        try {
+            return JSonStorage.getStorage("ExtTableModel_" + this.modelID).get("VISABLE_COL_" + col.getName(), col.isDefaultVisible());
+        } catch (final Exception e) {
+            Log.exception(e);
+            return true;
+        }
+    }
+
+    /**
+     * Restores the sort order according to {@link #getSortColumn()} and
+     * {@link #isSortOrderToggle()}
+     * 
+     * 
+     */
+    public void refreshSort() {
+        this.sort(this.sortColumn == null ? this.getExtColumn(0) : this.sortColumn, this.sortOrderToggle);
+    }
+
+    /**
+     * @param selectedObjects
+     */
+    public void removeAll(final ArrayList<E> selectedObjects) {
+        final ArrayList<E> tmp = new ArrayList<E>(this.tableData);
+        tmp.removeAll(selectedObjects);
+
+        new EDTHelper<Object>() {
+            @Override
+            public Object edtRun() {
+                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
+                ExtTableModel.this.tableData = tmp;
+                ExtTableModel.this.refreshSort();
+                ExtTableModel.this.fireTableStructureChanged();
+
+                ExtTableModel.this.setSelectedObjects(selection);
+                return null;
+            }
+        }.start();
+
     }
 
     /**
@@ -455,13 +447,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param regex
      * @return
      */
-    public E searchNextObject(int startRow, String ret, boolean caseSensitive, boolean regex) {
+    public E searchNextObject(final int startRow, final String ret, final boolean caseSensitive, final boolean regex) {
 
         Pattern p;
         if (!regex) {
-            String[] pats = ret.split("\\*");
-            StringBuilder pattern = new StringBuilder();
-            for (String pp : pats) {
+            final String[] pats = ret.split("\\*");
+            final StringBuilder pattern = new StringBuilder();
+            for (final String pp : pats) {
                 if (pattern.length() > 0) {
                     pattern.append(".*?");
                 }
@@ -472,15 +464,15 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             p = Pattern.compile(".*?" + ret + ".*?", caseSensitive ? Pattern.CASE_INSENSITIVE : 0 | Pattern.DOTALL);
         }
 
-        for (int i = startRow; i < tableData.size(); i++) {
+        for (int i = startRow; i < this.tableData.size(); i++) {
             for (int c = 0; c < this.columns.size(); c++) {
-                if (columns.get(c).matchSearch(tableData.get(i), p)) { return tableData.get(i); }
+                if (this.columns.get(c).matchSearch(this.tableData.get(i), p)) { return this.tableData.get(i); }
             }
 
         }
         for (int i = 0; i < startRow; i++) {
             for (int c = 0; c < this.columns.size(); c++) {
-                if (columns.get(c).matchSearch(tableData.get(i), p)) { return tableData.get(i); }
+                if (this.columns.get(c).matchSearch(this.tableData.get(i), p)) { return this.tableData.get(i); }
             }
 
         }
@@ -489,106 +481,118 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
-     * @param selectedObjects
+     * @param latest
      */
-    public void removeAll(ArrayList<E> selectedObjects) {
-        final ArrayList<E> tmp = new ArrayList<E>(tableData);
-        tmp.removeAll(selectedObjects);
-
+    public void setSelectedObject(final E latest) {
+        if (this.table == null) { return; }
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
-                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
-                tableData = tmp;
-                refreshSort();
-                fireTableStructureChanged();
-
-                setSelectedObjects(selection);
+                if (ExtTableModel.this.table == null) { return null; }
+                if (latest == null) {
+                    ExtTableModel.this.clearSelection();
+                    return null;
+                }
+                ExtTableModel.this.clearSelection();
+                final int row = ExtTableModel.this.getRowforObject(latest);
+                ExtTableModel.this.table.addRowSelectionInterval(row, row);
                 return null;
             }
         }.start();
-
     }
 
     /**
+     * Sets the current selection to the given objects
      * 
+     * @param selections
      */
-    public void clear() {
+    public void setSelectedObjects(final ArrayList<E> selections) {
+        if (this.table == null) { return; }
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
-                tableData.clear();
-                fireTableStructureChanged();
+                if (ExtTableModel.this.table == null) { return null; }
+                if (selections == null) {
+                    ExtTableModel.this.clearSelection();
+                    return null;
+                }
+                if (selections.size() == 0) { return null; }
+                // Transform to rowindex list
+                final ArrayList<Integer> selectedRows = new ArrayList<Integer>();
+                int rowIndex = -1;
+                for (final E obj : selections) {
+                    rowIndex = ExtTableModel.this.getRowforObject(obj);
+                    if (rowIndex >= 0) {
+                        selectedRows.add(rowIndex);
+                    }
+                }
+                Collections.sort(selectedRows);
+                for (final Integer row : selectedRows) {
+                    ExtTableModel.this.table.addRowSelectionInterval(row, row);
+                }
                 return null;
             }
         }.start();
+    }
+
+    /**
+     * Sets the table in which the model is used. This method should only be
+     * used internally.
+     * 
+     * @param table
+     */
+    protected void setTable(final ExtTable<E> table) {
+        this.table = table;
+    }
+
+    // TODO docu
+    @Override
+    public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
+        this.columns.get(columnIndex).setValueAt(value, rowIndex, columnIndex);
+    }
+
+    /**
+     * Sets the column visible or invisible. This information is stored in
+     * database interface for cross session use.
+     * 
+     * 
+     * @param column
+     * @param visible
+     */
+    public void setVisible(final int column, final boolean visible) {
+        final ExtColumn<E> col = this.getExtColumn(column);
+        try {
+            JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("VISABLE_COL_" + col.getName(), visible);
+        } catch (final Exception e) {
+            Log.exception(e);
+        }
+
     }
 
     /**
      * @return
      */
     public int size() {
-        return tableData.size();
+        return this.tableData.size();
     }
 
     /**
-     * @param i
-     * @return
+     * Sorts the model with the column's rowsorter
+     * 
+     * @param column
+     * @param sortOrderToggle
      */
-    public E getElementAt(int i) {
-        return tableData.get(i);
-    }
+    public void sort(final ExtColumn<E> column, final boolean sortOrderToggle) {
+        this.sortColumn = column;
+        this.sortOrderToggle = sortOrderToggle;
 
-    /**
-     * @param at
-     * @return
-     */
-    public boolean contains(E at) {
-        return tableData.contains(at);
-    }
-
-    /**
-     * @param at
-     */
-    public void addElement(final E at) {
-        new EDTHelper<Object>() {
-            @Override
-            public Object edtRun() {
-                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
-                tableData.add(at);
-                refreshSort();
-                fireTableStructureChanged();
-
-                setSelectedObjects(selection);
-                return null;
-            }
-        }.start();
-    }
-
-    /**
-     * @param files
-     */
-    public void addAllElements(ArrayList<E> files) {
-        final ArrayList<E> tmp = new ArrayList<E>(files);
-        new EDTHelper<Object>() {
-            @Override
-            public Object edtRun() {
-                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
-                tableData.addAll(tmp);
-                refreshSort();
-                fireTableStructureChanged();
-                setSelectedObjects(selection);
-                return null;
-            }
-        }.start();
-
-    }
-
-    /**
-     * @return
-     */
-    public ArrayList<E> getElements() {
-        return new ArrayList<E>(tableData);
+        try {
+            JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("SORTCOLUMN", column.getID());
+            JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("SORTORDER", sortOrderToggle);
+        } catch (final Exception e) {
+            Log.exception(e);
+        }
+        Collections.sort(this.getTableData(), column.getRowSorter(sortOrderToggle));
     }
 
 }

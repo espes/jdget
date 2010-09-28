@@ -86,6 +86,65 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
     }
 
     /**
+     * Fires an Event to all registered Listeners
+     * 
+     * @param event
+     * @return
+     */
+    final public void fireEvent(final int id, final Object... parameters) {
+
+        ArrayList<T> listeners;
+        synchronized (this.LOCK) {
+            if (this.writeR == this.readR) {
+                /* nothing changed, we can use old pointer to listeners */
+                if (this.listeners.size() == 0) { return; }
+                listeners = this.listeners;
+            } else {
+                /* create new list with copy of old one */
+                listeners = new ArrayList<T>(this.listeners);
+                /* remove and add wished items */
+                listeners.removeAll(this.removeRequestedListeners);
+                this.removeRequestedListeners.clear();
+                listeners.addAll(this.addRequestedListeners);
+                this.addRequestedListeners.clear();
+                /* update ReadCounter and pointer to listeners */
+                this.readR = this.writeR;
+                this.listeners = listeners;
+                if (this.listeners.size() == 0) { return; }
+            }
+        }
+        for (final T t : listeners) {
+            this.fireEvent(t, id, parameters);
+        }
+        synchronized (this.LOCK) {
+            if (this.writeR != this.readR) {
+                /* something changed, lets update the list */
+                /* create new list with copy of old one */
+                listeners = new ArrayList<T>(this.listeners);
+                /* remove and add wished items */
+                listeners.removeAll(this.removeRequestedListeners);
+                this.removeRequestedListeners.clear();
+                listeners.addAll(this.addRequestedListeners);
+                this.addRequestedListeners.clear();
+                /* update ReadCounter and pointer to listeners */
+                this.readR = this.writeR;
+                this.listeners = listeners;
+            }
+        }
+    }
+
+    /**
+     * 
+     * @param t
+     * @param id
+     * @param parameters
+     */
+    protected void fireEvent(final T listener, final int id, final Object... parameters) {
+        throw new RuntimeException("Not implemented. Overwrite org.appwork.utils.event.Eventsender.fireEvent(T, int, Object...) to use this");
+
+    }
+
+    /**
      * Abstract fire Event Method.
      * 
      * @param listener
@@ -93,14 +152,7 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
      */
     protected abstract void fireEvent(T listener, TT event);
 
-    /**
-     * Fires an Event to all registered Listeners
-     * 
-     * @param event
-     * @return
-     */
-
-    public void fireEvent(final TT event) {
+    final public void fireEvent(final TT event) {
         if (event == null) { return; }
         ArrayList<T> listeners;
         synchronized (this.LOCK) {
