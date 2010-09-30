@@ -544,7 +544,7 @@ public class ExtTable<E> extends JTable {
          * highlighter TODO: this might get slow for many rows TODO: change
          * order? highlighting columns "overpaint" the text
          */
-        if (this.getRowCount() == 0) return;
+        if (this.getRowCount() == 0) { return; }
         final Rectangle visibleRect = this.getVisibleRect();
         Rectangle first, last;
         // get current width;
