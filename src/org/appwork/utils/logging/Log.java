@@ -64,7 +64,12 @@ public class Log {
         if (e == null) {
             e = new NullPointerException("e is null");
         }
-        Log.exception(Level.SEVERE, e);
+        Level lvl=null;
+        if (e instanceof ExceptionDefaultLogLevel) {
+            lvl = ((ExceptionDefaultLogLevel) e).getDefaultLogLevel();            
+        }
+        if (lvl==null)lvl=Level.SEVERE;        
+        Log.exception(lvl, e);
     }
 
     /**

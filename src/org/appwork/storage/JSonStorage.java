@@ -100,7 +100,7 @@ public class JSonStorage {
             try {
                 if (Application.getRessource(string + ".tmp").exists()) {
                     /* tmp files exists, try to restore */
-                    Log.L.severe("TMP file " + Application.getRessource(string + ".tmp").getAbsolutePath() + " found");
+                    Log.L.warning("TMP file " + Application.getRessource(string + ".tmp").getAbsolutePath() + " found");
                     try {
                         // load it
                         final byte[] str = IO.readFile(Application.getRessource(string + ".tmp"));
