@@ -100,4 +100,28 @@ public class Files {
         return ret;
     }
 
+    /*
+     * returns File if it exists (case (In)Sensitive). returns null if file does
+     * not exist
+     */
+    public static File getExistingFile(File file, boolean caseSensitive) {
+        if (file == null) return null;
+        if (caseSensitive) {
+            if (file.exists()) return file;
+            return null;
+        }
+        /* get list of files in current directory */
+        String lowerCaseFileName = file.getName().toLowerCase();
+        File parent = file.getParentFile();
+        if (parent != null) {
+            File[] list = parent.listFiles();
+            if (list != null) {
+                for (File ret : list) {
+                    if (ret.getName().equalsIgnoreCase(lowerCaseFileName)) return ret;
+                }
+            }
+        }
+        return null;
+    }
+
 }

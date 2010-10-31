@@ -98,6 +98,5 @@ public class Hash {
             e.printStackTrace();
         }
         return null;
-
     }
 }
