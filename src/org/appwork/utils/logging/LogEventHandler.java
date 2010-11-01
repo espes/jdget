@@ -13,9 +13,11 @@ import java.util.ArrayList;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
+/*WARNING: this class logs into memory, can cause OOM if not emptied once in a while*/
 public class LogEventHandler extends Handler {
-    private static final LogEventHandler INSTANCE = new LogEventHandler();
-    private LogEventSender eventSender;
+    private static final LogEventHandler INSTANCE  = new LogEventHandler();
+    private LogEventSender               eventSender;
+    private boolean                      doLogging = false;
 
     private LogEventHandler() {
         super();
@@ -23,7 +25,25 @@ public class LogEventHandler extends Handler {
             cache = new ArrayList<LogRecord>();
         }
         eventSender = new LogEventSender();
+        doLogging = false;
+    }
 
+    /*
+     * use this function to enable/disable logging to memory. disabling it will
+     * clear logbuffer
+     */
+    public void enableLogging(boolean b) {
+        if (b == false && doLogging == true) {
+            /* clear logged entries */
+            synchronized (lock) {
+                cache.clear();
+            }
+        }
+        doLogging = b;
+    }
+
+    public boolean isEnabled() {
+        return doLogging;
     }
 
     /**
@@ -39,7 +59,7 @@ public class LogEventHandler extends Handler {
     }
 
     private ArrayList<LogRecord> cache;
-    private Object lock = new Object();
+    private Object               lock = new Object();
 
     public ArrayList<LogRecord> getCache() {
         synchronized (lock) {
@@ -54,9 +74,10 @@ public class LogEventHandler extends Handler {
     }
 
     public void publish(LogRecord logRecord) {
-        this.cache.add(logRecord);
-        getEventSender().fireEvent(new LogEvent(this, LogEvent.NEW_RECORD, logRecord));
-
+        if (doLogging) {
+            this.cache.add(logRecord);
+            getEventSender().fireEvent(new LogEvent(this, LogEvent.NEW_RECORD, logRecord));
+        }
     }
 
 }

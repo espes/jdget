@@ -181,6 +181,16 @@ public abstract class Queue extends Thread {
         }
     }
 
+    /* returns size of queue with given priority */
+    public long getQueueSize(QueuePriority prio) {
+        if (prio == null) return -1;
+        synchronized (this.queueLock) {
+            ArrayList<QueueAction<?, ? extends Throwable>> ret = this.queue.get(prio);
+            if (ret == null) return -1;
+            return ret.size();
+        }
+    }
+
     /**
      * returns true if this queue shows debug info
      * 
