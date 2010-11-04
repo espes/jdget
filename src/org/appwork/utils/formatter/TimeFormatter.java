@@ -15,8 +15,8 @@ import org.appwork.utils.Regex;
 public class TimeFormatter {
 
     public static final int HIDE_SECONDS = 1 << 1;
-    public static final int HIDE_MARKER = 1 << 2;
-    public static final int CLOCK = 1 << 3;
+    public static final int HIDE_MARKER  = 1 << 2;
+    public static final int CLOCK        = 1 << 3;
 
     public static String formatMilliSeconds(long totalSeconds, int flags) {
         return formatSeconds(totalSeconds / 1000, flags);
@@ -34,9 +34,15 @@ public class TimeFormatter {
         seconds = totalSeconds - minutes * 60;
 
         if (!BinaryLogic.containsAll(flags, CLOCK)) {
+            /*show days as extra field*/
             if (days != 0) {
                 string.append(days);
                 string.append('d');
+            }
+        } else {
+            /*add days to hours field*/
+            if (days != 0) {
+                hours += days * 24;
             }
         }
         if (hours != 0 || string.length() != 0 || BinaryLogic.containsAll(flags, CLOCK)) {
