@@ -41,8 +41,8 @@ public class ZipIOWriter {
      */
     public ZipIOWriter(File zipFile) throws FileNotFoundException, ZipIOException {
         this.zipFile = zipFile;
-        openZip(false);
-    }
+        openZip(false);}
+    
 
     /**
      * constructor for ZipIOWriter
