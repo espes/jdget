@@ -22,39 +22,39 @@ import org.appwork.utils.swing.EDTHelper;
  */
 public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
 
-    protected static Color background = null;
-    protected static Color backgroundselected = null;
+    protected static Color          background         = null;
+    protected static Color          backgroundselected = null;
 
-    protected static Color foreground = null;
-    protected static Color foregroundselected = null;
+    protected static Color          foreground         = null;
+    protected static Color          foregroundselected = null;
 
-    private static final long serialVersionUID = -2662459732650363059L;
+    private static final long       serialVersionUID   = -2662459732650363059L;
     /**
      * If this colum is editable, this parameter says how many clicks are
      * required to start edit mode
      */
-    private int clickcount = 1;
+    private int                     clickcount         = 1;
 
     /**
      * The model this column belongs to
      */
-    private ExtTableModel<E> model;
+    private ExtTableModel<E>        model;
     /**
      * The columns Title.
      */
-    private String name;
+    private final String            name;
 
     /**
      * A toggle to select the next sortingorder. ASC or DESC
      */
-    private boolean sortOrderToggle = true;
+    private boolean                 sortOrderToggle    = true;
 
     /**
      * Sorting algorithms run in an own thread
      */
-    private Thread sortThread = null;
-    private TableCellRenderer headerrenderer;
-    private ExtDefaultRowSorter<E> rowSorter;
+    private Thread                  sortThread         = null;
+    private final TableCellRenderer headerrenderer;
+    private ExtDefaultRowSorter<E>  rowSorter;
 
     /**
      * Create a new ExtColum.
@@ -63,7 +63,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @param table
      * @param database
      */
-    public ExtColumn(String name, ExtTableModel<E> table) {
+    public ExtColumn(final String name, final ExtTableModel<E> table) {
         this.name = name;
         this.model = table;
 
@@ -72,19 +72,12 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.rowSorter = new ExtDefaultRowSorter<E>();
     }
 
-    public boolean isDefaultVisible() {
-        return true;
-    }
-
-    protected boolean matchSearch(E object, Pattern pattern) {
-        return false;
-    }
-
     protected void doSort(final Object obj) {
 
-        if (sortThread != null) return;
+        if (sortThread != null) { return; }
 
         sortThread = new Thread("TableSorter " + getID()) {
+            @Override
             public void run() {
                 // get selections before sorting
                 final ArrayList<E> selections = model.getSelectedObjects();
@@ -93,7 +86,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                     sortOrderToggle = !sortOrderToggle;
                     getModel().sort(ExtColumn.this, sortOrderToggle);
 
-                } catch (Exception e) {
+                } catch (final Exception e) {
                 }
                 // switch toggle
 
@@ -101,6 +94,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                 // Do this in EDT
                 new EDTHelper<Object>() {
 
+                    @Override
                     public Object edtRun() {
                         // inform model about structure change
                         model.fireTableStructureChanged();
@@ -115,14 +109,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         sortThread.start();
     }
 
-    /**
-     * @return the {@link ExtColumn#sortOrderToggle}
-     * @see ExtColumn#sortOrderToggle
-     */
-    protected boolean isSortOrderToggle() {
-        return sortOrderToggle;
-    }
-
     public abstract Object getCellEditorValue();
 
     /**
@@ -131,6 +117,22 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public int getClickcount() {
         return clickcount;
+    }
+
+    /**
+     * @return
+     */
+    public int getDefaultWidth() {
+        return 100;
+    }
+
+    /**
+     * overwrite this to implement a custom renderer
+     * 
+     * @return
+     */
+    public TableCellRenderer getHeaderRenderer() {
+        return headerrenderer;
     }
 
     /**
@@ -151,6 +153,13 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     /**
+     * @return
+     */
+    public int getMinWidth() {
+        return 0;
+    }
+
+    /**
      * @return the {@link ExtColumn#model}
      * @see ExtColumn#model
      */
@@ -166,19 +175,30 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return name;
     }
 
+    /**
+     * Returns null or a sorting comperator for this column
+     * 
+     * @param sortToggle
+     * @return
+     */
+    public ExtDefaultRowSorter<E> getRowSorter(final boolean sortOrderToggle) {
+        rowSorter.setSortOrderToggle(sortOrderToggle);
+        return this.rowSorter;
+    }
+
     @SuppressWarnings("unchecked")
-    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
         return ((ExtTable<E>) table).getLafCellEditor(row, column).getTableCellEditorComponent(table, value, isSelected, row, column);
     }
 
     @SuppressWarnings("unchecked")
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         return ((ExtTable<E>) table).getLafCellRenderer(row, column).getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     }
 
     @Override
-    public boolean isCellEditable(EventObject evt) {
-        if (evt instanceof MouseEvent) return ((MouseEvent) evt).getClickCount() >= clickcount && clickcount > 0;
+    public boolean isCellEditable(final EventObject evt) {
+        if (evt instanceof MouseEvent) { return ((MouseEvent) evt).getClickCount() >= clickcount && clickcount > 0; }
         return true;
     }
 
@@ -190,10 +210,14 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @param columnIndex
      * @return
      */
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-        E obj = model.getValueAt(rowIndex, columnIndex);
-        if (obj == null) return false;
+    public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+        final E obj = model.getValueAt(rowIndex, columnIndex);
+        if (obj == null) { return false; }
         return isEditable(obj);
+    }
+
+    public boolean isDefaultVisible() {
+        return true;
     }
 
     /**
@@ -224,11 +248,23 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     abstract public boolean isSortable(E obj);
 
     /**
+     * @return the {@link ExtColumn#sortOrderToggle}
+     * @see ExtColumn#sortOrderToggle
+     */
+    protected boolean isSortOrderToggle() {
+        return sortOrderToggle;
+    }
+
+    protected boolean matchSearch(final E object, final Pattern pattern) {
+        return false;
+    }
+
+    /**
      * @param clickcount
      *            the {@link ExtColumn#clickcount} to set
      * @see ExtColumn#clickcount
      */
-    public void setClickcount(int clickcount) {
+    public void setClickcount(final int clickcount) {
         this.clickcount = Math.max(0, clickcount);
     }
 
@@ -237,8 +273,17 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      *            the {@link ExtColumn#model} to set
      * @see ExtColumn#model
      */
-    public void setModel(ExtTableModel<E> model) {
+    public void setModel(final ExtTableModel<E> model) {
         this.model = model;
+    }
+
+    /**
+     * @param rowSorter
+     *            the {@link ExtColumn#rowSorter} to set
+     * @see ExtColumn#rowSorter
+     */
+    public void setRowSorter(final ExtDefaultRowSorter<E> rowSorter) {
+        this.rowSorter = rowSorter;
     }
 
     /**
@@ -251,58 +296,15 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public abstract void setValue(Object value, E object);
 
-    public void setValueAt(Object value, int rowIndex, int columnIndex) {
-        E obj = model.getValueAt(rowIndex, columnIndex);
-        if (obj == null) return;
+    public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
+        final E obj = model.getValueAt(rowIndex, columnIndex);
+        if (obj == null) { return; }
         setValue(value, obj);
     }
 
     @Override
-    public boolean shouldSelectCell(EventObject anEvent) {
+    public boolean shouldSelectCell(final EventObject anEvent) {
         return true;
-    }
-
-    /**
-     * overwrite this to implement a custom renderer
-     * 
-     * @return
-     */
-    public TableCellRenderer getHeaderRenderer() {
-        return headerrenderer;
-    }
-
-    /**
-     * Returns null or a sorting comperator for this column
-     * 
-     * @param sortToggle
-     * @return
-     */
-    public ExtDefaultRowSorter<E> getRowSorter(boolean sortOrderToggle) {
-        rowSorter.setSortOrderToggle(sortOrderToggle);
-        return this.rowSorter;
-    }
-
-    /**
-     * @param rowSorter
-     *            the {@link ExtColumn#rowSorter} to set
-     * @see ExtColumn#rowSorter
-     */
-    public void setRowSorter(ExtDefaultRowSorter<E> rowSorter) {
-        this.rowSorter = rowSorter;
-    }
-
-    /**
-     * @return
-     */
-    public int getDefaultWidth() {
-        return 100;
-    }
-
-    /**
-     * @return
-     */
-    public int getMinWidth() {
-        return 0;
     }
 
 }
