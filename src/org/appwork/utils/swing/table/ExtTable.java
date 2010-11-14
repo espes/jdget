@@ -564,7 +564,7 @@ public class ExtTable<E> extends JTable {
                     continue;
                 }
                 if (rh.doHighlight(this, i)) {
-                    rh.paint((Graphics2D) g, 0, first.y, width, first.height);
+                    rh.paint((Graphics2D) g, 0, first.y, width, first.height - 1);
                 }
             }
         }

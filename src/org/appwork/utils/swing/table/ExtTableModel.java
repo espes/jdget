@@ -72,13 +72,16 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * @param files
      */
-    public void addAllElements(final ArrayList<E> files) {
-        final ArrayList<E> tmp = new ArrayList<E>(files);
+    public void addAllElements(final E... files) {
+        final E[] tmp = files.clone();
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
                 final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
-                ExtTableModel.this.tableData.addAll(tmp);
+                for (final E e : tmp) {
+                    ExtTableModel.this.tableData.add(e);
+                }
+
                 ExtTableModel.this.refreshSort();
                 ExtTableModel.this.fireTableStructureChanged();
                 ExtTableModel.this.setSelectedObjects(selection);
