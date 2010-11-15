@@ -385,11 +385,18 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     @Override
     public Dimension getPreferredSize() {
         final Dimension pref = super.getPreferredSize();
+
         try {
-            return new Dimension(Math.min(Dialog.getInstance().getParentOwner().getWidth(), pref.width), Math.min(Dialog.getInstance().getParentOwner().getHeight(), pref.height));
+            if (Dialog.getInstance().getParentOwner() != null && Dialog.getInstance().getParentOwner().isVisible()) {
+                return new Dimension(Math.min(Dialog.getInstance().getParentOwner().getWidth(), pref.width), Math.min(Dialog.getInstance().getParentOwner().getHeight(), pref.height));
+            } else {
+                return pref;
+
+            }
         } catch (final Throwable e) {
             return pref;
         }
+
     }
 
     /**
