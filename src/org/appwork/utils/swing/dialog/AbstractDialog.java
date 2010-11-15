@@ -237,9 +237,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         // this.setMinimumSize(this.getPreferredSize());
         this.pack();
         this.setResizable(true);
-        final Dimension dim = this.getPreferredSize();
+
         // minimum size foir a dialog
-        this.setMinimumSize(new Dimension(Math.max(300, dim.width), Math.max(80, dim.height)));
+
+        // // Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setMinimumSize(new Dimension(300, 80));
+        // this.setMaximumSize(Toolkit.getDefaultToolkit().getScreenSize());
         this.toFront();
 
         if (this.getDesiredSize() != null) {
@@ -376,6 +379,13 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     protected String getDontShowAgainKey() {
         return "ABSTRACTDIALOG_DONT_SHOW_AGAIN_" + this.getClass().getSimpleName() + "_" + this.toString();
+    }
+
+    // Default prefered size is not bigger than parent panel
+    @Override
+    public Dimension getPreferredSize() {
+        final Dimension pref = super.getPreferredSize();
+        return new Dimension(Math.min(Dialog.getInstance().getParentOwner().getWidth(), pref.width), Math.min(Dialog.getInstance().getParentOwner().getHeight(), pref.height));
     }
 
     /**
