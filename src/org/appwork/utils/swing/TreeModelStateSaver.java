@@ -80,7 +80,7 @@ public class TreeModelStateSaver {
                 final TreePath[] selectedPathes = TreeModelStateSaver.this.getSelectedPathes();
                 if (selectedPathes != null && selectedPathes.length > 0) {
                     TreeModelStateSaver.this.tree.getSelectionModel().clearSelection();
-                    TreeModelStateSaver.this.tree.getSelectionModel().setSelectionPaths(selectedPathes);
+                    TreeModelStateSaver.this.tree.getSelectionModel().setSelectionPaths(selectedPathes);                    
                 }
                 return null;
             }
