@@ -52,7 +52,7 @@ public class SourceParser extends Object {
     private void getSourceFiles(final File file) throws IOException {
         for (final File f : file.listFiles(new FilenameFilter() {
 
-            @Override
+            
             public boolean accept(final File dir, final String name) {
                 return (SourceParser.this.filter == null || SourceParser.this.filter.accept(dir, name)) && (name.endsWith(".java") || new File(dir, name).isDirectory());
             }

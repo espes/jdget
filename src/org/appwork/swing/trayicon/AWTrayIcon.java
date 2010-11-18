@@ -124,26 +124,26 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
         return this.frame.isVisible();
     }
 
-    @Override
+    
     public void mouseClicked(final MouseEvent e) {
     }
 
-    @Override
+    
     public void mouseEntered(final MouseEvent e) {
     }
 
-    @Override
+    
     public void mouseExited(final MouseEvent e) {
         this.hideToolTip();
     }
 
-    @Override
+    
     public void mouseMoveOverTray(final MouseEvent me) {
         if (this.trayIconPopup != null && this.trayIconPopup.isVisible()) { return; }
         this.displayToolTip();
     }
 
-    @Override
+    
     public void mousePressed(final MouseEvent e) {
         this.hideToolTip();
 
@@ -206,7 +206,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
         }
     }
 
-    @Override
+    
     public void mouseReleased(final MouseEvent e) {
     }
 
@@ -221,7 +221,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
 
         new EDTHelper<Object>() {
 
-            @Override
+            
             public Object edtRun() {
                 /*
                  * This is a workaround, because toFront does not work on all
@@ -247,7 +247,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
                 if (visible && resetAlwaysOnTop != null) {
                     SwingUtilities.invokeLater(new Runnable() {
 
-                        @Override
+                        
                         public void run() {
                             resetAlwaysOnTop.setAlwaysOnTop(false);
                         }

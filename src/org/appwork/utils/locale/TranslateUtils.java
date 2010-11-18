@@ -41,7 +41,7 @@ public class TranslateUtils {
         if (!file.exists()) { throw new Exception("File " + file + " does not exist"); }
         sourceParser.setFilter(new FilenameFilter() {
 
-            @Override
+          
             public boolean accept(final File dir, final String name) {
                 return !new File(dir, name).equals(file);
             }

@@ -53,7 +53,7 @@ public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionL
         super.addMouseMotionListener(this);
     }
 
-    @Override
+    
     public void addMouseListener(final MouseListener listener) {
         if (listener == null) { return; }
         synchronized (this.mouseListeners) {
@@ -118,7 +118,7 @@ public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionL
      * java.awt.event.MouseMotionListener#mouseDragged(java.awt.event.MouseEvent
      * )
      */
-    @Override
+    
     public void mouseDragged(final MouseEvent e) {
         // TODO Auto-generated method stub
 
@@ -128,7 +128,7 @@ public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionL
         this.mouseover = true;
         final long enterTime = System.currentTimeMillis();
         this.mouseLocationObserver = new Thread() {
-            @Override
+            
             public void run() {
                 try {
                     boolean mouseStay = false;
@@ -241,7 +241,7 @@ public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionL
         }
     }
 
-    @Override
+    
     public void removeMouseListener(final MouseListener listener) {
         if (listener == null) { return; }
         synchronized (this.mouseListeners) {

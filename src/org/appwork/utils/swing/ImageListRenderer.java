@@ -21,7 +21,7 @@ public abstract class ImageListRenderer<T> extends JLabel implements ListCellRen
     public abstract Icon getImage(T value);
 
     @SuppressWarnings("unchecked")
-    @Override
+
     public Component getListCellRendererComponent(final JList list, final Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
         setText(getText((T) value));
         setIcon(getImage((T) value));
