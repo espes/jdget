@@ -30,14 +30,14 @@ public class JSimpleNumberSpinner extends JSpinner {
             @Override
             public Object getNextValue() {
                 Number n = getNumber();
-                if (n.intValue() >= min && n.intValue()<secondmin) return secondmin;
+                if (n.intValue() >= min && n.intValue() < secondmin) return secondmin;
                 return super.getNextValue();
             }
 
             @Override
             public Object getPreviousValue() {
                 Number n = getNumber();
-                if (n.intValue()>=min && n.intValue()<=secondmin) return min;
+                if (n.intValue() >= min && n.intValue() <= secondmin) return min;
                 return super.getPreviousValue();
             }
 
@@ -53,7 +53,10 @@ public class JSimpleNumberSpinner extends JSpinner {
             @Override
             public Object stringToValue(final String text) throws ParseException {
                 try {
-                    return Integer.parseInt(text);
+                    int i = Integer.parseInt(text);
+                    if (i > min && i < secondmin) i = min;
+                    if (i < min) i = min;
+                    return i;
                 } catch (Throwable e) {
                     return null;
                 }
