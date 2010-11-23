@@ -30,8 +30,8 @@ public abstract class QueueAction<T, E extends Throwable> {
     private volatile boolean started          = false;
 
     private Thread           thread           = null;
-    private Runnable         runFinished      = null;
-    private Runnable         runFailed        = null;
+    private QueueActionRunnable         runFinished      = null;
+    private QueueActionRunnable         runFailed        = null;
 
     public QueueAction() {
     }
@@ -154,6 +154,7 @@ public abstract class QueueAction<T, E extends Throwable> {
             this.result = this.run();
             if (runFinished != null) {
                 try {
+                    runFinished.setQueueAction(this);
                     runFinished.run();
                 } catch (Throwable e) {
                     e.printStackTrace();
@@ -166,6 +167,7 @@ public abstract class QueueAction<T, E extends Throwable> {
             this.exeption = th;
             if (runFailed != null) {
                 try {
+                    runFailed.setQueueAction(this);
                     runFailed.run();
                 } catch (Throwable e) {
                     e.printStackTrace();
@@ -190,7 +192,7 @@ public abstract class QueueAction<T, E extends Throwable> {
      * @param runFinished
      *            the runFinished to set
      */
-    public void setRunFinished(Runnable runFinished) {
+    public void setRunFinished(QueueActionRunnable runFinished) {
         this.runFinished = runFinished;
     }
 
@@ -205,7 +207,7 @@ public abstract class QueueAction<T, E extends Throwable> {
      * @param runFailed
      *            the runFailed to set
      */
-    public void setRunFailed(Runnable runFailed) {
+    public void setRunFailed(QueueActionRunnable runFailed) {
         this.runFailed = runFailed;
     }
 

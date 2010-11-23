@@ -11,6 +11,8 @@ package org.appwork.utils.swing;
 
 import javax.swing.SwingUtilities;
 
+import org.appwork.utils.event.queue.QueueActionRunnable;
+
 /**
  * This class should be used to run gui code in the edt and return the generic
  * datatype to the parent thread.
@@ -22,7 +24,7 @@ import javax.swing.SwingUtilities;
  * @param <T>
  */
 
-public abstract class EDTHelper<T> implements Runnable {
+public abstract class EDTHelper<T> extends QueueActionRunnable {
     /**
      * flag. If Runnable has terminated yet
      */
