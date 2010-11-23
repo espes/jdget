@@ -31,14 +31,16 @@ public class JSimpleNumberSpinner extends JSpinner {
 
             @Override
             public Object stringToValue(final String text) throws ParseException {
-
-                return Integer.parseInt(text);
+                try {
+                    return Integer.parseInt(text);
+                } catch (Throwable e) {
+                    return null;
+                }
 
             }
 
             @Override
             public String valueToString(final Object value) throws ParseException {
-
                 return value + "";
 
             }
