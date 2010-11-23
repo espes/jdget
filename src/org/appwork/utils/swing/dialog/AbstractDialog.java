@@ -390,7 +390,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             if (Dialog.getInstance().getParentOwner() != null && Dialog.getInstance().getParentOwner().isVisible()) {
                 return new Dimension(Math.min(Dialog.getInstance().getParentOwner().getWidth(), pref.width), Math.min(Dialog.getInstance().getParentOwner().getHeight(), pref.height));
             } else {
-                return pref;
+                return new Dimension(Math.min((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.75), pref.width), Math.min((int) (Toolkit.getDefaultToolkit().getScreenSize().height * 0.75), pref.height));
 
             }
         } catch (final Throwable e) {

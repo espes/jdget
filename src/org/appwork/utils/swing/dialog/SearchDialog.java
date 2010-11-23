@@ -13,7 +13,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
@@ -33,100 +32,49 @@ public class SearchDialog extends AbstractDialog<String> implements KeyListener,
 
     private static final long serialVersionUID = 9206575398715006581L;
 
-    private String message;
-    private JTextPane messageArea;
-    private JTextComponent input;
+    private final String      message;
+    private JTextPane         messageArea;
+    private JTextComponent    input;
 
-    private JCheckBox caseSensitive;
+    private final JCheckBox   caseSensitive;
 
-    private JCheckBox regularExpression;
+    private final JCheckBox   regularExpression;
 
-    public SearchDialog(int flag, String title, String message) throws IOException {
-        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32, true), APPWORKUTILS.SEARCHDIALOG_BUTTON_FIND.s(), null);
+    public SearchDialog(final int flag, final String title, final String message) {
+        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32), APPWORKUTILS.SEARCHDIALOG_BUTTON_FIND.s(), null);
 
         this.caseSensitive = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_CASESENSITIVE.s());
         this.regularExpression = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.s());
 
-        try {
-            caseSensitive.setSelected(JSonStorage.getStorage("SearchDialog").get("caseSensitive", false));
+        this.caseSensitive.setSelected(JSonStorage.getStorage("SearchDialog").get("caseSensitive", false));
 
-            regularExpression.setSelected(JSonStorage.getStorage("SearchDialog").get("regularExpression", false));
-        } catch (Exception e) {
+        this.regularExpression.setSelected(JSonStorage.getStorage("SearchDialog").get("regularExpression", false));
 
-            org.appwork.utils.logging.Log.exception(e);
-        }
         this.message = message;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
+     */
     @Override
-    public JComponent layoutDialogContent() {
-        JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
-        messageArea = new JTextPane();
-        messageArea.setBorder(null);
-        messageArea.setBackground(null);
-        messageArea.setOpaque(false);
-        messageArea.setText(this.message);
-        messageArea.setEditable(false);
-        messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
-
-        contentpane.add(messageArea);
-
-        input = new JTextField();
-        input.setBorder(BorderFactory.createEtchedBorder());
-
-        input.addKeyListener(this);
-        input.addMouseListener(this);
-        contentpane.add(input, "pushy,growy");
-        contentpane.add(regularExpression, "split 2, alignx right, pushx");
-        contentpane.add(caseSensitive, " alignx right");
-        return contentpane;
-    }
-
-    @Override
-    protected void packed() {
-        input.selectAll();
-        requestFocus();
-        input.requestFocusInWindow();
+    protected String createReturnValue() {
+        return this.getReturnID();
     }
 
     public String getReturnID() {
         if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
-        if (input.getText() == null || input.getText().equals("")) return null;
+        if (this.input.getText() == null || this.input.getText().equals("")) { return null; }
         try {
             JSonStorage.getStorage("SearchDialog").put("caseSensitive", this.caseSensitive.isSelected());
 
             JSonStorage.getStorage("SearchDialog").put("regularExpression", this.regularExpression.isSelected());
-        } catch (Exception e) {
+        } catch (final Exception e) {
 
             org.appwork.utils.logging.Log.exception(e);
         }
-        return input.getText();
-    }
-
-    public void keyPressed(KeyEvent e) {
-        this.cancel();
-    }
-
-    public void keyReleased(KeyEvent e) {
-    }
-
-    public void keyTyped(KeyEvent e) {
-    }
-
-    public void mouseClicked(MouseEvent e) {
-        this.cancel();
-    }
-
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    public void mouseExited(MouseEvent e) {
-    }
-
-    public void mousePressed(MouseEvent e) {
-    }
-
-    public void mouseReleased(MouseEvent e) {
+        return this.input.getText();
     }
 
     public boolean isCaseSensitive() {
@@ -139,14 +87,61 @@ public class SearchDialog extends AbstractDialog<String> implements KeyListener,
         return this.regularExpression.isSelected();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
-     */
+    public void keyPressed(final KeyEvent e) {
+        this.cancel();
+    }
+
+    public void keyReleased(final KeyEvent e) {
+    }
+
+    public void keyTyped(final KeyEvent e) {
+    }
+
     @Override
-    protected String createReturnValue() {
-        return getReturnID();
+    public JComponent layoutDialogContent() {
+        final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
+        this.messageArea = new JTextPane();
+        this.messageArea.setBorder(null);
+        this.messageArea.setBackground(null);
+        this.messageArea.setOpaque(false);
+        this.messageArea.setText(this.message);
+        this.messageArea.setEditable(false);
+        this.messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+
+        contentpane.add(this.messageArea);
+
+        this.input = new JTextField();
+        this.input.setBorder(BorderFactory.createEtchedBorder());
+
+        this.input.addKeyListener(this);
+        this.input.addMouseListener(this);
+        contentpane.add(this.input, "pushy,growy");
+        contentpane.add(this.regularExpression, "split 2, alignx right, pushx");
+        contentpane.add(this.caseSensitive, " alignx right");
+        return contentpane;
+    }
+
+    public void mouseClicked(final MouseEvent e) {
+        this.cancel();
+    }
+
+    public void mouseEntered(final MouseEvent e) {
+    }
+
+    public void mouseExited(final MouseEvent e) {
+    }
+
+    public void mousePressed(final MouseEvent e) {
+    }
+
+    public void mouseReleased(final MouseEvent e) {
+    }
+
+    @Override
+    protected void packed() {
+        this.input.selectAll();
+        this.requestFocus();
+        this.input.requestFocusInWindow();
     }
 
 }
