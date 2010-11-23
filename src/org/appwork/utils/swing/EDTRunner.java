@@ -7,7 +7,7 @@ package org.appwork.utils.swing;
  * @author thomas
  * 
  */
-public abstract class EDTRunner extends EDTHelper<Object> {
+public abstract class EDTRunner extends EDTHelper<Object>{
 
     public EDTRunner() {
         this.start();

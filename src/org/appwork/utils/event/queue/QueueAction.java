@@ -18,18 +18,20 @@ import org.appwork.utils.logging.Log;
  */
 public abstract class QueueAction<T, E extends Throwable> {
 
-    private Throwable exeption;
+    private Throwable        exeption;
 
-    private volatile boolean finished = false;
-    private volatile boolean killed = false;
-    private QueuePriority prio = QueuePriority.NORM;
-    private Queue queue = null;
-    private T result = null;
-    private String callerStackTrace = null;
+    private volatile boolean finished         = false;
+    private volatile boolean killed           = false;
+    private QueuePriority    prio             = QueuePriority.NORM;
+    private Queue            queue            = null;
+    private T                result           = null;
+    private String           callerStackTrace = null;
 
-    private volatile boolean started = false;
+    private volatile boolean started          = false;
 
-    private Thread thread = null;
+    private Thread           thread           = null;
+    private Runnable         runFinished      = null;
+    private Runnable         runFailed        = null;
 
     public QueueAction() {
     }
@@ -150,11 +152,25 @@ public abstract class QueueAction<T, E extends Throwable> {
         this.started = true;
         try {
             this.result = this.run();
+            if (runFinished != null) {
+                try {
+                    runFinished.run();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (final Throwable th) {
             if (queue != null && queue.isDebug()) {
                 Log.L.severe("QueueActionCallerStackTrace:\r\n" + this.callerStackTrace);
             }
             this.exeption = th;
+            if (runFailed != null) {
+                try {
+                    runFailed.run();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
             if (th instanceof RuntimeException) {
                 throw (RuntimeException) th;
             } else {
@@ -162,4 +178,35 @@ public abstract class QueueAction<T, E extends Throwable> {
             }
         }
     }
+
+    /**
+     * @return the runFinished
+     */
+    public Runnable getRunFinished() {
+        return runFinished;
+    }
+
+    /**
+     * @param runFinished
+     *            the runFinished to set
+     */
+    public void setRunFinished(Runnable runFinished) {
+        this.runFinished = runFinished;
+    }
+
+    /**
+     * @return the runFailed
+     */
+    public Runnable getRunFailed() {
+        return runFailed;
+    }
+
+    /**
+     * @param runFailed
+     *            the runFailed to set
+     */
+    public void setRunFailed(Runnable runFailed) {
+        this.runFailed = runFailed;
+    }
+
 }

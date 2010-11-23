@@ -1,5 +1,6 @@
 package org.appwork.utils.swing.table.columns;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.util.regex.Pattern;
 
@@ -15,8 +16,9 @@ import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
-    private static final long serialVersionUID = 2114805529462086691L;
+    private static final long serialVersionUID  = 2114805529462086691L;
     protected RenderLabel     label;
+    protected Color             defaultForeground = null;
 
     public ExtTextColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
@@ -24,6 +26,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
         this.label = new RenderLabel();
         this.label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
         this.label.setOpaque(false);
+        this.defaultForeground = this.label.getForeground();
+
         this.prepareTableCellRendererComponent(this.label);
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
