@@ -19,8 +19,29 @@ public class JSimpleNumberSpinner extends JSpinner {
      * @param j
      * @param k
      */
-    public JSimpleNumberSpinner(final int steps, final int min, final int max) {
-        super(new SpinnerNumberModel(min, min, max, steps));
+    public JSimpleNumberSpinner(final int steps, final int min, final int max, final int secondmin) {
+        super(new SpinnerNumberModel(min, min, max, steps) {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -5666000802809450936L;
+
+            @Override
+            public Object getNextValue() {
+                Number n = getNumber();
+                if (n.intValue() >= min && n.intValue()<secondmin) return secondmin;
+                return super.getNextValue();
+            }
+
+            @Override
+            public Object getPreviousValue() {
+                Number n = getNumber();
+                if (n.intValue()>=min && n.intValue()<=secondmin) return min;
+                return super.getPreviousValue();
+            }
+
+        });
 
         final DefaultFormatterFactory factory = new DefaultFormatterFactory(new AbstractFormatter() {
 
