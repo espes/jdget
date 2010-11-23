@@ -252,6 +252,27 @@ public class ImageProvider {
     }
 
     /**
+     * @param scaleBufferedImage
+     * @param width
+     * @param height
+     * @return
+     */
+    public static Image resizeWorkSpace(final Image scaleBufferedImage, final int width, final int height) {
+        // final GraphicsEnvironment ge =
+        // GraphicsEnvironment.getLocalGraphicsEnvironment();
+        // final GraphicsDevice gd = ge.getDefaultScreenDevice();
+        // final GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        // final BufferedImage image = gc.createCompatibleImage(width, height,
+        // Transparency.BITMASK);
+        final BufferedImage image = new BufferedImage(width, height, Transparency.TRANSLUCENT);
+        final Graphics2D g = image.createGraphics();
+        g.drawImage(scaleBufferedImage, (width - scaleBufferedImage.getWidth(null)) / 2, (height - scaleBufferedImage.getHeight(null)) / 2, null);
+
+        g.dispose();
+        return image;
+    }
+
+    /**
      * Scales a buffered Image to the given size. This method is NOT cached. so
      * take care to cache it externally if you use it frequently
      * 
