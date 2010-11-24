@@ -9,17 +9,18 @@
  */
 package org.appwork.controlling;
 
-import org.appwork.utils.event.DefaultEvent;
+import org.appwork.utils.event.SimpleEvent;
 
 /**
  * @author thomas
  * 
  */
-public class StateEvent extends DefaultEvent {
+public class StateEvent extends SimpleEvent<StateMachine, State, StateEvent.Types> {
 
-    private State oldState;
-    private State newState;
-    private StateMachine stateMachine;
+    public static enum Types {
+        CHANGED,
+        UPDATED
+    }
 
     /**
      * @param stateMachine
@@ -27,44 +28,39 @@ public class StateEvent extends DefaultEvent {
      * @param currentState
      * @param newState
      */
-    public StateEvent(StateMachine stateMachine, int id, State currentState, State newState) {
-        super(stateMachine, id, newState);
-        this.stateMachine = stateMachine;
-        this.oldState = currentState;
-        this.newState = newState;
-    }
+    public StateEvent(final StateMachine stateMachine, final Types id, final State currentState, final State newState) {
+        super(stateMachine, id, currentState, newState);
 
-    /**
-     * @return the oldState
-     */
-    public State getOldState() {
-        return oldState;
-    }
-
-    /**
-     * @return the newState
-     */
-    public State getNewState() {
-        return newState;
-    }
-
-    public static final int CHANGED = 0;
-    public static final int UPDATED = 1;
-
-    /**
-     * @return
-     */
-    public StateMachine getStateMachine() {
-        
-        return stateMachine;
     }
 
     /**
      * @return
      */
     public Throwable getCause() {
-        
-        return getStateMachine().getCause(getNewState());
+
+        return this.getStateMachine().getCause(this.getNewState());
+    }
+
+    /**
+     * @return the newState
+     */
+    public State getNewState() {
+        return this.getParameter(1);
+    }
+
+    /**
+     * @return the oldState
+     */
+    public State getOldState() {
+        return this.getParameter(0);
+    }
+
+    /**
+     * @return
+     */
+    public StateMachine getStateMachine() {
+
+        return this.getCaller();
     }
 
 }

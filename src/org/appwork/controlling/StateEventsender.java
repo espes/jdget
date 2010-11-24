@@ -25,12 +25,16 @@ public class StateEventsender extends Eventsender<StateEventListener, StateEvent
      * org.appwork.utils.event.Event)
      */
     @Override
-    protected void fireEvent(StateEventListener listener, StateEvent event) {
-        if (event.getEventID() == StateEvent.CHANGED) {
+    protected void fireEvent(final StateEventListener listener, final StateEvent event) {
+        switch (event.getType()) {
+        case CHANGED:
             listener.onStateChange(event);
-        } else if (event.getEventID() == StateEvent.UPDATED) {
+            break;
+        case UPDATED:
             listener.onStateUpdate(event);
+            break;
         }
+
     }
 
 }

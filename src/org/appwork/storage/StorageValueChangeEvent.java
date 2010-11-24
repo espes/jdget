@@ -13,11 +13,7 @@ package org.appwork.storage;
  * @author thomas
  * 
  */
-public class StorageValueChangeEvent<E> extends StorageEvent {
-
-    private final E oldValue;
-    private final E newValue;
-    private final String key;
+public class StorageValueChangeEvent<E> extends StorageEvent<E> {
 
     /**
      * @param storage
@@ -25,29 +21,24 @@ public class StorageValueChangeEvent<E> extends StorageEvent {
      * @param oldValue
      * @param newValue
      */
+    @SuppressWarnings("unchecked")
     public StorageValueChangeEvent(final Storage storage, final String key, final E oldValue, final E newValue) {
-        super(storage);
-        this.oldValue = oldValue;
-        this.newValue = newValue;
-        this.key = key;
-    }
+        super(storage, StorageEvent.Types.CHANGED, key, oldValue, newValue);
 
-    public String getKey() {
-        return this.key;
     }
 
     /**
      * @return the newValue
      */
     public E getNewValue() {
-        return this.newValue;
+        return this.getParameter(1);
     }
 
     /**
      * @return the oldValue
      */
     public E getOldValue() {
-        return this.oldValue;
+        return this.getParameter(0);
     }
 
 }

@@ -2,21 +2,15 @@ package org.appwork.utils.event;
 
 import java.util.EventObject;
 
-import org.appwork.utils.event.DefaultEvent;
+public class BasicEvent<E> extends DefaultIntEvent<E> {
 
-public class BasicEvent<E> extends DefaultEvent {
+    private final EventObject sourceEvent;
 
-    private EventObject sourceEvent;
-
-    public BasicEvent(Object source, int i, E parameter, EventObject e) {
+    @SuppressWarnings({ "unchecked" })
+    public BasicEvent(final Object source, final int i, final E parameter, final EventObject e) {
         super(source, i, parameter);
-        sourceEvent = e;
+        this.sourceEvent = e;
 
-    }
-
-    @SuppressWarnings("unchecked")
-    public E getParameter() {
-        return (E) super.getParameter();
     }
 
     /**
@@ -24,7 +18,7 @@ public class BasicEvent<E> extends DefaultEvent {
      * @see BasicEvent#sourceEvent
      */
     public EventObject getSourceEvent() {
-        return sourceEvent;
+        return this.sourceEvent;
     }
 
 }

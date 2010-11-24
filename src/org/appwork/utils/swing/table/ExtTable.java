@@ -83,6 +83,7 @@ public class ExtTable<E> extends JTable {
      */
     private boolean                            searchEnabled    = false;
     private SearchDialog                       searchDialog;
+    private ExtTableEventSender                eventSender;
 
     /**
      * Create an Extended Table instance
@@ -96,6 +97,7 @@ public class ExtTable<E> extends JTable {
      */
     public ExtTable(final ExtTableModel<E> model, final String id) {
         super(model);
+        this.eventSender = new ExtTableEventSender();
         this.tableID = id;
         this.rowHighlighters = new ArrayList<ExtRowHighlighter>();
         this.model = model;
@@ -172,12 +174,14 @@ public class ExtTable<E> extends JTable {
 
         this.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @SuppressWarnings("unchecked")
             public void valueChanged(final ListSelectionEvent e) {
                 ArrayList<E> sel = ExtTable.this.getExtTableModel().getSelectedObjects();
                 if (sel != null && sel.size() == 0) {
                     sel = null;
                 }
                 ExtTable.this.onSelectionChanged(sel);
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SELECTION_CHANGED, sel));
 
             }
 
@@ -405,6 +409,13 @@ public class ExtTable<E> extends JTable {
     }
 
     /**
+     * @return the eventSender
+     */
+    public ExtTableEventSender getEventSender() {
+        return this.eventSender;
+    }
+
+    /**
      * Returns the real column index at this point
      * 
      * @param point
@@ -573,27 +584,49 @@ public class ExtTable<E> extends JTable {
     /**
      * Key selection
      */
+    @SuppressWarnings("unchecked")
     @Override
     protected boolean processKeyBinding(final KeyStroke stroke, final KeyEvent evt, final int condition, final boolean pressed) {
         if (!pressed) { return super.processKeyBinding(stroke, evt, condition, pressed); }
 
         switch (evt.getKeyCode()) {
         case KeyEvent.VK_X:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCut(this.getExtTableModel().getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) {
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_CUT, this.getExtTableModel().getSelectedObjects()));
+                return this.onShortcutCut(this.getExtTableModel().getSelectedObjects(), evt);
+            }
             break;
         case KeyEvent.VK_V:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutPaste(this.getExtTableModel().getSelectedObjects(), evt); }
+
+            if (evt.isControlDown() || evt.isMetaDown()) {
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_PASTE, this.getExtTableModel().getSelectedObjects()));
+                return this.onShortcutPaste(this.getExtTableModel().getSelectedObjects(), evt);
+            }
             break;
         case KeyEvent.VK_C:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutCopy(this.getExtTableModel().getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) {
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_COPY, this.getExtTableModel().getSelectedObjects()));
+                return this.onShortcutCopy(this.getExtTableModel().getSelectedObjects(), evt);
+
+            }
             break;
         case KeyEvent.VK_DELETE:
+            ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getExtTableModel().getSelectedObjects(), BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK)));
             return this.onShortcutDelete(this.getExtTableModel().getSelectedObjects(), evt, BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK));
         case KeyEvent.VK_BACK_SPACE:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutDelete(this.getExtTableModel().getSelectedObjects(), evt, false); }
+            if (evt.isControlDown() || evt.isMetaDown()) {
+
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getExtTableModel().getSelectedObjects(), false));
+
+                return this.onShortcutDelete(this.getExtTableModel().getSelectedObjects(), evt, false);
+            }
             break;
         case KeyEvent.VK_F:
-            if (evt.isControlDown() || evt.isMetaDown()) { return this.onShortcutSearch(this.getExtTableModel().getSelectedObjects(), evt); }
+            if (evt.isControlDown() || evt.isMetaDown()) {
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_SEARCH, this.getExtTableModel().getSelectedObjects()));
+
+                return this.onShortcutSearch(this.getExtTableModel().getSelectedObjects(), evt);
+            }
             break;
         case KeyEvent.VK_UP:
             if (this.getSelectedRow() == 0) {
@@ -662,6 +695,7 @@ public class ExtTable<E> extends JTable {
         return super.processKeyBinding(stroke, evt, condition, pressed);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void processMouseEvent(final MouseEvent e) {
         super.processMouseEvent(e);
@@ -674,6 +708,7 @@ public class ExtTable<E> extends JTable {
                     /* no object under mouse, lets clear the selection */
                     this.clearSelection();
                     final JPopupMenu popup = this.onContextMenu(new JPopupMenu(), null, null);
+                    this.eventSender.fireEvent(new ExtTableEvent<JPopupMenu>(this, ExtTableEvent.Types.CONTEXTMENU, popup));
                     if (popup != null && popup.getComponentCount() > 0) {
                         popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
                     }
@@ -698,6 +733,8 @@ public class ExtTable<E> extends JTable {
                 // System.out.println(row);
                 if (obj == null || row == -1) {
                     this.onDoubleClick(obj);
+                    this.eventSender.fireEvent(new ExtTableEvent<E>(this, ExtTableEvent.Types.DOUBLECLICK, obj));
+
                 }
             }
         } else if (e.getID() == MouseEvent.MOUSE_PRESSED) {

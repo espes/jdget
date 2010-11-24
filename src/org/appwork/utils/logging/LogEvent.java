@@ -9,17 +9,17 @@
  */
 package org.appwork.utils.logging;
 
-import org.appwork.utils.event.DefaultEvent;
+import org.appwork.utils.event.DefaultIntEvent;
 
-public class LogEvent extends DefaultEvent {
+public class LogEvent extends DefaultIntEvent<Object> {
     /**
      * parameter is of type LogRecord
      */
     public static final int NEW_RECORD = 0;
 
-    public LogEvent(Object caller, int eventID, Object parameter) {
+    public LogEvent(final Object caller, final int eventID, final Object parameter) {
         super(caller, eventID, parameter);
-        
+
     }
 
 }
