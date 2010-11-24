@@ -11,8 +11,6 @@ package org.appwork.utils.swing;
 
 import javax.swing.SwingUtilities;
 
-import org.appwork.utils.event.queue.QueueActionRunnable;
-
 /**
  * This class should be used to run gui code in the edt and return the generic
  * datatype to the parent thread.
@@ -24,25 +22,25 @@ import org.appwork.utils.event.queue.QueueActionRunnable;
  * @param <T>
  */
 
-public abstract class EDTHelper<T> extends QueueActionRunnable {
+public abstract class EDTHelper<T> implements Runnable {
     /**
      * flag. If Runnable has terminated yet
      */
-    private boolean done = false;
+    private boolean      done    = false;
 
     /**
      * flag, has runnable already started, invoked in edt
      */
-    private boolean started = false;
+    private boolean      started = false;
     /**
      * lock used for EDT waiting
      */
-    private Object lock = new Object();
+    private final Object lock    = new Object();
 
     /**
      * Stores The returnvalue. This Value if of the Generic Datatype T
      */
-    private T returnValue;
+    private T            returnValue;
 
     /**
      * Implement this method. Gui code should be used ONLY in this Method.
@@ -59,26 +57,30 @@ public abstract class EDTHelper<T> extends QueueActionRunnable {
      * @return
      */
     public T getReturnValue() {
-        waitForEDT();
-        return returnValue;
+        this.waitForEDT();
+        return this.returnValue;
     }
 
     /**
      * Run the runnable
      */
     public void run() {
-        synchronized (lock) {
-            started = true;
+        synchronized (this.lock) {
+            this.started = true;
         }
         try {
             this.returnValue = this.edtRun();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             org.appwork.utils.logging.Log.exception(e);
         }
-        synchronized (lock) {
-            lock.notify();
+        synchronized (this.lock) {
+            this.lock.notify();
         }
-        done = true;
+        this.done = true;
+    }
+
+    public boolean start() {
+        return this.start(false);
     }
 
     /**
@@ -86,12 +88,12 @@ public abstract class EDTHelper<T> extends QueueActionRunnable {
      * 
      * returns true in case we are in EDT or false if it got invoked later
      */
-    public boolean start(boolean invokeLater) {
-        synchronized (lock) {
-            started = true;
+    public boolean start(final boolean invokeLater) {
+        synchronized (this.lock) {
+            this.started = true;
         }
         if (!invokeLater && SwingUtilities.isEventDispatchThread()) {
-            run();
+            this.run();
             return true;
         } else {
             SwingUtilities.invokeLater(this);
@@ -99,28 +101,24 @@ public abstract class EDTHelper<T> extends QueueActionRunnable {
         }
     }
 
-    public boolean start() {
-        return start(false);
-    }
-
     /**
      * Wait until the runnable has been finished by the EDT. If the Runnable has
      * not started yet, it gets started.
      */
     public void waitForEDT() {
-        if (done) return;
+        if (this.done) { return; }
         boolean waitForFinish = true;
-        synchronized (lock) {
-            if (started == false) {
-                waitForFinish = !start(false);
+        synchronized (this.lock) {
+            if (this.started == false) {
+                waitForFinish = !this.start(false);
             }
         }
         if (waitForFinish) {
-            while (!done) {
-                synchronized (lock) {
+            while (!this.done) {
+                synchronized (this.lock) {
                     try {
-                        lock.wait(1000);
-                    } catch (InterruptedException e) {
+                        this.lock.wait(1000);
+                    } catch (final InterruptedException e) {
                     }
                 }
             }

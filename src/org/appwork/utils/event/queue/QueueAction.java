@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2009 - 2010 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
+ * Copyright (c) 2009 - 2010 AppWork UG(haftungsbeschrÃ¤nkt) <e-mail@appwork.org>
  * 
  * This file is part of org.appwork.utils.event.queue
  * 
@@ -30,8 +30,6 @@ public abstract class QueueAction<T, E extends Throwable> {
     private volatile boolean started          = false;
 
     private Thread           thread           = null;
-    private QueueActionRunnable         runFinished      = null;
-    private QueueActionRunnable         runFailed        = null;
 
     public QueueAction() {
     }
@@ -152,27 +150,11 @@ public abstract class QueueAction<T, E extends Throwable> {
         this.started = true;
         try {
             this.result = this.run();
-            if (runFinished != null) {
-                try {
-                    runFinished.setQueueAction(this);
-                    runFinished.run();
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-            }
         } catch (final Throwable th) {
             if (queue != null && queue.isDebug()) {
                 Log.L.severe("QueueActionCallerStackTrace:\r\n" + this.callerStackTrace);
             }
             this.exeption = th;
-            if (runFailed != null) {
-                try {
-                    runFailed.setQueueAction(this);
-                    runFailed.run();
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-            }
             if (th instanceof RuntimeException) {
                 throw (RuntimeException) th;
             } else {
@@ -180,35 +162,4 @@ public abstract class QueueAction<T, E extends Throwable> {
             }
         }
     }
-
-    /**
-     * @return the runFinished
-     */
-    public Runnable getRunFinished() {
-        return runFinished;
-    }
-
-    /**
-     * @param runFinished
-     *            the runFinished to set
-     */
-    public void setRunFinished(QueueActionRunnable runFinished) {
-        this.runFinished = runFinished;
-    }
-
-    /**
-     * @return the runFailed
-     */
-    public Runnable getRunFailed() {
-        return runFailed;
-    }
-
-    /**
-     * @param runFailed
-     *            the runFailed to set
-     */
-    public void setRunFailed(QueueActionRunnable runFailed) {
-        this.runFailed = runFailed;
-    }
-
 }
