@@ -15,8 +15,8 @@ import javax.swing.JComponent;
  * @author daniel
  *
  */
-public interface HelpNotifierListener {
+public interface HelpNotifierCallbackListener {
 
-    public void helpNotifier_Shown(JComponent c);
-    public void helpNotifier_Hidden(JComponent c);
+    public void onHelpNotifyShown(JComponent c);
+    public void onHelpNotifyHidden(JComponent c);
 }

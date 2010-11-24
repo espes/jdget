@@ -13,9 +13,9 @@ import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-import javax.swing.JTextField;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.text.JTextComponent;
 
 /**
  * @author daniel
@@ -23,56 +23,60 @@ import javax.swing.event.CaretListener;
  */
 public class HelpNotifier implements FocusListener, CaretListener {
 
-    private JTextField           field;
-    protected Color              defaultColor = null;
-    protected Color              watchColor   = Color.GRAY;
-    private String               infoTxt      = null;
-    private HelpNotifierListener listener;
+    public static void register(final JTextComponent field, final HelpNotifierCallbackListener owner, final String helpText) {
+        new HelpNotifier(field, helpText, owner);
+    }
 
-    public HelpNotifier(JTextField field, String helpTxt, HelpNotifierListener listener) {
+    private final JTextComponent               field;
+    protected Color                            defaultColor = null;
+    protected Color                            watchColor   = Color.GRAY;
+    private String                             infoTxt      = null;
+    private final HelpNotifierCallbackListener listener;
+
+    private HelpNotifier(final JTextComponent field, final String helpTxt, final HelpNotifierCallbackListener listener) {
         this.field = field;
         this.listener = listener;
         this.field.setText(helpTxt);
         this.infoTxt = helpTxt;
-        this.defaultColor = field.getForeground();        
-        focusLost(null);
-        caretUpdate(null);
+        this.defaultColor = field.getForeground();
+        this.focusLost(null);
+        this.caretUpdate(null);
         this.field.addCaretListener(this);
         this.field.addFocusListener(this);
     }
 
     @Override
-    public void caretUpdate(CaretEvent arg0) {
-        if (field != null) {
-            if (field.getDocument().getLength() == 0 || field.getText().equals(infoTxt)) {
-                if (listener != null) {
-                    listener.helpNotifier_Shown(field);
+    public void caretUpdate(final CaretEvent arg0) {
+        if (this.field != null) {
+            if (this.field.getDocument().getLength() == 0 || this.field.getText().equals(this.infoTxt)) {
+                if (this.listener != null) {
+                    this.listener.onHelpNotifyShown(this.field);
                 }
             } else {
-                if (listener != null) {
-                    listener.helpNotifier_Hidden(field);
+                if (this.listener != null) {
+                    this.listener.onHelpNotifyHidden(this.field);
                 }
             }
         }
     }
 
     @Override
-    public void focusGained(FocusEvent arg0) {
-        if (field != null) {
-            if (field.getText().equals(infoTxt)) {
-                field.setText("");
-                field.setForeground(defaultColor);
+    public void focusGained(final FocusEvent arg0) {
+        if (this.field != null) {
+            if (this.field.getText().equals(this.infoTxt)) {
+                this.field.setText("");
+                this.field.setForeground(this.defaultColor);
             }
         }
 
     }
 
     @Override
-    public void focusLost(FocusEvent arg0) {
-        if (field != null) {
-            if (field.getDocument().getLength() == 0 || field.getText().equals(infoTxt)) {
-                field.setText(infoTxt);
-                field.setForeground(watchColor);
+    public void focusLost(final FocusEvent arg0) {
+        if (this.field != null) {
+            if (this.field.getDocument().getLength() == 0 || this.field.getText().equals(this.infoTxt)) {
+                this.field.setText(this.infoTxt);
+                this.field.setForeground(this.watchColor);
             }
         }
     }
