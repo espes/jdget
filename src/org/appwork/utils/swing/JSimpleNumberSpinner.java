@@ -56,6 +56,7 @@ public class JSimpleNumberSpinner extends JSpinner {
                     int i = Integer.parseInt(text);
                     if (i > min && i < secondmin) i = min;
                     if (i < min) i = min;
+                    if (i > max) i = max;
                     return i;
                 } catch (Throwable e) {
                     return null;
