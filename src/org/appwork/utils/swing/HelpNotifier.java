@@ -45,7 +45,7 @@ public class HelpNotifier implements FocusListener, CaretListener {
         this.field.addFocusListener(this);
     }
 
-    @Override
+
     public void caretUpdate(final CaretEvent arg0) {
         if (this.field != null) {
             if (this.field.getDocument().getLength() == 0 || this.field.getText().equals(this.infoTxt)) {
@@ -60,7 +60,6 @@ public class HelpNotifier implements FocusListener, CaretListener {
         }
     }
 
-    @Override
     public void focusGained(final FocusEvent arg0) {
         if (this.field != null) {
             if (this.field.getText().equals(this.infoTxt)) {
@@ -71,7 +70,7 @@ public class HelpNotifier implements FocusListener, CaretListener {
 
     }
 
-    @Override
+  
     public void focusLost(final FocusEvent arg0) {
         if (this.field != null) {
             if (this.field.getDocument().getLength() == 0 || this.field.getText().equals(this.infoTxt)) {
