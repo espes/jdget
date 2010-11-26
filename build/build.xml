@@ -1,4 +1,4 @@
-<project default="standardBuild" basedir=".">
+<project default="standardBuild" basedir="../">
 
 	<property name="src" value="src" />
 	<property name="cls" value="bin" />
