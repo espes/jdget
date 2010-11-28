@@ -4,10 +4,10 @@ import org.appwork.utils.event.DefaultEventSender;
 
 public abstract class Storage {
 
-    private final DefaultEventSender<StorageEvent> eventSender;
+    private final DefaultEventSender<StorageEvent<?>> eventSender;
 
     public Storage() {
-        this.eventSender = new DefaultEventSender<StorageEvent>();
+        this.eventSender = new DefaultEventSender<StorageEvent<?>>();
     }
 
     /**
@@ -24,7 +24,7 @@ public abstract class Storage {
     /**
      * @return the eventSender
      */
-    public DefaultEventSender<StorageEvent> getEventSender() {
+    public DefaultEventSender<StorageEvent<?>> getEventSender() {
         return this.eventSender;
     }
 

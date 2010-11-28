@@ -11,6 +11,7 @@ package org.appwork.utils.logging;
 
 import org.appwork.utils.event.DefaultIntEvent;
 
+@SuppressWarnings("deprecation")
 public class LogEvent extends DefaultIntEvent<Object> {
     /**
      * parameter is of type LogRecord

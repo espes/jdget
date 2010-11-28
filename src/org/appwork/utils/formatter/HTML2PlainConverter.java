@@ -45,6 +45,6 @@ public class HTML2PlainConverter {
             e.printStackTrace();
         }
         return parser.getText();
-    };
+    }
 
 }
