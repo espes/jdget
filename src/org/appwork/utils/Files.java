@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 
 public class Files {
     /**
@@ -124,4 +126,30 @@ public class Files {
         return null;
     }
 
+    public static LinkedList<String> getDirectories_NonRecursive(File startDirectory) throws IOException {
+        LinkedList<String> done = new LinkedList<String>();
+        File current = null;
+        File[] currents = null;
+        ArrayList<File> todo = new ArrayList<File>();
+        todo.add(startDirectory);
+        while (todo.size() > 0) {
+            current = todo.remove(0);
+            currents = current.listFiles();
+            done.add(current.getCanonicalPath());
+            if (currents != null) {
+                for (int index = currents.length - 1; index >= 0; index--) {
+                    if (currents[index].isDirectory()) {
+                        String blubd = currents[index].getCanonicalPath();
+                        if (!done.contains(blubd)) todo.add(currents[index]);
+                    }
+                }
+            }
+        }
+        return done;
+    }
+
+    public static void main(String[] args) throws IOException {
+        LinkedList<String> ret = Files.getDirectories_NonRecursive(new File("/home/daniel/"));
+        int i = 1;
+    }
 }
