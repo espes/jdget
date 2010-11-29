@@ -126,7 +126,7 @@ public class Files {
         return null;
     }
 
-    public static LinkedList<String> getDirectories_NonRecursive(File startDirectory) throws IOException {
+    public static LinkedList<String> getDirectories_NonRecursive(File startDirectory, boolean includeStart) throws IOException {
         LinkedList<String> done = new LinkedList<String>();
         File current = null;
         File[] currents = null;
@@ -139,17 +139,19 @@ public class Files {
             if (currents != null) {
                 for (int index = currents.length - 1; index >= 0; index--) {
                     if (currents[index].isDirectory()) {
-                        String blubd = currents[index].getCanonicalPath();
-                        if (!done.contains(blubd)) todo.add(currents[index]);
+                        String temp = currents[index].getCanonicalPath();
+                        if (!done.contains(temp)) todo.add(currents[index]);
                     }
                 }
             }
         }
+        /* remove startdirectory if wished */
+        if (includeStart == false && done.size() > 0) done.remove(0);
         return done;
     }
 
     public static void main(String[] args) throws IOException {
-        LinkedList<String> ret = Files.getDirectories_NonRecursive(new File("/home/daniel/"));
+        LinkedList<String> ret = Files.getDirectories_NonRecursive(new File("/home/daniel/"),false);
         int i = 1;
     }
 }
