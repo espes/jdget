@@ -45,7 +45,6 @@ public class HelpNotifier implements FocusListener, CaretListener {
         this.field.addFocusListener(this);
     }
 
-
     public void caretUpdate(final CaretEvent arg0) {
         if (this.field != null) {
             if (this.field.getDocument().getLength() == 0 || this.field.getText().equals(this.infoTxt)) {
@@ -55,6 +54,11 @@ public class HelpNotifier implements FocusListener, CaretListener {
             } else {
                 if (this.listener != null) {
                     this.listener.onHelpNotifyHidden(this.field);
+                    /*
+                     * if user sets text with setText, we want default color
+                     * again
+                     */
+                    this.field.setForeground(this.defaultColor);
                 }
             }
         }
@@ -70,7 +74,6 @@ public class HelpNotifier implements FocusListener, CaretListener {
 
     }
 
-  
     public void focusLost(final FocusEvent arg0) {
         if (this.field != null) {
             if (this.field.getDocument().getLength() == 0 || this.field.getText().equals(this.infoTxt)) {
