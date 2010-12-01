@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import java.awt.Dimension;
 import java.util.Arrays;
 
 import javax.swing.ImageIcon;
@@ -62,9 +61,9 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
         super(flag, title, icon, okText, cancelText);
         Log.L.fine("Dialog    [" + okText + "][" + cancelText + "]\r\nflag:  " + Integer.toBinaryString(flag) + "\r\ntitle: " + title + "\r\nmsg:   \r\n" + question + "\r\noptions:   \r\n" + Arrays.toString(options) + "\r\ndef:" + defaultSelection);
 
-        this.message = question;
+        message = question;
         this.renderer = renderer;
-        this.defaultAnswer = defaultSelection;
+        defaultAnswer = defaultSelection;
         this.options = options;
     }
 
@@ -75,12 +74,12 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
      */
     @Override
     protected Integer createReturnValue() {
-        return this.getReturnIndex();
+        return getReturnIndex();
     }
 
     public Integer getReturnIndex() {
-        if ((this.getReturnmask() & Dialog.RETURN_OK) == 0) { return Integer.valueOf(-1); }
-        return Integer.valueOf(this.box.getSelectedIndex());
+        if ((getReturnmask() & Dialog.RETURN_OK) == 0) { return Integer.valueOf(-1); }
+        return Integer.valueOf(box.getSelectedIndex());
     }
 
     /*
@@ -91,34 +90,36 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
     @Override
     public JComponent layoutDialogContent() {
         final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
-        this.textpane = new JTextPane();
-        this.textpane.setBorder(null);
-        this.textpane.setBackground(null);
-        this.textpane.setOpaque(false);
-        this.textpane.putClientProperty("Synthetica.opaque", Boolean.FALSE);
-        this.textpane.setText(this.message);
-        this.textpane.setEditable(false);
+        textpane = new JTextPane();
+        textpane.setBorder(null);
+        textpane.setBackground(null);
+        textpane.setOpaque(false);
+        textpane.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        textpane.setText(message);
+        textpane.setEditable(false);
 
-        contentpane.add(this.textpane);
+        contentpane.add(textpane);
 
-        this.box = new JComboBox(this.options);
-        if (this.renderer != null) {
-            this.box.setRenderer(this.renderer);
+        box = new JComboBox(options);
+        if (renderer != null) {
+            box.setRenderer(renderer);
         }
         try {
 
-            this.box.setSelectedIndex(this.defaultAnswer);
+            box.setSelectedIndex(defaultAnswer);
         } catch (final Exception e) {
             Log.exception(e);
         }
-        if (this.getDesiredSize() != null) {
-            this.box.setBounds(0, 0, (int) this.getDesiredSize().getWidth(), (int) this.getDesiredSize().getHeight());
-            this.box.setMaximumSize(this.getDesiredSize());
-        } else {
-            this.box.setBounds(0, 0, 450, 600);
-            this.box.setMaximumSize(new Dimension(450, 600));
-        }
-        contentpane.add(this.box, "pushy,growy, width n:n:450");
+        // no idea what this has been good for
+        // if (this.getDesiredSize() != null) {
+        // this.box.setBounds(0, 0, (int) this.getDesiredSize().getWidth(),
+        // (int) this.getDesiredSize().getHeight());
+        // this.box.setMaximumSize(this.getDesiredSize());
+        // } else {
+        // this.box.setBounds(0, 0, 450, 600);
+        // this.box.setMaximumSize(new Dimension(450, 600));
+        // }
+        contentpane.add(box, "pushy,growy, width n:n:450");
 
         return contentpane;
     }
