@@ -20,6 +20,7 @@ import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 
 import javax.imageio.IIOException;
@@ -119,27 +120,14 @@ public class ImageProvider {
         synchronized (ImageProvider.LOCK) {
             if (ImageProvider.IMAGE_CACHE.containsKey(name)) { return ImageProvider.IMAGE_CACHE.get(name); }
 
-            final File absolutePath = Application.getRessource("images/" + name + ".png");
+            final URL absolutePath = Application.getRessourceURL("images/" + name + ".png");
             try {
-                Log.L.info("Init Image: " + absolutePath.getAbsolutePath());
+                Log.L.info("Init Image: " + absolutePath);
                 final BufferedImage image = ImageProvider.read(absolutePath);
                 ImageProvider.IMAGE_CACHE.put(name, image);
                 return image;
             } catch (final IOException e) {
-                Log.L.severe("Could not Init Image: " + absolutePath.getAbsolutePath());
-                Log.L.severe("Image exists: " + absolutePath.exists());
-                try {
-                    final File images = Application.getRessource("images/");
-                    final String[] list = images.list();
-                    if (list != null && list.length > 0) {
-                        for (final String image : list) {
-                            Log.L.severe("Existing images: " + image);
-                        }
-                    } else {
-                        Log.L.severe("empty or not a folder: " + images);
-                    }
-                } catch (final Throwable e2) {
-                }
+                Log.L.severe("Could not Init Image: " + absolutePath);
                 if (createDummy) {
                     Log.exception(e);
                     return ImageProvider.createIcon(name.toUpperCase(), 48, 48);
@@ -234,10 +222,19 @@ public class ImageProvider {
 
     /* copied from ImageIO, to close the inputStream */
     public static BufferedImage read(final File input) throws IOException {
-        if (input == null) { throw new IllegalArgumentException("input == null!"); }
         if (!input.canRead()) { throw new IIOException("Can't read input file!"); }
+        return ImageProvider.read(input.toURI().toURL());
+    }
 
-        final ImageInputStream stream = ImageIO.createImageInputStream(input);
+    /**
+     * @param absolutePath
+     * @return
+     * @throws IOException
+     */
+    private static BufferedImage read(final URL absolutePath) throws IOException {
+        if (absolutePath == null) { throw new IllegalArgumentException("input == null!"); }
+
+        final ImageInputStream stream = ImageIO.createImageInputStream(absolutePath.openStream());
         BufferedImage bi = null;
         try {
             if (stream == null) { throw new IIOException("Can't create an ImageInputStream!"); }

@@ -7,8 +7,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URL;
 import java.nio.channels.FileChannel;
 
 import org.appwork.utils.os.CrossSystem;
@@ -69,12 +72,39 @@ public class IO {
         return new String(bytes, "UTF-8");
     }
 
+    public static byte[] readFile(final File ressource) throws IOException {
+        final FileInputStream in = new FileInputStream(ressource);
+        byte[] bytes = null;
+        try {
+            bytes = new byte[(int) ressource.length()];
+            in.read(bytes);
+        } finally {
+            try {
+                in.close();
+            } catch (final Throwable e) {
+            }
+        }
+        return bytes;
+    }
+
     public static String readFileToString(final File file) throws IOException {
+        return IO.readFileToString(file.toURI().toURL());
+    }
+
+    /**
+     * @param ressourceURL
+     * @return
+     * @throws IOException
+     * @throws UnsupportedEncodingException
+     */
+    public static String readFileToString(final URL ressourceURL) throws IOException {
         BufferedReader f = null;
         InputStreamReader isr = null;
-        FileInputStream fis = null;
+
+        InputStream fis = null;
         try {
-            f = new BufferedReader(isr = new InputStreamReader(fis = new FileInputStream(file), "UTF8"));
+
+            f = new BufferedReader(isr = new InputStreamReader(fis = ressourceURL.openStream(), "UTF8"));
             String line;
             final StringBuilder ret = new StringBuilder();
             final String sep = System.getProperty("line.separator");
@@ -138,21 +168,6 @@ public class IO {
             } catch (final Throwable e) {
             }
         }
-    }
-
-    public static byte[] readFile(File ressource) throws IOException {
-        FileInputStream in = new FileInputStream(ressource);
-        byte[] bytes = null;
-        try {
-            bytes = new byte[(int) ressource.length()];
-            in.read(bytes);
-        } finally {
-            try {
-                in.close();
-            } catch (final Throwable e) {
-            }
-        }
-        return bytes;
     }
 
 }
