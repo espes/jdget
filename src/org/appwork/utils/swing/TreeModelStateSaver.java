@@ -11,6 +11,7 @@ package org.appwork.utils.swing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
 
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
@@ -74,13 +75,17 @@ public class TreeModelStateSaver {
 
             @Override
             public Object edtRun() {
-                if (TreeModelStateSaver.this.tree.getModel() != null) {
-                    TreeModelStateSaver.this.restoreState(TreeModelStateSaver.this.tree.getModel().getRoot(), new ArrayList<Object>());
-                }
-                final TreePath[] selectedPathes = TreeModelStateSaver.this.getSelectedPathes();
-                if (selectedPathes != null && selectedPathes.length > 0) {
-                    TreeModelStateSaver.this.tree.getSelectionModel().clearSelection();
-                    TreeModelStateSaver.this.tree.getSelectionModel().setSelectionPaths(selectedPathes);                    
+                try {
+                    if (TreeModelStateSaver.this.tree.getModel() != null) {
+                        TreeModelStateSaver.this.restoreState(TreeModelStateSaver.this.tree.getModel().getRoot(), new ArrayList<Object>());
+                    }
+                    final TreePath[] selectedPathes = TreeModelStateSaver.this.getSelectedPathes();
+                    if (selectedPathes != null && selectedPathes.length > 0) {
+                        TreeModelStateSaver.this.tree.getSelectionModel().clearSelection();
+                        TreeModelStateSaver.this.tree.getSelectionModel().setSelectionPaths(selectedPathes);
+                    }
+                } catch (Throwable e) {
+                    Log.exception(Level.WARNING, e);
                 }
                 return null;
             }

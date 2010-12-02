@@ -153,7 +153,7 @@ public class CrossSystem {
                 Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", file.getAbsolutePath() });
                 return;
             } catch (final IOException e) {
-                Log.exception(e);
+                Log.exception(Level.WARNING,e);
             }
         }
         if (!Desktop.isDesktopSupported()) {
@@ -170,10 +170,10 @@ public class CrossSystem {
             desktop.open(new File(uri));
         } catch (final Exception e) {
             try {
-                Log.L.severe(file.getCanonicalFile().toURI().toString());
+                Log.L.warning(file.getCanonicalFile().toURI().toString());
             } catch (final Exception e1) {
             }
-            Log.exception(e);
+            Log.exception(Level.WARNING,e);
         }
     }
 
@@ -189,7 +189,7 @@ public class CrossSystem {
                 Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", url.toString() });
                 return;
             } catch (final IOException e) {
-                Log.exception(e);
+                Log.exception(Level.WARNING,e);
             }
         }
         if (!Desktop.isDesktopSupported()) {
@@ -205,7 +205,7 @@ public class CrossSystem {
             desktop.browse(url.toURI());
         } catch (final Exception e) {
             try {
-                Log.L.severe(url.toURI().toString());
+                Log.L.warning(url.toURI().toString());
             } catch (final Exception e1) {
             }
             Log.exception(Level.WARNING, e);

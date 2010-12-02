@@ -18,7 +18,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     private static final long serialVersionUID  = 2114805529462086691L;
     protected RenderLabel     label;
-    protected Color             defaultForeground = null;
+    protected Color           defaultForeground = null;
 
     public ExtTextColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
@@ -34,11 +34,16 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
             @Override
             public int compare(final E o1, final E o2) {
-                if (this.isSortOrderToggle()) {
-                    return ExtTextColumn.this.getStringValue(o1).compareTo(ExtTextColumn.this.getStringValue(o2));
-                } else {
-                    return ExtTextColumn.this.getStringValue(o2).compareTo(ExtTextColumn.this.getStringValue(o1));
+                String o1s = ExtTextColumn.this.getStringValue(o1);
+                String o2s = ExtTextColumn.this.getStringValue(o2);
+                if (o1s != null && o2s != null) {
+                    if (this.isSortOrderToggle()) {
+                        return ExtTextColumn.this.getStringValue(o1).compareTo(ExtTextColumn.this.getStringValue(o2));
+                    } else {
+                        return ExtTextColumn.this.getStringValue(o2).compareTo(ExtTextColumn.this.getStringValue(o1));
+                    }
                 }
+                return 0;
             }
 
         });

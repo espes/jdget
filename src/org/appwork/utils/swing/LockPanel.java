@@ -27,6 +27,7 @@ import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -157,15 +158,24 @@ public class LockPanel extends JPanel {
             return new EDTHelper<BufferedImage>() {
                 @Override
                 public BufferedImage edtRun() {
-                    if (frame.isShowing()) {
-                        frame.setAlwaysOnTop(true);
-                        final Rectangle captureSize = new Rectangle(frame.getContentPane().getSize());
-                        final Point loc = frame.getContentPane().getLocationOnScreen();
-                        captureSize.x = loc.x;
-                        captureSize.y = loc.y;
+                    try {
+                        if (frame.isShowing()) {
+                            frame.setAlwaysOnTop(true);
+                            final Rectangle captureSize = new Rectangle(frame.getContentPane().getSize());
+                            final Point loc = frame.getContentPane().getLocationOnScreen();
+                            captureSize.x = loc.x;
+                            captureSize.y = loc.y;
 
-                        return robot.createScreenCapture(captureSize);
-                    } else {
+                            return robot.createScreenCapture(captureSize);
+                        } else {
+                            return null;
+                        }
+                    } catch (Throwable e) {
+                        /*
+                         * to catch component must be showing on the screen to
+                         * determine its location
+                         */
+                        Log.exception(Level.WARNING, e);
                         return null;
                     }
 
@@ -188,12 +198,12 @@ public class LockPanel extends JPanel {
         fadeTimer = new Timer(50, new ActionListener() {
 
             public void actionPerformed(final ActionEvent e) {
-
+                Timer timer = fadeTimer;
                 alpha += steps;
 
                 if (alpha >= 1.0) {
                     alpha = 1.0f;
-                    if (fadeTimer != null) {
+                    if (timer != null) {
                         fadeTimer.stop();
                     }
                 }
@@ -222,14 +232,14 @@ public class LockPanel extends JPanel {
         fadeTimer = new Timer(50, new ActionListener() {
 
             public void actionPerformed(final ActionEvent e) {
+                Timer timer = fadeTimer;
                 alpha -= steps;
                 System.out.println(alpha);
                 if (alpha <= 0.0) {
                     alpha = 0.0f;
-                    if (fadeTimer != null) {
-                        fadeTimer.stop();
+                    if (timer != null) {
+                        timer.stop();
                     }
-                    fadeTimer = null;
                     setWaitingPanelText(null);
 
                     frame.getGlassPane().setVisible(false);
