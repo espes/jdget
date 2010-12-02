@@ -25,7 +25,7 @@ import org.appwork.utils.logging.Log;
  * 
  * @author $Author: unknown$
  * 
- */
+ */ 
 public class Application {
 
     private static String APP_FOLDER = ".appwork";
@@ -129,7 +129,12 @@ public class Application {
      */
     public static boolean isJared(final Class<?> rootOfClazz) {
         final String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";
-        final URL caller = Thread.currentThread().getContextClassLoader().getResource(name);
+        ClassLoader cll = Thread.currentThread().getContextClassLoader();
+        if (cll == null) {
+            Log.L.severe("getContextClassLoader() is null");
+            return true;
+        }
+        final URL caller = cll.getResource(name);
         /*
          * caller is null in case the ressource is not found or not enough
          * rights, in that case we assume its not jared

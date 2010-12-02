@@ -56,7 +56,7 @@ public class Crypto {
             IvParameterSpec ivSpec = new IvParameterSpec(iv);
             SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, ivSpec);
-            return cipher.doFinal(string.getBytes());
+            return cipher.doFinal(string.getBytes("UTF-8"));
 
         } catch (Exception e) {
 
@@ -85,8 +85,9 @@ public class Crypto {
 
             cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
-            return new String(cipher.doFinal(b));
+            return new String(cipher.doFinal(b),"UTF-8");
         } catch (Exception e) {
+            Log.exception(e);
             IvParameterSpec ivSpec = new IvParameterSpec(iv);
             SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
 
@@ -94,7 +95,7 @@ public class Crypto {
                 cipher = Cipher.getInstance("AES/CBC/nopadding");
 
                 cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
-                return new String(cipher.doFinal(b));
+                return new String(cipher.doFinal(b), "UTF-8");
             } catch (Exception e1) {
                 Log.exception(e1);
             }

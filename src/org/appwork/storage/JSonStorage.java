@@ -95,13 +95,14 @@ public class JSonStorage {
     public static <E> E restoreFrom(final String string, final TypeReference<E> type, final E def) {
         synchronized (JSonStorage.LOCK) {
             String stri = null;
+            byte[] str = null;
             try {
                 if (Application.getRessource(string + ".tmp").exists()) {
                     /* tmp files exists, try to restore */
                     Log.L.warning("TMP file " + Application.getRessource(string + ".tmp").getAbsolutePath() + " found");
                     try {
                         // load it
-                        final byte[] str = IO.readFile(Application.getRessource(string + ".tmp"));
+                        str = IO.readFile(Application.getRessource(string + ".tmp"));
                         E ret;
                         // try to parse it
                         if (new Regex(string, ".+\\.json").matches()) {
@@ -124,19 +125,20 @@ public class JSonStorage {
                     }
                 }
                 if (!Application.getRessource(string).exists()) { return def; }
-                final byte[] str = IO.readFile(Application.getRessource(string));
+                str = IO.readFile(Application.getRessource(string));
                 if (new Regex(string, ".+\\.json").matches()) {
                     return JSonStorage.restoreFromString(stri = new String(str, "UTF-8"), type, def);
                 } else {
                     return JSonStorage.restoreFromString(stri = Crypto.decrypt(str, JSonStorage.KEY), type, def);
                 }
-            } catch (final JsonParseException e) {
-                Log.L.severe(stri);
-                Log.exception(e);
-            } catch (final JsonMappingException e) {
-                Log.L.severe(stri);
-                Log.exception(e);
-            } catch (final IOException e) {
+
+            } catch (final Throwable e) {
+                Log.L.severe(string + ":read:" + stri);
+                try {
+                    if (str != null) Log.L.severe(string + ":original:" + new String(str, "UTF-8"));
+                } catch (Throwable e2) {
+                    Log.exception(e2);
+                }
                 Log.exception(e);
             }
             return def;
