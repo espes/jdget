@@ -145,7 +145,7 @@ public class CrossSystem {
      * @param file
      */
     public static void openFile(final File file) {
-        if (file == null) { return; }
+        if (file == null || !file.exists()) { return; }
         if (CrossSystem.isWindows()) {
             // workaround for windows
             // see http://bugs.sun.com/view_bug.do?bug_id=6599987
@@ -153,7 +153,7 @@ public class CrossSystem {
                 Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", file.getAbsolutePath() });
                 return;
             } catch (final IOException e) {
-                Log.exception(Level.WARNING,e);
+                Log.exception(Level.WARNING, e);
             }
         }
         if (!Desktop.isDesktopSupported()) {
@@ -173,7 +173,7 @@ public class CrossSystem {
                 Log.L.warning(file.getCanonicalFile().toURI().toString());
             } catch (final Exception e1) {
             }
-            Log.exception(Level.WARNING,e);
+            Log.exception(Level.WARNING, e);
         }
     }
 
@@ -189,7 +189,7 @@ public class CrossSystem {
                 Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", url.toString() });
                 return;
             } catch (final IOException e) {
-                Log.exception(Level.WARNING,e);
+                Log.exception(Level.WARNING, e);
             }
         }
         if (!Desktop.isDesktopSupported()) {
