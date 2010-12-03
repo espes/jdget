@@ -157,7 +157,7 @@ public class CrossSystem {
             }
         }
         if (!Desktop.isDesktopSupported()) {
-            Log.L.severe("Desktop is not supported (fatal)");
+            Log.L.warning("Desktop is not supported (fatal)");
             return;
         }
         final Desktop desktop = Desktop.getDesktop();
@@ -176,6 +176,17 @@ public class CrossSystem {
             Log.exception(Level.WARNING, e);
         }
     }
+    
+    public static boolean isOpenFileSupported(){
+        if (CrossSystem.isWindows())return true;
+        final Desktop desktop = Desktop.getDesktop();
+        if (!desktop.isSupported(Desktop.Action.OPEN)) {
+            return false;
+        }
+        return true;
+    }
+    
+    
 
     /**
      * Open an url in the systems default browser
@@ -198,7 +209,7 @@ public class CrossSystem {
         }
         final Desktop desktop = Desktop.getDesktop();
         if (!desktop.isSupported(Desktop.Action.BROWSE)) {
-            Log.L.severe("Desktop doesn't support the browse action (fatal)");
+            Log.L.warning("Desktop doesn't support the browse action (fatal)");
             return;
         }
         try {

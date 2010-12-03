@@ -124,8 +124,9 @@ public class JSonStorage {
                         Application.getRessource(string + ".tmp").delete();
                     }
                 }
-                if (!Application.getRessource(string).exists()) { return def; }
-                str = IO.readFile(Application.getRessource(string));
+                File res = Application.getRessource(string);
+                if (!res.exists() || res.length()==0) { return def; }
+                str = IO.readFile(res);
                 if (new Regex(string, ".+\\.json").matches()) {
                     return JSonStorage.restoreFromString(stri = new String(str, "UTF-8"), type, def);
                 } else {
