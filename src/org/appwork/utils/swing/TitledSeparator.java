@@ -22,15 +22,17 @@ public class TitledSeparator extends JPanel {
 
     private static final long serialVersionUID = -8012696117008985390L;
 
-    private JLabel label;
+    private JLabel            label;
 
-    public TitledSeparator(final String title, Color color) {
+    public TitledSeparator(final String title, final Color color) {
         super(new MigLayout("ins 0", "[][][grow,fill]", "[grow,fill]"));
-        add(new JSeparator(), "gaptop 8,width 5!");
-        add(label = new JLabel(title));
-        if (color != null) label.setForeground(color);
-        label.setFont(label.getFont().deriveFont(Font.BOLD));
-        add(new JSeparator(), "gaptop 8");
+        this.add(new JSeparator(), "gaptop 8,width 5!");
+        this.add(this.label = new JLabel(title));
+        if (color != null) {
+            this.label.setForeground(color);
+        }
+        this.label.setFont(this.label.getFont().deriveFont(Font.BOLD));
+        this.add(new JSeparator(), "gaptop 8");
         this.setOpaque(false);
     }
 
