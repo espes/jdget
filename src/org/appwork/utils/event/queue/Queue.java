@@ -11,6 +11,7 @@ package org.appwork.utils.event.queue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.appwork.utils.logging.Log;
 
@@ -28,17 +29,19 @@ public abstract class Queue extends Thread {
         NORM
     }
 
-    protected boolean                                                                debugFlag          = false;
+    protected boolean                                                                debugFlag           = false;
     protected QueuePriority[]                                                        prios;
-    protected HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>> queue              = new HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>>();
-    protected final Object                                                           queueLock          = new Object();
+    protected HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>> queue               = new HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>>();
+    protected final Object                                                           queueLock           = new Object();
 
-    protected ArrayList<QueueAction<?, ? extends Throwable>>                         queueThreadHistory = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
-    protected Thread                                                                 thread             = null;
-    protected boolean                                                                waitFlag           = true;
+    protected ArrayList<QueueAction<?, ? extends Throwable>>                         queueThreadHistory  = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
+    protected Thread                                                                 thread              = null;
+    protected boolean                                                                waitFlag            = true;
+    protected static AtomicInteger                                                   QUEUELOOPPREVENTION = new AtomicInteger(0);
 
     public Queue(final String id) {
         super(id);
+        QUEUELOOPPREVENTION.incrementAndGet();
         /* init queue */
         prios = QueuePriority.values();
         for (final QueuePriority prio : prios) {
@@ -222,7 +225,7 @@ public abstract class Queue extends Thread {
          * we walk through actionHistory to check if we are still in our
          * QueueThread
          */
-        final ArrayList<Object> his = new ArrayList<Object>();
+        int loopprevention = 0;
         while (last != null && (t = last.getCallerThread()) != null) {
             if (t != null && t instanceof Queue) {
                 if (t == thread) {
@@ -232,11 +235,18 @@ public abstract class Queue extends Thread {
                     return true;
                 }
                 last = ((Queue) t).getLastHistoryItem();
-                if (his.contains(last)) {
-                    // call loop;
+                if (loopprevention > QUEUELOOPPREVENTION.get()) {
+                    /*
+                     * loop prevention: while can only loop max
+                     * QUEUELOOPPREVENTION times, cause no more different queues
+                     * exist
+                     */
+                    if (debugFlag) {
+                        org.appwork.utils.logging.Log.L.warning("QueueLoopPrevention!");
+                    }
                     break;
                 }
-                his.add(last);
+                loopprevention++;
             } else {
                 break;
             }
