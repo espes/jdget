@@ -41,7 +41,6 @@ public class TranslateUtils {
         if (!file.exists()) { throw new Exception("File " + file + " does not exist"); }
         sourceParser.setFilter(new FilenameFilter() {
 
-          
             public boolean accept(final File dir, final String name) {
                 return !new File(dir, name).equals(file);
             }
@@ -73,14 +72,23 @@ public class TranslateUtils {
                 if (line == null) {
                     line = new Regex(source, f.getName() + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\)[\\,\\;]").getMatch(-1);
                 }
-
-                final String comment = new Regex(source, "\\/\\*(.*?)\\*\\/\\s*" + Pattern.quote(line)).getMatch(0);
+                if (line.contains("CHATPANEL_HISTORY_LASTWEEK")) {
+                    System.out.println("fdsf");
+                }
+                String comment = new Regex(source, "\\/\\*(.*?)\\*\\/\\s*" + Pattern.quote(line)).getMatch(0);
                 if (comment != null) {
+                    if (comment.contains("/*")) {
+
+                        comment = TranslateUtils.handleMultiComment(comment);
+                    }
+                    if (comment.contains("Kontakt hinzufügen")) {
+                        System.out.println("fdsf");
+                    }
                     fin.append("/*\r\n");
                     fin.append(comment.trim());
                     fin.append("\r\n*/\r\n");
-                    final String full = new Regex(source, "(\\/\\*.*?\\*\\/)\\s*" + Pattern.quote(line)).getMatch(0);
-                    source = source.replace(full, "---");
+                    final String full = new Regex(source, "(\\/\\*.*?\\*\\/\\s*" + Pattern.quote(line) + ")").getMatch(0);
+                    source = source.replace(full, "---\r\n" + line);
                 }
 
                 fin.append(line);
@@ -157,6 +165,7 @@ public class TranslateUtils {
             for (final Translate entry : values) {
                 final String def = entry.getDefaultTranslation();
                 final String name = TranslateUtils.getName(entry);
+
                 if (TranslateUtils.countWildcards(def) != entry.getWildCardCount()) {
                     //
                     throw new Exception("Wrong wildcard count in defaulttranslation: " + name + "=" + entry.getDefaultTranslation() + " WCC: " + entry.getWildCardCount());
@@ -165,6 +174,7 @@ public class TranslateUtils {
                 StringBuilder dest = sb;
 
                 String line = new Regex(source, name + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\, \\d+\\)[\\,\\;]").getMatch(-1);
+                System.out.println(name);
 
                 if (line == null) {
                     line = new Regex(source, name + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\)[\\,\\;]").getMatch(-1);
@@ -179,7 +189,7 @@ public class TranslateUtils {
                     if (comment != null) {
                         comment = comment.split("###")[0].trim();
                     }
-                    source = source.replace(new Regex(source, "(\\/\\*.*?\\*\\/)\\s*" + Pattern.quote(line)).getMatch(0), "---");
+                    source = source.replace(new Regex(source, "(\\/\\*.*?\\*\\/\\s*" + Pattern.quote(line) + ")").getMatch(0), "---\r\n" + line);
                 }
                 final String translated = Loc.L(c.getSimpleName() + ":::" + name, comment != null ? comment : entry.getDefaultTranslation()).replace("\r", "\\r").replace("\n", "\\n");
 
@@ -198,6 +208,7 @@ public class TranslateUtils {
                 }
 
                 dest.append("\r\n" + c.getSimpleName() + ":::");
+
                 dest.append(name);
                 dest.append("      ");
                 for (int ii = name.length(); ii < max; ii++) {
@@ -241,5 +252,14 @@ public class TranslateUtils {
         }
         // For(Object o:entry.getClass().getEnumConstants()){
         return null;
+    }
+
+    /**
+     * @param comment
+     * @return
+     */
+    private static String handleMultiComment(String comment) {
+        comment = new Regex(comment, ".*\\/\\*(.*)").getMatch(0);
+        return comment;
     }
 }
