@@ -67,17 +67,33 @@ public class IO {
     }
 
     public static String importFileToString(final File file) throws IOException {
-        final byte[] bytes = IO.readFile(file);
+        return importFileToString(file, -1);
+    }
+
+    public static String importFileToString(final File file, final int maxSize) throws IOException {
+        final byte[] bytes = IO.readFile(file, maxSize);
         if (bytes == null) { return null; }
         return new String(bytes, "UTF-8");
     }
 
     public static byte[] readFile(final File ressource) throws IOException {
+        return readFile(ressource, -1);
+    }
+
+    public static byte[] readFile(final File ressource, final int maxSize) throws IOException {
         final FileInputStream in = new FileInputStream(ressource);
         byte[] bytes = null;
         try {
-            bytes = new byte[(int) ressource.length()];
-            in.read(bytes);
+            int length = (int) ressource.length();
+            /* avoid reading too big files if not wanted */
+            if (maxSize > 0 && length > maxSize) throw new IOException("file " + ressource.getName() + " exceeds maximum length");
+            bytes = new byte[length];
+            int offset = 0;
+            int read = 0;
+            while ((offset < length) && ((read = in.read(bytes, offset, length - offset)) >= 0)) {
+                offset += read;
+            }
+            if (offset < length) { throw new IOException("file " + ressource.getName() + " not read completely"); }
         } finally {
             try {
                 in.close();

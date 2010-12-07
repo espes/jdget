@@ -125,7 +125,7 @@ public class JSonStorage {
                     }
                 }
                 File res = Application.getRessource(string);
-                if (!res.exists() || res.length()==0) { return def; }
+                if (!res.exists() || res.length() == 0) { return def; }
                 str = IO.readFile(res);
                 if (new Regex(string, ".+\\.json").matches()) {
                     return JSonStorage.restoreFromString(stri = new String(str, "UTF-8"), type, def);
