@@ -154,8 +154,16 @@ public class IO {
         final Writer output = new BufferedWriter(fw = new FileWriter(file));
 
         try {
-            output.write(string);
+            output.write(string);            
         } finally {
+            try {
+                output.flush();
+            } catch (final Throwable e) {
+            }
+            try {
+                fw.flush();
+            } catch (final Throwable e) {
+            }
             try {
                 output.close();
             } catch (final Throwable e) {
