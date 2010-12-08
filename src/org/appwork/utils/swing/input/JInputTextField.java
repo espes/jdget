@@ -40,7 +40,7 @@ public class JInputTextField extends javax.swing.JTextField implements DocumentL
      * @see javax.swing.event.DocumentListener#changedUpdate(javax.swing.event.
      * DocumentEvent)
      */
-    @Override
+    
     public void changedUpdate(final DocumentEvent e) {
         changed = true;
 
@@ -52,7 +52,7 @@ public class JInputTextField extends javax.swing.JTextField implements DocumentL
      * 
      * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
      */
-    @Override
+   
     public void focusGained(final FocusEvent e) {
 
         if (!changed) {
@@ -67,7 +67,7 @@ public class JInputTextField extends javax.swing.JTextField implements DocumentL
      * 
      * @see java.awt.event.FocusListener#focusLost(java.awt.event.FocusEvent)
      */
-    @Override
+  
     public void focusLost(final FocusEvent e) {
         if (getDocument().getLength() == 0 || getText().equals(getInfoText())) {
             setText(getInfoText());
@@ -101,7 +101,7 @@ public class JInputTextField extends javax.swing.JTextField implements DocumentL
      * @see javax.swing.event.DocumentListener#insertUpdate(javax.swing.event.
      * DocumentEvent)
      */
-    @Override
+  
     public void insertUpdate(final DocumentEvent e) {
         changed = true;
         setForeground(defaultColor);
@@ -113,7 +113,7 @@ public class JInputTextField extends javax.swing.JTextField implements DocumentL
      * @see javax.swing.event.DocumentListener#removeUpdate(javax.swing.event.
      * DocumentEvent)
      */
-    @Override
+ 
     public void removeUpdate(final DocumentEvent e) {
         changed = true;
         setForeground(defaultColor);
