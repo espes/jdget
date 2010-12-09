@@ -34,25 +34,11 @@ public class ConfirmDialog extends AbstractDialog<Integer> {
         this.message = message;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
-     */
     @Override
     protected Integer createReturnValue() {
         // TODO Auto-generated method stub
         return this.getReturnmask();
     }
-
-    // @Override
-    // public Dimension getPreferredSize() {
-    // if (!BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
-    // return super.getPreferredSize();
-    // } else {
-    // return new Dimension(600, 450);
-    // }
-    // }
 
     @Override
     public JComponent layoutDialogContent() {
@@ -85,10 +71,10 @@ public class ConfirmDialog extends AbstractDialog<Integer> {
         this.textField.setBackground(null);
         this.textField.setOpaque(false);
         this.textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        this.textField.setCaretPosition(0);
 
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
-            final JScrollPane sp = new JScrollPane(this.textField);
-            return sp;
+            return new JScrollPane(this.textField);
         } else {
             return this.textField;
         }

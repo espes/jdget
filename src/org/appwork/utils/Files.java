@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 public class Files {
@@ -54,7 +53,6 @@ public class Files {
         final int index = name.lastIndexOf(".");
         if (index < 0) { return null; }
         return name.substring(index + 1).toLowerCase();
-
     }
 
     /**
@@ -102,7 +100,7 @@ public class Files {
         return ret;
     }
 
-    /*
+    /**
      * returns File if it exists (case (In)Sensitive). returns null if file does
      * not exist
      */
@@ -146,12 +144,8 @@ public class Files {
             }
         }
         /* remove startdirectory if wished */
-        if (includeStart == false && done.size() > 0) done.remove(0);
+        if (!includeStart && done.size() > 0) done.remove(0);
         return done;
     }
 
-    public static void main(String[] args) throws IOException {
-        LinkedList<String> ret = Files.getDirectories_NonRecursive(new File("/home/daniel/"),false);
-        int i = 1;
-    }
 }
