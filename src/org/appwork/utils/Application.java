@@ -25,7 +25,7 @@ import org.appwork.utils.logging.Log;
  * 
  * @author $Author: unknown$
  * 
- */ 
+ */
 public class Application {
 
     private static String APP_FOLDER = ".appwork";
@@ -51,6 +51,31 @@ public class Application {
             throw new IOException("Error, could not add URL to system classloader");
         }
 
+    }
+
+    public static double getJavaVersion() {
+        try {
+            final String v = System.getProperty("java.version");
+            final StringBuilder ret = new StringBuilder();
+            char c;
+            char lc = '0';
+            for (int i = 0; i < v.length(); i++) {
+                c = v.charAt(i);
+
+                if (c >= '0' && c <= '9') {
+                    if (lc == 'b') {
+                        // beta
+                        ret.append(".");
+                    }
+                    ret.append(c);
+                }
+                lc = c;
+            }
+            return Double.parseDouble(ret.toString());
+        } catch (final Exception e) {
+            Log.exception(e);
+            return 0.0d;
+        }
     }
 
     /**
@@ -129,7 +154,7 @@ public class Application {
      */
     public static boolean isJared(final Class<?> rootOfClazz) {
         final String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";
-        ClassLoader cll = Thread.currentThread().getContextClassLoader();
+        final ClassLoader cll = Thread.currentThread().getContextClassLoader();
         if (cll == null) {
             Log.L.severe("getContextClassLoader() is null");
             return true;
@@ -141,6 +166,10 @@ public class Application {
          */
         if (caller == null) { return false; }
         return caller.toString().matches("jar\\:.*\\.jar\\!.*");
+    }
+
+    public static void main(final String[] args) {
+        System.out.println(Application.getJavaVersion());
     }
 
     /**
