@@ -153,7 +153,7 @@ public class Application {
      * @return
      */
     public static boolean isJared(final Class<?> rootOfClazz) {
-        final String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";
+        final String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";        
         final ClassLoader cll = Thread.currentThread().getContextClassLoader();
         if (cll == null) {
             Log.L.severe("getContextClassLoader() is null");
