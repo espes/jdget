@@ -102,12 +102,20 @@ public class TreeModelStateSaver {
                 path.add(node);
                 TreeModelStateSaver.this.treePath = new TreePath(path.toArray(new Object[] {}));
                 final Boolean bo = TreeModelStateSaver.this.expandCache.get(node);
-                if (bo != null && bo.booleanValue()) {
-                    TreeModelStateSaver.this.tree.expandPath(TreeModelStateSaver.this.treePath);
+                try {
+                    if (bo != null && bo.booleanValue()) {
+                        TreeModelStateSaver.this.tree.expandPath(TreeModelStateSaver.this.treePath);
+                    }
+                } catch (final Throwable e) {
+                    Log.exception(Level.WARNING, e);
                 }
 
                 for (int i = 0; i < TreeModelStateSaver.this.tree.getModel().getChildCount(node); i++) {
-                    TreeModelStateSaver.this.restoreState(TreeModelStateSaver.this.tree.getModel().getChild(node, i), new ArrayList<Object>(path));
+                    try {
+                        TreeModelStateSaver.this.restoreState(TreeModelStateSaver.this.tree.getModel().getChild(node, i), new ArrayList<Object>(path));
+                    } catch (final Throwable e) {
+                        Log.exception(Level.WARNING, e);
+                    }
                 }
                 return null;
             }
