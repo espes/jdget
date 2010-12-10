@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.logging.Level;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
@@ -129,7 +130,7 @@ public class ImageProvider {
             } catch (final IOException e) {
                 Log.L.severe("Could not Init Image: " + absolutePath);
                 if (createDummy) {
-                    Log.exception(e);
+                    Log.exception(Level.WARNING, e);
                     return ImageProvider.createIcon(name.toUpperCase(), 48, 48);
                 } else {
                     throw e;
