@@ -124,7 +124,7 @@ public class JSonStorage {
                         Application.getRessource(string + ".tmp").delete();
                     }
                 }
-                File res = Application.getRessource(string);
+                final File res = Application.getRessource(string);
                 if (!res.exists() || res.length() == 0) { return def; }
                 str = IO.readFile(res);
                 if (new Regex(string, ".+\\.json").matches()) {
@@ -136,13 +136,29 @@ public class JSonStorage {
             } catch (final Throwable e) {
                 Log.L.severe(string + ":read:" + stri);
                 try {
-                    if (str != null) Log.L.severe(string + ":original:" + new String(str, "UTF-8"));
-                } catch (Throwable e2) {
+                    if (str != null) {
+                        Log.L.severe(string + ":original:" + new String(str, "UTF-8"));
+                    }
+                } catch (final Throwable e2) {
                     Log.exception(e2);
                 }
                 Log.exception(e);
             }
             return def;
+        }
+    }
+
+    /**
+     * @param string
+     * @param class1
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
+     */
+    public static Object restoreFromString(final String string, final Class<?> class1) throws JsonParseException, JsonMappingException, IOException {
+        synchronized (JSonStorage.LOCK) {
+            return JSonStorage.MAPPER.readValue(string, class1);
+
         }
     }
 
@@ -154,6 +170,18 @@ public class JSonStorage {
                 return (E) JSonStorage.MAPPER.readValue(string, type);
             } else {
                 return (E) JSonStorage.MAPPER.readValue(string, def.getClass());
+            }
+        }
+    }
+
+    public static void save() {
+        synchronized (JSonStorage.MAP) {
+            for (final Entry<String, Storage> entry : JSonStorage.MAP.entrySet()) {
+                try {
+                    entry.getValue().save();
+                } catch (final Throwable e) {
+                    Log.exception(e);
+                }
             }
         }
     }
@@ -217,18 +245,6 @@ public class JSonStorage {
     public static String toString(final Object list) throws JsonGenerationException, JsonMappingException, IOException {
         synchronized (JSonStorage.LOCK) {
             return JSonStorage.MAPPER.writeValueAsString(list);
-        }
-    }
-
-    public static void save() {
-        synchronized (JSonStorage.MAP) {
-            for (final Entry<String, Storage> entry : JSonStorage.MAP.entrySet()) {
-                try {
-                    entry.getValue().save();
-                } catch (final Throwable e) {
-                    Log.exception(e);
-                }
-            }
         }
     }
 

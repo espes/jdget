@@ -95,11 +95,7 @@ public class Application {
      */
     public static URL getRessourceURL(final String relative) {
         final URL res = Application.class.getClassLoader().getResource(relative);
-        if (res != null) {
-            System.out.println("Found jar ressource " + res);
-
-            return res;
-        }
+        if (res != null) { return res; }
 
         try {
             return new File(Application.getRoot(), relative).toURI().toURL();
