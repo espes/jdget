@@ -11,10 +11,11 @@ package org.appwork.remotecall.client;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.net.URLDecoder;
 import java.util.HashMap;
 
 import org.appwork.remotecall.Utils;
+import org.appwork.remotecall.server.ExceptionWrapper;
+import org.appwork.remotecall.server.ServerInvokationException;
 import org.appwork.storage.JSonStorage;
 
 /**
@@ -50,10 +51,28 @@ public class InvocationHandlerImpl implements InvocationHandler {
 
     public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
 
-        final String returnValue = client.call(name, methodMap.get(method), args);
+        String returnValue;
+        Object obj;
 
-        final Object obj = JSonStorage.restoreFromString(URLDecoder.decode(returnValue, "UTF-8"), method.getReturnType());
-        return Utils.convert(obj, method.getReturnType());
+        try {
+            returnValue = client.call(name, methodMap.get(method), args);
+            obj = JSonStorage.restoreFromString(returnValue, method.getReturnType());
+            return Utils.convert(obj, method.getReturnType());
+
+        } catch (final ServerInvokationException e) {
+
+            final ExceptionWrapper exception = (ExceptionWrapper) JSonStorage.restoreFromString(e.getMessage(), ExceptionWrapper.class);
+            final Throwable ex = exception.deserialiseException();
+            // search to add the local cause
+            final StackTraceElement[] localStack = new Exception().getStackTrace();
+            final StackTraceElement[] newStack = new StackTraceElement[ex.getStackTrace().length + localStack.length - 1];
+            System.arraycopy(ex.getStackTrace(), 0, newStack, 0, ex.getStackTrace().length);
+            newStack[ex.getStackTrace().length] = new StackTraceElement("RemoteCallClient via", e.getRemoteID(), null, 0);
+            System.arraycopy(localStack, 2, newStack, ex.getStackTrace().length + 1, localStack.length - 2);
+            ex.setStackTrace(newStack);
+
+            throw ex;
+        }
 
     }
 

@@ -4,21 +4,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
-import org.appwork.remotecall.RemoteCallService;
 import org.appwork.remotecall.Utils;
 
 public class RemoteCallServiceWrapper {
 
-    public static RemoteCallServiceWrapper create(final RemoteCallService serviceImpl) {
+    public static RemoteCallServiceWrapper create(final Object serviceImpl) {
         final RemoteCallServiceWrapper ret = new RemoteCallServiceWrapper(serviceImpl);
         return ret;
     }
 
-    private final RemoteCallService       _service;
+    private final Object                  _service;
     private final Method[]                methods;
     private final HashMap<String, Method> methodMap;
 
-    private RemoteCallServiceWrapper(final RemoteCallService serviceImpl) {
+    private RemoteCallServiceWrapper(final Object serviceImpl) {
         _service = serviceImpl;
         methods = _service.getClass().getMethods();
         methodMap = new HashMap<String, Method>();
@@ -50,7 +49,10 @@ public class RemoteCallServiceWrapper {
     public Method getMethod(final String method) {
 
         final Method m = methodMap.get(method);
-        if (m == null) { throw new IllegalArgumentException("No Routine " + method); }
+        if (m == null) {
+            //
+            throw new IllegalArgumentException("No Routine " + method);
+        }
 
         return m;
 

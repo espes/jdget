@@ -1,6 +1,7 @@
 package org.appwork.remotecall.client;
 
 import org.appwork.remotecall.Utils;
+import org.appwork.remotecall.server.ServerInvokationException;
 
 public abstract class RemoteCallClient {
 
@@ -12,9 +13,13 @@ public abstract class RemoteCallClient {
 
     }
 
-    public String call(final String serviceName, final String routine, final Object[] args) throws Exception {
+    public String call(final String serviceName, final String routine, final Object[] args) throws ServerInvokationException {
 
-        return send(serviceName, routine, Utils.serialise(args));
+        try {
+            return send(serviceName, routine, Utils.serialise(args));
+        } catch (final SerialiseException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -34,8 +39,9 @@ public abstract class RemoteCallClient {
      * @param routine
      * @param serialise
      * @return
+     * @throws ServerInvokationException
      * @throws Exception
      */
-    protected abstract String send(String serviceName, String routine, String serialise) throws Exception;
+    protected abstract String send(String serviceName, String routine, String serialise) throws ServerInvokationException;
 
 }
