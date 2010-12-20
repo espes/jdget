@@ -36,6 +36,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import org.appwork.storage.JSonStorage;
+import org.appwork.utils.Application;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
@@ -194,7 +195,9 @@ public class ExtTable<E> extends JTable {
         this.getTableHeader().setPreferredSize(new Dimension(this.getColumnModel().getTotalColumnWidth(), 19));
         // assures that the table is painted over the complete available high
         // This method is 1.6 only
-        this.setFillsViewportHeight(true);
+        if (Application.getJavaVersion() > 1.6d) {
+            this.setFillsViewportHeight(true);
+        }
 
         this.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
 
