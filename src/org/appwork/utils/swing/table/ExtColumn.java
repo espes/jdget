@@ -14,6 +14,8 @@ import javax.swing.table.TableCellRenderer;
 
 import org.appwork.utils.swing.EDTHelper;
 
+import sun.swing.table.DefaultTableCellHeaderRenderer;
+
 /**
  * ExtColums define a single column of an extended Table. It contains all
  * columndetails including renderer
@@ -22,39 +24,39 @@ import org.appwork.utils.swing.EDTHelper;
  */
 public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
 
-    protected static Color          background         = null;
-    protected static Color          backgroundselected = null;
+    protected static Color         background         = null;
+    protected static Color         backgroundselected = null;
 
-    protected static Color          foreground         = null;
-    protected static Color          foregroundselected = null;
+    protected static Color         foreground         = null;
+    protected static Color         foregroundselected = null;
 
-    private static final long       serialVersionUID   = -2662459732650363059L;
+    private static final long      serialVersionUID   = -2662459732650363059L;
     /**
      * If this colum is editable, this parameter says how many clicks are
      * required to start edit mode
      */
-    private int                     clickcount         = 1;
+    private int                    clickcount         = 1;
 
     /**
      * The model this column belongs to
      */
-    private ExtTableModel<E>        model;
+    private ExtTableModel<E>       model;
     /**
      * The columns Title.
      */
-    private final String            name;
+    private final String           name;
 
     /**
      * A toggle to select the next sortingorder. ASC or DESC
      */
-    private boolean                 sortOrderToggle    = true;
+    private boolean                sortOrderToggle    = true;
 
     /**
      * Sorting algorithms run in an own thread
      */
-    private Thread                  sortThread         = null;
-    private final TableCellRenderer headerrenderer;
-    private ExtDefaultRowSorter<E>  rowSorter;
+    private Thread                 sortThread         = null;
+    private TableCellRenderer      headerrenderer;
+    private ExtDefaultRowSorter<E> rowSorter;
 
     /**
      * Create a new ExtColum.
@@ -66,8 +68,13 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public ExtColumn(final String name, final ExtTableModel<E> table) {
         this.name = name;
         this.model = table;
-
-        this.headerrenderer = new ExtTableCellHeaderRenderer(this);
+        try {
+            this.headerrenderer = new ExtTableCellHeaderRenderer(this);
+        } catch (final Throwable e) {
+            e.printStackTrace();
+            /* java 1.5 does not have DefaultTableCellHeaderRenderer */
+            this.headerrenderer = null;
+        }
         // sort function
         this.rowSorter = new ExtDefaultRowSorter<E>();
     }

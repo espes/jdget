@@ -274,8 +274,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 Log.L.fine("Answer: Key<ESCAPE>");
                 AbstractDialog.this.dispose();
             }
-        });
-
+        });        
         focus.requestFocus();
         this.packed();
         setVisible(true);
