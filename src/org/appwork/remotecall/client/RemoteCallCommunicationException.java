@@ -9,7 +9,6 @@
  */
 package org.appwork.remotecall.client;
 
-
 /**
  * @author thomas
  * 
@@ -21,6 +20,13 @@ public class RemoteCallCommunicationException extends RuntimeException {
      */
     public RemoteCallCommunicationException(final Exception e) {
         super(e);
+    }
+
+    /**
+     * @param string
+     */
+    public RemoteCallCommunicationException(final String string) {
+        super(string);
     }
 
 }
