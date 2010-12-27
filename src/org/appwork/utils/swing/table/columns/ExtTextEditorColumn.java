@@ -23,19 +23,36 @@ public abstract class ExtTextEditorColumn<E> extends ExtTextColumn<E> implements
     private static final long serialVersionUID = -3107569347493659178L;
     private final JTextField  text;
 
-    public ExtTextEditorColumn(String name, ExtTableModel<E> table) {
+    public ExtTextEditorColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 
-        text = new JTextField();
-        prepareTableCellEditorComponent(text);
+        this.text = new JTextField();
+        this.prepareTableCellEditorComponent(this.text);
 
-        setClickcount(2);
+        this.setClickcount(2);
     }
 
-    protected abstract void setStringValue(String value, E object);
+    public void actionPerformed(final ActionEvent e) {
+        this.text.removeActionListener(this);
+        this.fireEditingStopped();
+    }
 
     @Override
-    public boolean isEditable(E obj) {
+    public final Object getCellEditorValue() {
+        return this.text.getText();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
+        this.text.removeActionListener(this);
+        this.text.setText(this.getStringValue((E) value));
+        this.text.addActionListener(this);
+        return this.text;
+    }
+
+    @Override
+    public boolean isEditable(final E obj) {
         return true;
     }
 
@@ -43,31 +60,14 @@ public abstract class ExtTextEditorColumn<E> extends ExtTextColumn<E> implements
      * Should be overwritten to prepare the component for the TableCellEditor
      * (e.g. setting tooltips)
      */
-    protected void prepareTableCellEditorComponent(JTextField text) {
+    protected void prepareTableCellEditorComponent(final JTextField text) {
     }
+
+    protected abstract void setStringValue(String value, E object);
 
     @Override
-    public final Object getCellEditorValue() {
-        return text.getText();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public final Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        text.removeActionListener(this);
-        text.setText(getStringValue((E) value));
-        text.addActionListener(this);
-        return text;
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        text.removeActionListener(this);
-        this.fireEditingStopped();
-    }
-
-    @Override
-    public final void setValue(Object value, E object) {
-        setStringValue((String) value, object);
+    public final void setValue(final Object value, final E object) {
+        this.setStringValue((String) value, object);
     }
 
 }

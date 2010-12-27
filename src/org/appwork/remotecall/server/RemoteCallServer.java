@@ -19,13 +19,13 @@ public class RemoteCallServer {
 
     public RemoteCallServer() {
 
-        servicesMap = new HashMap<String, RemoteCallServiceWrapper>();
+        this.servicesMap = new HashMap<String, RemoteCallServiceWrapper>();
     }
 
     public <T> void addHandler(final Class<T> class1, final T serviceImpl) {
 
-        if (servicesMap.containsKey(class1.getSimpleName())) { throw new IllegalArgumentException("Service " + class1 + " already exists"); }
-        servicesMap.put(class1.getSimpleName(), RemoteCallServiceWrapper.create(serviceImpl));
+        if (this.servicesMap.containsKey(class1.getSimpleName())) { throw new IllegalArgumentException("Service " + class1 + " already exists"); }
+        this.servicesMap.put(class1.getSimpleName(), RemoteCallServiceWrapper.create(serviceImpl));
     }
 
     /**
@@ -81,24 +81,24 @@ public class RemoteCallServer {
 
     protected String handleRequest(final String remoteID, final String clazz, final String method, final String[] parameters) throws ServerInvokationException {
 
-        final RemoteCallServiceWrapper service = servicesMap.get(new String(clazz));
-        if (service == null) { throw new ServerInvokationException(handleRequestError(remoteID, new BadRequestException("Service not defined: " + clazz)), remoteID);
+        final RemoteCallServiceWrapper service = this.servicesMap.get(new String(clazz));
+        if (service == null) { throw new ServerInvokationException(this.handleRequestError(remoteID, new BadRequestException("Service not defined: " + clazz)), remoteID);
 
         }
         // find method
 
         final Method m = service.getMethod(method);
-        if (m == null) { throw new ServerInvokationException(handleRequestError(remoteID, new BadRequestException("Routine not defined: " + method)), remoteID); }
+        if (m == null) { throw new ServerInvokationException(this.handleRequestError(remoteID, new BadRequestException("Routine not defined: " + method)), remoteID); }
         final Class<?>[] types = m.getParameterTypes();
-        if (types.length != parameters.length) { throw new ServerInvokationException(handleRequestError(remoteID, new BadRequestException("parameters did not match " + method)), remoteID); }
+        if (types.length != parameters.length) { throw new ServerInvokationException(this.handleRequestError(remoteID, new BadRequestException("parameters did not match " + method)), remoteID); }
         final Object[] params = new Object[types.length];
         try {
             for (int i = 0; i < types.length; i++) {
-                params[i] = convert(URLDecoder.decode(parameters[i], "UTF-8"), types[i]);
+                params[i] = this.convert(URLDecoder.decode(parameters[i], "UTF-8"), types[i]);
             }
 
         } catch (final Exception e) {
-            throw new ServerInvokationException(handleRequestError(remoteID, new BadRequestException("Parameter deserialize error for " + method)), remoteID);
+            throw new ServerInvokationException(this.handleRequestError(remoteID, new BadRequestException("Parameter deserialize error for " + method)), remoteID);
         }
         try {
 
@@ -109,12 +109,12 @@ public class RemoteCallServer {
         } catch (final InvocationTargetException e1) {
             // TODO Auto-generated catch block
             final Throwable cause = e1.getCause();
-            if (cause != null) { throw new ServerInvokationException(handleRequestError(remoteID, cause), remoteID); }
-            throw new ServerInvokationException(handleRequestError(remoteID, new RuntimeException(e1)), remoteID);
+            if (cause != null) { throw new ServerInvokationException(this.handleRequestError(remoteID, cause), remoteID); }
+            throw new ServerInvokationException(this.handleRequestError(remoteID, new RuntimeException(e1)), remoteID);
         } catch (final Throwable e) {
             // TODO Auto-generated catch block
 
-            throw new ServerInvokationException(handleRequestError(remoteID, e), remoteID);
+            throw new ServerInvokationException(this.handleRequestError(remoteID, e), remoteID);
         }
 
     }
@@ -124,7 +124,7 @@ public class RemoteCallServer {
         Log.exception(e);
         final StringBuilder sb = new StringBuilder();
 
-        cleanUpStackTrace(e, callerid);
+        this.cleanUpStackTrace(e, callerid);
         try {
             sb.append(JSonStorage.toString(new ExceptionWrapper(e)));
         } catch (final Throwable e1) {
@@ -140,7 +140,7 @@ public class RemoteCallServer {
                 sb.append("\",\"stackTrace\":[]}}");
             }
 
-            e1.printStackTrace();
+            // e1.printStackTrace();
             // seems we could not serialize the original Exception. create a
             // dummy
 

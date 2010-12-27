@@ -25,6 +25,27 @@ import org.codehaus.jackson.map.MappingJsonFactory;
 public class ExtJsonFactory extends MappingJsonFactory {
 
     /**
+     * Method for constructing json generator for writing json content to
+     * specified file, overwriting contents it might have (or creating it if
+     * such file does not yet exist). Encoding to use must be specified, and
+     * needs to be one of available types (as per JSON specification).
+     *<p>
+     * Underlying stream <b>is owned</b> by the generator constructed, i.e.
+     * generator will handle closing of file when {@link JsonGenerator#close} is
+     * called.
+     * 
+     * @param f
+     *            File to write contents to
+     * @param enc
+     *            Character encoding to use
+     */
+    public JsonGenerator createJsonGenerator(final File f, final JsonEncoding enc) throws IOException {
+        final JsonGenerator ret = super.createJsonGenerator(f, enc);
+        ret.useDefaultPrettyPrinter();
+        return ret;
+    }
+
+    /**
      * Method for constructing JSON generator for writing JSON content using
      * specified output stream. Encoding to use must be specified, and needs to
      * be one of available types (as per JSON specification).
@@ -41,9 +62,9 @@ public class ExtJsonFactory extends MappingJsonFactory {
      * @param enc
      *            Character encoding to use
      */
-    public JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc) throws IOException {
-        JsonGenerator ret = super.createJsonGenerator(out, enc);
-
+    public JsonGenerator createJsonGenerator(final OutputStream out, final JsonEncoding enc) throws IOException {
+        final JsonGenerator ret = super.createJsonGenerator(out, enc);
+        ret.useDefaultPrettyPrinter();
         return ret;
     }
 
@@ -60,28 +81,9 @@ public class ExtJsonFactory extends MappingJsonFactory {
      * @param out
      *            Writer to use for writing JSON content
      */
-    public JsonGenerator createJsonGenerator(Writer out) throws IOException {
-        JsonGenerator ret = super.createJsonGenerator(out);
-        return ret;
-    }
-
-    /**
-     * Method for constructing json generator for writing json content to
-     * specified file, overwriting contents it might have (or creating it if
-     * such file does not yet exist). Encoding to use must be specified, and
-     * needs to be one of available types (as per JSON specification).
-     *<p>
-     * Underlying stream <b>is owned</b> by the generator constructed, i.e.
-     * generator will handle closing of file when {@link JsonGenerator#close} is
-     * called.
-     * 
-     * @param f
-     *            File to write contents to
-     * @param enc
-     *            Character encoding to use
-     */
-    public JsonGenerator createJsonGenerator(File f, JsonEncoding enc) throws IOException {
-        JsonGenerator ret = super.createJsonGenerator(f, enc);
+    public JsonGenerator createJsonGenerator(final Writer out) throws IOException {
+        final JsonGenerator ret = super.createJsonGenerator(out);
+        ret.useDefaultPrettyPrinter();
         return ret;
     }
 }
