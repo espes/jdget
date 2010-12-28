@@ -19,19 +19,19 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 
 public class JSonStorage {
+    /* hash map contains file location as string and the storage instance */
     private static final HashMap<String, Storage> MAP    = new HashMap<String, Storage>();
-    private static File                           path;
     private static final ObjectMapper             MAPPER = new ObjectMapper(new ExtJsonFactory());
     public static final Object                    LOCK   = new Object();
     static {
         JSonStorage.MAPPER.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     }
-
+    /* default key for encrypted json */
     static public byte[]                          KEY    = new byte[] { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };
 
     static {
-
+        /* shutdown hook to save all open Storages */
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -55,12 +55,44 @@ public class JSonStorage {
      */
     public static Storage getPlainStorage(final String name) throws StorageException {
         synchronized (JSonStorage.MAP) {
-            Storage ret = JSonStorage.MAP.get(name);
+            final String id = Application.getRessource("cfg/" + name + ".json").getAbsolutePath();
+            Storage ret = JSonStorage.MAP.get(id);
             if (ret == null) {
                 ret = new JacksonStorageChest(name, true);
-                JSonStorage.MAP.put(name, ret);
+                JSonStorage.MAP.put(ret.getID(), ret);
             }
             return ret;
+        }
+    }
+
+    public static Storage getPlainStorage(final File file) throws StorageException {
+        synchronized (JSonStorage.MAP) {
+            final String id = file.getAbsolutePath();
+            Storage ret = JSonStorage.MAP.get(id);
+            if (ret == null) {
+                ret = new JacksonStorageChest(file, true);
+                JSonStorage.MAP.put(ret.getID(), ret);
+            }
+            return ret;
+        }
+    }
+
+    public static boolean addStorage(final Storage storage) {
+        synchronized (JSonStorage.MAP) {
+            Storage ret = JSonStorage.MAP.get(storage.getID());
+            if (ret == null) {
+                JSonStorage.MAP.put(storage.getID(), storage);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public static boolean removeStorage(final Storage storage) {
+        synchronized (JSonStorage.MAP) {
+            Storage ret = JSonStorage.MAP.remove(storage.getID());
+            if (ret == null) { return false; }
+            return true;
         }
     }
 
@@ -69,10 +101,11 @@ public class JSonStorage {
      */
     public static Storage getStorage(final String name) throws StorageException {
         synchronized (JSonStorage.MAP) {
-            Storage ret = JSonStorage.MAP.get(name);
+            final String id = Application.getRessource("cfg/" + name + ".ejs").getAbsolutePath();
+            Storage ret = JSonStorage.MAP.get(id);
             if (ret == null) {
                 ret = new JacksonStorageChest(name);
-                JSonStorage.MAP.put(name, ret);
+                JSonStorage.MAP.put(ret.getID(), ret);
             }
             return ret;
         }
@@ -93,52 +126,59 @@ public class JSonStorage {
      *            the class of def as restoreclass
      * @return
      */
+
     public static <E> E restoreFrom(final String string, final TypeReference<E> type, final E def) {
+        final boolean plain = new Regex(string, ".+\\.json").matches();
+        return restoreFrom(Application.getRessource(string), plain, JSonStorage.KEY, type, def);
+    }
+
+    public static <E> E restoreFrom(final File file, boolean plain, final byte[] key, final TypeReference<E> type, final E def) {
         synchronized (JSonStorage.LOCK) {
             String stri = null;
             byte[] str = null;
             try {
-                if (Application.getRessource(string + ".tmp").exists()) {
+                File tmpfile = new File(file.getAbsolutePath() + ".tmp");
+                if (tmpfile.exists()) {
                     /* tmp files exists, try to restore */
-                    Log.L.warning("TMP file " + Application.getRessource(string + ".tmp").getAbsolutePath() + " found");
+                    Log.L.warning("TMP file " + tmpfile.getAbsolutePath() + " found");
                     try {
                         // load it
-                        str = IO.readFile(Application.getRessource(string + ".tmp"));
+                        str = IO.readFile(tmpfile);
                         E ret;
                         // try to parse it
-                        if (new Regex(string, ".+\\.json").matches()) {
+                        if (plain) {
                             ret = JSonStorage.restoreFromString(stri = new String(str, "UTF-8"), type, def);
                         } else {
-                            ret = JSonStorage.restoreFromString(stri = Crypto.decrypt(str, JSonStorage.KEY), type, def);
+                            ret = JSonStorage.restoreFromString(stri = Crypto.decrypt(str, key), type, def);
                         }
 
                         Log.L.warning("Could restore tmp file");
                         // replace normal file with tmp file
-                        Application.getRessource(string).delete();
-                        Application.getRessource(string + ".tmp").renameTo(Application.getRessource(string));
+                        file.delete();
+                        tmpfile.renameTo(file);
                         return ret;
                     } catch (final Exception e) {
                         Log.L.warning("Could not restore tmp file");
                         Log.exception(Level.WARNING, e);
                     } finally {
                         /* tmp file must be gone after read */
-                        Application.getRessource(string + ".tmp").delete();
+                        tmpfile.delete();
                     }
                 }
-                final File res = Application.getRessource(string);
+                final File res = file;
                 if (!res.exists() || res.length() == 0) { return def; }
                 str = IO.readFile(res);
-                if (new Regex(string, ".+\\.json").matches()) {
+                if (plain) {
                     return JSonStorage.restoreFromString(stri = new String(str, "UTF-8"), type, def);
                 } else {
-                    return JSonStorage.restoreFromString(stri = Crypto.decrypt(str, JSonStorage.KEY), type, def);
+                    return JSonStorage.restoreFromString(stri = Crypto.decrypt(str, key), type, def);
                 }
 
             } catch (final Throwable e) {
-                Log.L.severe(string + ":read:" + stri);
+                Log.L.severe(file.getAbsolutePath() + ":read:" + stri);
                 try {
                     if (str != null) {
-                        Log.L.severe(string + ":original:" + new String(str, "UTF-8"));
+                        Log.L.severe(file.getAbsolutePath() + ":original:" + new String(str, "UTF-8"));
                     }
                 } catch (final Throwable e2) {
                     Log.exception(e2);
@@ -182,6 +222,12 @@ public class JSonStorage {
                     entry.getValue().save();
                 } catch (final Throwable e) {
                     Log.exception(e);
+                } finally {
+                    try {
+                        entry.getValue().close();
+                    } catch (final Throwable e2) {
+                        Log.exception(e2);
+                    }
                 }
             }
         }
@@ -195,8 +241,8 @@ public class JSonStorage {
     public static void saveTo(final String pathname, final String json) throws StorageException {
         synchronized (JSonStorage.LOCK) {
             try {
-                JSonStorage.path = Application.getRessource(pathname);
-                final File tmp = new File(JSonStorage.path.getParentFile(), JSonStorage.path.getName() + ".tmp");
+                final File file = Application.getRessource(pathname);
+                final File tmp = new File(file.getParentFile(), file.getName() + ".tmp");
                 tmp.getParentFile().mkdirs();
                 tmp.delete();
                 if (new Regex(pathname, ".+\\.json").matches()) {
@@ -206,10 +252,33 @@ public class JSonStorage {
                     /* encrypted */
                     IO.writeToFile(tmp, Crypto.encrypt(json, JSonStorage.KEY));
                 }
-                if (JSonStorage.path.exists()) {
-                    if (!JSonStorage.path.delete()) { throw new StorageException("Could not overwrite file: " + JSonStorage.path); }
+                if (file.exists()) {
+                    if (!file.delete()) { throw new StorageException("Could not overwrite file: " + file); }
                 }
-                if (!tmp.renameTo(JSonStorage.path)) { throw new StorageException("Could not rename file: " + tmp + " to " + JSonStorage.path); }
+                if (!tmp.renameTo(file)) { throw new StorageException("Could not rename file: " + tmp + " to " + file); }
+            } catch (final IOException e) {
+                throw new StorageException(e);
+            }
+        }
+    }
+
+    public static void saveTo(final File file, boolean plain, final byte[] key, final String json) throws StorageException {
+        synchronized (JSonStorage.LOCK) {
+            try {
+                final File tmp = new File(file.getAbsolutePath() + ".tmp");
+                tmp.getParentFile().mkdirs();
+                tmp.delete();
+                if (plain) {
+                    /* uncrypted */
+                    IO.writeToFile(tmp, json.getBytes("UTF-8"));
+                } else {
+                    /* encrypted */
+                    IO.writeToFile(tmp, Crypto.encrypt(json, key));
+                }
+                if (file.exists()) {
+                    if (!file.delete()) { throw new StorageException("Could not overwrite file: " + file.getAbsolutePath()); }
+                }
+                if (!tmp.renameTo(file)) { throw new StorageException("Could not rename file: " + tmp + " to " + file); }
             } catch (final IOException e) {
                 throw new StorageException(e);
             }

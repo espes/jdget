@@ -23,7 +23,9 @@ public class StorageEvent<E> extends SimpleEvent<Storage, E, StorageEvent.Types>
      * 
      */
     public enum Types {
-        CHANGED
+        ADDED,
+        CHANGED,
+        REMOVED
     }
 
     private final String key;

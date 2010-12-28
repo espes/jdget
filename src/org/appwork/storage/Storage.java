@@ -27,6 +27,8 @@ public abstract class Storage {
     public DefaultEventSender<StorageEvent<?>> getEventSender() {
         return this.eventSender;
     }
+    
+    abstract public String getID();
 
     /**
      * @param string
@@ -59,5 +61,6 @@ public abstract class Storage {
     public abstract Object remove(String key);
 
     abstract public void save() throws StorageException;
+    abstract public void close();
 
 }
