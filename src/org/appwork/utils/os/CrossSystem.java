@@ -54,7 +54,7 @@ public class CrossSystem {
     private static final Mime   MIME;
     static {
         OS_STRING = System.getProperty("os.name");
-        final String OS = OS_STRING.toLowerCase();
+        final String OS = CrossSystem.OS_STRING.toLowerCase();
         if (OS.contains("windows 7")) {
             OS_ID = CrossSystem.OS_WINDOWS_7;
         } else if (OS.contains("windows xp")) {
@@ -87,10 +87,6 @@ public class CrossSystem {
         return CrossSystem.OS_ID;
     }
 
-    public static String getOSString() {
-        return CrossSystem.OS_STRING;
-    }
-
     /**
      * Returns the Mime Class for the current OS
      * 
@@ -99,6 +95,10 @@ public class CrossSystem {
      */
     public static Mime getMime() {
         return CrossSystem.MIME;
+    }
+
+    public static String getOSString() {
+        return CrossSystem.OS_STRING;
     }
 
     /**
@@ -117,6 +117,23 @@ public class CrossSystem {
      */
     public static boolean isMac() {
         return CrossSystem.OS_ID == CrossSystem.OS_MAC_OTHER;
+    }
+
+    /**
+     * @return
+     */
+    public static boolean isOpenBrowserSupported() {
+        if (CrossSystem.isWindows()) { return true; }
+        final Desktop desktop = Desktop.getDesktop();
+        if (!desktop.isSupported(Desktop.Action.BROWSE)) { return false; }
+        return true;
+    }
+
+    public static boolean isOpenFileSupported() {
+        if (CrossSystem.isWindows()) { return true; }
+        final Desktop desktop = Desktop.getDesktop();
+        if (!desktop.isSupported(Desktop.Action.OPEN)) { return false; }
+        return true;
     }
 
     /**
@@ -176,17 +193,6 @@ public class CrossSystem {
             Log.exception(Level.WARNING, e);
         }
     }
-    
-    public static boolean isOpenFileSupported(){
-        if (CrossSystem.isWindows())return true;
-        final Desktop desktop = Desktop.getDesktop();
-        if (!desktop.isSupported(Desktop.Action.OPEN)) {
-            return false;
-        }
-        return true;
-    }
-    
-    
 
     /**
      * Open an url in the systems default browser
@@ -222,5 +228,4 @@ public class CrossSystem {
             Log.exception(Level.WARNING, e);
         }
     }
-
 }
