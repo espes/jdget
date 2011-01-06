@@ -460,7 +460,7 @@ public class Dialog {
                         boolean allowFilePreview = true;
                         if (fileSelectionMode != null) {
                             fc.setFileSelectionMode(fileSelectionMode.getId());
-                            if (fileSelectionMode == FileChooserSelectionMode.DIRECTORIES_ONLY) {
+                            if (fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
                                 allowFilePreview = false;
                             }
                         }
@@ -469,14 +469,14 @@ public class Dialog {
                             fc.setFileFilter(fileFilter);
                         }
 
-                        if (multiSelection && (dialogType == null || dialogType != FileChooserType.SAVE_DIALOG)) {
+                        if (multiSelection && (dialogType == null || dialogType.getId() == FileChooserType.SAVE_DIALOG.getId())) {
                             fc.setMultiSelectionEnabled(true);
                         } else {
                             fc.setMultiSelectionEnabled(false);
                         }
                         if (dialogType != null) {
                             fc.setDialogType(dialogType.getId());
-                            if (dialogType != FileChooserType.OPEN_DIALOG) {
+                            if (dialogType.getId() != FileChooserType.OPEN_DIALOG.getId()) {
                                 allowFilePreview = false;
                             }
                         }
@@ -491,7 +491,7 @@ public class Dialog {
                             preSelection = new File(JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null));
                         }
                         while (preSelection != null) {
-                            if (!preSelection.exists() && dialogType != null && dialogType == FileChooserType.OPEN_DIALOG) {
+                            if (!preSelection.exists() && dialogType != null && dialogType.getId() == FileChooserType.OPEN_DIALOG.getId()) {
                                 /* file does not exist, try ParentFile */
                                 preSelection = preSelection.getParentFile();
                             } else {
@@ -505,15 +505,15 @@ public class Dialog {
                                      * only preselect folder in case of
                                      * savedialog
                                      */
-                                    if (dialogType != null && (dialogType == FileChooserType.SAVE_DIALOG || dialogType == FileChooserType.OPEN_DIALOG_WITH_PRESELECTION)) {
+                                    if (dialogType != null && (dialogType.getId() == FileChooserType.SAVE_DIALOG.getId() || dialogType == FileChooserType.OPEN_DIALOG_WITH_PRESELECTION)) {
                                         fc.setSelectedFile(preSelection);
                                     }
                                 } else {
                                     fc.setCurrentDirectory(preSelection.getParentFile());
                                     /* only preselect file in savedialog */
-                                    if (dialogType != null && (dialogType == FileChooserType.SAVE_DIALOG || dialogType == FileChooserType.OPEN_DIALOG_WITH_PRESELECTION)) {
+                                    if (dialogType != null && (dialogType.getId() == FileChooserType.SAVE_DIALOG.getId() || dialogType == FileChooserType.OPEN_DIALOG_WITH_PRESELECTION)) {
                                         if (fileSelectionMode != null) {
-                                            if (fileSelectionMode == FileChooserSelectionMode.DIRECTORIES_ONLY) {
+                                            if (fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
                                                 fc.setSelectedFile(preSelection.getParentFile());
                                             } else {
                                                 fc.setSelectedFile(preSelection);
@@ -524,7 +524,7 @@ public class Dialog {
                                 break;
                             }
                         }
-                        if (dialogType == null || dialogType == FileChooserType.OPEN_DIALOG) {
+                        if (dialogType == null || dialogType.getId() == FileChooserType.OPEN_DIALOG.getId()) {
                             if (fc.showOpenDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
                                 if (multiSelection) {
                                     final ArrayList<File> rets = new ArrayList<File>();
@@ -560,7 +560,7 @@ public class Dialog {
                                     return null;
                                 }
                             }
-                        } else if (dialogType == FileChooserType.SAVE_DIALOG) {
+                        } else if (dialogType.getId() == FileChooserType.SAVE_DIALOG.getId()) {
                             if (fc.showSaveDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
                                 File ret = fc.getSelectedFile();
                                 /*
