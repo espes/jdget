@@ -36,6 +36,62 @@ import org.appwork.utils.swing.EDTHelper;
 public class Dialog {
 
     /**
+     * Requests a FileChooserDialog.
+     * 
+     * @param id
+     *            ID of the dialog (used to save and restore the old directory)
+     * @param title
+     *            The Dialog's Window Title dialog-title or null for default
+     * @param fileSelectionMode
+     *            mode for selecting files (like JFileChooser.FILES_ONLY) or
+     *            null for default
+     * @param fileFilter
+     *            filters the choosable files or null for default
+     * @param multiSelection
+     *            Multiple files choosable? or null for default
+     * @param preSelection
+     *            File which will be selected by default. leave null for
+     *            automode
+     * @return an array of files or null if the user cancel the dialog
+     */
+    public static enum FileChooserSelectionMode {
+        FILES_ONLY(JFileChooser.FILES_ONLY),
+        DIRECTORIES_ONLY(JFileChooser.DIRECTORIES_ONLY),
+        FILES_AND_DIRECTORIES(JFileChooser.FILES_AND_DIRECTORIES);
+        private final int id;
+
+        private FileChooserSelectionMode(final int num) {
+            this.id = num;
+        }
+
+        /**
+         * @return the id
+         */
+        public int getId() {
+            return this.id;
+        }
+    }
+
+    public static enum FileChooserType {
+        OPEN_DIALOG(JFileChooser.OPEN_DIALOG),
+        SAVE_DIALOG(JFileChooser.SAVE_DIALOG),
+        CUSTOM_DIALOG(JFileChooser.CUSTOM_DIALOG),
+        OPEN_DIALOG_WITH_PRESELECTION(JFileChooser.OPEN_DIALOG);
+        private final int id;
+
+        private FileChooserType(final int id) {
+            this.id = id;
+        }
+
+        /**
+         * @return the id
+         */
+        public int getId() {
+            return this.id;
+        }
+    }
+
+    /**
      * Hide the cancel Button
      */
     public static final int     BUTTONS_HIDE_CANCEL                  = 1 << 4;
@@ -43,7 +99,6 @@ public class Dialog {
      * Hide the OK button
      */
     public static final int     BUTTONS_HIDE_OK                      = 1 << 3;
-
     /**
      * Icon Key for Error Icons
      * 
@@ -76,6 +131,7 @@ public class Dialog {
      * internal singleton instance to access the instance of this class
      */
     private static final Dialog INSTANCE                             = new Dialog();
+
     /**
      * LOGIC_BYPASS all dialogs. Try to fill automatically or return null
      */
@@ -84,7 +140,6 @@ public class Dialog {
      * Use this flag to show display of the Timer
      */
     public static final int     LOGIC_COUNTDOWN                      = 1 << 2;
-
     /**
      * Don't show again is only valid for this session, but is not saved for
      * further sessions
@@ -110,6 +165,7 @@ public class Dialog {
      * if user closed the window
      */
     public static final int     RETURN_CLOSED                        = 1 << 6;
+
     /**
      * this return flag can be set in two situations:<br>
      * a) The user selected the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option<br>
@@ -124,7 +180,6 @@ public class Dialog {
      * If the user pressed OK, the return mask will contain this flag
      */
     public static final int     RETURN_OK                            = 1 << 1;
-
     /**
      * If the dialog has been skipped due to previously selected
      * {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option, this return flag is set.
@@ -132,13 +187,13 @@ public class Dialog {
      * @see #RETURN_DONT_SHOW_AGAIN
      */
     public static final int     RETURN_SKIPPED_BY_DONT_SHOW          = 1 << 4;
+
     /**
      * If the Timeout ({@link #LOGIC_COUNTDOWN}) has run out, the return mask
      * contains this flag
      */
     public static final int     RETURN_TIMEOUT                       = 1 << 5;
     private static boolean      ShellFolderIDWorkaround              = false;
-
     /**
      * Do Not use an Icon. By default dialogs have an Icon
      */
@@ -152,12 +207,14 @@ public class Dialog {
      * display a huge text.
      */
     public static final int     STYLE_LARGE                          = 1 << 6;
+
     /**
      * Displays a Checkbox with "do not show this again" text. If the user
      * selects this box, the UserInteraktion class will remember the answer and
      * will not disturb the user with the same question (same title)
      */
     public static final int     STYLE_SHOW_DO_NOT_DISPLAY_AGAIN      = 1 << 5;
+
     /**
      * Inputdialogs will use passwordfields instead of textfields
      */
@@ -229,7 +286,9 @@ public class Dialog {
      * @see Dialog#owner
      */
     public JFrame getParentOwner() {
-        if (this.owner == null) this.owner = new JFrame();
+        if (this.owner == null) {
+            this.owner = new JFrame();
+        }
         return this.owner;
     }
 
@@ -278,7 +337,7 @@ public class Dialog {
      */
     public int showComboDialog(final int flag, final String title, final String question, final Object[] options, final int defaultSelection, final ImageIcon icon, final String okOption, final String cancelOption, final ListCellRenderer renderer) {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultSelection; }
-        return showDialog(new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okOption, cancelOption, renderer));
+        return this.showDialog(new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okOption, cancelOption, renderer));
     }
 
     /**
@@ -339,7 +398,7 @@ public class Dialog {
         } else {
             icon = tmpicon;
         }
-        return showDialog(new ConfirmDialog(flag, title, message, icon, okOption, cancelOption));
+        return this.showDialog(new ConfirmDialog(flag, title, message, icon, okOption, cancelOption));
     }
 
     /**
@@ -370,27 +429,7 @@ public class Dialog {
         return 0;
     }
 
-    /**
-     * Requests a FileChooserDialog.
-     * 
-     * @param id
-     *            ID of the dialog (used to save and restore the old directory)
-     * @param title
-     *            The Dialog's Window Title dialog-title or null for default
-     * @param fileSelectionMode
-     *            mode for selecting files (like JFileChooser.FILES_ONLY) or
-     *            null for default
-     * @param fileFilter
-     *            filters the choosable files or null for default
-     * @param multiSelection
-     *            Multiple files choosable? or null for default
-     * @param preSelection
-     *            File which will be selected by default. leave null for
-     *            automode
-     * @return an array of files or null if the user cancel the dialog
-     */
-
-    public File[] showFileChooser(final String id, final String title, final Integer fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final Integer dialogType, final File preSelect) {
+    public File[] showFileChooser(final String id, final String title, final FileChooserSelectionMode fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final FileChooserType dialogType, final File preSelect) {
 
         return new EDTHelper<File[]>() {
 
@@ -420,25 +459,31 @@ public class Dialog {
                         }
                         boolean allowFilePreview = true;
                         if (fileSelectionMode != null) {
-                            fc.setFileSelectionMode(fileSelectionMode);
-                            if (fileSelectionMode == JFileChooser.DIRECTORIES_ONLY) allowFilePreview = false;
+                            fc.setFileSelectionMode(fileSelectionMode.getId());
+                            if (fileSelectionMode == FileChooserSelectionMode.DIRECTORIES_ONLY) {
+                                allowFilePreview = false;
+                            }
                         }
 
                         if (fileFilter != null) {
                             fc.setFileFilter(fileFilter);
                         }
 
-                        if (multiSelection && (dialogType == null || dialogType != JFileChooser.SAVE_DIALOG)) {
+                        if (multiSelection && (dialogType == null || dialogType != FileChooserType.SAVE_DIALOG)) {
                             fc.setMultiSelectionEnabled(true);
                         } else {
                             fc.setMultiSelectionEnabled(false);
                         }
                         if (dialogType != null) {
-                            fc.setDialogType(dialogType);
-                            if (dialogType != JFileChooser.OPEN_DIALOG) allowFilePreview = false;
+                            fc.setDialogType(dialogType.getId());
+                            if (dialogType != FileChooserType.OPEN_DIALOG) {
+                                allowFilePreview = false;
+                            }
                         }
 
-                        if (allowFilePreview) fc.setAccessory(new FilePreview(fc));
+                        if (allowFilePreview) {
+                            fc.setAccessory(new FilePreview(fc));
+                        }
 
                         /* preSelection */
                         File preSelection = preSelect;
@@ -446,7 +491,7 @@ public class Dialog {
                             preSelection = new File(JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null));
                         }
                         while (preSelection != null) {
-                            if (!preSelection.exists() && dialogType != null && dialogType == JFileChooser.OPEN_DIALOG) {
+                            if (!preSelection.exists() && dialogType != null && dialogType == FileChooserType.OPEN_DIALOG) {
                                 /* file does not exist, try ParentFile */
                                 preSelection = preSelection.getParentFile();
                             } else {
@@ -460,15 +505,15 @@ public class Dialog {
                                      * only preselect folder in case of
                                      * savedialog
                                      */
-                                    if (dialogType != null && dialogType == JFileChooser.SAVE_DIALOG) {
+                                    if (dialogType != null && (dialogType == FileChooserType.SAVE_DIALOG || dialogType == FileChooserType.OPEN_DIALOG_WITH_PRESELECTION)) {
                                         fc.setSelectedFile(preSelection);
                                     }
                                 } else {
                                     fc.setCurrentDirectory(preSelection.getParentFile());
                                     /* only preselect file in savedialog */
-                                    if (dialogType != null && dialogType == JFileChooser.SAVE_DIALOG) {
+                                    if (dialogType != null && (dialogType == FileChooserType.SAVE_DIALOG || dialogType == FileChooserType.OPEN_DIALOG_WITH_PRESELECTION)) {
                                         if (fileSelectionMode != null) {
-                                            if (fileSelectionMode == JFileChooser.DIRECTORIES_ONLY) {
+                                            if (fileSelectionMode == FileChooserSelectionMode.DIRECTORIES_ONLY) {
                                                 fc.setSelectedFile(preSelection.getParentFile());
                                             } else {
                                                 fc.setSelectedFile(preSelection);
@@ -479,19 +524,19 @@ public class Dialog {
                                 break;
                             }
                         }
-                        if (dialogType == null || dialogType == JFileChooser.OPEN_DIALOG) {
+                        if (dialogType == null || dialogType == FileChooserType.OPEN_DIALOG) {
                             if (fc.showOpenDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
                                 if (multiSelection) {
                                     final ArrayList<File> rets = new ArrayList<File>();
                                     for (File ret : fc.getSelectedFiles()) {
-                                        ret = Dialog.this.validateFileType(ret, fileSelectionMode, false);
+                                        ret = Dialog.this.validateFileType(ret, fileSelectionMode.getId(), false);
                                         if (ret != null) {
                                             rets.add(ret);
                                         }
                                     }
 
                                     if (rets.size() > 0) {
-                                        File[] files = rets.toArray(new File[rets.size()]);
+                                        final File[] files = rets.toArray(new File[rets.size()]);
                                         final File first = files[0];
                                         if (first != null) {
                                             JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
@@ -507,7 +552,7 @@ public class Dialog {
                                  * validate selectedFile against
                                  * fileSelectionMode
                                  */
-                                ret = Dialog.this.validateFileType(ret, fileSelectionMode, false);
+                                ret = Dialog.this.validateFileType(ret, fileSelectionMode.getId(), false);
                                 if (ret != null) {
                                     JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
                                     return new File[] { ret };
@@ -515,14 +560,14 @@ public class Dialog {
                                     return null;
                                 }
                             }
-                        } else if (dialogType == JFileChooser.SAVE_DIALOG) {
+                        } else if (dialogType == FileChooserType.SAVE_DIALOG) {
                             if (fc.showSaveDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
                                 File ret = fc.getSelectedFile();
                                 /*
                                  * validate selectedFile against
                                  * fileSelectionMode
                                  */
-                                ret = Dialog.this.validateFileType(ret, fileSelectionMode, true);
+                                ret = Dialog.this.validateFileType(ret, fileSelectionMode.getId(), true);
                                 if (ret != null) {
                                     JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
                                     return new File[] { ret };
@@ -586,7 +631,7 @@ public class Dialog {
      */
     public String showInputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
-        return showDialog(new InputDialog(flag, title, message, defaultMessage, icon, okOption, cancelOption));
+        return this.showDialog(new InputDialog(flag, title, message, defaultMessage, icon, okOption, cancelOption));
     }
 
     /**
@@ -684,7 +729,7 @@ public class Dialog {
      */
     protected String showPasswordDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
-        return showDialog(new PasswordDialog(flag, title, message, icon, okOption, cancelOption));
+        return this.showDialog(new PasswordDialog(flag, title, message, icon, okOption, cancelOption));
     }
 
     /**
@@ -707,7 +752,7 @@ public class Dialog {
      * @return
      */
     public String showTextAreaDialog(final String title, final String message, final String def) {
-        return showDialog(new TextAreaDialog(title, message, def));
+        return this.showDialog(new TextAreaDialog(title, message, def));
     }
 
     /**
@@ -763,7 +808,7 @@ public class Dialog {
      */
     protected long showValueDialog(final int flag, final String title, final String message, final long defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption, final long min, final long max, final long step, final ValueConverter valueConverter) {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
-        return showDialog(new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter));
+        return this.showDialog(new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter));
     }
 
     private File validateFileType(final File ret, final Integer fileSelectionMode, final boolean mkdir) {
