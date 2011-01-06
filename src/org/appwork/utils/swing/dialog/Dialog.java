@@ -594,6 +594,39 @@ public class Dialog {
     }
 
     /**
+     * @Deprecated Use
+     *             {@link #showFileChooser(String, String, FileChooserSelectionMode, FileFilter, boolean, FileChooserType, File)}
+     *             instead
+     * @param id
+     * @param title
+     * @param fileSelectionMode
+     * @param fileFilter
+     * @param multiSelection
+     * @param dialogType
+     * @param preSelect
+     * @return
+     */
+    @Deprecated
+    public File[] showFileChooser(final String id, final String title, final int fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final int dialogType, final File preSelect) {
+
+        FileChooserSelectionMode fsm = null;
+        for (final FileChooserSelectionMode f : FileChooserSelectionMode.values()) {
+            if (f.getId() == fileSelectionMode) {
+                fsm = f;
+                break;
+            }
+        }
+        FileChooserType fct = null;
+        for (final FileChooserType f : FileChooserType.values()) {
+            if (f.getId() == dialogType) {
+                fct = f;
+                break;
+            }
+        }
+        return this.showFileChooser(id, title, fsm, fileFilter, multiSelection, fct, preSelect);
+    }
+
+    /**
      * 
      * @param flag
      *            see {@link Dialog} - Flags. There are various flags to
