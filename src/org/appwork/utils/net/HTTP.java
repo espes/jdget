@@ -18,7 +18,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
-
 /**
  * @author thomas
  * 
@@ -43,9 +42,10 @@ public class HTTP {
         BufferedInputStream input = null;
         GZIPInputStream gzi = null;
         boolean deleteInterrupted = false;
+        HttpURLConnection con = null;
         try {
             output = new BufferedOutputStream(fos = new FileOutputStream(file, false));
-            final HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con = (HttpURLConnection) url.openConnection();
             con.setInstanceFollowRedirects(true);
             con.setConnectTimeout(15000);
             con.setReadTimeout(30000);
@@ -81,10 +81,13 @@ public class HTTP {
                 fos.close();
             } catch (final Exception e) {
             }
+            try {
+                con.disconnect();
+            } catch (final Throwable e) {
+            }
             if (deleteInterrupted) {
                 file.delete();
             }
         }
     }
-
 }
