@@ -217,11 +217,11 @@ public class ImageProvider {
      * @param targetHeight
      *            the desired height of the scaled instance, in pixels
      * @param hint
-     *            one of the rendering hints that corresponds to {@code
-     *            RenderingHints.KEY_INTERPOLATION} (e.g. {@code
-     *            RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR}, {@code
-     *            RenderingHints.VALUE_INTERPOLATION_BILINEAR}, {@code
-     *            RenderingHints.VALUE_INTERPOLATION_BICUBIC})
+     *            one of the rendering hints that corresponds to
+     *            {@code RenderingHints.KEY_INTERPOLATION} (e.g.
+     *            {@code RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR},
+     *            {@code RenderingHints.VALUE_INTERPOLATION_BILINEAR},
+     *            {@code RenderingHints.VALUE_INTERPOLATION_BICUBIC})
      * @param higherQuality
      *            if true, this method will use a multi-step scaling technique
      *            that provides higher quality than the usual one-step technique
@@ -237,7 +237,6 @@ public class ImageProvider {
         height = (int) (img.getHeight() / faktor);
         if (faktor == 1.0) { return img; }
 
-        final int type = img.getTransparency() == Transparency.OPAQUE ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
         BufferedImage ret = img;
         int w, h;
         if (higherQuality) {
@@ -268,7 +267,7 @@ public class ImageProvider {
                 }
             }
 
-            final BufferedImage tmp = new BufferedImage(w, h, type);
+            final BufferedImage tmp = new BufferedImage(w, h, ret.getType());
             final Graphics2D g2 = tmp.createGraphics();
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, hint);
             g2.drawImage(ret, 0, 0, w, h, null);

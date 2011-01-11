@@ -33,33 +33,34 @@ import org.appwork.utils.swing.EDTHelper;
  */
 public class FilePreview extends JPanel implements PropertyChangeListener {
 
-    private static final long serialVersionUID = 68064282036848471L;
+    private static final long  serialVersionUID = 68064282036848471L;
 
     private final JFileChooser fileChooser;
-    private final JPanel panel;
-    private final JLabel label;
+    private final JPanel       panel;
+    private final JLabel       label;
 
-    private File file;
+    private File               file;
 
-    public FilePreview(JFileChooser fileChooser) {
+    public FilePreview(final JFileChooser fileChooser) {
         this.fileChooser = fileChooser;
         this.fileChooser.addPropertyChangeListener(this);
 
         panel = new JPanel(new MigLayout("ins 5", "[grow,fill]", "[grow,fill]"));
         panel.add(label = new JLabel());
 
-        this.setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
+        setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
         this.add(new JScrollPane(panel), "hidemode 3,gapleft 5");
-        this.setPreferredSize(new Dimension(200, 100));
+        setPreferredSize(new Dimension(200, 100));
     }
 
-    public void propertyChange(PropertyChangeEvent e) {
+    public void propertyChange(final PropertyChangeEvent e) {
         if (JFileChooser.DIRECTORY_CHANGED_PROPERTY.equals(e.getPropertyName())) {
             file = (File) e.getNewValue();
         } else if (JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(e.getPropertyName())) {
             file = (File) e.getNewValue();
         }
         new Thread() {
+            @Override
             public void run() {
                 update();
             }
@@ -69,7 +70,7 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
     private void update() {
         if (file != null && file.isFile()) {
             try {
-                String ext = Files.getExtension(file.getName());
+                final String ext = Files.getExtension(file.getName());
                 BufferedImage image = null;
 
                 if (ext.equalsIgnoreCase("png") || ext.equalsIgnoreCase("jpg") || ext.equalsIgnoreCase("gif")) {
@@ -83,7 +84,7 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
                         @Override
                         public Object edtRun() {
                             label.setIcon(ii);
-                            int w = fileChooser.getWidth() / 3;
+                            final int w = fileChooser.getWidth() / 3;
                             setPreferredSize(new Dimension(w, 100));
                             fileChooser.revalidate();
                             return null;
@@ -93,7 +94,8 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
                     return;
 
                 }
-            } catch (Exception e) {
+            } catch (final Throwable e) {
+                e.printStackTrace();
             }
         }
 
