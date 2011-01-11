@@ -14,6 +14,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 
 import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.dialog.DialogCanceledException;
+import org.appwork.utils.swing.dialog.DialogClosedException;
 import org.appwork.utils.swing.dialog.InputDialog;
 
 /**
@@ -41,13 +43,22 @@ public class DialogOrder {
      */
     private static void startDialogInThread(final int i) {
         new Thread(i + "") {
+            @Override
             public void run() {
                 try {
                     Thread.sleep(1000 * i);
                 } catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
-                Dialog.getInstance().showInputDialog("Dialog " + i);
+                try {
+                    Dialog.getInstance().showInputDialog("Dialog " + i);
+                } catch (final DialogClosedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (final DialogCanceledException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 System.out.println("Closed " + i);
             }
         }.start();
@@ -63,14 +74,29 @@ public class DialogOrder {
 
             private static final long serialVersionUID = 3916626551625222343L;
 
-            
             public void actionPerformed(final ActionEvent e) {
-                Dialog.getInstance().showMessageDialog("INTERNAL");
+                try {
+                    Dialog.getInstance().showMessageDialog("INTERNAL");
+                } catch (final DialogClosedException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                } catch (final DialogCanceledException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
                 System.out.println("Closed A");
             }
 
         });
-        Dialog.getInstance().showDialog(dialog);
+        try {
+            Dialog.getInstance().showDialog(dialog);
+        } catch (final DialogClosedException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        } catch (final DialogCanceledException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
         System.out.println("Closed B");
     }
 

@@ -10,6 +10,8 @@
 package org.appwork.utils.swing.dialog.test;
 
 import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.dialog.DialogCanceledException;
+import org.appwork.utils.swing.dialog.DialogClosedException;
 
 /**
  * @author thomas
@@ -19,8 +21,10 @@ public class ConfirmDialog {
 
     /**
      * @param args
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws DialogClosedException, DialogCanceledException {
         Dialog.getInstance().showConfirmDialog(0, "title", "message", null, null, null);
         Dialog.getInstance().showConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, "title", "message", null, null, null);
     }

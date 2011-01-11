@@ -334,8 +334,10 @@ public class Dialog {
      * @param renderer
      *            A renderer to customize the Dialog. Might be null
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public int showComboDialog(final int flag, final String title, final String question, final Object[] options, final int defaultSelection, final ImageIcon icon, final String okOption, final String cancelOption, final ListCellRenderer renderer) {
+    public int showComboDialog(final int flag, final String title, final String question, final Object[] options, final int defaultSelection, final ImageIcon icon, final String okOption, final String cancelOption, final ListCellRenderer renderer) throws DialogClosedException, DialogCanceledException {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultSelection; }
         return this.showDialog(new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okOption, cancelOption, renderer));
     }
@@ -348,8 +350,10 @@ public class Dialog {
      * @param question
      *            The Dialog is able to show a question to the user.
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public int showConfirmDialog(final int flag, final String question) {
+    public int showConfirmDialog(final int flag, final String question) throws DialogClosedException, DialogCanceledException {
         return this.showConfirmDialog(flag, APPWORKUTILS.DIALOG_CONFIRMDIALOG_TITLE.s(), question, Dialog.getIconByText(question), null, null);
     }
 
@@ -363,8 +367,10 @@ public class Dialog {
      * @param question
      *            The Dialog is able to show a question to the user.
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public int showConfirmDialog(final int flag, final String title, final String question) {
+    public int showConfirmDialog(final int flag, final String title, final String question) throws DialogClosedException, DialogCanceledException {
         return this.showConfirmDialog(flag, title, question, Dialog.getIconByText(title + question), null, null);
     }
 
@@ -389,8 +395,10 @@ public class Dialog {
      *            Text for Cancel Button [null for default] Text for cancel
      *            Button [null for default]
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public int showConfirmDialog(final int flag, final String title, final String message, final ImageIcon tmpicon, final String okOption, final String cancelOption) {
+    public int showConfirmDialog(final int flag, final String title, final String message, final ImageIcon tmpicon, final String okOption, final String cancelOption) throws DialogClosedException, DialogCanceledException {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return 0; }
         final ImageIcon icon;
         if (tmpicon == null) {
@@ -407,10 +415,12 @@ public class Dialog {
      * @param <T>
      * @param dialog
      * @return
+     * @throws DialogClosedException
+     * @throws DialogCanceledException
      */
-    public <T> T showDialog(final AbstractDialog<T> dialog) {
+    public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
         if (dialog == null) { return null; }
-        return new EDTHelper<T>() {
+        final T ret = new EDTHelper<T>() {
             @Override
             public T edtRun() {
                 dialog.displayDialog();
@@ -418,9 +428,13 @@ public class Dialog {
             }
 
         }.getReturnValue();
+        final int mask = dialog.getReturnmask();
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(); }
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(); }
+        return ret;
     }
 
-    public int showErrorDialog(final String s) {
+    public int showErrorDialog(final String s) throws DialogClosedException, DialogCanceledException {
         try {
             return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true), null, null);
         } catch (final IOException e) {
@@ -429,9 +443,9 @@ public class Dialog {
         return 0;
     }
 
-    public File[] showFileChooser(final String id, final String title, final FileChooserSelectionMode fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final FileChooserType dialogType, final File preSelect) {
-
-        return new EDTHelper<File[]>() {
+    public File[] showFileChooser(final String id, final String title, final FileChooserSelectionMode fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final FileChooserType dialogType, final File preSelect) throws DialogCanceledException, DialogClosedException {
+        final int[] maskWrapper = new int[1];
+        final File[] ret = new EDTHelper<File[]>() {
 
             @Override
             public File[] edtRun() {
@@ -525,7 +539,8 @@ public class Dialog {
                             }
                         }
                         if (dialogType == null || dialogType.getId() == FileChooserType.OPEN_DIALOG.getId()) {
-                            if (fc.showOpenDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
+                            switch (maskWrapper[0] = fc.showOpenDialog(Dialog.this.getParentOwner())) {
+                            case JFileChooser.APPROVE_OPTION:
                                 if (multiSelection) {
                                     final ArrayList<File> rets = new ArrayList<File>();
                                     for (File ret : fc.getSelectedFiles()) {
@@ -559,9 +574,10 @@ public class Dialog {
                                 } else {
                                     return null;
                                 }
+
                             }
                         } else if (dialogType.getId() == FileChooserType.SAVE_DIALOG.getId()) {
-                            if (fc.showSaveDialog(Dialog.this.getParentOwner()) == JFileChooser.APPROVE_OPTION) {
+                            if ((maskWrapper[0] = fc.showSaveDialog(Dialog.this.getParentOwner())) == JFileChooser.APPROVE_OPTION) {
                                 File ret = fc.getSelectedFile();
                                 /*
                                  * validate selectedFile against
@@ -591,6 +607,10 @@ public class Dialog {
             }
 
         }.getReturnValue();
+
+        if (maskWrapper[0] == JFileChooser.CANCEL_OPTION) { throw new DialogCanceledException(); }
+        if (maskWrapper[0] == JFileChooser.ERROR_OPTION) { throw new DialogClosedException(); }
+        return ret;
     }
 
     /**
@@ -605,9 +625,11 @@ public class Dialog {
      * @param dialogType
      * @param preSelect
      * @return
+     * @throws DialogClosedException
+     * @throws DialogCanceledException
      */
     @Deprecated
-    public File[] showFileChooser(final String id, final String title, final int fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final int dialogType, final File preSelect) {
+    public File[] showFileChooser(final String id, final String title, final int fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final int dialogType, final File preSelect) throws DialogCanceledException, DialogClosedException {
 
         FileChooserSelectionMode fsm = null;
         for (final FileChooserSelectionMode f : FileChooserSelectionMode.values()) {
@@ -636,8 +658,10 @@ public class Dialog {
      * @param defaultvalue
      *            defaultvalue
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public String showInputDialog(final int flag, final String question, final String defaultvalue) {
+    public String showInputDialog(final int flag, final String question, final String defaultvalue) throws DialogClosedException, DialogCanceledException {
         return this.showInputDialog(flag, APPWORKUTILS.DIALOG_INPUT_TITLE.s(), question, defaultvalue, Dialog.getIconByText(question), null, null);
     }
 
@@ -661,8 +685,10 @@ public class Dialog {
      * @param cancelOption
      *            Text for Cancel Button [null for default]
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public String showInputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
+    public String showInputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) throws DialogClosedException, DialogCanceledException {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
         return this.showDialog(new InputDialog(flag, title, message, defaultMessage, icon, okOption, cancelOption));
     }
@@ -672,8 +698,10 @@ public class Dialog {
      * @param message
      *            The Dialog is able to show a message to the user
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public String showInputDialog(final String message) {
+    public String showInputDialog(final String message) throws DialogClosedException, DialogCanceledException {
         return this.showInputDialog(0, message, null);
     }
 
@@ -684,8 +712,10 @@ public class Dialog {
      *            customize the dialog
      * @param message
      *            The Dialog is able to show a message to the user
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public void showMessageDialog(final int flag, final String message) {
+    public void showMessageDialog(final int flag, final String message) throws DialogClosedException, DialogCanceledException {
         this.showMessageDialog(flag, APPWORKUTILS.DIALOG_MESSAGE_TITLE.s(), message);
     }
 
@@ -698,8 +728,10 @@ public class Dialog {
      *            The Dialog's Window Title
      * @param message
      *            The Dialog is able to show a message to the user
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public void showMessageDialog(final int flag, final String title, final String message) {
+    public void showMessageDialog(final int flag, final String title, final String message) throws DialogClosedException, DialogCanceledException {
         this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | flag, title, message, Dialog.getIconByText(title + message), null, null);
     }
 
@@ -707,8 +739,10 @@ public class Dialog {
      * 
      * @param message
      *            The Dialog is able to show a message to the user
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public void showMessageDialog(final String message) {
+    public void showMessageDialog(final String message) throws DialogClosedException, DialogCanceledException {
         this.showMessageDialog(0, APPWORKUTILS.DIALOG_MESSAGE_TITLE.s(), message);
     }
 
@@ -718,8 +752,10 @@ public class Dialog {
      *            The Dialog's Window Title
      * @param message
      *            The Dialog is able to show a message to the user
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public void showMessageDialog(final String title, final String message) {
+    public void showMessageDialog(final String title, final String message) throws DialogClosedException, DialogCanceledException {
         this.showMessageDialog(0, title, message);
     }
 
@@ -734,8 +770,10 @@ public class Dialog {
      * @param defaultvalue
      *            defaultvalue
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public String showPasswordDialog(final int flag, final String question, final String defaultvalue) {
+    public String showPasswordDialog(final int flag, final String question, final String defaultvalue) throws DialogClosedException, DialogCanceledException {
         return this.showPasswordDialog(flag, APPWORKUTILS.DIALOG_PASSWORD_TITLE.s(), question, defaultvalue, Dialog.getIconByText(question), null, null);
     }
 
@@ -759,8 +797,10 @@ public class Dialog {
      * @param cancelOption
      *            Text for Cancel Button [null for default]
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    protected String showPasswordDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
+    protected String showPasswordDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) throws DialogClosedException, DialogCanceledException {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
         return this.showDialog(new PasswordDialog(flag, title, message, icon, okOption, cancelOption));
     }
@@ -770,8 +810,10 @@ public class Dialog {
      * @param message
      *            The Dialog is able to show a message to the user
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public String showPasswordDialog(final String message) {
+    public String showPasswordDialog(final String message) throws DialogClosedException, DialogCanceledException {
         return this.showPasswordDialog(0, message, null);
     }
 
@@ -783,8 +825,10 @@ public class Dialog {
      *            The Dialog is able to show a message to the user
      * @param def
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public String showTextAreaDialog(final String title, final String message, final String def) {
+    public String showTextAreaDialog(final String title, final String message, final String def) throws DialogClosedException, DialogCanceledException {
         return this.showDialog(new TextAreaDialog(title, message, def));
     }
 
@@ -806,8 +850,10 @@ public class Dialog {
      * @param valueConverter
      *            TODO
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    public long showValueDialog(final int flag, final String question, final long defaultvalue, final long min, final long max, final long step, final ValueConverter valueConverter) {
+    public long showValueDialog(final int flag, final String question, final long defaultvalue, final long min, final long max, final long step, final ValueConverter valueConverter) throws DialogClosedException, DialogCanceledException {
         return this.showValueDialog(flag, APPWORKUTILS.DIALOG_SLIDER_TITLE.s(), question, defaultvalue, Dialog.getIconByText(question), null, null, min, max, step, valueConverter);
     }
 
@@ -838,8 +884,10 @@ public class Dialog {
      *            slider step
      * @param valueConverter
      * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
      */
-    protected long showValueDialog(final int flag, final String title, final String message, final long defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption, final long min, final long max, final long step, final ValueConverter valueConverter) {
+    protected long showValueDialog(final int flag, final String title, final String message, final long defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption, final long min, final long max, final long step, final ValueConverter valueConverter) throws DialogClosedException, DialogCanceledException {
         if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
         return this.showDialog(new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter));
     }
