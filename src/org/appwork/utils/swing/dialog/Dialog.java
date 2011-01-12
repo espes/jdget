@@ -429,14 +429,20 @@ public class Dialog {
 
         }.getReturnValue();
         final int mask = dialog.getReturnmask();
-        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(); }
-        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(); }
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
         return ret;
     }
 
-    public int showErrorDialog(final String s) throws DialogClosedException, DialogCanceledException {
+    public int showErrorDialog(final String s) {
         try {
-            return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true), null, null);
+            try {
+                return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true), null, null);
+            } catch (final DialogClosedException e) {
+                return Dialog.RETURN_CLOSED;
+            } catch (final DialogCanceledException e) {
+                return Dialog.RETURN_CANCEL;
+            }
         } catch (final IOException e) {
             e.printStackTrace();
         }
@@ -608,8 +614,8 @@ public class Dialog {
 
         }.getReturnValue();
 
-        if (maskWrapper[0] == JFileChooser.CANCEL_OPTION) { throw new DialogCanceledException(); }
-        if (maskWrapper[0] == JFileChooser.ERROR_OPTION) { throw new DialogClosedException(); }
+        if (maskWrapper[0] == JFileChooser.CANCEL_OPTION) { throw new DialogCanceledException(Dialog.RETURN_CANCEL); }
+        if (maskWrapper[0] == JFileChooser.ERROR_OPTION) { throw new DialogClosedException(Dialog.RETURN_CLOSED); }
         return ret;
     }
 
@@ -715,8 +721,10 @@ public class Dialog {
      * @throws DialogCanceledException
      * @throws DialogClosedException
      */
-    public void showMessageDialog(final int flag, final String message) throws DialogClosedException, DialogCanceledException {
+    public void showMessageDialog(final int flag, final String message) {
+
         this.showMessageDialog(flag, APPWORKUTILS.DIALOG_MESSAGE_TITLE.s(), message);
+
     }
 
     /**
@@ -731,8 +739,14 @@ public class Dialog {
      * @throws DialogCanceledException
      * @throws DialogClosedException
      */
-    public void showMessageDialog(final int flag, final String title, final String message) throws DialogClosedException, DialogCanceledException {
-        this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | flag, title, message, Dialog.getIconByText(title + message), null, null);
+    public void showMessageDialog(final int flag, final String title, final String message) {
+        try {
+            this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | flag, title, message, Dialog.getIconByText(title + message), null, null);
+        } catch (final DialogClosedException e) {
+
+        } catch (final DialogCanceledException e) {
+
+        }
     }
 
     /**
@@ -742,7 +756,7 @@ public class Dialog {
      * @throws DialogCanceledException
      * @throws DialogClosedException
      */
-    public void showMessageDialog(final String message) throws DialogClosedException, DialogCanceledException {
+    public void showMessageDialog(final String message) {
         this.showMessageDialog(0, APPWORKUTILS.DIALOG_MESSAGE_TITLE.s(), message);
     }
 
@@ -755,7 +769,7 @@ public class Dialog {
      * @throws DialogCanceledException
      * @throws DialogClosedException
      */
-    public void showMessageDialog(final String title, final String message) throws DialogClosedException, DialogCanceledException {
+    public void showMessageDialog(final String title, final String message) {
         this.showMessageDialog(0, title, message);
     }
 

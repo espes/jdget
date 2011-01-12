@@ -14,7 +14,11 @@ package org.appwork.utils.swing.dialog;
  * 
  */
 public class DialogClosedException extends DialogNoAnswerException {
-    public DialogClosedException() {
-        super();
+
+    /**
+     * @param mask
+     */
+    public DialogClosedException(final int mask) {
+        super(mask);
     }
 }

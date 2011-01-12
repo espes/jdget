@@ -75,15 +75,9 @@ public class DialogOrder {
             private static final long serialVersionUID = 3916626551625222343L;
 
             public void actionPerformed(final ActionEvent e) {
-                try {
-                    Dialog.getInstance().showMessageDialog("INTERNAL");
-                } catch (final DialogClosedException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                } catch (final DialogCanceledException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
+
+                Dialog.getInstance().showMessageDialog("INTERNAL");
+
                 System.out.println("Closed A");
             }
 

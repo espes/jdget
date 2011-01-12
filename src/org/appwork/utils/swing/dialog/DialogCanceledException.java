@@ -14,7 +14,7 @@ package org.appwork.utils.swing.dialog;
  * 
  */
 public class DialogCanceledException extends DialogNoAnswerException {
-    public DialogCanceledException() {
-        super();
+    public DialogCanceledException(final int mask) {
+        super(mask);
     }
 }

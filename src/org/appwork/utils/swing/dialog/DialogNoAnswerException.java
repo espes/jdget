@@ -9,12 +9,36 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import org.appwork.utils.BinaryLogic;
+
 /**
  * @author thomas
  * 
  */
 public class DialogNoAnswerException extends Exception {
-    public DialogNoAnswerException() {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private final boolean     causedByDontShowAgain;
+    private final boolean     causedByTimeout;
 
+    public DialogNoAnswerException(final int mask) {
+        causedByDontShowAgain = BinaryLogic.containsSome(mask, Dialog.RETURN_SKIPPED_BY_DONT_SHOW);
+        causedByTimeout = BinaryLogic.containsSome(mask, Dialog.RETURN_TIMEOUT);
+    }
+
+    @Override
+    public String getMessage() {
+        return "DontShowAgain: " + causedByDontShowAgain + " Timeout: " + causedByTimeout;
+    }
+
+    public boolean isCausedByDontShowAgain() {
+
+        return causedByDontShowAgain;
+    }
+
+    public boolean isCausedByTimeout() {
+        return causedByTimeout;
     }
 }
