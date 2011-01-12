@@ -26,6 +26,7 @@ public class DialogNoAnswerException extends Exception {
     public DialogNoAnswerException(final int mask) {
         causedByDontShowAgain = BinaryLogic.containsSome(mask, Dialog.RETURN_SKIPPED_BY_DONT_SHOW);
         causedByTimeout = BinaryLogic.containsSome(mask, Dialog.RETURN_TIMEOUT);
+        setStackTrace(new StackTraceElement[] {});
     }
 
     @Override

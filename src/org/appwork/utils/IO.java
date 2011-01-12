@@ -1,7 +1,9 @@
 package org.appwork.utils;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -67,7 +69,7 @@ public class IO {
     }
 
     public static String importFileToString(final File file) throws IOException {
-        return importFileToString(file, -1);
+        return IO.importFileToString(file, -1);
     }
 
     public static String importFileToString(final File file, final int maxSize) throws IOException {
@@ -77,34 +79,67 @@ public class IO {
     }
 
     public static byte[] readFile(final File ressource) throws IOException {
-        return readFile(ressource, -1);
+        return IO.readFile(ressource, -1);
     }
 
     public static byte[] readFile(final File ressource, final int maxSize) throws IOException {
-        final FileInputStream in = new FileInputStream(ressource);
-        byte[] bytes = null;
-        try {
-            int length = (int) ressource.length();
-            /* avoid reading too big files if not wanted */
-            if (maxSize > 0 && length > maxSize) throw new IOException("file " + ressource.getName() + " exceeds maximum length");
-            bytes = new byte[length];
-            int offset = 0;
-            int read = 0;
-            while ((offset < length) && ((read = in.read(bytes, offset, length - offset)) >= 0)) {
-                offset += read;
-            }
-            if (offset < length) { throw new IOException("file " + ressource.getName() + " not read completely"); }
-        } finally {
-            try {
-                in.close();
-            } catch (final Throwable e) {
-            }
-        }
-        return bytes;
+        return IO.readURL(ressource.toURI().toURL(), maxSize);
     }
 
     public static String readFileToString(final File file) throws IOException {
-        return IO.readFileToString(file.toURI().toURL());
+        return IO.readURLToString(file.toURI().toURL());
+    }
+
+    /**
+     * @param f
+     * @return
+     * @throws IOException
+     */
+    public static byte[] readURL(final URL f) throws IOException {
+        // TODO Auto-generated method stub
+        return IO.readURL(f, -1);
+    }
+
+    /**
+     * @param url
+     * @param maxSize
+     * @return
+     * @throws IOException
+     */
+    public static byte[] readURL(final URL url, final int maxSize) throws IOException {
+
+        InputStream input = null;
+        BufferedInputStream bis = null;
+        ByteArrayOutputStream baos = null;
+        try {
+            input = url.openStream();
+            bis = new BufferedInputStream(input);
+            baos = new ByteArrayOutputStream();
+
+            final byte[] b = new byte[32767];
+            int len;
+            while ((len = bis.read(b)) != -1) {
+                if (len > 0) {
+                    baos.write(b, 0, len);
+                    if (maxSize > 0 && baos.size() > maxSize) { throw new IOException("Max size exeeded!"); }
+                }
+
+            }
+        } finally {
+            try {
+                input.close();
+            } catch (final Exception e) {
+            }
+            try {
+                bis.close();
+            } catch (final Exception e) {
+            }
+            try {
+                baos.close();
+            } catch (final Throwable e) {
+            }
+        }
+        return baos.toByteArray();
     }
 
     /**
@@ -113,7 +148,7 @@ public class IO {
      * @throws IOException
      * @throws UnsupportedEncodingException
      */
-    public static String readFileToString(final URL ressourceURL) throws IOException {
+    public static String readURLToString(final URL ressourceURL) throws IOException {
         BufferedReader f = null;
         InputStreamReader isr = null;
 
@@ -121,7 +156,9 @@ public class IO {
         try {
 
             f = new BufferedReader(isr = new InputStreamReader(fis = ressourceURL.openStream(), "UTF8"));
+
             String line;
+
             final StringBuilder ret = new StringBuilder();
             final String sep = System.getProperty("line.separator");
             while ((line = f.readLine()) != null) {
@@ -154,7 +191,7 @@ public class IO {
         final Writer output = new BufferedWriter(fw = new FileWriter(file));
 
         try {
-            output.write(string);            
+            output.write(string);
         } finally {
             try {
                 output.flush();
