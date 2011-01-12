@@ -36,6 +36,7 @@ import org.appwork.utils.swing.EDTHelper;
  */
 public class ProgressDialog extends AbstractDialog<Integer> {
     public interface ProgressGetter {
+
         public int getProgress();
 
         public String getString();
@@ -43,7 +44,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         public void run() throws Exception;
     }
 
-    private static final long    serialVersionUID = -7420852517889843489L;
+    private static final long    serialVersionUID   = -7420852517889843489L;
     private boolean              disposed;
 
     private Thread               executer;
@@ -52,6 +53,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
 
     private JTextPane            textField;
     private Timer                updater;
+    private long                 waitForTermination = 20000;
 
     /**
      * @param progressGetter
@@ -67,6 +69,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         this.message = message;
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         this.getter = progressGetter;
+
         this.setReturnmask(true);
     }
 
@@ -84,12 +87,13 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     @Override
     public void dispose() {
         if (this.disposed) { return; }
-
+        System.out.println("Dispose Progressdialog");
         this.disposed = true;
         this.executer.interrupt();
 
         try {
-            this.executer.join(20000);
+            this.executer.join(this.waitForTermination);
+
         } catch (final InterruptedException e) {
 
         }
@@ -130,6 +134,10 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         }
     }
 
+    public long getWaitForTermination() {
+        return this.waitForTermination;
+    }
+
     @Override
     public JComponent layoutDialogContent() {
 
@@ -146,6 +154,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
                 if (ProgressDialog.this.getter != null) {
                     final int prg = ProgressDialog.this.getter.getProgress();
                     final String text = ProgressDialog.this.getter.getString();
+
                     if (prg < 0) {
                         bar.setIndeterminate(true);
 
@@ -199,6 +208,10 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         this.executer.start();
 
         return p;
+    }
+
+    public void setWaitForTermination(final long waitForTermination) {
+        this.waitForTermination = waitForTermination;
     }
 
 }
