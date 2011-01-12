@@ -2,6 +2,7 @@ package org.appwork.utils.event;
 
 import java.util.EventObject;
 
+@Deprecated
 public class BasicEvent<E> extends DefaultIntEvent<E> {
 
     private final EventObject sourceEvent;
