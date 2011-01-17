@@ -65,12 +65,17 @@ public class ProgressDialog extends AbstractDialog<Integer> {
      * @param s2
      */
     public ProgressDialog(final ProgressGetter progressGetter, final int flags, final String title, final String message, final ImageIcon icon) {
-        super(flags | Dialog.BUTTONS_HIDE_OK, title, icon, null, null);
-        this.message = message;
-        this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        this.getter = progressGetter;
+        this(progressGetter, flags, title, message, icon, null, null);
+    }
 
-        this.setReturnmask(true);
+    public ProgressDialog(final ProgressGetter progressGetter, final int flags, final String title, final String message, final ImageIcon icon, final String ok, final String cancel) {
+        super(flags | Dialog.BUTTONS_HIDE_OK, title, icon, ok, cancel);
+        this.message = message;
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        getter = progressGetter;
+
+        setReturnmask(true);
+
     }
 
     /*
@@ -81,18 +86,18 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     @Override
     protected Integer createReturnValue() {
         // TODO Auto-generated method stub
-        return this.getReturnmask();
+        return getReturnmask();
     }
 
     @Override
     public void dispose() {
-        if (this.disposed) { return; }
+        if (disposed) { return; }
         System.out.println("Dispose Progressdialog");
-        this.disposed = true;
-        this.executer.interrupt();
+        disposed = true;
+        executer.interrupt();
 
         try {
-            this.executer.join(this.waitForTermination);
+            executer.join(waitForTermination);
 
         } catch (final InterruptedException e) {
 
@@ -102,10 +107,10 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     }
 
     private JComponent getTextfield() {
-        this.textField = new JTextPane();
-        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
-            this.textField.setContentType("text/html");
-            this.textField.addHyperlinkListener(new HyperlinkListener() {
+        textField = new JTextPane();
+        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_HTML)) {
+            textField.setContentType("text/html");
+            textField.addHyperlinkListener(new HyperlinkListener() {
 
                 public void hyperlinkUpdate(final HyperlinkEvent e) {
                     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -115,27 +120,27 @@ public class ProgressDialog extends AbstractDialog<Integer> {
 
             });
         } else {
-            this.textField.setContentType("text");
-            this.textField.setMaximumSize(new Dimension(450, 600));
+            textField.setContentType("text");
+            textField.setMaximumSize(new Dimension(450, 600));
         }
 
-        this.textField.setText(this.message);
-        this.textField.setEditable(false);
-        this.textField.setBackground(null);
-        this.textField.setOpaque(false);
-        this.textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        textField.setText(message);
+        textField.setEditable(false);
+        textField.setBackground(null);
+        textField.setOpaque(false);
+        textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
-        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
-            final JScrollPane sp = new JScrollPane(this.textField);
+        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
+            final JScrollPane sp = new JScrollPane(textField);
             sp.setMaximumSize(new Dimension(450, 600));
             return sp;
         } else {
-            return this.textField;
+            return textField;
         }
     }
 
     public long getWaitForTermination() {
-        return this.waitForTermination;
+        return waitForTermination;
     }
 
     @Override
@@ -143,17 +148,17 @@ public class ProgressDialog extends AbstractDialog<Integer> {
 
         final JPanel p = new JPanel(new MigLayout("ins 0"));
 
-        p.add(this.getTextfield(), "growx,pushx");
+        p.add(getTextfield(), "growx,pushx");
         final JProgressBar bar;
         p.add(bar = new JProgressBar(0, 100), "growx,pushx,newline");
         bar.setStringPainted(true);
 
-        this.updater = new Timer(50, new ActionListener() {
+        updater = new Timer(50, new ActionListener() {
 
             public void actionPerformed(final ActionEvent e) {
-                if (ProgressDialog.this.getter != null) {
-                    final int prg = ProgressDialog.this.getter.getProgress();
-                    final String text = ProgressDialog.this.getter.getString();
+                if (getter != null) {
+                    final int prg = getter.getProgress();
+                    final String text = getter.getString();
 
                     if (prg < 0) {
                         bar.setIndeterminate(true);
@@ -171,21 +176,21 @@ public class ProgressDialog extends AbstractDialog<Integer> {
                     }
 
                     if (prg >= 100) {
-                        ProgressDialog.this.updater.stop();
+                        updater.stop();
                         ProgressDialog.this.dispose();
                         return;
                     }
                 }
             }
         });
-        this.updater.setRepeats(true);
-        this.updater.setInitialDelay(50);
-        this.updater.start();
-        this.executer = new Thread("ProgressDialogExecuter") {
+        updater.setRepeats(true);
+        updater.setInitialDelay(50);
+        updater.start();
+        executer = new Thread("ProgressDialogExecuter") {
             @Override
             public void run() {
                 try {
-                    ProgressDialog.this.getter.run();
+                    getter.run();
                 } catch (final Exception e) {
 
                     ProgressDialog.this.setReturnmask(false);
@@ -200,12 +205,12 @@ public class ProgressDialog extends AbstractDialog<Integer> {
 
                     }.start();
 
-                    ProgressDialog.this.updater.stop();
+                    updater.stop();
                 }
 
             }
         };
-        this.executer.start();
+        executer.start();
 
         return p;
     }
