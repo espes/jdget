@@ -7,7 +7,7 @@ public abstract class Storage {
     private final DefaultEventSender<StorageEvent<?>> eventSender;
 
     public Storage() {
-        this.eventSender = new DefaultEventSender<StorageEvent<?>>();
+        eventSender = new DefaultEventSender<StorageEvent<?>>();
     }
 
     /**
@@ -17,6 +17,8 @@ public abstract class Storage {
      */
     abstract public void clear() throws StorageException;
 
+    abstract public void close();
+
     public abstract long decrease(String key);
 
     abstract public <E> E get(String key, E def) throws StorageException;
@@ -25,10 +27,16 @@ public abstract class Storage {
      * @return the eventSender
      */
     public DefaultEventSender<StorageEvent<?>> getEventSender() {
-        return this.eventSender;
+        return eventSender;
     }
-    
+
     abstract public String getID();
+
+    /**
+     * @param key
+     * @return
+     */
+    abstract public boolean hasProperty(String key);
 
     /**
      * @param string
@@ -61,6 +69,5 @@ public abstract class Storage {
     public abstract Object remove(String key);
 
     abstract public void save() throws StorageException;
-    abstract public void close();
 
 }
