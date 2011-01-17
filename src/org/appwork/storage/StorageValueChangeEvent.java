@@ -41,4 +41,22 @@ public class StorageValueChangeEvent<E> extends StorageEvent<E> {
         return this.getParameter(0);
     }
 
+    /**
+     * TODO: check
+     * 
+     * @return
+     */
+    public boolean hasChanged() {
+        final E newV = getNewValue();
+        final E oldV = this.getOldValue();
+        if (oldV == null && newV != null) {
+            return true;
+        } else if (newV == null && oldV != null) {
+            return true;
+        } else if (newV != null) { return newV.equals(oldV);
+
+        }
+        return false;
+    }
+
 }
