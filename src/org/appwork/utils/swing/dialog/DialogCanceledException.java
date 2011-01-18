@@ -9,12 +9,25 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.util.logging.Level;
+
+import org.appwork.utils.logging.ExceptionDefaultLogLevel;
+
 /**
  * @author thomas
  * 
  */
-public class DialogCanceledException extends DialogNoAnswerException {
+public class DialogCanceledException extends DialogNoAnswerException implements ExceptionDefaultLogLevel{
     public DialogCanceledException(final int mask) {
         super(mask);
+    }
+
+    /* (non-Javadoc)
+     * @see org.appwork.utils.logging.ExceptionDefaultLogLevel#getDefaultLogLevel()
+     */
+    @Override
+    public Level getDefaultLogLevel() {
+        // TODO Auto-generated method stub
+        return Level.WARNING;
     }
 }

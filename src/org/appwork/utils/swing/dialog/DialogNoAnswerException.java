@@ -9,13 +9,16 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.util.logging.Level;
+
 import org.appwork.utils.BinaryLogic;
+import org.appwork.utils.logging.ExceptionDefaultLogLevel;
 
 /**
  * @author thomas
  * 
  */
-public class DialogNoAnswerException extends Exception {
+public class DialogNoAnswerException extends Exception implements ExceptionDefaultLogLevel{
     /**
      * 
      */
@@ -41,5 +44,11 @@ public class DialogNoAnswerException extends Exception {
 
     public boolean isCausedByTimeout() {
         return causedByTimeout;
+    }
+    
+    @Override
+    public Level getDefaultLogLevel() {
+        // TODO Auto-generated method stub
+        return Level.WARNING;
     }
 }
