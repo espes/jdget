@@ -55,4 +55,16 @@ public class StringFormatter {
         return new String(ret).trim();
     }
 
+    public static String fillString(String binaryString, String pre, String post, int length) {
+        while (binaryString.length() < length) {
+            if (binaryString.length() < length) {
+                binaryString = pre + binaryString;
+            }
+            if (binaryString.length() < length) {
+                binaryString = binaryString + post;
+            }
+        }
+        return binaryString;
+    }
+
 }

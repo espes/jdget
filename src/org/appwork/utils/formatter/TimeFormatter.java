@@ -9,6 +9,10 @@
  */
 package org.appwork.utils.formatter;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+import java.util.regex.Pattern;
+
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.Regex;
 
@@ -87,5 +91,43 @@ public class TimeFormatter {
         }
 
         return hours * 60 * 60 * 1000 + minutes * 60 * 1000;
+    }
+
+    public static long getMilliSeconds(final String dateString, final String timeformat, final Locale l) {
+        if (dateString != null) {
+            final SimpleDateFormat dateFormat = l != null ? new SimpleDateFormat(timeformat, l) : new SimpleDateFormat(timeformat);
+            try {
+                return dateFormat.parse(dateString).getTime();
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return -1;
+    }
+
+    public static long getMilliSeconds(final String wait) {
+        String[][] matches = new Regex(wait, "([\\d]+) ?[\\.|\\,|\\:] ?([\\d]+)").getMatches();
+        if (matches == null || matches.length == 0) {
+            matches = new Regex(wait, Pattern.compile("([\\d]+)")).getMatches();
+        }
+    
+        if (matches == null || matches.length == 0) { return -1; }
+    
+        double res = 0;
+        if (matches[0].length == 1) {
+            res = Double.parseDouble(matches[0][0]);
+        }
+        if (matches[0].length == 2) {
+            res = Double.parseDouble(matches[0][0] + "." + matches[0][1]);
+        }
+    
+        if (org.appwork.utils.Regex.matches(wait, Pattern.compile("(h|st)", Pattern.CASE_INSENSITIVE))) {
+            res *= 60 * 60 * 1000l;
+        } else if (org.appwork.utils.Regex.matches(wait, Pattern.compile("(m)", Pattern.CASE_INSENSITIVE))) {
+            res *= 60 * 1000l;
+        } else {
+            res *= 1000l;
+        }
+        return Math.round(res);
     }
 }
