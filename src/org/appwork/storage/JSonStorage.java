@@ -50,9 +50,6 @@ public class JSonStorage {
         return JSonStorage.MAPPER;
     }
 
-    /**
-     * TODO: Difference to {@link #getStorage(String)} ?
-     */
     public static Storage getPlainStorage(final String name) throws StorageException {
         synchronized (JSonStorage.MAP) {
             final String id = Application.getRessource("cfg/" + name + ".json").getAbsolutePath();
@@ -96,9 +93,6 @@ public class JSonStorage {
         }
     }
 
-    /**
-     * TODO: Difference to {@link #getPlainStorage(String)} ?
-     */
     public static Storage getStorage(final String name) throws StorageException {
         synchronized (JSonStorage.MAP) {
             final String id = Application.getRessource("cfg/" + name + ".ejs").getAbsolutePath();

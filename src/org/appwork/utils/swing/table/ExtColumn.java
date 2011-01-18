@@ -14,8 +14,6 @@ import javax.swing.table.TableCellRenderer;
 
 import org.appwork.utils.swing.EDTHelper;
 
-import sun.swing.table.DefaultTableCellHeaderRenderer;
-
 /**
  * ExtColums define a single column of an extended Table. It contains all
  * columndetails including renderer

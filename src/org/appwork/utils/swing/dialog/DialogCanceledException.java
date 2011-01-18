@@ -15,19 +15,18 @@ import org.appwork.utils.logging.ExceptionDefaultLogLevel;
 
 /**
  * @author thomas
- * 
  */
-public class DialogCanceledException extends DialogNoAnswerException implements ExceptionDefaultLogLevel{
+public class DialogCanceledException extends DialogNoAnswerException implements ExceptionDefaultLogLevel {
+
+    private static final long serialVersionUID = -3802702080376060744L;
+
     public DialogCanceledException(final int mask) {
         super(mask);
     }
 
-    /* (non-Javadoc)
-     * @see org.appwork.utils.logging.ExceptionDefaultLogLevel#getDefaultLogLevel()
-     */
     @Override
     public Level getDefaultLogLevel() {
-        // TODO Auto-generated method stub
         return Level.WARNING;
     }
+
 }

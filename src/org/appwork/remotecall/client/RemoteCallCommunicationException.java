@@ -11,20 +11,15 @@ package org.appwork.remotecall.client;
 
 /**
  * @author thomas
- * 
  */
 public class RemoteCallCommunicationException extends RuntimeException {
 
-    /**
-     * @param e
-     */
+    private static final long serialVersionUID = 7543663027912330426L;
+
     public RemoteCallCommunicationException(final Exception e) {
         super(e);
     }
 
-    /**
-     * @param string
-     */
     public RemoteCallCommunicationException(final String string) {
         super(string);
     }

@@ -15,20 +15,18 @@ import org.appwork.utils.logging.ExceptionDefaultLogLevel;
 
 /**
  * @author thomas
- * 
  */
-public class DialogClosedException extends DialogNoAnswerException implements ExceptionDefaultLogLevel{
+public class DialogClosedException extends DialogNoAnswerException implements ExceptionDefaultLogLevel {
 
-    /**
-     * @param mask
-     */
+    private static final long serialVersionUID = -6193184564008529988L;
+
     public DialogClosedException(final int mask) {
         super(mask);
     }
-    
+
     @Override
     public Level getDefaultLogLevel() {
-        // TODO Auto-generated method stub
         return Level.WARNING;
     }
+
 }

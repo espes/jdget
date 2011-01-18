@@ -11,13 +11,11 @@ package org.appwork.remotecall.server;
 
 /**
  * @author thomas
- * 
  */
 public class BadRequestException extends RuntimeException {
 
-    /**
-     * @param string
-     */
+    private static final long serialVersionUID = -5299365199355353239L;
+
     public BadRequestException(final String string) {
         super(string);
     }

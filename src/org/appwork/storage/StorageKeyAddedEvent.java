@@ -9,18 +9,15 @@
  */
 package org.appwork.storage;
 
-import org.appwork.storage.StorageEvent.Types;
 
 /**
  * @author daniel
- * 
  */
 public class StorageKeyAddedEvent<E> extends StorageEvent<E> {
 
     @SuppressWarnings("unchecked")
     public StorageKeyAddedEvent(final Storage storage, final String key, final E newValue) {
         super(storage, StorageEvent.Types.ADDED, key, newValue);
-
     }
 
     /**

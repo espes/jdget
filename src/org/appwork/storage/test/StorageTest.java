@@ -17,14 +17,12 @@ import org.junit.Test;
 
 /**
  * @author thomas
- * 
  */
 public class StorageTest {
 
     @Test
     public void defaultTest() {
         try {
-
             // this test has to be executed several times, because it writes on
             // app exit data to disk and evaluates it on the next start
             final Storage s = JSonStorage.getPlainStorage("org.appwork.storage.test.StorageTest");
@@ -45,7 +43,6 @@ public class StorageTest {
             Log.exception(e);
             Assert.fail(e.getMessage());
         }
-
     }
 
     @Test
@@ -54,8 +51,10 @@ public class StorageTest {
             // this test has to be executed several times, because it writes on
             // app exit data to disk and evaluates it on the next start
             final Storage s = JSonStorage.getPlainStorage("org.appwork.storage.test.StorageTest");
-            final String bla = s.get("GET", null);
-            final Integer kd = s.get("JJ", null);
+
+            s.get("GET", (String) null);
+            s.get("JJ", (Integer) null);
+
             s.put("NULL", (String) null);
             s.put("NULL", "UNNULLER");
             s.put("NOTNULL", "imnotnull");

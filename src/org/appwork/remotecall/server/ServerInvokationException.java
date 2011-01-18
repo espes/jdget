@@ -11,17 +11,12 @@ package org.appwork.remotecall.server;
 
 /**
  * @author thomas
- * 
  */
 public class ServerInvokationException extends Exception {
 
-    private final String remoteID;
+    private static final long serialVersionUID = -3140111161245241758L;
+    private final String      remoteID;
 
-    /**
-     * @param handleRequestError
-     * @param remoteID
-     * @param string
-     */
     public ServerInvokationException(final String handleRequestError, final String remoteID) {
         super(handleRequestError);
         this.remoteID = remoteID;

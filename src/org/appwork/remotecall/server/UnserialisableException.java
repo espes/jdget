@@ -11,17 +11,14 @@ package org.appwork.remotecall.server;
 
 /**
  * @author thomas
- * 
  */
 public class UnserialisableException extends Exception {
 
-    /**
-     * @param handleRequestError
-     */
+    private static final long serialVersionUID = 2858489143770582621L;
+
     public UnserialisableException(final String stacktrace) {
         super(stacktrace);
         setStackTrace(new StackTraceElement[] {});
-
     }
 
     @Override
