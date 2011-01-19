@@ -18,41 +18,41 @@ import java.util.regex.Pattern;
  * 
  */
 
-public class AwReg {
+public class Regex {
 
     private Matcher matcher;
 
-    public AwReg(final Matcher matcher) {
+    public Regex(final Matcher matcher) {
         if (matcher != null) {
             this.matcher = matcher;
         }
     }
 
-    public AwReg(final Object data, final Pattern pattern) {
+    public Regex(final Object data, final Pattern pattern) {
         this(data.toString(), pattern);
     }
 
-    public AwReg(final Object data, final String pattern) {
+    public Regex(final Object data, final String pattern) {
         this(data.toString(), pattern);
     }
 
-    public AwReg(final Object data, final String pattern, final int flags) {
+    public Regex(final Object data, final String pattern, final int flags) {
         this(data.toString(), pattern, flags);
     }
 
-    public AwReg(final String data, final Pattern pattern) {
+    public Regex(final String data, final Pattern pattern) {
         if (data != null && pattern != null) {
             matcher = pattern.matcher(data);
         }
     }
 
-    public AwReg(final String data, final String pattern) {
+    public Regex(final String data, final String pattern) {
         if (data != null && pattern != null) {
             matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(data);
         }
     }
 
-    public AwReg(final String data, final String pattern, final int flags) {
+    public Regex(final String data, final String pattern, final int flags) {
         if (data != null && pattern != null) {
             matcher = Pattern.compile(pattern, flags).matcher(data);
         }
@@ -255,11 +255,11 @@ public class AwReg {
     }
 
     public static boolean matches(final Object str, final Pattern pat) {
-        return new AwReg(str, pat).matches();
+        return new Regex(str, pat).matches();
     }
 
     public static boolean matches(final Object page, final String string) {
-        return new AwReg(page, string).matches();
+        return new Regex(page, string).matches();
     }
 
 }

@@ -8,7 +8,7 @@ import java.util.logging.Level;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
-import org.appwork.utils.AwReg;
+import org.appwork.utils.Regex;
 import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.codehaus.jackson.JsonGenerationException;
@@ -183,7 +183,7 @@ public class JSonStorage {
      */
 
     public static <E> E restoreFrom(final String string, final TypeReference<E> type, final E def) {
-        final boolean plain = new AwReg(string, ".+\\.json").matches();
+        final boolean plain = new Regex(string, ".+\\.json").matches();
         return JSonStorage.restoreFrom(Application.getRessource(string), plain, JSonStorage.KEY, type, def);
     }
 
@@ -266,7 +266,7 @@ public class JSonStorage {
                 final File tmp = new File(file.getParentFile(), file.getName() + ".tmp");
                 tmp.getParentFile().mkdirs();
                 tmp.delete();
-                if (new AwReg(pathname, ".+\\.json").matches()) {
+                if (new Regex(pathname, ".+\\.json").matches()) {
                     /* uncrypted */
                     IO.writeToFile(tmp, json.getBytes("UTF-8"));
                 } else {

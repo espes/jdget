@@ -12,7 +12,7 @@ package org.appwork.utils.formatter;
 import java.text.DecimalFormat;
 import java.util.regex.Pattern;
 
-import org.appwork.utils.AwReg;
+import org.appwork.utils.Regex;
 
 /**
  * @author $Author: unknown$
@@ -38,10 +38,10 @@ public class SizeFormatter {
     }
 
     public static long getSize(final String string) {
-        String[][] matches = new AwReg(string, Pattern.compile("([\\d]+)[\\.|\\,|\\:]([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
+        String[][] matches = new Regex(string, Pattern.compile("([\\d]+)[\\.|\\,|\\:]([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
 
         if (matches == null || matches.length == 0) {
-            matches = new AwReg(string, Pattern.compile("([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
+            matches = new Regex(string, Pattern.compile("([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
         }
         if (matches == null || matches.length == 0) { return -1; }
 
@@ -52,11 +52,11 @@ public class SizeFormatter {
         if (matches[0].length == 2) {
             res = Double.parseDouble(matches[0][0] + "." + matches[0][1]);
         }
-        if (AwReg.matches(string, Pattern.compile("(gb|gbyte|gig|gib)", Pattern.CASE_INSENSITIVE))) {
+        if (Regex.matches(string, Pattern.compile("(gb|gbyte|gig|gib)", Pattern.CASE_INSENSITIVE))) {
             res *= 1024 * 1024 * 1024;
-        } else if (AwReg.matches(string, Pattern.compile("(mb|mbyte|megabyte|mib)", Pattern.CASE_INSENSITIVE))) {
+        } else if (Regex.matches(string, Pattern.compile("(mb|mbyte|megabyte|mib)", Pattern.CASE_INSENSITIVE))) {
             res *= 1024 * 1024;
-        } else if (AwReg.matches(string, Pattern.compile("(kb|kbyte|kilobyte|kib)", Pattern.CASE_INSENSITIVE))) {
+        } else if (Regex.matches(string, Pattern.compile("(kb|kbyte|kilobyte|kib)", Pattern.CASE_INSENSITIVE))) {
             res *= 1024;
         }
 
