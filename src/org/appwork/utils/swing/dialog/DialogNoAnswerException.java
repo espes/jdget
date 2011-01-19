@@ -46,7 +46,7 @@ public class DialogNoAnswerException extends Exception implements ExceptionDefau
         return causedByTimeout;
     }
     
-    @Override
+ 
     public Level getDefaultLogLevel() {
         // TODO Auto-generated method stub
         return Level.WARNING;
