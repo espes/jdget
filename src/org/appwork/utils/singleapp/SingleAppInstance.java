@@ -30,8 +30,8 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 
-
 import org.appwork.utils.Application;
+import org.appwork.utils.IO;
 
 /**
  * @author daniel
@@ -172,22 +172,18 @@ public class SingleAppInstance {
             } catch (Throwable t) {
                 /* network communication not possible */
             } finally {
-                if (portWriter != null) {
-                    try {
-                        portWriter.close();
-                    } catch (Throwable t) {
-                    }
+                try {
+                    portWriter.close();
+                } catch (Throwable t) {
                 }
             }
             cannotStart("could not create instance!");
         } catch (FileNotFoundException e) {
             cannotStart(e.getMessage());
         } catch (IOException e) {
-            if (serverSocket != null) {
-                try {
-                    serverSocket.close();
-                } catch (Throwable t) {
-                }
+            try {
+                serverSocket.close();
+            } catch (Throwable t) {
             }
             cannotStart(e.getMessage());
         }
@@ -332,23 +328,11 @@ public class SingleAppInstance {
 
     private int readPortFromPortFile() {
         if (!portFile.exists()) return 0;
-        FileReader reader = null;
         try {
-            reader = new FileReader(portFile);
-            final char[] buf = new char[(int) portFile.length()];
-            reader.read(buf);
-            reader.close();
-            reader = null;
-            return Integer.parseInt(String.valueOf(buf).trim());
+            String port = IO.readFileToString(portFile);
+            return Integer.parseInt(String.valueOf(port).trim());
         } catch (Exception e) {
             return 0;
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (Throwable e) {
-                }
-            }
         }
     }
 }

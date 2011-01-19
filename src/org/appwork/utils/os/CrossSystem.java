@@ -124,15 +124,25 @@ public class CrossSystem {
      */
     public static boolean isOpenBrowserSupported() {
         if (CrossSystem.isWindows()) { return true; }
-        final Desktop desktop = Desktop.getDesktop();
-        if (!desktop.isSupported(Desktop.Action.BROWSE)) { return false; }
-        return true;
+        try {
+            final Desktop desktop = Desktop.getDesktop();
+            if (!desktop.isSupported(Desktop.Action.BROWSE)) { return false; }
+            return true;
+        } catch (final Throwable e) {
+            Log.exception(Level.WARNING, e);
+        }
+        return false;
     }
 
     public static boolean isOpenFileSupported() {
         if (CrossSystem.isWindows()) { return true; }
-        final Desktop desktop = Desktop.getDesktop();
-        if (!desktop.isSupported(Desktop.Action.OPEN)) { return false; }
+        try {
+            final Desktop desktop = Desktop.getDesktop();
+            if (!desktop.isSupported(Desktop.Action.OPEN)) { return false; }
+            return true;
+        } catch (final Throwable e) {
+            Log.exception(Level.WARNING, e);
+        }
         return true;
     }
 
