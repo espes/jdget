@@ -40,6 +40,17 @@ public class JSonStorage {
         });
     }
 
+    public static boolean addStorage(final Storage storage) {
+        synchronized (JSonStorage.MAP) {
+            final Storage ret = JSonStorage.MAP.get(storage.getID());
+            if (ret == null) {
+                JSonStorage.MAP.put(storage.getID(), storage);
+                return true;
+            }
+            return false;
+        }
+    }
+
     /**
      * Mapper is Thread safe according to <br>
      * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
@@ -50,19 +61,8 @@ public class JSonStorage {
         return JSonStorage.MAPPER;
     }
 
-    public static Storage getPlainStorage(final String name) throws StorageException {
-        synchronized (JSonStorage.MAP) {
-            final String id = Application.getRessource("cfg/" + name + ".json").getAbsolutePath();
-            Storage ret = JSonStorage.MAP.get(id);
-            if (ret == null) {
-                ret = new JacksonStorageChest(name, true);
-                JSonStorage.MAP.put(ret.getID(), ret);
-            }
-            return ret;
-        }
-    }
-
     public static Storage getPlainStorage(final File file) throws StorageException {
+
         synchronized (JSonStorage.MAP) {
             final String id = file.getAbsolutePath();
             Storage ret = JSonStorage.MAP.get(id);
@@ -74,22 +74,18 @@ public class JSonStorage {
         }
     }
 
-    public static boolean addStorage(final Storage storage) {
+    /**
+     * TODO: Difference to {@link #getStorage(String)} ?
+     */
+    public static Storage getPlainStorage(final String name) throws StorageException {
         synchronized (JSonStorage.MAP) {
-            Storage ret = JSonStorage.MAP.get(storage.getID());
+            final String id = Application.getRessource("cfg/" + name + ".json").getAbsolutePath();
+            Storage ret = JSonStorage.MAP.get(id);
             if (ret == null) {
-                JSonStorage.MAP.put(storage.getID(), storage);
-                return true;
+                ret = new JacksonStorageChest(name, true);
+                JSonStorage.MAP.put(ret.getID(), ret);
             }
-            return false;
-        }
-    }
-
-    public static boolean removeStorage(final Storage storage) {
-        synchronized (JSonStorage.MAP) {
-            Storage ret = JSonStorage.MAP.remove(storage.getID());
-            if (ret == null) { return false; }
-            return true;
+            return ret;
         }
     }
 
@@ -105,33 +101,20 @@ public class JSonStorage {
         }
     }
 
-    /**
-     * restores a store json object
-     * 
-     * @param <E>
-     * @param string
-     *            name of the json object. example: cfg/savedobject.json
-     * @param type
-     *            TypeReference instance. This is important for generic classes.
-     *            for example: new TypeReference<ArrayList<Contact>>(){} to
-     *            restore type ArrayList<Contact>
-     * @param def
-     *            defaultvalue. if typeref is not set, the method tries to use
-     *            the class of def as restoreclass
-     * @return
-     */
-
-    public static <E> E restoreFrom(final String string, final TypeReference<E> type, final E def) {
-        final boolean plain = new Regex(string, ".+\\.json").matches();
-        return restoreFrom(Application.getRessource(string), plain, JSonStorage.KEY, type, def);
+    public static boolean removeStorage(final Storage storage) {
+        synchronized (JSonStorage.MAP) {
+            final Storage ret = JSonStorage.MAP.remove(storage.getID());
+            if (ret == null) { return false; }
+            return true;
+        }
     }
 
-    public static <E> E restoreFrom(final File file, boolean plain, final byte[] key, final TypeReference<E> type, final E def) {
+    public static <E> E restoreFrom(final File file, final boolean plain, final byte[] key, final TypeReference<E> type, final E def) {
         synchronized (JSonStorage.LOCK) {
             String stri = null;
             byte[] str = null;
             try {
-                File tmpfile = new File(file.getAbsolutePath() + ".tmp");
+                final File tmpfile = new File(file.getAbsolutePath() + ".tmp");
                 if (tmpfile.exists()) {
                     /* tmp files exists, try to restore */
                     Log.L.warning("TMP file " + tmpfile.getAbsolutePath() + " found");
@@ -184,6 +167,27 @@ public class JSonStorage {
     }
 
     /**
+     * restores a store json object
+     * 
+     * @param <E>
+     * @param string
+     *            name of the json object. example: cfg/savedobject.json
+     * @param type
+     *            TypeReference instance. This is important for generic classes.
+     *            for example: new TypeReference<ArrayList<Contact>>(){} to
+     *            restore type ArrayList<Contact>
+     * @param def
+     *            defaultvalue. if typeref is not set, the method tries to use
+     *            the class of def as restoreclass
+     * @return
+     */
+
+    public static <E> E restoreFrom(final String string, final TypeReference<E> type, final E def) {
+        final boolean plain = new Regex(string, ".+\\.json").matches();
+        return JSonStorage.restoreFrom(Application.getRessource(string), plain, JSonStorage.KEY, type, def);
+    }
+
+    /**
      * @param string
      * @param class1
      * @throws IOException
@@ -227,6 +231,29 @@ public class JSonStorage {
         }
     }
 
+    public static void saveTo(final File file, final boolean plain, final byte[] key, final String json) throws StorageException {
+        synchronized (JSonStorage.LOCK) {
+            try {
+                final File tmp = new File(file.getAbsolutePath() + ".tmp");
+                tmp.getParentFile().mkdirs();
+                tmp.delete();
+                if (plain) {
+                    /* uncrypted */
+                    IO.writeToFile(tmp, json.getBytes("UTF-8"));
+                } else {
+                    /* encrypted */
+                    IO.writeToFile(tmp, Crypto.encrypt(json, key));
+                }
+                if (file.exists()) {
+                    if (!file.delete()) { throw new StorageException("Could not overwrite file: " + file.getAbsolutePath()); }
+                }
+                if (!tmp.renameTo(file)) { throw new StorageException("Could not rename file: " + tmp + " to " + file); }
+            } catch (final IOException e) {
+                throw new StorageException(e);
+            }
+        }
+    }
+
     /**
      * @param pathname
      * @param json
@@ -256,26 +283,16 @@ public class JSonStorage {
         }
     }
 
-    public static void saveTo(final File file, boolean plain, final byte[] key, final String json) throws StorageException {
+    /**
+     * @param list
+     * @return
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonGenerationException
+     */
+    public static String serializeToJson(final Object list) throws JsonGenerationException, JsonMappingException, IOException {
         synchronized (JSonStorage.LOCK) {
-            try {
-                final File tmp = new File(file.getAbsolutePath() + ".tmp");
-                tmp.getParentFile().mkdirs();
-                tmp.delete();
-                if (plain) {
-                    /* uncrypted */
-                    IO.writeToFile(tmp, json.getBytes("UTF-8"));
-                } else {
-                    /* encrypted */
-                    IO.writeToFile(tmp, Crypto.encrypt(json, key));
-                }
-                if (file.exists()) {
-                    if (!file.delete()) { throw new StorageException("Could not overwrite file: " + file.getAbsolutePath()); }
-                }
-                if (!tmp.renameTo(file)) { throw new StorageException("Could not rename file: " + tmp + " to " + file); }
-            } catch (final IOException e) {
-                throw new StorageException(e);
-            }
+            return JSonStorage.MAPPER.writeValueAsString(list);
         }
     }
 
@@ -286,7 +303,7 @@ public class JSonStorage {
     public static void storeTo(final String string, final Object list) {
         synchronized (JSonStorage.LOCK) {
             try {
-                JSonStorage.saveTo(string, JSonStorage.toString(list));
+                JSonStorage.saveTo(string, JSonStorage.serializeToJson(list));
             } catch (final JsonGenerationException e) {
                 Log.exception(e);
             } catch (final JsonMappingException e) {
@@ -299,17 +316,23 @@ public class JSonStorage {
         }
     }
 
-    /**
-     * @param list
-     * @return
-     * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonGenerationException
-     */
-    public static String toString(final Object list) throws JsonGenerationException, JsonMappingException, IOException {
+    public static String toString(final Object list) {
         synchronized (JSonStorage.LOCK) {
-            return JSonStorage.MAPPER.writeValueAsString(list);
+            try {
+                return JSonStorage.MAPPER.writeValueAsString(list);
+            } catch (final JsonGenerationException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (final JsonMappingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (final IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return list.toString();
         }
+
     }
 
 }

@@ -25,7 +25,7 @@ public class ExceptionWrapper {
     private String name;
 
     public ExceptionWrapper(final Throwable e) throws IOException {
-        _exception = JSonStorage.toString(e);
+        _exception = JSonStorage.serializeToJson(e);
         name = e.getClass().getName();
     }
 

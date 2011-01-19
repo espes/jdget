@@ -104,7 +104,7 @@ public class RemoteCallServer {
 
             Object answer;
             answer = service.call(m, params);
-            return JSonStorage.toString(answer);
+            return JSonStorage.serializeToJson(answer);
 
         } catch (final InvocationTargetException e1) {
             // TODO Auto-generated catch block
@@ -126,10 +126,10 @@ public class RemoteCallServer {
 
         this.cleanUpStackTrace(e, callerid);
         try {
-            sb.append(JSonStorage.toString(new ExceptionWrapper(e)));
+            sb.append(JSonStorage.serializeToJson(new ExceptionWrapper(e)));
         } catch (final Throwable e1) {
             try {
-                sb.append(JSonStorage.toString(new ExceptionWrapper(new UnserialisableException(Exceptions.getStackTrace(e)))));
+                sb.append(JSonStorage.serializeToJson(new ExceptionWrapper(new UnserialisableException(Exceptions.getStackTrace(e)))));
             } catch (final Throwable e2) {
                 // TODO Auto-generated catch block
                 // TODO: URLENCODE here

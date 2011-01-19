@@ -77,7 +77,7 @@ public class Utils {
 
     public static String serialiseSingleObject(final Object o) throws SerialiseException {
         try {
-            return URLEncoder.encode(JSonStorage.toString(o), "UTF-8");
+            return URLEncoder.encode(JSonStorage.serializeToJson(o), "UTF-8");
 
         } catch (final Exception e) {
             throw new SerialiseException(e);
