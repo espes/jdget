@@ -18,41 +18,41 @@ import java.util.regex.Pattern;
  * 
  */
 
-public class RegularExpression {
+public class AwReg {
 
     private Matcher matcher;
 
-    public RegularExpression(final Matcher matcher) {
+    public AwReg(final Matcher matcher) {
         if (matcher != null) {
             this.matcher = matcher;
         }
     }
 
-    public RegularExpression(final Object data, final Pattern pattern) {
+    public AwReg(final Object data, final Pattern pattern) {
         this(data.toString(), pattern);
     }
 
-    public RegularExpression(final Object data, final String pattern) {
+    public AwReg(final Object data, final String pattern) {
         this(data.toString(), pattern);
     }
 
-    public RegularExpression(final Object data, final String pattern, final int flags) {
+    public AwReg(final Object data, final String pattern, final int flags) {
         this(data.toString(), pattern, flags);
     }
 
-    public RegularExpression(final String data, final Pattern pattern) {
+    public AwReg(final String data, final Pattern pattern) {
         if (data != null && pattern != null) {
             matcher = pattern.matcher(data);
         }
     }
 
-    public RegularExpression(final String data, final String pattern) {
+    public AwReg(final String data, final String pattern) {
         if (data != null && pattern != null) {
             matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(data);
         }
     }
 
-    public RegularExpression(final String data, final String pattern, final int flags) {
+    public AwReg(final String data, final String pattern, final int flags) {
         if (data != null && pattern != null) {
             matcher = Pattern.compile(pattern, flags).matcher(data);
         }
@@ -255,11 +255,11 @@ public class RegularExpression {
     }
 
     public static boolean matches(final Object str, final Pattern pat) {
-        return new RegularExpression(str, pat).matches();
+        return new AwReg(str, pat).matches();
     }
 
     public static boolean matches(final Object page, final String string) {
-        return new RegularExpression(page, string).matches();
+        return new AwReg(page, string).matches();
     }
 
 }

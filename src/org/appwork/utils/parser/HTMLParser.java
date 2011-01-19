@@ -13,7 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
-import org.appwork.utils.RegularExpression;
+import org.appwork.utils.AwReg;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -28,7 +28,7 @@ public class HTMLParser {
         final ArrayList<String> ret = new ArrayList<String>();
         try {
 
-            for (String link : new RegularExpression(source, "\\(?\\b(ftp://|https?://)[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]").getColumn(-1)) {
+            for (String link : new AwReg(source, "\\(?\\b(ftp://|https?://)[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]").getColumn(-1)) {
                 try {
                     if (link != null) {
                         link = link.trim();
