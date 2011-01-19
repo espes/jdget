@@ -162,7 +162,10 @@ public class IO {
             final StringBuilder ret = new StringBuilder();
             final String sep = System.getProperty("line.separator");
             while ((line = f.readLine()) != null) {
-                ret.append(line).append(sep);
+                if (ret.length() > 0) {
+                    ret.append(sep);
+                }
+                ret.append(line);
             }
             return ret.toString();
         } finally {
