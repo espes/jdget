@@ -84,7 +84,7 @@ public class ClipboardUtils {
             for (final DataFlavor flav : trans.getTransferable().getTransferDataFlavors()) {
                 if (flav.getMimeType().contains("html") && flav.getRepresentationClass().isInstance(tmpByteArray)) {
                     if (htmlFlavor != null) htmlFlavor = flav;
-                    final String charSet = new Regex(flav.toString(), "charset=(.*?)]").getMatch(0);
+                    final String charSet = new RegularExpression(flav.toString(), "charset=(.*?)]").getMatch(0);
                     if (charSet != null && charSet.equalsIgnoreCase("UTF-8")) {
                         /* we found utf-8 encoding, so lets use that */
                         htmlFlavor = flav;
@@ -94,7 +94,7 @@ public class ClipboardUtils {
             }
 
             if (htmlFlavor != null) {
-                final String charSet = new Regex(htmlFlavor.toString(), "charset=(.*?)]").getMatch(0);
+                final String charSet = new RegularExpression(htmlFlavor.toString(), "charset=(.*?)]").getMatch(0);
                 byte[] html = (byte[]) trans.getTransferable().getTransferData(htmlFlavor);
                 if (CrossSystem.isLinux()) {
                     /*

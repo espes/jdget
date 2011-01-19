@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import org.appwork.utils.IO;
-import org.appwork.utils.Regex;
+import org.appwork.utils.RegularExpression;
 import org.appwork.utils.parser.SourceParser;
 
 /**
@@ -48,9 +48,9 @@ public class TranslateUtils {
 
         sourceParser.scan();
         String source = IO.readFileToString(file);
-        final Regex reg = new Regex(source, "(.*?\\{)");
+        final RegularExpression reg = new RegularExpression(source, "(.*?\\{)");
         final String pre = reg.getMatch(0);
-        final String post = new Regex(source, "(//\\s*ENDOFENUMS.*)").getMatch(0);
+        final String post = new RegularExpression(source, "(//\\s*ENDOFENUMS.*)").getMatch(0);
         source = source.replace(pre, "<pre>");
         if (post == null) { throw new Exception("Translate Enum must end with //ENDOFENUMS"); }
         // final String pre = new Regex(source,
@@ -67,15 +67,15 @@ public class TranslateUtils {
                 }
 
                 fin.append("\r\n");
-                String line = new Regex(source, f.getName() + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\, \\d+\\)[\\,\\;]").getMatch(-1);
+                String line = new RegularExpression(source, f.getName() + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\, \\d+\\)[\\,\\;]").getMatch(-1);
 
                 if (line == null) {
-                    line = new Regex(source, f.getName() + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\)[\\,\\;]").getMatch(-1);
+                    line = new RegularExpression(source, f.getName() + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\)[\\,\\;]").getMatch(-1);
                 }
                 if (line.contains("CHATPANEL_HISTORY_LASTWEEK")) {
                     System.out.println("fdsf");
                 }
-                String comment = new Regex(source, "\\/\\*(.*?)\\*\\/\\s*" + Pattern.quote(line)).getMatch(0);
+                String comment = new RegularExpression(source, "\\/\\*(.*?)\\*\\/\\s*" + Pattern.quote(line)).getMatch(0);
                 if (comment != null) {
                     if (comment.contains("/*")) {
 
@@ -87,7 +87,7 @@ public class TranslateUtils {
                     fin.append("/*\r\n");
                     fin.append(comment.trim());
                     fin.append("\r\n*/\r\n");
-                    final String full = new Regex(source, "(\\/\\*.*?\\*\\/\\s*" + Pattern.quote(line) + ")").getMatch(0);
+                    final String full = new RegularExpression(source, "(\\/\\*.*?\\*\\/\\s*" + Pattern.quote(line) + ")").getMatch(0);
                     source = source.replace(full, "---\r\n" + line);
                 }
 
@@ -148,7 +148,7 @@ public class TranslateUtils {
             final Class<?> c = classes[i];
             final File file = new File(files[i], c.getName().replaceAll("\\.", "/") + ".java");
             String source = IO.readFileToString(file);
-            source = new Regex(source, "public\\s+enum.*?implements\\s+Translate\\s+\\{(.*)").getMatch(0);
+            source = new RegularExpression(source, "public\\s+enum.*?implements\\s+Translate\\s+\\{(.*)").getMatch(0);
             final StringBuilder untrans = new StringBuilder();
             final StringBuilder equals = new StringBuilder();
             // final String text = c.getMethod("list", new Class<?>[]
@@ -173,23 +173,23 @@ public class TranslateUtils {
 
                 StringBuilder dest = sb;
 
-                String line = new Regex(source, name + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\, \\d+\\)[\\,\\;]").getMatch(-1);
+                String line = new RegularExpression(source, name + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\, \\d+\\)[\\,\\;]").getMatch(-1);
                 System.out.println(name);
 
                 if (line == null) {
-                    line = new Regex(source, name + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\)[\\,\\;]").getMatch(-1);
+                    line = new RegularExpression(source, name + "\\s*\\(\"[^\r^\n]*?(?<!\\\\)\"\\)[\\,\\;]").getMatch(-1);
                 }
                 if (line == null) {
 
                 throw new Exception("SYNTAX line. PLease recompile"); }
-                String comment = new Regex(source, "\\/\\*(.*?)\\*\\/\\s*" + Pattern.quote(line)).getMatch(0);
+                String comment = new RegularExpression(source, "\\/\\*(.*?)\\*\\/\\s*" + Pattern.quote(line)).getMatch(0);
                 if (comment != null) {
                     comment = comment.replaceAll("\\s*\\*\\s*", " ");
-                    comment = new Regex(comment, "###" + lng + ":([^\r^\n]+)").getMatch(0);
+                    comment = new RegularExpression(comment, "###" + lng + ":([^\r^\n]+)").getMatch(0);
                     if (comment != null) {
                         comment = comment.split("###")[0].trim();
                     }
-                    source = source.replace(new Regex(source, "(\\/\\*.*?\\*\\/\\s*" + Pattern.quote(line) + ")").getMatch(0), "---\r\n" + line);
+                    source = source.replace(new RegularExpression(source, "(\\/\\*.*?\\*\\/\\s*" + Pattern.quote(line) + ")").getMatch(0), "---\r\n" + line);
                 }
                 final String translated = Loc.L(c.getSimpleName() + ":::" + name, comment != null ? comment : entry.getDefaultTranslation()).replace("\r", "\\r").replace("\n", "\\n");
 
@@ -259,7 +259,7 @@ public class TranslateUtils {
      * @return
      */
     private static String handleMultiComment(String comment) {
-        comment = new Regex(comment, ".*\\/\\*(.*)").getMatch(0);
+        comment = new RegularExpression(comment, ".*\\/\\*(.*)").getMatch(0);
         return comment;
     }
 }
