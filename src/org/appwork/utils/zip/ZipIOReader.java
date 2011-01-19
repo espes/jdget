@@ -21,15 +21,21 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import org.appwork.utils.Files;
+import org.appwork.utils.logging.Log;
+
 /**
  * @author daniel
  * 
  */
 public class ZipIOReader {
 
-    private File      zipFile = null;
-    private ZipFile   zip     = null;
-    private ZipIOFile rootFS  = null;
+    private File      zipFile               = null;
+    private ZipFile   zip                   = null;
+    private ZipIOFile rootFS                = null;
+    private boolean   autoCreateExtractPath = true;
+    private boolean   overwrite             = false;
+    private boolean   autoCreateSubDirs     = true;
 
     /**
      * open the zipFile for this ZipIOReader
@@ -40,22 +46,9 @@ public class ZipIOReader {
      * @throws ZipException
      * @throws IOException
      */
-    public ZipIOReader(File zipFile) throws ZipIOException, ZipException, IOException {
+    public ZipIOReader(final File zipFile) throws ZipIOException, ZipException, IOException {
         this.zipFile = zipFile;
         openZip();
-    }
-
-    /**
-     * opens the ZipFile for further use
-     * 
-     * @throws ZipIOException
-     * @throws ZipException
-     * @throws IOException
-     */
-    private synchronized void openZip() throws ZipIOException, ZipException, IOException {
-        if (zip != null) return;
-        if (zipFile == null || zipFile.isDirectory() || !zipFile.exists()) throw new ZipIOException("invalid zipFile");
-        this.zip = new ZipFile(zipFile);
     }
 
     /**
@@ -65,35 +58,132 @@ public class ZipIOReader {
      */
     public synchronized void close() throws IOException {
         try {
-            if (zip != null) zip.close();
+            if (zip != null) {
+                zip.close();
+            }
         } finally {
             zip = null;
         }
     }
 
     /**
-     * returns a list of all ZipEntries in this ZipFile
+     * extract given ZipEntry to output File
      * 
-     * @return ZipEntry[] of all files in the ZipFile
+     * @param entry
+     *            ZipEntry to extract
+     * @param output
+     *            File to extract to
+     * @return
      * @throws ZipIOException
+     * @throws IOException
      */
-    public synchronized ZipEntry[] getZipFiles() throws ZipIOException {
-        ArrayList<ZipEntry> ret = new ArrayList<ZipEntry>();
-        Enumeration<? extends ZipEntry> zipIter = zip.entries();
-        while (zipIter.hasMoreElements()) {
-            ret.add(zipIter.nextElement());
+    public synchronized ArrayList<File> extract(final ZipEntry entry, final File output) throws ZipIOException, IOException {
+        if (entry.isDirectory()) { throw new ZipIOException("Cannot extract a directory", entry); }
+        final ArrayList<File> ret = new ArrayList<File>();
+        if (output.exists() && output.isDirectory()) {
+            if (isOverwrite()) {
+                Files.deleteRecursiv(output);
+                if (output.exists()) { throw new IOException("Cannot extract File to Directory " + output); }
+            }
+            if (output.exists() && output.isDirectory()) {
+                Log.L.finer("Skipped extraction: directory exists: " + output);
+                return ret;
+
+            }
         }
-        return ret.toArray(new ZipEntry[ret.size()]);
+        if (output.exists()) {
+            if (isOverwrite()) {
+                output.delete();
+                if (output.exists()) { throw new IOException("Cannot overwrite File " + output); }
+            }
+            if (output.exists()) {
+                Log.L.finer("Skipped extraction: file exists: " + output);
+                return ret;
+            }
+        }
+        if (!output.getParentFile().exists()) {
+
+            if (isAutoCreateSubDirs()) {
+                output.getParentFile().mkdirs();
+                ret.add(output.getParentFile());
+                if (!output.getParentFile().exists()) { throw new IOException("Cannot create folder for File " + output); }
+            }
+            if (!output.getParentFile().exists()) {
+                Log.L.finer("Skipped extraction: cannot create dir: " + output);
+                return ret;
+            }
+        }
+        FileOutputStream stream = null;
+        CheckedInputStream in = null;
+        try {
+            stream = new FileOutputStream(output);
+            in = new CheckedInputStream(getInputStream(entry), new CRC32());
+            final byte[] buffer = new byte[32767];
+            int len = 0;
+            while ((len = in.read(buffer)) != -1) {
+                stream.write(buffer, 0, len);
+            }
+            if (entry.getCrc() != -1 && entry.getCrc() != in.getChecksum().getValue()) { throw new ZipIOException("CRC32 Failed", entry); }
+            ret.add(output);
+        } finally {
+            try {
+                in.close();
+            } catch (final Throwable e) {
+            }
+            try {
+                stream.close();
+            } catch (final Throwable e) {
+            }
+        }
+        return ret;
+    }
+
+    public synchronized ArrayList<File> extractTo(final File outputDirectory) throws ZipIOException, IOException {
+        if (outputDirectory.exists() && outputDirectory.isFile()) { throw new IOException("cannot extract to a file " + outputDirectory); }
+        if (!outputDirectory.exists() && !(autoCreateExtractPath && outputDirectory.mkdirs())) { throw new IOException("could not create outputDirectory " + outputDirectory); }
+
+        final ArrayList<File> ret = new ArrayList<File>();
+
+        for (final ZipEntry entry : getZipFiles()) {
+            final File out = new File(outputDirectory, entry.getName());
+            if (entry.isDirectory()) {
+                if (!out.exists()) {
+                    if (isAutoCreateSubDirs()) {
+                        if (!out.mkdir()) { throw new IOException("could not create outputDirectory " + out); }
+                        ret.add(out);
+                    } else {
+                        Log.L.finer("SKipped creatzion of: " + out);
+                    }
+                }
+
+            } else {
+                ret.addAll(extract(entry, out));
+            }
+        }
+        return ret;
     }
 
     /**
-     * how many ZipEntries does this ZipFile have
+     * find ZipIOFile that represents the Folder with given path
      * 
-     * @return
-     * @throws ZipIOException
+     * @param path
+     *            the path we search a ZipIOFile for
+     * @param currentRoot
+     *            currentRoot for the search
+     * @return ZipIOFile if path is found, else null
      */
-    public synchronized int size() throws ZipIOException {
-        return zip.size();
+    private ZipIOFile getFolder(final String path, final ZipIOFile currentRoot) {
+        if (path == null || currentRoot == null || !currentRoot.isDirectory()) { return null; }
+        if (currentRoot.getAbsolutePath().equalsIgnoreCase(path)) { return currentRoot; }
+        for (final ZipIOFile tmp : currentRoot.getFiles()) {
+            if (tmp.isDirectory() && tmp.getAbsolutePath().equalsIgnoreCase(path)) {
+                return tmp;
+            } else if (tmp.isDirectory()) {
+                final ZipIOFile ret = getFolder(path, tmp);
+                if (ret != null) { return ret; }
+            }
+        }
+        return null;
     }
 
     /**
@@ -105,60 +195,9 @@ public class ZipIOReader {
      * @throws ZipIOException
      * @throws IOException
      */
-    public synchronized InputStream getInputStream(ZipEntry entry) throws ZipIOException, IOException {
-        if (entry == null) throw new ZipIOException("invalid zipEntry");
+    public synchronized InputStream getInputStream(final ZipEntry entry) throws ZipIOException, IOException {
+        if (entry == null) { throw new ZipIOException("invalid zipEntry"); }
         return zip.getInputStream(entry);
-    }
-
-    public synchronized void extractTo(File outputDirectory) throws ZipIOException, IOException {
-        if (outputDirectory.exists() && outputDirectory.isFile()) throw new IOException("cannot extract to a file " + outputDirectory);
-        if (!outputDirectory.exists() && !outputDirectory.mkdirs()) throw new IOException("could not create outputDirectory " + outputDirectory);
-        for (ZipEntry entry : getZipFiles()) {
-            File out = new File(outputDirectory, entry.getName());
-            if (entry.isDirectory()) {
-                if (!out.mkdir()) throw new IOException("could not create outputDirectory " + out);
-            } else {
-                extract(entry, out);
-            }
-        }
-    }
-
-    /**
-     * extract given ZipEntry to output File
-     * 
-     * @param entry
-     *            ZipEntry to extract
-     * @param output
-     *            File to extract to
-     * @throws ZipIOException
-     * @throws IOException
-     */
-    public synchronized void extract(ZipEntry entry, File output) throws ZipIOException, IOException {
-        if (entry.isDirectory()) throw new ZipIOException("Cannot extract a directory", entry);
-        if (output.exists() && output.isDirectory()) throw new IOException("Cannot extract File to Directory " + output);
-        if (output.exists() && !output.delete()) throw new IOException("Cannot overwrite File " + output);
-        if (!output.getParentFile().exists() && !output.getParentFile().mkdirs()) throw new IOException("Cannot create folder for File " + output);
-        FileOutputStream stream = null;
-        CheckedInputStream in = null;
-        try {
-            stream = new FileOutputStream(output);
-            in = new CheckedInputStream(getInputStream(entry), new CRC32());
-            byte[] buffer = new byte[32767];
-            int len = 0;
-            while ((len = in.read(buffer)) != -1) {
-                stream.write(buffer, 0, len);
-            }
-            if (entry.getCrc() != -1 && (entry.getCrc() != in.getChecksum().getValue())) throw new ZipIOException("CRC32 Failed", entry);
-        } finally {
-            try {
-                in.close();
-            } catch (Throwable e) {
-            }
-            try {
-                stream.close();
-            } catch (Throwable e) {
-            }
-        }
     }
 
     /**
@@ -169,9 +208,24 @@ public class ZipIOReader {
      * @return ZipEntry if filename is found or null if not found
      * @throws ZipIOException
      */
-    public synchronized ZipEntry getZipFile(String fileName) throws ZipIOException {
-        if (fileName == null) throw new ZipIOException("invalid fileName");
+    public synchronized ZipEntry getZipFile(final String fileName) throws ZipIOException {
+        if (fileName == null) { throw new ZipIOException("invalid fileName"); }
         return zip.getEntry(fileName);
+    }
+
+    /**
+     * returns a list of all ZipEntries in this ZipFile
+     * 
+     * @return ZipEntry[] of all files in the ZipFile
+     * @throws ZipIOException
+     */
+    public synchronized ZipEntry[] getZipFiles() throws ZipIOException {
+        final ArrayList<ZipEntry> ret = new ArrayList<ZipEntry>();
+        final Enumeration<? extends ZipEntry> zipIter = zip.entries();
+        while (zipIter.hasMoreElements()) {
+            ret.add(zipIter.nextElement());
+        }
+        return ret.toArray(new ZipEntry[ret.size()]);
     }
 
     /**
@@ -181,36 +235,38 @@ public class ZipIOReader {
      * @throws ZipIOException
      */
     public synchronized ZipIOFile getZipIOFileSystem() throws ZipIOException {
-        if (rootFS != null) return rootFS;
-        ZipEntry[] content = getZipFiles();
-        ArrayList<ZipIOFile> root = new ArrayList<ZipIOFile>();
-        for (ZipEntry file : content) {
+        if (rootFS != null) { return rootFS; }
+        final ZipEntry[] content = getZipFiles();
+        final ArrayList<ZipIOFile> root = new ArrayList<ZipIOFile>();
+        for (final ZipEntry file : content) {
             if (!file.isDirectory() && !file.getName().contains("/")) {
                 /* file is in root */
-                ZipIOFile tmp = new ZipIOFile(file.getName(), file, this, null);
+                final ZipIOFile tmp = new ZipIOFile(file.getName(), file, this, null);
                 root.add(tmp);
             } else if (!file.isDirectory()) {
                 /* file is not in root */
-                String parts[] = file.getName().split("/");
+                final String parts[] = file.getName().split("/");
                 /* we begin at root */
                 ZipIOFile currentParent = null;
                 String path = "";
                 for (int i = 0; i < parts.length; i++) {
                     if (i == parts.length - 1) {
                         /* the file */
-                        ZipIOFile tmp = new ZipIOFile(parts[i], file, this, currentParent);
+                        final ZipIOFile tmp = new ZipIOFile(parts[i], file, this, currentParent);
                         currentParent.getFilesInternal().add(tmp);
                     } else {
                         path = path + parts[i] + "/";
                         ZipIOFile found = null;
-                        for (ZipIOFile tmp : root) {
+                        for (final ZipIOFile tmp : root) {
                             found = getFolder(path, tmp);
-                            if (found != null) break;
+                            if (found != null) {
+                                break;
+                            }
                         }
                         if (found != null) {
                             currentParent = found;
                         } else {
-                            ZipIOFile newFolder = new ZipIOFile(parts[i], null, this, currentParent);
+                            final ZipIOFile newFolder = new ZipIOFile(parts[i], null, this, currentParent);
                             if (currentParent != null) {
                                 currentParent.getFilesInternal().add(newFolder);
                             } else {
@@ -230,41 +286,75 @@ public class ZipIOReader {
         return rootFS;
     }
 
+    public boolean isAutoCreateExtractPath() {
+        return autoCreateExtractPath;
+    }
+
+    /**
+     * @return
+     */
+    private boolean isAutoCreateSubDirs() {
+        // TODO Auto-generated method stub
+        return autoCreateSubDirs;
+    }
+
+    /**
+     * @return
+     */
+    private boolean isOverwrite() {
+        // TODO Auto-generated method stub
+        return overwrite;
+    }
+
+    /**
+     * opens the ZipFile for further use
+     * 
+     * @throws ZipIOException
+     * @throws ZipException
+     * @throws IOException
+     */
+    private synchronized void openZip() throws ZipIOException, ZipException, IOException {
+        if (zip != null) { return; }
+        if (zipFile == null || zipFile.isDirectory() || !zipFile.exists()) { throw new ZipIOException("invalid zipFile"); }
+        zip = new ZipFile(zipFile);
+    }
+
+    public void setAutoCreateExtractPath(final boolean autoCreateExtractPath) {
+        this.autoCreateExtractPath = autoCreateExtractPath;
+    }
+
+    public void setAutoCreateSubDirs(final boolean autoCreateSubDirs) {
+        this.autoCreateSubDirs = autoCreateSubDirs;
+    }
+
+    public void setOverwrite(final boolean overwrite) {
+        this.overwrite = overwrite;
+    }
+
+    /**
+     * how many ZipEntries does this ZipFile have
+     * 
+     * @return
+     * @throws ZipIOException
+     */
+    public synchronized int size() throws ZipIOException {
+        return zip.size();
+    }
+
     /**
      * trims the ZipIOFiles(reduces memory)
      * 
      * @param root
      *            ZipIOFile we want to start
      */
-    private void trimZipIOFiles(ZipIOFile root) {
-        if (root == null) return;
-        for (ZipIOFile tmp : root.getFiles()) {
-            if (tmp.isDirectory()) trimZipIOFiles(tmp);
-        }
-        root.getFilesInternal().trimToSize();
-    }
-
-    /**
-     * find ZipIOFile that represents the Folder with given path
-     * 
-     * @param path
-     *            the path we search a ZipIOFile for
-     * @param currentRoot
-     *            currentRoot for the search
-     * @return ZipIOFile if path is found, else null
-     */
-    private ZipIOFile getFolder(String path, ZipIOFile currentRoot) {
-        if (path == null || currentRoot == null || !currentRoot.isDirectory()) return null;
-        if (currentRoot.getAbsolutePath().equalsIgnoreCase(path)) return currentRoot;
-        for (ZipIOFile tmp : currentRoot.getFiles()) {
-            if (tmp.isDirectory() && tmp.getAbsolutePath().equalsIgnoreCase(path)) {
-                return tmp;
-            } else if (tmp.isDirectory()) {
-                ZipIOFile ret = getFolder(path, tmp);
-                if (ret != null) return ret;
+    private void trimZipIOFiles(final ZipIOFile root) {
+        if (root == null) { return; }
+        for (final ZipIOFile tmp : root.getFiles()) {
+            if (tmp.isDirectory()) {
+                trimZipIOFiles(tmp);
             }
         }
-        return null;
+        root.getFilesInternal().trimToSize();
     }
 
 }
