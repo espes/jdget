@@ -16,7 +16,6 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 
 public class JSonStorage {
     /* hash map contains file location as string and the storage instance */
@@ -79,7 +78,7 @@ public class JSonStorage {
      */
     public static Storage getPlainStorage(final String name) throws StorageException {
         synchronized (JSonStorage.MAP) {
-            final String id = Application.getRessource("cfg/" + name + ".json").getAbsolutePath();
+            final String id = Application.getResource("cfg/" + name + ".json").getAbsolutePath();
             Storage ret = JSonStorage.MAP.get(id);
             if (ret == null) {
                 ret = new JacksonStorageChest(name, true);
@@ -91,7 +90,7 @@ public class JSonStorage {
 
     public static Storage getStorage(final String name) throws StorageException {
         synchronized (JSonStorage.MAP) {
-            final String id = Application.getRessource("cfg/" + name + ".ejs").getAbsolutePath();
+            final String id = Application.getResource("cfg/" + name + ".ejs").getAbsolutePath();
             Storage ret = JSonStorage.MAP.get(id);
             if (ret == null) {
                 ret = new JacksonStorageChest(name);
@@ -109,7 +108,7 @@ public class JSonStorage {
         }
     }
 
-    public static <E> E restoreFrom(final File file, final boolean plain, final byte[] key, final TypeReference<E> type, final E def) {
+    public static <E> E restoreFrom(final File file, final boolean plain, final byte[] key, final TypeRef<E> type, final E def) {
         synchronized (JSonStorage.LOCK) {
             String stri = null;
             byte[] str = null;
@@ -182,9 +181,9 @@ public class JSonStorage {
      * @return
      */
 
-    public static <E> E restoreFrom(final String string, final TypeReference<E> type, final E def) {
+    public static <E> E restoreFrom(final String string, final TypeRef<E> type, final E def) {
         final boolean plain = new Regex(string, ".+\\.json").matches();
-        return JSonStorage.restoreFrom(Application.getRessource(string), plain, JSonStorage.KEY, type, def);
+        return JSonStorage.restoreFrom(Application.getResource(string), plain, JSonStorage.KEY, type, def);
     }
 
     /**
@@ -202,7 +201,7 @@ public class JSonStorage {
     }
 
     @SuppressWarnings("unchecked")
-    public static <E> E restoreFromString(final String string, final TypeReference<E> type, final E def) throws JsonParseException, JsonMappingException, IOException {
+    public static <E> E restoreFromString(final String string, final TypeRef<E> type, final E def) throws JsonParseException, JsonMappingException, IOException {
         if (string == null) { return def; }
         synchronized (JSonStorage.LOCK) {
             if (type != null) {
@@ -262,7 +261,7 @@ public class JSonStorage {
     public static void saveTo(final String pathname, final String json) throws StorageException {
         synchronized (JSonStorage.LOCK) {
             try {
-                final File file = Application.getRessource(pathname);
+                final File file = Application.getResource(pathname);
                 final File tmp = new File(file.getParentFile(), file.getName() + ".tmp");
                 tmp.getParentFile().mkdirs();
                 tmp.delete();

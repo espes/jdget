@@ -84,7 +84,7 @@ public class Application {
      * @param relative
      * @return
      */
-    public static File getRessource(final String relative) {
+    public static File getResource(final String relative) {
 
         return new File(Application.getRoot(), relative);
     }

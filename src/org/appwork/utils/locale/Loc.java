@@ -32,7 +32,7 @@ public class Loc {
      * The directory, where all localization files are located. A_ because this
      * the order is important.
      */
-    public static final File                A_LOCALIZATION_DIR   = Application.getRessource("languages/");
+    public static final File                A_LOCALIZATION_DIR   = Application.getResource("languages/");
 
     public static final Storage             CFG                  = JSonStorage.getStorage("Locale");
     /**

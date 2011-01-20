@@ -29,7 +29,7 @@ public class MimeWindows extends MimeDefault {
 
         ImageIcon ret = super.getCacheIcon(iconKey);
         if (ret == null) {
-            final File path = Application.getRessource("tmp/images/" + extension + ".png");
+            final File path = Application.getResource("tmp/images/" + extension + ".png");
             try {
                 if (path.exists() && path.isFile()) {
                     ret = new ImageIcon(ImageIO.read(path));

@@ -36,7 +36,7 @@ public class ExceptionLogHandler extends java.util.logging.Handler {
         try {
             final Calendar cal = Calendar.getInstance();
             cal.setTimeInMillis(new Date().getTime());
-            this.file = Application.getRessource("logs/error_" + cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DATE) + "-" + System.currentTimeMillis() + ".log");
+            this.file = Application.getResource("logs/error_" + cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DATE) + "-" + System.currentTimeMillis() + ".log");
             this.file.getParentFile().mkdirs();
             this.file.deleteOnExit();
             if (!this.file.isFile()) {
