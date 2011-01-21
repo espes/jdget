@@ -5,14 +5,50 @@ import java.util.ArrayList;
 public class State {
 
     public static final int INIT_STATE = -1;
-    private String label;
-    private ArrayList<State> parents;
 
     /**
-     * @return the parents
+     * Links all State in a the parameter order
+     * 
+     * @param stateList
      */
-    public ArrayList<State> getParents() {
-        return parents;
+    public static void link(final State... stateList) {
+        State prev = null;
+        for (final State s : stateList) {
+            if (prev == null) {
+                prev = s;
+            } else {
+                prev.addChildren(s);
+                prev = s;
+            }
+        }
+
+    }
+
+    private final String           label;
+
+    private final ArrayList<State> parents;
+
+    private final ArrayList<State> children;
+
+    private final int              id;
+
+    public State(final int stateID, final String label) {
+        id = stateID;
+        this.label = label;
+        parents = new ArrayList<State>();
+        children = new ArrayList<State>();
+    }
+
+    // private Throwable cause;
+
+    public State(final String label) {
+        this(State.INIT_STATE, label);
+    }
+
+    public void addChildren(final State... states) {
+        for (final State s : states) {
+            children.add(s);
+        }
     }
 
     /**
@@ -22,35 +58,20 @@ public class State {
         return children;
     }
 
-    private ArrayList<State> children;
-    private int id;
-
-    // private Throwable cause;
-
-    public State(int stateID, String label) {
-        this.id = stateID;
-        this.label = label;
-        parents = new ArrayList<State>();
-        children = new ArrayList<State>();
+    public int getID() {
+        return id;
     }
 
-    public State(String label) {
-        this(INIT_STATE, label);
-    }
-
-    public void addChildren(State... states) {
-        for (State s : states) {
-            children.add(s);
-        }
+    /**
+     * @return the parents
+     */
+    public ArrayList<State> getParents() {
+        return parents;
     }
 
     @Override
     public String toString() {
-        return this.label + "-" + this.id + "(" + hashCode() + ")";
-    }
-
-    public int getID() {
-        return this.id;
+        return label + "-" + id + "(" + hashCode() + ")";
     }
 
 }
