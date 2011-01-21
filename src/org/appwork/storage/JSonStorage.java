@@ -16,6 +16,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 
 public class JSonStorage {
     /* hash map contains file location as string and the storage instance */
@@ -108,7 +109,7 @@ public class JSonStorage {
         }
     }
 
-    public static <E> E restoreFrom(final File file, final boolean plain, final byte[] key, final TypeRef<E> type, final E def) {
+    public static <E> E restoreFrom(final File file, final boolean plain, final byte[] key, final TypeReference<E> type, final E def) {
         synchronized (JSonStorage.LOCK) {
             String stri = null;
             byte[] str = null;
@@ -181,7 +182,7 @@ public class JSonStorage {
      * @return
      */
 
-    public static <E> E restoreFrom(final String string, final TypeRef<E> type, final E def) {
+    public static <E> E restoreFrom(final String string, final TypeReference<E> type, final E def) {
         final boolean plain = new Regex(string, ".+\\.json").matches();
         return JSonStorage.restoreFrom(Application.getResource(string), plain, JSonStorage.KEY, type, def);
     }
@@ -193,22 +194,32 @@ public class JSonStorage {
      * @throws JsonMappingException
      * @throws JsonParseException
      */
-    public static Object restoreFromString(final String string, final Class<?> class1) throws JsonParseException, JsonMappingException, IOException {
+    public static Object restoreFromString(final String string, final Class<?> class1) throws StorageException {
         synchronized (JSonStorage.LOCK) {
-            return JSonStorage.MAPPER.readValue(string, class1);
+            try {
+                return JSonStorage.MAPPER.readValue(string, class1);
+            } catch (final Exception e) {
+                throw new StorageException(e);
+            } finally {
 
+            }
         }
     }
 
     @SuppressWarnings("unchecked")
-    public static <E> E restoreFromString(final String string, final TypeRef<E> type, final E def) throws JsonParseException, JsonMappingException, IOException {
+    public static <E> E restoreFromString(final String string, final TypeReference<E> type, final E def) {
         if (string == null) { return def; }
-        synchronized (JSonStorage.LOCK) {
-            if (type != null) {
-                return (E) JSonStorage.MAPPER.readValue(string, type);
-            } else {
-                return (E) JSonStorage.MAPPER.readValue(string, def.getClass());
+        try {
+            synchronized (JSonStorage.LOCK) {
+                if (type != null) {
+                    return (E) JSonStorage.MAPPER.readValue(string, type);
+                } else {
+                    return (E) JSonStorage.MAPPER.readValue(string, def.getClass());
+                }
             }
+        } catch (final Exception e) {
+            Log.exception(e);
+            return def;
         }
     }
 
@@ -289,9 +300,15 @@ public class JSonStorage {
      * @throws JsonMappingException
      * @throws JsonGenerationException
      */
-    public static String serializeToJson(final Object list) throws JsonGenerationException, JsonMappingException, IOException {
+    public static String serializeToJson(final Object list) throws StorageException {
         synchronized (JSonStorage.LOCK) {
-            return JSonStorage.MAPPER.writeValueAsString(list);
+            try {
+                return JSonStorage.MAPPER.writeValueAsString(list);
+            } catch (final Exception e) {
+                throw new StorageException(e);
+            } finally {
+
+            }
         }
     }
 
@@ -303,14 +320,10 @@ public class JSonStorage {
         synchronized (JSonStorage.LOCK) {
             try {
                 JSonStorage.saveTo(string, JSonStorage.serializeToJson(list));
-            } catch (final JsonGenerationException e) {
-                Log.exception(e);
-            } catch (final JsonMappingException e) {
-                Log.exception(e);
-            } catch (final StorageException e) {
-                Log.exception(e);
-            } catch (final IOException e) {
-                Log.exception(e);
+            } catch (final Exception e) {
+                throw new StorageException(e);
+            } finally {
+
             }
         }
     }
