@@ -53,6 +53,10 @@ public class Application {
 
     }
 
+    public static String getApplication() {
+        return Application.APP_FOLDER;
+    }
+
     public static double getJavaVersion() {
         try {
             final String v = System.getProperty("java.version");
@@ -149,7 +153,7 @@ public class Application {
      * @return
      */
     public static boolean isJared(final Class<?> rootOfClazz) {
-        final String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";        
+        final String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";
         final ClassLoader cll = Thread.currentThread().getContextClassLoader();
         if (cll == null) {
             Log.L.severe("getContextClassLoader() is null");

@@ -5,6 +5,11 @@
 	<classpathentry kind="lib" path="libs/miglayout.jar"/>
 	<classpathentry kind="lib" path="libs/jackson-core.jar"/>
 	<classpathentry kind="lib" path="libs/jackson-mapper.jar"/>
+	<classpathentry kind="lib" path="dev_libs/AppleJavaExtensions.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="http://developer.apple.com/library/mac/documentation/Java/Reference/JavaSE6_AppleExtensionsRef/api"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

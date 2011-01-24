@@ -12,10 +12,10 @@ package org.appwork.utils.event;
 /**
  * @author thomas Callerclass,Parameterclass,Eventclass
  */
-public class SimpleEvent<C, P, E> extends DefaultEvent {
+public class SimpleEvent<C, P, T> extends DefaultEvent {
 
     private P[]     parameters;
-    private final E type;
+    private final T type;
     private final C callerImpl;
 
     /**
@@ -24,7 +24,7 @@ public class SimpleEvent<C, P, E> extends DefaultEvent {
      * @param currentState
      * @param id
      */
-    public SimpleEvent(final C caller, final E type, final P... parameters) {
+    public SimpleEvent(final C caller, final T type, final P... parameters) {
         super(caller);
         this.callerImpl = caller;
         this.type = type;
@@ -56,7 +56,7 @@ public class SimpleEvent<C, P, E> extends DefaultEvent {
     /**
      * @return the type
      */
-    public E getType() {
+    public T getType() {
         return this.type;
     }
 
