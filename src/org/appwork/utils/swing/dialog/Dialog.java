@@ -34,7 +34,6 @@ import org.appwork.utils.swing.EDTHelper;
  * JOptionPane
  */
 public class Dialog {
-
     /**
      * Requests a FileChooserDialog.
      * 
@@ -89,6 +88,13 @@ public class Dialog {
         public int getId() {
             return id;
         }
+    }
+
+    static {
+
+        // AWU has their own filechooser extensions
+        UIManager.put("Synthetica.extendedFileChooser.rememberPreferences", Boolean.FALSE);
+        UIManager.put("Synthetica.extendedFileChooser.rememberLastDirectory", Boolean.FALSE);
     }
 
     /**
@@ -509,6 +515,9 @@ public class Dialog {
                         File preSelection = preSelect;
                         if (preSelection == null && JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null) != null) {
                             preSelection = new File(JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null));
+                            Log.L.info("Preselection: " + id + ": " + JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null));
+                        } else {
+                            Log.L.info("Given Preselection: " + preSelection);
                         }
                         while (preSelection != null) {
                             if (!preSelection.exists() && dialogType != null && dialogType.getId() == FileChooserType.OPEN_DIALOG.getId()) {
