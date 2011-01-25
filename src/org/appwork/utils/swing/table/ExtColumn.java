@@ -226,6 +226,15 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     /**
+     * returns if this column is allowed to be hidden
+     * 
+     * @return
+     */
+    public boolean isHidable() {
+        return true;
+    }
+
+    /**
      * returns true if the column is editable for the object obj
      * 
      * @param obj

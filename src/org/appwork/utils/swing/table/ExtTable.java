@@ -258,6 +258,8 @@ public class ExtTable<E> extends JTable {
             mis[i] = mi;
             if (i == 0) {
                 mi.setEnabled(false);
+            } else {
+                mi.setEnabled(this.getExtTableModel().isHidable(i));
             }
             mi.setSelected(this.getExtTableModel().isVisible(i));
             mi.addActionListener(new ActionListener() {
@@ -311,15 +313,16 @@ public class ExtTable<E> extends JTable {
             }
 
             // Set stored columnwidth
+            int w = this.model.getExtColumn(j).getDefaultWidth();
             try {
-                final int w = JSonStorage.getStorage("ExtTable_" + this.tableID).get("WIDTH_COL_" + this.model.getExtColumn(j).getID(), this.model.getExtColumn(j).getDefaultWidth());
-                tableColumn.setPreferredWidth(w);
-                if (!this.model.isVisible(i)) {
-                    continue;
-                }
-
+                w = JSonStorage.getStorage("ExtTable_" + this.tableID).get("WIDTH_COL_" + this.model.getExtColumn(j).getID(), w);
             } catch (final Exception e) {
                 Log.exception(e);
+            } finally {
+                tableColumn.setPreferredWidth(w);
+            }
+            if (!this.model.isVisible(i)) {
+                continue;
             }
             columns.put(this.model.getExtColumn(j).getID(), tableColumn);
             // addColumn(tableColumn);

@@ -28,16 +28,21 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
         initIcons();
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
+
             /**
              * sorts the icon by hashcode
              */
             @Override
             public int compare(E o1, E o2) {
-                if (getIcon(o1).hashCode() == getIcon(o2).hashCode()) return 0;
+                Icon ic1 = getIcon(o1);
+                Icon ic2 = getIcon(o2);
+                int h1 = ic1 == null ? 0 : ic1.hashCode();
+                int h2 = ic2 == null ? 0 : ic2.hashCode();
+                if (h1 == h2) return 0;
                 if (this.isSortOrderToggle()) {
-                    return getIcon(o1).hashCode() > getIcon(o2).hashCode() ? -1 : 1;
+                    return h1 > h2 ? -1 : 1;
                 } else {
-                    return getIcon(o1).hashCode() < getIcon(o2).hashCode() ? -1 : 1;
+                    return h2 < h1 ? -1 : 1;
                 }
             }
 

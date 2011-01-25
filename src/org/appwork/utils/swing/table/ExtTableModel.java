@@ -401,10 +401,25 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public boolean isVisible(final int column) {
-
         final ExtColumn<E> col = this.getExtColumn(column);
         try {
             return JSonStorage.getStorage("ExtTableModel_" + this.modelID).get("VISABLE_COL_" + col.getName(), col.isDefaultVisible());
+        } catch (final Exception e) {
+            Log.exception(e);
+            return true;
+        }
+    }
+
+    /**
+     * checks if this column is allowed to be hidden
+     * 
+     * @param column
+     * @return
+     */
+    public boolean isHidable(final int column) {
+        final ExtColumn<E> col = this.getExtColumn(column);
+        try {
+            return col.isHidable();
         } catch (final Exception e) {
             Log.exception(e);
             return true;

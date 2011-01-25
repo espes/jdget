@@ -71,28 +71,30 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
         if (file != null && file.isFile()) {
             try {
                 final String ext = Files.getExtension(file.getName());
-                BufferedImage image = null;
+                if (ext != null) {
+                    BufferedImage image = null;
 
-                if (ext.equalsIgnoreCase("png") || ext.equalsIgnoreCase("jpg") || ext.equalsIgnoreCase("gif")) {
-                    image = ImageIO.read(file);
-                }
+                    if (ext.equalsIgnoreCase("png") || ext.equalsIgnoreCase("jpg") || ext.equalsIgnoreCase("gif")) {
+                        image = ImageIO.read(file);
+                    }
 
-                if (image != null) {
-                    final ImageIcon ii = new ImageIcon(ImageProvider.scaleBufferedImage(image, 160, 160));
-                    new EDTHelper<Object>() {
+                    if (image != null) {
+                        final ImageIcon ii = new ImageIcon(ImageProvider.scaleBufferedImage(image, 160, 160));
+                        new EDTHelper<Object>() {
 
-                        @Override
-                        public Object edtRun() {
-                            label.setIcon(ii);
-                            final int w = fileChooser.getWidth() / 3;
-                            setPreferredSize(new Dimension(w, 100));
-                            fileChooser.revalidate();
-                            return null;
-                        }
+                            @Override
+                            public Object edtRun() {
+                                label.setIcon(ii);
+                                final int w = fileChooser.getWidth() / 3;
+                                setPreferredSize(new Dimension(w, 100));
+                                fileChooser.revalidate();
+                                return null;
+                            }
 
-                    }.start();
-                    return;
+                        }.start();
+                        return;
 
+                    }
                 }
             } catch (final Throwable e) {
                 e.printStackTrace();
@@ -112,5 +114,4 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
 
         }.start();
     }
-
 }

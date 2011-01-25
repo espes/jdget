@@ -218,7 +218,7 @@ public class JSonStorage {
                 }
             }
         } catch (final Exception e) {
-            Log.exception(e);
+            Log.exception(Level.WARNING,e);
             return def;
         }
     }

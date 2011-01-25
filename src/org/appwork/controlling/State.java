@@ -74,4 +74,8 @@ public class State {
         return label + "-" + id + "(" + hashCode() + ")";
     }
 
+    public String getLabel() {
+        return this.label;
+    }
+
 }

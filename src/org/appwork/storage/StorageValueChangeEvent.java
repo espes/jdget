@@ -53,9 +53,7 @@ public class StorageValueChangeEvent<E> extends StorageEvent<E> {
             return true;
         } else if (newV == null && oldV != null) {
             return true;
-        } else if (newV != null) { return newV.equals(oldV);
-
-        }
+        } else if (newV != null) { return newV.equals(oldV); }
         return false;
     }
 
