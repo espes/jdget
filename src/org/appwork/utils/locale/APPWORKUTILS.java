@@ -80,7 +80,15 @@ public enum APPWORKUTILS implements Translate {
     /*
      * ###de_DE:Markieren
      */
-    COPYCUTPASTE_SELECT("Select");
+    COPYCUTPASTE_SELECT("Select"),
+    /*
+     * ###de_DE:Bewegen Sie die Maus über Schaltflächen um hier Hilfe zu sehen
+     */
+    Statusbar_Statusbar_tooltip("Move your mouse over interactive buttons to get help here"),
+    /*
+     * ###de_DE:Besuchen Sie unsere Homepage
+     */
+    Statusbar_Statusbar_visiturl_tooltip("Visit our Homepage");
     // ENDOFENUMS
     /**
      * @return

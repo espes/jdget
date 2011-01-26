@@ -10,7 +10,6 @@
 package org.appwork.utils.net.ftpserver;
 
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -22,32 +21,34 @@ import java.net.UnknownHostException;
  */
 public class FtpServer implements Runnable {
 
-    private FtpConnectionHandler handler;
-    private int               port;
-    private ServerSocket      controlSocket;
+    private final FtpConnectionHandler handler;
+    private final int                  port;
+    private ServerSocket               controlSocket;
 
-    public FtpServer(FtpConnectionHandler handler, final int port) {
+    public FtpServer(final FtpConnectionHandler handler, final int port) {
         this.handler = handler;
         this.port = port;
+    }
+
+    /**
+     * @return
+     */
+    public FtpConnectionHandler getFtpCommandHandler() {
+        return handler;
     }
 
     private InetAddress getLocalHost() {
         InetAddress localhost = null;
         try {
-            localhost = Inet4Address.getByName("127.0.0.1");
-        } catch (UnknownHostException e1) {
+            localhost = InetAddress.getByName("127.0.0.1");
+        } catch (final UnknownHostException e1) {
         }
-        if (localhost != null) return localhost;
+        if (localhost != null) { return localhost; }
         try {
-            localhost = Inet4Address.getByName(null);
-        } catch (UnknownHostException e1) {
+            localhost = InetAddress.getByName(null);
+        } catch (final UnknownHostException e1) {
         }
         return localhost;
-    }
-
-    public void start() throws IOException {
-        this.controlSocket = new ServerSocket(port);
-        new Thread(this).start();
     }
 
     /*
@@ -59,20 +60,19 @@ public class FtpServer implements Runnable {
     public void run() {
         while (true) {
             try {
-                Socket clientSocket = controlSocket.accept();
+                final Socket clientSocket = controlSocket.accept();
                 new FtpConnection(this, clientSocket);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
     }
 
-    /**
-     * @return
-     */
-    public FtpConnectionHandler getFtpCommandHandler() {
-        return handler;
+    public void start() throws IOException {
+        controlSocket = new ServerSocket(port);
+
+        new Thread(this).start();
     }
 
 }

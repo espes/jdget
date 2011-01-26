@@ -11,8 +11,8 @@ package org.appwork.utils.net.ftpserver;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
 /**
  * @author daniel
@@ -20,17 +20,24 @@ import java.io.UnsupportedEncodingException;
  */
 public class FTPTest {
 
-    public static void main(String[] args) throws IOException {
-        FtpConnectionHandler handler = new FtpConnectionHandler() {
-            File current = new File("/home/daniel");
+    public static void main(final String[] args) throws IOException {
+        final FtpConnectionHandler handler = new FtpConnectionHandler() {
 
             @Override
-            public String getWelcomeMessage() {
-                return "Hallo";
+            public ArrayList<FtpFile> getFileList(final FtpConnectionState connectionState, final String item) throws UnsupportedEncodingException, IOException {
+
+                if (item == null) {
+                    return list(new File(connectionState.getCurrentDir()));
+
+                } else {
+                    final File file = new File(item);
+                    return list(file);
+                }
+
             }
 
             @Override
-            public FTPUser onLogin(String user) {
+            public FTPUser getUser(final String user) {
                 if ("test".equals(user)) {
                     return new FTPUser("test", "test");
                 } else {
@@ -39,87 +46,80 @@ public class FTPTest {
             }
 
             @Override
-            public String onLogout() {
-                return "Bye";
+            public String getWelcomeMessage(final FtpConnectionState connectionState) {
+                return "Hallo " + connectionState;
             }
 
-            @Override
-            public String onLoginSuccess() {
-                return "OK";
-            }
+            /**
+             * @param file
+             * @return
+             * @throws FtpFileNotExistException
+             */
+            protected ArrayList<FtpFile> list(final File file) throws FtpFileNotExistException {
+                final ArrayList<FtpFile> ret = new ArrayList<FtpFile>();
+                if (!file.exists()) { throw new FtpFileNotExistException();
 
-            @Override
-            public String onLoginFailed() {
-                return "NÄ";
-            }
-
-            @Override
-            public String getPWD() {
-                return current.getAbsolutePath();
-            }
-
-            @Override
-            public void CWD(String cwd) throws FtpFileNotExistException {
-                File newcur = null;
-                if (cwd.startsWith("/")){
-                    newcur=new File(cwd);
-                }else{
-                    newcur=new File(current, cwd);
                 }
-                if (newcur.exists() && newcur.isDirectory()) {
-                    current = newcur;
-                    return;
-                }
-                throw new FtpFileNotExistException();
-            }
-
-            @Override
-            public void onCDUP() throws FtpFileNotExistException {
-                File newcur = current.getParentFile();
-                if (newcur != null) {
-                    current = newcur; 
-                    return;
-                }
-                throw new FtpFileNotExistException();
-            }
-
-            @Override
-            public void onLIST(OutputStream outputStream, String string) throws UnsupportedEncodingException, IOException {
-                if (string == null) {
-                    File[] list = current.listFiles();
+                if (file.isDirectory()) {
+                    final File[] list = file.listFiles();
                     if (list != null) {
-                        for (File item : list) {
-                            String ret = "";
-                            if (item.isDirectory()) {
-                                ret = ret + "D   "+item.getName();
-                            } else {
-                                ret = ret + "F   ";
-                                ret = ret + item.getName() + "   " + item.length();
-                            }
-                            ret = ret + "\r\n";
-                            outputStream.write(ret.getBytes("UTF-8"));
+                        for (final File item : list) {
+                            ret.add(new FtpFile(item.getName(), item.length(), item.isDirectory(), item.lastModified()));
                         }
                     } else {
                         throw new FtpFileNotExistException();
                     }
                 } else {
-                    File file = new File(string);
-                    if (!file.exists()) throw new FtpFileNotExistException();
-                    String ret = "";
-                    if (file.isDirectory()) {
-                        ret = ret + "   ";
-                    } else {
-                        ret = ret + "   ";
-                        ret = ret + file.getName() + "   " + file.length();
-                    }
-                    ret = ret + "\r\n";
-                    outputStream.write(ret.getBytes("UTF-8"));
+                    ret.add(new FtpFile(file.getName(), file.length(), file.isDirectory(), file.lastModified()));
                 }
+                return ret;
+            }
 
+            @Override
+            public void onDirectoryUp(final FtpConnectionState connectionState) throws FtpFileNotExistException {
+                final File newcur = new File(connectionState.getCurrentDir()).getParentFile();
+                if (newcur != null) {
+
+                    connectionState.setCurrentDir(newcur.getAbsolutePath());
+                    return;
+                }
+                throw new FtpFileNotExistException();
+            }
+
+            @Override
+            public String onLoginFailedMessage(final FtpConnectionState con) {
+                return "NÄ " + con.getUser();
+            }
+
+            @Override
+            public String onLoginSuccessRequest(final FtpConnectionState con) {
+                return "OK " + con.getUser();
+            }
+
+            @Override
+            public String onLogoutRequest(final FtpConnectionState connectionState) {
+                return "Bye";
+            }
+
+            @Override
+            public void setCurrentDirectory(final FtpConnectionState connectionState, final String cwd) throws FtpFileNotExistException {
+                File newcur = null;
+                if (cwd.startsWith("/")) {
+                    newcur = new File(cwd);
+                } else {
+                    newcur = new File(connectionState.getCurrentDir(), cwd);
+                }
+                if (newcur.exists() && newcur.isDirectory()) {
+
+                    connectionState.setCurrentDir(newcur.getAbsolutePath());
+                    return;
+                }
+                throw new FtpFileNotExistException();
             }
 
         };
-        FtpServer server = new FtpServer(handler, 8080);
+        final FtpServer server = new FtpServer(handler, 8080);
         server.start();
     }
+
 }

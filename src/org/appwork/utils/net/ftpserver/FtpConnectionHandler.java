@@ -10,46 +10,58 @@
 package org.appwork.utils.net.ftpserver;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
 /**
  * @author daniel
  * 
  */
-public interface FtpConnectionHandler {
+public abstract class FtpConnectionHandler {
 
-    public String getWelcomeMessage();
+    private final DefaultFilelistFormatter filelistFormatter;
 
-    public FTPUser onLogin(final String user);
-
-    public String onLoginSuccess();
-
-    public String onLoginFailed();
-
-    public String onLogout();
+    public FtpConnectionHandler() {
+        filelistFormatter = new DefaultFilelistFormatter();
+    }
 
     /**
-     * @return
-     */
-    public String getPWD();
-
-    /**
-     * @param cwd
-     * @return
-     */
-    public void CWD(String cwd) throws FtpFileNotExistException;
-
-    /**
-     * @return
-     */
-    public void onCDUP() throws FtpFileNotExistException;
-
-    /**
-     * @param outputStream
      * @param string
+     * @return TODO
      * @throws IOException
      * @throws UnsupportedEncodingException
      */
-    public void onLIST(OutputStream outputStream, String string) throws UnsupportedEncodingException, IOException, FtpFileNotExistException;
+    public abstract ArrayList<FtpFile> getFileList(FtpConnectionState connectionState, String string) throws UnsupportedEncodingException, IOException, FtpFileNotExistException;
+
+    /**
+     * @return
+     */
+    public FilelistFormatter getFilelistFormatter() {
+        return filelistFormatter;
+    }
+
+    public abstract FTPUser getUser(final String user);
+
+    public abstract String getWelcomeMessage(FtpConnectionState ftpConnection);
+
+    /**
+     * @param dir
+     * @param connectionState
+     * @return
+     */
+    public abstract void onDirectoryUp(FtpConnectionState connectionState) throws FtpFileNotExistException;
+
+    public abstract String onLoginFailedMessage(FtpConnectionState ftpConnection);
+
+    public abstract String onLoginSuccessRequest(FtpConnectionState connectionState);
+
+    public abstract String onLogoutRequest(FtpConnectionState connectionState);
+
+    /**
+     * @param connectionState
+     * @param cwd
+     * @return
+     */
+    public abstract void setCurrentDirectory(FtpConnectionState connectionState, String cwd) throws FtpFileNotExistException;
+
 }
