@@ -14,14 +14,28 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+import org.appwork.utils.Files;
+
 /**
  * @author daniel
  * 
  */
 public class FTPTest {
 
+    protected static final File ROOT = new File("c:/test");
+
     public static void main(final String[] args) throws IOException {
         final FtpConnectionHandler handler = new FtpConnectionHandler() {
+
+            /**
+             * @return
+             */
+            @Override
+            public FtpConnectionState createNewConnectionState() {
+                final FtpConnectionState state = new FtpConnectionState();
+                state.setCurrentDir(FTPTest.ROOT.getAbsolutePath());
+                return state;
+            }
 
             @Override
             public ArrayList<FtpFile> getFileList(final FtpConnectionState connectionState, final String item) throws UnsupportedEncodingException, IOException {
@@ -77,6 +91,7 @@ public class FTPTest {
 
             @Override
             public void onDirectoryUp(final FtpConnectionState connectionState) throws FtpFileNotExistException {
+                if (new File(connectionState.getCurrentDir()).equals(FTPTest.ROOT)) { throw new FtpFileNotExistException(); }
                 final File newcur = new File(connectionState.getCurrentDir()).getParentFile();
                 if (newcur != null) {
 
@@ -104,11 +119,13 @@ public class FTPTest {
             @Override
             public void setCurrentDirectory(final FtpConnectionState connectionState, final String cwd) throws FtpFileNotExistException {
                 File newcur = null;
-                if (cwd.startsWith("/")) {
+                if (new File(cwd).isAbsolute()) {
                     newcur = new File(cwd);
                 } else {
                     newcur = new File(connectionState.getCurrentDir(), cwd);
                 }
+                final String rel = Files.getRelativePath(FTPTest.ROOT, newcur);
+                if (rel == null) { throw new FtpFileNotExistException(); }
                 if (newcur.exists() && newcur.isDirectory()) {
 
                     connectionState.setCurrentDir(newcur.getAbsolutePath());

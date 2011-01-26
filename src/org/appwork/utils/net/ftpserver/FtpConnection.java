@@ -102,7 +102,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
      */
     public FtpConnection(final FtpServer ftpServer, final Socket clientSocket) throws IOException {
         stateMachine = new StateMachine(this, FtpConnection.IDLE, FtpConnection.IDLEEND);
-        connectionState = new FtpConnectionState();
+        connectionState = ftpServer.getFtpCommandHandler().createNewConnectionState();
         this.ftpServer = ftpServer;
         controlSocket = clientSocket;
         try {

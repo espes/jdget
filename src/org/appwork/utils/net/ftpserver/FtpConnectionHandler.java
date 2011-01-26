@@ -26,6 +26,14 @@ public abstract class FtpConnectionHandler {
     }
 
     /**
+     * @return
+     */
+    public FtpConnectionState createNewConnectionState() {
+
+        return new FtpConnectionState();
+    }
+
+    /**
      * @param string
      * @return TODO
      * @throws IOException
