@@ -10,6 +10,7 @@
 package org.appwork.utils.net.ftpserver;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -79,5 +80,21 @@ public abstract class FtpConnectionHandler {
      * @param param
      */
     public abstract long onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException, FtpFileNotExistException;
+
+    /**
+     * @param connectionState
+     * @param buildParameter
+     */
+    public abstract void makeDirectory(FtpConnectionState connectionState, String buildParameter) throws FtpFileNotExistException;
+
+    /**
+     * @param inputStream
+     * @param connectionState
+     * @param buildParameter
+     * @return
+     * @throws FtpFileNotExistException 
+     * @throws IOException 
+     */
+    public abstract long onSTOR(InputStream inputStream, FtpConnectionState connectionState,boolean append, String buildParameter) throws FtpFileNotExistException, IOException;
 
 }

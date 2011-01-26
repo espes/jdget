@@ -42,11 +42,11 @@ public class DefaultFilelistFormatter implements FilelistFormatter {
             sb.append("0");
             sb.append(DefaultFilelistFormatter.DEL);
             // group
-            sb.append("group");
+            sb.append("test");
 
             sb.append(DefaultFilelistFormatter.DEL);
             // user
-            sb.append("user");
+            sb.append("test");
             sb.append(DefaultFilelistFormatter.DEL);
             sb.append(f.getSize());
             sb.append(DefaultFilelistFormatter.DEL);

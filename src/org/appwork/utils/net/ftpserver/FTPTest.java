@@ -14,7 +14,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
@@ -26,7 +28,7 @@ import org.appwork.utils.Files;
  */
 public class FTPTest {
 
-    protected static final File ROOT = new File("/home/daniel");
+    protected static final File ROOT = new File("/home/daniel/test");
 
     public static void main(final String[] args) throws IOException {
         final FtpConnectionHandler handler = new FtpConnectionHandler() {
@@ -170,6 +172,66 @@ public class FTPTest {
                     } finally {
                         try {
                             fis.close();
+                        } catch (final Throwable e) {
+                        }
+                    }
+
+                }
+                throw new FtpFileNotExistException();
+            }
+
+            @Override
+            public void makeDirectory(FtpConnectionState connectionState, String cwd) throws FtpFileNotExistException {
+                File newcur = null;
+                if (cwd.startsWith("/")) {
+                    newcur = new File(FTPTest.ROOT, cwd);
+                } else {
+                    newcur = new File(new File(FTPTest.ROOT, connectionState.getCurrentDir()), cwd);
+                }
+                final String rel = Files.getRelativePath(FTPTest.ROOT, newcur);
+                if (rel == null) { throw new FtpFileNotExistException(); }
+                if (!newcur.exists()) {
+                    newcur.mkdir();
+                    return;
+                }
+                throw new FtpFileNotExistException();
+            }
+
+            @Override
+            public long onSTOR(InputStream inputStream, FtpConnectionState connectionState, boolean append, String param) throws FtpFileNotExistException, IOException {
+                File newcur = null;
+                if (param.startsWith("/")) {
+                    newcur = new File(FTPTest.ROOT, param);
+                } else {
+                    newcur = new File(new File(FTPTest.ROOT, connectionState.getCurrentDir()), param);
+                }
+                final String rel = Files.getRelativePath(FTPTest.ROOT, newcur);
+                if (rel == null) { throw new FtpFileNotExistException(); }
+                if (!newcur.isDirectory()) {
+                    RandomAccessFile fos = null;
+                    try {
+                        try {
+                            fos = new RandomAccessFile(newcur, "rw");
+                            if (append) {
+                                /* append at end of file */
+                                fos.seek(newcur.length());
+                            }
+                        } catch (FileNotFoundException e) {
+                            throw new FtpFileNotExistException();
+                        }
+                        byte[] temp = new byte[8192];
+                        int read = 0;
+                        int written = 0;
+                        while ((read = inputStream.read(temp)) >= 0) {
+                            if (read > 0) {
+                                written = written + read;
+                                fos.write(temp, 0, read);
+                            }
+                        }
+                        return written;
+                    } finally {
+                        try {
+                            fos.close();
                         } catch (final Throwable e) {
                         }
                     }
