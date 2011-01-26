@@ -53,10 +53,10 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             this.maxSize = maxSize;
         }
 
-        public boolean match(int length) {
-            if (length == paramSize) return true;
-            if (length == maxSize) return true;
-            if (maxSize == -1) return true;
+        public boolean match(final int length) {
+            if (length == paramSize) { return true; }
+            if (length == maxSize) { return true; }
+            if (maxSize == -1) { return true; }
             return false;
         }
     }
@@ -138,7 +138,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 commandEnum = null;
             }
             if (commandEnum != null) {
-                if (!commandEnum.match(commandParts.length-1)) { throw new FtpCommandSyntaxException(); }
+                if (!commandEnum.match(commandParts.length - 1)) { throw new FtpCommandSyntaxException(); }
                 switch (commandEnum) {
                 case LIST:
                     onLIST(commandParts);
@@ -209,9 +209,12 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             write(530, "Not logged in");
         } else {
             try {
-                String param="";
-                for (int index=1;index<params.length;index++){
-                    param=param+" "+params[index];
+                String param = "";
+                for (int index = 1; index < params.length; index++) {
+                    if (param.length() > 0) {
+                        param += " ";
+                    }
+                    param += params[index];
                 }
                 ftpServer.getFtpCommandHandler().setCurrentDirectory(connectionState, param);
                 write(250, "\"" + connectionState.getCurrentDir() + "\" is cwd.");

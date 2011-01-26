@@ -172,6 +172,7 @@ public class Files {
         }
 
         if (!filePath.startsWith(rootPath)) { return null; }
+        if (rootPath.equals(filePath)) { return ""; }
         return file.getAbsolutePath().substring(rootPath.length() + 1);
     }
 
