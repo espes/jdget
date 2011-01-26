@@ -78,6 +78,6 @@ public abstract class FtpConnectionHandler {
      * @param connectionState
      * @param param
      */
-    public abstract void onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException, FtpFileNotExistException;
+    public abstract long onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException, FtpFileNotExistException;
 
 }

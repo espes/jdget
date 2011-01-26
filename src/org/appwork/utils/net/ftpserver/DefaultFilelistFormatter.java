@@ -34,9 +34,6 @@ public class DefaultFilelistFormatter implements FilelistFormatter {
         final StringBuilder sb = new StringBuilder();
         final SimpleDateFormat df = new SimpleDateFormat("MMM dd yyyy", Locale.ENGLISH);
         for (final FtpFile f : list) {
-            if (sb.length() > 0) {
-                sb.append("\r\n");
-            }
             // directory or not
             sb.append(f.isDirectory() ? "d" : "-");
             // rights
@@ -44,18 +41,19 @@ public class DefaultFilelistFormatter implements FilelistFormatter {
             sb.append(DefaultFilelistFormatter.DEL);
             sb.append("0");
             sb.append(DefaultFilelistFormatter.DEL);
-            // user
-            sb.append("user");
-
-            sb.append(DefaultFilelistFormatter.DEL);
             // group
             sb.append("group");
+
+            sb.append(DefaultFilelistFormatter.DEL);
+            // user
+            sb.append("user");
             sb.append(DefaultFilelistFormatter.DEL);
             sb.append(f.getSize());
             sb.append(DefaultFilelistFormatter.DEL);
             sb.append(df.format(new Date(f.getLastModified())));
             sb.append(DefaultFilelistFormatter.DEL);
             sb.append(f.getName());
+            sb.append("\r\n");
 
         }
 

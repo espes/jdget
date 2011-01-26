@@ -44,7 +44,7 @@ public class FTPTest {
             @Override
             public ArrayList<FtpFile> getFileList(final FtpConnectionState connectionState, final String item) throws UnsupportedEncodingException, IOException {
 
-                if (item == null) {
+                if (item == null || item.length() == 0) {
                     return list(new File(FTPTest.ROOT, connectionState.getCurrentDir()));
 
                 } else {
@@ -140,7 +140,7 @@ public class FTPTest {
             }
 
             @Override
-            public void onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException {
+            public long onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException {
                 File newcur = null;
                 if (param.startsWith("/")) {
                     newcur = new File(FTPTest.ROOT, param);
@@ -150,23 +150,32 @@ public class FTPTest {
                 final String rel = Files.getRelativePath(FTPTest.ROOT, newcur);
                 if (rel == null) { throw new FtpFileNotExistException(); }
                 if (newcur.exists() && newcur.isFile()) {
-                    FileInputStream fis;
+                    FileInputStream fis = null;
                     try {
-                        fis = new FileInputStream(newcur);
-                    } catch (FileNotFoundException e) {
-                        throw new FtpFileNotExistException();          
-                    }
-                    byte[] temp=new byte[8192];
-                    int read=0;
-                    while((read=fis.read(temp))>=0){
-                        if (read>0){
-                            outputStream.write(temp, 0, read);
+                        try {
+                            fis = new FileInputStream(newcur);
+                        } catch (FileNotFoundException e) {
+                            throw new FtpFileNotExistException();
+                        }
+                        byte[] temp = new byte[8192];
+                        int read = 0;
+                        int written = 0;
+                        while ((read = fis.read(temp)) >= 0) {
+                            if (read > 0) {
+                                written = written + read;
+                                outputStream.write(temp, 0, read);
+                            }
+                        }
+                        return written;
+                    } finally {
+                        try {
+                            fis.close();
+                        } catch (final Throwable e) {
                         }
                     }
-                    fis.close();
-                    return;
+
                 }
-                throw new FtpFileNotExistException();                
+                throw new FtpFileNotExistException();
             }
 
         };
