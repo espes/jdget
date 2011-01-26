@@ -29,6 +29,7 @@ import org.appwork.controlling.StateMachineInterface;
 public class FtpConnection implements Runnable, StateMachineInterface {
 
     public static enum COMMAND {
+        RETR(1, -1),
         TYPE(1),
         LIST(0, 1),
         CDUP(0),
@@ -140,6 +141,9 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             if (commandEnum != null) {
                 if (!commandEnum.match(commandParts.length - 1)) { throw new FtpCommandSyntaxException(); }
                 switch (commandEnum) {
+                case RETR:
+                    onRETR(commandParts);
+                    break;
                 case LIST:
                     onLIST(commandParts);
                     break;
@@ -341,6 +345,51 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             }
             write(200, "Command okay");
         }
+    }
+
+    private void onRETR(final String[] commandParts) throws IOException {
+        if (!stateMachine.isState(FtpConnection.LOGIN)) {
+            write(530, "Not logged in");
+        } else {
+            Socket socket = null;
+            try {
+                try {
+                    socket = new Socket(passiveIP, passivePort);
+                } catch (final IOException e) {
+                    write(425, "Can't open data connection");
+                    return;
+                }
+                write(150, "Opening XY mode data connection for transfer");
+                try {
+                    String param = "";
+                    for (int index = 1; index < commandParts.length; index++) {
+                        if (param.length() > 0) {
+                            param += " ";
+                        }
+                        param += commandParts[index];
+                    }
+                    ftpServer.getFtpCommandHandler().onRETR(socket.getOutputStream(), connectionState, param);
+                    socket.getOutputStream().flush();
+                } catch (final FtpFileNotExistException e) {
+                    write(450, "Requested file action not taken; File unavailable");
+                    return;
+                } catch (final IOException e) {
+                    write(426, "Requested action aborted: IOException");
+                    return;
+                } catch (final Exception e) {
+                    write(451, "Requested action aborted: local error in processing");
+                    return;
+                }
+                /* we close the passive port after command */
+                write(226, "Transfer complete.");
+            } finally {
+                try {
+                    socket.close();
+                } catch (final Throwable e) {
+                }
+            }
+        }
+
     }
 
     private void onUSER(final String params[]) throws IOException {

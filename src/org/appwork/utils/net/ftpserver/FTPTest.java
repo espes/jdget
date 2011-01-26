@@ -9,8 +9,12 @@
  */
 package org.appwork.utils.net.ftpserver;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
@@ -22,7 +26,7 @@ import org.appwork.utils.Files;
  */
 public class FTPTest {
 
-    protected static final File ROOT = new File("c:/test/");
+    protected static final File ROOT = new File("/home/daniel");
 
     public static void main(final String[] args) throws IOException {
         final FtpConnectionHandler handler = new FtpConnectionHandler() {
@@ -135,9 +139,38 @@ public class FTPTest {
                 throw new FtpFileNotExistException();
             }
 
+            @Override
+            public void onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException {
+                File newcur = null;
+
+                if (param.startsWith("/")) {
+                    newcur = new File(FTPTest.ROOT, param);
+                } else {
+                    newcur = new File(new File(FTPTest.ROOT, connectionState.getCurrentDir()), param);
+                }
+                final String rel = Files.getRelativePath(FTPTest.ROOT, newcur);
+                if (rel == null) { throw new FtpFileNotExistException(); }
+                if (newcur.exists() && newcur.isFile()) {
+                    FileInputStream fis;
+                    try {
+                        fis = new FileInputStream(newcur);
+                    } catch (FileNotFoundException e) {
+                        throw new FtpFileNotExistException();          
+                    }
+                    byte[] temp=new byte[8192];
+                    int read=0;
+                    while((read=fis.read(temp))>=0){
+                        if (read>0){
+                            outputStream.write(temp, 0, read);
+                        }
+                    }
+                    fis.close();
+                }
+                throw new FtpFileNotExistException();                
+            }
+
         };
         final FtpServer server = new FtpServer(handler, 8080);
         server.start();
     }
-
 }
