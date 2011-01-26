@@ -138,7 +138,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 commandEnum = null;
             }
             if (commandEnum != null) {
-                if (commandEnum.match(commandParts.length-1)) { throw new FtpCommandSyntaxException(); }
+                if (!commandEnum.match(commandParts.length-1)) { throw new FtpCommandSyntaxException(); }
                 switch (commandEnum) {
                 case LIST:
                     onLIST(commandParts);
@@ -242,7 +242,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 try {
                     final ArrayList<FtpFile> list = ftpServer.getFtpCommandHandler().getFileList(connectionState, file);
 
-                    socket.getOutputStream().write(ftpServer.getFtpCommandHandler().getFilelistFormatter().format(list).getBytes());
+                    socket.getOutputStream().write(ftpServer.getFtpCommandHandler().getFilelistFormatter().format(list).getBytes("UTF-8"));
                     socket.getOutputStream().flush();
                 } catch (final FtpFileNotExistException e) {
                     write(450, "Requested file action not taken; File unavailable");
