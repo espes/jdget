@@ -49,7 +49,7 @@ public class CopyAction extends AbstractAction {
      * @seecom.rapidshare.utils.event.Event.ActionListener#actionPerformed(com.
      * rapidshare.utils.event.Event.ActionEvent)
      */
-    @Override
+ 
     public void actionPerformed(final ActionEvent e) {
         text.copy();
 

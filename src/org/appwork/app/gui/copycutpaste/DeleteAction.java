@@ -46,7 +46,7 @@ public class DeleteAction extends AbstractAction {
      * @see com.rapidshare.utils.event.Event.ActionListener#actionPerformed(com.
      * rapidshare.utils.event.Event.ActionEvent)
      */
-    @Override
+   
     public void actionPerformed(final ActionEvent e) {
         text.replaceSelection(null);
 
