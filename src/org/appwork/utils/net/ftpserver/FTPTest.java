@@ -22,7 +22,7 @@ import org.appwork.utils.Files;
  */
 public class FTPTest {
 
-    protected static final File ROOT = new File("c:/test");
+    protected static final File ROOT = new File("c:/test/");
 
     public static void main(final String[] args) throws IOException {
         final FtpConnectionHandler handler = new FtpConnectionHandler() {
@@ -33,7 +33,7 @@ public class FTPTest {
             @Override
             public FtpConnectionState createNewConnectionState() {
                 final FtpConnectionState state = new FtpConnectionState();
-                state.setCurrentDir(FTPTest.ROOT.getAbsolutePath());
+                state.setCurrentDir("/");
                 return state;
             }
 
@@ -41,7 +41,7 @@ public class FTPTest {
             public ArrayList<FtpFile> getFileList(final FtpConnectionState connectionState, final String item) throws UnsupportedEncodingException, IOException {
 
                 if (item == null) {
-                    return list(new File(connectionState.getCurrentDir()));
+                    return list(new File(FTPTest.ROOT, connectionState.getCurrentDir()));
 
                 } else {
                     final File file = new File(item);
@@ -91,11 +91,11 @@ public class FTPTest {
 
             @Override
             public void onDirectoryUp(final FtpConnectionState connectionState) throws FtpFileNotExistException {
-                if (new File(connectionState.getCurrentDir()).equals(FTPTest.ROOT)) { throw new FtpFileNotExistException(); }
-                final File newcur = new File(connectionState.getCurrentDir()).getParentFile();
+                if (new File(connectionState.getCurrentDir()).equals("/")) { throw new FtpFileNotExistException(); }
+                final File newcur = new File(FTPTest.ROOT, connectionState.getCurrentDir()).getParentFile();
                 if (newcur != null) {
 
-                    connectionState.setCurrentDir(newcur.getAbsolutePath());
+                    connectionState.setCurrentDir(Files.getRelativePath(FTPTest.ROOT, newcur));
                     return;
                 }
                 throw new FtpFileNotExistException();
@@ -120,16 +120,16 @@ public class FTPTest {
             public void setCurrentDirectory(final FtpConnectionState connectionState, final String cwd) throws FtpFileNotExistException {
                 File newcur = null;
 
-                if (new File(cwd).isAbsolute()) {
-                    newcur = new File(cwd);
+                if (cwd.startsWith("/")) {
+                    newcur = new File(FTPTest.ROOT, cwd);
                 } else {
-                    newcur = new File(connectionState.getCurrentDir(), cwd);
+                    newcur = new File(new File(FTPTest.ROOT, connectionState.getCurrentDir()), cwd);
                 }
                 final String rel = Files.getRelativePath(FTPTest.ROOT, newcur);
                 if (rel == null) { throw new FtpFileNotExistException(); }
                 if (newcur.exists() && newcur.isDirectory()) {
 
-                    connectionState.setCurrentDir(newcur.getAbsolutePath());
+                    connectionState.setCurrentDir(rel);
                     return;
                 }
                 throw new FtpFileNotExistException();
