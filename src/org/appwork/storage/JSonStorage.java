@@ -217,7 +217,7 @@ public class JSonStorage {
                     return (E) JSonStorage.MAPPER.readValue(string, def.getClass());
                 }
             }
-        } catch (final Exception e) {
+        } catch (final Exception e) {            
             Log.exception(Level.WARNING,e);
             return def;
         }

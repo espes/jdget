@@ -119,6 +119,7 @@ public class FTPTest {
             @Override
             public void setCurrentDirectory(final FtpConnectionState connectionState, final String cwd) throws FtpFileNotExistException {
                 File newcur = null;
+
                 if (new File(cwd).isAbsolute()) {
                     newcur = new File(cwd);
                 } else {
