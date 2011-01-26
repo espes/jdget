@@ -142,7 +142,6 @@ public class FTPTest {
             @Override
             public void onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException {
                 File newcur = null;
-
                 if (param.startsWith("/")) {
                     newcur = new File(FTPTest.ROOT, param);
                 } else {
@@ -165,6 +164,7 @@ public class FTPTest {
                         }
                     }
                     fis.close();
+                    return;
                 }
                 throw new FtpFileNotExistException();                
             }
