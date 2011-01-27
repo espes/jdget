@@ -21,11 +21,12 @@ import java.net.UnknownHostException;
  */
 public class FtpServer implements Runnable {
 
-    private final FtpConnectionHandler handler;
-    private final int                  port;
-    private ServerSocket               controlSocket;
+    private final FtpConnectionHandler<? extends FtpFile> handler;
+    private final int                     port;
+    private ServerSocket                  controlSocket;
+    private Thread                        controlThread = null;
 
-    public FtpServer(final FtpConnectionHandler handler, final int port) {
+    public FtpServer(final FtpConnectionHandler<? extends FtpFile> handler, final int port) {
         this.handler = handler;
         this.port = port;
     }
@@ -33,7 +34,7 @@ public class FtpServer implements Runnable {
     /**
      * @return
      */
-    public FtpConnectionHandler getFtpCommandHandler() {
+    public FtpConnectionHandler<? extends FtpFile> getFtpCommandHandler() {
         return handler;
     }
 
@@ -56,23 +57,39 @@ public class FtpServer implements Runnable {
      * 
      * @see java.lang.Runnable#run()
      */
-   
+
     public void run() {
-        while (true) {
+        Thread current = controlThread;
+        ServerSocket socket = controlSocket;
+        try {
+            while (true) {
+                try {
+                    final Socket clientSocket = socket.accept();
+                    new FtpConnection(this, clientSocket);
+                } catch (final IOException e) {
+                    break;
+                }
+                if (current == null || current.isInterrupted()) break;
+            }
+        } finally {
             try {
-                final Socket clientSocket = controlSocket.accept();
-                new FtpConnection(this, clientSocket);
-            } catch (final IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                socket.close();
+            } catch (final Throwable e) {
             }
         }
     }
 
-    public void start() throws IOException {
+    public synchronized void start() throws IOException {
         controlSocket = new ServerSocket(port);
-
-        new Thread(this).start();
+        controlThread = new Thread(this);
+        controlThread.start();
     }
 
+    public synchronized void stop() {
+        controlThread.interrupt();
+        try {
+            controlSocket.close();
+        } catch (final Throwable e) {
+        }
+    }
 }

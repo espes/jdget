@@ -9,24 +9,23 @@
  */
 package org.appwork.utils.net.ftpserver;
 
-
 /**
  * @author daniel
  *
  */
-public class FtpBadSequenceException extends FtpException {
+public class FtpCommandParameterException extends FtpException {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -7187797011651123688L;
 
     /**
      * @param code
      * @param message
      */
-    public FtpBadSequenceException() {
-        super(503, "Bad sequence of commands");
+    public FtpCommandParameterException() {
+        super(504, "Command not implemented for that parameter");
     }
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 6355546308848584497L;
 
 }

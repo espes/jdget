@@ -16,6 +16,22 @@ package org.appwork.utils.net.ftpserver;
 public class FtpConnectionState {
     private String  currentDir = "/";
     private FTPUser user       = null;
+    private FtpFile renameFile = null;
+
+    /**
+     * @return the renameFile
+     */
+    public FtpFile getRenameFile() {
+        return renameFile;
+    }
+
+    /**
+     * @param renameFile
+     *            the renameFile to set
+     */
+    public void setRenameFile(FtpFile renameFile) {
+        this.renameFile = renameFile;
+    }
 
     public String getCurrentDir() {
         return currentDir;
@@ -26,6 +42,12 @@ public class FtpConnectionState {
     }
 
     public void setCurrentDir(final String currentDir) {
+        if (currentDir != null && currentDir.equals(this.currentDir)) return;
+        /*
+         * changing current directory will remove renameFile to protect unwanted
+         * renaming
+         */
+        this.renameFile = null;
         this.currentDir = currentDir;
     }
 

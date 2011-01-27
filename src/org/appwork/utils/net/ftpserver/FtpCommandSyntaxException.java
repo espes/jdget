@@ -9,13 +9,20 @@
  */
 package org.appwork.utils.net.ftpserver;
 
-import java.io.IOException;
 
 /**
  * @author daniel
  * 
  */
-public class FtpCommandSyntaxException extends IOException {
+public class FtpCommandSyntaxException extends FtpException {
+
+    /**
+     * @param code
+     * @param message
+     */
+    public FtpCommandSyntaxException() {
+        super(501, "Syntax error in parameters or arguments");
+    }
 
     /**
      * 

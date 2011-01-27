@@ -9,24 +9,23 @@
  */
 package org.appwork.utils.net.ftpserver;
 
-
 /**
  * @author daniel
  *
  */
-public class FtpBadSequenceException extends FtpException {
+public class FtpNotLoginException extends FtpException {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 3733057587016114878L;
 
     /**
      * @param code
      * @param message
      */
-    public FtpBadSequenceException() {
-        super(503, "Bad sequence of commands");
+    public FtpNotLoginException() {
+        super(530, "Not logged in");
     }
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 6355546308848584497L;
 
 }

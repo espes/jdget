@@ -19,6 +19,29 @@ public class FtpFile {
     private final long    size;
     private final long    lastModified = 0;
     private final boolean isDirectory;
+    private String owner="unknown";
+    /**
+     * @param owner the owner to set
+     */
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    private String group="unknown";
+
+    /**
+     * @return the group
+     */
+    public String getGroup() {
+        return group;
+    }
+
+    /**
+     * @param group the group to set
+     */
+    public void setGroup(String group) {
+        this.group = group;
+    }
 
     /**
      * @param name
@@ -45,6 +68,10 @@ public class FtpFile {
 
     public boolean isDirectory() {
         return isDirectory;
+    }
+    
+    public String getOwner(){
+        return owner;
     }
 
 }

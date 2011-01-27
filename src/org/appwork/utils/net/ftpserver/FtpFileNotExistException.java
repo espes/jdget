@@ -13,9 +13,17 @@ import java.io.IOException;
 
 /**
  * @author daniel
- *
+ * 
  */
-public class FtpFileNotExistException extends IOException {
+public class FtpFileNotExistException extends FtpException {
+
+    /**
+     * @param code
+     * @param message
+     */
+    public FtpFileNotExistException() {
+        super(550, "No such file or directory.");
+    }
 
     /**
      * 

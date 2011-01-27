@@ -13,18 +13,43 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * @author daniel
  * 
  */
-public abstract class FtpConnectionHandler {
+public abstract class FtpConnectionHandler<E extends FtpFile> {
 
-    private final DefaultFilelistFormatter filelistFormatter;
-
-    public FtpConnectionHandler() {
-        filelistFormatter = new DefaultFilelistFormatter();
+    public String formatFileList(ArrayList<? extends FtpFile> list) {
+        final String DEL = " ";
+        final StringBuilder sb = new StringBuilder();
+        final SimpleDateFormat df = new SimpleDateFormat("MMM dd yyyy", Locale.ENGLISH);
+        for (final FtpFile f : list) {
+            // directory or not
+            sb.append(f.isDirectory() ? "d" : "-");
+            // rights
+            sb.append("rwxrwxrwx");
+            sb.append(DEL);
+            sb.append("0");
+            sb.append(DEL);
+            // group
+            sb.append(f.getGroup());
+            sb.append(DEL);
+            // user
+            sb.append(f.getOwner());
+            sb.append(DEL);
+            sb.append(f.getSize());
+            sb.append(DEL);
+            sb.append(df.format(new Date(f.getLastModified())));
+            sb.append(DEL);
+            sb.append(f.getName());
+            sb.append("\r\n");
+        }
+        return sb.toString();
     }
 
     /**
@@ -41,14 +66,7 @@ public abstract class FtpConnectionHandler {
      * @throws IOException
      * @throws UnsupportedEncodingException
      */
-    public abstract ArrayList<FtpFile> getFileList(FtpConnectionState connectionState, String string) throws UnsupportedEncodingException, IOException, FtpFileNotExistException;
-
-    /**
-     * @return
-     */
-    public FilelistFormatter getFilelistFormatter() {
-        return filelistFormatter;
-    }
+    public abstract ArrayList<E> getFileList(FtpConnectionState connectionState, String string) throws UnsupportedEncodingException, IOException, FtpFileNotExistException;
 
     public abstract FTPUser getUser(final String user);
 
@@ -92,9 +110,44 @@ public abstract class FtpConnectionHandler {
      * @param connectionState
      * @param buildParameter
      * @return
-     * @throws FtpFileNotExistException 
-     * @throws IOException 
+     * @throws FtpFileNotExistException
+     * @throws IOException
      */
-    public abstract long onSTOR(InputStream inputStream, FtpConnectionState connectionState,boolean append, String buildParameter) throws FtpFileNotExistException, IOException;
+    public abstract long onSTOR(InputStream inputStream, FtpConnectionState connectionState, boolean append, String buildParameter) throws FtpFileNotExistException, IOException;
+
+    /**
+     * @param connectionState
+     * @param buildParameter
+     * @return
+     */
+    public abstract long getSize(FtpConnectionState connectionState, String buildParameter) throws FtpFileNotExistException;
+
+    /**
+     * @param connectionState
+     * @param buildParameter
+     * @throws FtpFileNotExistException
+     * @throws FtpException
+     */
+    public abstract void removeDirectory(FtpConnectionState connectionState, String buildParameter) throws FtpFileNotExistException, FtpException;
+
+    /**
+     * @param connectionState
+     * @param buildParameter
+     */
+    public abstract void removeFile(FtpConnectionState connectionState, String buildParameter) throws FtpFileNotExistException, FtpException;
+
+    /**
+     * @param connectionState
+     * @param buildParameter
+     */
+    /*
+     * this function gets called twice:
+     * 
+     * 1.) by RNFR, which should set the renameFile in connectionState if
+     * renaming is possible
+     * 
+     * 2.) by RNTO, which should do the actual renaming
+     */
+    public abstract void renameFile(FtpConnectionState connectionState, String buildParameter) throws FtpFileNotExistException;
 
 }

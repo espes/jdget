@@ -9,13 +9,20 @@
  */
 package org.appwork.utils.net.ftpserver;
 
-import java.io.IOException;
 
 /**
  * @author daniel
- *
+ * 
  */
-public class FtpCommandNotImplementedException extends IOException {
+public class FtpCommandNotImplementedException extends FtpException {
+
+    /**
+     * @param code
+     * @param message
+     */
+    public FtpCommandNotImplementedException() {
+        super(502, "Command not implemented");
+    }
 
     /**
      * 

@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.net.ftpserver;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,7 +30,7 @@ public class FTPTest {
     protected static final File ROOT = new File("/home/daniel/test");
 
     public static void main(final String[] args) throws IOException {
-        final FtpConnectionHandler handler = new FtpConnectionHandler() {
+        final FtpConnectionHandler<FtpTestFile> handler = new FtpConnectionHandler<FtpTestFile>() {
 
             /**
              * @return
@@ -44,9 +43,9 @@ public class FTPTest {
             }
 
             @Override
-            public ArrayList<FtpFile> getFileList(final FtpConnectionState connectionState, final String item) throws UnsupportedEncodingException, IOException {
+            public ArrayList<FtpTestFile> getFileList(final FtpConnectionState connectionState, final String item) throws UnsupportedEncodingException, IOException, FtpFileNotExistException {
 
-                if (item == null || item.length() == 0) {
+                if (item == null || item.length() == 0 || item.startsWith("-") || item.startsWith("*")) {
                     return list(new File(FTPTest.ROOT, connectionState.getCurrentDir()));
 
                 } else {
@@ -75,8 +74,8 @@ public class FTPTest {
              * @return
              * @throws FtpFileNotExistException
              */
-            protected ArrayList<FtpFile> list(final File file) throws FtpFileNotExistException {
-                final ArrayList<FtpFile> ret = new ArrayList<FtpFile>();
+            protected ArrayList<FtpTestFile> list(final File file) throws FtpFileNotExistException {
+                final ArrayList<FtpTestFile> ret = new ArrayList<FtpTestFile>();
                 if (!file.exists()) { throw new FtpFileNotExistException();
 
                 }
@@ -84,13 +83,13 @@ public class FTPTest {
                     final File[] list = file.listFiles();
                     if (list != null) {
                         for (final File item : list) {
-                            ret.add(new FtpFile(item.getName(), item.length(), item.isDirectory(), item.lastModified()));
+                            ret.add(new FtpTestFile(item.getName(), item.length(), item.isDirectory(), item.lastModified()));
                         }
                     } else {
                         throw new FtpFileNotExistException();
                     }
                 } else {
-                    ret.add(new FtpFile(file.getName(), file.length(), file.isDirectory(), file.lastModified()));
+                    ret.add(new FtpTestFile(file.getName(), file.length(), file.isDirectory(), file.lastModified()));
                 }
                 return ret;
             }
@@ -142,7 +141,7 @@ public class FTPTest {
             }
 
             @Override
-            public long onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException {
+            public long onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException, FtpFileNotExistException {
                 File newcur = null;
                 if (param.startsWith("/")) {
                     newcur = new File(FTPTest.ROOT, param);
@@ -238,6 +237,80 @@ public class FTPTest {
 
                 }
                 throw new FtpFileNotExistException();
+            }
+
+            @Override
+            public long getSize(FtpConnectionState connectionState, String cwd) throws FtpFileNotExistException {
+                File newcur = null;
+                if (cwd.startsWith("/")) {
+                    newcur = new File(FTPTest.ROOT, cwd);
+                } else {
+                    newcur = new File(new File(FTPTest.ROOT, connectionState.getCurrentDir()), cwd);
+                }
+                final String rel = Files.getRelativePath(FTPTest.ROOT, newcur);
+                if (rel == null) { throw new FtpFileNotExistException(); }
+                if (newcur.exists() && newcur.isFile()) { return newcur.length(); }
+                throw new FtpFileNotExistException();
+            }
+
+            @Override
+            public void removeDirectory(FtpConnectionState connectionState, String cwd) throws FtpException {
+                File newcur = null;
+                if (cwd.startsWith("/")) {
+                    newcur = new File(FTPTest.ROOT, cwd);
+                } else {
+                    newcur = new File(new File(FTPTest.ROOT, connectionState.getCurrentDir()), cwd);
+                }
+                final String rel = Files.getRelativePath(FTPTest.ROOT, newcur);
+                if (rel == null) { throw new FtpFileNotExistException(); }
+                if (newcur.exists()) {
+                    if (newcur.isFile() || !newcur.delete()) { throw new FtpException(550, "Could not delete " + cwd); }
+                    return;
+                }
+                throw new FtpFileNotExistException();
+            }
+
+            @Override
+            public void removeFile(FtpConnectionState connectionState, String cwd) throws FtpException {
+                File newcur = null;
+                if (cwd.startsWith("/")) {
+                    newcur = new File(FTPTest.ROOT, cwd);
+                } else {
+                    newcur = new File(new File(FTPTest.ROOT, connectionState.getCurrentDir()), cwd);
+                }
+                final String rel = Files.getRelativePath(FTPTest.ROOT, newcur);
+                if (rel == null) { throw new FtpFileNotExistException(); }
+                if (newcur.exists()) {
+                    if (newcur.isDirectory() || !newcur.delete()) { throw new FtpException(550, "Could not delete " + cwd); }
+                    return;
+                }
+                throw new FtpFileNotExistException();
+            }
+
+            @Override
+            public void renameFile(FtpConnectionState connectionState, String cwd) throws FtpFileNotExistException {
+                File newcur = null;
+                if (cwd.startsWith("/")) {
+                    newcur = new File(FTPTest.ROOT, cwd);
+                } else {
+                    newcur = new File(new File(FTPTest.ROOT, connectionState.getCurrentDir()), cwd);
+                }
+                final String rel = Files.getRelativePath(FTPTest.ROOT, newcur);
+                if (rel == null) { throw new FtpFileNotExistException(); }
+                FtpFile rnfrom = connectionState.getRenameFile();
+                if (rnfrom != null) {
+                    File oldFile = ((FtpTestFile) rnfrom).getFile();
+                    if (oldFile.renameTo(newcur)) {/* do the rename */
+                        return;
+                    }
+                } else {
+                    if (!newcur.exists()) throw new FtpFileNotExistException();
+                    /* set rename old file */
+                    FtpTestFile ff = new FtpTestFile(newcur.getName(), newcur.length(), newcur.isDirectory(), newcur.lastModified());
+                    ff.setFile(newcur);
+                    connectionState.setRenameFile(ff);
+                    return;
+                }
             }
 
         };
