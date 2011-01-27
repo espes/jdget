@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
@@ -72,10 +73,10 @@ public abstract class TimerDialog {
      * Label to display the timervalue
      */
     protected JLabel          timerLbl;
-
     protected JFrame          parentFrame;
 
     private InternDialog      dialog;
+
     private Dimension         preferredSize;
 
     public TimerDialog(final JFrame parentframe) {
@@ -106,6 +107,14 @@ public abstract class TimerDialog {
     protected void dispose() {
         getDialog().realDispose();
 
+    }
+
+    /**
+     * @return
+     */
+    protected Color getBackground() {
+        // TODO Auto-generated method stub
+        return getDialog().getBackground();
     }
 
     protected InternDialog getDialog() {
@@ -278,6 +287,13 @@ public abstract class TimerDialog {
 
     protected void setResizable(final boolean b) {
         getDialog().setResizable(b);
+    }
+
+    /**
+     * @param b
+     */
+    public void setVisible(final boolean b) {
+        getDialog().setVisible(b);
     }
 
 }

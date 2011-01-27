@@ -281,7 +281,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         });
         focus.requestFocus();
         this.packed();
-        getDialog().setVisible(true);
+        setVisible(true);
 
         /*
          * workaround a javabug that forces the parentframe to stay always on
@@ -483,7 +483,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     /**
      * @param title2
      */
-    private void setTitle(final String title2) {
+    protected void setTitle(final String title2) {
         getDialog().setTitle(title2);
     }
 

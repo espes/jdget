@@ -92,7 +92,31 @@ public enum APPWORKUTILS implements Translate {
     /*
      * ###de_DE:Fehlerdetails
      */
-    ExceptionDialog_layoutDialogContent_more_button("Error details");
+    ExceptionDialog_layoutDialogContent_more_button("Error details"),
+    /**
+     * Grund für diesen Fehler:
+     */
+    ExceptionDialog_layoutDialogContent_logLabel("This Error is cause by:"),
+    /*
+     * ###de_DE:Zugangsdaten eingeben
+     */
+    AccountNew_AccountNew_title("Enter Logins"),
+    /*
+     * ###de_DE:Bitte geben Sie hier Ihre Zugangsdaten ein
+     */
+    AccountNew_AccountNew_message("Please enter your logins here"),
+    /*
+     * ###de_DE:Benutzername
+     */
+    AccountNew_layoutDialogContent_accountname("Username"),
+    /*
+     * ###de_DE:Passwort
+     */
+    AccountNew_layoutDialogContent_password("Password"),
+    /*
+     * ###de_DE:Merken?
+     */
+    AccountNew_layoutDialogContent_save("Remember");
     // ENDOFENUMS
     /**
      * @return

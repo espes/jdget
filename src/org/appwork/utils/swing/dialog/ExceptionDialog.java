@@ -51,6 +51,8 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
 
     private JScrollPane       scrollPane;
 
+    private JLabel            logLabel;
+
     public ExceptionDialog(final int flag, final String title, final String message, final Throwable exception, final String okOption, final String cancelOption) {
         super(flag, title, null, okOption, cancelOption);
         Log.L.fine("Dialog    [" + okOption + "][" + cancelOption + "]\r\nflag:  " + Integer.toBinaryString(flag) + "\r\ntitle: " + title + "\r\nmsg:   \r\n" + message);
@@ -75,6 +77,7 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
 
                 scrollPane.setVisible(true);
                 logField.setText(Exceptions.getStackTrace(exception));
+                logLabel.setVisible(true);
                 more.setVisible(false);
 
                 pack();
@@ -150,7 +153,11 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
         logField.setEditable(true);
         logField.setAutoscrolls(true);
         logField.setForeground(Color.RED);
-        cp.add(scrollPane, "hidemode 3,height 100:300:n,width 200:600:n,pushx,growx,pushy,growy,gapleft 5,gapright 5");
+        logLabel = new JLabel(APPWORKUTILS.ExceptionDialog_layoutDialogContent_logLabel.s());
+        logLabel.setVisible(false);
+        cp.add(logLabel, "hidemode 3,gaptop 5");
+
+        cp.add(scrollPane, "hidemode 3,height 100:300:n,width 200:600:n,pushx,growx,pushy,growy");
 
         return cp;
 

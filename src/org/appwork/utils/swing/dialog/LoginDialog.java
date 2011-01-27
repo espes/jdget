@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2009 - 2010 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
+ * Copyright (c) 2009 - 2011 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
  * 
  * This file is part of org.appwork.utils.swing.dialog
  * 
@@ -9,197 +9,144 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import java.awt.Cursor;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.Color;
+import java.awt.event.ActionListener;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.SwingConstants;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.appwork.utils.BinaryLogic;
+import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.swing.dialog.LoginDialog.LoginData;
 
-public class LoginDialog extends AbstractDialog<String[]> implements KeyListener, MouseListener {
+/**
+ * @author thomas
+ * 
+ */
+public class LoginDialog extends AbstractDialog<LoginData> implements ActionListener, CaretListener {
+    public static class LoginData {
+        private final String  username;
+        private final String  password;
+        private final boolean save;
 
-    private static final long serialVersionUID = 9206575398715006581L;
-    public static final int REGISTER = 1 << 20;
-    public static final int FORCE_REGISTER = 1 << 21;
-    private String defaultMessage;
-    private String message;
-    private JTextPane messageArea;
-    private JTextField login;
-    private JPasswordField password;
-    private boolean remember;
-    private JCheckBox rem;
-    private boolean register;
-    private JLabel registerBtn;
-    private JPasswordField rpassword;
-    private JLabel rpasswordLabel;
+        public LoginData(final String username, final String password, final boolean save) {
+            super();
+            this.username = username;
+            this.password = password;
+            this.save = save;
+        }
 
-    public LoginDialog(int flag, String title, String message, String defaultMessage, ImageIcon icon, String okOption, String cancelOption) {
-        super(flag & 0xffffffff & (~Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN), title, icon, okOption, cancelOption);
-        // remove do not show again flag and convert to remember flag
-        remember = BinaryLogic.containsAll(flag, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN);
-        register = BinaryLogic.containsAll(flag, REGISTER);
+        public String getPassword() {
+            return password;
+        }
 
-        this.defaultMessage = defaultMessage;
-        this.message = message;
+        public String getUsername() {
+            return username;
+        }
+
+        public boolean isSave() {
+            return save;
+        }
+    }
+
+    private static final long serialVersionUID = 4425873806383799500L;
+
+    public static void main(final String[] args) {
+        try {
+            Dialog.getInstance().showDialog(new LoginDialog(0));
+        } catch (final DialogClosedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (final DialogCanceledException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    private JTextField     accid;
+    private JPasswordField pass;
+    private Color          titleColor;
+    private String         preUser;
+    private String         prePass;
+    private boolean        preSave = false;
+    private JCheckBox      save;
+
+    public LoginDialog(final int flag) {
+        super(flag & 0xffffffff & ~Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.AccountNew_AccountNew_title.s(), ImageProvider.getImageIcon("login", 32, 32), null, null);
+    }
+
+    private JLabel addSettingName(final String name) {
+        final JLabel lbl = new JLabel(name);
+        lbl.setForeground(titleColor);
+        return lbl;
+    }
+
+    @Override
+    public void caretUpdate(final CaretEvent e) {
+        if (accid.getText().length() == 0) {
+            okButton.setEnabled(false);
+        } else {
+            okButton.setEnabled(true);
+        }
+
+    }
+
+    @Override
+    protected LoginData createReturnValue() {
+        if ((getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
+        return new LoginData(accid.getText(), new String(pass.getPassword()), save.isSelected());
     }
 
     @Override
     public JComponent layoutDialogContent() {
-        JPanel cp = new JPanel(new MigLayout("ins 0,wrap 2", "[][fill,grow]"));
-        messageArea = new JTextPane();
-        messageArea.setBorder(null);
-        messageArea.setBackground(null);
-        messageArea.setOpaque(false);
-        messageArea.setText(this.message);
-        messageArea.setEditable(false);
-        messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
-        cp.add(messageArea, "spanx");
-        cp.add(new JLabel(APPWORKUTILS.LOGINDIALOG_LABEL_USERNAME.s()), "alignx right");
+        final JPanel contentpane = new JPanel();
+        titleColor = getBackground().darker().darker();
+        accid = new JTextField(10);
+        accid.addCaretListener(this);
+        pass = new JPasswordField(10);
+        save = new JCheckBox();
 
-        login = new JTextField();
-        login.setBorder(BorderFactory.createEtchedBorder());
-        login.setText(this.defaultMessage);
-        login.addKeyListener(this);
-        login.addMouseListener(this);
-        cp.add(login, "pushy,growy");
-        // password
-
-        cp.add(new JLabel(APPWORKUTILS.LOGINDIALOG_LABEL_PASSWORD.s()), "alignx right");
-
-        password = new JPasswordField();
-        password.setBorder(BorderFactory.createEtchedBorder());
-        password.addKeyListener(this);
-        password.addMouseListener(this);
-        cp.add(password, "pushy,growy");
-
-        // register
-
-        cp.add(rpasswordLabel = new JLabel(APPWORKUTILS.LOGINDIALOG_LABEL_PASSWORD_REPEAT.s()), "alignx right,hidemode 3");
-
-        rpassword = new JPasswordField();
-        rpassword.setBorder(BorderFactory.createEtchedBorder());
-        rpassword.addKeyListener(this);
-        rpassword.addMouseListener(this);
-        cp.add(rpassword, "pushy,growy,hidemode 3");
-        rpassword.setVisible(BinaryLogic.containsAll(this.flagMask, FORCE_REGISTER));
-        rpasswordLabel.setVisible(BinaryLogic.containsAll(this.flagMask, FORCE_REGISTER));
-        if (register) {
-            registerBtn = new JLabel(APPWORKUTILS.LOGINDIALOG_BUTTON_REGISTER.s());
-            registerBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, cp.getBackground().darker().darker()));
-            registerBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            registerBtn.addMouseListener(this);
-            cp.add(registerBtn, "skip,split 2");
-        } else {
-            cp.add(Box.createHorizontalGlue(), "skip,split 2");
-        }
-
-        if (remember) {
-            rem = new JCheckBox(APPWORKUTILS.LOGINDIALOG_CHECKBOX_REMEMBER.s());
-            rem.setHorizontalTextPosition(SwingConstants.LEFT);
-            rem.setHorizontalAlignment(SwingConstants.RIGHT);
-            cp.add(rem, "pushx,growx,alignx right");
-
-        }
-        return cp;
+        contentpane.setLayout(new MigLayout("ins 5, wrap 2", "[]10[grow,fill]", "[][]"));
+        contentpane.add(new JLabel(APPWORKUTILS.AccountNew_AccountNew_message.s()), "spanx");
+        contentpane.add(addSettingName(APPWORKUTILS.AccountNew_layoutDialogContent_accountname.s()));
+        contentpane.add(accid, "sizegroup g1,width 100:250:n");
+        contentpane.add(addSettingName(APPWORKUTILS.AccountNew_layoutDialogContent_password.s()));
+        contentpane.add(pass, "sizegroup g1");
+        contentpane.add(addSettingName(APPWORKUTILS.AccountNew_layoutDialogContent_save.s()));
+        contentpane.add(save, "sizegroup g1");
+        accid.setText(preUser);
+        pass.setText(prePass);
+        save.setSelected(preSave);
+        return contentpane;
     }
 
     @Override
     protected void packed() {
-        login.selectAll();
+        accid.selectAll();
         requestFocus();
-        login.requestFocusInWindow();
+        accid.requestFocusInWindow();
     }
 
-    /**
-     * Returns an array login,password,repeated password,remember.<br>
-     * repeated password is null if we are in login mode <br>
-     * remember is null of the remember checkbox is unchecked
-     * 
-     * @return
-     */
-    public String[] getLogins() {
-        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
-
-        return new String[] { login.getText(), new String(password.getPassword()), rpassword.isVisible() ? new String(rpassword.getPassword()) : null, rem.isSelected() ? "yes" : null };
+    public void setPasswordDefault(final String password) {
+        prePass = password;
     }
 
-    /**
-     * returns if the "remember flag has been set"
-     * 
-     * @return
-     */
-    public boolean isRemember() {
-        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return false; }
-
-        return rem.isSelected();
-
+    public void setRememberDefault(final boolean preSave) {
+        this.preSave = preSave;
     }
 
-    public void keyPressed(KeyEvent e) {
-        this.cancel();
-    }
+    public void setUsernameDefault(final String user) {
+        preUser = user;
 
-    public void keyReleased(KeyEvent e) {
-    }
-
-    public void keyTyped(KeyEvent e) {
-    }
-
-    public void mouseClicked(MouseEvent e) {
-        if (e.getSource() == registerBtn) {
-            if (rpassword.isVisible()) {
-                rpassword.setVisible(false);
-                rpasswordLabel.setVisible(false);
-                registerBtn.setText(APPWORKUTILS.LOGINDIALOG_BUTTON_REGISTER.s());
-            } else {
-                rpassword.setVisible(true);
-                rpasswordLabel.setVisible(true);
-                registerBtn.setText(APPWORKUTILS.LOGINDIALOG_BUTTON_LOGIN.s());
-            }
-
-            this.pack();
-        } else {
-            this.cancel();
-        }
-    }
-
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    public void mouseExited(MouseEvent e) {
-    }
-
-    public void mousePressed(MouseEvent e) {
-    }
-
-    public void mouseReleased(MouseEvent e) {
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.swing.dialog.AbstractDialog#getRetValue()
-     */
-    @Override
-    protected String[] createReturnValue() {
-        return getLogins();
     }
 
 }
