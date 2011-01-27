@@ -49,6 +49,14 @@ public abstract class TimerDialog {
             return super.getPreferredSize();
 
         }
+
+        /**
+         * 
+         */
+        public void realDispose() {
+            super.dispose();
+
+        }
     }
 
     private static final long serialVersionUID = -7551772010164684078L;
@@ -96,7 +104,7 @@ public abstract class TimerDialog {
      * 
      */
     protected void dispose() {
-        // TODO Auto-generated method stub
+        getDialog().realDispose();
 
     }
 

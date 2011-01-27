@@ -14,7 +14,6 @@ import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -34,7 +33,6 @@ import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
-import org.appwork.utils.swing.SwingUtils;
 
 /**
  * @author thomas
@@ -59,6 +57,31 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
 
         this.message = message;
         this.exception = exception;
+    }
+
+    @Override
+    protected void addButtons(final JPanel buttonBar) {
+
+        final JButton more = new JButton(APPWORKUTILS.ExceptionDialog_layoutDialogContent_more_button.s());
+
+        more.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // more.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0,
+        // cp.getBackground().darker()));
+        more.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+
+                scrollPane.setVisible(true);
+                logField.setText(Exceptions.getStackTrace(exception));
+                more.setVisible(false);
+
+                pack();
+            }
+        });
+        more.setHorizontalAlignment(SwingConstants.RIGHT);
+        buttonBar.add(more, "hidemode 3");
     }
 
     @Override
@@ -117,27 +140,6 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
             cp.add(textField, "pushx,growx");
         }
 
-        final JButton more = new JButton(APPWORKUTILS.ExceptionDialog_layoutDialogContent_more_button.s());
-        SwingUtils.boldJButton(more);
-
-        SwingUtils.boldJButton(more);
-        more.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        more.setFocusable(false);
-        more.setContentAreaFilled(false);
-        more.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, cp.getBackground().darker()));
-        more.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                more.setVisible(false);
-                scrollPane.setVisible(true);
-                logField.setText(Exceptions.getStackTrace(exception));
-
-                pack();
-            }
-        });
-        more.setHorizontalAlignment(SwingConstants.RIGHT);
-
         logField = new JTextArea();
         logField.setLineWrap(false);
 
@@ -148,7 +150,6 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
         logField.setEditable(true);
         logField.setAutoscrolls(true);
         logField.setForeground(Color.RED);
-        cp.add(more, "hidemode 3,shrinky,alignx right,aligny top,gapright 5");
         cp.add(scrollPane, "hidemode 3,height 100:300:n,width 200:600:n,pushx,growx,pushy,growy,gapleft 5,gapright 5");
 
         return cp;
