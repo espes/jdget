@@ -71,7 +71,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     public ProgressDialog(final ProgressGetter progressGetter, final int flags, final String title, final String message, final ImageIcon icon, final String ok, final String cancel) {
         super(flags | Dialog.BUTTONS_HIDE_OK, title, icon, ok, cancel);
         this.message = message;
-        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+
         getter = progressGetter;
 
         setReturnmask(true);
@@ -145,7 +145,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
 
     @Override
     public JComponent layoutDialogContent() {
-
+        getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         final JPanel p = new JPanel(new MigLayout("ins 0"));
 
         p.add(getTextfield(), "growx,pushx");

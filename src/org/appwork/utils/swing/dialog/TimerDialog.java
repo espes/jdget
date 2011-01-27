@@ -9,6 +9,8 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -23,7 +25,31 @@ import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
-public abstract class TimerDialog extends JDialog {
+public abstract class TimerDialog {
+
+    protected class InternDialog extends JDialog {
+
+        public InternDialog() {
+            super(parentFrame, ModalityType.TOOLKIT_MODAL);
+        }
+
+        @Override
+        public void dispose() {
+            TimerDialog.this.dispose();
+            super.dispose();
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            return TimerDialog.this.getPreferredSize();
+
+        }
+
+        public Dimension getRealPreferredSize() {
+            return super.getPreferredSize();
+
+        }
+    }
 
     private static final long serialVersionUID = -7551772010164684078L;
     /**
@@ -39,34 +65,18 @@ public abstract class TimerDialog extends JDialog {
      */
     protected JLabel          timerLbl;
 
-    public TimerDialog(JFrame parentframe) {
-        super(parentframe, ModalityType.TOOLKIT_MODAL);
+    protected JFrame          parentFrame;
+
+    private InternDialog      dialog;
+    private Dimension         preferredSize;
+
+    public TimerDialog(final JFrame parentframe) {
+        // super(parentframe, ModalityType.TOOLKIT_MODAL);
+        parentFrame = parentframe;
         // avoids always On Top BUg
         if (parentframe != null) {
             parentframe.setAlwaysOnTop(true);
             parentframe.setAlwaysOnTop(false);
-        }
-        layoutDialog();
-    }
-
-    protected void layoutDialog() {
-        this.timerLbl = new JLabel(TimeFormatter.formatSeconds(Dialog.getInstance().getCountdownTime(), 0));
-
-        this.timerLbl.addMouseListener(new MouseAdapter() {
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                cancel();
-                timerLbl.removeMouseListener(this);
-            }
-
-        });
-        this.timerLbl.setToolTipText(APPWORKUTILS.TIMERDIALOG_TOOLTIP_TIMERLABEL.s());
-
-        try {
-            this.timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));
-        } catch (IOException e1) {
-            Log.exception(e1);
         }
 
     }
@@ -82,30 +92,88 @@ public abstract class TimerDialog extends JDialog {
         }
     }
 
-    protected abstract void onTimeout();
+    /**
+     * 
+     */
+    protected void dispose() {
+        // TODO Auto-generated method stub
 
-    protected void initTimer(int time) {
-        this.counter = time;
+    }
+
+    protected InternDialog getDialog() {
+        if (dialog == null) { throw new NullPointerException("Call #org.appwork.utils.swing.dialog.AbstractDialog.displayDialog() first"); }
+        return dialog;
+    }
+
+    /**
+     * override this if you want to set a special height
+     * 
+     * @return
+     */
+    protected int getPreferredHeight() {
+        // TODO Auto-generated method stub
+        return -1;
+    }
+
+    /**
+     * @return
+     */
+    public Dimension getPreferredSize() {
+        final Dimension pref = getDialog().getRealPreferredSize();
+        int w = getPreferredWidth();
+        int h = getPreferredHeight();
+        if (w <= 0) {
+            w = pref.width;
+        }
+        if (h <= 0) {
+            h = pref.height;
+        }
+        try {
+            if (Dialog.getInstance().getParentOwner() != null && Dialog.getInstance().getParentOwner().isVisible()) {
+                return new Dimension(Math.min(Dialog.getInstance().getParentOwner().getWidth(), w), Math.min(Dialog.getInstance().getParentOwner().getHeight(), h));
+            } else {
+                return new Dimension(Math.min((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.75), w), Math.min((int) (Toolkit.getDefaultToolkit().getScreenSize().height * 0.75), h));
+
+            }
+        } catch (final Throwable e) {
+            return pref;
+        }
+    }
+
+    /**
+     * overwride this to set a special width
+     * 
+     * @return
+     */
+    protected int getPreferredWidth() {
+        // TODO Auto-generated method stub
+        return -1;
+    }
+
+    protected void initTimer(final int time) {
+        counter = time;
         timer = new Thread() {
 
+            @Override
             public void run() {
                 try {
                     // sleep while dialog is invisible
                     while (!isVisible()) {
                         try {
                             Thread.sleep(200);
-                        } catch (InterruptedException e) {
+                        } catch (final InterruptedException e) {
                             break;
                         }
                     }
                     int count = counter;
                     while (--count >= 0) {
-                        if (!isVisible()) return;
-                        if (timer == null) return;
+                        if (!isVisible()) { return; }
+                        if (timer == null) { return; }
                         final String left = TimeFormatter.formatSeconds(count, 0);
 
                         new EDTHelper<Object>() {
 
+                            @Override
                             public Object edtRun() {
                                 timerLbl.setText(left);
                                 return null;
@@ -115,13 +183,15 @@ public abstract class TimerDialog extends JDialog {
 
                         Thread.sleep(1000);
 
-                        if (counter < 0) return;
-                        if (!isVisible()) return;
+                        if (counter < 0) { return; }
+                        if (!isVisible()) { return; }
 
                     }
-                    if (counter < 0) return;
-                    if (!this.isInterrupted()) onTimeout();
-                } catch (InterruptedException e) {
+                    if (counter < 0) { return; }
+                    if (!isInterrupted()) {
+                        onTimeout();
+                    }
+                } catch (final InterruptedException e) {
                     return;
                 }
             }
@@ -129,6 +199,77 @@ public abstract class TimerDialog extends JDialog {
         };
 
         timer.start();
+    }
+
+    /**
+     * @return
+     */
+    protected boolean isVisible() {
+        // TODO Auto-generated method stub
+        return getDialog().isVisible();
+    }
+
+    protected void layoutDialog() {
+        dialog = new InternDialog();
+        if (preferredSize != null) {
+            dialog.setPreferredSize(preferredSize);
+        }
+        timerLbl = new JLabel(TimeFormatter.formatSeconds(Dialog.getInstance().getCountdownTime(), 0));
+
+        timerLbl.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseClicked(final MouseEvent e) {
+                cancel();
+                timerLbl.removeMouseListener(this);
+            }
+
+        });
+        timerLbl.setToolTipText(APPWORKUTILS.TIMERDIALOG_TOOLTIP_TIMERLABEL.s());
+
+        try {
+            timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));
+        } catch (final IOException e1) {
+            Log.exception(e1);
+        }
+
+    }
+
+    protected abstract void onTimeout();
+
+    public void pack() {
+        getDialog().pack();
+    }
+
+    public void requestFocus() {
+        getDialog().requestFocus();
+    }
+
+    protected void setAlwaysOnTop(final boolean b) {
+        getDialog().setAlwaysOnTop(b);
+    }
+
+    protected void setDefaultCloseOperation(final int doNothingOnClose) {
+        getDialog().setDefaultCloseOperation(doNothingOnClose);
+    }
+
+    protected void setMinimumSize(final Dimension dimension) {
+        getDialog().setMinimumSize(dimension);
+    }
+
+    /**
+     * @param dimension
+     */
+    public void setPreferredSize(final Dimension dimension) {
+        try {
+            getDialog().setPreferredSize(dimension);
+        } catch (final NullPointerException e) {
+            preferredSize = dimension;
+        }
+    }
+
+    protected void setResizable(final boolean b) {
+        getDialog().setResizable(b);
     }
 
 }

@@ -455,6 +455,25 @@ public class Dialog {
         return 0;
     }
 
+    /**
+     * @param string
+     * @param message
+     * @param e
+     */
+    public int showExceptionDialog(final String title, final String message, final Throwable e) {
+
+        try {
+            final ExceptionDialog dialog = new ExceptionDialog(Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT|Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | Dialog.BUTTONS_HIDE_CANCEL, title, message, e, null, null);
+            this.showDialog(dialog);
+        } catch (final DialogClosedException e1) {
+            return Dialog.RETURN_CLOSED;
+        } catch (final DialogCanceledException e1) {
+            return Dialog.RETURN_CANCEL;
+        }
+
+        return 0;
+    }
+
     public File[] showFileChooser(final String id, final String title, final FileChooserSelectionMode fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final FileChooserType dialogType, final File preSelect) throws DialogCanceledException, DialogClosedException {
         final int[] maskWrapper = new int[1];
         final File[] ret = new EDTHelper<File[]>() {

@@ -88,7 +88,11 @@ public enum APPWORKUTILS implements Translate {
     /*
      * ###de_DE:Besuchen Sie unsere Homepage
      */
-    Statusbar_Statusbar_visiturl_tooltip("Visit our Homepage");
+    Statusbar_Statusbar_visiturl_tooltip("Visit our Homepage"),
+    /*
+     * ###de_DE:Fehlerdetails
+     */
+    ExceptionDialog_layoutDialogContent_more_button("Error details");
     // ENDOFENUMS
     /**
      * @return
