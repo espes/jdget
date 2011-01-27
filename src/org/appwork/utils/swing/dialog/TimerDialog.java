@@ -30,6 +30,11 @@ public abstract class TimerDialog {
 
     protected class InternDialog extends JDialog {
 
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
+
         public InternDialog() {
             super(parentFrame, ModalityType.TOOLKIT_MODAL);
         }

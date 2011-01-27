@@ -1,9 +1,22 @@
 package org.appwork.app.net;
 
+import java.lang.reflect.Method;
 import java.net.Authenticator;
+import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.prefs.Preferences;
 
 import org.appwork.storage.JSonStorage;
+import org.appwork.utils.Regex;
+import org.appwork.utils.logging.Log;
+import org.appwork.utils.os.CrossSystem;
 
 class HttpAuthenticateProxy extends Authenticator {
 
@@ -35,6 +48,105 @@ public class ProxyController {
     public static final String PROP_TYPE = "PROXY_TYPE";
     public static final String PROP_USER = "PROXY_AUTH_USER";
 
+    public static void autoConfig() {
+        try {
+            if (CrossSystem.isWindows()) {
+                if (ProxyController.checkReg()) { return; }
+            }
+            System.setProperty("java.net.useSystemProxies", "true");
+
+            List<Proxy> l;
+            l = ProxySelector.getDefault().select(new URI("http://appwork.org"));
+
+            for (final Proxy p : l) {
+                final SocketAddress ad = p.address();
+                switch (p.type()) {
+                case HTTP:
+
+                    if (ad instanceof InetSocketAddress) {
+                        ProxyController.setPort(((InetSocketAddress) ad).getPort());
+                        ProxyController.setHost(((InetSocketAddress) ad).getHostName());
+                        ProxyController.setType(PROXYTYPE.HTTP);
+                    }
+                    return;
+                case SOCKS:
+                    if (ad instanceof InetSocketAddress) {
+                        ProxyController.setPort(((InetSocketAddress) ad).getPort());
+                        ProxyController.setHost(((InetSocketAddress) ad).getHostName());
+                        ProxyController.setType(PROXYTYPE.SOCKS5);
+                    }
+                    return;
+                }
+
+            }
+        } catch (final URISyntaxException e1) {
+            Log.exception(Level.WARNING, e1);
+
+        } finally {
+            System.setProperty("java.net.useSystemProxies", "false");
+            if (ProxyController.getType() != ProxyController.PROXYTYPE.NONE) {
+                Log.L.info("Found Proxy: " + ProxyController.getHost() + ":" + ProxyController.getPort() + "(" + ProxyController.getType() + ")");
+
+            }
+        }
+
+    }
+
+    /**
+     * Checks windows registry for proxy settings
+     */
+    @SuppressWarnings("unchecked")
+    private static boolean checkReg() {
+        final Preferences userRoot = Preferences.userRoot();
+
+        final Class<?> clz = userRoot.getClass();
+        try {
+            final Method openKey = clz.getDeclaredMethod("openKey", byte[].class, int.class, int.class);
+            openKey.setAccessible(true);
+
+            final Method closeKey = clz.getDeclaredMethod("closeKey", int.class);
+            closeKey.setAccessible(true);
+            final Method winRegQueryValue = clz.getDeclaredMethod("WindowsRegQueryValueEx", int.class, byte[].class);
+            winRegQueryValue.setAccessible(true);
+
+            byte[] valb = null;
+            String vals = null;
+            String key = null;
+            Integer handle = -1;
+
+            // Query Internet Settings for Proxy
+            key = "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
+            handle = (Integer) openKey.invoke(userRoot, ProxyController.toCstr(key), 0x20019, 0x20019);
+            valb = (byte[]) winRegQueryValue.invoke(userRoot, handle.intValue(), ProxyController.toCstr("ProxyServer"));
+            vals = valb != null ? new String(valb).trim() : null;
+
+            closeKey.invoke(Preferences.userRoot(), handle);
+
+            if (vals != null) {
+                final String ip = new Regex(vals, "(\\d+\\.\\d+\\.\\d+\\.\\d+)").getMatch(0);
+                final String port = new Regex(vals, ":(\\d+)").getMatch(0);
+
+                if (vals.trim().contains("socks")) {
+                    final int rPOrt = port != null ? Integer.parseInt(port) : 1080;
+                    ProxyController.setPort(rPOrt);
+                    ProxyController.setHost(ip);
+                    ProxyController.setType(PROXYTYPE.SOCKS5);
+                    return true;
+                } else {
+                    final int rPOrt = port != null ? Integer.parseInt(port) : 8080;
+                    ProxyController.setPort(rPOrt);
+                    ProxyController.setHost(ip);
+                    ProxyController.setType(PROXYTYPE.HTTP);
+                    return true;
+                }
+
+            }
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public static String getHost() {
         return JSonStorage.getPlainStorage("Proxy").get(ProxyController.PROP_HOST, "");
     }
@@ -54,6 +166,10 @@ public class ProxyController {
 
     public static String getUsername() {
         return JSonStorage.getPlainStorage("Proxy").get(ProxyController.PROP_USER, "");
+    }
+
+    public static void main(final String[] args) {
+        ProxyController.autoConfig();
     }
 
     public static void setHost(final String text) {
@@ -124,6 +240,15 @@ public class ProxyController {
 
     public static void setUsername(final String text) {
         JSonStorage.getPlainStorage("Proxy").put(ProxyController.PROP_USER, text);
+    }
+
+    private static byte[] toCstr(final String str) {
+        final byte[] result = new byte[str.length() + 1];
+        for (int i = 0; i < str.length(); i++) {
+            result[i] = (byte) str.charAt(i);
+        }
+        result[str.length()] = 0;
+        return result;
     }
 
 }

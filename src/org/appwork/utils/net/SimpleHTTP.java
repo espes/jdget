@@ -88,6 +88,10 @@ public class SimpleHTTP {
         return baos.toByteArray();
     }
 
+    public HttpURLConnection getConnection() {
+        return connection;
+    }
+
     public String getPage(final URL url) throws IOException, InterruptedException {
         synchronized (SimpleHTTP.CALL_LOCK) {
             BufferedReader in = null;
@@ -114,7 +118,9 @@ public class SimpleHTTP {
                         Thread.sleep(200);
                     }
                 }
+
                 in = new BufferedReader(isr = new InputStreamReader(connection.getInputStream(), "UTF-8"));
+
                 String str;
                 final StringBuilder sb = new StringBuilder();
                 while ((str = in.readLine()) != null) {

@@ -12,6 +12,7 @@ package org.appwork.utils.swing.dialog;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -23,6 +24,7 @@ import javax.swing.event.CaretListener;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.swing.dialog.LoginDialog.LoginData;
@@ -58,6 +60,7 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
     }
 
     private static final long serialVersionUID = 4425873806383799500L;
+    public static final int   DISABLE_REMEMBER = 1 << 20;
 
     public static void main(final String[] args) {
         try {
@@ -78,9 +81,17 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
     private String         prePass;
     private boolean        preSave = false;
     private JCheckBox      save;
+    private final boolean  rememberDisabled;
+    private final String   message;
 
     public LoginDialog(final int flag) {
-        super(flag & 0xffffffff & ~Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.AccountNew_AccountNew_title.s(), ImageProvider.getImageIcon("login", 32, 32), null, null);
+        this(flag, APPWORKUTILS.AccountNew_AccountNew_title.s(), APPWORKUTILS.AccountNew_AccountNew_message.s(), ImageProvider.getImageIcon("login", 32, 32));
+    }
+
+    public LoginDialog(final int flag, final String title, final String message, final ImageIcon icon) {
+        super(flag & 0xffffffff & ~Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, title, icon, null, null);
+        rememberDisabled = BinaryLogic.containsAll(flag, LoginDialog.DISABLE_REMEMBER);
+        this.message = message;
     }
 
     private JLabel addSettingName(final String name) {
@@ -114,9 +125,12 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
         accid.addCaretListener(this);
         pass = new JPasswordField(10);
         save = new JCheckBox();
+        if (rememberDisabled) {
+            save.setEnabled(false);
+        }
 
         contentpane.setLayout(new MigLayout("ins 5, wrap 2", "[]10[grow,fill]", "[][]"));
-        contentpane.add(new JLabel(APPWORKUTILS.AccountNew_AccountNew_message.s()), "spanx");
+        contentpane.add(new JLabel(message), "spanx");
         contentpane.add(addSettingName(APPWORKUTILS.AccountNew_layoutDialogContent_accountname.s()));
         contentpane.add(accid, "sizegroup g1,width 100:250:n");
         contentpane.add(addSettingName(APPWORKUTILS.AccountNew_layoutDialogContent_password.s()));
@@ -131,6 +145,8 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
 
     @Override
     protected void packed() {
+        super.packed();
+        setResizable(false);
         accid.selectAll();
         requestFocus();
         accid.requestFocusInWindow();
