@@ -60,23 +60,24 @@ public class ProxyController {
 
             for (final Proxy p : l) {
                 final SocketAddress ad = p.address();
+                if (ad instanceof InetSocketAddress) {
+                    if (((InetSocketAddress)ad).getHostName().trim().length()==0) continue;
+              
                 switch (p.type()) {
                 case HTTP:
 
-                    if (ad instanceof InetSocketAddress) {
-                        ProxyController.setPort(((InetSocketAddress) ad).getPort());
+                       ProxyController.setPort(((InetSocketAddress) ad).getPort());
                         ProxyController.setHost(((InetSocketAddress) ad).getHostName());
                         ProxyController.setType(PROXYTYPE.HTTP);
-                    }
+                    
                     return;
                 case SOCKS:
-                    if (ad instanceof InetSocketAddress) {
                         ProxyController.setPort(((InetSocketAddress) ad).getPort());
                         ProxyController.setHost(((InetSocketAddress) ad).getHostName());
                         ProxyController.setType(PROXYTYPE.SOCKS5);
-                    }
+                    
                     return;
-                }
+                }  }
 
             }
         } catch (final URISyntaxException e1) {
