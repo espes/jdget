@@ -183,7 +183,7 @@ public class Statusbar extends JMenuBar {
         };
     }
 
-    private void setTip(final String text) {
+    public void setTip(final String text) {
         if (text == null) {
             tip.setText("");
         } else {
