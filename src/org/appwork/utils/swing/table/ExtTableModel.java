@@ -40,8 +40,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * a list of objects. Each object represents one table row
      */
     protected ArrayList<E>            tableData        = new ArrayList<E>();
-    private ExtColumn<E>              sortColumn;
-    private boolean                   sortOrderToggle  = true;
+
+    protected ExtColumn<E>            sortColumn;
+    protected boolean                 sortOrderToggle  = true;
 
     /**
      * Create a new ExtTableModel.
@@ -260,6 +261,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
+     * @return the modelID
+     */
+    public String getModelID() {
+        return this.modelID;
+    }
+
+    /**
      * Returns the object that represents the row
      * 
      * @param index
@@ -384,6 +392,22 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
+     * checks if this column is allowed to be hidden
+     * 
+     * @param column
+     * @return
+     */
+    public boolean isHidable(final int column) {
+        final ExtColumn<E> col = this.getExtColumn(column);
+        try {
+            return col.isHidable();
+        } catch (final Exception e) {
+            Log.exception(e);
+            return true;
+        }
+    }
+
+    /**
      * Returns the current sortOrderToggle
      * 
      * @return the {@link ExtTableModel#sortOrderToggle}
@@ -404,22 +428,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         final ExtColumn<E> col = this.getExtColumn(column);
         try {
             return JSonStorage.getStorage("ExtTableModel_" + this.modelID).get("VISABLE_COL_" + col.getName(), col.isDefaultVisible());
-        } catch (final Exception e) {
-            Log.exception(e);
-            return true;
-        }
-    }
-
-    /**
-     * checks if this column is allowed to be hidden
-     * 
-     * @param column
-     * @return
-     */
-    public boolean isHidable(final int column) {
-        final ExtColumn<E> col = this.getExtColumn(column);
-        try {
-            return col.isHidable();
         } catch (final Exception e) {
             Log.exception(e);
             return true;
