@@ -54,6 +54,10 @@ public class ImageProvider {
     private static Object                         LOCK                = new Object();
     // stringbuilder die concat strings fast
     private static StringBuilder                  SB                  = new StringBuilder();
+    static {
+        /* we dont want images to get cached on disk */
+        ImageIO.setUseCache(false);
+    }
 
     /**
      * @param bufferedImage
@@ -309,7 +313,6 @@ public class ImageProvider {
      */
     private static BufferedImage read(final URL absolutePath) throws IOException {
         if (absolutePath == null) { throw new IllegalArgumentException("input == null!"); }
-
         final ImageInputStream stream = ImageIO.createImageInputStream(absolutePath.openStream());
         BufferedImage bi = null;
         try {

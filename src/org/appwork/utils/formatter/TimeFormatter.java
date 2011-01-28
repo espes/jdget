@@ -22,11 +22,11 @@ public class TimeFormatter {
     public static final int HIDE_MARKER  = 1 << 2;
     public static final int CLOCK        = 1 << 3;
 
-    public static String formatMilliSeconds(long totalSeconds, int flags) {
-        return formatSeconds(totalSeconds / 1000, flags);
+    public static String formatMilliSeconds(final long totalSeconds, final int flags) {
+        return TimeFormatter.formatSeconds(totalSeconds / 1000, flags);
     }
 
-    public static String formatSeconds(long totalSeconds, int flags) {
+    public static String formatSeconds(long totalSeconds, final int flags) {
         long days, hours, minutes, seconds;
         final StringBuilder string = new StringBuilder();
 
@@ -37,34 +37,46 @@ public class TimeFormatter {
         minutes = totalSeconds / 60;
         seconds = totalSeconds - minutes * 60;
 
-        if (!BinaryLogic.containsAll(flags, CLOCK)) {
-            /*show days as extra field*/
+        if (!BinaryLogic.containsAll(flags, TimeFormatter.CLOCK)) {
+            /* show days as extra field */
             if (days != 0) {
                 string.append(days);
                 string.append('d');
             }
         } else {
-            /*add days to hours field*/
+            /* add days to hours field */
             if (days != 0) {
                 hours += days * 24;
             }
         }
-        if (hours != 0 || string.length() != 0 || BinaryLogic.containsAll(flags, CLOCK)) {
-            if (string.length() != 0) string.append(':');
+        if (hours != 0 || string.length() != 0 || BinaryLogic.containsAll(flags, TimeFormatter.CLOCK)) {
+            if (string.length() != 0) {
+                string.append(':');
+            }
             string.append(hours);
-            if (BinaryLogic.containsNone(flags, HIDE_MARKER)) string.append('h');
+            if (BinaryLogic.containsNone(flags, TimeFormatter.HIDE_MARKER)) {
+                string.append('h');
+            }
         }
 
-        if (minutes != 0 || string.length() != 0 || BinaryLogic.containsAll(flags, CLOCK)) {
-            if (string.length() != 0) string.append(':');
+        if (minutes != 0 || string.length() != 0 || BinaryLogic.containsAll(flags, TimeFormatter.CLOCK)) {
+            if (string.length() != 0) {
+                string.append(':');
+            }
             string.append(StringFormatter.fillStart(minutes + "", 2, "0"));
-            if (BinaryLogic.containsNone(flags, HIDE_MARKER)) string.append('m');
+            if (BinaryLogic.containsNone(flags, TimeFormatter.HIDE_MARKER)) {
+                string.append('m');
+            }
         }
-        if (BinaryLogic.containsNone(flags, HIDE_SECONDS)) {
+        if (BinaryLogic.containsNone(flags, TimeFormatter.HIDE_SECONDS)) {
 
-            if (string.length() != 0) string.append(':');
+            if (string.length() != 0) {
+                string.append(':');
+            }
             string.append(StringFormatter.fillStart(seconds + "", 2, "0"));
-            if (BinaryLogic.containsNone(flags, HIDE_MARKER)) string.append('s');
+            if (BinaryLogic.containsNone(flags, TimeFormatter.HIDE_MARKER)) {
+                string.append('s');
+            }
 
         }
         return string.toString();
@@ -76,9 +88,9 @@ public class TimeFormatter {
      * @param text
      * @return
      */
-    public static long formatStringToMilliseconds(String text) {
-        String[] found = new Regex(text, "(\\d+)\\w?:(\\d+)").getRow(0);
-        if (found == null) return 0;
+    public static long formatStringToMilliseconds(final String text) {
+        final String[] found = new Regex(text, "(\\d+)\\w?:(\\d+)").getRow(0);
+        if (found == null) { return 0; }
         int hours = Integer.parseInt(found[0]);
         int minutes = Integer.parseInt(found[1]);
         if (hours >= 24) {
@@ -89,8 +101,33 @@ public class TimeFormatter {
             hours += 1;
             minutes = 0;
         }
-
         return hours * 60 * 60 * 1000 + minutes * 60 * 1000;
+    }
+
+    public static long getMilliSeconds(final String wait) {
+        String[][] matches = new Regex(wait, "([\\d]+) ?[\\.|\\,|\\:] ?([\\d]+)").getMatches();
+        if (matches == null || matches.length == 0) {
+            matches = new Regex(wait, Pattern.compile("([\\d]+)")).getMatches();
+        }
+
+        if (matches == null || matches.length == 0) { return -1; }
+
+        double res = 0;
+        if (matches[0].length == 1) {
+            res = Double.parseDouble(matches[0][0]);
+        }
+        if (matches[0].length == 2) {
+            res = Double.parseDouble(matches[0][0] + "." + matches[0][1]);
+        }
+
+        if (org.appwork.utils.Regex.matches(wait, Pattern.compile("(h|st)", Pattern.CASE_INSENSITIVE))) {
+            res *= 60 * 60 * 1000l;
+        } else if (org.appwork.utils.Regex.matches(wait, Pattern.compile("(m)", Pattern.CASE_INSENSITIVE))) {
+            res *= 60 * 1000l;
+        } else {
+            res *= 1000l;
+        }
+        return Math.round(res);
     }
 
     public static long getMilliSeconds(final String dateString, final String timeformat, final Locale l) {
@@ -103,31 +140,5 @@ public class TimeFormatter {
             }
         }
         return -1;
-    }
-
-    public static long getMilliSeconds(final String wait) {
-        String[][] matches = new Regex(wait, "([\\d]+) ?[\\.|\\,|\\:] ?([\\d]+)").getMatches();
-        if (matches == null || matches.length == 0) {
-            matches = new Regex(wait, Pattern.compile("([\\d]+)")).getMatches();
-        }
-    
-        if (matches == null || matches.length == 0) { return -1; }
-    
-        double res = 0;
-        if (matches[0].length == 1) {
-            res = Double.parseDouble(matches[0][0]);
-        }
-        if (matches[0].length == 2) {
-            res = Double.parseDouble(matches[0][0] + "." + matches[0][1]);
-        }
-    
-        if (org.appwork.utils.Regex.matches(wait, Pattern.compile("(h|st)", Pattern.CASE_INSENSITIVE))) {
-            res *= 60 * 60 * 1000l;
-        } else if (org.appwork.utils.Regex.matches(wait, Pattern.compile("(m)", Pattern.CASE_INSENSITIVE))) {
-            res *= 60 * 1000l;
-        } else {
-            res *= 1000l;
-        }
-        return Math.round(res);
     }
 }
