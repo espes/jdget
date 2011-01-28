@@ -30,17 +30,17 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
         this.prepareTableCellRendererComponent(this.label);
 
-        this.setRowSorter(new ExtDefaultRowSorter<E>() {
+        setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
             public int compare(final E o1, final E o2) {
-                String o1s = ExtTextColumn.this.getStringValue(o1);
-                String o2s = ExtTextColumn.this.getStringValue(o2);
+                final String o1s = ExtTextColumn.this.getStringValue(o1);
+                final String o2s = ExtTextColumn.this.getStringValue(o2);
                 if (o1s != null && o2s != null) {
-                    if (this.isSortOrderToggle()) {
-                        return ExtTextColumn.this.getStringValue(o1).compareTo(ExtTextColumn.this.getStringValue(o2));
+                    if (isSortOrderToggle()) {
+                        return o1s.compareTo(o2s);
                     } else {
-                        return ExtTextColumn.this.getStringValue(o2).compareTo(ExtTextColumn.this.getStringValue(o1));
+                        return o2s.compareTo(o1s);
                     }
                 }
                 return 0;
