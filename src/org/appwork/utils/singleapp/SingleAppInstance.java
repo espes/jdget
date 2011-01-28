@@ -14,12 +14,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -32,6 +30,7 @@ import java.nio.channels.OverlappingFileLockException;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
+import org.appwork.utils.ShutDownHooksQueue;
 
 /**
  * @author daniel
@@ -39,7 +38,22 @@ import org.appwork.utils.IO;
  */
 public class SingleAppInstance {
 
-    private String                  appID;
+    private static class ShutdownHook implements Runnable {
+        private SingleAppInstance instance = null;
+
+        public ShutdownHook(final SingleAppInstance instance) {
+            this.instance = instance;
+        }
+
+        @Override
+        public void run() {
+            if (this.instance != null) {
+                this.instance.exit();
+            }
+        }
+    }
+
+    private final String            appID;
     private InstanceMessageListener listener      = null;
     private File                    lockFile      = null;
     private FileLock                fileLock      = null;
@@ -49,77 +63,154 @@ public class SingleAppInstance {
     private ServerSocket            serverSocket  = null;
     private final String            SINGLEAPP     = "SingleAppInstance";
     private Thread                  daemon        = null;
+
     private File                    portFile      = null;
 
     public SingleAppInstance(final String appID) {
         this(appID, new File(Application.getRoot()));
     }
 
-    public SingleAppInstance(final String appID, File directory) {
+    public SingleAppInstance(final String appID, final File directory) {
         this.appID = appID;
         this.lockFile = new File(directory, appID + ".lock");
         this.portFile = new File(directory, appID + ".port");
-        Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook(this)));
+        ShutDownHooksQueue.add(new ShutdownHook(this));
     }
 
-    public synchronized void setInstanceMessageListener(final InstanceMessageListener listener) {
-        this.listener = listener;
+    private synchronized void cannotStart(final String cause) throws UncheckableInstanceException {
+        this.alreadyUsed = true;
+        this.lockChannel = null;
+        this.fileLock = null;
+        throw new UncheckableInstanceException(cause);
+    }
+
+    public synchronized void exit() {
+        if (this.fileLock == null) { return; }
+        this.daemonRunning = false;
+        if (this.daemon != null) {
+            this.daemon.interrupt();
+        }
+        try {
+            try {
+                this.fileLock.release();
+            } catch (final IOException e) {
+            }
+            try {
+                this.lockChannel.close();
+            } catch (final IOException e) {
+            }
+        } finally {
+            this.lockChannel = null;
+            this.fileLock = null;
+            this.lockFile.delete();
+            this.portFile.delete();
+        }
+    }
+
+    private synchronized void foundRunningInstance() throws AnotherInstanceRunningException {
+        this.alreadyUsed = true;
+        this.lockChannel = null;
+        this.fileLock = null;
+        throw new AnotherInstanceRunningException(this.appID);
     }
 
     private InetAddress getLocalHost() {
         InetAddress localhost = null;
         try {
-            localhost = Inet4Address.getByName("127.0.0.1");
-        } catch (UnknownHostException e1) {
+            localhost = InetAddress.getByName("127.0.0.1");
+        } catch (final UnknownHostException e1) {
         }
-        if (localhost != null) return localhost;
+        if (localhost != null) { return localhost; }
         try {
-            localhost = Inet4Address.getByName(null);
-        } catch (UnknownHostException e1) {
+            localhost = InetAddress.getByName(null);
+        } catch (final UnknownHostException e1) {
         }
         return localhost;
     }
 
-    public synchronized boolean sendToRunningInstance(String[] message) {
-        if (portFile.exists()) {
-            int port = readPortFromPortFile();
+    private String readLine(final BufferedInputStream in) {
+        final ByteArrayOutputStream inbuffer = new ByteArrayOutputStream();
+        if (in == null) { return ""; }
+        int c;
+        try {
+            in.mark(1);
+            if (in.read() == -1) {
+                return null;
+            } else {
+                in.reset();
+            }
+            while ((c = in.read()) >= 0) {
+                if (c == 0 || c == 10 || c == 13) {
+                    break;
+                } else {
+                    inbuffer.write(c);
+                }
+            }
+            if (c == 13) {
+                in.mark(1);
+                if (in.read() != 10) {
+                    in.reset();
+                }
+            }
+        } catch (final Exception e) {
+        }
+        try {
+            return inbuffer.toString("UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            return "";
+        }
+    }
+
+    private int readPortFromPortFile() {
+        if (!this.portFile.exists()) { return 0; }
+        try {
+            final String port = IO.readFileToString(this.portFile);
+            return Integer.parseInt(String.valueOf(port).trim());
+        } catch (final Exception e) {
+            return 0;
+        }
+    }
+
+    public synchronized boolean sendToRunningInstance(final String[] message) {
+        if (this.portFile.exists()) {
+            final int port = this.readPortFromPortFile();
             Socket runninginstance = null;
             if (port != 0) {
                 try {
-                    runninginstance = new Socket(getLocalHost(), port);
+                    runninginstance = new Socket(this.getLocalHost(), port);
                     runninginstance.setSoTimeout(10000);/* set Timeout */
-                    BufferedInputStream in = new BufferedInputStream(runninginstance.getInputStream());
-                    OutputStream out = runninginstance.getOutputStream();
-                    String response = readLine(in);
-                    if (response == null || !response.equalsIgnoreCase(SINGLEAPP)) {
+                    final BufferedInputStream in = new BufferedInputStream(runninginstance.getInputStream());
+                    final OutputStream out = runninginstance.getOutputStream();
+                    final String response = this.readLine(in);
+                    if (response == null || !response.equalsIgnoreCase(this.SINGLEAPP)) {
                         /* invalid server response */
                         return false;
                     }
                     if (message == null || message.length == 0) {
-                        writeLine(out, "0");
+                        this.writeLine(out, "0");
                     } else {
-                        writeLine(out, message.length + "");
-                        for (String msg : message) {
-                            writeLine(out, msg);
+                        this.writeLine(out, message.length + "");
+                        for (final String msg : message) {
+                            this.writeLine(out, msg);
                         }
                     }
-                } catch (UnknownHostException e) {
+                } catch (final UnknownHostException e) {
                     return false;
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     return false;
                 } finally {
                     if (runninginstance != null) {
                         try {
                             runninginstance.shutdownInput();
-                        } catch (Throwable e) {
+                        } catch (final Throwable e) {
                         }
                         try {
                             runninginstance.shutdownOutput();
-                        } catch (Throwable e) {
+                        } catch (final Throwable e) {
                         }
                         try {
                             runninginstance.close();
-                        } catch (Throwable e) {
+                        } catch (final Throwable e) {
                         }
                         runninginstance = null;
                     }
@@ -130,209 +221,136 @@ public class SingleAppInstance {
         return false;
     }
 
-    private synchronized void foundRunningInstance() throws AnotherInstanceRunningException {
-        alreadyUsed = true;
-        lockChannel = null;
-        fileLock = null;
-        throw new AnotherInstanceRunningException(appID);
-    }
-
-    private synchronized void cannotStart(String cause) throws UncheckableInstanceException {
-        alreadyUsed = true;
-        lockChannel = null;
-        fileLock = null;
-        throw new UncheckableInstanceException(cause);
+    public synchronized void setInstanceMessageListener(final InstanceMessageListener listener) {
+        this.listener = listener;
     }
 
     public synchronized void start() throws AnotherInstanceRunningException, UncheckableInstanceException {
-        if (fileLock != null) return;
-        if (alreadyUsed) cannotStart("create new instance!");
+        if (this.fileLock != null) { return; }
+        if (this.alreadyUsed) {
+            this.cannotStart("create new instance!");
+        }
         try {
-            if (sendToRunningInstance(null)) foundRunningInstance();
-            lockChannel = new RandomAccessFile(lockFile, "rw").getChannel();
-            try {
-                fileLock = lockChannel.tryLock();
-                if (fileLock == null) foundRunningInstance();
-            } catch (OverlappingFileLockException e) {
-                foundRunningInstance();
-            } catch (IOException e) {
-                foundRunningInstance();
+            if (this.sendToRunningInstance(null)) {
+                this.foundRunningInstance();
             }
-            portFile.delete();
-            serverSocket = new ServerSocket();
-            SocketAddress socketAddress = new InetSocketAddress(getLocalHost(), 0);
-            serverSocket.bind(socketAddress);
+            this.lockChannel = new RandomAccessFile(this.lockFile, "rw").getChannel();
+            try {
+                this.fileLock = this.lockChannel.tryLock();
+                if (this.fileLock == null) {
+                    this.foundRunningInstance();
+                }
+            } catch (final OverlappingFileLockException e) {
+                this.foundRunningInstance();
+            } catch (final IOException e) {
+                this.foundRunningInstance();
+            }
+            this.portFile.delete();
+            this.serverSocket = new ServerSocket();
+            final SocketAddress socketAddress = new InetSocketAddress(this.getLocalHost(), 0);
+            this.serverSocket.bind(socketAddress);
             FileOutputStream portWriter = null;
             try {
-                portWriter = new FileOutputStream(portFile);
-                portWriter.write((serverSocket.getLocalPort() + "").getBytes());
+                portWriter = new FileOutputStream(this.portFile);
+                portWriter.write((this.serverSocket.getLocalPort() + "").getBytes());
                 portWriter.flush();
-                startDaemon();
+                this.startDaemon();
                 return;
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 /* network communication not possible */
             } finally {
                 try {
                     portWriter.close();
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                 }
             }
-            cannotStart("could not create instance!");
-        } catch (FileNotFoundException e) {
-            cannotStart(e.getMessage());
-        } catch (IOException e) {
+            this.cannotStart("could not create instance!");
+        } catch (final FileNotFoundException e) {
+            this.cannotStart(e.getMessage());
+        } catch (final IOException e) {
             try {
-                serverSocket.close();
-            } catch (Throwable t) {
+                this.serverSocket.close();
+            } catch (final Throwable t) {
             }
-            cannotStart(e.getMessage());
-        }
-    }
-
-    public synchronized void exit() {
-        if (fileLock == null) return;
-        daemonRunning = false;
-        if (daemon != null) daemon.interrupt();
-        try {
-            try {
-                fileLock.release();
-            } catch (IOException e) {
-            }
-            try {
-                lockChannel.close();
-            } catch (IOException e) {
-            }
-        } finally {
-            lockChannel = null;
-            fileLock = null;
-            lockFile.delete();
-            portFile.delete();
-        }
-    }
-
-    private static class ShutdownHook implements Runnable {
-        private SingleAppInstance instance = null;
-
-        public ShutdownHook(final SingleAppInstance instance) {
-            this.instance = instance;
-        }
-
-        public void run() {
-            if (instance != null) instance.exit();
+            this.cannotStart(e.getMessage());
         }
     }
 
     private synchronized void startDaemon() {
-        if (daemon != null) return;
-        daemon = new Thread(new Runnable() {
+        if (this.daemon != null) { return; }
+        this.daemon = new Thread(new Runnable() {
 
+            @Override
             public void run() {
-                daemonRunning = true;
-                while (daemonRunning) {
-                    if (daemon.isInterrupted()) break;
+                SingleAppInstance.this.daemonRunning = true;
+                while (SingleAppInstance.this.daemonRunning) {
+                    if (SingleAppInstance.this.daemon.isInterrupted()) {
+                        break;
+                    }
                     Socket client = null;
                     try {
                         /* accept new request */
-                        client = serverSocket.accept();
+                        client = SingleAppInstance.this.serverSocket.accept();
                         client.setSoTimeout(10000);/* set Timeout */
-                        BufferedInputStream in = new BufferedInputStream(client.getInputStream());
-                        OutputStream out = client.getOutputStream();
-                        writeLine(out, SINGLEAPP);
-                        String line = readLine(in);
+                        final BufferedInputStream in = new BufferedInputStream(client.getInputStream());
+                        final OutputStream out = client.getOutputStream();
+                        SingleAppInstance.this.writeLine(out, SingleAppInstance.this.SINGLEAPP);
+                        final String line = SingleAppInstance.this.readLine(in);
                         if (line != null && line.length() > 0) {
                             final int lines = Integer.parseInt(line);
                             if (lines != 0) {
                                 final String[] message = new String[lines];
                                 for (int index = 0; index < lines; index++) {
-                                    message[index] = readLine(in);
+                                    message[index] = SingleAppInstance.this.readLine(in);
                                 }
-                                if (listener != null) {
+                                if (SingleAppInstance.this.listener != null) {
                                     try {
-                                        listener.parseMessage(message);
-                                    } catch (Throwable e) {
+                                        SingleAppInstance.this.listener.parseMessage(message);
+                                    } catch (final Throwable e) {
                                     }
                                 }
                             }
                         }
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         org.appwork.utils.logging.Log.exception(e);
                     } finally {
                         if (client != null) {
                             try {
                                 client.shutdownInput();
-                            } catch (Throwable e) {
+                            } catch (final Throwable e) {
                             }
                             try {
                                 client.shutdownOutput();
-                            } catch (Throwable e) {
+                            } catch (final Throwable e) {
                             }
                             try {
                                 client.close();
-                            } catch (Throwable e) {
+                            } catch (final Throwable e) {
                             }
                             client = null;
                         }
                     }
                 }
                 try {
-                    serverSocket.close();
-                } catch (Throwable e) {
+                    SingleAppInstance.this.serverSocket.close();
+                } catch (final Throwable e) {
                     org.appwork.utils.logging.Log.exception(e);
                 }
             }
         });
-        daemon.setName("SingleAppInstance: " + appID);
+        this.daemon.setName("SingleAppInstance: " + this.appID);
         /* set daemonmode so java does not wait for this thread */
-        daemon.setDaemon(true);
-        daemon.start();
+        this.daemon.setDaemon(true);
+        this.daemon.start();
     }
 
-    private void writeLine(OutputStream outputStream, String line) {
-        if (outputStream == null || line == null) return;
+    private void writeLine(final OutputStream outputStream, final String line) {
+        if (outputStream == null || line == null) { return; }
         try {
             outputStream.write(line.getBytes("UTF-8"));
             outputStream.write("\r\n".getBytes());
             outputStream.flush();
-        } catch (Exception e) {
-        }
-    }
-
-    private String readLine(BufferedInputStream in) {
-        final ByteArrayOutputStream inbuffer = new ByteArrayOutputStream();
-        if (in == null) return "";
-        int c;
-        try {
-            in.mark(1);
-            if (in.read() == -1)
-                return null;
-            else
-                in.reset();
-            while ((c = in.read()) >= 0) {
-                if ((c == 0) || (c == 10) || (c == 13))
-                    break;
-                else
-                    inbuffer.write(c);
-            }
-            if (c == 13) {
-                in.mark(1);
-                if (in.read() != 10) in.reset();
-            }
-        } catch (Exception e) {
-        }
-        try {
-            return inbuffer.toString("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            return "";
-        }
-    }
-
-    private int readPortFromPortFile() {
-        if (!portFile.exists()) return 0;
-        try {
-            String port = IO.readFileToString(portFile);
-            return Integer.parseInt(String.valueOf(port).trim());
-        } catch (Exception e) {
-            return 0;
+        } catch (final Exception e) {
         }
     }
 }

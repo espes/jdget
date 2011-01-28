@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
+import org.appwork.utils.ShutDownHooksQueue;
 import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.codehaus.jackson.JsonGenerationException;
@@ -32,7 +33,8 @@ public class JSonStorage {
 
     static {
         /* shutdown hook to save all open Storages */
-        Runtime.getRuntime().addShutdownHook(new Thread() {
+        ShutDownHooksQueue.add(new Runnable() {
+
             @Override
             public void run() {
                 JSonStorage.save();
@@ -217,8 +219,8 @@ public class JSonStorage {
                     return (E) JSonStorage.MAPPER.readValue(string, def.getClass());
                 }
             }
-        } catch (final Exception e) {            
-            Log.exception(Level.WARNING,e);
+        } catch (final Exception e) {
+            Log.exception(Level.WARNING, e);
             return def;
         }
     }
