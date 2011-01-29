@@ -22,10 +22,10 @@ public class SwingUtils {
     /**
      * @param label
      */
-    public static void boldJLabel(final JLabel label) {
+    public static JLabel boldJLabel(final JLabel label) {
         final Font f = label.getFont();
         label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
-
+        return label;
     }
 
     /**
