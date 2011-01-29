@@ -195,7 +195,7 @@ public class ExtTable<E> extends JTable {
         this.getTableHeader().setPreferredSize(new Dimension(this.getColumnModel().getTotalColumnWidth(), 19));
         // assures that the table is painted over the complete available high
         // This method is 1.6 only
-        if (Application.getJavaVersion() > 1.6d) {
+        if (Application.getJavaVersion() >= 16000000) {
             this.setFillsViewportHeight(true);
         }
 

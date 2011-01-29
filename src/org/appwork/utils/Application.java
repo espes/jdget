@@ -57,28 +57,28 @@ public class Application {
         return Application.APP_FOLDER;
     }
 
-    public static double getJavaVersion() {
+    public static long getJavaVersion() {
         try {
-            final String v = System.getProperty("java.version");
-            final StringBuilder ret = new StringBuilder();
-            char c;
-            char lc = '0';
-            for (int i = 0; i < v.length(); i++) {
-                c = v.charAt(i);
-
-                if (c >= '0' && c <= '9') {
-                    if (lc == 'b') {
-                        // beta
-                        ret.append(".");
-                    }
-                    ret.append(c);
-                }
-                lc = c;
+            final String version = System.getProperty("java.version");
+            String v = new Regex(version, "^(\\d+\\.\\d+\\.\\d+)").getMatch(0);
+            String u = new Regex(version, "^.*?_(\\d+)").getMatch(0);
+            String b = new Regex(version, "^.*?_b(\\d+)").getMatch(0);
+            v = v.replaceAll("\\.", "");
+            /* 170uubbb */
+            /* eg 1.6 = 16000000 */
+            long ret = Long.parseLong(v) * 100000;
+            if (u != null) {
+                /* append update number */
+                ret = ret + Long.parseLong(u) * 1000;
             }
-            return Double.parseDouble(ret.toString());
+            if (b != null) {
+                /* append beta number */
+                ret = ret + Long.parseLong(u);
+            }
+            return ret;
         } catch (final Exception e) {
             Log.exception(e);
-            return 0.0d;
+            return -1;
         }
     }
 
