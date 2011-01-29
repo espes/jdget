@@ -100,7 +100,7 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
         return lbl;
     }
 
-    @Override
+   
     public void caretUpdate(final CaretEvent e) {
         if (accid.getText().length() == 0) {
             okButton.setEnabled(false);

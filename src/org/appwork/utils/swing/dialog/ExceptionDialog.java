@@ -72,7 +72,7 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
         // cp.getBackground().darker()));
         more.addActionListener(new ActionListener() {
 
-            @Override
+            
             public void actionPerformed(final ActionEvent e) {
 
                 scrollPane.setVisible(true);

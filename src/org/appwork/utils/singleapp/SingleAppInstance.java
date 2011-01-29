@@ -45,7 +45,7 @@ public class SingleAppInstance {
             this.instance = instance;
         }
 
-        @Override
+      
         public void run() {
             if (this.instance != null) {
                 this.instance.exit();
@@ -280,7 +280,7 @@ public class SingleAppInstance {
         if (this.daemon != null) { return; }
         this.daemon = new Thread(new Runnable() {
 
-            @Override
+          
             public void run() {
                 SingleAppInstance.this.daemonRunning = true;
                 while (SingleAppInstance.this.daemonRunning) {
