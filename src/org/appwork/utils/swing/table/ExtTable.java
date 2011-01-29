@@ -84,7 +84,7 @@ public class ExtTable<E> extends JTable {
      */
     private boolean                            searchEnabled    = false;
     private SearchDialog                       searchDialog;
-    private ExtTableEventSender                eventSender;
+    private final ExtTableEventSender          eventSender;
 
     /**
      * Create an Extended Table instance
@@ -470,6 +470,13 @@ public class ExtTable<E> extends JTable {
      */
     public TableCellRenderer getLafCellRenderer(final int row, final int column) {
         return super.getCellRenderer(row, column);
+    }
+
+    /**
+     * @return the rowHighlighters
+     */
+    public ArrayList<ExtRowHighlighter> getRowHighlighters() {
+        return this.rowHighlighters;
     }
 
     /**

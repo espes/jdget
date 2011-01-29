@@ -8,6 +8,7 @@ import java.util.EventObject;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractCellEditor;
+import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -77,41 +78,55 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.rowSorter = new ExtDefaultRowSorter<E>();
     }
 
+    /**
+     * @param value
+     * @param isSelected
+     * @param hasFocus
+     * @param row
+     */
+    protected void adaptRowHighlighters(final E value, final JComponent comp, final boolean isSelected, final boolean hasFocus, final int row) {
+        for (final ExtComponentRowHighlighter<E> rh : this.getModel().getExtComponentRowHighlighters()) {
+            if (rh.highlight(this, comp, value, isSelected, hasFocus, row)) {
+                break;
+            }
+        }
+    }
+
     protected void doSort(final Object obj) {
 
-        if (sortThread != null) { return; }
+        if (this.sortThread != null) { return; }
 
-        sortThread = new Thread("TableSorter " + getID()) {
+        this.sortThread = new Thread("TableSorter " + this.getID()) {
             @Override
             public void run() {
                 // get selections before sorting
-                final ArrayList<E> selections = model.getSelectedObjects();
+                final ArrayList<E> selections = ExtColumn.this.model.getSelectedObjects();
                 try {
                     // sort data
-                    sortOrderToggle = !sortOrderToggle;
-                    getModel().sort(ExtColumn.this, sortOrderToggle);
+                    ExtColumn.this.sortOrderToggle = !ExtColumn.this.sortOrderToggle;
+                    ExtColumn.this.getModel().sort(ExtColumn.this, ExtColumn.this.sortOrderToggle);
 
                 } catch (final Exception e) {
                 }
                 // switch toggle
 
-                sortThread = null;
+                ExtColumn.this.sortThread = null;
                 // Do this in EDT
                 new EDTHelper<Object>() {
 
                     @Override
                     public Object edtRun() {
                         // inform model about structure change
-                        model.fireTableStructureChanged();
+                        ExtColumn.this.model.fireTableStructureChanged();
                         // restore selection
-                        model.setSelectedObjects(selections);
+                        ExtColumn.this.model.setSelectedObjects(selections);
 
                         return null;
                     }
                 }.start();
             }
         };
-        sortThread.start();
+        this.sortThread.start();
     }
 
     public abstract Object getCellEditorValue();
@@ -121,7 +136,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @see ExtColumn#clickcount
      */
     public int getClickcount() {
-        return clickcount;
+        return this.clickcount;
     }
 
     /**
@@ -137,7 +152,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public TableCellRenderer getHeaderRenderer() {
-        return headerrenderer;
+        return this.headerrenderer;
     }
 
     /**
@@ -146,7 +161,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public String getID() {
-        return getClass().getSimpleName() + this.name;
+        return this.getClass().getSimpleName() + this.name;
     }
 
     /**
@@ -169,7 +184,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @see ExtColumn#model
      */
     public ExtTableModel<E> getModel() {
-        return model;
+        return this.model;
     }
 
     /**
@@ -177,7 +192,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @see ExtColumn#name
      */
     public String getName() {
-        return name;
+        return this.name;
     }
 
     /**
@@ -187,7 +202,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public ExtDefaultRowSorter<E> getRowSorter(final boolean sortOrderToggle) {
-        rowSorter.setSortOrderToggle(sortOrderToggle);
+        this.rowSorter.setSortOrderToggle(sortOrderToggle);
         return this.rowSorter;
     }
 
@@ -203,7 +218,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     @Override
     public boolean isCellEditable(final EventObject evt) {
-        if (evt instanceof MouseEvent) { return ((MouseEvent) evt).getClickCount() >= clickcount && clickcount > 0; }
+        if (evt instanceof MouseEvent) { return ((MouseEvent) evt).getClickCount() >= this.clickcount && this.clickcount > 0; }
         return true;
     }
 
@@ -216,21 +231,12 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public boolean isCellEditable(final int rowIndex, final int columnIndex) {
-        final E obj = model.getValueAt(rowIndex, columnIndex);
+        final E obj = this.model.getValueAt(rowIndex, columnIndex);
         if (obj == null) { return false; }
-        return isEditable(obj);
+        return this.isEditable(obj);
     }
 
     public boolean isDefaultVisible() {
-        return true;
-    }
-
-    /**
-     * returns if this column is allowed to be hidden
-     * 
-     * @return
-     */
-    public boolean isHidable() {
         return true;
     }
 
@@ -252,6 +258,15 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     abstract public boolean isEnabled(E obj);
 
     /**
+     * returns if this column is allowed to be hidden
+     * 
+     * @return
+     */
+    public boolean isHidable() {
+        return true;
+    }
+
+    /**
      * returns true if this column is sortable. if the call origin is an object,
      * the object is passed in obj parameter. if the caller origin is the column
      * header, obj is null
@@ -266,7 +281,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @see ExtColumn#sortOrderToggle
      */
     protected boolean isSortOrderToggle() {
-        return sortOrderToggle;
+        return this.sortOrderToggle;
     }
 
     protected boolean matchSearch(final E object, final Pattern pattern) {
@@ -311,9 +326,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public abstract void setValue(Object value, E object);
 
     public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
-        final E obj = model.getValueAt(rowIndex, columnIndex);
+        final E obj = this.model.getValueAt(rowIndex, columnIndex);
         if (obj == null) { return; }
-        setValue(value, obj);
+        this.setValue(value, obj);
     }
 
     @Override

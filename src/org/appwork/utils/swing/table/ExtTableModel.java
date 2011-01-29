@@ -16,33 +16,34 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * 
      */
-    private static final long         serialVersionUID = 939549808899567618L;
+    private static final long                              serialVersionUID = 939549808899567618L;
     /**
      * complete table structure has changed
      */
-    protected static final int        UPDATE_STRUCTURE = 1;
+    protected static final int                             UPDATE_STRUCTURE = 1;
     /**
      * Column instances
      */
-    protected ArrayList<ExtColumn<E>> columns          = new ArrayList<ExtColumn<E>>();
+    protected ArrayList<ExtColumn<E>>                      columns          = new ArrayList<ExtColumn<E>>();
 
     /**
      * Modelid to have an seperate key for database savong
      */
-    private final String              modelID;
+    private final String                                   modelID;
 
     /**
      * the table that uses this model
      */
-    private ExtTable<E>               table            = null;
+    private ExtTable<E>                                    table            = null;
 
     /**
      * a list of objects. Each object represents one table row
      */
-    protected ArrayList<E>            tableData        = new ArrayList<E>();
+    protected ArrayList<E>                                 tableData        = new ArrayList<E>();
 
-    protected ExtColumn<E>            sortColumn;
-    protected boolean                 sortOrderToggle  = true;
+    protected ExtColumn<E>                                 sortColumn;
+    protected boolean                                      sortOrderToggle  = true;
+    private final ArrayList<ExtComponentRowHighlighter<E>> extComponentRowHighlighters;
 
     /**
      * Create a new ExtTableModel.
@@ -55,7 +56,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public ExtTableModel(final String id) {
         super();
-
+        this.extComponentRowHighlighters = new ArrayList<ExtComponentRowHighlighter<E>>();
         this.modelID = id;
         this.initColumns();
 
@@ -131,6 +132,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 return null;
             }
         }.start();
+    }
+
+    public synchronized void addExtComponentRowHighlighter(final ExtComponentRowHighlighter<E> h) {
+
+        this.extComponentRowHighlighters.add(h);
     }
 
     /**
@@ -258,6 +264,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public ExtColumn<E> getExtColumn(final int columnIndex) {
         return this.columns.get(Math.max(0, columnIndex));
+    }
+
+    /**
+     * @return a list of all ExtComponentRowHighlighters
+     */
+    public ArrayList<ExtComponentRowHighlighter<E>> getExtComponentRowHighlighters() {
+        // TODO Auto-generated method stub
+        return this.extComponentRowHighlighters;
     }
 
     /**

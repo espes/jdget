@@ -10,26 +10,19 @@ public abstract class ExtRowHighlighter {
 
     private Color contentColor;
 
-    public ExtRowHighlighter(Color borderColor, Color contentColor) {
+    public ExtRowHighlighter(final Color borderColor, final Color contentColor) {
         this.borderColor = borderColor;
         this.contentColor = contentColor;
     }
+
+    abstract public boolean doHighlight(ExtTable<?> extTable, int row);
 
     /**
      * @return the {@link ExtRowHighlighter#borderColor}
      * @see ExtRowHighlighter#borderColor
      */
     public Color getBorderColor() {
-        return borderColor;
-    }
-
-    /**
-     * @param borderColor
-     *            the {@link ExtRowHighlighter#borderColor} to set
-     * @see ExtRowHighlighter#borderColor
-     */
-    public void setBorderColor(Color borderColor) {
-        this.borderColor = borderColor;
+        return this.borderColor;
     }
 
     /**
@@ -37,19 +30,8 @@ public abstract class ExtRowHighlighter {
      * @see ExtRowHighlighter#contentColor
      */
     public Color getContentColor() {
-        return contentColor;
+        return this.contentColor;
     }
-
-    /**
-     * @param contentColor
-     *            the {@link ExtRowHighlighter#contentColor} to set
-     * @see ExtRowHighlighter#contentColor
-     */
-    public void setContentColor(Color contentColor) {
-        this.contentColor = contentColor;
-    }
-
-    abstract public boolean doHighlight(ExtTable<?> extTable, int row);
 
     /**
      * Overwrite this method for custom highlighters
@@ -60,14 +42,32 @@ public abstract class ExtRowHighlighter {
      * @param width
      * @param height
      */
-    public void paint(Graphics2D g, int x, int y, int width, int height) {
-        if (getBorderColor() != null) {
-            g.setColor(getBorderColor());
+    public void paint(final Graphics2D g, final int x, final int y, final int width, final int height) {
+        if (this.getBorderColor() != null) {
+            g.setColor(this.getBorderColor());
             g.draw(new Rectangle2D.Float(0, y, width, height));
         }
-        if (getContentColor() != null) {
-            g.setColor(getContentColor());
+        if (this.getContentColor() != null) {
+            g.setColor(this.getContentColor());
             g.fill(new Rectangle2D.Float(0, y, width, height));
         }
+    }
+
+    /**
+     * @param borderColor
+     *            the {@link ExtRowHighlighter#borderColor} to set
+     * @see ExtRowHighlighter#borderColor
+     */
+    public void setBorderColor(final Color borderColor) {
+        this.borderColor = borderColor;
+    }
+
+    /**
+     * @param contentColor
+     *            the {@link ExtRowHighlighter#contentColor} to set
+     * @see ExtRowHighlighter#contentColor
+     */
+    public void setContentColor(final Color contentColor) {
+        this.contentColor = contentColor;
     }
 }

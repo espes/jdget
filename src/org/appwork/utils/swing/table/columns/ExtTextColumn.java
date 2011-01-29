@@ -30,20 +30,26 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
         this.prepareTableCellRendererComponent(this.label);
 
-        setRowSorter(new ExtDefaultRowSorter<E>() {
+        this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
             public int compare(final E o1, final E o2) {
-                final String o1s = ExtTextColumn.this.getStringValue(o1);
-                final String o2s = ExtTextColumn.this.getStringValue(o2);
-                if (o1s != null && o2s != null) {
-                    if (isSortOrderToggle()) {
-                        return o1s.compareTo(o2s);
-                    } else {
-                        return o2s.compareTo(o1s);
-                    }
+                String o1s = ExtTextColumn.this.getStringValue(o1);
+                String o2s = ExtTextColumn.this.getStringValue(o2);
+                if (o1s == null) {
+                    o1s = "aaa";
                 }
-                return 0;
+                if (o2s == null) {
+                    o2s = "aaa";
+                }
+
+                System.out.println(o1s + " | " + o2s + " " + o1s.compareTo(o2s));
+                if (this.isSortOrderToggle()) {
+                    return ExtTextColumn.this.getStringValue(o1).compareTo(ExtTextColumn.this.getStringValue(o2));
+                } else {
+                    return ExtTextColumn.this.getStringValue(o2).compareTo(ExtTextColumn.this.getStringValue(o1));
+                }
+
             }
 
         });
@@ -70,11 +76,17 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
     @Override
     public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         this.prepareLabel((E) value);
-        this.label.setText(this.getStringValue((E) value));
+        String str = this.getStringValue((E) value);
+        if (str == null) {
+            // under substance, setting setText(null) somehow sets the label
+            // opaque.
+            str = "";
+        }
+        this.label.setText(str);
         this.label.setToolTipText(this.getToolTip((E) value));
         this.label.setEnabled(this.isEnabled((E) value));
         this.label.setIcon(this.getIcon((E) value));
-
+        this.adaptRowHighlighters((E) value, this.label, isSelected, hasFocus, row);
         return this.label;
 
     }
