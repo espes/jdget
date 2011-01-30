@@ -5,29 +5,13 @@ import java.awt.Font;
 import java.awt.Point;
 import java.awt.Window;
 
-import javax.swing.JButton;
+import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.text.JTextComponent;
 
 public class SwingUtils {
-    /**
-     * @param btnDetails
-     */
-    public static void boldJButton(final JButton button) {
-        final Font f = button.getFont();
-        button.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
-    }
-
-    /**
-     * @param label
-     */
-    public static JLabel boldJLabel(final JLabel label) {
-        final Font f = label.getFont();
-        label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
-        return label;
-    }
-
     /**
      * Calculates the position of a frame to be in the center of an other frame.
      * 
@@ -72,5 +56,34 @@ public class SwingUtils {
         }
         return null;
 
+    }
+
+    /**
+     * @param btnDetails
+     */
+    public static <T extends AbstractButton> T toBold(final T button) {
+        final Font f = button.getFont();
+        button.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
+        return button;
+    }
+
+    /**
+     * @param ret
+     * @return
+     * @return
+     */
+    public static <T extends JLabel> T toBold(final T label) {
+        final Font f = label.getFont();
+        label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
+        return label;
+    }
+
+    /**
+     * @param label
+     */
+    public static <T extends JTextComponent> T toBold(final T label) {
+        final Font f = label.getFont();
+        label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
+        return label;
     }
 }
