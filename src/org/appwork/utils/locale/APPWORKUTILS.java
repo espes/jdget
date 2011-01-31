@@ -116,7 +116,17 @@ public enum APPWORKUTILS implements Translate {
     /*
      * ###de_DE:Merken?
      */
-    AccountNew_layoutDialogContent_save("Remember");
+    AccountNew_layoutDialogContent_save("Remember"),
+    /*
+     * ###de_DE:Durchschnitt: %s/s |
+     */
+
+    AppWorkUtils_Graph_getAverageSpeedString("Average: %s/s |", 1),
+    /*
+     * ###de_DE:Aktuell: %s/s
+     */
+
+    AppWorkUtils_Graph_getSpeedString("Current: %s/s", 1);
     // ENDOFENUMS
     /**
      * @return
@@ -165,33 +175,33 @@ public enum APPWORKUTILS implements Translate {
     private String cache         = null;
 
     private APPWORKUTILS(final String defaultString) {
-        defaultTranslation = defaultString;
+        this.defaultTranslation = defaultString;
     }
 
     private APPWORKUTILS(final String defaultString, final int wildCards) {
-        defaultTranslation = defaultString;
-        wildCardCount = wildCards;
+        this.defaultTranslation = defaultString;
+        this.wildCardCount = wildCards;
     }
 
     public String getDefaultTranslation() {
-        return defaultTranslation;
+        return this.defaultTranslation;
     }
 
     public int getWildCardCount() {
-        return wildCardCount;
+        return this.wildCardCount;
     }
 
     public String s() {
-        return toString();
+        return this.toString();
     }
 
     public String s(final Object... args) {
         if (args != null && args.length > 0) {
-            return Loc.LF("APPWORKUTILS:::" + name(), defaultTranslation, args);
+            return Loc.LF("APPWORKUTILS:::" + this.name(), this.defaultTranslation, args);
         } else {
-            if (cache != null) { return cache; }
-            cache = Loc.L("APPWORKUTILS:::" + name(), defaultTranslation);
-            return cache;
+            if (this.cache != null) { return this.cache; }
+            this.cache = Loc.L("APPWORKUTILS:::" + this.name(), this.defaultTranslation);
+            return this.cache;
         }
     }
 
