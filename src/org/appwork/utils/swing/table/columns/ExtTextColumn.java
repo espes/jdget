@@ -45,17 +45,15 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
                 String o1s = ExtTextColumn.this.getStringValue(o1);
                 String o2s = ExtTextColumn.this.getStringValue(o2);
                 if (o1s == null) {
-                    o1s = "aaa";
+                    o1s = "";
                 }
                 if (o2s == null) {
-                    o2s = "aaa";
+                    o2s = "";
                 }
-
-                System.out.println(o1s + " | " + o2s + " " + o1s.compareTo(o2s));
                 if (this.isSortOrderToggle()) {
-                    return ExtTextColumn.this.getStringValue(o1).compareTo(ExtTextColumn.this.getStringValue(o2));
+                    return o1s.compareTo(o2s);
                 } else {
-                    return ExtTextColumn.this.getStringValue(o2).compareTo(ExtTextColumn.this.getStringValue(o1));
+                    return o2s.compareTo(o1s);
                 }
 
             }

@@ -11,31 +11,34 @@ import org.appwork.utils.swing.table.ExtTableModel;
 
 abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     private static final long serialVersionUID = -2473320164484034664L;
-    protected JProgressBar bar;
+    protected JProgressBar    bar;
 
-    public ExtProgressColumn(String name, ExtTableModel<E> table) {
+    /**
+     * 
+     */
+    public ExtProgressColumn(final String title) {
+        this(title, null);
+    }
+
+    public ExtProgressColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
-        bar = new JProgressBar(0, getMax());
-        bar.setOpaque(false);
-        bar.setStringPainted(true);
+        this.bar = new JProgressBar(0, this.getMax());
+        this.bar.setOpaque(false);
+        this.bar.setStringPainted(true);
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
-            public int compare(E o1, E o2) {
-                if (getValue(o1) == getValue(o2)) return 0;
+            public int compare(final E o1, final E o2) {
+                if (ExtProgressColumn.this.getValue(o1) == ExtProgressColumn.this.getValue(o2)) { return 0; }
                 if (this.isSortOrderToggle()) {
-                    return getValue(o1) > getValue(o2) ? -1 : 1;
+                    return ExtProgressColumn.this.getValue(o1) > ExtProgressColumn.this.getValue(o2) ? -1 : 1;
                 } else {
-                    return getValue(o1) < getValue(o2) ? -1 : 1;
+                    return ExtProgressColumn.this.getValue(o1) < ExtProgressColumn.this.getValue(o2) ? -1 : 1;
                 }
             }
 
         });
-    }
-
-    protected int getMax() {
-        return 100;
     }
 
     /*
@@ -47,9 +50,38 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      */
     @Override
     public Object getCellEditorValue() {
-        
+
         return null;
     }
+
+    protected int getMax() {
+        return 100;
+    }
+
+    abstract protected String getString(E value);
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+
+        this.bar.setIndeterminate(false);
+        this.bar.setValue(this.getValue((E) value));
+
+        this.bar.setString(this.getString((E) value));
+        if (isSelected) {
+            this.bar.setForeground(this.getModel().getTable().getColumnForegroundSelected());
+            this.bar.setBackground(this.getModel().getTable().getColumnBackgroundSelected());
+        } else {
+            this.bar.setForeground(this.getModel().getTable().getColumnForeground());
+            this.bar.setBackground(this.getModel().getTable().getColumnBackground());
+        }
+
+        this.bar.setOpaque(true);
+        this.bar.setEnabled(this.isEnabled((E) value));
+        return this.bar;
+    }
+
+    abstract protected int getValue(E value);
 
     /*
      * (non-Javadoc)
@@ -59,8 +91,8 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      * .lang.Object)
      */
     @Override
-    public boolean isEditable(E obj) {
-        
+    public boolean isEditable(final E obj) {
+
         return false;
     }
 
@@ -72,8 +104,8 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      * .lang.Object)
      */
     @Override
-    public boolean isEnabled(E obj) {
-        
+    public boolean isEnabled(final E obj) {
+
         return true;
     }
 
@@ -85,8 +117,8 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      * .lang.Object)
      */
     @Override
-    public boolean isSortable(E obj) {
-        
+    public boolean isSortable(final E obj) {
+
         return true;
     }
 
@@ -98,34 +130,8 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      * .lang.Object, java.lang.Object)
      */
     @Override
-    public void setValue(Object value, E object) {
-        
+    public void setValue(final Object value, final E object) {
 
     }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-
-        bar.setIndeterminate(false);
-        bar.setValue(getValue((E) value));
-
-        bar.setString(getString((E) value));
-        if (isSelected) {
-            bar.setForeground(getModel().getTable().getColumnForegroundSelected());
-            bar.setBackground(getModel().getTable().getColumnBackgroundSelected());
-        } else {
-            bar.setForeground(getModel().getTable().getColumnForeground());
-            bar.setBackground(getModel().getTable().getColumnBackground());
-        }
-
-        bar.setOpaque(true);
-        bar.setEnabled(isEnabled((E) value));
-        return bar;
-    }
-
-    abstract protected int getValue(E value);
-
-    abstract protected String getString(E value);
 
 }
