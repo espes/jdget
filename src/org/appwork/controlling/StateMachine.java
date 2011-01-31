@@ -85,6 +85,25 @@ public class StateMachine {
         }
     }
 
+    /**
+     * synchronized execution of a runnable if statemachine is currently in a
+     * given state
+     * 
+     * @param run
+     * @param state
+     * @return
+     */
+    public boolean executeIfOnState(final Runnable run, final State state) {
+        if (run == null || state == null) { return false; }
+        synchronized (this.lock) {
+            if (this.isState(state)) {
+                run.run();
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void fireUpdate(final State currentState) {
         if (currentState != null) {
             synchronized (this.lock) {
