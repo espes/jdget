@@ -45,7 +45,7 @@ abstract public class Graph extends JPanel {
 
     private Color             colorB;
 
-    private double            average;
+    private long              average;
     private int[]             averageCache;
     private final Color       averageColor     = new Color(0x333333);
     private final Color       averageTextColor = new Color(0);
@@ -54,6 +54,8 @@ abstract public class Graph extends JPanel {
     protected int             value;
 
     private Font              textFont;
+
+    private int               all;
 
     public Graph() {
         this.colorA = new Color(100, 100, 100, 40);
@@ -77,7 +79,7 @@ abstract public class Graph extends JPanel {
      */
     public String getAverageSpeedString() {
         // TODO Auto-generated method stub
-        return APPWORKUTILS.AppWorkUtils_Graph_getAverageSpeedString.s(SizeFormatter.formatBytes((long) this.average));
+        return APPWORKUTILS.AppWorkUtils_Graph_getAverageSpeedString.s(SizeFormatter.formatBytes(this.average / this.all));
     }
 
     /**
@@ -256,24 +258,24 @@ abstract public class Graph extends JPanel {
 
                 @Override
                 public void run() {
-                    int all = 0;
+                    Graph.this.all = 0;
 
                     while (!this.isInterrupted()) {
                         Graph.this.value = Graph.this.getValue();
 
-                        if (all >= Graph.this.cache.length) {
-                            Graph.this.average = (Graph.this.average * Graph.this.cache.length - Graph.this.cache[Graph.this.i] + Graph.this.value) / Graph.this.cache.length;
+                        if (Graph.this.all == Graph.this.cache.length) {
+                            Graph.this.average = Graph.this.average - Graph.this.cache[Graph.this.i] + Graph.this.value;
 
                         } else {
-                            Graph.this.average = (Graph.this.average * all + Graph.this.value) / (all + 1);
+                            Graph.this.average = Graph.this.average + Graph.this.value;
 
                         }
-
-                        Graph.this.averageCache[Graph.this.i] = (int) Graph.this.average;
+                        Graph.this.all = Math.min(Graph.this.all + 1, Graph.this.cache.length);
+                        Graph.this.averageCache[Graph.this.i] = (int) (Graph.this.average / Graph.this.all);
                         Graph.this.cache[Graph.this.i] = Graph.this.value;
 
                         Graph.this.i++;
-                        all++;
+
                         Graph.this.i = Graph.this.i % Graph.this.cache.length;
 
                         try {
