@@ -20,6 +20,14 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
     protected RenderLabel     label;
     protected Color           defaultForeground = null;
 
+    /**
+     * @param string
+     */
+    public ExtTextColumn(final String name) {
+        this(name, null);
+
+    }
+
     public ExtTextColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 

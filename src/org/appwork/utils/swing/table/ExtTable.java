@@ -87,6 +87,13 @@ public class ExtTable<E> extends JTable {
     private final ExtTableEventSender          eventSender;
 
     /**
+     * @param downloadTableModel
+     */
+    public ExtTable(final ExtTableModel<E> tableModel) {
+        this(tableModel, tableModel.getModelID() + "-Table");
+    }
+
+    /**
      * Create an Extended Table instance
      * 
      * @param model
