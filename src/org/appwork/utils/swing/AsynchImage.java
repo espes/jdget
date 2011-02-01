@@ -27,6 +27,7 @@ public class AsynchImage extends JLabel implements Runnable {
     private final int         prefX;
     private final int         prefY;
     private URL               url;
+    private static Object     LOCK             = new Object();
 
     /**
      * @param thumbURL
@@ -36,27 +37,33 @@ public class AsynchImage extends JLabel implements Runnable {
     public AsynchImage(final String thumbURL, final String extension, final int x, final int y) {
         super();
 
-        this.prefX = x;
-        this.prefY = y;
-        this.cache = Application.getResource("tmp/asynchimage/" + Hash.getMD5(thumbURL) + "_" + x + "x" + y + "." + extension);
+        prefX = x;
+        prefY = y;
+        cache = Application.getResource("tmp/asynchimage/" + Hash.getMD5(thumbURL) + "_" + x + "x" + y + "." + extension);
 
         // if cache is older than 7 days. delete
-        final long age = System.currentTimeMillis() - this.cache.lastModified();
+        final long age = System.currentTimeMillis() - cache.lastModified();
         try {
-            this.url = new URL(thumbURL);
-            if (this.cache.exists() && age < this.expireTime) {
+            url = new URL(thumbURL);
+            if (cache.exists() && age < expireTime) {
                 BufferedImage image;
 
-                image = ImageIO.read(this.cache);
+                image = ImageIO.read(cache);
 
-                this.setIcon(new ImageIcon(image));
+                setIcon(new ImageIcon(image));
+            } else if (cache.exists()) {
+                BufferedImage image;
+                image = ImageIO.read(cache);
+                setIcon(new ImageIcon(image));
+                new Thread(this).start();
+
             } else {
                 new Thread(this).start();
-                this.setIcon(ImageProvider.getImageIcon("imageLoader", x, y));
+                setIcon(ImageProvider.getImageIcon("imageLoader", x, y));
             }
         } catch (final Exception e) {
             new Thread(this).start();
-            this.setIcon(ImageProvider.getImageIcon("imageLoader", x, y));
+            setIcon(ImageProvider.getImageIcon("imageLoader", x, y));
         }
 
     }
@@ -68,26 +75,53 @@ public class AsynchImage extends JLabel implements Runnable {
      */
     @Override
     public void run() {
-        this.cache.delete();
-        if (this.url == null) { return; }
-        try {
-            HTTP.download(this.url, this.cache, null);
+        synchronized (AsynchImage.LOCK) {
 
-            BufferedImage image = ImageIO.read(this.cache);
-            image = ImageProvider.getScaledInstance(image, this.prefX, this.prefY, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
-            ImageIO.write(image, Files.getExtension(this.cache.getName()), this.cache);
-            final ImageIcon icon = new ImageIcon(image);
-            new EDTRunner() {
-                @Override
-                protected void runInEDT() {
-                    AsynchImage.this.setIcon(icon);
+            try {
+                // check again.
+                final long age = System.currentTimeMillis() - cache.lastModified();
+                if (cache.exists() && age < expireTime) {
+                    // seems like another thread updated the image in the
+                    // meantime
+
+                    final BufferedImage image = ImageIO.read(cache);
+                    new EDTRunner() {
+
+                        @Override
+                        protected void runInEDT() {
+                            setIcon(new ImageIcon(image));
+
+                        }
+                    };
+                    return;
+
                 }
-            };
-        } catch (final IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
 
+                System.out.println("Update image " + url);
+                cache.delete();
+                if (url == null) { return; }
+
+                System.out.println("Download image " + url);
+                HTTP.download(url, cache, null);
+
+                BufferedImage image = ImageIO.read(cache);
+                System.out.println("Scale image " + url);
+                image = ImageProvider.getScaledInstance(image, prefX, prefY, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
+                System.out.println("Cachewrite image " + url);
+                ImageIO.write(image, Files.getExtension(cache.getName()), cache);
+                final ImageIcon icon = new ImageIcon(image);
+                new EDTRunner() {
+                    @Override
+                    protected void runInEDT() {
+                        System.out.println("Set immage " + icon.getIconWidth());
+                        AsynchImage.this.setIcon(icon);
+                    }
+                };
+            } catch (final IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
     }
 
 }
