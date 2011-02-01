@@ -247,8 +247,8 @@ public class ImageProvider {
             // Use multi-step technique: start with original size, then
             // scale down in multiple passes with drawImage()
             // until the target size is reached
-            w = img.getWidth();
-            h = img.getHeight();
+            w = Math.max(width, img.getWidth());
+            h = Math.max(height, img.getHeight());
         } else {
             // Use one-step technique: scale directly from original
             // size to target size with a single drawImage() call
