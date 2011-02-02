@@ -30,11 +30,13 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
             @Override
             public int compare(final E o1, final E o2) {
-                if (ExtProgressColumn.this.getValue(o1) == ExtProgressColumn.this.getValue(o2)) { return 0; }
+                int v1 = getValue(o1);
+                int v2 = getValue(o2);
+                if (v1 == v2) { return 0; }
                 if (this.isSortOrderToggle()) {
-                    return ExtProgressColumn.this.getValue(o1) > ExtProgressColumn.this.getValue(o2) ? -1 : 1;
+                    return v1 > v2 ? -1 : 1;
                 } else {
-                    return ExtProgressColumn.this.getValue(o1) < ExtProgressColumn.this.getValue(o2) ? -1 : 1;
+                    return v2 < v1 ? -1 : 1;
                 }
             }
 

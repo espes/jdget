@@ -51,6 +51,7 @@ abstract public class Graph extends JPanel {
     private final Color       averageTextColor = new Color(0);
 
     private final Color       textColor        = new Color(0);
+    private boolean           running          = false;
     protected int             value;
 
     private Font              textFont;
@@ -180,7 +181,7 @@ abstract public class Graph extends JPanel {
         if (this.textFont != null) {
             g2.setFont(this.textFont);
         }
-        if (speedString != null) {
+        if (speedString != null && running) {
             g2.setColor(this.getTextColor());
             g2.drawString(speedString, xText = xText - 3 - g2.getFontMetrics().stringWidth(speedString), 12);
         }
@@ -194,7 +195,7 @@ abstract public class Graph extends JPanel {
             g2.draw(apoly);
 
             speedString = this.getAverageSpeedString();
-            if (speedString != null) {
+            if (speedString != null && running) {
                 g2.setColor(this.getAverageTextColor());
                 g2.drawString(speedString, xText - 3 - g2.getFontMetrics().stringWidth(speedString), 12);
             }
@@ -244,10 +245,13 @@ abstract public class Graph extends JPanel {
 
     public void start() {
         synchronized (this.LOCK) {
+            running = true;
             this.painter = new Timer(1000, new ActionListener() {
 
                 public void actionPerformed(final ActionEvent e) {
-                    Graph.this.repaint();
+                    synchronized (LOCK) {
+                        Graph.this.repaint();
+                    }
                 }
             });
             this.painter.setRepeats(true);
@@ -261,23 +265,24 @@ abstract public class Graph extends JPanel {
                     Graph.this.all = 0;
 
                     while (!this.isInterrupted()) {
-                        Graph.this.value = Graph.this.getValue();
+                        synchronized (LOCK) {
+                            Graph.this.value = Graph.this.getValue();
 
-                        if (Graph.this.all == Graph.this.cache.length) {
-                            Graph.this.average = Graph.this.average - Graph.this.cache[Graph.this.i] + Graph.this.value;
+                            if (Graph.this.all == Graph.this.cache.length) {
+                                Graph.this.average = Graph.this.average - Graph.this.cache[Graph.this.i] + Graph.this.value;
 
-                        } else {
-                            Graph.this.average = Graph.this.average + Graph.this.value;
+                            } else {
+                                Graph.this.average = Graph.this.average + Graph.this.value;
 
+                            }
+                            Graph.this.all = Math.min(Graph.this.all + 1, Graph.this.cache.length);
+                            Graph.this.averageCache[Graph.this.i] = (int) (Graph.this.average / Graph.this.all);
+                            Graph.this.cache[Graph.this.i] = Graph.this.value;
+
+                            Graph.this.i++;
+
+                            Graph.this.i = Graph.this.i % Graph.this.cache.length;
                         }
-                        Graph.this.all = Math.min(Graph.this.all + 1, Graph.this.cache.length);
-                        Graph.this.averageCache[Graph.this.i] = (int) (Graph.this.average / Graph.this.all);
-                        Graph.this.cache[Graph.this.i] = Graph.this.value;
-
-                        Graph.this.i++;
-
-                        Graph.this.i = Graph.this.i % Graph.this.cache.length;
-
                         try {
                             Thread.sleep(Graph.this.interval);
                         } catch (final InterruptedException e) {
@@ -293,6 +298,7 @@ abstract public class Graph extends JPanel {
 
     public void stop() {
         synchronized (this.LOCK) {
+            running = false;
             if (this.fetcherThread != null) {
                 this.fetcherThread.interrupt();
                 this.fetcherThread = null;
@@ -301,6 +307,7 @@ abstract public class Graph extends JPanel {
                 this.painter.stop();
                 this.painter = null;
             }
+            Graph.this.repaint();
         }
     }
 
