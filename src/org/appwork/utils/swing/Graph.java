@@ -80,6 +80,7 @@ abstract public class Graph extends JPanel {
      */
     public String getAverageSpeedString() {
         // TODO Auto-generated method stub
+        if (this.all <= 0) { return null; }
         return APPWORKUTILS.AppWorkUtils_Graph_getAverageSpeedString.s(SizeFormatter.formatBytes(this.average / this.all));
     }
 
@@ -109,6 +110,7 @@ abstract public class Graph extends JPanel {
      */
     public String getSpeedString() {
         // TODO Auto-generated method stub
+        if (this.all <= 0) { return null; }
         return APPWORKUTILS.AppWorkUtils_Graph_getSpeedString.s(SizeFormatter.formatBytes(this.value));
     }
 
@@ -135,72 +137,73 @@ abstract public class Graph extends JPanel {
     public void paintComponent(final Graphics g) {
 
         super.paintComponent(g);
-        final Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setStroke(new BasicStroke(1));
+        if (this.fetcherThread != null) {
+            final Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setStroke(new BasicStroke(1));
 
-        int id = this.i;
-        int max = 10;
-        for (final int element : this.cache) {
-            max = Math.max(element, max);
-        }
-        for (final int element : this.averageCache) {
-            max = Math.max(element, max);
-        }
+            int id = this.i;
+            int max = 10;
+            for (final int element : this.cache) {
+                max = Math.max(element, max);
+            }
+            for (final int element : this.averageCache) {
+                max = Math.max(element, max);
+            }
 
-        final int height = this.getHeight();
+            final int height = this.getHeight();
 
-        final Polygon poly = new Polygon();
-        poly.addPoint(0, this.getHeight());
-        final Polygon apoly = new Polygon();
-        apoly.addPoint(0, this.getHeight());
+            final Polygon poly = new Polygon();
+            poly.addPoint(0, this.getHeight());
+            final Polygon apoly = new Polygon();
+            apoly.addPoint(0, this.getHeight());
 
-        for (int x = 0; x < this.cache.length; x++) {
+            for (int x = 0; x < this.cache.length; x++) {
 
-            poly.addPoint(x * this.getWidth() / (this.cache.length - 1), this.getHeight() - (int) (this.getHeight() * this.cache[id] * 0.9) / max);
+                poly.addPoint(x * this.getWidth() / (this.cache.length - 1), this.getHeight() - (int) (this.getHeight() * this.cache[id] * 0.9) / max);
+                if (this.averageColor != null) {
+                    apoly.addPoint(x * this.getWidth() / (this.cache.length - 1), this.getHeight() - (int) (this.getHeight() * this.averageCache[id] * 0.9) / max);
+                }
+
+                id++;
+
+                id = id % this.cache.length;
+            }
+
+            poly.addPoint(this.getWidth(), height);
+            apoly.addPoint(this.getWidth(), height);
+
+            g2.setPaint(new GradientPaint(this.getWidth() / 2, 0, this.colorA, this.getWidth() / 2, height, this.colorB));
+
+            g2.fill(poly);
+            g2.setColor(this.colorB);
+            g2.draw(poly);
+            String speedString = this.getSpeedString();
+            int xText = this.getWidth();
+
+            if (this.textFont != null) {
+                g2.setFont(this.textFont);
+            }
+            if (speedString != null && this.running) {
+                g2.setColor(this.getTextColor());
+                g2.drawString(speedString, xText = xText - 3 - g2.getFontMetrics().stringWidth(speedString), 12);
+            }
             if (this.averageColor != null) {
-                apoly.addPoint(x * this.getWidth() / (this.cache.length - 1), this.getHeight() - (int) (this.getHeight() * this.averageCache[id] * 0.9) / max);
-            }
+                ((Graphics2D) g).setColor(this.averageColor);
 
-            id++;
+                final AlphaComposite ac5 = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+                g2.setComposite(ac5);
+                g2.fill(apoly);
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+                g2.draw(apoly);
 
-            id = id % this.cache.length;
-        }
-
-        poly.addPoint(this.getWidth(), height);
-        apoly.addPoint(this.getWidth(), height);
-
-        g2.setPaint(new GradientPaint(this.getWidth() / 2, 0, this.colorA, this.getWidth() / 2, height, this.colorB));
-
-        g2.fill(poly);
-        g2.setColor(this.colorB);
-        g2.draw(poly);
-        String speedString = this.getSpeedString();
-        int xText = this.getWidth();
-
-        if (this.textFont != null) {
-            g2.setFont(this.textFont);
-        }
-        if (speedString != null && running) {
-            g2.setColor(this.getTextColor());
-            g2.drawString(speedString, xText = xText - 3 - g2.getFontMetrics().stringWidth(speedString), 12);
-        }
-        if (this.averageColor != null) {
-            ((Graphics2D) g).setColor(this.averageColor);
-
-            final AlphaComposite ac5 = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
-            g2.setComposite(ac5);
-            g2.fill(apoly);
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-            g2.draw(apoly);
-
-            speedString = this.getAverageSpeedString();
-            if (speedString != null && running) {
-                g2.setColor(this.getAverageTextColor());
-                g2.drawString(speedString, xText - 3 - g2.getFontMetrics().stringWidth(speedString), 12);
+                speedString = this.getAverageSpeedString();
+                if (speedString != null && this.running) {
+                    g2.setColor(this.getAverageTextColor());
+                    g2.drawString(speedString, xText - 3 - g2.getFontMetrics().stringWidth(speedString), 12);
+                }
             }
         }
-
     }
 
     /**
@@ -245,11 +248,15 @@ abstract public class Graph extends JPanel {
 
     public void start() {
         synchronized (this.LOCK) {
-            running = true;
+            if (this.fetcherThread != null) {
+                // already running
+                return;
+            }
+            this.running = true;
             this.painter = new Timer(1000, new ActionListener() {
 
                 public void actionPerformed(final ActionEvent e) {
-                    synchronized (LOCK) {
+                    synchronized (Graph.this.LOCK) {
                         Graph.this.repaint();
                     }
                 }
@@ -258,14 +265,15 @@ abstract public class Graph extends JPanel {
             this.painter.setInitialDelay(0);
 
             this.i = 0;
+
             this.fetcherThread = new Thread("Speedmeter updater") {
 
                 @Override
                 public void run() {
                     Graph.this.all = 0;
-
+                    Graph.this.average = 0;
                     while (!this.isInterrupted()) {
-                        synchronized (LOCK) {
+                        synchronized (Graph.this.LOCK) {
                             Graph.this.value = Graph.this.getValue();
 
                             if (Graph.this.all == Graph.this.cache.length) {
@@ -275,6 +283,7 @@ abstract public class Graph extends JPanel {
                                 Graph.this.average = Graph.this.average + Graph.this.value;
 
                             }
+
                             Graph.this.all = Math.min(Graph.this.all + 1, Graph.this.cache.length);
                             Graph.this.averageCache[Graph.this.i] = (int) (Graph.this.average / Graph.this.all);
                             Graph.this.cache[Graph.this.i] = Graph.this.value;
@@ -283,7 +292,7 @@ abstract public class Graph extends JPanel {
 
                             Graph.this.i = Graph.this.i % Graph.this.cache.length;
                         }
-                        if (this.isInterrupted()) return;
+                        if (this.isInterrupted()) { return; }
                         try {
                             Thread.sleep(Graph.this.interval);
                         } catch (final InterruptedException e) {
@@ -299,7 +308,7 @@ abstract public class Graph extends JPanel {
 
     public void stop() {
         synchronized (this.LOCK) {
-            running = false;
+            this.running = false;
             if (this.fetcherThread != null) {
                 this.fetcherThread.interrupt();
                 this.fetcherThread = null;
