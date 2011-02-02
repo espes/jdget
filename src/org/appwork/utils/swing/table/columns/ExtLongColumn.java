@@ -15,6 +15,11 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
     private static final long serialVersionUID = -6917352290094392921L;
     private final RenderLabel label;
 
+    
+    public ExtLongColumn(final String name) {
+        this(name, null);
+
+    }
     public ExtLongColumn(String name, ExtTableModel<E> table) {
         super(name, table);
 
@@ -26,11 +31,13 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             @Override
             public int compare(E o1, E o2) {
-                if (getLong(o1) == getLong(o2)) return 0;
+                long l1=getLong(o1);
+                long l2=getLong(o2);
+                if (l1==l2) return 0;
                 if (this.isSortOrderToggle()) {
-                    return getLong(o1) > getLong(o2) ? -1 : 1;
+                    return l1 > l2 ? -1 : 1;
                 } else {
-                    return getLong(o1) < getLong(o2) ? -1 : 1;
+                    return l1 < l2 ? -1 : 1;
                 }
             }
 

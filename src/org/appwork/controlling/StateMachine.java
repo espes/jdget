@@ -79,9 +79,9 @@ public class StateMachine {
                     }
                 });
             }
-        }
-        if (reached) {
-            run.run();
+            if (reached) {
+                run.run();
+            }
         }
     }
 

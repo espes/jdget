@@ -283,6 +283,7 @@ abstract public class Graph extends JPanel {
 
                             Graph.this.i = Graph.this.i % Graph.this.cache.length;
                         }
+                        if (this.isInterrupted()) return;
                         try {
                             Thread.sleep(Graph.this.interval);
                         } catch (final InterruptedException e) {
