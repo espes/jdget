@@ -49,6 +49,7 @@ abstract public class Graph extends JPanel {
     private int[]             averageCache;
     private Color             averageColor     = new Color(0x333333);
     private Color             averageTextColor = new Color(0);
+    private int               capacity         = 0;
 
     private Color             textColor        = new Color(0);
 
@@ -228,6 +229,7 @@ abstract public class Graph extends JPanel {
      */
     private void setCapacity(final int cap) {
         if (this.fetcherThread != null) { throw new IllegalStateException("Already started"); }
+        capacity = cap;
         this.cache = new int[cap];
         for (int x = 0; x < cap; x++) {
             this.cache[x] = 0;
@@ -343,6 +345,7 @@ abstract public class Graph extends JPanel {
                 this.painter = null;
             }
             Graph.this.repaint();
+            setCapacity(this.capacity);
         }
     }
 

@@ -18,6 +18,10 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
 
     private RenderLabel label;
 
+    public ExtIconColumn(String name) {
+        this(name, null);
+    }
+
     public ExtIconColumn(String name, ExtTableModel<E> table) {
         super(name, table);
 

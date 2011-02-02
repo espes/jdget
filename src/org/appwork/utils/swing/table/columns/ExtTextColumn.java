@@ -72,7 +72,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
      * @return
      */
     protected Icon getIcon(final E value) {
-
         return null;
     }
 
