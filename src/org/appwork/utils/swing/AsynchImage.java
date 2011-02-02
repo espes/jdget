@@ -82,7 +82,7 @@ public class AsynchImage extends JLabel {
                     if (this.asynchImage != null) {
                         this.asynchImage.setDirectIcon(new ImageIcon(image));
                     }
-                } catch (final IOException e) {
+                } catch (final Throwable e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
