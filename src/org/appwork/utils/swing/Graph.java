@@ -47,15 +47,16 @@ abstract public class Graph extends JPanel {
 
     private long              average;
     private int[]             averageCache;
-    private final Color       averageColor     = new Color(0x333333);
-    private final Color       averageTextColor = new Color(0);
+    private Color             averageColor     = new Color(0x333333);
+    private Color             averageTextColor = new Color(0);
 
-    private final Color       textColor        = new Color(0);
+    private Color             textColor        = new Color(0);
+
     private boolean           running          = false;
+
     protected int             value;
 
     private Font              textFont;
-
     private int               all;
 
     public Graph() {
@@ -207,6 +208,22 @@ abstract public class Graph extends JPanel {
     }
 
     /**
+     * @param averageColor
+     *            the averageColor to set
+     */
+    public void setAverageColor(final Color averageColor) {
+        this.averageColor = averageColor;
+    }
+
+    /**
+     * @param averageTextColor
+     *            the averageTextColor to set
+     */
+    public void setAverageTextColor(final Color averageTextColor) {
+        this.averageTextColor = averageTextColor;
+    }
+
+    /**
      * @param j
      */
     private void setCapacity(final int cap) {
@@ -236,6 +253,14 @@ abstract public class Graph extends JPanel {
      */
     public void setColorB(final Color colorB) {
         this.colorB = colorB;
+    }
+
+    /**
+     * @param textColor
+     *            the textColor to set
+     */
+    public void setTextColor(final Color textColor) {
+        this.textColor = textColor;
     }
 
     /**
