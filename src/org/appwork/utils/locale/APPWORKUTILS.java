@@ -14,120 +14,119 @@ package org.appwork.utils.locale;
  * 
  */
 public enum APPWORKUTILS implements Translate {
-    /*
-     * ###de_DE:Ok
-     */
-    ABSTRACTDIALOG_BUTTON_OK("Ok"),
-    /*
-     * ###de_DE:Abbrechen
-     */
-    ABSTRACTDIALOG_BUTTON_CANCEL("Cancel"),
-    ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN("Don't show this again"),
-    /*
-     * ###de_DE:Bitte bestätigen!
-     */
-    DIALOG_CONFIRMDIALOG_TITLE("Please confirm!"),
-    /*
-     * ###de_DE:Bitte eingeben
-     */
-    DIALOG_INPUT_TITLE("Please enter!"),
-    DIALOG_PASSWORD_TITLE("Please enter!"),
-    /*
-     * ###de_DE:Nachricht
-     */
-    DIALOG_MESSAGE_TITLE("Message"),
-    DIALOG_SLIDER_TITLE("Please enter!"),
-    LOGINDIALOG_LABEL_USERNAME("Login"),
-    LOGINDIALOG_LABEL_PASSWORD("Password"),
-    LOGINDIALOG_LABEL_PASSWORD_REPEAT("Repeat Password"),
-    LOGINDIALOG_BUTTON_REGISTER("Create new User"),
-    LOGINDIALOG_CHECKBOX_REMEMBER("Remember"),
-    LOGINDIALOG_BUTTON_LOGIN("Login"),
-    PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD("Old Password:"),
-    PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD_REPEAT("Confirm Password:"),
-    PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD("New Password:"),
-    SEARCHDIALOG_BUTTON_FIND("Find"),
-    SEARCHDIALOG_CHECKBOX_CASESENSITIVE("Case sensitive"),
-    SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION("Regular Expressions"),
-    TIMERDIALOG_TOOLTIP_TIMERLABEL("This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"),
-    DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER("Switch to parent folder"),
-    DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER("Switch to Home"),
-    DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER("Create new folder"),
-    DIALOG_FILECHOOSER_TOOLTIP_DETAILS("Switch to detailed view"),
-    DIALOG_FILECHOOSER_TOOLTIP_LIST("Switch to list view"),
-    EXTTABLE_SEARCH_DIALOG_TITLE("Search table"),
-    DIALOG_ERROR_TITLE("Error Occured"),
-    /*
-     * ###de_DE:Befehl -> -
-     */
-    COMMANDLINEAPP_COMMAND("Command -> -"),
-    /*
-     * ###de_DE:Kopieren
-     */
-    COPYCUTPASTE_COPY("Copy"),
-    /*
-     * ###de_DE:Ausschneiden
-     */
-    COPYCUTPASTE_CUT("Cut"),
-    /*
-     * ###de_DE:Löschen
-     */
-    COPYCUTPASTE_DELETE("Delete"),
-    /*
-     * ###de_DE:Einfügen
-     */
-    COPYCUTPASTE_PASTE("Paste"),
-    /*
-     * ###de_DE:Markieren
-     */
-    COPYCUTPASTE_SELECT("Select"),
-    /*
-     * ###de_DE:Bewegen Sie die Maus über Schaltflächen um hier Hilfe zu sehen
-     */
-    Statusbar_Statusbar_tooltip("Move your mouse over interactive buttons to get help here"),
-    /*
-     * ###de_DE:Besuchen Sie unsere Homepage
-     */
-    Statusbar_Statusbar_visiturl_tooltip("Visit our Homepage"),
-    /*
-     * ###de_DE:Fehlerdetails
-     */
-    ExceptionDialog_layoutDialogContent_more_button("Error details"),
-    /**
+/*
+* ###de_DE:Ok
+*/
+ABSTRACTDIALOG_BUTTON_OK("Ok"),
+/*
+* ###de_DE:Abbrechen
+*/
+ABSTRACTDIALOG_BUTTON_CANCEL("Cancel"),
+ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN("Don't show this again"),
+/*
+* ###de_DE:Bitte bestätigen!
+*/
+DIALOG_CONFIRMDIALOG_TITLE("Please confirm!"),
+/*
+* ###de_DE:Bitte eingeben
+*/
+DIALOG_INPUT_TITLE("Please enter!"),
+DIALOG_PASSWORD_TITLE("Please enter!"),
+/*
+* ###de_DE:Nachricht
+*/
+DIALOG_MESSAGE_TITLE("Message"),
+DIALOG_SLIDER_TITLE("Please enter!"),
+LOGINDIALOG_LABEL_USERNAME("Login"),
+LOGINDIALOG_LABEL_PASSWORD("Password"),
+LOGINDIALOG_LABEL_PASSWORD_REPEAT("Repeat Password"),
+LOGINDIALOG_BUTTON_REGISTER("Create new User"),
+LOGINDIALOG_CHECKBOX_REMEMBER("Remember"),
+LOGINDIALOG_BUTTON_LOGIN("Login"),
+PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD("Old Password:"),
+PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD_REPEAT("Confirm Password:"),
+PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD("New Password:"),
+SEARCHDIALOG_BUTTON_FIND("Find"),
+SEARCHDIALOG_CHECKBOX_CASESENSITIVE("Case sensitive"),
+SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION("Regular Expressions"),
+TIMERDIALOG_TOOLTIP_TIMERLABEL("This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"),
+DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER("Switch to parent folder"),
+DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER("Switch to Home"),
+DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER("Create new folder"),
+DIALOG_FILECHOOSER_TOOLTIP_DETAILS("Switch to detailed view"),
+DIALOG_FILECHOOSER_TOOLTIP_LIST("Switch to list view"),
+EXTTABLE_SEARCH_DIALOG_TITLE("Search table"),
+DIALOG_ERROR_TITLE("Error Occured"),
+/*
+* ###de_DE:Befehl -> -
+*/
+COMMANDLINEAPP_COMMAND("Command -> -"),
+/*
+* ###de_DE:Kopieren
+*/
+COPYCUTPASTE_COPY("Copy"),
+/*
+* ###de_DE:Ausschneiden
+*/
+COPYCUTPASTE_CUT("Cut"),
+/*
+* ###de_DE:Löschen
+*/
+COPYCUTPASTE_DELETE("Delete"),
+/*
+* ###de_DE:Einfügen
+*/
+COPYCUTPASTE_PASTE("Paste"),
+/*
+* ###de_DE:Markieren
+*/
+COPYCUTPASTE_SELECT("Select"),
+/*
+* ###de_DE:Bewegen Sie die Maus über Schaltflächen um hier Hilfe zu sehen
+*/
+Statusbar_Statusbar_tooltip("Move your mouse over interactive buttons to get help here"),
+/*
+* ###de_DE:Besuchen Sie unsere Homepage
+*/
+Statusbar_Statusbar_visiturl_tooltip("Visit our Homepage"),
+/*
+* ###de_DE:Fehlerdetails
+*/
+ExceptionDialog_layoutDialogContent_more_button("Error details"),
+/*
+*
      * Grund für diesen Fehler:
-     */
-    ExceptionDialog_layoutDialogContent_logLabel("This Error is cause by:"),
-    /*
-     * ###de_DE:Zugangsdaten eingeben
-     */
-    AccountNew_AccountNew_title("Enter Logins"),
-    /*
-     * ###de_DE:Bitte geben Sie hier Ihre Zugangsdaten ein
-     */
-    AccountNew_AccountNew_message("Please enter your logins here"),
-    /*
-     * ###de_DE:Benutzername
-     */
-    AccountNew_layoutDialogContent_accountname("Username"),
-    /*
-     * ###de_DE:Passwort
-     */
-    AccountNew_layoutDialogContent_password("Password"),
-    /*
-     * ###de_DE:Merken?
-     */
-    AccountNew_layoutDialogContent_save("Remember"),
-    /*
-     * ###de_DE:Durchschnitt: %s/s |
-     */
-
-    AppWorkUtils_Graph_getAverageSpeedString("Average: %s/s |", 1),
-    /*
-     * ###de_DE:Aktuell: %s/s
-     */
-
-    AppWorkUtils_Graph_getSpeedString("Current: %s/s", 1);
-    // ENDOFENUMS
+*/
+ExceptionDialog_layoutDialogContent_logLabel("This Error is cause by:"),
+/*
+* ###de_DE:Zugangsdaten eingeben
+*/
+AccountNew_AccountNew_title("Enter Logins"),
+/*
+* ###de_DE:Bitte geben Sie hier Ihre Zugangsdaten ein
+*/
+AccountNew_AccountNew_message("Please enter your logins here"),
+/*
+* ###de_DE:Benutzername
+*/
+AccountNew_layoutDialogContent_accountname("Username"),
+/*
+* ###de_DE:Passwort
+*/
+AccountNew_layoutDialogContent_password("Password"),
+/*
+* ###de_DE:Merken?
+*/
+AccountNew_layoutDialogContent_save("Remember"),
+/*
+* ###de_DE:Durchschnitt: %s/s |
+*/
+AppWorkUtils_Graph_getAverageSpeedString("Average: %s/s |", 1),
+/*
+* ###de_DE:Aktuell: %s/s
+*/
+AppWorkUtils_Graph_getSpeedString("Current: %s/s", 1);
+// ENDOFENUMS
     /**
      * @return
      */

@@ -14,57 +14,62 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
      */
     private static final long serialVersionUID = -5812486934156037376L;
 
-    private SimpleDateFormat dateFormat;
-    private Date date;
-    protected String badDateText = "~";
+    private SimpleDateFormat  dateFormat;
+    private Date              date;
+    protected String          badDateText      = "~";
 
-    public ExtDateColumn(String name, ExtTableModel<E> table) {
+    /**
+     * @param string
+     */
+    public ExtDateColumn(final String string) {
+        this(string, null);
+    }
+
+    public ExtDateColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 
-        dateFormat = new SimpleDateFormat("dd.MM.yy HH:mm");
+        this.dateFormat = new SimpleDateFormat("dd.MM.yy HH:mm");
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
-            private Date a = new Date();
-            private boolean aset = false;
-            private Date b = new Date();
-            private boolean bset = false;
+            private final Date a    = new Date();
+            private boolean    aset = false;
+            private final Date b    = new Date();
+            private boolean    bset = false;
 
             @Override
-            public int compare(E o1, E o2) {
-                Date tmp = getDate(o1);
+            public int compare(final E o1, final E o2) {
+                Date tmp = ExtDateColumn.this.getDate(o1);
                 if (tmp != null) {
-                    a.setTime(tmp.getTime());
-                    aset = true;
+                    this.a.setTime(tmp.getTime());
+                    this.aset = true;
                 } else {
-                    aset = false;
+                    this.aset = false;
                 }
-                tmp = getDate(o2);
+                tmp = ExtDateColumn.this.getDate(o2);
                 if (tmp != null) {
-                    b.setTime(tmp.getTime());
-                    bset = true;
+                    this.b.setTime(tmp.getTime());
+                    this.bset = true;
                 } else {
-                    bset = false;
+                    this.bset = false;
                 }
-                if (aset == bset == false) return 0;
-                if (!aset && bset) return 1;
-                if (aset && !bset) return -1;
+                if (this.aset == this.bset == false) { return 0; }
+                if (!this.aset && this.bset) { return 1; }
+                if (this.aset && !this.bset) { return -1; }
                 if (this.isSortOrderToggle()) {
-                    return a.compareTo(b);
+                    return this.a.compareTo(this.b);
                 } else {
-                    return b.compareTo(a);
+                    return this.b.compareTo(this.a);
                 }
             }
 
         });
-        init();
+        this.init();
     }
 
-    /**
-     * 
-     */
-    protected void init() {
-        
+    @Override
+    public Object getCellEditorValue() {
 
+        return null;
     }
 
     /**
@@ -75,44 +80,49 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
      */
     abstract protected Date getDate(E o2);
 
-    @Override
-    public Object getCellEditorValue() {
-
-        return null;
+    /**
+     * Override this method to use a custom dateformat
+     * 
+     * @return
+     */
+    public DateFormat getDateFormat() {
+        return this.dateFormat;
     }
 
     @Override
-    public boolean isEditable(E obj) {
-        
+    public String getStringValue(final E value) {
+        this.date = this.getDate(value);
+        if (this.date == null) {
+            return this.setText(value, this.badDateText);
+        } else {
+            return this.setText(value, this.getDateFormat().format(this.date));
+        }
+
+    }
+
+    /**
+     * 
+     */
+    protected void init() {
+
+    }
+
+    @Override
+    public boolean isEditable(final E obj) {
+
         return false;
     }
 
     @Override
-    public boolean isEnabled(E obj) {
-        
+    public boolean isEnabled(final E obj) {
+
         return true;
     }
 
     @Override
-    public boolean isSortable(E obj) {
-        
+    public boolean isSortable(final E obj) {
+
         return true;
-    }
-
-    @Override
-    public void setValue(Object value, E object) {
-        
-
-    }
-
-    public String getStringValue(E value) {
-        date = getDate(value);
-        if (date == null) {
-            return setText(value, badDateText);
-        } else {
-            return setText(value, getDateFormat().format(date));
-        }
-
     }
 
     /**
@@ -120,8 +130,8 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
      * @param badDateText2
      * @return
      */
-    protected String setText(E value, String badDateText2) {
-        
+    protected String setText(final E value, final String badDateText2) {
+
         return badDateText2;
     }
 
@@ -130,12 +140,8 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
      * @return
      */
 
-    /**
-     * Override this method to use a custom dateformat
-     * 
-     * @return
-     */
-    public DateFormat getDateFormat() {
-        return dateFormat;
+    @Override
+    public void setValue(final Object value, final E object) {
+
     }
 }

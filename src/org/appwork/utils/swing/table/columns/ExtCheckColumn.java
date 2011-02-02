@@ -15,6 +15,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBox;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 
 import org.appwork.utils.swing.renderer.RendererCheckBox;
 import org.appwork.utils.swing.table.ExtColumn;
@@ -28,22 +29,29 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     private final RendererCheckBox checkBoxRend;
     private final JCheckBox        checkBoxEdit;
 
-    public ExtCheckColumn(String name, ExtTableModel<E> table) {
+    /**
+     * @param string
+     */
+    public ExtCheckColumn(final String string) {
+        this(string, null);
+    }
+
+    public ExtCheckColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 
-        checkBoxRend = new RendererCheckBox();
-        checkBoxRend.setHorizontalAlignment(RendererCheckBox.CENTER);
+        this.checkBoxRend = new RendererCheckBox();
+        this.checkBoxRend.setHorizontalAlignment(SwingConstants.CENTER);
 
-        checkBoxEdit = new JCheckBox();
-        checkBoxEdit.setHorizontalAlignment(RendererCheckBox.CENTER);
+        this.checkBoxEdit = new JCheckBox();
+        this.checkBoxEdit.setHorizontalAlignment(SwingConstants.CENTER);
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             @Override
-            public int compare(E o1, E o2) {
-                boolean b1 = getBooleanValue(o1);
-                boolean b2 = getBooleanValue(o2);
+            public int compare(final E o1, final E o2) {
+                final boolean b1 = ExtCheckColumn.this.getBooleanValue(o1);
+                final boolean b2 = ExtCheckColumn.this.getBooleanValue(o2);
 
-                if (b1 == b2) return 0;
+                if (b1 == b2) { return 0; }
                 if (this.isSortOrderToggle()) {
                     return b1 && !b2 ? -1 : 1;
                 } else {
@@ -54,9 +62,17 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         });
     }
 
+    public void actionPerformed(final ActionEvent e) {
+        this.checkBoxEdit.removeActionListener(this);
+        this.fireEditingStopped();
+    }
+
     protected abstract boolean getBooleanValue(E value);
 
-    protected abstract void setBooleanValue(boolean value, E object);
+    @Override
+    public final Object getCellEditorValue() {
+        return this.checkBoxEdit.isSelected();
+    }
 
     @Override
     protected int getMaxWidth() {
@@ -68,49 +84,42 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         return 30;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public final Object getCellEditorValue() {
-        return checkBoxEdit.isSelected();
+    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
+        this.checkBoxEdit.removeActionListener(this);
+        this.checkBoxEdit.setSelected(this.getBooleanValue((E) value));
+        this.checkBoxEdit.addActionListener(this);
+        return this.checkBoxEdit;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        checkBoxEdit.removeActionListener(this);
-        checkBoxEdit.setSelected(getBooleanValue((E) value));
-        checkBoxEdit.addActionListener(this);
-        return checkBoxEdit;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public final Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        checkBoxRend.setSelected(getBooleanValue((E) value));
-        return checkBoxRend;
+    public final Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.checkBoxRend.setSelected(this.getBooleanValue((E) value));
+        return this.checkBoxRend;
     }
 
     @Override
-    public boolean isEditable(E obj) {
+    public boolean isEditable(final E obj) {
         return false;
     }
 
-    public boolean isEnabled(E obj) {
+    @Override
+    public boolean isEnabled(final E obj) {
         return true;
     }
 
     @Override
-    public boolean isSortable(E obj) {
+    public boolean isSortable(final E obj) {
         return true;
     }
 
-    @Override
-    public final void setValue(Object value, E object) {
-        setBooleanValue((Boolean) value, object);
-    }
+    protected abstract void setBooleanValue(boolean value, E object);
 
-    public void actionPerformed(ActionEvent e) {
-        checkBoxEdit.removeActionListener(this);
-        this.fireEditingStopped();
+    @Override
+    public final void setValue(final Object value, final E object) {
+        this.setBooleanValue((Boolean) value, object);
     }
 
 }
