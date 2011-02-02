@@ -41,8 +41,8 @@ public class ZipIOWriter {
      */
     public ZipIOWriter(File zipFile) throws FileNotFoundException, ZipIOException {
         this.zipFile = zipFile;
-        openZip(false);}
-    
+        openZip(false);
+    }
 
     /**
      * constructor for ZipIOWriter
@@ -78,7 +78,8 @@ public class ZipIOWriter {
 
     /**
      * closes the ZipFile
-     * @throws Throwable 
+     * 
+     * @throws Throwable
      */
     public synchronized void close() throws IOException {
         Throwable e = null;
@@ -167,7 +168,9 @@ public class ZipIOWriter {
 
     private void addDirectoryInternal(File addDirectory, boolean compress, String path) throws ZipIOException, IOException {
         if (addDirectory == null || !addDirectory.isDirectory() || !addDirectory.exists()) throw new ZipIOException("addDirectory " + addDirectory.getAbsolutePath() + " invalid");
-        for (File add : addDirectory.listFiles()) {
+        File[] list = addDirectory.listFiles();
+        if (list == null) return;
+        for (File add : list) {
             if (add.isFile()) {
                 addFileInternal(add, compress, ((path != null && path.trim().length() > 0) ? path + "/" : "") + addDirectory.getName());
             } else if (add.isDirectory()) {
@@ -206,5 +209,4 @@ public class ZipIOWriter {
         }
     }
 
-    
 }
