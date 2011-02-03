@@ -151,6 +151,8 @@ public class Dialog {
      * further sessions
      */
     public static final int     LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT = 1 << 11;
+
+    public static final int     LOGIC_DONOTSHOW_BASED_ON_TITLE_ONLY  = 1 << 12;
     /**
      * Often, the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} option does not make
      * sense for the cancel option. Use this flag if the option should be
