@@ -3,7 +3,6 @@ package org.appwork.utils.swing;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 
 import javax.imageio.ImageIO;
@@ -35,8 +34,8 @@ public class AsynchImage extends JLabel {
          * @param url
          */
         public Updater(final AsynchImage asynchImage, final int prefX, final int prefY, final File cache, final URL url) {
-            this.x = prefX;
-            this.y = prefY;
+            x = prefX;
+            y = prefY;
             this.cache = cache;
             this.url = url;
             this.asynchImage = asynchImage;
@@ -53,34 +52,34 @@ public class AsynchImage extends JLabel {
 
                 try {
                     // check again.
-                    final long age = System.currentTimeMillis() - this.cache.lastModified();
-                    if (this.cache.exists() && age < Updater.EXPIRETIME) {
+                    final long age = System.currentTimeMillis() - cache.lastModified();
+                    if (cache.exists() && age < Updater.EXPIRETIME) {
                         // seems like another thread updated the image in the
                         // meantime
 
-                        final BufferedImage image = ImageIO.read(this.cache);
-                        if (this.asynchImage != null) {
-                            this.asynchImage.setDirectIcon(new ImageIcon(image));
+                        final BufferedImage image = ImageIO.read(cache);
+                        if (asynchImage != null) {
+                            asynchImage.setDirectIcon(new ImageIcon(image));
                         }
                         return;
 
                     }
 
-                    System.out.println("Update image " + this.cache);
-                    this.cache.delete();
-                    if (this.url == null) { return; }
+                    System.out.println("Update image " + cache);
+                    cache.delete();
+                    if (url == null) { return; }
 
-                    System.out.println("Download image " + this.cache);
-                    HTTP.download(this.url, this.cache, null);
+                    System.out.println("Download image " + cache);
+                    HTTP.download(url, cache, null);
 
-                    BufferedImage image = ImageIO.read(this.cache);
-                    System.out.println("Scale image " + this.cache);
-                    image = ImageProvider.getScaledInstance(image, this.x, this.y, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
-                    System.out.println("Cachewrite image " + this.cache + " " + this.x + " - " + image.getWidth());
-                    ImageIO.write(image, Files.getExtension(this.cache.getName()), this.cache);
+                    BufferedImage image = ImageIO.read(cache);
+                    System.out.println("Scale image " + cache);
+                    image = ImageProvider.getScaledInstance(image, x, y, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
+                    System.out.println("Cachewrite image " + cache + " " + x + " - " + image.getWidth());
+                    ImageIO.write(image, Files.getExtension(cache.getName()), cache);
 
-                    if (this.asynchImage != null) {
-                        this.asynchImage.setDirectIcon(new ImageIcon(image));
+                    if (asynchImage != null) {
+                        asynchImage.setDirectIcon(new ImageIcon(image));
                     }
                 } catch (final Throwable e) {
                     // TODO Auto-generated catch block
@@ -108,8 +107,8 @@ public class AsynchImage extends JLabel {
      * @param j
      */
     public AsynchImage(final int x, final int y) {
-        this.prefX = x;
-        this.prefY = y;
+        prefX = x;
+        prefY = y;
     }
 
     /**
@@ -119,9 +118,9 @@ public class AsynchImage extends JLabel {
      */
     public AsynchImage(final String thumbURL, final String extension, final int x, final int y) {
         super();
-
-        this.prefX = x;
-        this.prefY = y;
+        setBorder(new ShadowBorder(2));
+        prefX = x;
+        prefY = y;
         this.setIcon(thumbURL, extension);
 
     }
@@ -130,19 +129,19 @@ public class AsynchImage extends JLabel {
      * @return the setIconAfterLoading
      */
     public boolean isSetIconAfterLoading() {
-        return this.setIconAfterLoading;
+        return setIconAfterLoading;
     }
 
     /**
      * @param imageIcon
      */
     protected void setDirectIcon(final ImageIcon imageIcon) {
-        if (AsynchImage.this.setIconAfterLoading) {
+        if (setIconAfterLoading) {
 
             new EDTRunner() {
                 @Override
                 protected void runInEDT() {
-                    System.out.println("Set image " + AsynchImage.this.cache);
+                    System.out.println("Set image " + cache);
                     AsynchImage.this.setIcon(imageIcon);
                 }
             };
@@ -156,38 +155,38 @@ public class AsynchImage extends JLabel {
      * @param y
      */
     public void setIcon(final String thumbURL, final String extension) {
-        this.cache = Application.getResource("tmp/asynchimage/" + Hash.getMD5(thumbURL) + "_" + this.prefX + "x" + this.prefY + "." + extension);
+        cache = Application.getResource("tmp/asynchimage/" + Hash.getMD5(thumbURL) + "_" + prefX + "x" + prefY + "." + extension);
 
         // if cache is older than 7 days. delete
-        final long age = System.currentTimeMillis() - this.cache.lastModified();
+        final long age = System.currentTimeMillis() - cache.lastModified();
         try {
-            this.url = new URL(thumbURL);
-            if (this.cache.exists() && age < Updater.EXPIRETIME) {
+            url = new URL(thumbURL);
+            if (cache.exists() && age < Updater.EXPIRETIME) {
                 BufferedImage image;
 
-                image = ImageIO.read(this.cache);
+                image = ImageIO.read(cache);
 
                 this.setIcon(new ImageIcon(image));
 
-                if (!this.isSetIconAfterLoading()) {
+                if (!isSetIconAfterLoading()) {
                     if (image.getWidth() > 32) {
                         // System.out.println(this.cache);
                     }
 
                 }
-            } else if (this.cache.exists()) {
+            } else if (cache.exists()) {
                 BufferedImage image;
-                image = ImageIO.read(this.cache);
+                image = ImageIO.read(cache);
                 this.setIcon(new ImageIcon(image));
-                new Updater(this, this.prefX, this.prefY, this.cache, this.url).start();
+                new Updater(this, prefX, prefY, cache, url).start();
 
             } else {
-                new Updater(this, this.prefX, this.prefY, this.cache, this.url).start();
-                this.setIcon(ImageProvider.getImageIcon("imageLoader", this.prefX, this.prefY));
+                new Updater(this, prefX, prefY, cache, url).start();
+                this.setIcon(ImageProvider.getImageIcon("imageLoader", prefX, prefY));
             }
         } catch (final Exception e) {
-            new Updater(this, this.prefX, this.prefY, this.cache, this.url).start();
-            this.setIcon(ImageProvider.getImageIcon("imageLoader", this.prefX, this.prefY));
+            new Updater(this, prefX, prefY, cache, url).start();
+            this.setIcon(ImageProvider.getImageIcon("imageLoader", prefX, prefY));
         }
     }
 
