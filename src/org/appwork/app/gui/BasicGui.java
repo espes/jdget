@@ -15,6 +15,7 @@ import javax.swing.WindowConstants;
 
 import org.appwork.app.gui.copycutpaste.CopyCutPasteHandler;
 import org.appwork.storage.JSonStorage;
+import org.appwork.storage.Storage;
 import org.appwork.swing.trayicon.AWTrayIcon;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.logging.Log;
@@ -36,12 +37,14 @@ public abstract class BasicGui {
 
     private final WindowFlasher flasher;
 
+    private final Storage       storage;
+
     protected BasicGui(final String title) {
 
         frame = new JFrame(title);
 
         // dilaog init
-
+        storage = JSonStorage.getPlainStorage("BasicGui");
         Dialog.getInstance().setParentOwner(frame);
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -146,6 +149,10 @@ public abstract class BasicGui {
      */
     protected LockPanel getLockPanel() {
         return lockPanel;
+    }
+
+    public Storage getStorage() {
+        return storage;
     }
 
     /**
