@@ -60,14 +60,14 @@ public class Dialog {
         private final int id;
 
         private FileChooserSelectionMode(final int num) {
-            id = num;
+            this.id = num;
         }
 
         /**
          * @return the id
          */
         public int getId() {
-            return id;
+            return this.id;
         }
     }
 
@@ -86,7 +86,7 @@ public class Dialog {
          * @return the id
          */
         public int getId() {
-            return id;
+            return this.id;
         }
     }
 
@@ -286,7 +286,7 @@ public class Dialog {
      * @see Dialog#countdownTime
      */
     protected int getCountdownTime() {
-        return countdownTime;
+        return this.countdownTime;
     }
 
     /**
@@ -294,9 +294,9 @@ public class Dialog {
      * @see Dialog#owner
      */
     public JFrame getParentOwner() {
-        if (owner == null) {
+        if (this.owner == null) {
 
-            owner = new EDTHelper<JFrame>() {
+            this.owner = new EDTHelper<JFrame>() {
 
                 @Override
                 public JFrame edtRun() {
@@ -306,7 +306,7 @@ public class Dialog {
 
             }.getReturnValue();
         }
-        return owner;
+        return this.owner;
     }
 
     /**
@@ -324,7 +324,7 @@ public class Dialog {
      * @see Dialog#owner
      */
     public void setParentOwner(final JFrame parent) {
-        owner = parent;
+        this.owner = parent;
     }
 
     /**
