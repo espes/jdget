@@ -22,40 +22,110 @@ ABSTRACTDIALOG_BUTTON_OK("Ok"),
 * ###de_DE:Abbrechen
 */
 ABSTRACTDIALOG_BUTTON_CANCEL("Cancel"),
+/*
+* ###de_DE:Nicht mehr anzeigen
+*/
 ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN("Don't show this again"),
 /*
 * ###de_DE:Bitte bestätigen!
 */
 DIALOG_CONFIRMDIALOG_TITLE("Please confirm!"),
 /*
-* ###de_DE:Bitte eingeben
+* ###de_DE:Bitte eingeben!
 */
 DIALOG_INPUT_TITLE("Please enter!"),
+/*
+* ###de_DE:Bitte eingeben!
+*/
 DIALOG_PASSWORD_TITLE("Please enter!"),
 /*
 * ###de_DE:Nachricht
 */
 DIALOG_MESSAGE_TITLE("Message"),
+/*
+* ###de_DE:Bitte eingeben
+*/
 DIALOG_SLIDER_TITLE("Please enter!"),
+/*
+* ###de_DE:Benutzername
+*/
 LOGINDIALOG_LABEL_USERNAME("Login"),
+/*
+* ###de_DE:Passwort
+*/
 LOGINDIALOG_LABEL_PASSWORD("Password"),
+/*
+* ###de_DE:Passwort wiederholen
+*/
 LOGINDIALOG_LABEL_PASSWORD_REPEAT("Repeat Password"),
+/*
+* ###de_DE:Neuen Benutzer anlegen
+*/
 LOGINDIALOG_BUTTON_REGISTER("Create new User"),
+/*
+* ###de_DE:Merken
+*/
 LOGINDIALOG_CHECKBOX_REMEMBER("Remember"),
+/*
+* ###de_DE:Anmelden
+*/
 LOGINDIALOG_BUTTON_LOGIN("Login"),
+/*
+* ###de_DE:Altes Passwort
+*/
 PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD("Old Password:"),
+/*
+* ###de_DE:Passwort bestätigen
+*/
 PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD_REPEAT("Confirm Password:"),
+/*
+* ###de_DE:Neues Passwort
+*/
 PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD("New Password:"),
+/*
+* ###de_DE:Suchen
+*/
 SEARCHDIALOG_BUTTON_FIND("Find"),
+/*
+* ###de_DE:Groß/Kleinschreibung
+*/
 SEARCHDIALOG_CHECKBOX_CASESENSITIVE("Case sensitive"),
+/*
+* ###de_DE:Reguläre Ausrücke
+*/
 SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION("Regular Expressions"),
+/*
+* ###de_DE:Dieser Dialog hat einen Countdown und schließt sich in einigen
+     * Sekunden. Klicken Sie hier um den Countdown abzubrechen.
+*/
 TIMERDIALOG_TOOLTIP_TIMERLABEL("This dialog has a countdown and closes after a few seconds. Click to cancel the countdown"),
+/*
+* ###de_DE:Einen Ordner nach oben
+*/
 DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER("Switch to parent folder"),
+/*
+* ###de_DE:Zum Benutzerverzeichnis wechseln
+*/
 DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER("Switch to Home"),
+/*
+* ###de_DE:Neuen Ordner erstellen
+*/
 DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER("Create new folder"),
+/*
+* ###de_DE:Detailansicht
+*/
 DIALOG_FILECHOOSER_TOOLTIP_DETAILS("Switch to detailed view"),
+/*
+* ###de_DE:Listenansicht
+*/
 DIALOG_FILECHOOSER_TOOLTIP_LIST("Switch to list view"),
+/*
+* ###de_DE:Tabelle durchsuchen
+*/
 EXTTABLE_SEARCH_DIALOG_TITLE("Search table"),
+/*
+* ###de_DE:Ein Fehler ist aufgetreten
+*/
 DIALOG_ERROR_TITLE("Error Occured"),
 /*
 * ###de_DE:Befehl -> -
@@ -94,7 +164,7 @@ Statusbar_Statusbar_visiturl_tooltip("Visit our Homepage"),
 */
 ExceptionDialog_layoutDialogContent_more_button("Error details"),
 /*
-*
+* 
      * Grund für diesen Fehler:
 */
 ExceptionDialog_layoutDialogContent_logLabel("This Error is cause by:"),
@@ -174,33 +244,33 @@ AppWorkUtils_Graph_getSpeedString("Current: %s/s", 1);
     private String cache         = null;
 
     private APPWORKUTILS(final String defaultString) {
-        this.defaultTranslation = defaultString;
+        defaultTranslation = defaultString;
     }
 
     private APPWORKUTILS(final String defaultString, final int wildCards) {
-        this.defaultTranslation = defaultString;
-        this.wildCardCount = wildCards;
+        defaultTranslation = defaultString;
+        wildCardCount = wildCards;
     }
 
     public String getDefaultTranslation() {
-        return this.defaultTranslation;
+        return defaultTranslation;
     }
 
     public int getWildCardCount() {
-        return this.wildCardCount;
+        return wildCardCount;
     }
 
     public String s() {
-        return this.toString();
+        return toString();
     }
 
     public String s(final Object... args) {
         if (args != null && args.length > 0) {
-            return Loc.LF("APPWORKUTILS:::" + this.name(), this.defaultTranslation, args);
+            return Loc.LF("APPWORKUTILS:::" + name(), defaultTranslation, args);
         } else {
-            if (this.cache != null) { return this.cache; }
-            this.cache = Loc.L("APPWORKUTILS:::" + this.name(), this.defaultTranslation);
-            return this.cache;
+            if (cache != null) { return cache; }
+            cache = Loc.L("APPWORKUTILS:::" + name(), defaultTranslation);
+            return cache;
         }
     }
 
