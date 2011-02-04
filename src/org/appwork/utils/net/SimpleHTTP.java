@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 
 import org.appwork.utils.Application;
+import org.appwork.utils.locale.Loc;
 
 public class SimpleHTTP {
 
@@ -42,6 +43,8 @@ public class SimpleHTTP {
             connection.setInstanceFollowRedirects(true);
             connection.setConnectTimeout(15000);
             connection.setReadTimeout(30000);
+            final String loc = Loc.getLocale().split("_")[0];
+            connection.setRequestProperty("Accept-Language", loc);
             connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
             connection.setRequestProperty("Connection", "Close");
             for (final Entry<String, String> next : requestHeader.entrySet()) {
