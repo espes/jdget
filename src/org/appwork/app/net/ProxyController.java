@@ -47,7 +47,9 @@ public class ProxyController {
     public static final String PROP_TYPE = "PROXY_TYPE";
     public static final String PROP_USER = "PROXY_AUTH_USER";
 
-    public static void autoConfig() {
+    public synchronized static void autoConfig() {
+        /* reset proxy to none and lets find it */
+        ProxyController.setType(PROXYTYPE.NONE);
         try {
             if (CrossSystem.isWindows()) {
                 if (ProxyController.checkReg()) { return; }
@@ -119,11 +121,12 @@ public class ProxyController {
             } finally {
                 closeKey.invoke(Preferences.userRoot(), handle);
             }
-            System.out.println(vals);
             if (vals != null) {
-                final String proxyurl = new Regex(vals, "(\\d+\\.\\d+\\.\\d+\\.\\d+)").getMatch(0);
+                /* parse ip */
+                String proxyurl = new Regex(vals, "(\\d+\\.\\d+\\.\\d+\\.\\d+)").getMatch(0);
                 if (proxyurl == null) {
-                    /* proxy is no ip, lets try normal domain name */
+                    /* parse domain name */
+                    proxyurl = new Regex(vals, "=(.*?)($|:)").getMatch(0);
                 }
                 final String port = new Regex(vals, ":(\\d+)").getMatch(0);
                 if (proxyurl != null) {
