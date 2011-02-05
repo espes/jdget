@@ -9,10 +9,12 @@
  */
 package org.appwork.remotecall.server;
 
+import org.appwork.storage.Storable;
+
 /**
  * @author thomas
  */
-public class ServerInvokationException extends Exception {
+public class ServerInvokationException extends Exception implements Storable {
 
     private static final long serialVersionUID = -3140111161245241758L;
     private final String      remoteID;
@@ -24,7 +26,7 @@ public class ServerInvokationException extends Exception {
     }
 
     public String getRemoteID() {
-        return remoteID;
+        return this.remoteID;
     }
 
 }

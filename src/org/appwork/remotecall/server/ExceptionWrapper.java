@@ -12,35 +12,40 @@ package org.appwork.remotecall.server;
 import java.io.IOException;
 
 import org.appwork.storage.JSonStorage;
+import org.appwork.storage.Storable;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 
 /**
  * @author thomas
  */
-public class ExceptionWrapper {
+public class ExceptionWrapper implements Storable {
 
     private String _exception;
 
     private String name;
 
+    private ExceptionWrapper() {
+        // we need this for JSON Serial.
+    }
+
     public ExceptionWrapper(final Throwable e) throws IOException {
-        _exception = JSonStorage.serializeToJson(e);
-        name = e.getClass().getName();
+        this._exception = JSonStorage.serializeToJson(e);
+        this.name = e.getClass().getName();
     }
 
     public Throwable deserialiseException() throws ClassNotFoundException, JsonParseException, JsonMappingException, IOException {
         // tries to cast to the correct exception
-        Class<?> clazz = Class.forName(name);
-        return (Throwable) JSonStorage.restoreFromString(_exception, clazz);
+        final Class<?> clazz = Class.forName(this.name);
+        return (Throwable) JSonStorage.restoreFromString(this._exception, clazz);
     }
 
     public String getException() {
-        return _exception;
+        return this._exception;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void setException(final String _exception) {

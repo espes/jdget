@@ -9,16 +9,23 @@
  */
 package org.appwork.remotecall.server;
 
+import org.appwork.storage.Storable;
+
 /**
  * @author thomas
  */
-public class UnserialisableException extends Exception {
+public class UnserialisableException extends Exception implements Storable {
 
     private static final long serialVersionUID = 2858489143770582621L;
 
+    @SuppressWarnings("unused")
+    private UnserialisableException() {
+        // we need this for json serial
+    }
+
     public UnserialisableException(final String stacktrace) {
         super(stacktrace);
-        setStackTrace(new StackTraceElement[] {});
+        this.setStackTrace(new StackTraceElement[] {});
     }
 
     @Override

@@ -9,12 +9,19 @@
  */
 package org.appwork.remotecall.server;
 
+import org.appwork.storage.Storable;
+
 /**
  * @author thomas
  */
-public class BadRequestException extends RuntimeException {
+public class BadRequestException extends RuntimeException implements Storable {
 
     private static final long serialVersionUID = -5299365199355353239L;
+
+    @SuppressWarnings("unused")
+    private BadRequestException() {
+        // we need this for serial.
+    }
 
     public BadRequestException(final String string) {
         super(string);
