@@ -108,7 +108,23 @@ public class ShutDownHooksQueue extends Thread {
             }
             if (item.isAlive()) {
                 System.out.println("ShutDownHooksQueue: " + item + " is still running!");
+                System.out.println("ShutDownHooksQueue: " + item + " StackTrace:\r\n" + getStackTrace(item));
             }
+        }
+    }
+
+    private String getStackTrace(Thread thread) {
+        try {
+            StackTraceElement[] st = thread.getStackTrace();
+            StringBuilder sb = new StringBuilder("");
+            for (StackTraceElement element : st) {
+                sb.append(element);
+                sb.append("\r\n");
+            }
+            return sb.toString();
+        } catch (final Throwable e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }

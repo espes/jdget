@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -280,6 +281,7 @@ public class Dialog {
      * Parent window for all dialogs created with abstractdialog
      */
     private JFrame owner         = null;
+    private Window window;
 
     /**
      * @return the {@link Dialog#countdownTime}
@@ -325,6 +327,21 @@ public class Dialog {
      */
     public void setParentOwner(final JFrame parent) {
         this.owner = parent;
+        this.window = (Window) owner;
+    }
+
+    /**
+     * this is needed for correct parentWindow handling for correct dialog show
+     * order
+     * 
+     * @param window
+     */
+    protected void setParentWindow(final Window window) {
+        this.window = window;
+    }
+
+    public Window getParentWindow() {
+        return this.window;
     }
 
     /**
@@ -584,7 +601,7 @@ public class Dialog {
                             }
                         }
                         if (dialogType == null || dialogType.getId() == FileChooserType.OPEN_DIALOG.getId()) {
-                            switch (maskWrapper[0] = fc.showOpenDialog(Dialog.this.getParentOwner())) {
+                            switch (maskWrapper[0] = fc.showOpenDialog(Dialog.this.getParentWindow())) {
                             case JFileChooser.APPROVE_OPTION:
                                 if (multiSelection) {
                                     final ArrayList<File> rets = new ArrayList<File>();
@@ -622,7 +639,7 @@ public class Dialog {
 
                             }
                         } else if (dialogType.getId() == FileChooserType.SAVE_DIALOG.getId()) {
-                            if ((maskWrapper[0] = fc.showSaveDialog(Dialog.this.getParentOwner())) == JFileChooser.APPROVE_OPTION) {
+                            if ((maskWrapper[0] = fc.showSaveDialog(Dialog.this.getParentWindow())) == JFileChooser.APPROVE_OPTION) {
                                 File ret = fc.getSelectedFile();
                                 /*
                                  * validate selectedFile against

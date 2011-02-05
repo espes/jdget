@@ -12,6 +12,7 @@ package org.appwork.utils.swing.dialog;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -78,15 +79,16 @@ public abstract class TimerDialog {
      * Label to display the timervalue
      */
     protected JLabel          timerLbl;
-    protected JFrame          parentFrame;
+    protected Window          parentFrame;
 
     private InternDialog      dialog;
 
     private Dimension         preferredSize;
 
-    public TimerDialog(final JFrame parentframe) {
+    public TimerDialog(final Window parentframe) {
         // super(parentframe, ModalityType.TOOLKIT_MODAL);
         parentFrame = parentframe;
+        System.out.println(parentFrame);
         // avoids always On Top BUg
         if (parentframe != null) {
             parentframe.setAlwaysOnTop(true);

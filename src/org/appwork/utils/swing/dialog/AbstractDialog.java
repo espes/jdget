@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.HierarchyEvent;
@@ -103,7 +104,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     private final String     title;
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
-        super(Dialog.getInstance().getParentOwner());
+        super(Dialog.getInstance().getParentWindow());
         this.title = title;
         this.flagMask = flag;
 
@@ -281,7 +282,19 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         });
         focus.requestFocus();
         this.packed();
-        setVisible(true);
+        /**
+         * this is very important so the new shown dialog will become root for
+         * all following dialogs! we save old parentWindow, then set current
+         * dialogwindow as new root and show dialog. after dialog has been
+         * shown, we restore old parentWindow
+         */
+        Window oldw = Dialog.getInstance().getParentWindow();
+        Dialog.getInstance().setParentWindow(this.getDialog());
+        try {
+            setVisible(true);
+        } finally {
+            Dialog.getInstance().setParentWindow(oldw);
+        }
 
         /*
          * workaround a javabug that forces the parentframe to stay always on

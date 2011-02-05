@@ -56,7 +56,7 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
     private final JButton okButton;
 
     public SearchDialog(int flag, final ExtTable<?> owner) throws IOException {
-        super(Dialog.getInstance().getParentOwner(), APPWORKUTILS.EXTTABLE_SEARCH_DIALOG_TITLE.s());
+        super(Dialog.getInstance().getParentWindow(), APPWORKUTILS.EXTTABLE_SEARCH_DIALOG_TITLE.s());
 
         this.owner = owner;
         this.owner.addFocusListener(this);
