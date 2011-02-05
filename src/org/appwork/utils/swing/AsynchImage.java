@@ -133,7 +133,7 @@ public class AsynchImage extends JLabel {
     private final int         prefY;
     private boolean           setIconAfterLoading = true;
 
-    private static Object     LOCK                = new Object();
+    public static Object     LOCK                = new Object();
     private static Object     LOCK2               = new Object();
 
     /**
@@ -177,6 +177,7 @@ public class AsynchImage extends JLabel {
                 protected void runInEDT() {
                     System.out.println("Set image " + cache);
                     AsynchImage.this.setIcon(imageIcon);
+                    AsynchImage.this.repaint();
                 }
             };
         }
