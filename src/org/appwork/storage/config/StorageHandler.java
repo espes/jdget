@@ -10,6 +10,7 @@
 package org.appwork.storage.config;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
@@ -17,6 +18,7 @@ import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JacksonStorageChest;
 import org.appwork.storage.StorageException;
+import org.appwork.storage.config.annotations.CryptedStorage;
 
 /**
  * @author thomas
@@ -28,14 +30,39 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private final Class<T>                 configInterface;
     private HashMap<Method, MethodHandler> getterMap;
     private final JacksonStorageChest      primitiveStorage;
+    private boolean                        crypted;
+    private byte[]                         key = JSonStorage.KEY;
 
     /**
      * @param configInterface
      */
     public StorageHandler(final Class<T> configInterface) {
         this.configInterface = configInterface;
-        this.primitiveStorage = (JacksonStorageChest) JSonStorage.getPlainStorage(configInterface.getSimpleName());
-        this.parseInterface();
+        final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
+        if (crypted != null) {
+            this.crypted = true;
+            if (crypted.key() != null) {
+                this.primitiveStorage = new JacksonStorageChest(configInterface.getSimpleName(), false, crypted.key());
+                JSonStorage.addStorage(this.primitiveStorage);
+                this.key = crypted.key();
+                if (this.key.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + configInterface + " is invalid"); }
+
+            } else {
+                this.primitiveStorage = (JacksonStorageChest) JSonStorage.getStorage(configInterface.getSimpleName());
+            }
+        } else {
+            this.crypted = false;
+            this.primitiveStorage = (JacksonStorageChest) JSonStorage.getPlainStorage(configInterface.getSimpleName());
+        }
+        try {
+            this.parseInterface();
+        } catch (final Exception e) {
+            throw new InterfaceParseException(e);
+        }
+    }
+
+    public byte[] getKey() {
+        return this.key;
     }
 
     /*
@@ -105,10 +132,21 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     }
 
+    public boolean isCrypted() {
+        return this.crypted;
+    }
+
     /**
+     * @throws ClassNotFoundException
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws NoSuchMethodException
+     * @throws IllegalArgumentException
+     * @throws SecurityException
      * 
      */
-    private void parseInterface() {
+    private void parseInterface() throws SecurityException, IllegalArgumentException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
         this.getterMap = new HashMap<Method, MethodHandler>();
 
         final HashMap<String, Method> keyGetterMap = new HashMap<String, Method>();
@@ -128,8 +166,15 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 } catch (final InvalidTypeException e) {
                     throw new InterfaceParseException(e);
                 }
-                this.getterMap.put(m, new MethodHandler(MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType())));
+
+                MethodHandler h;
+                this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType())));
                 keyGetterMap.put(key, m);
+                final MethodHandler setterhandler = this.getterMap.get(keySetterMap.get(key));
+                if (setterhandler != null) {
+                    setterhandler.setGetter(h);
+                    h.setSetter(setterhandler);
+                }
             } else if (m.getName().startsWith("set")) {
                 key = m.getName().substring(3).toLowerCase();
                 if (keySetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keySetterMap.containsKey(key) + "<-->" + m); }
@@ -139,9 +184,16 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 } catch (final InvalidTypeException e) {
                     throw new InterfaceParseException(e);
                 }
-                this.getterMap.put(m, new MethodHandler(MethodHandler.Type.SETTER, key, m, JSonStorage.canStorePrimitive(m.getParameterTypes()[0])));
+                MethodHandler h;
+                this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.SETTER, key, m, JSonStorage.canStorePrimitive(m.getParameterTypes()[0])));
 
                 keySetterMap.put(key, m);
+
+                final MethodHandler getterHandler = this.getterMap.get(keyGetterMap.get(key));
+                if (getterHandler != null) {
+                    getterHandler.setSetter(h);
+                    h.setGetter(getterHandler);
+                }
             } else {
                 throw new InterfaceParseException("Only getter and setter allowed:" + m);
 

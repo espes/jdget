@@ -42,7 +42,6 @@ public class JSonStorage {
         /* shutdown hook to save all open Storages */
         ShutDownHooksQueue.add(new Runnable() {
 
-          
             public void run() {
                 JSonStorage.save();
             }
@@ -81,8 +80,9 @@ public class JSonStorage {
             final Class<?> type = (Class<?>) gType;
             if (type == void.class) { throw new InvalidTypeException("Void is not accepted: " + path); }
             if (type.isPrimitive()) { return; }
-            if (type == String.class) { return; }
+            if (type == Boolean.class || type == Long.class || type == Integer.class || type == Byte.class || type == Double.class || type == Float.class || type == String.class) { return; }
             if (type.isEnum()) { return; }
+
             if (type.isArray()) {
                 final Class<?> arrayType = type.getComponentType();
 
@@ -138,7 +138,7 @@ public class JSonStorage {
             throw new InvalidTypeException("Generic Type Structure not implemented: " + gType.getClass() + " in " + path);
         }
 
-        throw new InvalidTypeException("Type " + path + " is invalid");
+        throw new InvalidTypeException("Type " + path + " is not supported.");
 
     }
 
@@ -370,6 +370,15 @@ public class JSonStorage {
      * @throws StorageException
      */
     public static void saveTo(final String pathname, final String json) throws StorageException {
+        JSonStorage.saveTo(pathname, json, JSonStorage.KEY);
+    }
+
+    /**
+     * @param pathname
+     * @param json
+     * @param kEY2
+     */
+    public static void saveTo(final String pathname, final String json, final byte[] key) {
         synchronized (JSonStorage.LOCK) {
             try {
                 final File file = Application.getResource(pathname);
@@ -381,7 +390,7 @@ public class JSonStorage {
                     IO.writeToFile(tmp, json.getBytes("UTF-8"));
                 } else {
                     /* encrypted */
-                    IO.writeToFile(tmp, Crypto.encrypt(json, JSonStorage.KEY));
+                    IO.writeToFile(tmp, Crypto.encrypt(json, key));
                 }
                 if (file.exists()) {
                     if (!file.delete()) { throw new StorageException("Could not overwrite file: " + file); }

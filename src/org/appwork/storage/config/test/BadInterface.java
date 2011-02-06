@@ -10,6 +10,7 @@
 package org.appwork.storage.config.test;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.annotations.CryptedStorage;
@@ -37,7 +38,7 @@ import org.appwork.storage.config.annotations.PlainStorage;
  * 
  */
 @PlainStorage
-public interface MyInterface extends ConfigInterface {
+public interface BadInterface extends ConfigInterface {
 
     @DefaultBooleanValue(value = true)
     public boolean getB2();
@@ -69,8 +70,11 @@ public interface MyInterface extends ConfigInterface {
     /**
      * @return
      */
-    @CryptedStorage(key = { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 })
-    public ArrayList<TestObject> getGenericList();
+    /*
+     * BAD: BadTestObject contains a bad datatype
+     */
+    @CryptedStorage(key = { 0x00, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 })
+    public ArrayList<BadTestObject> getGenericList();
 
     @DefaultIntValue(value = 0)
     public int getInt();
@@ -85,25 +89,36 @@ public interface MyInterface extends ConfigInterface {
     public long[] getLongArray();
 
     @DefaultObjectValue(value = "{\"a\":5}")
-    public TestObject getObject();
+    public BadTestObject getObject();
 
-    public ArrayList<TestObject[]> getStorableArrayList();
+    public ArrayList<BadTestObject[]> getStorableArrayList();
 
     // public Object[] getObjectArray();
     @DefaultStringValue(value = "test")
     public String getString();
 
+    /*
+     * BAD:Annotation<-->Return Type mismatch
+     */
     @DefaultStringArrayValue(value = { "test", "testb" })
-    public String[] getStringArray();
+    public String getStringArray();
 
     @DefaultEnumArrayValue(value = { "org.appwork.storage.config.test.Type.A", "org.appwork.storage.config.test.Type.B" })
     public Type[] getTypeArray();
 
+    /*
+     * BAD:Invalid Type Date
+     */
+    public void setDate(Date d);
+
     /**
      * @param list
      */
+    /*
+     * BAD:Cryptkey mismatch
+     */
     @CryptedStorage(key = { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 })
-    public void setGenericList(ArrayList<TestObject> list);
+    public void setGenericList(ArrayList<BadTestObject> list);
 
     public int setInt(int i);
 
@@ -115,6 +130,6 @@ public interface MyInterface extends ConfigInterface {
     /**
      * @param o
      */
-    public void setObject(TestObject o);
+    public void setObject(BadTestObject o);
 
 }

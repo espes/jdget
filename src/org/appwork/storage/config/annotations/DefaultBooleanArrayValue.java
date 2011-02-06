@@ -7,12 +7,19 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.storage.config.test;
+package org.appwork.storage.config.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author thomas
  * 
  */
-public @interface DefaultByteValue {
-    byte value();
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.METHOD })
+public @interface DefaultBooleanArrayValue {
+    boolean[] value();
 }
