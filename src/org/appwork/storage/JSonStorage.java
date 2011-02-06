@@ -2,7 +2,11 @@ package org.appwork.storage;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
@@ -18,6 +22,9 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+
+import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 public class JSonStorage {
     /* hash map contains file location as string and the storage instance */
@@ -51,6 +58,97 @@ public class JSonStorage {
             }
             return false;
         }
+    }
+
+    /**
+     * Cecks of the JSOn Mapper can map this Type
+     * 
+     * @param genericReturnType
+     * @throws InvalidTypeException
+     */
+    public static void canStore(final Type gType) throws InvalidTypeException {
+        JSonStorage.canStoreIntern(gType, gType.toString());
+    }
+
+    /**
+     * @param gType
+     * @param string
+     * @throws InvalidTypeException
+     */
+    private static void canStoreIntern(final Type gType, final String path) throws InvalidTypeException {
+
+        if (gType instanceof Class) {
+            final Class<?> type = (Class<?>) gType;
+            if (type == void.class) { throw new InvalidTypeException("Void is not accepted: " + path); }
+            if (type.isPrimitive()) { return; }
+            if (type == String.class) { return; }
+            if (type.isEnum()) { return; }
+            if (type.isArray()) {
+                final Class<?> arrayType = type.getComponentType();
+
+                JSonStorage.canStoreIntern(arrayType, path + "[" + arrayType + "]");
+                return;
+            }
+            // we need an empty constructor
+
+            if (Storable.class.isAssignableFrom(type)) {
+                try {
+
+                    type.getDeclaredConstructor(new Class[] {});
+                    for (final Method m : type.getDeclaredMethods()) {
+                        if (m.getName().startsWith("get")) {
+
+                            if (m.getParameterTypes().length > 0) { throw new InvalidTypeException("Getter " + path + "." + m + " has parameters."); }
+                            JSonStorage.canStoreIntern(m.getGenericReturnType(), path + "->" + m.getGenericReturnType());
+
+                        } else if (m.getName().startsWith("set")) {
+                            if (m.getParameterTypes().length != 1) { throw new InvalidTypeException("Setter " + path + "." + m + " has != Parameters."); }
+
+                        }
+                    }
+                    return;
+                } catch (final NoSuchMethodException e) {
+                    throw new InvalidTypeException("Storable " + path + " has no empty Constructor");
+                }
+
+            }
+            if (List.class.isAssignableFrom(type)) { return;
+
+            }
+            if (Map.class.isAssignableFrom(type)) { return;
+
+            }
+
+        } else if (gType instanceof ParameterizedTypeImpl) {
+            final ParameterizedTypeImpl ptype = (ParameterizedTypeImpl) gType;
+
+            final Class<?> raw = ((ParameterizedTypeImpl) gType).getRawType();
+            JSonStorage.canStoreIntern(raw, path);
+            for (final Type t : ptype.getActualTypeArguments()) {
+                JSonStorage.canStoreIntern(t, path + "(" + t + ")");
+            }
+            return;
+
+        } else if (gType instanceof GenericArrayTypeImpl) {
+            final GenericArrayTypeImpl atype = (GenericArrayTypeImpl) gType;
+            final Type t = atype.getGenericComponentType();
+            JSonStorage.canStoreIntern(t, path + "[" + t + "]");
+            return;
+        } else {
+            throw new InvalidTypeException("Generic Type Structure not implemented: " + gType.getClass() + " in " + path);
+        }
+
+        throw new InvalidTypeException("Type " + path + " is invalid");
+
+    }
+
+    /**
+     * @param returnType
+     * @return
+     */
+    public static boolean canStorePrimitive(final Class<?> type) {
+        // TODO Auto-generated method stub
+        return type.isPrimitive() || type == String.class || type.isEnum();
     }
 
     /**
