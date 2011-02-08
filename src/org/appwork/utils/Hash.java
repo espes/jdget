@@ -9,6 +9,7 @@
  */
 package org.appwork.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,9 +26,10 @@ public class Hash {
     public static String HASH_TYPE_SHA1 = "SHA-1";
 
     public static long getCRC32(final File arg) throws IOException {
-        final FileInputStream fis = new FileInputStream(arg);
+        FileInputStream fis = null;
         CheckedInputStream cis = null;
         try {
+            fis = new FileInputStream(arg);
             cis = new CheckedInputStream(fis, new CRC32());
             final byte readBuffer[] = new byte[32767];
             while (cis.read(readBuffer) >= 0) {
@@ -40,6 +42,28 @@ public class Hash {
             }
             try {
                 fis.close();
+            } catch (Throwable e) {
+            }
+        }
+    }
+
+    public static long getCRC32(final byte[] data) throws IOException {
+        CheckedInputStream cis = null;
+        ByteArrayInputStream bis = null;
+        try {
+            bis = new ByteArrayInputStream(data);
+            cis = new CheckedInputStream(bis, new CRC32());
+            final byte readBuffer[] = new byte[32767];
+            while (cis.read(readBuffer) >= 0) {
+            }
+            return cis.getChecksum().getValue();
+        } finally {
+            try {
+                cis.close();
+            } catch (Throwable e) {
+            }
+            try {
+                bis.close();
             } catch (Throwable e) {
             }
         }
@@ -73,19 +97,19 @@ public class Hash {
 
     }
 
-    public static String getMD5(final File arg)  {
+    public static String getMD5(final File arg) {
         return Hash.getFileHash(arg, Hash.HASH_TYPE_MD5);
     }
 
-    public static String getMD5(final String arg)  {
+    public static String getMD5(final String arg) {
         return Hash.getStringHash(arg, Hash.HASH_TYPE_MD5);
     }
 
-    public static String getSHA1(final File arg)  {
+    public static String getSHA1(final File arg) {
         return Hash.getFileHash(arg, Hash.HASH_TYPE_SHA1);
     }
 
-    public static String getSHA1(final String arg)  {
+    public static String getSHA1(final String arg) {
         return Hash.getStringHash(arg, Hash.HASH_TYPE_SHA1);
     }
 

@@ -209,4 +209,26 @@ public class ZipIOWriter {
         }
     }
 
+    public synchronized void addByteArry(byte[] data, boolean compress, String path, String name) throws IOException, ZipIOException {
+        boolean zipEntryAdded = false;
+        try {
+            if (data == null) throw new ZipIOException("data array is invalid");
+            ZipEntry zipAdd = new ZipEntry(((path != null && path.trim().length() > 0) ? path + "/" : "") + name);
+            zipAdd.setSize(data.length);
+            if (compress) {
+                zipAdd.setMethod(ZipEntry.DEFLATED);
+            } else {
+                zipAdd.setMethod(ZipEntry.STORED);
+                zipAdd.setCompressedSize(data.length);
+                /* STORED must have a CRC32! */
+                zipAdd.setCrc(Hash.getCRC32(data));
+            }
+            zipStream.putNextEntry(zipAdd);
+            zipEntryAdded = true;
+            zipStream.write(data, 0, data.length);
+        } finally {
+            if (zipEntryAdded) zipStream.closeEntry();
+        }
+    }
+
 }
