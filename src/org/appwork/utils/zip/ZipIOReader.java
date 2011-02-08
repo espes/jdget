@@ -9,6 +9,8 @@
  */
 package org.appwork.utils.zip;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import java.util.zip.CheckedInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import org.appwork.utils.Files;
 import org.appwork.utils.logging.Log;
@@ -30,12 +33,15 @@ import org.appwork.utils.logging.Log;
  */
 public class ZipIOReader {
 
-    private File      zipFile               = null;
-    private ZipFile   zip                   = null;
-    private ZipIOFile rootFS                = null;
-    private boolean   autoCreateExtractPath = true;
-    private boolean   overwrite             = false;
-    private boolean   autoCreateSubDirs     = true;
+    private File       zipFile               = null;
+    private ZipFile    zip                   = null;
+    private ZipIOFile  rootFS                = null;
+    private boolean    autoCreateExtractPath = true;
+    private boolean    overwrite             = false;
+    private boolean    autoCreateSubDirs     = true;
+    private byte[]     byteArray             = null;
+    private int        zipEntriesSize        = -1;
+    private ZipEntry[] zipEntries            = null;
 
     /**
      * open the zipFile for this ZipIOReader
@@ -51,6 +57,10 @@ public class ZipIOReader {
         openZip();
     }
 
+    public ZipIOReader(final byte[] byteArray) {
+        this.byteArray = byteArray;
+    }
+
     /**
      * closes the ZipFile
      * 
@@ -62,6 +72,7 @@ public class ZipIOReader {
                 zip.close();
             }
         } finally {
+            byteArray = null;
             zip = null;
         }
     }
@@ -197,7 +208,44 @@ public class ZipIOReader {
      */
     public synchronized InputStream getInputStream(final ZipEntry entry) throws ZipIOException, IOException {
         if (entry == null) { throw new ZipIOException("invalid zipEntry"); }
-        return zip.getInputStream(entry);
+        if (zip != null) {
+            return zip.getInputStream(entry);
+        } else {
+            ZipInputStream zis = null;
+            boolean close = true;
+            try {
+                zis = new ZipInputStream(new ByteArrayInputStream(byteArray));
+                ZipEntry ze = null;
+                while ((ze = zis.getNextEntry()) != null) {
+                    /* find the entry that matches */
+                    if (ze.getSize() == entry.getSize() && ze.getName().equals(entry.getName())) {
+                        final ZipInputStream zis2 = zis;
+                        close = false;
+                        return new InputStream() {
+
+                            @Override
+                            public int read() throws IOException {
+                                return zis2.read();
+                            }
+
+                            @Override
+                            public void close() throws IOException {
+                                zis2.close();
+                            }
+
+                        };
+                    }
+                }
+            } catch (IOException e) {
+                throw new ZipIOException(e.getMessage(), e);
+            } finally {
+                try {
+                    if (close) zis.close();
+                } catch (final Throwable e) {
+                }
+            }
+            return null;
+        }
     }
 
     /**
@@ -210,7 +258,26 @@ public class ZipIOReader {
      */
     public synchronized ZipEntry getZipFile(final String fileName) throws ZipIOException {
         if (fileName == null) { throw new ZipIOException("invalid fileName"); }
-        return zip.getEntry(fileName);
+        if (zip != null) {
+            return zip.getEntry(fileName);
+        } else {
+            ZipInputStream zis = null;
+            try {
+                zis = new ZipInputStream(new ByteArrayInputStream(byteArray));
+                ZipEntry ze = null;
+                while ((ze = zis.getNextEntry()) != null) {
+                    if (ze.getName().equals(fileName)) return ze;
+                }
+                return null;
+            } catch (IOException e) {
+                throw new ZipIOException(e.getMessage(), e);
+            } finally {
+                try {
+                    zis.close();
+                } catch (final Throwable e) {
+                }
+            }
+        }
     }
 
     /**
@@ -220,12 +287,32 @@ public class ZipIOReader {
      * @throws ZipIOException
      */
     public synchronized ZipEntry[] getZipFiles() throws ZipIOException {
+        if (zipEntries != null) return zipEntries;
         final ArrayList<ZipEntry> ret = new ArrayList<ZipEntry>();
-        final Enumeration<? extends ZipEntry> zipIter = zip.entries();
-        while (zipIter.hasMoreElements()) {
-            ret.add(zipIter.nextElement());
+        if (zip != null) {
+            final Enumeration<? extends ZipEntry> zipIter = zip.entries();
+            while (zipIter.hasMoreElements()) {
+                ret.add(zipIter.nextElement());
+            }
+        } else {
+            ZipInputStream zis = null;
+            try {
+                zis = new ZipInputStream(new ByteArrayInputStream(byteArray));
+                ZipEntry ze = null;
+                while ((ze = zis.getNextEntry()) != null) {
+                    ret.add(ze);
+                }
+            } catch (IOException e) {
+                throw new ZipIOException(e.getMessage(), e);
+            } finally {
+                try {
+                    zis.close();
+                } catch (final Throwable e) {
+                }
+            }
         }
-        return ret.toArray(new ZipEntry[ret.size()]);
+        zipEntries = ret.toArray(new ZipEntry[ret.size()]);
+        return zipEntries;
     }
 
     /**
@@ -336,9 +423,30 @@ public class ZipIOReader {
      * 
      * @return
      * @throws ZipIOException
+     * @throws IOException
      */
     public synchronized int size() throws ZipIOException {
-        return zip.size();
+        if (zipEntriesSize != -1) return zipEntriesSize;
+        if (zip != null) {
+            zipEntriesSize = zip.size();
+        } else {
+            ZipInputStream zis = null;
+            try {
+                zipEntriesSize = 0;
+                zis = new ZipInputStream(new ByteArrayInputStream(byteArray));
+                while (zis.getNextEntry() != null) {
+                    zipEntriesSize++;
+                }
+            } catch (IOException e) {
+                throw new ZipIOException(e.getMessage(), e);
+            } finally {
+                try {
+                    zis.close();
+                } catch (final Throwable e) {
+                }
+            }
+        }
+        return zipEntriesSize;
     }
 
     /**

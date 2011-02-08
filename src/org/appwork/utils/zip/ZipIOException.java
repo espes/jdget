@@ -20,6 +20,9 @@ public class ZipIOException extends Exception {
     private static final long serialVersionUID = 3395166938053581997L;
     private ZipEntry entry = null;
 
+    public ZipIOException(String message, Throwable cause) {
+        super(message,cause);
+    }
     public ZipIOException(String message) {
         super(message);
     }
