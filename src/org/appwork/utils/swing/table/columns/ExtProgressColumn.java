@@ -26,14 +26,14 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         this.bar.setOpaque(false);
         this.bar.setStringPainted(true);
 
-        this.setRowSorter(new ExtDefaultRowSorter<E>() {
+        setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
             public int compare(final E o1, final E o2) {
-                int v1 = getValue(o1);
-                int v2 = getValue(o2);
+                final int v1 = getValue(o1);
+                final int v2 = getValue(o2);
                 if (v1 == v2) { return 0; }
-                if (this.isSortOrderToggle()) {
+                if (isSortOrderToggle()) {
                     return v1 > v2 ? -1 : 1;
                 } else {
                     return v2 < v1 ? -1 : 1;
@@ -71,15 +71,16 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
         this.bar.setString(this.getString((E) value));
         if (isSelected) {
-            this.bar.setForeground(this.getModel().getTable().getColumnForegroundSelected());
-            this.bar.setBackground(this.getModel().getTable().getColumnBackgroundSelected());
+            this.bar.setForeground(getModel().getTable().getColumnForegroundSelected());
+            this.bar.setBackground(getModel().getTable().getColumnBackgroundSelected());
         } else {
-            this.bar.setForeground(this.getModel().getTable().getColumnForeground());
-            this.bar.setBackground(this.getModel().getTable().getColumnBackground());
+            this.bar.setForeground(getModel().getTable().getColumnForeground());
+            this.bar.setBackground(getModel().getTable().getColumnBackground());
         }
 
         this.bar.setOpaque(true);
         this.bar.setEnabled(this.isEnabled((E) value));
+        bar.setToolTipText(bar.getString());
         return this.bar;
     }
 
