@@ -90,6 +90,33 @@ public class IO {
         return IO.readURLToString(file.toURI().toURL());
     }
 
+    public static String readInputStreamToString(final InputStream fis) throws UnsupportedEncodingException, IOException {
+        BufferedReader f = null;
+        InputStreamReader isr = null;
+        try {
+            f = new BufferedReader(isr = new InputStreamReader(fis, "UTF8"));
+            String line;
+            final StringBuilder ret = new StringBuilder();
+            final String sep = System.getProperty("line.separator");
+            while ((line = f.readLine()) != null) {
+                if (ret.length() > 0) {
+                    ret.append(sep);
+                }
+                ret.append(line);
+            }
+            return ret.toString();
+        } finally {
+            try {
+                f.close();
+            } catch (final Throwable e) {
+            }
+            try {
+                isr.close();
+            } catch (final Throwable e) {
+            }
+        }
+    }
+
     /**
      * @param f
      * @return
@@ -149,34 +176,13 @@ public class IO {
      * @throws UnsupportedEncodingException
      */
     public static String readURLToString(final URL ressourceURL) throws IOException {
-        BufferedReader f = null;
-        InputStreamReader isr = null;
 
         InputStream fis = null;
         try {
-
-            f = new BufferedReader(isr = new InputStreamReader(fis = ressourceURL.openStream(), "UTF8"));
-
-            String line;
-
-            final StringBuilder ret = new StringBuilder();
-            final String sep = System.getProperty("line.separator");
-            while ((line = f.readLine()) != null) {
-                if (ret.length() > 0) {
-                    ret.append(sep);
-                }
-                ret.append(line);
-            }
-            return ret.toString();
+            fis = ressourceURL.openStream();
+            return IO.readInputStreamToString(fis);
         } finally {
-            try {
-                f.close();
-            } catch (final Throwable e) {
-            }
-            try {
-                isr.close();
-            } catch (final Throwable e) {
-            }
+
             try {
                 fis.close();
             } catch (final Throwable e) {

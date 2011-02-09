@@ -25,26 +25,20 @@ public class Hash {
 
     public static String HASH_TYPE_SHA1 = "SHA-1";
 
-    public static long getCRC32(final File arg) throws IOException {
-        FileInputStream fis = null;
-        CheckedInputStream cis = null;
+    /**
+     * @param download
+     * @param hashType
+     * @return
+     */
+    public static String getBytesHash(final byte[] download, final String type) {
         try {
-            fis = new FileInputStream(arg);
-            cis = new CheckedInputStream(fis, new CRC32());
-            final byte readBuffer[] = new byte[32767];
-            while (cis.read(readBuffer) >= 0) {
-            }
-            return cis.getChecksum().getValue();
-        } finally {
-            try {
-                cis.close();
-            } catch (Throwable e) {
-            }
-            try {
-                fis.close();
-            } catch (Throwable e) {
-            }
+            final MessageDigest md = MessageDigest.getInstance(type);
+            final byte[] digest = md.digest(download);
+            return HexFormatter.byteArrayToHex(digest);
+        } catch (final Throwable e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
     public static long getCRC32(final byte[] data) throws IOException {
@@ -60,11 +54,33 @@ public class Hash {
         } finally {
             try {
                 cis.close();
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
             }
             try {
                 bis.close();
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
+            }
+        }
+    }
+
+    public static long getCRC32(final File arg) throws IOException {
+        FileInputStream fis = null;
+        CheckedInputStream cis = null;
+        try {
+            fis = new FileInputStream(arg);
+            cis = new CheckedInputStream(fis, new CRC32());
+            final byte readBuffer[] = new byte[32767];
+            while (cis.read(readBuffer) >= 0) {
+            }
+            return cis.getChecksum().getValue();
+        } finally {
+            try {
+                cis.close();
+            } catch (final Throwable e) {
+            }
+            try {
+                fis.close();
+            } catch (final Throwable e) {
             }
         }
     }
@@ -83,13 +99,13 @@ public class Hash {
             for (int n = 0; (n = fis.read(b)) > -1;) {
                 md.update(b, 0, n);
             }
-        } catch (Throwable e) {
+        } catch (final Throwable e) {
             e.printStackTrace();
             return null;
         } finally {
             try {
                 fis.close();
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
             }
         }
         final byte[] digest = md.digest();
@@ -118,7 +134,7 @@ public class Hash {
             final MessageDigest md = MessageDigest.getInstance(type);
             final byte[] digest = md.digest(arg.getBytes());
             return HexFormatter.byteArrayToHex(digest);
-        } catch (Throwable e) {
+        } catch (final Throwable e) {
             e.printStackTrace();
         }
         return null;

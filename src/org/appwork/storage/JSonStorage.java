@@ -288,13 +288,14 @@ public class JSonStorage {
     }
 
     /**
+     * @param <T>
      * @param string
      * @param class1
      * @throws IOException
      * @throws JsonMappingException
      * @throws JsonParseException
      */
-    public static Object restoreFromString(final String string, final Class<?> class1) throws StorageException {
+    public static <T> T restoreFromString(final String string, final Class<T> class1) throws StorageException {
         synchronized (JSonStorage.LOCK) {
             try {
                 return JSonStorage.MAPPER.readValue(string, class1);
