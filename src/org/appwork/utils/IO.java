@@ -117,29 +117,11 @@ public class IO {
         }
     }
 
-    /**
-     * @param f
-     * @return
-     * @throws IOException
-     */
-    public static byte[] readURL(final URL f) throws IOException {
-        // TODO Auto-generated method stub
-        return IO.readURL(f, -1);
-    }
-
-    /**
-     * @param url
-     * @param maxSize
-     * @return
-     * @throws IOException
-     */
-    public static byte[] readURL(final URL url, final int maxSize) throws IOException {
-
-        InputStream input = null;
+    public static byte[] readStream(final int maxSize, final InputStream input) throws IOException {
         BufferedInputStream bis = null;
         ByteArrayOutputStream baos = null;
         try {
-            input = url.openStream();
+
             bis = new BufferedInputStream(input);
             baos = new ByteArrayOutputStream();
 
@@ -167,6 +149,28 @@ public class IO {
             }
         }
         return baos.toByteArray();
+    }
+
+    /**
+     * @param f
+     * @return
+     * @throws IOException
+     */
+    public static byte[] readURL(final URL f) throws IOException {
+        // TODO Auto-generated method stub
+        return IO.readURL(f, -1);
+    }
+
+    /**
+     * @param url
+     * @param maxSize
+     * @return
+     * @throws IOException
+     */
+    public static byte[] readURL(final URL url, final int maxSize) throws IOException {
+
+        final InputStream input = url.openStream();
+        return IO.readStream(maxSize, input);
     }
 
     /**
