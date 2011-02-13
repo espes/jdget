@@ -145,6 +145,16 @@ public class JacksonStorageChest extends Storage {
                         }
                     }
                     ret = rets;
+                } else if (def instanceof String[]) {
+                    final String[] rets = new String[((ArrayList<?>) ret).size()];
+                    for (final Object o : (ArrayList<?>) ret) {
+                        if (o instanceof String) {
+                            rets[index++] = (String) o;
+                        } else {
+                            throw new RuntimeException("Cannot cast " + o.getClass() + " to Long");
+                        }
+                    }
+                    ret = rets;
                 }
             }
 
