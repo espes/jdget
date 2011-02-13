@@ -187,6 +187,8 @@ public class JacksonStorageChest extends Storage {
                 this.put(key, (Byte) def);
             } else if (def instanceof String || def == null) {
                 this.put(key, (String) def);
+            } else if (def instanceof String[]) {
+                this.put(key, (String[]) def);
             } else if (def instanceof Enum<?>) {
                 this.put(key, (Enum<?>) def);
             } else if (def instanceof Double) {
@@ -438,6 +440,17 @@ public class JacksonStorageChest extends Storage {
             getEventSender().fireEvent(new StorageValueChangeEvent<String>(this, key, old, value));
         } else {
             getEventSender().fireEvent(new StorageKeyAddedEvent<String>(this, key, value));
+        }
+    }
+
+    public void put(final String key, final String[] value) throws StorageException {
+        final boolean contains = map.containsKey(key);
+        final String[] old = contains ? this.get(key, value) : null;
+        map.put(key, value);
+        if (contains) {
+            getEventSender().fireEvent(new StorageValueChangeEvent<String[]>(this, key, old, value));
+        } else {
+            getEventSender().fireEvent(new StorageKeyAddedEvent<String[]>(this, key, value));
         }
     }
 

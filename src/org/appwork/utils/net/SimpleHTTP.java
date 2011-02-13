@@ -190,7 +190,7 @@ public class SimpleHTTP {
                     final String loc = Loc.getLocale().split("_")[0];
                     connection.setRequestProperty("Accept-Language", loc);
                 } catch (final Throwable e) {
-                    Log.exception(Level.WARNING, e);
+                    //Log.exception(Level.WARNING, e);
                 }
                 connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
                 connection.setRequestProperty("Connection", "Close");
