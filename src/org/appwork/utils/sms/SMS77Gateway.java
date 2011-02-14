@@ -20,7 +20,7 @@ import org.appwork.utils.net.SimpleHTTP;
 
 /**
  * @author daniel
- * 
+ * API-DOCS: https://www.sms77.de/api.pdf
  */
 public class SMS77Gateway {
 
