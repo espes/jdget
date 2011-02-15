@@ -182,6 +182,7 @@ public class ExtTable<E> extends JTable {
 
         this.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
             @SuppressWarnings("unchecked")
             public void valueChanged(final ListSelectionEvent e) {
                 ArrayList<E> sel = ExtTable.this.getExtTableModel().getSelectedObjects();
@@ -208,12 +209,15 @@ public class ExtTable<E> extends JTable {
 
         this.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
 
+            @Override
             public void columnAdded(final TableColumnModelEvent e) {
             }
 
+            @Override
             public void columnMarginChanged(final ChangeEvent e) {
             }
 
+            @Override
             public void columnMoved(final TableColumnModelEvent e) {
                 if (e == null) { return; }
                 if (e.getFromIndex() == e.getToIndex()) { return; }
@@ -228,9 +232,11 @@ public class ExtTable<E> extends JTable {
 
             }
 
+            @Override
             public void columnRemoved(final TableColumnModelEvent e) {
             }
 
+            @Override
             public void columnSelectionChanged(final ListSelectionEvent e) {
             }
 
@@ -271,6 +277,7 @@ public class ExtTable<E> extends JTable {
             mi.setSelected(this.getExtTableModel().isVisible(i));
             mi.addActionListener(new ActionListener() {
 
+                @Override
                 public void actionPerformed(final ActionEvent e) {
                     ExtTable.this.getExtTableModel().setVisible(j, mi.isSelected());
                     ExtTable.this.createColumns();
@@ -302,6 +309,7 @@ public class ExtTable<E> extends JTable {
             tableColumn.setHeaderRenderer(this.model.getExtColumn(j).getHeaderRenderer());
             // Save column width
             tableColumn.addPropertyChangeListener(new PropertyChangeListener() {
+                @Override
                 public void propertyChange(final PropertyChangeEvent evt) {
                     if (evt.getPropertyName().equals("width")) {
                         try {
@@ -631,11 +639,15 @@ public class ExtTable<E> extends JTable {
             }
             break;
         case KeyEvent.VK_DELETE:
-            ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getExtTableModel().getSelectedObjects(), BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK)));
-            return this.onShortcutDelete(this.getExtTableModel().getSelectedObjects(), evt, BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK));
+            if (!evt.isAltDown()) {
+                /* no ctrl+alt+del */
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getExtTableModel().getSelectedObjects(), BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK)));
+                return this.onShortcutDelete(this.getExtTableModel().getSelectedObjects(), evt, BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK));
+            }
+            break;
         case KeyEvent.VK_BACK_SPACE:
-            if (evt.isControlDown() || evt.isMetaDown()) {
-
+            if ((evt.isControlDown() || evt.isMetaDown()) && !evt.isAltDown()) {
+                /* no ctrl+alt+backspace = unix desktop restart */
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getExtTableModel().getSelectedObjects(), false));
 
                 return this.onShortcutDelete(this.getExtTableModel().getSelectedObjects(), evt, false);
