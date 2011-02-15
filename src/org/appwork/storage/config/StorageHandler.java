@@ -71,7 +71,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
      * java.lang.reflect.Method, java.lang.Object[])
      */
-    @Override
+
     public Object invoke(final Object arg0, final Method m, final Object[] parameter) throws Throwable {
         final MethodHandler handler = this.getterMap.get(m);
         if (handler.isGetter()) {            
