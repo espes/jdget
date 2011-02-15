@@ -148,7 +148,7 @@ public class JSonStorage {
      */
     public static boolean canStorePrimitive(final Class<?> type) {
         // TODO Auto-generated method stub
-        return type.isPrimitive() || type == String.class || type.isEnum() || type==String[].class;
+        return type.isPrimitive() || type == String.class || type.isEnum() || type == String[].class;
     }
 
     /**
@@ -215,7 +215,7 @@ public class JSonStorage {
             byte[] str = null;
             try {
                 final File tmpfile = new File(file.getAbsolutePath() + ".tmp");
-                if (tmpfile.exists()) {
+                if (tmpfile.exists() && tmpfile.length() > 0) {
                     /* tmp files exists, try to restore */
                     Log.L.warning("TMP file " + tmpfile.getAbsolutePath() + " found");
                     try {
@@ -252,7 +252,7 @@ public class JSonStorage {
                 }
 
             } catch (final Throwable e) {
-                Log.L.severe(file.getAbsolutePath() + ":read:" + stri);
+                Log.L.warning(file.getAbsolutePath() + ":read:" + stri);
                 try {
                     if (str != null) {
                         Log.L.severe(file.getAbsolutePath() + ":original:" + new String(str, "UTF-8"));
