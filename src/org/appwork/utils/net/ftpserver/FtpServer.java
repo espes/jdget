@@ -22,20 +22,22 @@ import java.net.UnknownHostException;
 public class FtpServer implements Runnable {
 
     private final FtpConnectionHandler<? extends FtpFile> handler;
-    private final int                     port;
-    private ServerSocket                  controlSocket;
-    private Thread                        controlThread = null;
+    private final int                                     port;
+    private ServerSocket                                  controlSocket;
+    private Thread                                        controlThread = null;
+    private ThreadGroup                                   threadGroup   = null;
 
     public FtpServer(final FtpConnectionHandler<? extends FtpFile> handler, final int port) {
         this.handler = handler;
         this.port = port;
+        this.threadGroup = new ThreadGroup("FTPServer");
     }
 
     /**
      * @return
      */
     public FtpConnectionHandler<? extends FtpFile> getFtpCommandHandler() {
-        return handler;
+        return this.handler;
     }
 
     private InetAddress getLocalHost() {
@@ -52,6 +54,13 @@ public class FtpServer implements Runnable {
         return localhost;
     }
 
+    /**
+     * @return the clientThreadGroup
+     */
+    protected ThreadGroup getThreadGroup() {
+        return this.threadGroup;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -59,8 +68,8 @@ public class FtpServer implements Runnable {
      */
 
     public void run() {
-        Thread current = controlThread;
-        ServerSocket socket = controlSocket;
+        final Thread current = this.controlThread;
+        final ServerSocket socket = this.controlSocket;
         try {
             while (true) {
                 try {
@@ -69,7 +78,9 @@ public class FtpServer implements Runnable {
                 } catch (final IOException e) {
                     break;
                 }
-                if (current == null || current.isInterrupted()) break;
+                if (current == null || current.isInterrupted()) {
+                    break;
+                }
             }
         } finally {
             try {
@@ -80,15 +91,16 @@ public class FtpServer implements Runnable {
     }
 
     public synchronized void start() throws IOException {
-        controlSocket = new ServerSocket(port);
-        controlThread = new Thread(this);
-        controlThread.start();
+        this.controlSocket = new ServerSocket(this.port);
+        this.controlThread = new Thread(this.threadGroup, this);
+        this.controlThread.setName("FtpServerThread");
+        this.controlThread.start();
     }
 
     public synchronized void stop() {
-        controlThread.interrupt();
+        this.threadGroup.interrupt();
         try {
-            controlSocket.close();
+            this.controlSocket.close();
         } catch (final Throwable e) {
         }
     }

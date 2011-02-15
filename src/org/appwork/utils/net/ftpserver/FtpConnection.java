@@ -65,7 +65,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         private int     maxSize;
         private boolean needLogin;
 
-        private COMMAND(boolean needLogin, final int paramSize) {
+        private COMMAND(final boolean needLogin, final int paramSize) {
             this(needLogin, paramSize, paramSize);
         }
 
@@ -76,14 +76,14 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         }
 
         public boolean match(final int length) {
-            if (length == paramSize) { return true; }
-            if (length == maxSize) { return true; }
-            if (maxSize == -1) { return true; }
+            if (length == this.paramSize) { return true; }
+            if (length == this.maxSize) { return true; }
+            if (this.maxSize == -1) { return true; }
             return false;
         }
 
         public boolean needsLogin() {
-            return needLogin;
+            return this.needLogin;
         }
     }
 
@@ -127,27 +127,39 @@ public class FtpConnection implements Runnable, StateMachineInterface {
      * @throws IOException
      */
     public FtpConnection(final FtpServer ftpServer, final Socket clientSocket) throws IOException {
-        stateMachine = new StateMachine(this, FtpConnection.IDLE, FtpConnection.IDLEEND);
-        connectionState = ftpServer.getFtpCommandHandler().createNewConnectionState();
+        this.stateMachine = new StateMachine(this, FtpConnection.IDLE, FtpConnection.IDLEEND);
+        this.connectionState = ftpServer.getFtpCommandHandler().createNewConnectionState();
         this.ftpServer = ftpServer;
-        controlSocket = clientSocket;
+        this.controlSocket = clientSocket;
         try {
-            reader = new BufferedReader(new InputStreamReader(controlSocket.getInputStream()));
-            writer = new BufferedWriter(new OutputStreamWriter(controlSocket.getOutputStream()));
-            thread = new Thread(this);
-            thread.setName("FTPConnection " + this);
-            thread.start();
+            this.reader = new BufferedReader(new InputStreamReader(this.controlSocket.getInputStream()));
+            this.writer = new BufferedWriter(new OutputStreamWriter(this.controlSocket.getOutputStream()));
+            this.thread = new Thread(ftpServer.getThreadGroup(), this);
+            this.thread.setName("FTPConnectionThread: " + this);
+            this.thread.start();
         } catch (final IOException e) {
             try {
-                controlSocket.close();
+                this.controlSocket.close();
             } catch (final Throwable e2) {
             }
             throw e;
         }
     }
 
+    private String buildParameter(final String[] commandParts) {
+        if (commandParts == null) { return null; }
+        String param = "";
+        for (int index = 1; index < commandParts.length; index++) {
+            if (param.length() > 0) {
+                param += " ";
+            }
+            param += commandParts[index];
+        }
+        return param;
+    }
+
     public StateMachine getStateMachine() {
-        return stateMachine;
+        return this.stateMachine;
     }
 
     /**
@@ -167,98 +179,98 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 if (commandEnum != null) {
                     if (commandEnum.needLogin) {
                         /* checks if this command needs valid login */
-                        if (!stateMachine.isState(FtpConnection.LOGIN)) { throw new FtpNotLoginException(); }
+                        if (!this.stateMachine.isState(FtpConnection.LOGIN)) { throw new FtpNotLoginException(); }
                     }
                     if (!commandEnum.match(commandParts.length - 1)) {
                         /* checks if the parameter syntax is okay */
                         throw new FtpCommandSyntaxException();
                     }
                     /* this checks RNFR,RNTO command sequence */
-                    if (connectionState.getRenameFile() != null && !commandEnum.equals(COMMAND.RNTO)) {
+                    if (this.connectionState.getRenameFile() != null && !commandEnum.equals(COMMAND.RNTO)) {
                         /* when renameFile is set, a RNTO command MUST follow */
-                        connectionState.setRenameFile(null);
+                        this.connectionState.setRenameFile(null);
                         throw new FtpBadSequenceException();
                     }
                     switch (commandEnum) {
                     case RNTO:
-                        onRNTO(commandParts);
+                        this.onRNTO(commandParts);
                         break;
                     case RNFR:
-                        onRNFR(commandParts);
+                        this.onRNFR(commandParts);
                         break;
                     case XRMD:
                     case RMD:
-                        onRMD(commandParts);
+                        this.onRMD(commandParts);
                         break;
                     case DELE:
-                        onDELE(commandParts);
+                        this.onDELE(commandParts);
                         break;
                     case SIZE:
-                        onSIZE(commandParts);
+                        this.onSIZE(commandParts);
                         break;
                     case STRU:
-                        onSTRU(commandParts);
+                        this.onSTRU(commandParts);
                         break;
                     case MODE:
-                        onMODE(commandParts);
+                        this.onMODE(commandParts);
                         break;
                     case ALLO:
-                        onALLO();
+                        this.onALLO();
                         break;
                     case APPE:
-                        onSTOR(commandParts, true);
+                        this.onSTOR(commandParts, true);
                         break;
                     case STOR:
-                        onSTOR(commandParts, false);
+                        this.onSTOR(commandParts, false);
                         break;
                     case XMKD:
                     case MKD:
-                        onMKD(commandParts);
+                        this.onMKD(commandParts);
                         break;
                     case NLST:
-                        onNLST(commandParts);
+                        this.onNLST(commandParts);
                         break;
                     case EPRT:
-                        onEPRT(commandParts);
+                        this.onEPRT(commandParts);
                         break;
                     case RETR:
-                        onRETR(commandParts);
+                        this.onRETR(commandParts);
                         break;
                     case LIST:
-                        onLIST(commandParts);
+                        this.onLIST(commandParts);
                         break;
                     case USER:
-                        onUSER(commandParts);
+                        this.onUSER(commandParts);
                         break;
                     case PORT:
-                        onPORT(commandParts);
+                        this.onPORT(commandParts);
                         break;
                     case SYST:
-                        onSYST();
+                        this.onSYST();
                         break;
                     case QUIT:
-                        onQUIT();
+                        this.onQUIT();
                         break;
                     case PASS:
-                        onPASS(commandParts);
+                        this.onPASS(commandParts);
                         break;
                     case NOOP:
-                        onNOOP();
+                        this.onNOOP();
                         break;
                     case XPWD:
                     case PWD:
-                        onPWD();
+                        this.onPWD();
                         break;
                     case XCWD:
                     case CWD:
-                        onCWD(commandParts);
+                        this.onCWD(commandParts);
                         break;
                     case XCUP:
                     case CDUP:
-                        onCDUP();
+                        this.onCDUP();
                         break;
                     case TYPE:
-                        onTYPE(commandParts);
+                        this.onTYPE(commandParts);
                         break;
                     }
                 } else {
@@ -268,38 +280,22 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 throw new FtpBadSequenceException();
             }
         } catch (final FtpException e) {
-            write(e.getCode(), e.getMessage());
+            this.write(e.getCode(), e.getMessage());
         }
     }
 
-    /**
-     * @param commandParts
-     * @throws FtpBadSequenceException
-     * @throws FtpFileNotExistException 
-     * @throws IOException 
-     */
-    private void onRNTO(String[] commandParts) throws FtpBadSequenceException, FtpFileNotExistException, IOException {
-        if (connectionState.getRenameFile() == null) {
-            /* a renameFile must exist, RNFR must be the command before RNTO */
-            throw new FtpBadSequenceException();
-        }
-        ftpServer.getFtpCommandHandler().renameFile(connectionState, buildParameter(commandParts));
-        write(250, "\"" + buildParameter(commandParts) + "\" rename successfull.");
+    private void onALLO() throws IOException {
+        this.write(200, "Command okay");
     }
 
-    /**
-     * @param commandParts
-     * @throws FtpBadSequenceException
-     * @throws FtpFileNotExistException 
-     * @throws IOException 
-     */
-    private void onRNFR(String[] commandParts) throws FtpBadSequenceException, FtpFileNotExistException, IOException {
-        if (connectionState.getRenameFile() != null) {
-            connectionState.setRenameFile(null);
-            throw new FtpBadSequenceException();
-        }
-        ftpServer.getFtpCommandHandler().renameFile(connectionState, buildParameter(commandParts));
-        write(350, "\"" + buildParameter(commandParts) + "\" rename pending.");
+    private void onCDUP() throws IOException, FtpFileNotExistException {
+        this.ftpServer.getFtpCommandHandler().onDirectoryUp(this.connectionState);
+        this.write(200, "Command okay.");
+    }
+
+    private void onCWD(final String params[]) throws IOException, FtpFileNotExistException {
+        this.ftpServer.getFtpCommandHandler().setCurrentDirectory(this.connectionState, this.buildParameter(params));
+        this.write(250, "\"" + this.connectionState.getCurrentDir() + "\" is cwd.");
     }
 
     /**
@@ -308,87 +304,9 @@ public class FtpConnection implements Runnable, StateMachineInterface {
      * @throws FtpFileNotExistException
      * @throws IOException
      */
-    private void onDELE(String[] commandParts) throws FtpFileNotExistException, FtpException, IOException {
-        ftpServer.getFtpCommandHandler().removeFile(connectionState, buildParameter(commandParts));
-        write(250, "\"" + buildParameter(commandParts) + "\" removed.");
-    }
-
-    /**
-     * @param commandParts
-     * @throws IOException
-     * @throws FtpException
-     * @throws FtpFileNotExistException
-     */
-    private void onRMD(String[] commandParts) throws IOException, FtpFileNotExistException, FtpException {
-        ftpServer.getFtpCommandHandler().removeDirectory(connectionState, buildParameter(commandParts));
-        write(250, "\"" + buildParameter(commandParts) + "\" removed.");
-    }
-
-    /**
-     * @param commandParts
-     * @throws IOException
-     * @throws FtpFileNotExistException
-     */
-    private void onSIZE(String[] commandParts) throws FtpFileNotExistException, IOException {
-        write(213, "" + ftpServer.getFtpCommandHandler().getSize(connectionState, buildParameter(commandParts)));
-    }
-
-    private void onSTRU(String[] commandParts) throws IOException, FtpCommandParameterException {
-        if ("F".equalsIgnoreCase(commandParts[1])) {
-            write(200, "Command okay.");
-        } else {
-            throw new FtpCommandParameterException();
-        }
-    }
-
-    private void onMODE(String[] commandParts) throws IOException, FtpCommandParameterException {
-        if ("S".equalsIgnoreCase(commandParts[1])) {
-            write(200, "Command okay.");
-        } else {
-            throw new FtpCommandParameterException();
-        }
-    }
-
-    /**
-     * @param commandParts
-     * @throws IOException
-     * @throws FtpException
-     */
-    private void onNLST(String[] commandParts) throws IOException, FtpException {
-        try {
-            try {
-                if (dataSocket == null || !dataSocket.isConnected()) {
-                    dataSocket = new Socket(passiveIP, passivePort);
-                }
-            } catch (final IOException e) {
-                throw new FtpException(425, "Can't open data connection");
-            }
-            write(150, "Opening XY mode data connection for file list");
-            try {
-                final ArrayList<? extends FtpFile> list = ftpServer.getFtpCommandHandler().getFileList(connectionState, buildParameter(commandParts));
-                StringBuilder sb = new StringBuilder();
-                for (FtpFile file : list) {
-                    sb.append(file.getName());
-                    sb.append("\r\n");
-                }
-                dataSocket.getOutputStream().write(sb.toString().getBytes("UTF-8"));
-                dataSocket.getOutputStream().flush();
-            } catch (final FtpFileNotExistException e) {
-                /* need another error code here */
-                throw new FtpException(450, "Requested file action not taken; File unavailable");
-            } catch (final Exception e) {
-                throw new FtpException(451, "Requested action aborted: local error in processing");
-            }
-            /* we close the passive port after command */
-            write(226, "Transfer complete.");
-        } finally {
-            try {
-                dataSocket.close();
-            } catch (final Throwable e) {
-            } finally {
-                dataSocket = null;
-            }
-        }
+    private void onDELE(final String[] commandParts) throws FtpFileNotExistException, FtpException, IOException {
+        this.ftpServer.getFtpCommandHandler().removeFile(this.connectionState, this.buildParameter(commandParts));
+        this.write(250, "\"" + this.buildParameter(commandParts) + "\" removed.");
     }
 
     /**
@@ -402,59 +320,39 @@ public class FtpConnection implements Runnable, StateMachineInterface {
      * 
      * @throws FtpNotLoginException
      **/
-    private void onEPRT(String[] commandParts) throws IOException, FtpException {
+    private void onEPRT(final String[] commandParts) throws IOException, FtpException {
         final String parts[] = commandParts[1].split("\\|");
         try {
             /* close old maybe existing data connection */
-            dataSocket.close();
+            this.dataSocket.close();
         } catch (final Throwable e) {
         } finally {
-            dataSocket = null;
+            this.dataSocket = null;
         }
         if (parts.length != 4) { throw new FtpCommandSyntaxException(); }
         if (!"1".equals(parts[1])) {
             /* 2 equals IPV6 */
             throw new FtpException(522, "Network protocol not supported, use (1)");
         }
-        passiveIP = parts[2];
-        passivePort = Integer.parseInt(parts[3]);
-        write(200, "PORT command successful");
-    }
-
-    private void onCDUP() throws IOException, FtpFileNotExistException {
-        ftpServer.getFtpCommandHandler().onDirectoryUp(connectionState);
-        write(200, "Command okay.");
-    }
-
-    private void onCWD(final String params[]) throws IOException, FtpFileNotExistException {
-        ftpServer.getFtpCommandHandler().setCurrentDirectory(connectionState, buildParameter(params));
-        write(250, "\"" + connectionState.getCurrentDir() + "\" is cwd.");
-    }
-
-    /**
-     * @param commandParts
-     * @throws IOException
-     * @throws FtpFileNotExistException
-     */
-    private void onMKD(String[] commandParts) throws IOException, FtpFileNotExistException {
-        ftpServer.getFtpCommandHandler().makeDirectory(connectionState, buildParameter(commandParts));
-        write(257, "\"" + buildParameter(commandParts) + "\" created.");
+        this.passiveIP = parts[2];
+        this.passivePort = Integer.parseInt(parts[3]);
+        this.write(200, "PORT command successful");
     }
 
     private void onLIST(final String params[]) throws IOException, FtpException {
         try {
             try {
-                if (dataSocket == null || !dataSocket.isConnected()) {
-                    dataSocket = new Socket(passiveIP, passivePort);
+                if (this.dataSocket == null || !this.dataSocket.isConnected()) {
+                    this.dataSocket = new Socket(this.passiveIP, this.passivePort);
                 }
             } catch (final IOException e) {
                 throw new FtpException(425, "Can't open data connection");
             }
-            write(150, "Opening XY mode data connection for file list");
+            this.write(150, "Opening XY mode data connection for file list");
             try {
-                final ArrayList<? extends FtpFile> list = ftpServer.getFtpCommandHandler().getFileList(connectionState, buildParameter(params));
-                dataSocket.getOutputStream().write(ftpServer.getFtpCommandHandler().formatFileList(list).getBytes("UTF-8"));
-                dataSocket.getOutputStream().flush();
+                final ArrayList<? extends FtpFile> list = this.ftpServer.getFtpCommandHandler().getFileList(this.connectionState, this.buildParameter(params));
+                this.dataSocket.getOutputStream().write(this.ftpServer.getFtpCommandHandler().formatFileList(list).getBytes("UTF-8"));
+                this.dataSocket.getOutputStream().flush();
             } catch (final FtpFileNotExistException e) {
                 /* need another error code here */
                 throw new FtpException(450, "Requested file action not taken; File unavailable");
@@ -462,46 +360,102 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 throw new FtpException(451, "Requested action aborted: local error in processing");
             }
             /* we close the passive port after command */
-            write(226, "Transfer complete.");
+            this.write(226, "Transfer complete.");
         } finally {
             try {
-                dataSocket.close();
+                this.dataSocket.close();
             } catch (final Throwable e) {
             } finally {
-                dataSocket = null;
+                this.dataSocket = null;
+            }
+        }
+    }
+
+    /**
+     * @param commandParts
+     * @throws IOException
+     * @throws FtpFileNotExistException
+     */
+    private void onMKD(final String[] commandParts) throws IOException, FtpFileNotExistException {
+        this.ftpServer.getFtpCommandHandler().makeDirectory(this.connectionState, this.buildParameter(commandParts));
+        this.write(257, "\"" + this.buildParameter(commandParts) + "\" created.");
+    }
+
+    private void onMODE(final String[] commandParts) throws IOException, FtpCommandParameterException {
+        if ("S".equalsIgnoreCase(commandParts[1])) {
+            this.write(200, "Command okay.");
+        } else {
+            throw new FtpCommandParameterException();
+        }
+    }
+
+    /**
+     * @param commandParts
+     * @throws IOException
+     * @throws FtpException
+     */
+    private void onNLST(final String[] commandParts) throws IOException, FtpException {
+        try {
+            try {
+                if (this.dataSocket == null || !this.dataSocket.isConnected()) {
+                    this.dataSocket = new Socket(this.passiveIP, this.passivePort);
+                }
+            } catch (final IOException e) {
+                throw new FtpException(425, "Can't open data connection");
+            }
+            this.write(150, "Opening XY mode data connection for file list");
+            try {
+                final ArrayList<? extends FtpFile> list = this.ftpServer.getFtpCommandHandler().getFileList(this.connectionState, this.buildParameter(commandParts));
+                final StringBuilder sb = new StringBuilder();
+                for (final FtpFile file : list) {
+                    sb.append(file.getName());
+                    sb.append("\r\n");
+                }
+                this.dataSocket.getOutputStream().write(sb.toString().getBytes("UTF-8"));
+                this.dataSocket.getOutputStream().flush();
+            } catch (final FtpFileNotExistException e) {
+                /* need another error code here */
+                throw new FtpException(450, "Requested file action not taken; File unavailable");
+            } catch (final Exception e) {
+                throw new FtpException(451, "Requested action aborted: local error in processing");
+            }
+            /* we close the passive port after command */
+            this.write(226, "Transfer complete.");
+        } finally {
+            try {
+                this.dataSocket.close();
+            } catch (final Throwable e) {
+            } finally {
+                this.dataSocket = null;
             }
         }
     }
 
     private void onNOOP() throws IOException {
-        write(200, "Command okay");
-    }
-
-    private void onALLO() throws IOException {
-        write(200, "Command okay");
+        this.write(200, "Command okay");
     }
 
     private void onPASS(final String params[]) throws IOException, FtpBadSequenceException, FtpNotLoginException {
-        stateMachine.setStatus(FtpConnection.PASS);
-        if (connectionState.getUser() == null) {
+        this.stateMachine.setStatus(FtpConnection.PASS);
+        if (this.connectionState.getUser() == null) {
             throw new FtpBadSequenceException();
         } else {
-            if (connectionState.getUser().getPassword() != null) {
-                if (connectionState.getUser().getPassword().equals(params[1])) {
-                    final String message = ftpServer.getFtpCommandHandler().onLoginSuccessRequest(connectionState);
+            if (this.connectionState.getUser().getPassword() != null) {
+                if (this.connectionState.getUser().getPassword().equals(params[1])) {
+                    final String message = this.ftpServer.getFtpCommandHandler().onLoginSuccessRequest(this.connectionState);
                     if (message != null) {
-                        write(230, message, true);
+                        this.write(230, message, true);
                     }
-                    write(230, "User logged in, proceed");
-                    stateMachine.setStatus(FtpConnection.LOGIN);
+                    this.write(230, "User logged in, proceed");
+                    this.stateMachine.setStatus(FtpConnection.LOGIN);
                 } else {
-                    final String message = ftpServer.getFtpCommandHandler().onLoginFailedMessage(connectionState);
+                    final String message = this.ftpServer.getFtpCommandHandler().onLoginFailedMessage(this.connectionState);
                     if (message != null) {
-                        write(530, message, true);
+                        this.write(530, message, true);
                     }
-                    stateMachine.setStatus(FtpConnection.LOGOUT);
-                    stateMachine.setStatus(FtpConnection.IDLEEND);
-                    stateMachine.reset();
+                    this.stateMachine.setStatus(FtpConnection.LOGOUT);
+                    this.stateMachine.setStatus(FtpConnection.IDLEEND);
+                    this.stateMachine.reset();
                     throw new FtpNotLoginException();
                 }
             } else {
@@ -513,30 +467,156 @@ public class FtpConnection implements Runnable, StateMachineInterface {
     private void onPORT(final String params[]) throws IOException, FtpCommandSyntaxException {
         try {
             /* close old maybe existing data connection */
-            dataSocket.close();
+            this.dataSocket.close();
         } catch (final Throwable e) {
         } finally {
-            dataSocket = null;
+            this.dataSocket = null;
         }
         final String parts[] = params[1].split(",");
         if (parts.length != 6) { throw new FtpCommandSyntaxException(); }
-        passiveIP = parts[0] + "." + parts[1] + "." + parts[2] + "." + parts[3];
-        passivePort = Integer.parseInt(parts[4]) * 256 + Integer.parseInt(parts[5]);
-        write(200, "PORT command successful");
+        this.passiveIP = parts[0] + "." + parts[1] + "." + parts[2] + "." + parts[3];
+        this.passivePort = Integer.parseInt(parts[4]) * 256 + Integer.parseInt(parts[5]);
+        this.write(200, "PORT command successful");
     }
 
     private void onPWD() throws IOException {
-        write(257, "\"" + connectionState.getCurrentDir() + "\" is cwd.");
+        this.write(257, "\"" + this.connectionState.getCurrentDir() + "\" is cwd.");
     }
 
     private void onQUIT() throws IOException {
-        stateMachine.setStatus(FtpConnection.LOGOUT);
-        write(221, ftpServer.getFtpCommandHandler().onLogoutRequest(connectionState));
-        stateMachine.setStatus(FtpConnection.IDLEEND);
+        this.stateMachine.setStatus(FtpConnection.LOGOUT);
+        this.write(221, this.ftpServer.getFtpCommandHandler().onLogoutRequest(this.connectionState));
+        this.stateMachine.setStatus(FtpConnection.IDLEEND);
+    }
+
+    private void onRETR(final String[] commandParts) throws IOException, FtpException {
+        try {
+            try {
+                if (this.dataSocket == null || !this.dataSocket.isConnected()) {
+                    this.dataSocket = new Socket(this.passiveIP, this.passivePort);
+                }
+            } catch (final IOException e) {
+                throw new FtpException(425, "Can't open data connection");
+            }
+            this.write(150, "Opening XY mode data connection for transfer");
+            long bytesWritten = 0;
+            try {
+                bytesWritten = this.ftpServer.getFtpCommandHandler().onRETR(this.dataSocket.getOutputStream(), this.connectionState, this.buildParameter(commandParts));
+                this.dataSocket.getOutputStream().flush();
+            } catch (final FtpFileNotExistException e) {
+                /* need another error code here */
+                throw new FtpException(450, "Requested file action not taken; File unavailable");
+            } catch (final IOException e) {
+                throw new FtpException(426, "Requested action aborted: IOException");
+            } catch (final Exception e) {
+                throw new FtpException(451, "Requested action aborted: local error in processing");
+            }
+            /* we close the passive port after command */
+            this.write(226, "Transfer complete. " + bytesWritten + " bytes transfered!");
+        } finally {
+            try {
+                this.dataSocket.close();
+            } catch (final Throwable e) {
+            } finally {
+                this.dataSocket = null;
+            }
+        }
+
+    }
+
+    /**
+     * @param commandParts
+     * @throws IOException
+     * @throws FtpException
+     * @throws FtpFileNotExistException
+     */
+    private void onRMD(final String[] commandParts) throws IOException, FtpFileNotExistException, FtpException {
+        this.ftpServer.getFtpCommandHandler().removeDirectory(this.connectionState, this.buildParameter(commandParts));
+        this.write(250, "\"" + this.buildParameter(commandParts) + "\" removed.");
+    }
+
+    /**
+     * @param commandParts
+     * @throws FtpBadSequenceException
+     * @throws FtpFileNotExistException
+     * @throws IOException
+     */
+    private void onRNFR(final String[] commandParts) throws FtpBadSequenceException, FtpFileNotExistException, IOException {
+        if (this.connectionState.getRenameFile() != null) {
+            this.connectionState.setRenameFile(null);
+            throw new FtpBadSequenceException();
+        }
+        this.ftpServer.getFtpCommandHandler().renameFile(this.connectionState, this.buildParameter(commandParts));
+        this.write(350, "\"" + this.buildParameter(commandParts) + "\" rename pending.");
+    }
+
+    /**
+     * @param commandParts
+     * @throws FtpBadSequenceException
+     * @throws FtpFileNotExistException
+     * @throws IOException
+     */
+    private void onRNTO(final String[] commandParts) throws FtpBadSequenceException, FtpFileNotExistException, IOException {
+        if (this.connectionState.getRenameFile() == null) {
+            /* a renameFile must exist, RNFR must be the command before RNTO */
+            throw new FtpBadSequenceException();
+        }
+        this.ftpServer.getFtpCommandHandler().renameFile(this.connectionState, this.buildParameter(commandParts));
+        this.write(250, "\"" + this.buildParameter(commandParts) + "\" rename successfull.");
+    }
+
+    /**
+     * @param commandParts
+     * @throws IOException
+     * @throws FtpFileNotExistException
+     */
+    private void onSIZE(final String[] commandParts) throws FtpFileNotExistException, IOException {
+        this.write(213, "" + this.ftpServer.getFtpCommandHandler().getSize(this.connectionState, this.buildParameter(commandParts)));
+    }
+
+    private void onSTOR(final String[] commandParts, final boolean append) throws IOException, FtpException {
+        try {
+            try {
+                if (this.dataSocket == null || !this.dataSocket.isConnected()) {
+                    this.dataSocket = new Socket(this.passiveIP, this.passivePort);
+                }
+            } catch (final IOException e) {
+                throw new FtpException(425, "Can't open data connection");
+            }
+            this.write(150, "Opening XY mode data connection for transfer");
+            long bytesRead = 0;
+            try {
+                bytesRead = this.ftpServer.getFtpCommandHandler().onSTOR(this.dataSocket.getInputStream(), this.connectionState, append, this.buildParameter(commandParts));
+            } catch (final FtpFileNotExistException e) {
+                /* need another error code here */
+                throw new FtpException(450, "Requested file action not taken; File unavailable");
+            } catch (final IOException e) {
+                throw new FtpException(426, "Requested action aborted: IOException");
+            } catch (final Exception e) {
+                throw new FtpException(451, "Requested action aborted: local error in processing");
+            }
+            /* we close the passive port after command */
+            this.write(226, "Transfer complete. " + bytesRead + " bytes received!");
+        } finally {
+            try {
+                this.dataSocket.close();
+            } catch (final Throwable e) {
+            } finally {
+                this.dataSocket = null;
+            }
+        }
+    }
+
+    private void onSTRU(final String[] commandParts) throws IOException, FtpCommandParameterException {
+        if ("F".equalsIgnoreCase(commandParts[1])) {
+            this.write(200, "Command okay.");
+        } else {
+            throw new FtpCommandParameterException();
+        }
     }
 
     private void onSYST() throws IOException {
-        write(215, "UNIX Type: L8");
+        this.write(215, "UNIX Type: L8");
     }
 
     private void onTYPE(final String[] commandParts) throws IOException, FtpCommandParameterException {
@@ -554,143 +634,63 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         } else {
             throw new FtpCommandParameterException();
         }
-        write(200, "Command okay");
-    }
-
-    private String buildParameter(final String[] commandParts) {
-        if (commandParts == null) return null;
-        String param = "";
-        for (int index = 1; index < commandParts.length; index++) {
-            if (param.length() > 0) {
-                param += " ";
-            }
-            param += commandParts[index];
-        }
-        return param;
-    }
-
-    private void onRETR(final String[] commandParts) throws IOException, FtpException {
-        try {
-            try {
-                if (dataSocket == null || !dataSocket.isConnected()) {
-                    dataSocket = new Socket(passiveIP, passivePort);
-                }
-            } catch (final IOException e) {
-                throw new FtpException(425, "Can't open data connection");
-            }
-            write(150, "Opening XY mode data connection for transfer");
-            long bytesWritten = 0;
-            try {
-                bytesWritten = ftpServer.getFtpCommandHandler().onRETR(dataSocket.getOutputStream(), connectionState, buildParameter(commandParts));
-                dataSocket.getOutputStream().flush();
-            } catch (final FtpFileNotExistException e) {
-                /* need another error code here */
-                throw new FtpException(450, "Requested file action not taken; File unavailable");
-            } catch (final IOException e) {
-                throw new FtpException(426, "Requested action aborted: IOException");
-            } catch (final Exception e) {
-                throw new FtpException(451, "Requested action aborted: local error in processing");
-            }
-            /* we close the passive port after command */
-            write(226, "Transfer complete. " + bytesWritten + " bytes transfered!");
-        } finally {
-            try {
-                dataSocket.close();
-            } catch (final Throwable e) {
-            } finally {
-                dataSocket = null;
-            }
-        }
-
-    }
-
-    private void onSTOR(final String[] commandParts, boolean append) throws IOException, FtpException {
-        try {
-            try {
-                if (dataSocket == null || !dataSocket.isConnected()) {
-                    dataSocket = new Socket(passiveIP, passivePort);
-                }
-            } catch (final IOException e) {
-                throw new FtpException(425, "Can't open data connection");
-            }
-            write(150, "Opening XY mode data connection for transfer");
-            long bytesRead = 0;
-            try {
-                bytesRead = ftpServer.getFtpCommandHandler().onSTOR(dataSocket.getInputStream(), connectionState, append, buildParameter(commandParts));
-            } catch (final FtpFileNotExistException e) {
-                /* need another error code here */
-                throw new FtpException(450, "Requested file action not taken; File unavailable");
-            } catch (final IOException e) {
-                throw new FtpException(426, "Requested action aborted: IOException");
-            } catch (final Exception e) {
-                throw new FtpException(451, "Requested action aborted: local error in processing");
-            }
-            /* we close the passive port after command */
-            write(226, "Transfer complete. " + bytesRead + " bytes received!");
-        } finally {
-            try {
-                dataSocket.close();
-            } catch (final Throwable e) {
-            } finally {
-                dataSocket = null;
-            }
-        }
+        this.write(200, "Command okay");
     }
 
     private void onUSER(final String params[]) throws IOException, FtpNotLoginException {
-        if (stateMachine.isFinal()) {
-            stateMachine.reset();
+        if (this.stateMachine.isFinal()) {
+            this.stateMachine.reset();
         }
-        stateMachine.setStatus(FtpConnection.USER);
-        connectionState.setUser(ftpServer.getFtpCommandHandler().getUser(params[1]));
-        if (connectionState.getUser() != null) {
-            if (connectionState.getUser().getPassword() == null) {
-                final String message = ftpServer.getFtpCommandHandler().onLoginSuccessRequest(connectionState);
+        this.stateMachine.setStatus(FtpConnection.USER);
+        this.connectionState.setUser(this.ftpServer.getFtpCommandHandler().getUser(params[1]));
+        if (this.connectionState.getUser() != null) {
+            if (this.connectionState.getUser().getPassword() == null) {
+                final String message = this.ftpServer.getFtpCommandHandler().onLoginSuccessRequest(this.connectionState);
                 if (message != null) {
-                    write(230, message, true);
+                    this.write(230, message, true);
                 }
-                write(230, "User logged in, proceed");
-                stateMachine.setStatus(FtpConnection.LOGIN);
+                this.write(230, "User logged in, proceed");
+                this.stateMachine.setStatus(FtpConnection.LOGIN);
             } else {
-                write(331, "User name okay, need password");
+                this.write(331, "User name okay, need password");
             }
         } else {
-            final String message = ftpServer.getFtpCommandHandler().onLoginFailedMessage(connectionState);
+            final String message = this.ftpServer.getFtpCommandHandler().onLoginFailedMessage(this.connectionState);
             if (message != null) {
-                write(530, message, true);
+                this.write(530, message, true);
             }
-            stateMachine.setStatus(FtpConnection.LOGOUT);
-            stateMachine.setStatus(FtpConnection.IDLEEND);
-            stateMachine.reset();
+            this.stateMachine.setStatus(FtpConnection.LOGOUT);
+            this.stateMachine.setStatus(FtpConnection.IDLEEND);
+            this.stateMachine.reset();
             throw new FtpNotLoginException();
         }
     }
 
     public void run() {
         try {
-            write(220, ftpServer.getFtpCommandHandler().getWelcomeMessage(connectionState));
+            this.write(220, this.ftpServer.getFtpCommandHandler().getWelcomeMessage(this.connectionState));
             while (true) {
-                final String command = reader.readLine();
+                final String command = this.reader.readLine();
                 if (command == null) {
                     break;
                 }
                 System.out.println(command);
-                handleCommand(command);
+                this.handleCommand(command);
             }
         } catch (final IOException e) {
         }
     }
 
     private void write(final int code, final String message) throws IOException {
-        write(code, message, false);
+        this.write(code, message, false);
     }
 
     private void write(final int code, final String message, final boolean multiLine) throws IOException {
         if (multiLine) {
-            writer.write(code + "-" + message + "\r\n");
+            this.writer.write(code + "-" + message + "\r\n");
         } else {
-            writer.write(code + " " + message + "\r\n");
+            this.writer.write(code + " " + message + "\r\n");
         }
-        writer.flush();
+        this.writer.flush();
     }
 }
