@@ -42,6 +42,7 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.SwingUtils;
 
@@ -105,6 +106,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super(Dialog.getInstance().getParentWindow());
+        
         this.title = title;
         this.flagMask = flag;
 
@@ -282,6 +284,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         });
         focus.requestFocus();
         this.packed();
+        
         /**
          * this is very important so the new shown dialog will become root for
          * all following dialogs! we save old parentWindow, then set current
@@ -289,20 +292,32 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
          * shown, we restore old parentWindow
          */
         Window oldw = Dialog.getInstance().getParentWindow();
+        //System.out.println("OLD ONE "+oldw);
         Dialog.getInstance().setParentWindow(this.getDialog());
+       // System.out.println("NEW ONE "+this.getDialog());
+        /*
+         * workaround a javabug that forces the parentframe to stay always on
+         * top
+         */
+        if (getDialog().getParent() != null&&!CrossSystem.isMac()) {
+            ((Window)getDialog().getParent()).setAlwaysOnTop(true);
+            ((Window)getDialog().getParent()).setAlwaysOnTop(false);
+        }
+        
         try {
             setVisible(true);
         } finally {
-            Dialog.getInstance().setParentWindow(oldw);
+            //System.out.println("SET OLD");
+           Dialog.getInstance().setParentWindow(oldw);
         }
 
         /*
          * workaround a javabug that forces the parentframe to stay always on
          * top
          */
-        if (Dialog.getInstance().getParentOwner() != null) {
-            Dialog.getInstance().getParentOwner().setAlwaysOnTop(true);
-            Dialog.getInstance().getParentOwner().setAlwaysOnTop(false);
+        if (getDialog().getParent() != null&&!CrossSystem.isMac()) {
+            ((Window)getDialog().getParent()).setAlwaysOnTop(true);
+            ((Window)getDialog().getParent()).setAlwaysOnTop(false);
         }
 
     }

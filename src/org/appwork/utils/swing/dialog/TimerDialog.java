@@ -38,6 +38,8 @@ public abstract class TimerDialog {
 
         public InternDialog() {
             super(parentFrame, ModalityType.TOOLKIT_MODAL);
+            
+            System.out.println("ROOTPANE "+parentFrame);
         }
 
         @Override
@@ -88,11 +90,7 @@ public abstract class TimerDialog {
     public TimerDialog(final Window parentframe) {
         // super(parentframe, ModalityType.TOOLKIT_MODAL);
         parentFrame = parentframe;        
-        // avoids always On Top BUg
-        if (parentframe != null) {
-            parentframe.setAlwaysOnTop(true);
-            parentframe.setAlwaysOnTop(false);
-        }
+     
 
     }
 
