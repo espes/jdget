@@ -233,6 +233,7 @@ public class JSonStorage {
                         // replace normal file with tmp file
                         file.delete();
                         tmpfile.renameTo(file);
+                        if (ret == null) { return def; }
                         return ret;
                     } catch (final Exception e) {
                         Log.L.warning("Could not restore tmp file");
@@ -266,6 +267,17 @@ public class JSonStorage {
         }
     }
 
+    public static <E> E restoreFrom(final File file, final E def) {
+        final E ret = JSonStorage.restoreFrom(file, true, null, null, def);
+        if (ret == null) { return def; }
+        return ret;
+    }
+
+    public static <E> E restoreFrom(final String string, final E def) {
+        final boolean plain = string.toLowerCase().endsWith(".json");
+        return JSonStorage.restoreFrom(Application.getResource(string), plain, JSonStorage.KEY, null, def);
+    }
+
     /**
      * restores a store json object
      * 
@@ -283,7 +295,7 @@ public class JSonStorage {
      */
 
     public static <E> E restoreFrom(final String string, final TypeReference<E> type, final E def) {
-        final boolean plain = new Regex(string, ".+\\.json").matches();
+        final boolean plain = string.toLowerCase().endsWith(".json");
         return JSonStorage.restoreFrom(Application.getResource(string), plain, JSonStorage.KEY, type, def);
     }
 
@@ -363,6 +375,15 @@ public class JSonStorage {
                 throw new StorageException(e);
             }
         }
+    }
+
+    /**
+     * @param file
+     * @param packageData
+     */
+    public static void saveTo(final File file, final Object packageData) {
+        final boolean plain = file.getName().toLowerCase().endsWith(".json");
+        JSonStorage.saveTo(file, plain, JSonStorage.KEY, JSonStorage.serializeToJson(packageData));
     }
 
     /**

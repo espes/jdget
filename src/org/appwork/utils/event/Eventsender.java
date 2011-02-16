@@ -175,7 +175,10 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
             }
         }
         for (final T t : listeners) {
+            // final long tt = System.currentTimeMillis();
+
             this.fireEvent(t, event);
+            // System.out.println(t + " " + (System.currentTimeMillis() - tt));
         }
         synchronized (this.LOCK) {
             if (this.writeR != this.readR) {
@@ -194,6 +197,18 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
         }
     }
 
+    public ArrayList<T> getListener() {
+        synchronized (this.LOCK) {
+            return new ArrayList<T>(this.listeners);
+        }
+    }
+
+    public boolean hasListener() {
+        synchronized (this.LOCK) {
+            return listeners.size() > 0;
+        }
+    }
+
     public void removeListener(final T t) {
         synchronized (this.LOCK) {
             /* decrease WriteCounter in case we remove the addRequest */
@@ -209,18 +224,6 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
                 this.removeRequestedListeners.add(t);
                 this.writeR++;
             }
-        }
-    }
-
-    public boolean hasListener() {
-        synchronized (this.LOCK) {
-            return listeners.size() > 0;
-        }
-    }
-    
-    public ArrayList<T> getListener(){
-        synchronized (this.LOCK) {
-            return new ArrayList<T>(this.listeners);
         }
     }
 }

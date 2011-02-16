@@ -21,10 +21,14 @@ import org.appwork.utils.logging.Log;
 
 public class SimpleHTTP {
 
-    private static final Object           CALL_LOCK = new Object();
+    private static final Object           CALL_LOCK      = new Object();
 
     private final HashMap<String, String> requestHeader;
     private HttpURLConnection             connection;
+
+    private int                           connectTimeout = 15000;
+
+    private int                           readTimeout    = 30000;
 
     public SimpleHTTP() {
         requestHeader = new HashMap<String, String>();
@@ -40,16 +44,16 @@ public class SimpleHTTP {
         GZIPInputStream gzi = null;
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            System.out.println(url);
+
             connection = (HttpURLConnection) url.openConnection();
             connection.setInstanceFollowRedirects(true);
-            connection.setConnectTimeout(15000);
-            connection.setReadTimeout(30000);
+            connection.setConnectTimeout(connectTimeout);
+            connection.setReadTimeout(readTimeout);
             try {
                 final String loc = Loc.getLocale().split("_")[0];
                 connection.setRequestProperty("Accept-Language", loc);
             } catch (final Throwable e) {
-                Log.exception(Level.WARNING, e);
+                // Log.exception(Level.WARNING, e);
             }
             connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
             connection.setRequestProperty("Connection", "Close");
@@ -101,6 +105,10 @@ public class SimpleHTTP {
         return connection;
     }
 
+    public int getConnectTimeout() {
+        return connectTimeout;
+    }
+
     public String getPage(final URL url) throws IOException, InterruptedException {
         synchronized (SimpleHTTP.CALL_LOCK) {
             BufferedReader in = null;
@@ -108,12 +116,14 @@ public class SimpleHTTP {
             try {
 
                 connection = (HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(20000);
-                connection.setReadTimeout(20000);
+                connection.setConnectTimeout(connectTimeout);
+                connection.setReadTimeout(readTimeout);
                 try {
                     final String loc = Loc.getLocale().split("_")[0];
                     connection.setRequestProperty("Accept-Language", loc);
-                } catch (final Throwable e) {                    
+
+                } catch (final Throwable e) {
+
                 }
                 connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
                 connection.setRequestProperty("Connection", "Close");
@@ -165,6 +175,10 @@ public class SimpleHTTP {
         }
     }
 
+    public int getReadTimeout() {
+        return readTimeout;
+    }
+
     public String getRequestHeader(final String key) {
         return requestHeader.get(key);
     }
@@ -177,19 +191,23 @@ public class SimpleHTTP {
         }
     }
 
+    public HttpURLConnection openGetConnection(final URL url) throws IOException, InterruptedException {
+        return openGetConnection(url, readTimeout);
+    }
+
     public HttpURLConnection openGetConnection(final URL url, final int readTimeout) throws IOException, InterruptedException {
         synchronized (SimpleHTTP.CALL_LOCK) {
             try {
 
                 connection = (HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(20000);
+                connection.setConnectTimeout(connectTimeout);
 
-                connection.setReadTimeout(readTimeout < 0 ? 20000 : readTimeout);
+                connection.setReadTimeout(readTimeout < 0 ? readTimeout : readTimeout);
                 try {
                     final String loc = Loc.getLocale().split("_")[0];
                     connection.setRequestProperty("Accept-Language", loc);
                 } catch (final Throwable e) {
-                    //Log.exception(Level.WARNING, e);
+                    // Log.exception(Level.WARNING, e);
                 }
                 connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
                 connection.setRequestProperty("Connection", "Close");
@@ -226,8 +244,8 @@ public class SimpleHTTP {
             try {
 
                 connection = (HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(20000);
-                connection.setReadTimeout(20000);
+                connection.setConnectTimeout(connectTimeout);
+                connection.setReadTimeout(readTimeout);
                 connection.setRequestMethod("POST");
                 connection.setDoInput(true);
                 connection.setUseCaches(false);
@@ -367,6 +385,14 @@ public class SimpleHTTP {
 
     public void putRequestHeader(final String key, final String value) {
         requestHeader.put(key, value);
+    }
+
+    public void setConnectTimeout(final int connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
+    public void setReadTimeout(final int readTimeout) {
+        this.readTimeout = readTimeout;
     }
 
 }

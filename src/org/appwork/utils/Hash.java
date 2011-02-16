@@ -21,9 +21,11 @@ import org.appwork.utils.formatter.HexFormatter;
 
 public class Hash {
 
-    public static String HASH_TYPE_MD5  = "md5";
+    public static final String HASH_TYPE_SHA256 = "SHA-256";
 
-    public static String HASH_TYPE_SHA1 = "SHA-1";
+    public static String       HASH_TYPE_MD5    = "md5";
+
+    public static String       HASH_TYPE_SHA1   = "SHA-1";
 
     /**
      * @param download
@@ -127,6 +129,30 @@ public class Hash {
 
     public static String getSHA1(final String arg) {
         return Hash.getStringHash(arg, Hash.HASH_TYPE_SHA1);
+    }
+
+    /**
+     * @param download
+     * @return
+     */
+    public static String getSha256(final byte[] download) {
+        return Hash.getBytesHash(download, Hash.HASH_TYPE_SHA256);
+    }
+
+    /**
+     * @param createPostData
+     * @return
+     */
+    public static String getSha256(final String createPostData) {
+        return Hash.getStringHash(createPostData, Hash.HASH_TYPE_SHA256);
+    }
+
+    /**
+     * @param f
+     * @return
+     */
+    public static String getSHA256(final File f) {
+        return Hash.getFileHash(f, Hash.HASH_TYPE_SHA256);
     }
 
     public static String getStringHash(final String arg, final String type) {

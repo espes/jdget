@@ -1,6 +1,113 @@
 package org.appwork.net.protocol.http;
 
 public class HTTPConstants {
+    /**
+     * List of HTTP Response Codes. INcomplete! <br>
+     * Check http://en.wikipedia.org/wiki/List_of_HTTP_status_codes to complete
+     * this list
+     * 
+     * @author thomas
+     * 
+     */
+    public static enum ResponseCode {
+        /**
+         * This means that the server has received the request headers, and that
+         * the client should proceed to send the request body (in the case of a
+         * request for which a body needs to be sent; for example, a POST
+         * request). If the request body is large, sending it to a server when a
+         * request has already been rejected based upon inappropriate headers is
+         * inefficient. To have a server check if the request could be accepted
+         * based on the request's headers alone, a client must send Expect:
+         * 100-continue as a header in its initial request[2] and check if a 100
+         * Continue status code is received in response before continuing (or
+         * receive 417 Expectation Failed and not continue).[2]
+         */
+        INFORMATION_CONTINUE(100, "Continue"),
+        /**
+         * Standard response for successful HTTP requests. The actual response
+         * will depend on the request method used. In a GET request, the
+         * response will contain an entity corresponding to the requested
+         * resource. In a POST request the response will contain an entity
+         * describing or containing the result of the action.[2]
+         */
+        SUCCESS_OK(200, "OK"),
+        /**
+         * The server successfully processed the request, but is not returning
+         * any content.[2
+         */
+        SUCCESS_NO_CONTENT(204, "No Content"),
+        /**
+         * This is the most popular redirect code[citation needed], but also an
+         * example of industrial practice contradicting the standard.[2]
+         * HTTP/1.0 specification (RFC 1945) required the client to perform a
+         * temporary redirect (the original describing phrase was
+         * "Moved Temporarily"),[5] but popular browsers implemented 302 with
+         * the functionality of a 303 See Other. Therefore, HTTP/1.1 added
+         * status codes 303 and 307 to distinguish between the two behaviours.
+         * However, the majority of Web applications and frameworks still use
+         * the 302 status code as if it were the 303[6].
+         */
+        REDIRECT_FOUND(302, "Found"),
+        /**
+         * The request cannot be fulfilled due to bad syntax.[2
+         */
+        ERROR_BAD_REQUEST(400, "Bad Request"),
+        /**
+         * The request was a legal request, but the server is refusing to
+         * respond to it.[2] Unlike a 401 Unauthorized response, authenticating
+         * will make no difference.[2
+         */
+        ERROR_FORBIDDEN(403, "Forbidden"),
+        /**
+         * The requested resource could not be found but may be available again
+         * in the future.[2] Subsequent requests by the client are permissible.
+         */
+        ERROR_NOT_FOUND(404, "Not Found"),
+        /**
+         * A generic error message, given when no more specific message is
+         * suitable.[2
+         */
+        SERVERERROR_INTERNAL(500, "Internal Server Error"),
+        /**
+         * The server either does not recognise the request method, or it lacks
+         * the ability to fulfill the request.[2
+         */
+        SERVERERROR_NOT_IMPLEMENTED(501, "Not Implemented"),
+        /**
+         * The server was acting as a gateway or proxy and received an invalid
+         * response from the upstream server.[2
+         */
+        SERVERERROR_BAD_GATEWAY(502, "Bad Gateway"),
+        /**
+         * The server is currently unavailable (because it is overloaded or down
+         * for maintenance).[2] Generally, this is a temporary state.
+         */
+        SERVERERROR_SERVICE_UNAVAILABLE(503, "Service Unavailable");
+        private final int    code;
+        private final String description;
+        private final byte[] bytes;
+
+        private ResponseCode(final int code, final String desc) {
+            this.code = code;
+            description = desc;
+            bytes = (code + " " + desc).getBytes();
+        }
+
+        /**
+         * @return
+         */
+        public byte[] getBytes() {
+            return bytes;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
 
     /**
      * Content-Types that are acceptable Accept: text/plain
@@ -145,4 +252,9 @@ public class HTTPConstants {
      */
     public static final String HEADER_REQUEST_WARNING             = "Warning";
     public static final String HTTP_KEEP_ALIVE                    = "Keep-Alive";
+    /**
+     * The mime type of the body of the request (used with POST and PUT
+     * requests) Content-Type: application/x-www-form-urlencoded
+     */
+    public static final String HEADER_RESPONSE_CONTENT_TYPE       = "Content-Type";
 }
