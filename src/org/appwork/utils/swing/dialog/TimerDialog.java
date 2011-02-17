@@ -18,7 +18,6 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 
 import org.appwork.utils.ImageProvider.ImageProvider;
@@ -37,9 +36,8 @@ public abstract class TimerDialog {
         private static final long serialVersionUID = 1L;
 
         public InternDialog() {
-            super(parentFrame, ModalityType.TOOLKIT_MODAL);
-            
-            System.out.println("ROOTPANE "+parentFrame);
+            super(TimerDialog.this.parentFrame, ModalityType.TOOLKIT_MODAL);
+
         }
 
         @Override
@@ -89,8 +87,7 @@ public abstract class TimerDialog {
 
     public TimerDialog(final Window parentframe) {
         // super(parentframe, ModalityType.TOOLKIT_MODAL);
-        parentFrame = parentframe;        
-     
+        this.parentFrame = parentframe;
 
     }
 
@@ -98,10 +95,10 @@ public abstract class TimerDialog {
      * interrupts the timer countdown
      */
     public void cancel() {
-        if (timer != null) {
-            timer.interrupt();
-            timer = null;
-            timerLbl.setEnabled(false);
+        if (this.timer != null) {
+            this.timer.interrupt();
+            this.timer = null;
+            this.timerLbl.setEnabled(false);
         }
     }
 
@@ -109,7 +106,7 @@ public abstract class TimerDialog {
      * 
      */
     protected void dispose() {
-        getDialog().realDispose();
+        this.getDialog().realDispose();
 
     }
 
@@ -118,12 +115,12 @@ public abstract class TimerDialog {
      */
     protected Color getBackground() {
         // TODO Auto-generated method stub
-        return getDialog().getBackground();
+        return this.getDialog().getBackground();
     }
 
     protected InternDialog getDialog() {
-        if (dialog == null) { throw new NullPointerException("Call #org.appwork.utils.swing.dialog.AbstractDialog.displayDialog() first"); }
-        return dialog;
+        if (this.dialog == null) { throw new NullPointerException("Call #org.appwork.utils.swing.dialog.AbstractDialog.displayDialog() first"); }
+        return this.dialog;
     }
 
     /**
@@ -140,9 +137,9 @@ public abstract class TimerDialog {
      * @return
      */
     public Dimension getPreferredSize() {
-        final Dimension pref = getDialog().getRealPreferredSize();
-        int w = getPreferredWidth();
-        int h = getPreferredHeight();
+        final Dimension pref = this.getDialog().getRealPreferredSize();
+        int w = this.getPreferredWidth();
+        int h = this.getPreferredHeight();
         if (w <= 0) {
             w = pref.width;
         }
@@ -172,31 +169,31 @@ public abstract class TimerDialog {
     }
 
     protected void initTimer(final int time) {
-        counter = time;
-        timer = new Thread() {
+        this.counter = time;
+        this.timer = new Thread() {
 
             @Override
             public void run() {
                 try {
                     // sleep while dialog is invisible
-                    while (!isVisible()) {
+                    while (!TimerDialog.this.isVisible()) {
                         try {
                             Thread.sleep(200);
                         } catch (final InterruptedException e) {
                             break;
                         }
                     }
-                    int count = counter;
+                    int count = TimerDialog.this.counter;
                     while (--count >= 0) {
-                        if (!isVisible()) { return; }
-                        if (timer == null) { return; }
+                        if (!TimerDialog.this.isVisible()) { return; }
+                        if (TimerDialog.this.timer == null) { return; }
                         final String left = TimeFormatter.formatSeconds(count, 0);
 
                         new EDTHelper<Object>() {
 
                             @Override
                             public Object edtRun() {
-                                timerLbl.setText(left);
+                                TimerDialog.this.timerLbl.setText(left);
                                 return null;
                             }
 
@@ -204,13 +201,13 @@ public abstract class TimerDialog {
 
                         Thread.sleep(1000);
 
-                        if (counter < 0) { return; }
-                        if (!isVisible()) { return; }
+                        if (TimerDialog.this.counter < 0) { return; }
+                        if (!TimerDialog.this.isVisible()) { return; }
 
                     }
-                    if (counter < 0) { return; }
-                    if (!isInterrupted()) {
-                        onTimeout();
+                    if (TimerDialog.this.counter < 0) { return; }
+                    if (!this.isInterrupted()) {
+                        TimerDialog.this.onTimeout();
                     }
                 } catch (final InterruptedException e) {
                     return;
@@ -219,7 +216,7 @@ public abstract class TimerDialog {
 
         };
 
-        timer.start();
+        this.timer.start();
     }
 
     /**
@@ -227,29 +224,29 @@ public abstract class TimerDialog {
      */
     protected boolean isVisible() {
         // TODO Auto-generated method stub
-        return getDialog().isVisible();
+        return this.getDialog().isVisible();
     }
 
     protected void layoutDialog() {
-        dialog = new InternDialog();
-        if (preferredSize != null) {
-            dialog.setPreferredSize(preferredSize);
+        this.dialog = new InternDialog();
+        if (this.preferredSize != null) {
+            this.dialog.setPreferredSize(this.preferredSize);
         }
-        timerLbl = new JLabel(TimeFormatter.formatSeconds(Dialog.getInstance().getCountdownTime(), 0));
+        this.timerLbl = new JLabel(TimeFormatter.formatSeconds(Dialog.getInstance().getCountdownTime(), 0));
 
-        timerLbl.addMouseListener(new MouseAdapter() {
+        this.timerLbl.addMouseListener(new MouseAdapter() {
 
             @Override
             public void mouseClicked(final MouseEvent e) {
-                cancel();
-                timerLbl.removeMouseListener(this);
+                TimerDialog.this.cancel();
+                TimerDialog.this.timerLbl.removeMouseListener(this);
             }
 
         });
-        timerLbl.setToolTipText(APPWORKUTILS.TIMERDIALOG_TOOLTIP_TIMERLABEL.s());
+        this.timerLbl.setToolTipText(APPWORKUTILS.TIMERDIALOG_TOOLTIP_TIMERLABEL.s());
 
         try {
-            timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));
+            this.timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));
         } catch (final IOException e1) {
             Log.exception(e1);
         }
@@ -259,23 +256,23 @@ public abstract class TimerDialog {
     protected abstract void onTimeout();
 
     public void pack() {
-        getDialog().pack();
+        this.getDialog().pack();
     }
 
     public void requestFocus() {
-        getDialog().requestFocus();
+        this.getDialog().requestFocus();
     }
 
     protected void setAlwaysOnTop(final boolean b) {
-        getDialog().setAlwaysOnTop(b);
+        this.getDialog().setAlwaysOnTop(b);
     }
 
     protected void setDefaultCloseOperation(final int doNothingOnClose) {
-        getDialog().setDefaultCloseOperation(doNothingOnClose);
+        this.getDialog().setDefaultCloseOperation(doNothingOnClose);
     }
 
     protected void setMinimumSize(final Dimension dimension) {
-        getDialog().setMinimumSize(dimension);
+        this.getDialog().setMinimumSize(dimension);
     }
 
     /**
@@ -283,21 +280,21 @@ public abstract class TimerDialog {
      */
     public void setPreferredSize(final Dimension dimension) {
         try {
-            getDialog().setPreferredSize(dimension);
+            this.getDialog().setPreferredSize(dimension);
         } catch (final NullPointerException e) {
-            preferredSize = dimension;
+            this.preferredSize = dimension;
         }
     }
 
     protected void setResizable(final boolean b) {
-        getDialog().setResizable(b);
+        this.getDialog().setResizable(b);
     }
 
     /**
      * @param b
      */
     public void setVisible(final boolean b) {
-        getDialog().setVisible(b);
+        this.getDialog().setVisible(b);
     }
 
 }
