@@ -288,12 +288,12 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         this.write(200, "Command okay");
     }
 
-    private void onCDUP() throws IOException, FtpFileNotExistException {
+    private void onCDUP() throws IOException, FtpException {
         this.ftpServer.getFtpCommandHandler().onDirectoryUp(this.connectionState);
         this.write(200, "Command okay.");
     }
 
-    private void onCWD(final String params[]) throws IOException, FtpFileNotExistException {
+    private void onCWD(final String params[]) throws IOException, FtpException {
         this.ftpServer.getFtpCommandHandler().setCurrentDirectory(this.connectionState, this.buildParameter(params));
         this.write(250, "\"" + this.connectionState.getCurrentDir() + "\" is cwd.");
     }
@@ -376,7 +376,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
      * @throws IOException
      * @throws FtpFileNotExistException
      */
-    private void onMKD(final String[] commandParts) throws IOException, FtpFileNotExistException {
+    private void onMKD(final String[] commandParts) throws IOException, FtpException {
         this.ftpServer.getFtpCommandHandler().makeDirectory(this.connectionState, this.buildParameter(commandParts));
         this.write(257, "\"" + this.buildParameter(commandParts) + "\" created.");
     }
@@ -435,7 +435,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         this.write(200, "Command okay");
     }
 
-    private void onPASS(final String params[]) throws IOException, FtpBadSequenceException, FtpNotLoginException {
+    private void onPASS(final String params[]) throws IOException, FtpException {
         this.stateMachine.setStatus(FtpConnection.PASS);
         if (this.connectionState.getUser() == null) {
             throw new FtpBadSequenceException();
@@ -479,11 +479,11 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         this.write(200, "PORT command successful");
     }
 
-    private void onPWD() throws IOException {
+    private void onPWD() throws IOException, FtpException {
         this.write(257, "\"" + this.connectionState.getCurrentDir() + "\" is cwd.");
     }
 
-    private void onQUIT() throws IOException {
+    private void onQUIT() throws IOException, FtpException {
         this.stateMachine.setStatus(FtpConnection.LOGOUT);
         this.write(221, this.ftpServer.getFtpCommandHandler().onLogoutRequest(this.connectionState));
         this.stateMachine.setStatus(FtpConnection.IDLEEND);
@@ -530,7 +530,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
      * @throws FtpException
      * @throws FtpFileNotExistException
      */
-    private void onRMD(final String[] commandParts) throws IOException, FtpFileNotExistException, FtpException {
+    private void onRMD(final String[] commandParts) throws IOException, FtpException {
         this.ftpServer.getFtpCommandHandler().removeDirectory(this.connectionState, this.buildParameter(commandParts));
         this.write(250, "\"" + this.buildParameter(commandParts) + "\" removed.");
     }
@@ -541,7 +541,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
      * @throws FtpFileNotExistException
      * @throws IOException
      */
-    private void onRNFR(final String[] commandParts) throws FtpBadSequenceException, FtpFileNotExistException, IOException {
+    private void onRNFR(final String[] commandParts) throws FtpException, IOException {
         if (this.connectionState.getRenameFile() != null) {
             this.connectionState.setRenameFile(null);
             throw new FtpBadSequenceException();
@@ -556,7 +556,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
      * @throws FtpFileNotExistException
      * @throws IOException
      */
-    private void onRNTO(final String[] commandParts) throws FtpBadSequenceException, FtpFileNotExistException, IOException {
+    private void onRNTO(final String[] commandParts) throws IOException, FtpException {
         if (this.connectionState.getRenameFile() == null) {
             /* a renameFile must exist, RNFR must be the command before RNTO */
             throw new FtpBadSequenceException();
@@ -570,7 +570,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
      * @throws IOException
      * @throws FtpFileNotExistException
      */
-    private void onSIZE(final String[] commandParts) throws FtpFileNotExistException, IOException {
+    private void onSIZE(final String[] commandParts) throws FtpException, IOException {
         this.write(213, "" + this.ftpServer.getFtpCommandHandler().getSize(this.connectionState, this.buildParameter(commandParts)));
     }
 
@@ -637,7 +637,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         this.write(200, "Command okay");
     }
 
-    private void onUSER(final String params[]) throws IOException, FtpNotLoginException {
+    private void onUSER(final String params[]) throws IOException, FtpException {
         if (this.stateMachine.isFinal()) {
             this.stateMachine.reset();
         }

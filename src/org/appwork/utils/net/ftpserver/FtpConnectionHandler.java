@@ -24,7 +24,15 @@ import java.util.Locale;
  */
 public abstract class FtpConnectionHandler<E extends FtpFile> {
 
-    public String formatFileList(ArrayList<? extends FtpFile> list) {
+    /**
+     * @return
+     */
+    public FtpConnectionState createNewConnectionState() {
+
+        return new FtpConnectionState();
+    }
+
+    public String formatFileList(final ArrayList<? extends FtpFile> list) {
         final String DEL = " ";
         final StringBuilder sb = new StringBuilder();
         final SimpleDateFormat df = new SimpleDateFormat("MMM dd yyyy", Locale.ENGLISH);
@@ -53,57 +61,49 @@ public abstract class FtpConnectionHandler<E extends FtpFile> {
     }
 
     /**
-     * @return
-     */
-    public FtpConnectionState createNewConnectionState() {
-
-        return new FtpConnectionState();
-    }
-
-    /**
      * @param string
      * @return TODO
      * @throws IOException
      * @throws UnsupportedEncodingException
      */
-    public abstract ArrayList<E> getFileList(FtpConnectionState connectionState, String string) throws UnsupportedEncodingException, IOException, FtpFileNotExistException;
+    public abstract ArrayList<E> getFileList(FtpConnectionState connectionState, String string) throws UnsupportedEncodingException, IOException, FtpException;
+
+    /**
+     * @param connectionState
+     * @param buildParameter
+     * @return
+     */
+    public abstract long getSize(FtpConnectionState connectionState, String buildParameter) throws FtpException;
 
     public abstract FTPUser getUser(final String user);
 
     public abstract String getWelcomeMessage(FtpConnectionState ftpConnection);
 
     /**
+     * @param connectionState
+     * @param buildParameter
+     */
+    public abstract void makeDirectory(FtpConnectionState connectionState, String buildParameter) throws FtpException;
+
+    /**
      * @param dir
      * @param connectionState
      * @return
      */
-    public abstract void onDirectoryUp(FtpConnectionState connectionState) throws FtpFileNotExistException;
+    public abstract void onDirectoryUp(FtpConnectionState connectionState) throws FtpException;
 
-    public abstract String onLoginFailedMessage(FtpConnectionState ftpConnection);
+    public abstract String onLoginFailedMessage(FtpConnectionState ftpConnection) throws FtpException;
 
-    public abstract String onLoginSuccessRequest(FtpConnectionState connectionState);
+    public abstract String onLoginSuccessRequest(FtpConnectionState connectionState) throws FtpException;
 
-    public abstract String onLogoutRequest(FtpConnectionState connectionState);
-
-    /**
-     * @param connectionState
-     * @param cwd
-     * @return
-     */
-    public abstract void setCurrentDirectory(FtpConnectionState connectionState, String cwd) throws FtpFileNotExistException;
+    public abstract String onLogoutRequest(FtpConnectionState connectionState) throws FtpException;
 
     /**
      * @param outputStream
      * @param connectionState
      * @param param
      */
-    public abstract long onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException, FtpFileNotExistException;
-
-    /**
-     * @param connectionState
-     * @param buildParameter
-     */
-    public abstract void makeDirectory(FtpConnectionState connectionState, String buildParameter) throws FtpFileNotExistException;
+    public abstract long onRETR(OutputStream outputStream, FtpConnectionState connectionState, String param) throws IOException, FtpException;
 
     /**
      * @param inputStream
@@ -113,14 +113,7 @@ public abstract class FtpConnectionHandler<E extends FtpFile> {
      * @throws FtpFileNotExistException
      * @throws IOException
      */
-    public abstract long onSTOR(InputStream inputStream, FtpConnectionState connectionState, boolean append, String buildParameter) throws FtpFileNotExistException, IOException;
-
-    /**
-     * @param connectionState
-     * @param buildParameter
-     * @return
-     */
-    public abstract long getSize(FtpConnectionState connectionState, String buildParameter) throws FtpFileNotExistException;
+    public abstract long onSTOR(InputStream inputStream, FtpConnectionState connectionState, boolean append, String buildParameter) throws FtpException, IOException;
 
     /**
      * @param connectionState
@@ -128,13 +121,13 @@ public abstract class FtpConnectionHandler<E extends FtpFile> {
      * @throws FtpFileNotExistException
      * @throws FtpException
      */
-    public abstract void removeDirectory(FtpConnectionState connectionState, String buildParameter) throws FtpFileNotExistException, FtpException;
+    public abstract void removeDirectory(FtpConnectionState connectionState, String buildParameter) throws FtpException;
 
     /**
      * @param connectionState
      * @param buildParameter
      */
-    public abstract void removeFile(FtpConnectionState connectionState, String buildParameter) throws FtpFileNotExistException, FtpException;
+    public abstract void removeFile(FtpConnectionState connectionState, String buildParameter) throws FtpException;
 
     /**
      * @param connectionState
@@ -148,6 +141,13 @@ public abstract class FtpConnectionHandler<E extends FtpFile> {
      * 
      * 2.) by RNTO, which should do the actual renaming
      */
-    public abstract void renameFile(FtpConnectionState connectionState, String buildParameter) throws FtpFileNotExistException;
+    public abstract void renameFile(FtpConnectionState connectionState, String buildParameter) throws FtpException;
+
+    /**
+     * @param connectionState
+     * @param cwd
+     * @return
+     */
+    public abstract void setCurrentDirectory(FtpConnectionState connectionState, String cwd) throws FtpException;
 
 }

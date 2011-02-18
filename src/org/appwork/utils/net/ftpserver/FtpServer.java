@@ -11,8 +11,10 @@ package org.appwork.utils.net.ftpserver;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 
 /**
@@ -26,6 +28,7 @@ public class FtpServer implements Runnable {
     private ServerSocket                                  controlSocket;
     private Thread                                        controlThread = null;
     private ThreadGroup                                   threadGroup   = null;
+    private boolean                                       localhostOnly = false;
 
     public FtpServer(final FtpConnectionHandler<? extends FtpFile> handler, final int port) {
         this.handler = handler;
@@ -61,11 +64,12 @@ public class FtpServer implements Runnable {
         return this.threadGroup;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Runnable#run()
+    /**
+     * @return the localhostOnly
      */
+    protected boolean isLocalhostOnly() {
+        return this.localhostOnly;
+    }
 
     public void run() {
         final Thread current = this.controlThread;
@@ -74,6 +78,7 @@ public class FtpServer implements Runnable {
             while (true) {
                 try {
                     final Socket clientSocket = socket.accept();
+                    /* TODO: handle max client connections here */
                     new FtpConnection(this, clientSocket);
                 } catch (final IOException e) {
                     break;
@@ -90,8 +95,27 @@ public class FtpServer implements Runnable {
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Runnable#run()
+     */
+
+    /**
+     * @param localhostOnly
+     *            the localhostOnly to set
+     */
+    protected void setLocalhostOnly(final boolean localhostOnly) {
+        this.localhostOnly = localhostOnly;
+    }
+
     public synchronized void start() throws IOException {
         this.controlSocket = new ServerSocket(this.port);
+        if (this.isLocalhostOnly()) {
+            /* we only want localhost bound here */
+            final SocketAddress socketAddress = new InetSocketAddress(this.getLocalHost(), this.port);
+            this.controlSocket.bind(socketAddress);
+        }
         this.controlThread = new Thread(this.threadGroup, this);
         this.controlThread.setName("FtpServerThread");
         this.controlThread.start();

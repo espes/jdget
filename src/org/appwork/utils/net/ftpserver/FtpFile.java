@@ -17,31 +17,11 @@ public class FtpFile {
 
     private final String  name;
     private final long    size;
-    private final long    lastModified = 0;
+    private final long    lastModified;
     private final boolean isDirectory;
-    private String owner="unknown";
-    /**
-     * @param owner the owner to set
-     */
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
+    private String        owner = "unknown";
 
-    private String group="unknown";
-
-    /**
-     * @return the group
-     */
-    public String getGroup() {
-        return group;
-    }
-
-    /**
-     * @param group the group to set
-     */
-    public void setGroup(String group) {
-        this.group = group;
-    }
+    private String        group = "unknown";
 
     /**
      * @param name
@@ -50,28 +30,52 @@ public class FtpFile {
      */
     public FtpFile(final String name, final long length, final boolean directory, final long lastMod) {
         this.name = name;
-        size = length;
-        isDirectory = directory;
+        this.size = length;
+        this.isDirectory = directory;
+        this.lastModified = lastMod;
+    }
+
+    /**
+     * @return the group
+     */
+    public String getGroup() {
+        return this.group;
     }
 
     public long getLastModified() {
-        return lastModified;
+        return this.lastModified;
     }
 
     public String getName() {
-        return name;
+        return this.name;
+    }
+
+    public String getOwner() {
+        return this.owner;
     }
 
     public long getSize() {
-        return size;
+        return this.size;
     }
 
     public boolean isDirectory() {
-        return isDirectory;
+        return this.isDirectory;
     }
-    
-    public String getOwner(){
-        return owner;
+
+    /**
+     * @param group
+     *            the group to set
+     */
+    public void setGroup(final String group) {
+        this.group = group;
+    }
+
+    /**
+     * @param owner
+     *            the owner to set
+     */
+    public void setOwner(final String owner) {
+        this.owner = owner;
     }
 
 }
