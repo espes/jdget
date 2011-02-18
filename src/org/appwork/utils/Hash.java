@@ -135,7 +135,7 @@ public class Hash {
      * @param download
      * @return
      */
-    public static String getSha256(final byte[] download) {
+    public static String getSHA256(final byte[] download) {
         return Hash.getBytesHash(download, Hash.HASH_TYPE_SHA256);
     }
 
@@ -143,7 +143,7 @@ public class Hash {
      * @param createPostData
      * @return
      */
-    public static String getSha256(final String createPostData) {
+    public static String getSHA256(final String createPostData) {
         return Hash.getStringHash(createPostData, Hash.HASH_TYPE_SHA256);
     }
 
