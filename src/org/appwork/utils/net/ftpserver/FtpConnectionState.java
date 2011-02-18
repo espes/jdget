@@ -54,4 +54,5 @@ public class FtpConnectionState {
     public void setUser(final FTPUser user) {
         this.user = user;
     }
+
 }

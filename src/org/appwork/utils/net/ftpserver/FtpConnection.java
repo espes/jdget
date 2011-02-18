@@ -546,7 +546,12 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             this.connectionState.setRenameFile(null);
             throw new FtpBadSequenceException();
         }
-        this.ftpServer.getFtpCommandHandler().renameFile(this.connectionState, this.buildParameter(commandParts));
+        try {
+            this.ftpServer.getFtpCommandHandler().renameFile(this.connectionState, this.buildParameter(commandParts));
+        } catch (final FtpException e) {
+            this.connectionState.setRenameFile(null);
+            throw e;
+        }
         this.write(350, "\"" + this.buildParameter(commandParts) + "\" rename pending.");
     }
 
@@ -559,9 +564,14 @@ public class FtpConnection implements Runnable, StateMachineInterface {
     private void onRNTO(final String[] commandParts) throws IOException, FtpException {
         if (this.connectionState.getRenameFile() == null) {
             /* a renameFile must exist, RNFR must be the command before RNTO */
+            this.connectionState.setRenameFile(null);
             throw new FtpBadSequenceException();
         }
-        this.ftpServer.getFtpCommandHandler().renameFile(this.connectionState, this.buildParameter(commandParts));
+        try {
+            this.ftpServer.getFtpCommandHandler().renameFile(this.connectionState, this.buildParameter(commandParts));
+        } finally {
+            this.connectionState.setRenameFile(null);
+        }
         this.write(250, "\"" + this.buildParameter(commandParts) + "\" rename successfull.");
     }
 
