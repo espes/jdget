@@ -74,7 +74,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     public Object invoke(final Object arg0, final Method m, final Object[] parameter) throws Throwable {
         final MethodHandler handler = this.getterMap.get(m);
-        if (handler.isGetter()) {            
+        if (handler.isGetter()) {
             if (handler.isPrimitive()) {
                 if (handler.getRawClass() == Boolean.class || handler.getRawClass() == boolean.class) {
                     return this.primitiveStorage.get(handler.getKey(), handler.getDefaultBoolean());
@@ -88,8 +88,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     return this.primitiveStorage.get(handler.getKey(), handler.getDefaultByte());
                 } else if (handler.getRawClass() == String.class) {
                     return this.primitiveStorage.get(handler.getKey(), handler.getDefaultString());
-                } else if (handler.getRawClass() == String[].class) {
-                    return this.primitiveStorage.get(handler.getKey(), handler.getDefaultStringArray());
                 } else if (handler.getRawClass().isEnum()) {
                     return this.primitiveStorage.get(handler.getKey(), handler.getDefaultEnum());
                 } else if (handler.getRawClass() == Double.class | handler.getRawClass() == double.class) {
@@ -117,8 +115,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     this.primitiveStorage.put(handler.getKey(), (Byte) parameter[0]);
                 } else if (handler.getRawClass() == String.class) {
                     this.primitiveStorage.put(handler.getKey(), (String) parameter[0]);
-                } else if (handler.getRawClass() == String[].class) {
-                    this.primitiveStorage.put(handler.getKey(), (String[]) parameter);
                 } else if (handler.getRawClass().isEnum()) {
                     this.primitiveStorage.put(handler.getKey(), (Enum<?>) parameter[0]);
                 } else if (handler.getRawClass() == Double.class || handler.getRawClass() == double.class) {

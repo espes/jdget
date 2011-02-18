@@ -148,7 +148,7 @@ public class JSonStorage {
      */
     public static boolean canStorePrimitive(final Class<?> type) {
         // TODO Auto-generated method stub
-        return type.isPrimitive() || type == String.class || type.isEnum() || type == String[].class;
+        return type.isPrimitive() || type == String.class || type.isEnum();
     }
 
     /**

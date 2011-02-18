@@ -55,16 +55,15 @@ public class MethodHandler {
 
     private final boolean primitive;
     private Class<?>      rawClass;
-    private boolean       defaultBoolean     = false;
-    private long          defaultLong        = 0l;
-    private int           defaultInteger     = 0;
-    private Enum<?>       defaultEnum        = null;
-    private double        defaultDouble      = 0.0d;
-    private String        defaultString      = null;
-    private String[]      defaultStringArray = null;
-    private byte          defaultByte        = 0;
-    private Object        defaultObject      = null;
-    private float         defaultFloat       = 0.0f;
+    private boolean       defaultBoolean = false;
+    private long          defaultLong    = 0l;
+    private int           defaultInteger = 0;
+    private Enum<?>       defaultEnum    = null;
+    private double        defaultDouble  = 0.0d;
+    private String        defaultString  = null;
+    private byte          defaultByte    = 0;
+    private Object        defaultObject  = null;
+    private float         defaultFloat   = 0.0f;
     private MethodHandler getterHandler;
     private MethodHandler setterHandler;
     private boolean       crypted;
@@ -83,7 +82,7 @@ public class MethodHandler {
      * @throws IllegalArgumentException
      * @throws ClassNotFoundException
      */
-    @SuppressWarnings( { "unchecked", "rawtypes" })
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public MethodHandler(final StorageHandler<?> storageHandler, final Type getter, final String key, final Method m, final boolean primitive) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
         this.getterHandler = this;
 
@@ -161,12 +160,6 @@ public class MethodHandler {
                     this.defaultString = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultStringValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (this.rawClass == String[].class) {
-                final DefaultStringArrayValue ann = m.getAnnotation(DefaultStringArrayValue.class);
-                if (ann != null) {
-                    this.defaultStringArray = ann.value();
-                }
-                this.checkBadAnnotations(m, DefaultStringArrayValue.class, CryptedStorage.class, PlainStorage.class);
             } else if (this.rawClass.isEnum()) {
                 final DefaultEnumValue ann = m.getAnnotation(DefaultEnumValue.class);
                 if (ann != null) {
@@ -340,10 +333,6 @@ public class MethodHandler {
         return this.defaultString;
     }
 
-    public String[] getDefaultStringArray() {
-        return this.defaultStringArray;
-    }
-
     public String getKey() {
         return this.key;
     }
@@ -447,6 +436,7 @@ public class MethodHandler {
         this.validDateCrypt();
     }
 
+    @Override
     public String toString() {
         return this.method + "";
     }
@@ -458,8 +448,8 @@ public class MethodHandler {
         if (this.getterHandler.isCrypted() != this.setterHandler.isCrypted()) { throw new InterfaceParseException(this.getterHandler + " cryptsettings != " + this.setterHandler); }// check
         // keys
         if (this.getterHandler.isCrypted()) {
-            for (int i = 0; i < this.getterHandler.cryptKey.length; i++) {
-                if (this.getterHandler.cryptKey[i] != this.setterHandler.cryptKey[i]) { throw new InterfaceParseException(this.getterHandler + " cryptkey mismatch" + this.setterHandler); }
+            for (final byte element : this.getterHandler.cryptKey) {
+                if (element != element) { throw new InterfaceParseException(this.getterHandler + " cryptkey mismatch" + this.setterHandler); }
             }
 
         }
