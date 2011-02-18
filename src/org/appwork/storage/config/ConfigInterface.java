@@ -11,8 +11,10 @@ package org.appwork.storage.config;
 
 /**
  * @author thomas
- *
+ * 
  */
 public interface ConfigInterface {
+
+    String toString();
 
 }

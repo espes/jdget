@@ -55,9 +55,12 @@ public class JacksonStorageChest extends Storage {
         this.name = name;
         this.plain = plain;
         file = Application.getResource("cfg/" + name + (plain ? ".json" : ".ejs"));
+        Log.L.finer("Read Config: " + file.getAbsolutePath());
+
         this.key = key;
         synchronized (JSonStorage.LOCK) {
             final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, null, new HashMap<String, Object>());
+            Log.L.finer(JSonStorage.toString(load));
             map.putAll(load);
         }
     }

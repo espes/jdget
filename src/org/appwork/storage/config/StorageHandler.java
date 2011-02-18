@@ -42,17 +42,17 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         if (crypted != null) {
             this.crypted = true;
             if (crypted.key() != null) {
-                this.primitiveStorage = new JacksonStorageChest(configInterface.getSimpleName(), false, crypted.key());
+                this.primitiveStorage = new JacksonStorageChest("config_" + configInterface.getSimpleName(), false, crypted.key());
                 JSonStorage.addStorage(this.primitiveStorage);
                 this.key = crypted.key();
                 if (this.key.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + configInterface + " is invalid"); }
 
             } else {
-                this.primitiveStorage = (JacksonStorageChest) JSonStorage.getStorage(configInterface.getSimpleName());
+                this.primitiveStorage = (JacksonStorageChest) JSonStorage.getStorage("config_" + configInterface.getSimpleName());
             }
         } else {
             this.crypted = false;
-            this.primitiveStorage = (JacksonStorageChest) JSonStorage.getPlainStorage(configInterface.getSimpleName());
+            this.primitiveStorage = (JacksonStorageChest) JSonStorage.getPlainStorage("config_" + configInterface.getSimpleName());
         }
         try {
             this.parseInterface();
@@ -65,68 +65,71 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.key;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
-     * java.lang.reflect.Method, java.lang.Object[])
-     */
-
     public Object invoke(final Object arg0, final Method m, final Object[] parameter) throws Throwable {
-        final MethodHandler handler = this.getterMap.get(m);
-        if (handler.isGetter()) {
-            if (handler.isPrimitive()) {
-                if (handler.getRawClass() == Boolean.class || handler.getRawClass() == boolean.class) {
-                    return this.primitiveStorage.get(handler.getKey(), handler.getDefaultBoolean());
-                } else if (handler.getRawClass() == Long.class || handler.getRawClass() == long.class) {
-                    return this.primitiveStorage.get(handler.getKey(), handler.getDefaultLong());
-                } else if (handler.getRawClass() == Integer.class || handler.getRawClass() == int.class) {
-                    return this.primitiveStorage.get(handler.getKey(), handler.getDefaultInteger());
-                } else if (handler.getRawClass() == Float.class || handler.getRawClass() == float.class) {
-                    return this.primitiveStorage.get(handler.getKey(), handler.getDefaultFloat());
-                } else if (handler.getRawClass() == Byte.class || handler.getRawClass() == byte.class) {
-                    return this.primitiveStorage.get(handler.getKey(), handler.getDefaultByte());
-                } else if (handler.getRawClass() == String.class) {
-                    return this.primitiveStorage.get(handler.getKey(), handler.getDefaultString());
-                } else if (handler.getRawClass().isEnum()) {
-                    return this.primitiveStorage.get(handler.getKey(), handler.getDefaultEnum());
-                } else if (handler.getRawClass() == Double.class | handler.getRawClass() == double.class) {
-                    return this.primitiveStorage.get(handler.getKey(), handler.getDefaultDouble());
-                } else {
-                    throw new StorageException("Invalid datatype: " + handler.getRawClass());
-                }
-
-            } else {
-                return handler.read();
-            }
-
+        if (m.getName().equals("toString")) {
+            return toString();
         } else {
-            if (handler.isPrimitive()) {
+            final MethodHandler handler = this.getterMap.get(m);
+            if (handler.isGetter()) {
+                if (handler.isPrimitive()) {
+                    if (handler.getRawClass() == Boolean.class || handler.getRawClass() == boolean.class) {
+                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultBoolean());
+                    } else if (handler.getRawClass() == Long.class || handler.getRawClass() == long.class) {
+                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultLong());
+                    } else if (handler.getRawClass() == Integer.class || handler.getRawClass() == int.class) {
+                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultInteger());
+                    } else if (handler.getRawClass() == Float.class || handler.getRawClass() == float.class) {
+                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultFloat());
+                    } else if (handler.getRawClass() == Byte.class || handler.getRawClass() == byte.class) {
+                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultByte());
+                    } else if (handler.getRawClass() == String.class) {
+                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultString());
+                        // } else if (handler.getRawClass() == String[].class) {
+                        // return this.primitiveStorage.get(handler.getKey(),
+                        // handler.getDefaultStringArray());
+                    } else if (handler.getRawClass().isEnum()) {
+                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultEnum());
+                    } else if (handler.getRawClass() == Double.class | handler.getRawClass() == double.class) {
+                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultDouble());
+                    } else {
+                        throw new StorageException("Invalid datatype: " + handler.getRawClass());
+                    }
 
-                if (handler.getRawClass() == Boolean.class || handler.getRawClass() == boolean.class) {
-                    this.primitiveStorage.put(handler.getKey(), (Boolean) parameter[0]);
-                } else if (handler.getRawClass() == Long.class || handler.getRawClass() == long.class) {
-                    this.primitiveStorage.put(handler.getKey(), (Long) parameter[0]);
-                } else if (handler.getRawClass() == Integer.class || handler.getRawClass() == int.class) {
-                    this.primitiveStorage.put(handler.getKey(), (Integer) parameter[0]);
-                } else if (handler.getRawClass() == Float.class || handler.getRawClass() == float.class) {
-                    this.primitiveStorage.put(handler.getKey(), (Float) parameter[0]);
-                } else if (handler.getRawClass() == Byte.class || handler.getRawClass() == byte.class) {
-                    this.primitiveStorage.put(handler.getKey(), (Byte) parameter[0]);
-                } else if (handler.getRawClass() == String.class) {
-                    this.primitiveStorage.put(handler.getKey(), (String) parameter[0]);
-                } else if (handler.getRawClass().isEnum()) {
-                    this.primitiveStorage.put(handler.getKey(), (Enum<?>) parameter[0]);
-                } else if (handler.getRawClass() == Double.class || handler.getRawClass() == double.class) {
-                    this.primitiveStorage.put(handler.getKey(), (Double) parameter[0]);
                 } else {
-                    throw new StorageException("Invalid datatype: " + handler.getRawClass());
+                    return handler.read();
                 }
 
-                return null;
             } else {
-                handler.write(parameter[0]);
-                return null;
+                if (handler.isPrimitive()) {
+
+                    if (handler.getRawClass() == Boolean.class || handler.getRawClass() == boolean.class) {
+                        this.primitiveStorage.put(handler.getKey(), (Boolean) parameter[0]);
+                    } else if (handler.getRawClass() == Long.class || handler.getRawClass() == long.class) {
+                        this.primitiveStorage.put(handler.getKey(), (Long) parameter[0]);
+                    } else if (handler.getRawClass() == Integer.class || handler.getRawClass() == int.class) {
+                        this.primitiveStorage.put(handler.getKey(), (Integer) parameter[0]);
+                    } else if (handler.getRawClass() == Float.class || handler.getRawClass() == float.class) {
+                        this.primitiveStorage.put(handler.getKey(), (Float) parameter[0]);
+                    } else if (handler.getRawClass() == Byte.class || handler.getRawClass() == byte.class) {
+                        this.primitiveStorage.put(handler.getKey(), (Byte) parameter[0]);
+                    } else if (handler.getRawClass() == String.class) {
+                        this.primitiveStorage.put(handler.getKey(), (String) parameter[0]);
+                        // } else if (handler.getRawClass() == String[].class) {
+                        // this.primitiveStorage.put(handler.getKey(),
+                        // (String[]) parameter);
+                    } else if (handler.getRawClass().isEnum()) {
+                        this.primitiveStorage.put(handler.getKey(), (Enum<?>) parameter[0]);
+                    } else if (handler.getRawClass() == Double.class || handler.getRawClass() == double.class) {
+                        this.primitiveStorage.put(handler.getKey(), (Double) parameter[0]);
+                    } else {
+                        throw new StorageException("Invalid datatype: " + handler.getRawClass());
+                    }
+
+                    return null;
+                } else {
+                    handler.write(parameter[0]);
+                    return null;
+                }
             }
         }
 
@@ -200,4 +203,25 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
         }
     }
+
+    @Override
+    public String toString() {
+        final HashMap<String, Object> ret = new HashMap<String, Object>();
+        for (final MethodHandler h : this.getterMap.values()) {
+            try {
+                ret.put(h.getKey(), this.invoke(null, h.getMethod(), new Object[] {}));
+            } catch (final Throwable e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                ret.put(h.getKey(), e.getMessage());
+            }
+        }
+        return JSonStorage.toString(ret);
+    }
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
+     * java.lang.reflect.Method, java.lang.Object[])
+     */
 }
