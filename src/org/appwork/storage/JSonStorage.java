@@ -312,7 +312,7 @@ public class JSonStorage {
             try {
                 return JSonStorage.MAPPER.readValue(string, class1);
             } catch (final Exception e) {
-                throw new StorageException(e);
+                throw new StorageException(string, e);
             } finally {
 
             }
