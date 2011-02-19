@@ -1,8 +1,11 @@
 package org.appwork.utils.net;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -39,10 +42,51 @@ public class SimpleHTTP {
         requestHeader.clear();
     }
 
+    /**
+     * @param url
+     * @param progress
+     * @param file
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    public void download(final URL url, final DownloadProgress progress, final File file) throws IOException, InterruptedException {
+        BufferedOutputStream out = null;
+        try {
+            out = new BufferedOutputStream(new FileOutputStream(file));
+            download(url, progress, 0, out);
+        } finally {
+            try {
+                out.close();
+            } catch (final Throwable t) {
+            }
+        }
+    }
+
     public byte[] download(final URL url, final DownloadProgress progress, final long maxSize) throws IOException, InterruptedException {
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        download(url, progress, maxSize, baos);
+        try {
+            baos.close();
+        } catch (final Throwable t) {
+        }
+        return baos.toByteArray();
+    }
+
+    /**
+     * 
+     * Please do not forget to close the output stream.
+     * 
+     * @param url
+     * @param progress
+     * @param maxSize
+     * @param baos
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public void download(final URL url, final DownloadProgress progress, final long maxSize, final OutputStream baos) throws IOException, InterruptedException {
         BufferedInputStream input = null;
         GZIPInputStream gzi = null;
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
 
             connection = (HttpURLConnection) url.openConnection();
@@ -73,11 +117,13 @@ public class SimpleHTTP {
             }
             final byte[] b = new byte[32767];
             int len;
+            long loaded = 0;
             while ((len = input.read(b)) != -1) {
                 if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
                 if (len > 0) {
                     baos.write(b, 0, len);
-                    if (maxSize > 0 && baos.size() > maxSize) { throw new IOException("Max size exeeded!"); }
+                    loaded += len;
+                    if (maxSize > 0 && loaded > maxSize) { throw new IOException("Max size exeeded!"); }
                 }
                 if (progress != null) {
                     progress.increaseLoaded(len);
@@ -98,7 +144,6 @@ public class SimpleHTTP {
             }
 
         }
-        return baos.toByteArray();
     }
 
     public HttpURLConnection getConnection() {
@@ -177,6 +222,13 @@ public class SimpleHTTP {
 
     public int getReadTimeout() {
         return readTimeout;
+    }
+
+    /**
+     * @return
+     */
+    public HashMap<String, String> getRequestHeader() {
+        return requestHeader;
     }
 
     public String getRequestHeader(final String key) {
