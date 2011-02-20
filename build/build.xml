@@ -11,13 +11,13 @@
 
 	<target name="jar">
 		<manifest file="Manifest.MF">
-			<attribute name="Created-By" value="AppWork UG (haftungsbeschränkt)" />
+			<attribute name="Created-By" value="AppWork GmbH" />
 		</manifest>
 
 		<mkdir dir="${dist}" />
 		<jar jarfile="${dist}/appworkutils.jar" manifest="Manifest.MF">
 			<fileset dir="${cls}">
-				<include name="**/*.class" />
+				<include name="**/**" />
 			</fileset>
 		</jar>
 		<delete file="Manifest.MF" failonerror="false" />
