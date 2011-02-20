@@ -67,7 +67,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     public Object invoke(final Object arg0, final Method m, final Object[] parameter) throws Throwable {
         if (m.getName().equals("toString")) {
-            return toString();
+            return this.toString();
         } else {
             final MethodHandler handler = this.getterMap.get(m);
             if (handler.isGetter()) {
@@ -208,12 +208,13 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     public String toString() {
         final HashMap<String, Object> ret = new HashMap<String, Object>();
         for (final MethodHandler h : this.getterMap.values()) {
-            try {
-                ret.put(h.getKey(), this.invoke(null, h.getMethod(), new Object[] {}));
-            } catch (final Throwable e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                ret.put(h.getKey(), e.getMessage());
+            if (h.getType() == MethodHandler.Type.GETTER) {
+                try {
+                    ret.put(h.getKey(), this.invoke(null, h.getMethod(), new Object[] {}));
+                } catch (final Throwable e) {
+                    e.printStackTrace();
+                    ret.put(h.getKey(), e.getMessage());
+                }
             }
         }
         return JSonStorage.toString(ret);

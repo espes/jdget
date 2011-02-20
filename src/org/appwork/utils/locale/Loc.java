@@ -12,10 +12,18 @@ package org.appwork.utils.locale;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storage;
@@ -32,35 +40,31 @@ public class Loc {
      * The directory, where all localization files are located. A_ because this
      * the order is important.
      */
-    public static final File                A_LOCALIZATION_DIR   = Application.getResource("languages/");
+    // public static final File A_LOCALIZATION_DIR =
+    // Application.getResource("languages/");
 
-    public static final Storage             CFG                  = JSonStorage.getStorage("Locale");
+    public static final Storage             CFG             = JSonStorage.getStorage("Locale");
     /**
      * The HashMap which contains all hashcodes of the keys and their translated
      * values.
      * 
      * @see Loc#parseLocalization(RFSFile)
      */
-    private static HashMap<Integer, String> DATA                 = null;
+    private static HashMap<Integer, String> DATA            = null;
 
     private static String                   DEFAULT_LOCALE_CACHE;
 
     /**
-     * The default localization file. This is the english language.
-     */
-    private static final File               DEFAULT_LOCALIZATION = new File(Loc.A_LOCALIZATION_DIR, Loc.getDefaultLocale() + ".loc");
-
-    /**
      * The name of the default localization file. This is the english language.
      */
-    private static final String             FALLBACK_LOCALE      = "en_GB";
+    private static final String             FALLBACK_LOCALE = "en_GB";
 
     private static String                   locale;
 
     /**
      * The key (String) under which the saved localization-name is stored.
      */
-    public static final String              PROPERTY_LOCALE      = "PROPERTY_LOCALE2";
+    public static final String              PROPERTY_LOCALE = "PROPERTY_LOCALE2";
 
     public static String _(final Translate t) {
         return t.s();
@@ -146,7 +150,12 @@ public class Loc {
      * @return
      */
     public static String[] getLocales() {
-        final String[] files = Loc.A_LOCALIZATION_DIR.list(new FilenameFilter() {
+        final ArrayList<String> ret = new ArrayList<String>();
+
+        // first look out for all translations in filesystem
+        String[] files;
+
+        files = Application.getResource("languages/").list(new FilenameFilter() {
 
             public boolean accept(final File dir, final String name) {
                 return name.endsWith(".loc");
@@ -154,11 +163,76 @@ public class Loc {
             }
 
         });
-        if (files == null) { return new String[] {}; }
-        for (int i = 0; i < files.length; i++) {
-            files[i] = files[i].replace(".loc", "");
+
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                ret.add(files[i].substring(0, files[i].length() - 4));
+            }
         }
-        return files;
+
+        // Search in jar:
+        try {
+            URL url = Application.getRessourceURL("languages/");
+            if (url != null) {
+                Enumeration<URL> resources;
+
+                resources = Thread.currentThread().getContextClassLoader().getResources("languages/");
+
+                while (resources.hasMoreElements()) {
+
+                    url = resources.nextElement();
+                    if (url.getProtocol().equalsIgnoreCase("jar")) {
+                        final String path = url.getPath();
+                        final int index = path.lastIndexOf('!');
+
+                        final String jarPath = path.substring(0, index);
+                        final String internPath = path.substring(index + 2);
+
+                        final JarInputStream jarFile = new JarInputStream(new FileInputStream(new File(new URL(jarPath).toURI())));
+                        JarEntry e;
+
+                        String jarName;
+                        while ((e = jarFile.getNextJarEntry()) != null) {
+                            jarName = e.getName();
+                            if (jarName.startsWith(internPath) && jarName.endsWith(".loc")) {
+                                String filename = new File(jarName).getName();
+                                filename = filename.substring(0, filename.length() - 4);
+                                ret.remove(filename);
+                                ret.add(filename);
+                            }
+                        }
+                    } else {
+                        files = new File(url.toURI()).list(new FilenameFilter() {
+
+                            public boolean accept(final File dir, final String name) {
+                                return name.endsWith(".loc");
+
+                            }
+
+                        });
+
+                        if (files != null) {
+                            for (int i = 0; i < files.length; i++) {
+                                ret.add(files[i].substring(0, files[i].length() - 4));
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (final Exception e) {
+            Log.exception(e);
+        }
+        return ret.toArray(new String[] {});
+
+    }
+
+    public static URL getResourceURL(final String loc) throws MalformedURLException {
+        final File singleFile = Application.getResource("languages/" + loc + ".loc");
+        URL file = Application.getRessourceURL("languages/" + loc + ".loc");
+        if (singleFile.exists() && singleFile.length() > 0 || file == null) {
+            file = singleFile.toURI().toURL();
+        }
+        return file;
     }
 
     /**
@@ -179,7 +253,7 @@ public class Loc {
      *             if the key is null or is empty
      */
     public static String L(String key, final String def) {
-        if ((key == null) || ((key = key.trim()).length() == 0)) { throw new IllegalArgumentException(); }
+        if (key == null || (key = key.trim()).length() == 0) { throw new IllegalArgumentException(); }
         if (Loc.DATA == null) {
             Log.L.warning("No parsed localization found! Loading now from saved localization file!");
             try {
@@ -234,8 +308,8 @@ public class Loc {
      *             if the parameter is null or doesn't exist
      * @see Loc#DATA
      */
-    public static void parseLocalization(final File file) throws IllegalArgumentException {
-        if ((file == null) || !file.exists()) { throw new IllegalArgumentException(); }
+    public static void parseLocalization(final URL file) throws IllegalArgumentException {
+        if (file == null) { throw new IllegalArgumentException(); }
 
         if (Loc.DATA != null) {
             Log.L.finer("Previous HashMap will be overwritten!");
@@ -244,9 +318,9 @@ public class Loc {
 
         BufferedReader reader = null;
         InputStreamReader isr = null;
-        FileInputStream fis = null;
+        InputStream fis = null;
         try {
-            reader = new BufferedReader(isr = new InputStreamReader(fis = new FileInputStream(file), "UTF8"));
+            reader = new BufferedReader(isr = new InputStreamReader(fis = file.openStream(), "UTF8"));
 
             String line;
             String key;
@@ -267,20 +341,22 @@ public class Loc {
 
                 Loc.DATA.put(key.hashCode(), value);
             }
+        } catch (final FileNotFoundException e) {
+            throw new IllegalArgumentException(e);
         } catch (final Exception e) {
             org.appwork.utils.logging.Log.exception(e);
         } finally {
             try {
                 reader.close();
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
             }
             try {
                 isr.close();
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
             }
             try {
                 fis.close();
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
             }
         }
     }
@@ -298,10 +374,12 @@ public class Loc {
 
                 loc = Loc.CFG.get(Loc.PROPERTY_LOCALE, Loc.getDefaultLocale());
             }
-            final File file = new File(Loc.A_LOCALIZATION_DIR, loc + ".loc");
-            Loc.locale = loc;
-            if ((file != null) && file.exists()) {
+            // first check filesystem
+            final URL file = Loc.getResourceURL(loc);
 
+            Loc.locale = loc;
+            if (file != null) {
+                // TODO
                 final String[] locs = loc.split("_");
                 if (locs.length == 1) {
                     Locale.setDefault(new Locale(locs[0]));
@@ -315,11 +393,10 @@ public class Loc {
                 Loc.locale = Loc.getDefaultLocale();
                 final String[] locs = Loc.locale.split("_");
                 Locale.setDefault(new Locale(locs[0], locs[1]));
-                Loc.parseLocalization(Loc.DEFAULT_LOCALIZATION);
+                Loc.parseLocalization(Loc.getResourceURL(Loc.FALLBACK_LOCALE));
             }
         } catch (final Exception e) {
             org.appwork.utils.logging.Log.exception(e);
         }
     }
-
 }

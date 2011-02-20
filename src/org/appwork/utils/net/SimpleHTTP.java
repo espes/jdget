@@ -63,7 +63,7 @@ public class SimpleHTTP {
                 }
 
                 if (file.length() > 0) {
-                    final IOException ex = new IOException(IO.readFileToString(file), e);
+                    final IOException ex = new HTTPException(this.connection, IO.readFileToString(file), e);
                     file.delete();
                     throw ex;
                 }
@@ -82,7 +82,7 @@ public class SimpleHTTP {
         try {
             this.download(url, progress, maxSize, baos);
         } catch (final IOException e) {
-            if (baos.size() > 0) { throw new IOException(new String(baos.toByteArray()), e); }
+            if (baos.size() > 0) { throw new HTTPException(this.connection, new String(baos.toByteArray()), e); }
         }
         try {
             baos.close();
