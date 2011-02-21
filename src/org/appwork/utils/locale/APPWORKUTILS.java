@@ -16,6 +16,10 @@ import org.appwork.txtresource.TranslationFactory;
  * 
  */
 public class APPWORKUTILS {
-    public static final Translation T = TranslationFactory.create(Translation.class, "en");
+    public static final Translation T = TranslationFactory.create(Translation.class);
+
+    public static void main(final String[] args) {
+        System.out.println(APPWORKUTILS.T.createFile("de"));
+    }
 
 }

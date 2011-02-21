@@ -1,0 +1,227 @@
+{
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Username, Benutzername])
+
+     "AccountNew_layoutDialogContent_accountname" : "Username",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Create new User, Neuen Benutzer anlegen])
+
+     "LOGINDIALOG_BUTTON_REGISTER" : "Create new User",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Select, Markieren])
+
+     "COPYCUTPASTE_SELECT" : "Select",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Visit our Homepage, Besuchen Sie unsere Homepage])
+
+     "Statusbar_Statusbar_visiturl_tooltip" : "Visit our Homepage",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Copy, Kopieren])
+
+     "COPYCUTPASTE_COPY" : "Copy",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Case sensitive, Groß/Kleinschreibung])
+
+     "SEARCHDIALOG_CHECKBOX_CASESENSITIVE" : "Case sensitive",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Please enter!, Bitte eingeben!])
+
+     "DIALOG_PASSWORD_TITLE" : "Please enter!",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Current: %s/s, Aktuell: %s/s])
+
+     "AppWorkUtils_Graph_getSpeedString" : "Current: %s/s",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Cut, Ausschneiden])
+
+     "COPYCUTPASTE_CUT" : "Cut",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Search table, Tabelle durchsuchen])
+
+     "EXTTABLE_SEARCH_DIALOG_TITLE" : "Search table",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Password, Passwort])
+
+     "LOGINDIALOG_LABEL_PASSWORD" : "Password",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Error Occured, Ein Fehler ist aufgetreten])
+
+     "DIALOG_ERROR_TITLE" : "Error Occured",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Move your mouse over interactive buttons to get help here, Bewegen Sie die Maus über Schaltflächen um hier Hilfe zu sehen])
+
+     "Statusbar_Statusbar_tooltip" : "Move your mouse over interactive buttons to get help here",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Switch to list view, Listenansicht])
+
+     "DIALOG_FILECHOOSER_TOOLTIP_LIST" : "Switch to list view",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Command -> -,  Befehl -> -])
+
+     "COMMANDLINEAPP_COMMAND" : "Command -> -",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Please enter!, Bitte eingeben])
+
+     "DIALOG_SLIDER_TITLE" : "Please enter!",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Switch to Home, Zum Benutzerverzeichnis wechseln])
+
+     "DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER" : "Switch to Home",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[This Error is cause by:, Grund für diesen Fehler:])
+
+     "ExceptionDialog_layoutDialogContent_logLabel" : "This Error is cause by:",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Password, Passwort])
+
+     "AccountNew_layoutDialogContent_password" : "Password",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Ok, Ok])
+
+     "ABSTRACTDIALOG_BUTTON_OK" : "Ok",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Switch to parent folder, Einen Ordner nach oben])
+
+     "DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER" : "Switch to parent folder",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[This dialog has a countdown and closes after a few seconds. Click to cancel the countdown, Dieser Dialog hat einen Countdown und schließt sich in einigen Sekunden. Klicken Sie hier um den Countdown abzubrechen.])
+
+     "TIMERDIALOG_TOOLTIP_TIMERLABEL" : "This dialog has a countdown and closes after a few seconds. Click to cancel the countdown",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Enter Logins, Zugangsdaten eingeben])
+
+     "AccountNew_AccountNew_title" : "Enter Logins",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Create new folder, Neuen Ordner erstellen])
+
+     "DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER" : "Create new folder",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Please enter!, Bitte eingeben!])
+
+     "DIALOG_INPUT_TITLE" : "Please enter!",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Error details, Fehlerdetails])
+
+     "ExceptionDialog_layoutDialogContent_more_button" : "Error details",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Please enter your logins here, Bitte geben Sie hier Ihre Zugangsdaten ein])
+
+     "AccountNew_AccountNew_message" : "Please enter your logins here",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Login, Benutzername])
+
+     "LOGINDIALOG_LABEL_USERNAME" : "Login",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Login, Anmelden])
+
+     "LOGINDIALOG_BUTTON_LOGIN" : "Login",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Message, Nachricht])
+
+     "DIALOG_MESSAGE_TITLE" : "Message",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[New Password:, Neues Passwort])
+
+     "PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD" : "New Password:",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Cancel, Abbrechen])
+
+     "ABSTRACTDIALOG_BUTTON_CANCEL" : "Cancel",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Remember, Merken?])
+
+     "AccountNew_layoutDialogContent_save" : "Remember",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Don't show this again, Nicht mehr anzeigen])
+
+     "ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN" : "Don't show this again",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Repeat Password, Passwort wiederholen])
+
+     "LOGINDIALOG_LABEL_PASSWORD_REPEAT" : "Repeat Password",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Find, Suchen])
+
+     "SEARCHDIALOG_BUTTON_FIND" : "Find",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Regular Expressions, Reguläre Ausrücke])
+
+     "SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION" : "Regular Expressions",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Switch to detailed view, Detailansicht])
+
+     "DIALOG_FILECHOOSER_TOOLTIP_DETAILS" : "Switch to detailed view",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Old Password:, Altes Passwort])
+
+     "PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD" : "Old Password:",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Average: %s1/s |, Durchschnitt: %s1/s |])
+
+     "AppWorkUtils_Graph_getAverageSpeedString" : "Average: %s1/s |",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Delete, Löschen])
+
+     "COPYCUTPASTE_DELETE" : "Delete",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Please confirm!, Bitte bestätigen!])
+
+     "DIALOG_CONFIRMDIALOG_TITLE" : "Please confirm!",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Confirm Password:, Passwort bestätigen])
+
+     "PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD_REPEAT" : "Confirm Password:",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Remember, Merken])
+
+     "LOGINDIALOG_CHECKBOX_REMEMBER" : "Remember",
+  
+// Defaultvalue:
+//    @org.appwork.txtresource.Default(lngs=[en, de], values=[Paste, Einfügen])
+
+     "COPYCUTPASTE_PASTE" : "Paste"
+}

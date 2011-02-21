@@ -40,34 +40,21 @@ public class TranslationHandler implements InvocationHandler {
      */
     public TranslationHandler(final Class<? extends TranslateInterface> class1, final String[] lookup) {
         tInterface = class1;
-
         this.lookup = new ArrayList<TranslateResource>();
         cache = new HashMap<Method, String>();
-        TranslateResource res;
-
-        for (final String o : lookup) {
-            try {
-                res = createTranslationResource(o);
-                this.lookup.add(res);
-            } catch (final Throwable e) {
-                Log.exception(Level.WARNING, e);
-            }
-        }
-        try {
-            res = createTranslationResource("en");
-            this.lookup.add(res);
-        } catch (final Throwable e) {
-            Log.exception(Level.WARNING, e);
-        }
+        fillLookup(lookup);
 
     }
 
     /**
+     * @param string
      * @return
      */
-    private String createFile() {
+    private String createFile(final String string) {
 
         final TranslateData map = new TranslateData();
+        cache.clear();
+        fillLookup(string);
         for (final Method m : tInterface.getDeclaredMethods()) {
             try {
                 map.put(m.getName(), invoke(null, m, null).toString());
@@ -133,6 +120,29 @@ public class TranslationHandler implements InvocationHandler {
     }
 
     /**
+     * @param lookup2
+     */
+    private void fillLookup(final String... lookup) {
+        this.lookup.clear();
+        TranslateResource res;
+
+        for (final String o : lookup) {
+            try {
+                res = createTranslationResource(o);
+                this.lookup.add(res);
+            } catch (final Throwable e) {
+                Log.exception(Level.WARNING, e);
+            }
+        }
+        try {
+            res = createTranslationResource("en");
+            this.lookup.add(res);
+        } catch (final Throwable e) {
+            Log.exception(Level.WARNING, e);
+        }
+    }
+
+    /**
      * @param ret
      * @param args
      * @return
@@ -156,7 +166,7 @@ public class TranslationHandler implements InvocationHandler {
      */
     @Override
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-        if (method.getName().equals("createFile")) { return createFile(); }
+        if (method.getName().equals("createFile")) { return createFile(args[0] + ""); }
         String ret = cache.get(method);
         if (ret == null) {
             TranslateResource res;

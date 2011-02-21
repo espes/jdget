@@ -10,12 +10,14 @@
 package org.appwork.utils.locale;
 
 import org.appwork.txtresource.Default;
+import org.appwork.txtresource.Defaults;
 import org.appwork.txtresource.TranslateInterface;
 
 /**
  * @author thomas
  * 
  */
+@Defaults(lngs = { "en", "de" })
 public interface Translation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "Cancel", "Abbrechen" })

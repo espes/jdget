@@ -14,5 +14,5 @@ package org.appwork.txtresource;
  * 
  */
 public interface TranslateInterface {
-    public String createFile();
+    public String createFile(String lng);
 }
