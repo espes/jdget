@@ -61,8 +61,8 @@ public class Application {
         try {
             final String version = System.getProperty("java.version");
             String v = new Regex(version, "^(\\d+\\.\\d+\\.\\d+)").getMatch(0);
-            String u = new Regex(version, "^.*?_(\\d+)").getMatch(0);
-            String b = new Regex(version, "^.*?_b(\\d+)").getMatch(0);
+            final String u = new Regex(version, "^.*?_(\\d+)").getMatch(0);
+            final String b = new Regex(version, "^.*?_b(\\d+)").getMatch(0);
             v = v.replaceAll("\\.", "");
             /* 170uubbb */
             /* eg 1.6 = 16000000 */
@@ -94,15 +94,44 @@ public class Application {
     }
 
     /**
+     * returns the url for the resource. if The resource can be found in
+     * classpath, it will be returned. otherwise the function will return the
+     * fileurl to current wprkingdirectory
+     * 
      * @param string
      * @return
      */
     public static URL getRessourceURL(final String relative) {
-        final URL res = Application.class.getClassLoader().getResource(relative);
-        if (res != null) { return res; }
+        return Application.getRessourceURL(relative, true);
+    }
 
+    /**
+     * Returns the Resource url for relative. depending on the preferClasspath
+     * parameter, the lookup order first checks classpath (jars/bin folders) and
+     * then local filesystem or first fs, then cp. may return null if resource
+     * does not exist in cp and fs
+     * 
+     * @param string
+     * @param b
+     */
+    public static URL getRessourceURL(final String relative, final boolean preferClasspath) {
         try {
-            return new File(Application.getRoot(), relative).toURI().toURL();
+            if (preferClasspath) {
+
+                final URL res = Application.class.getClassLoader().getResource(relative);
+                if (res != null) { return res; }
+                final File file = new File(Application.getRoot(), relative);
+                if (!file.exists()) { return null; }
+                return file.toURI().toURL();
+
+            } else {
+                final File file = new File(Application.getRoot(), relative);
+                if (file.exists()) { return file.toURI().toURL(); }
+
+                final URL res = Application.class.getClassLoader().getResource(relative);
+                if (res != null) { return res; }
+
+            }
         } catch (final MalformedURLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
