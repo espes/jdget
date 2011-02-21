@@ -38,6 +38,10 @@ public abstract class QueueAction<T, E extends Throwable> {
         this.prio = prio;
     }
 
+    protected boolean allowAsync() {
+        return false;
+    }
+
     /**
      * @param e
      * @return

@@ -41,15 +41,15 @@ public abstract class Queue extends Thread {
 
     public Queue(final String id) {
         super(id);
-        QUEUELOOPPREVENTION.incrementAndGet();
+        Queue.QUEUELOOPPREVENTION.incrementAndGet();
         /* init queue */
-        prios = QueuePriority.values();
-        for (final QueuePriority prio : prios) {
-            queue.put(prio, new ArrayList<QueueAction<?, ? extends Throwable>>());
+        this.prios = QueuePriority.values();
+        for (final QueuePriority prio : this.prios) {
+            this.queue.put(prio, new ArrayList<QueueAction<?, ? extends Throwable>>());
         }
         /* jvm should not wait for waiting queues */
-        setDaemon(true);
-        start();
+        this.setDaemon(true);
+        this.start();
     }
 
     /**
@@ -68,14 +68,14 @@ public abstract class Queue extends Thread {
         /* set calling Thread to current item */
         action.reset();
         action.setCallerThread(this, Thread.currentThread());
-        if (isQueueThread(action)) {
+        if (this.isQueueThread(action)) {
             /*
              * call comes from current running item, so lets start item
              */
             this.startItem(action, false);
         } else {
             /* call does not come from current running item, so lets queue it */
-            internalAdd(action);
+            this.internalAdd(action);
         }
     }
 
@@ -90,14 +90,13 @@ public abstract class Queue extends Thread {
      */
     public <E, T extends Throwable> void addAsynch(final QueueAction<?, T> action) {
         /* set calling Thread to current item */
-        if (isQueueThread(action)) {
+        if (action.allowAsync() == false && this.isQueueThread(action)) {
             throw new RuntimeException("called addAsynch from the queue itself");
         } else {
             action.reset();
             action.setCallerThread(this, Thread.currentThread());
-            internalAdd(action);
+            this.internalAdd(action);
         }
-
     }
 
     @SuppressWarnings("unchecked")
@@ -105,7 +104,7 @@ public abstract class Queue extends Thread {
         /* set calling Thread to current item */
         item.reset();
         item.setCallerThread(this, Thread.currentThread());
-        if (isQueueThread(item)) {
+        if (this.isQueueThread(item)) {
             /*
              * call comes from current running item, so lets start item
              * excaption handling is passed to top item. startItem throws an
@@ -114,7 +113,7 @@ public abstract class Queue extends Thread {
             this.startItem(item, false);
         } else {
             /* call does not come from current running item, so lets queue it */
-            internalAdd(item);
+            this.internalAdd(item);
             /* wait till item is finished */
             try {
                 while (!item.isFinished()) {
@@ -154,21 +153,21 @@ public abstract class Queue extends Thread {
         /* set calling Thread to current item */
         action.reset();
         action.setCallerThread(this, Thread.currentThread());
-        internalAdd(action);
+        this.internalAdd(action);
     }
 
     protected QueueAction<?, ? extends Throwable> getLastHistoryItem() {
-        synchronized (queueThreadHistory) {
-            if (queueThreadHistory.size() == 0) { return null; }
-            return queueThreadHistory.get(queueThreadHistory.size() - 1);
+        synchronized (this.queueThreadHistory) {
+            if (this.queueThreadHistory.size() == 0) { return null; }
+            return this.queueThreadHistory.get(this.queueThreadHistory.size() - 1);
         }
     }
 
     /* returns size of queue with given priority */
     public long getQueueSize(final QueuePriority prio) {
         if (prio == null) { return -1; }
-        synchronized (queueLock) {
-            final ArrayList<QueueAction<?, ? extends Throwable>> ret = queue.get(prio);
+        synchronized (this.queueLock) {
+            final ArrayList<QueueAction<?, ? extends Throwable>> ret = this.queue.get(prio);
             if (ret == null) { return -1; }
             return ret.size();
         }
@@ -183,13 +182,13 @@ public abstract class Queue extends Thread {
     }
 
     public void internalAdd(final QueueAction<?, ?> action) {
-        synchronized (queueLock) {
-            queue.get(action.getQueuePrio()).add(action);
+        synchronized (this.queueLock) {
+            this.queue.get(action.getQueuePrio()).add(action);
         }
         synchronized (this) {
-            if (waitFlag) {
-                waitFlag = false;
-                notify();
+            if (this.waitFlag) {
+                this.waitFlag = false;
+                this.notify();
             }
         }
     }
@@ -200,13 +199,13 @@ public abstract class Queue extends Thread {
      * @return
      */
     public boolean isDebug() {
-        return debugFlag;
+        return this.debugFlag;
     }
 
     public boolean isEmpty() {
-        synchronized (queueLock) {
-            for (final QueuePriority prio : prios) {
-                if (!queue.get(prio).isEmpty()) { return false; }
+        synchronized (this.queueLock) {
+            for (final QueuePriority prio : this.prios) {
+                if (!this.queue.get(prio).isEmpty()) { return false; }
             }
             return true;
         }
@@ -218,7 +217,7 @@ public abstract class Queue extends Thread {
      * QueueItem
      */
     public boolean isQueueThread(final QueueAction<?, ? extends Throwable> item) {
-        if (Thread.currentThread() == thread) { return true; }
+        if (Thread.currentThread() == this.thread) { return true; }
         QueueAction<?, ? extends Throwable> last = item;
         Thread t = null;
         /*
@@ -228,20 +227,20 @@ public abstract class Queue extends Thread {
         int loopprevention = 0;
         while (last != null && (t = last.getCallerThread()) != null) {
             if (t != null && t instanceof Queue) {
-                if (t == thread) {
-                    if (debugFlag) {
+                if (t == this.thread) {
+                    if (this.debugFlag) {
                         org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! " + item);
                     }
                     return true;
                 }
                 last = ((Queue) t).getLastHistoryItem();
-                if (loopprevention > QUEUELOOPPREVENTION.get()) {
+                if (loopprevention > Queue.QUEUELOOPPREVENTION.get()) {
                     /*
                      * loop prevention: while can only loop max
                      * QUEUELOOPPREVENTION times, cause no more different queues
                      * exist
                      */
-                    if (debugFlag) {
+                    if (this.debugFlag) {
                         org.appwork.utils.logging.Log.L.warning("QueueLoopPrevention!");
                     }
                     break;
@@ -255,13 +254,13 @@ public abstract class Queue extends Thread {
     }
 
     public boolean isWaiting() {
-        return waitFlag;
+        return this.waitFlag;
     }
 
     public void killQueue() {
-        synchronized (queueLock) {
-            for (final QueuePriority prio : prios) {
-                for (final QueueAction<?, ? extends Throwable> item : queue.get(prio)) {
+        synchronized (this.queueLock) {
+            for (final QueuePriority prio : this.prios) {
+                for (final QueueAction<?, ? extends Throwable> item : this.queue.get(prio)) {
                     /* kill item */
                     item.kill();
                     synchronized (item) {
@@ -269,7 +268,7 @@ public abstract class Queue extends Thread {
                     }
                 }
                 /* clear queue */
-                queue.get(prio).clear();
+                this.queue.get(prio).clear();
             }
 
         }
@@ -277,14 +276,14 @@ public abstract class Queue extends Thread {
 
     @Override
     public void run() {
-        if (thread != null) { return; }
-        thread = this;
+        if (this.thread != null) { return; }
+        this.thread = this;
         QueueAction<?, ? extends Throwable> item = null;
         while (true) {
             try {
-                handlePreRun();
+                this.handlePreRun();
                 synchronized (this) {
-                    while (waitFlag) {
+                    while (this.waitFlag) {
                         try {
                             this.wait();
                         } catch (final Exception e) {
@@ -292,19 +291,19 @@ public abstract class Queue extends Thread {
                         }
                     }
                 }
-                synchronized (queueLock) {
+                synchronized (this.queueLock) {
                     item = null;
-                    for (final QueuePriority prio : prios) {
-                        if (queue.get(prio).size() > 0) {
-                            item = queue.get(prio).remove(0);
+                    for (final QueuePriority prio : this.prios) {
+                        if (this.queue.get(prio).size() > 0) {
+                            item = this.queue.get(prio).remove(0);
                             break;
                         }
                     }
                     if (item == null) {
-                        waitFlag = true;
+                        this.waitFlag = true;
                     }
                 }
-                if (item == null || waitFlag) {
+                if (item == null || this.waitFlag) {
                     continue;
                 }
                 try {
@@ -325,16 +324,16 @@ public abstract class Queue extends Thread {
      * @param b
      */
     public void setDebug(final boolean b) {
-        debugFlag = b;
+        this.debugFlag = b;
     }
 
     /* if you override this, DON'T forget to notify item when its done! */
     @SuppressWarnings("unchecked")
     protected <T extends Throwable> void startItem(final QueueAction<?, T> item, final boolean callExceptionhandler) throws T {
         try {
-            if (thread != item.getCallerThread()) {
-                synchronized (queueThreadHistory) {
-                    queueThreadHistory.add(item);
+            if (this.thread != item.getCallerThread()) {
+                synchronized (this.queueThreadHistory) {
+                    this.queueThreadHistory.add(item);
                 }
             }
             item.start(this);
@@ -348,10 +347,10 @@ public abstract class Queue extends Thread {
             }
         } finally {
             item.setFinished(true);
-            if (thread != item.getCallerThread()) {
-                synchronized (queueThreadHistory) {
-                    if (queueThreadHistory.size() != 0) {
-                        queueThreadHistory.remove(queueThreadHistory.size() - 1);
+            if (this.thread != item.getCallerThread()) {
+                synchronized (this.queueThreadHistory) {
+                    if (this.queueThreadHistory.size() != 0) {
+                        this.queueThreadHistory.remove(this.queueThreadHistory.size() - 1);
                     }
                 }
             }
