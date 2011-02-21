@@ -15,7 +15,7 @@ package org.appwork.utils.net.ftpserver;
  */
 public class FtpFile {
 
-    private final String  name;
+    protected String      name;
     private final long    size;
     private final long    lastModified;
     private final boolean isDirectory;
