@@ -30,7 +30,7 @@ public class CopyAction extends AbstractAction {
     private final JTextComponent text;
 
     public CopyAction(final JTextComponent c) {
-        super(APPWORKUTILS.COPYCUTPASTE_COPY.s());
+        super(APPWORKUTILS.T.COPYCUTPASTE_COPY());
         text = c;
 
         try {

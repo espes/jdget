@@ -41,10 +41,10 @@ public class SearchDialog extends AbstractDialog<String> implements KeyListener,
     private final JCheckBox   regularExpression;
 
     public SearchDialog(final int flag, final String title, final String message) {
-        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32), APPWORKUTILS.SEARCHDIALOG_BUTTON_FIND.s(), null);
+        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, ImageProvider.getImageIcon("find", 32, 32), APPWORKUTILS.T.SEARCHDIALOG_BUTTON_FIND(), null);
 
-        this.caseSensitive = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_CASESENSITIVE.s());
-        this.regularExpression = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.s());
+        this.caseSensitive = new JCheckBox(APPWORKUTILS.T.SEARCHDIALOG_CHECKBOX_CASESENSITIVE());
+        this.regularExpression = new JCheckBox(APPWORKUTILS.T.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION());
 
         this.caseSensitive.setSelected(JSonStorage.getStorage("SearchDialog").get("caseSensitive", false));
 

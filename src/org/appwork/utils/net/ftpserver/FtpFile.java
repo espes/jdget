@@ -30,36 +30,36 @@ public class FtpFile {
      */
     public FtpFile(final String name, final long length, final boolean directory, final long lastMod) {
         this.name = name;
-        this.size = length;
-        this.isDirectory = directory;
-        this.lastModified = lastMod;
+        size = length;
+        isDirectory = directory;
+        lastModified = lastMod;
     }
 
     /**
      * @return the group
      */
     public String getGroup() {
-        return this.group;
+        return group;
     }
 
     public long getLastModified() {
-        return this.lastModified;
+        return lastModified;
     }
 
     public String getName() {
-        return this.name;
+        return name;
     }
 
     public String getOwner() {
-        return this.owner;
+        return owner;
     }
 
     public long getSize() {
-        return this.size;
+        return size;
     }
 
     public boolean isDirectory() {
-        return this.isDirectory;
+        return isDirectory;
     }
 
     /**

@@ -111,8 +111,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.flagMask = flag;
 
         this.icon = BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON) ? null : icon;
-        this.okOption = okOption == null ? APPWORKUTILS.ABSTRACTDIALOG_BUTTON_OK.s() : okOption;
-        this.cancelOption = cancelOption == null ? APPWORKUTILS.ABSTRACTDIALOG_BUTTON_CANCEL.s() : cancelOption;
+        this.okOption = okOption == null ? APPWORKUTILS.T.ABSTRACTDIALOG_BUTTON_OK() : okOption;
+        this.cancelOption = cancelOption == null ? APPWORKUTILS.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
     }
 
     /**
@@ -193,7 +193,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         // add the countdown timer
         getDialog().add(timerLbl, "split 3,growx,hidemode 2");
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-            this.dontshowagain = new JCheckBox(APPWORKUTILS.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN.s());
+            this.dontshowagain = new JCheckBox(APPWORKUTILS.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
             this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
             this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
 

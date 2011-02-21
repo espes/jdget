@@ -27,7 +27,7 @@ public class DeleteAction extends AbstractAction {
     private final JTextComponent text;
 
     public DeleteAction(final JTextComponent c) {
-        super(APPWORKUTILS.COPYCUTPASTE_DELETE.s());
+        super(APPWORKUTILS.T.COPYCUTPASTE_DELETE());
         text = c;
 
         try {

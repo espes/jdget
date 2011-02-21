@@ -81,7 +81,7 @@ public class Statusbar extends JMenuBar {
         try {
             help = new JLabel(ImageProvider.getImageIcon("info", 16, 16, true));
 
-            help.setToolTipText(APPWORKUTILS.Statusbar_Statusbar_tooltip.s());
+            help.setToolTipText(APPWORKUTILS.T.Statusbar_Statusbar_visiturl_tooltip());
             this.add(help);
         } catch (final IOException e2) {
 
@@ -117,7 +117,7 @@ public class Statusbar extends JMenuBar {
             });
             urlLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             urlLabel.setForeground(Color.GRAY);
-            urlLabel.setToolTipText(APPWORKUTILS.Statusbar_Statusbar_visiturl_tooltip.s());
+            urlLabel.setToolTipText(APPWORKUTILS.T.Statusbar_Statusbar_visiturl_tooltip());
             urlLabel.setIcon(ImageProvider.getImageIcon("appicon", 16, 16, true));
             urlLabel.setHorizontalTextPosition(SwingConstants.LEFT);
             urlLabel.addMouseListener(new MouseAdapter() {

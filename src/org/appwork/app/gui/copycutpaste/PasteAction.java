@@ -31,7 +31,7 @@ public class PasteAction extends AbstractAction {
     private final JTextComponent text;
 
     public PasteAction(final JTextComponent c) {
-        super(APPWORKUTILS.COPYCUTPASTE_PASTE.s());
+        super(APPWORKUTILS.T.COPYCUTPASTE_PASTE());
         text = c;
 
         try {

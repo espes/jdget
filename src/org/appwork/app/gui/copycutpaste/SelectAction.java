@@ -30,7 +30,7 @@ public class SelectAction extends AbstractAction {
     private final JTextComponent text;
 
     public SelectAction(final JTextComponent c) {
-        super(APPWORKUTILS.COPYCUTPASTE_SELECT.s());
+        super(APPWORKUTILS.T.COPYCUTPASTE_SELECT());
         text = c;
 
         try {

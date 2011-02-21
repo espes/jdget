@@ -56,13 +56,13 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
     private final JButton okButton;
 
     public SearchDialog(int flag, final ExtTable<?> owner) throws IOException {
-        super(Dialog.getInstance().getParentWindow(), APPWORKUTILS.EXTTABLE_SEARCH_DIALOG_TITLE.s());
+        super(Dialog.getInstance().getParentWindow(), APPWORKUTILS.T.EXTTABLE_SEARCH_DIALOG_TITLE());
 
         this.owner = owner;
         this.owner.addFocusListener(this);
 
-        this.caseSensitive = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_CASESENSITIVE.s());
-        this.regularExpression = new JCheckBox(APPWORKUTILS.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION.s());
+        this.caseSensitive = new JCheckBox(APPWORKUTILS.T.SEARCHDIALOG_CHECKBOX_CASESENSITIVE());
+        this.regularExpression = new JCheckBox(APPWORKUTILS.T.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION());
         try {
             caseSensitive.setSelected(JSonStorage.getStorage("SearchDialog_" + owner.getTableID()).get("caseSensitive", false));
             regularExpression.setSelected(JSonStorage.getStorage("SearchDialog_" + owner.getTableID()).get("regularExpression", false));
@@ -88,7 +88,7 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         this.addWindowListener(this);
-        okButton = new JButton(APPWORKUTILS.SEARCHDIALOG_BUTTON_FIND.s());
+        okButton = new JButton(APPWORKUTILS.T.SEARCHDIALOG_BUTTON_FIND());
         okButton.addActionListener(this);
 
         add(new JLabel(ImageProvider.getImageIcon("find", 32, 32, true)), "alignx left,aligny center,shrinkx,gapright 10,spany");

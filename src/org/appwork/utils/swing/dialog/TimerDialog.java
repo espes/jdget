@@ -36,7 +36,7 @@ public abstract class TimerDialog {
         private static final long serialVersionUID = 1L;
 
         public InternDialog() {
-            super(TimerDialog.this.parentFrame, ModalityType.TOOLKIT_MODAL);
+            super(parentFrame, ModalityType.TOOLKIT_MODAL);
 
         }
 
@@ -87,7 +87,7 @@ public abstract class TimerDialog {
 
     public TimerDialog(final Window parentframe) {
         // super(parentframe, ModalityType.TOOLKIT_MODAL);
-        this.parentFrame = parentframe;
+        parentFrame = parentframe;
         if (this.parentFrame == null) {
             Log.exception(new NullPointerException("window == null"));
         }
@@ -97,10 +97,10 @@ public abstract class TimerDialog {
      * interrupts the timer countdown
      */
     public void cancel() {
-        if (this.timer != null) {
-            this.timer.interrupt();
-            this.timer = null;
-            this.timerLbl.setEnabled(false);
+        if (timer != null) {
+            timer.interrupt();
+            timer = null;
+            timerLbl.setEnabled(false);
         }
     }
 
@@ -108,7 +108,7 @@ public abstract class TimerDialog {
      * 
      */
     protected void dispose() {
-        this.getDialog().realDispose();
+        getDialog().realDispose();
 
     }
 
@@ -117,12 +117,12 @@ public abstract class TimerDialog {
      */
     protected Color getBackground() {
         // TODO Auto-generated method stub
-        return this.getDialog().getBackground();
+        return getDialog().getBackground();
     }
 
     protected InternDialog getDialog() {
-        if (this.dialog == null) { throw new NullPointerException("Call #org.appwork.utils.swing.dialog.AbstractDialog.displayDialog() first"); }
-        return this.dialog;
+        if (dialog == null) { throw new NullPointerException("Call #org.appwork.utils.swing.dialog.AbstractDialog.displayDialog() first"); }
+        return dialog;
     }
 
     /**
@@ -139,9 +139,9 @@ public abstract class TimerDialog {
      * @return
      */
     public Dimension getPreferredSize() {
-        final Dimension pref = this.getDialog().getRealPreferredSize();
-        int w = this.getPreferredWidth();
-        int h = this.getPreferredHeight();
+        final Dimension pref = getDialog().getRealPreferredSize();
+        int w = getPreferredWidth();
+        int h = getPreferredHeight();
         if (w <= 0) {
             w = pref.width;
         }
@@ -171,8 +171,8 @@ public abstract class TimerDialog {
     }
 
     protected void initTimer(final int time) {
-        this.counter = time;
-        this.timer = new Thread() {
+        counter = time;
+        timer = new Thread() {
 
             @Override
             public void run() {
@@ -185,17 +185,17 @@ public abstract class TimerDialog {
                             break;
                         }
                     }
-                    int count = TimerDialog.this.counter;
+                    int count = counter;
                     while (--count >= 0) {
                         if (!TimerDialog.this.isVisible()) { return; }
-                        if (TimerDialog.this.timer == null) { return; }
+                        if (timer == null) { return; }
                         final String left = TimeFormatter.formatSeconds(count, 0);
 
                         new EDTHelper<Object>() {
 
                             @Override
                             public Object edtRun() {
-                                TimerDialog.this.timerLbl.setText(left);
+                                timerLbl.setText(left);
                                 return null;
                             }
 
@@ -203,12 +203,12 @@ public abstract class TimerDialog {
 
                         Thread.sleep(1000);
 
-                        if (TimerDialog.this.counter < 0) { return; }
+                        if (counter < 0) { return; }
                         if (!TimerDialog.this.isVisible()) { return; }
 
                     }
-                    if (TimerDialog.this.counter < 0) { return; }
-                    if (!this.isInterrupted()) {
+                    if (counter < 0) { return; }
+                    if (!isInterrupted()) {
                         TimerDialog.this.onTimeout();
                     }
                 } catch (final InterruptedException e) {
@@ -218,7 +218,7 @@ public abstract class TimerDialog {
 
         };
 
-        this.timer.start();
+        timer.start();
     }
 
     /**
@@ -226,29 +226,29 @@ public abstract class TimerDialog {
      */
     protected boolean isVisible() {
         // TODO Auto-generated method stub
-        return this.getDialog().isVisible();
+        return getDialog().isVisible();
     }
 
     protected void layoutDialog() {
-        this.dialog = new InternDialog();
-        if (this.preferredSize != null) {
-            this.dialog.setPreferredSize(this.preferredSize);
+        dialog = new InternDialog();
+        if (preferredSize != null) {
+            dialog.setPreferredSize(preferredSize);
         }
-        this.timerLbl = new JLabel(TimeFormatter.formatSeconds(Dialog.getInstance().getCountdownTime(), 0));
+        timerLbl = new JLabel(TimeFormatter.formatSeconds(Dialog.getInstance().getCountdownTime(), 0));
 
-        this.timerLbl.addMouseListener(new MouseAdapter() {
+        timerLbl.addMouseListener(new MouseAdapter() {
 
             @Override
             public void mouseClicked(final MouseEvent e) {
                 TimerDialog.this.cancel();
-                TimerDialog.this.timerLbl.removeMouseListener(this);
+                timerLbl.removeMouseListener(this);
             }
 
         });
-        this.timerLbl.setToolTipText(APPWORKUTILS.TIMERDIALOG_TOOLTIP_TIMERLABEL.s());
+        timerLbl.setToolTipText(APPWORKUTILS.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
 
         try {
-            this.timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));
+            timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));
         } catch (final IOException e1) {
             Log.exception(e1);
         }
@@ -258,23 +258,23 @@ public abstract class TimerDialog {
     protected abstract void onTimeout();
 
     public void pack() {
-        this.getDialog().pack();
+        getDialog().pack();
     }
 
     public void requestFocus() {
-        this.getDialog().requestFocus();
+        getDialog().requestFocus();
     }
 
     protected void setAlwaysOnTop(final boolean b) {
-        this.getDialog().setAlwaysOnTop(b);
+        getDialog().setAlwaysOnTop(b);
     }
 
     protected void setDefaultCloseOperation(final int doNothingOnClose) {
-        this.getDialog().setDefaultCloseOperation(doNothingOnClose);
+        getDialog().setDefaultCloseOperation(doNothingOnClose);
     }
 
     protected void setMinimumSize(final Dimension dimension) {
-        this.getDialog().setMinimumSize(dimension);
+        getDialog().setMinimumSize(dimension);
     }
 
     /**
@@ -282,21 +282,21 @@ public abstract class TimerDialog {
      */
     public void setPreferredSize(final Dimension dimension) {
         try {
-            this.getDialog().setPreferredSize(dimension);
+            getDialog().setPreferredSize(dimension);
         } catch (final NullPointerException e) {
-            this.preferredSize = dimension;
+            preferredSize = dimension;
         }
     }
 
     protected void setResizable(final boolean b) {
-        this.getDialog().setResizable(b);
+        getDialog().setResizable(b);
     }
 
     /**
      * @param b
      */
     public void setVisible(final boolean b) {
-        this.getDialog().setVisible(b);
+        getDialog().setVisible(b);
     }
 
 }

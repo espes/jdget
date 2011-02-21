@@ -111,9 +111,23 @@ public class TranslationHandler implements InvocationHandler {
      * @throws IOException
      */
     private TranslateResource createTranslationResource(final String string) throws IOException {
-        final String path = tInterface.getName().replace(".", "/") + "." + string + ".translate";
+        final String path = tInterface.getName().replace(".", "/") + "." + string + ".lng";
         final URL url = Application.getRessourceURL(path, false);
-        if (url == null) { throw new NullPointerException("Missing Translation: " + path); }
+        miss: if (url == null) {
+            final Defaults ann = tInterface.getAnnotation(Defaults.class);
+            if (ann != null) {
+                for (final String d : ann.lngs()) {
+                    if (d.equals(string)) {
+                        // defaults
+                        Log.L.warning("Translation file missing:" + path + "Use Annotation Dev fallback");
+                        break miss;
+                    }
+                }
+
+            }
+            throw new NullPointerException("Missing Translation: " + path);
+        }
+
         return new TranslateResource(url, string);
 
     }

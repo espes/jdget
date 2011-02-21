@@ -83,7 +83,7 @@ abstract public class Graph extends JPanel {
     public String getAverageSpeedString() {
         // TODO Auto-generated method stub
         if (this.all <= 0) { return null; }
-        return APPWORKUTILS.AppWorkUtils_Graph_getAverageSpeedString.s(SizeFormatter.formatBytes(this.average / this.all));
+        return APPWORKUTILS.T.AppWorkUtils_Graph_getAverageSpeedString(SizeFormatter.formatBytes(this.average / this.all));
     }
 
     /**
@@ -113,7 +113,7 @@ abstract public class Graph extends JPanel {
     public String getSpeedString() {
         // TODO Auto-generated method stub
         if (this.all <= 0) { return null; }
-        return APPWORKUTILS.AppWorkUtils_Graph_getSpeedString.s(SizeFormatter.formatBytes(this.value));
+        return APPWORKUTILS.T.AppWorkUtils_Graph_getSpeedString(SizeFormatter.formatBytes(this.value));
     }
 
     /**

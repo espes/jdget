@@ -13,6 +13,7 @@ package org.appwork.txtresource;
  * @author thomas
  * 
  */
+@Defaults(lngs = { "en", "de" })
 public interface Translate extends TranslateInterface {
 
     /**

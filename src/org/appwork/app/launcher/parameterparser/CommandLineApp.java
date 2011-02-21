@@ -85,7 +85,7 @@ public abstract class CommandLineApp {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append(APPWORKUTILS.COMMANDLINEAPP_COMMAND.s());
+        sb.append(APPWORKUTILS.T.COMMANDLINEAPP_COMMAND());
         for (int i = 0; i < commands.length; i++) {
             sb.append(commands[i]);
             if (i < commands.length - 1) {

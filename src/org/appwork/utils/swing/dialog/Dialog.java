@@ -394,7 +394,7 @@ public class Dialog {
      * @throws DialogClosedException
      */
     public int showConfirmDialog(final int flag, final String question) throws DialogClosedException, DialogCanceledException {
-        return this.showConfirmDialog(flag, APPWORKUTILS.DIALOG_CONFIRMDIALOG_TITLE.s(), question, Dialog.getIconByText(question), null, null);
+        return this.showConfirmDialog(flag, APPWORKUTILS.T.DIALOG_CONFIRMDIALOG_TITLE(), question, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -477,7 +477,7 @@ public class Dialog {
     public int showErrorDialog(final String s) {
         try {
             try {
-                return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.DIALOG_ERROR_TITLE.s(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true), null, null);
+                return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.T.DIALOG_ERROR_TITLE(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true), null, null);
             } catch (final DialogClosedException e) {
                 return Dialog.RETURN_CLOSED;
             } catch (final DialogCanceledException e) {
@@ -521,11 +521,11 @@ public class Dialog {
                         } else {
                             UIManager.put("FileChooser.useShellFolder", true);
                         }
-                        UIManager.put("FileChooser.homeFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER.s());
-                        UIManager.put("FileChooser.newFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER.s());
-                        UIManager.put("FileChooser.upFolderToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER.s());
-                        UIManager.put("FileChooser.detailsViewButtonToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_DETAILS.s());
-                        UIManager.put("FileChooser.listViewButtonToolTipText", APPWORKUTILS.DIALOG_FILECHOOSER_TOOLTIP_LIST.s());
+                        UIManager.put("FileChooser.homeFolderToolTipText", APPWORKUTILS.T.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER());
+                        UIManager.put("FileChooser.newFolderToolTipText", APPWORKUTILS.T.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER());
+                        UIManager.put("FileChooser.upFolderToolTipText", APPWORKUTILS.T.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER());
+                        UIManager.put("FileChooser.detailsViewButtonToolTipText", APPWORKUTILS.T.DIALOG_FILECHOOSER_TOOLTIP_DETAILS());
+                        UIManager.put("FileChooser.listViewButtonToolTipText", APPWORKUTILS.T.DIALOG_FILECHOOSER_TOOLTIP_LIST());
 
                         final JFileChooser fc = new JFileChooser();
                         if (Dialog.ShellFolderIDWorkaround) {
@@ -730,7 +730,7 @@ public class Dialog {
      * @throws DialogClosedException
      */
     public String showInputDialog(final int flag, final String question, final String defaultvalue) throws DialogClosedException, DialogCanceledException {
-        return this.showInputDialog(flag, APPWORKUTILS.DIALOG_INPUT_TITLE.s(), question, defaultvalue, Dialog.getIconByText(question), null, null);
+        return this.showInputDialog(flag, APPWORKUTILS.T.DIALOG_INPUT_TITLE(), question, defaultvalue, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -785,7 +785,7 @@ public class Dialog {
      */
     public void showMessageDialog(final int flag, final String message) {
 
-        this.showMessageDialog(flag, APPWORKUTILS.DIALOG_MESSAGE_TITLE.s(), message);
+        this.showMessageDialog(flag, APPWORKUTILS.T.DIALOG_MESSAGE_TITLE(), message);
 
     }
 
@@ -819,7 +819,7 @@ public class Dialog {
      * @throws DialogClosedException
      */
     public void showMessageDialog(final String message) {
-        this.showMessageDialog(0, APPWORKUTILS.DIALOG_MESSAGE_TITLE.s(), message);
+        this.showMessageDialog(0, APPWORKUTILS.T.DIALOG_MESSAGE_TITLE(), message);
     }
 
     /**
@@ -850,7 +850,7 @@ public class Dialog {
      * @throws DialogClosedException
      */
     public String showPasswordDialog(final int flag, final String question, final String defaultvalue) throws DialogClosedException, DialogCanceledException {
-        return this.showPasswordDialog(flag, APPWORKUTILS.DIALOG_PASSWORD_TITLE.s(), question, defaultvalue, Dialog.getIconByText(question), null, null);
+        return this.showPasswordDialog(flag, APPWORKUTILS.T.DIALOG_PASSWORD_TITLE(), question, defaultvalue, Dialog.getIconByText(question), null, null);
     }
 
     /**
@@ -930,7 +930,7 @@ public class Dialog {
      * @throws DialogClosedException
      */
     public long showValueDialog(final int flag, final String question, final long defaultvalue, final long min, final long max, final long step, final ValueConverter valueConverter) throws DialogClosedException, DialogCanceledException {
-        return this.showValueDialog(flag, APPWORKUTILS.DIALOG_SLIDER_TITLE.s(), question, defaultvalue, Dialog.getIconByText(question), null, null, min, max, step, valueConverter);
+        return this.showValueDialog(flag, APPWORKUTILS.T.DIALOG_SLIDER_TITLE(), question, defaultvalue, Dialog.getIconByText(question), null, null, min, max, step, valueConverter);
     }
 
     /**

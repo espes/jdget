@@ -30,7 +30,7 @@ public class CutAction extends AbstractAction {
     private final JTextComponent text;
 
     public CutAction(final JTextComponent c) {
-        super(APPWORKUTILS.COPYCUTPASTE_CUT.s());
+        super(APPWORKUTILS.T.COPYCUTPASTE_CUT());
         text = c;
 
         try {

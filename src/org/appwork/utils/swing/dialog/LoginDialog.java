@@ -85,7 +85,7 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
     private final String   message;
 
     public LoginDialog(final int flag) {
-        this(flag, APPWORKUTILS.AccountNew_AccountNew_title.s(), APPWORKUTILS.AccountNew_AccountNew_message.s(), ImageProvider.getImageIcon("login", 32, 32));
+        this(flag, APPWORKUTILS.T.AccountNew_AccountNew_title(), APPWORKUTILS.T.AccountNew_AccountNew_message(), ImageProvider.getImageIcon("login", 32, 32));
     }
 
     public LoginDialog(final int flag, final String title, final String message, final ImageIcon icon) {
@@ -131,11 +131,11 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
 
         contentpane.setLayout(new MigLayout("ins 5, wrap 2", "[]10[grow,fill]", "[][]"));
         contentpane.add(new JLabel(message), "spanx");
-        contentpane.add(addSettingName(APPWORKUTILS.AccountNew_layoutDialogContent_accountname.s()));
+        contentpane.add(addSettingName(APPWORKUTILS.T.AccountNew_layoutDialogContent_accountname()));
         contentpane.add(accid, "sizegroup g1,width 100:250:n");
-        contentpane.add(addSettingName(APPWORKUTILS.AccountNew_layoutDialogContent_password.s()));
+        contentpane.add(addSettingName(APPWORKUTILS.T.AccountNew_layoutDialogContent_password()));
         contentpane.add(pass, "sizegroup g1");
-        contentpane.add(addSettingName(APPWORKUTILS.AccountNew_layoutDialogContent_save.s()));
+        contentpane.add(addSettingName(APPWORKUTILS.T.AccountNew_layoutDialogContent_save()));
         contentpane.add(save, "sizegroup g1");
         accid.setText(preUser);
         pass.setText(prePass);

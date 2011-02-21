@@ -64,7 +64,7 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
     @Override
     protected void addButtons(final JPanel buttonBar) {
 
-        final JButton more = new JButton(APPWORKUTILS.ExceptionDialog_layoutDialogContent_more_button.s());
+        final JButton more = new JButton(APPWORKUTILS.T.ExceptionDialog_layoutDialogContent_more_button());
 
         more.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
@@ -153,7 +153,7 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
         logField.setEditable(true);
         logField.setAutoscrolls(true);
         logField.setForeground(Color.RED);
-        logLabel = new JLabel(APPWORKUTILS.ExceptionDialog_layoutDialogContent_logLabel.s());
+        logLabel = new JLabel(APPWORKUTILS.T.ExceptionDialog_layoutDialogContent_logLabel());
         logLabel.setVisible(false);
         cp.add(logLabel, "hidemode 3,gaptop 5");
 

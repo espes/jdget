@@ -61,16 +61,12 @@ public class TranslateResource {
      * @throws UnsupportedEncodingException
      */
     public String getEntry(final Method method) throws UnsupportedEncodingException, IOException {
+
+        // if we have no translation files, but only defaults, read them
+        // directly
+        if (url == null) { return readDefaults(method); }
         final String ret = getData().get(method.getName());
-        if (ret == null) {
-            // check Annotations. this is slow, but ok for dev enviroment.
-            // for release, we always should create real translation files
-            // instead of using the annotations
-            final Default lngAn = method.getAnnotation(Default.class);
-            for (int i = 0; i < lngAn.lngs().length; i++) {
-                if (lngAn.lngs()[i].equals(name)) { return lngAn.values()[i]; }
-            }
-        }
+        if (ret == null) { return readDefaults(method); }
         return ret;
 
     }
@@ -119,5 +115,20 @@ public class TranslateResource {
             } catch (final Throwable e) {
             }
         }
+    }
+
+    /**
+     * @param method
+     * @return
+     */
+    private String readDefaults(final Method method) {
+        // check Annotations. this is slow, but ok for dev enviroment.
+        // for release, we always should create real translation files
+        // instead of using the annotations
+        final Default lngAn = method.getAnnotation(Default.class);
+        for (int i = 0; i < lngAn.lngs().length; i++) {
+            if (lngAn.lngs()[i].equals(name)) { return lngAn.values()[i]; }
+        }
+        return null;
     }
 }
