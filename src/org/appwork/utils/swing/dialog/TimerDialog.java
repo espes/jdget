@@ -88,7 +88,9 @@ public abstract class TimerDialog {
     public TimerDialog(final Window parentframe) {
         // super(parentframe, ModalityType.TOOLKIT_MODAL);
         this.parentFrame = parentframe;
-
+        if (this.parentFrame == null) {
+            Log.exception(new NullPointerException("window == null"));
+        }
     }
 
     /**

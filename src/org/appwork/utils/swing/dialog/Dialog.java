@@ -311,6 +311,10 @@ public class Dialog {
         return this.owner;
     }
 
+    public Window getParentWindow() {
+        return this.window;
+    }
+
     /**
      * @param countdownTime
      *            the {@link Dialog#countdownTime} to set
@@ -327,7 +331,10 @@ public class Dialog {
      */
     public void setParentOwner(final JFrame parent) {
         this.owner = parent;
-        this.window = (Window) owner;
+        if (parent == null) {
+            Log.exception(new NullPointerException("parent == null"));
+        }
+        this.window = this.owner;
     }
 
     /**
@@ -338,10 +345,9 @@ public class Dialog {
      */
     protected void setParentWindow(final Window window) {
         this.window = window;
-    }
-
-    public Window getParentWindow() {
-        return this.window;
+        if (window == null) {
+            Log.exception(new NullPointerException("window == null"));
+        }
     }
 
     /**
