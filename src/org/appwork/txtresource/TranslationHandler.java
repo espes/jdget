@@ -29,9 +29,13 @@ import org.appwork.utils.logging.Log;
 public class TranslationHandler implements InvocationHandler {
 
     private final Class<? extends TranslateInterface> tInterface;
-    private final ArrayList<TranslateResource>        lookup;
+    private ArrayList<TranslateResource>              lookup;
 
     private final HashMap<Method, String>             cache;
+    private final Method[]                            methods;
+    private final HashMap<String, TranslateResource>  resourceCache;
+
+    public static final String                        DEFAULT = "en";
 
     /**
      * @param class1
@@ -40,10 +44,37 @@ public class TranslationHandler implements InvocationHandler {
      */
     public TranslationHandler(final Class<? extends TranslateInterface> class1, final String[] lookup) {
         tInterface = class1;
-        this.lookup = new ArrayList<TranslateResource>();
+        methods = tInterface.getDeclaredMethods();
         cache = new HashMap<Method, String>();
-        fillLookup(lookup);
+        resourceCache = new HashMap<String, TranslateResource>();
+        this.lookup = fillLookup(lookup);
 
+    }
+
+    /**
+     * @param m
+     * @param types
+     * @return
+     */
+    private boolean checkTypes(final Method m, final Class<?>[] types) {
+        final Class<?>[] parameters = m.getParameterTypes();
+        if (parameters.length != types.length) { return false; }
+        if (types.length == 0) { return true; }
+        for (int i = 0; i < types.length; i++) {
+            if (types[i] != parameters[i]) {
+                if (Number.class.isAssignableFrom(types[i])) {
+                    if (parameters[i] == int.class || parameters[i] == long.class || parameters[i] == double.class || parameters[i] == float.class || parameters[i] == byte.class || parameters[i] == char.class) {
+                        continue;
+                    } else {
+                        return false;
+                    }
+
+                } else if (types[i] == Boolean.class && parameters[i] == boolean.class) { return true; }
+                return false;
+            }
+
+        }
+        return true;
     }
 
     /**
@@ -54,7 +85,7 @@ public class TranslationHandler implements InvocationHandler {
 
         final TranslateData map = new TranslateData();
         cache.clear();
-        fillLookup(string);
+        lookup = fillLookup(string);
         for (final Method m : tInterface.getDeclaredMethods()) {
             try {
                 map.put(m.getName(), invoke(null, m, null).toString());
@@ -98,6 +129,8 @@ public class TranslationHandler implements InvocationHandler {
      * @throws IOException
      */
     private TranslateResource createTranslationResource(final String string) throws IOException {
+        TranslateResource ret = resourceCache.get(string);
+        if (ret != null) { return ret; }
         final String path = tInterface.getName().replace(".", "/") + "." + string + ".lng";
         final URL url = Application.getRessourceURL(path, false);
         miss: if (url == null) {
@@ -114,32 +147,41 @@ public class TranslationHandler implements InvocationHandler {
             }
             throw new NullPointerException("Missing Translation: " + path);
         }
-
-        return new TranslateResource(url, string);
+        ret = new TranslateResource(url, string);
+        resourceCache.put(string, ret);
+        return ret;
 
     }
 
     /**
      * @param lookup2
+     * @return
      */
-    private void fillLookup(final String... lookup) {
-        this.lookup.clear();
-        TranslateResource res;
+    private ArrayList<TranslateResource> fillLookup(final String... lookup) {
 
+        final ArrayList<TranslateResource> ret = new ArrayList<TranslateResource>();
+        TranslateResource res;
+        boolean containsDefault = false;
         for (final String o : lookup) {
             try {
+                if (TranslationHandler.DEFAULT.equals(o)) {
+                    containsDefault = true;
+                }
                 res = createTranslationResource(o);
-                this.lookup.add(res);
+                ret.add(res);
             } catch (final Throwable e) {
                 Log.exception(Level.WARNING, e);
             }
         }
-        try {
-            res = createTranslationResource("en");
-            this.lookup.add(res);
-        } catch (final Throwable e) {
-            Log.exception(Level.WARNING, e);
+        if (!containsDefault) {
+            try {
+                res = createTranslationResource(TranslationHandler.DEFAULT);
+                ret.add(res);
+            } catch (final Throwable e) {
+                Log.exception(Level.WARNING, e);
+            }
         }
+        return ret;
     }
 
     /**
@@ -158,6 +200,33 @@ public class TranslationHandler implements InvocationHandler {
         return ret;
     }
 
+    public String getValue(final Method method, final ArrayList<TranslateResource> lookup) {
+
+        String ret = null;
+        TranslateResource res;
+
+        for (final Iterator<TranslateResource> it = lookup.iterator(); it.hasNext();) {
+            res = it.next();
+            try {
+                ret = res.getEntry(method);
+            } catch (final Throwable e) {
+                Log.L.warning("Exception in translation: " + tInterface.getName() + "." + res.getName());
+                Log.exception(Level.WARNING, e);
+                it.remove();
+            }
+            if (ret == null) {
+
+            }
+
+        }
+        if (ret == null) {
+            ret = tInterface.getSimpleName() + "." + method.getName().substring(3);
+
+        }
+
+        return ret;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -166,33 +235,37 @@ public class TranslationHandler implements InvocationHandler {
      */
     @Override
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-        if (method.getName().equals("createFile")) { return createFile(args[0] + ""); }
+
+        final ArrayList<TranslateResource> lookup = this.lookup;
+        // for speed reasons let all controller methods (@see
+        // TRanslationINterface.java) start with _
+        if (method.getName().startsWith("_")) {
+            if (method.getName().equals("_createFile")) { return createFile(args[0] + ""); }
+            if (method.getName().equals("_getTranslation")) {
+                final String methodname = args[1] + "";
+                final Object[] params = (Object[]) args[2];
+                final Class<?>[] types = new Class<?>[params.length];
+                for (int i = 0; i < params.length; i++) {
+
+                    types[i] = params[i].getClass();
+                }
+                for (final Method m : methods) {
+                    if (m.getName().equals(methodname)) {
+                        if (checkTypes(m, types)) {
+                            final String ret = getValue(m, fillLookup(args[0] + ""));
+                            return format(ret, params);
+                        }
+                    }
+                }
+
+            }
+        }
+
         String ret = cache.get(method);
         if (ret == null) {
-            TranslateResource res;
-
-            for (final Iterator<TranslateResource> it = lookup.iterator(); it.hasNext();) {
-                res = it.next();
-                try {
-                    ret = res.getEntry(method);
-                } catch (final Throwable e) {
-                    Log.L.warning("Exception in translation: " + tInterface.getName() + "." + res.getName());
-                    Log.exception(Level.WARNING, e);
-                    it.remove();
-                }
-                if (ret == null) {
-
-                }
-                if (ret != null) {
-                    cache.put(method, ret);
-                    break;
-
-                }
-            }
-            if (ret == null) {
-                ret = tInterface.getSimpleName() + "." + method.getName().substring(3);
+            ret = getValue(method, lookup);
+            if (ret != null) {
                 cache.put(method, ret);
-
             }
         }
         return format(ret, args);

@@ -10,9 +10,25 @@
 package org.appwork.txtresource;
 
 /**
+ * Youc an define controller methods in here. all Translation interfaces have
+ * this methods. implement these methods in
+ * org.appwork.txtresource.TranslationHandler.invoke(Object, Method, Object[])
+ * all methods here have to start with _ to improove lookup speed
+ * 
  * @author thomas
  * 
  */
 public interface TranslateInterface {
-    public String createFile(String lng);
+
+    public String _createFile(String lng);
+
+    /**
+     * Use this method if you need a special translated string
+     * 
+     * @param lng
+     * @param methodname
+     * @param parameter
+     * @return
+     */
+    public String _getTranslation(String lng, String methodname, Object... parameter);
 }
