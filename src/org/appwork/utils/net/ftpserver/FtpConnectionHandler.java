@@ -99,6 +99,14 @@ public abstract class FtpConnectionHandler<E extends FtpFile> {
     public abstract String onLogoutRequest(FtpConnectionState connectionState) throws FtpException;
 
     /**
+     * @param connectionState
+     * @param position
+     */
+    public void onREST(final FtpConnectionState connectionState, final long position) throws FtpException {
+        throw new FtpCommandNotImplementedException();
+    }
+
+    /**
      * @param outputStream
      * @param connectionState
      * @param param

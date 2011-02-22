@@ -14,6 +14,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -30,6 +31,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
 
     public static enum COMMAND {
         /* commands starting with X are experimental, see RFC1123 */
+        REST(true, 1),
         RNTO(true, 1, -1),
         RNFR(true, 1, -1),
         DELE(true, 1, -1),
@@ -44,7 +46,8 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         XMKD(true, 1, -1),
         MKD(true, 1, -1),
         NLST(true, 1, -1),
-        EPRT(true, 1, 1),
+        EPRT(true, 1, 1), /* RFC 2428 */
+        EPSV(true, 0), /* RFC 2428 */
         RETR(true, 1, -1),
         TYPE(true, 1, 2),
         LIST(true, 0, 1),
@@ -55,6 +58,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         XPWD(true, 0),
         PWD(true, 0),
         NOOP(false, 0),
+        PASV(true, 0),
         PASS(false, 1),
         QUIT(true, 0),
         SYST(true, 0),
@@ -120,6 +124,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
     private TYPE                     type         = TYPE.BINARY;
     private final FtpConnectionState connectionState;
     private Socket                   dataSocket   = null;
+    private ServerSocket             serverSocket = null;
 
     /**
      * @param ftpServer
@@ -158,6 +163,21 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         return param;
     }
 
+    private void closeDataConnection() {
+        try {
+            this.dataSocket.close();
+        } catch (final Throwable e) {
+        } finally {
+            this.dataSocket = null;
+        }
+        try {
+            this.serverSocket.close();
+        } catch (final Throwable e) {
+        } finally {
+            this.serverSocket = null;
+        }
+    }
+
     public StateMachine getStateMachine() {
         return this.stateMachine;
     }
@@ -192,6 +212,12 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                         throw new FtpBadSequenceException();
                     }
                     switch (commandEnum) {
+                    case REST:
+                        this.onREST(commandParts);
+                        break;
+                    case PASV:
+                        this.onPASV();
+                        break;
                     case RNTO:
                         this.onRNTO(commandParts);
                         break;
@@ -229,6 +255,9 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                         break;
                     case NLST:
                         this.onNLST(commandParts);
+                        break;
+                    case EPSV:
+                        this.onEPSV(commandParts);
                         break;
                     case EPRT:
                         this.onEPRT(commandParts);
@@ -322,13 +351,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
      **/
     private void onEPRT(final String[] commandParts) throws IOException, FtpException {
         final String parts[] = commandParts[1].split("\\|");
-        try {
-            /* close old maybe existing data connection */
-            this.dataSocket.close();
-        } catch (final Throwable e) {
-        } finally {
-            this.dataSocket = null;
-        }
+        this.closeDataConnection();
         if (parts.length != 4) { throw new FtpCommandSyntaxException(); }
         if (!"1".equals(parts[1])) {
             /* 2 equals IPV6 */
@@ -339,12 +362,33 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         this.write(200, "PORT command successful");
     }
 
+    /**
+     * @param commandParts
+     * @throws FtpException
+     */
+    private void onEPSV(final String[] commandParts) throws FtpException {
+        boolean okay = false;
+        this.closeDataConnection();
+        try {
+            this.serverSocket = new ServerSocket();
+            this.serverSocket.bind(null);
+            okay = true;
+            final int port = this.serverSocket.getLocalPort();
+            this.write(229, "Entering Extended Passive Mode (|||" + port + "|)");
+            return;
+        } catch (final IOException e) {
+            throw new FtpException(421, "could not open port");
+        } finally {
+            if (!okay) {
+                this.closeDataConnection();
+            }
+        }
+    }
+
     private void onLIST(final String params[]) throws IOException, FtpException {
         try {
             try {
-                if (this.dataSocket == null || !this.dataSocket.isConnected()) {
-                    this.dataSocket = new Socket(this.passiveIP, this.passivePort);
-                }
+                this.openDataConnection();
             } catch (final IOException e) {
                 throw new FtpException(425, "Can't open data connection");
             }
@@ -362,12 +406,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             /* we close the passive port after command */
             this.write(226, "Transfer complete.");
         } finally {
-            try {
-                this.dataSocket.close();
-            } catch (final Throwable e) {
-            } finally {
-                this.dataSocket = null;
-            }
+            this.closeDataConnection();
         }
     }
 
@@ -397,9 +436,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
     private void onNLST(final String[] commandParts) throws IOException, FtpException {
         try {
             try {
-                if (this.dataSocket == null || !this.dataSocket.isConnected()) {
-                    this.dataSocket = new Socket(this.passiveIP, this.passivePort);
-                }
+                this.openDataConnection();
             } catch (final IOException e) {
                 throw new FtpException(425, "Can't open data connection");
             }
@@ -422,12 +459,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             /* we close the passive port after command */
             this.write(226, "Transfer complete.");
         } finally {
-            try {
-                this.dataSocket.close();
-            } catch (final Throwable e) {
-            } finally {
-                this.dataSocket = null;
-            }
+            this.closeDataConnection();
         }
     }
 
@@ -464,6 +496,32 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         }
     }
 
+    /**
+     * @throws FtpException
+     * @throws IOException
+     * 
+     */
+    private void onPASV() throws FtpException {
+        boolean okay = false;
+        this.closeDataConnection();
+        try {
+            this.serverSocket = new ServerSocket();
+            this.serverSocket.bind(null);
+            okay = true;
+            final int port = this.serverSocket.getLocalPort();
+            final int p1 = port / 256;
+            final int p2 = port - p1 * 256;
+            this.write(227, "Entering Passive Mode. (127,0,0,1," + p1 + "," + p2 + ").");
+            return;
+        } catch (final IOException e) {
+            throw new FtpException(421, "could not open port");
+        } finally {
+            if (!okay) {
+                this.closeDataConnection();
+            }
+        }
+    }
+
     private void onPORT(final String params[]) throws IOException, FtpCommandSyntaxException {
         try {
             /* close old maybe existing data connection */
@@ -489,12 +547,25 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         this.stateMachine.setStatus(FtpConnection.IDLEEND);
     }
 
+    /**
+     * @param commandParts
+     * @throws FtpException
+     * @throws IOException
+     */
+    private void onREST(final String[] commandParts) throws FtpException, IOException {
+        try {
+            final long position = Long.parseLong(commandParts[1]);
+            this.ftpServer.getFtpCommandHandler().onREST(this.connectionState, position);
+            this.write(350, "Restarting at " + position + ". Send STORE or RETRIEVE");
+        } catch (final NumberFormatException e) {
+            this.write(554, "Requested action not taken: invalid REST parameter.");
+        }
+    }
+
     private void onRETR(final String[] commandParts) throws IOException, FtpException {
         try {
             try {
-                if (this.dataSocket == null || !this.dataSocket.isConnected()) {
-                    this.dataSocket = new Socket(this.passiveIP, this.passivePort);
-                }
+                this.openDataConnection();
             } catch (final IOException e) {
                 throw new FtpException(425, "Can't open data connection");
             }
@@ -514,12 +585,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             /* we close the passive port after command */
             this.write(226, "Transfer complete. " + bytesWritten + " bytes transfered!");
         } finally {
-            try {
-                this.dataSocket.close();
-            } catch (final Throwable e) {
-            } finally {
-                this.dataSocket = null;
-            }
+            this.closeDataConnection();
         }
 
     }
@@ -587,9 +653,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
     private void onSTOR(final String[] commandParts, final boolean append) throws IOException, FtpException {
         try {
             try {
-                if (this.dataSocket == null || !this.dataSocket.isConnected()) {
-                    this.dataSocket = new Socket(this.passiveIP, this.passivePort);
-                }
+                this.openDataConnection();
             } catch (final IOException e) {
                 throw new FtpException(425, "Can't open data connection");
             }
@@ -608,12 +672,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             /* we close the passive port after command */
             this.write(226, "Transfer complete. " + bytesRead + " bytes received!");
         } finally {
-            try {
-                this.dataSocket.close();
-            } catch (final Throwable e) {
-            } finally {
-                this.dataSocket = null;
-            }
+            this.closeDataConnection();
         }
     }
 
@@ -673,6 +732,18 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             this.stateMachine.setStatus(FtpConnection.IDLEEND);
             this.stateMachine.reset();
             throw new FtpNotLoginException();
+        }
+    }
+
+    private void openDataConnection() throws IOException {
+        if (this.dataSocket == null || !this.dataSocket.isConnected()) {
+            if (this.serverSocket != null && this.serverSocket.isBound()) {
+                /* PASV */
+                this.dataSocket = this.serverSocket.accept();
+            } else {
+                /* PORT */
+                this.dataSocket = new Socket(this.passiveIP, this.passivePort);
+            }
         }
     }
 
