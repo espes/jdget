@@ -18,7 +18,7 @@ import org.appwork.txtresource.TranslateInterface;
  * 
  */
 @Defaults(lngs = { "en", "de" })
-public interface Translation extends TranslateInterface {
+public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "Cancel", "Abbrechen" })
     String ABSTRACTDIALOG_BUTTON_CANCEL();

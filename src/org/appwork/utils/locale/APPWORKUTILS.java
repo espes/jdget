@@ -9,17 +9,21 @@
  */
 package org.appwork.utils.locale;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+
 import org.appwork.txtresource.TranslationFactory;
+import org.appwork.txtresource.TranslationUtils;
 
 /**
  * @author thomas
  * 
  */
 public class APPWORKUTILS {
-    public static final Translation T = TranslationFactory.create(Translation.class);
+    public static final AWUTranslation T = TranslationFactory.create(AWUTranslation.class);
 
-    public static void main(final String[] args) {
-        System.out.println(APPWORKUTILS.T._createFile("de"));
+    public static void main(final String[] args) throws URISyntaxException, IOException {
+        TranslationUtils.createFiles(false, AWUTranslation.class);
     }
 
 }

@@ -20,7 +20,7 @@ package org.appwork.txtresource;
  */
 public interface TranslateInterface {
 
-    public String _createFile(String lng);
+    public String _createFile(String lng, boolean comments);
 
     /**
      * Use this method if you need a special translated string

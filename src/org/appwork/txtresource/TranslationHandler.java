@@ -79,9 +79,10 @@ public class TranslationHandler implements InvocationHandler {
 
     /**
      * @param string
+     * @param addComments
      * @return
      */
-    private String createFile(final String string) {
+    private String createFile(final String string, final boolean addComments) {
 
         final TranslateData map = new TranslateData();
         cache.clear();
@@ -97,26 +98,27 @@ public class TranslationHandler implements InvocationHandler {
         }
 
         String ret = JSonStorage.serializeToJson(map);
+        if (addComments) {
+            for (final Method m : tInterface.getDeclaredMethods()) {
+                final Default def = m.getAnnotation(Default.class);
+                final Description desc = m.getAnnotation(Description.class);
 
-        for (final Method m : tInterface.getDeclaredMethods()) {
-            final Default def = m.getAnnotation(Default.class);
-            final Description desc = m.getAnnotation(Description.class);
+                String comment = "";
+                if (desc != null) {
+                    final String d = desc.value().replaceAll("[\\\r\\\n]+", "\r\n//    ");
+                    comment += "\r\n// Description:\r\n//    " + d;
+                }
+                if (def != null) {
 
-            String comment = "";
-            if (desc != null) {
-                final String d = desc.value().replaceAll("[\\\r\\\n]+", "\r\n//    ");
-                comment += "\r\n// Description:\r\n//    " + d;
-            }
-            if (def != null) {
+                    comment += "\r\n// Defaultvalue:\r\n//    " + def.toString().replaceAll("[\\\r\\\n]+", "\r\n//    ");
 
-                comment += "\r\n// Defaultvalue:\r\n//    " + def.toString().replaceAll("[\\\r\\\n]+", "\r\n//    ");
+                }
 
-            }
+                //
 
-            //
-
-            if (comment.length() > 0) {
-                ret = ret.replace("\"" + m.getName() + "\" : \"", comment + "\r\n\r\n     " + "\"" + m.getName() + "\" : \"");
+                if (comment.length() > 0) {
+                    ret = ret.replace("\"" + m.getName() + "\" : \"", comment + "\r\n\r\n     " + "\"" + m.getName() + "\" : \"");
+                }
             }
         }
 
@@ -209,13 +211,11 @@ public class TranslationHandler implements InvocationHandler {
             res = it.next();
             try {
                 ret = res.getEntry(method);
+                return ret;
             } catch (final Throwable e) {
                 Log.L.warning("Exception in translation: " + tInterface.getName() + "." + res.getName());
                 Log.exception(Level.WARNING, e);
                 it.remove();
-            }
-            if (ret == null) {
-
             }
 
         }
@@ -240,7 +240,7 @@ public class TranslationHandler implements InvocationHandler {
         // for speed reasons let all controller methods (@see
         // TRanslationINterface.java) start with _
         if (method.getName().startsWith("_")) {
-            if (method.getName().equals("_createFile")) { return createFile(args[0] + ""); }
+            if (method.getName().equals("_createFile")) { return createFile(args[0] + "", (Boolean) args[1]); }
             if (method.getName().equals("_getTranslation")) {
                 final String methodname = args[1] + "";
                 final Object[] params = (Object[]) args[2];

@@ -148,7 +148,7 @@ public class TranslationFactory {
         System.out.println(t.getOrderedText(1, 7, 23, 5));
 
         System.out.println(t._getTranslation("en", "getOrderedText", 1, 3, 5, 8));
-        System.err.println(t._createFile("en"));
+        System.err.println(t._createFile("en", true));
     }
 
     private final String name;
