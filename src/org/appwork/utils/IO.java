@@ -15,6 +15,7 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 
 import org.appwork.utils.os.CrossSystem;
 
@@ -114,6 +115,49 @@ public class IO {
                 isr.close();
             } catch (final Throwable e) {
             }
+        }
+    }
+
+    /*
+     * this function reads a line from a bufferedinputstream up to a maxLength.
+     * in case the line is longer than maxLength the rest of the line is read
+     * but not returned
+     * 
+     * this function skips emtpy lines
+     * 
+     * to get returned string use
+     * 
+     * line = new String(buffer, 0, (read > 0 ? read : buffer.length), "UTF-8");
+     */
+    public static Integer readLine(final BufferedInputStream is, final byte[] array) throws IOException {
+        Arrays.fill(array, 0, array.length, (byte) 0);
+        int read = 0;
+        int total = 0;
+        boolean nextLineReached = false;
+        while (true) {
+            read = is.read();
+            if (read == -1 && total == 0) {/* EOS */
+                return null;
+            }
+            if (read == 13 || read == 10) {
+                /* line break found, mark in inputstream */
+                nextLineReached = true;
+                is.mark(1024);
+            } else if (nextLineReached) {
+                /* new text found */
+                is.reset();
+                total--;
+                break;
+            } else if (total < array.length) {
+                /* only write to outputstream if maxlength not reached yet */
+                array[total] = (byte) read;
+            }
+            total++;
+        }
+        if (total > array.length) {
+            return -total;
+        } else {
+            return total;
         }
     }
 
