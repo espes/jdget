@@ -241,6 +241,16 @@ public class TranslationHandler implements InvocationHandler {
         // TRanslationINterface.java) start with _
         if (method.getName().startsWith("_")) {
             if (method.getName().equals("_createFile")) { return createFile(args[0] + "", (Boolean) args[1]); }
+            if (method.getName().equals("_getSupportedLanguages")) {
+
+            return TranslationFactory.findTranslations(tInterface); }
+            if (method.getName().equals("_setLanguage")) {
+                cache.clear();
+                resourceCache.clear();
+                this.lookup = fillLookup(args[0] + "");
+                return null;
+            }
+
             if (method.getName().equals("_getTranslation")) {
                 final String methodname = args[1] + "";
                 final Object[] params = (Object[]) args[2];
