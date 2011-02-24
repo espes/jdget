@@ -2,13 +2,14 @@ package org.appwork.utils.swing;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Window;
 
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.text.JTextComponent;
 
 public class SwingUtils {
@@ -19,7 +20,7 @@ public class SwingUtils {
      * @param frame
      * @return
      */
-    public static Point getCenter(final JFrame parentFrame, final Window frame) {
+    public static Point getCenter(final Component parentFrame, final Window frame) {
         final Point point = new Point();
         int x = 0, y = 0;
 
@@ -56,6 +57,12 @@ public class SwingUtils {
         }
         return null;
 
+    }
+
+    public static Window getWindowForComponent(final Component parentComponent) {
+        if (parentComponent == null) { return JOptionPane.getRootFrame(); }
+        if (parentComponent instanceof Frame || parentComponent instanceof java.awt.Dialog) { return (Window) parentComponent; }
+        return SwingUtils.getWindowForComponent(parentComponent.getParent());
     }
 
     /**

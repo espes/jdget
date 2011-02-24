@@ -12,7 +12,6 @@ package org.appwork.utils.swing.dialog;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -25,6 +24,7 @@ import org.appwork.utils.formatter.TimeFormatter;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
+import org.appwork.utils.swing.SwingUtils;
 
 public abstract class TimerDialog {
 
@@ -36,8 +36,11 @@ public abstract class TimerDialog {
         private static final long serialVersionUID = 1L;
 
         public InternDialog() {
-            super(parentFrame, ModalityType.TOOLKIT_MODAL);
-
+            super(SwingUtils.getWindowForComponent(Dialog.getInstance().getParentOwner()), ModalityType.TOOLKIT_MODAL);
+            System.out.println("Dialog parent: " + getParent());
+            if (Dialog.getInstance().getIconList() != null) {
+                setIconImages(Dialog.getInstance().getIconList());
+            }
         }
 
         @Override
@@ -79,18 +82,14 @@ public abstract class TimerDialog {
      * Label to display the timervalue
      */
     protected JLabel          timerLbl;
-    protected Window          parentFrame;
 
     private InternDialog      dialog;
 
     private Dimension         preferredSize;
 
-    public TimerDialog(final Window parentframe) {
+    public TimerDialog() {
         // super(parentframe, ModalityType.TOOLKIT_MODAL);
-        parentFrame = parentframe;
-        if (this.parentFrame == null) {
-            Log.exception(new NullPointerException("window == null"));
-        }
+
     }
 
     /**
@@ -149,8 +148,8 @@ public abstract class TimerDialog {
             h = pref.height;
         }
         try {
-            if (Dialog.getInstance().getParentOwner() != null && Dialog.getInstance().getParentOwner().isVisible()) {
-                return new Dimension(Math.min(Dialog.getInstance().getParentOwner().getWidth(), w), Math.min(Dialog.getInstance().getParentOwner().getHeight(), h));
+            if (getDialog().getParent().isVisible()) {
+                return new Dimension(Math.min(getDialog().getParent().getWidth(), w), Math.min(getDialog().getParent().getHeight(), h));
             } else {
                 return new Dimension(Math.min((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.75), w), Math.min((int) (Toolkit.getDefaultToolkit().getScreenSize().height * 0.75), h));
 

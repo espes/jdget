@@ -43,7 +43,6 @@ import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
-import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.SwingUtils;
 
 public abstract class AbstractDialog<T> extends TimerDialog implements ActionListener, WindowListener {
@@ -51,8 +50,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     private static final long                     serialVersionUID       = 1831761858087385862L;
 
     private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN = new HashMap<String, Integer>();
-
-    private static boolean                        USE_LOCKPANEL          = false;
 
     private static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
@@ -68,15 +65,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         } catch (final Exception e) {
             Log.exception(e);
         }
-    }
-
-    /**
-     * set to true if you want the class to control a global LockPanel
-     * 
-     * @param b
-     */
-    public static void setLockpanel(final boolean b) {
-        AbstractDialog.USE_LOCKPANEL = b;
     }
 
     protected JButton        cancelButton;
@@ -105,8 +93,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     private final String     title;
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
-        super(Dialog.getInstance().getParentWindow());
-        
+        super();
+
         this.title = title;
         this.flagMask = flag;
 
@@ -121,203 +109,199 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     private void _init() {
 
         layoutDialog();
-        setTitle(title);
-        dont: if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-
-            try {
-                final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
-
-                if (i >= 0) {
-                    // filter saved return value
-                    int ret = i & (Dialog.RETURN_OK | Dialog.RETURN_CANCEL);
-                    // add flags
-                    ret |= Dialog.RETURN_DONT_SHOW_AGAIN | Dialog.RETURN_SKIPPED_BY_DONT_SHOW;
-
-                    /*
-                     * if LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL or
-                     * LOGIC_DONT_SHOW_AGAIN_IGNORES_OK are used, we check here
-                     * if we should handle the dont show again feature
-                     */
-                    if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) {
-                        break dont;
-                    }
-                    if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_OK) && BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) {
-                        break dont;
-                    }
-
-                    this.returnBitMask = ret;
-                    return;
-                }
-            } catch (final Exception e) {
-                Log.exception(e);
-            }
-        }
-        try {
-            if (Dialog.getInstance().getParentOwner() != null && AbstractDialog.USE_LOCKPANEL) {
-                LockPanel.create(Dialog.getInstance().getParentOwner()).lock(500);
-            }
-        } catch (final Exception e) {
-        }
-        if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isShowing()) {
-            getDialog().setAlwaysOnTop(true);
-        }
-        // The Dialog Modal
-        getDialog().setModal(true);
-        // Layout manager
-        getDialog().setLayout(new MigLayout("ins 5", "[]", "[fill,grow][]"));
-        // Dispose dialog on close
-        getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        getDialog().addWindowListener(this);
-        // create panel for the dialog's buttons
-        this.defaultButtons = this.getDefaultButtonPanel();
-
-        this.okButton = new JButton(this.okOption);
-        /*
-         * We set the focus on the ok button. if no ok button is shown, we set
-         * the focus on cancel button
-         */
-        JButton focus = this.okButton;
-
-        this.cancelButton = new JButton(this.cancelOption);
-        // add listeners here
-        this.okButton.addActionListener(this);
-        this.cancelButton.addActionListener(this);
-        // add icon if available
-        if (this.icon != null) {
-            getDialog().add(new JLabel(this.icon), "split 2,alignx left,aligny center,shrinkx,gapright 10");
-        }
-        // Layout the dialog content and add it to the contentpane
-        this.panel = this.layoutDialogContent();
-        getDialog().add(this.panel, "pushx,growx,pushy,growy,spanx,aligny center,wrap");
-
-        // add the countdown timer
-        getDialog().add(timerLbl, "split 3,growx,hidemode 2");
-        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-            this.dontshowagain = new JCheckBox(APPWORKUTILS.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
-            this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
-            this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
-
-            getDialog().add(this.dontshowagain, "growx,pushx,alignx right,gapleft 20");
-        } else {
-            getDialog().add(Box.createHorizontalGlue(), "growx,pushx,alignx right,gapleft 20");
-        }
-        getDialog().add(this.defaultButtons, "alignx right,shrinkx");
-        if ((this.flagMask & Dialog.BUTTONS_HIDE_OK) == 0) {
-
-            // Set OK as defaultbutton
-            getDialog().getRootPane().setDefaultButton(this.okButton);
-            this.okButton.addHierarchyListener(new HierarchyListener() {
-                public void hierarchyChanged(final HierarchyEvent e) {
-                    if ((e.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0) {
-                        final JButton defaultButton = (JButton) e.getComponent();
-                        final JRootPane root = SwingUtilities.getRootPane(defaultButton);
-                        if (root != null) {
-                            root.setDefaultButton(defaultButton);
-                        }
-                    }
-                }
-            });
-            focus = this.okButton;
-            this.defaultButtons.add(this.okButton, "alignx right,tag ok,sizegroup confirms,growx,pushx");
-        }
-        if (!BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_CANCEL)) {
-
-            this.defaultButtons.add(this.cancelButton, "alignx right,tag cancel,sizegroup confirms,growx,pushx");
-            if (BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_OK)) {
-                getDialog().getRootPane().setDefaultButton(this.cancelButton);
-                this.cancelButton.requestFocusInWindow();
-                // focus is on cancel if OK is hidden
-                focus = this.cancelButton;
-            }
-        }
-        this.addButtons(this.defaultButtons);
-
-        if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_COUNTDOWN)) {
-            // show timer
-            initTimer(Dialog.getInstance().getCountdownTime());
-        } else {
-            timerLbl.setVisible(false);
-        }
-
-        // pack dialog
-        getDialog().invalidate();
-        // this.setMinimumSize(this.getPreferredSize());
-        getDialog().pack();
-        getDialog().setResizable(true);
-
-        // minimum size foir a dialog
-
-        // // Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
-        getDialog().setMinimumSize(new Dimension(300, 80));
-        // this.setMaximumSize(Toolkit.getDefaultToolkit().getScreenSize());
-        getDialog().toFront();
-
-        // if (this.getDesiredSize() != null) {
-        // this.setSize(this.getDesiredSize());
-        // }
-        if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isDisplayable() || !Dialog.getInstance().getParentOwner().isVisible()) {
-            final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-            getDialog().setLocation(new Point((int) (screenSize.getWidth() - getDialog().getWidth()) / 2, (int) (screenSize.getHeight() - getDialog().getHeight()) / 2));
-
-        } else if (Dialog.getInstance().getParentOwner().getExtendedState() == Frame.ICONIFIED) {
-            // dock dialog at bottom right if mainframe is not visible
-            final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-            getDialog().setLocation(new Point((int) (screenSize.getWidth() - getDialog().getWidth() - 20), (int) (screenSize.getHeight() - getDialog().getHeight() - 60)));
-        } else {
-            getDialog().setLocation(SwingUtils.getCenter(Dialog.getInstance().getParentOwner(), getDialog()));
-        }
-        // register an escape listener to cancel the dialog
-        final KeyStroke ks = KeyStroke.getKeyStroke("ESCAPE");
-        focus.getInputMap().put(ks, "ESCAPE");
-        focus.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ESCAPE");
-        focus.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
-        focus.getActionMap().put("ESCAPE", new AbstractAction() {
-
-            private static final long serialVersionUID = -6666144330707394562L;
-
-            public void actionPerformed(final ActionEvent e) {
-                Log.L.fine("Answer: Key<ESCAPE>");
-                AbstractDialog.this.dispose();
-            }
-        });
-        focus.requestFocus();
-        this.packed();
-        
         /**
          * this is very important so the new shown dialog will become root for
          * all following dialogs! we save old parentWindow, then set current
          * dialogwindow as new root and show dialog. after dialog has been
          * shown, we restore old parentWindow
          */
-        Window oldw = Dialog.getInstance().getParentWindow();
-        //System.out.println("OLD ONE "+oldw);
-        Dialog.getInstance().setParentWindow(this.getDialog());
-       // System.out.println("NEW ONE "+this.getDialog());
-        /*
-         * workaround a javabug that forces the parentframe to stay always on
-         * top
-         */
-        if (getDialog().getParent() != null&&!CrossSystem.isMac()) {
-            ((Window)getDialog().getParent()).setAlwaysOnTop(true);
-            ((Window)getDialog().getParent()).setAlwaysOnTop(false);
-        }
-        
+
+        Dialog.getInstance().setParentOwner(getDialog());
         try {
+            setTitle(title);
+            dont: if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
+
+                try {
+                    final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
+
+                    if (i >= 0) {
+                        // filter saved return value
+                        int ret = i & (Dialog.RETURN_OK | Dialog.RETURN_CANCEL);
+                        // add flags
+                        ret |= Dialog.RETURN_DONT_SHOW_AGAIN | Dialog.RETURN_SKIPPED_BY_DONT_SHOW;
+
+                        /*
+                         * if LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL or
+                         * LOGIC_DONT_SHOW_AGAIN_IGNORES_OK are used, we check
+                         * here if we should handle the dont show again feature
+                         */
+                        if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) {
+                            break dont;
+                        }
+                        if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_OK) && BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) {
+                            break dont;
+                        }
+
+                        this.returnBitMask = ret;
+                        return;
+                    }
+                } catch (final Exception e) {
+                    Log.exception(e);
+                }
+            }
+
+            if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isShowing()) {
+                getDialog().setAlwaysOnTop(true);
+            }
+            // The Dialog Modal
+            getDialog().setModal(true);
+            // Layout manager
+            getDialog().setLayout(new MigLayout("ins 5", "[]", "[fill,grow][]"));
+            // Dispose dialog on close
+            getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            getDialog().addWindowListener(this);
+            // create panel for the dialog's buttons
+            this.defaultButtons = this.getDefaultButtonPanel();
+
+            this.okButton = new JButton(this.okOption);
+            /*
+             * We set the focus on the ok button. if no ok button is shown, we
+             * set the focus on cancel button
+             */
+            JButton focus = this.okButton;
+
+            this.cancelButton = new JButton(this.cancelOption);
+            // add listeners here
+            this.okButton.addActionListener(this);
+            this.cancelButton.addActionListener(this);
+            // add icon if available
+            if (this.icon != null) {
+                getDialog().add(new JLabel(this.icon), "split 2,alignx left,aligny center,shrinkx,gapright 10");
+            }
+            // Layout the dialog content and add it to the contentpane
+            this.panel = this.layoutDialogContent();
+            getDialog().add(this.panel, "pushx,growx,pushy,growy,spanx,aligny center,wrap");
+
+            // add the countdown timer
+            getDialog().add(timerLbl, "split 3,growx,hidemode 2");
+            if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
+                this.dontshowagain = new JCheckBox(APPWORKUTILS.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
+                this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
+                this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
+
+                getDialog().add(this.dontshowagain, "growx,pushx,alignx right,gapleft 20");
+            } else {
+                getDialog().add(Box.createHorizontalGlue(), "growx,pushx,alignx right,gapleft 20");
+            }
+            getDialog().add(this.defaultButtons, "alignx right,shrinkx");
+            if ((this.flagMask & Dialog.BUTTONS_HIDE_OK) == 0) {
+
+                // Set OK as defaultbutton
+                getDialog().getRootPane().setDefaultButton(this.okButton);
+                this.okButton.addHierarchyListener(new HierarchyListener() {
+                    public void hierarchyChanged(final HierarchyEvent e) {
+                        if ((e.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0) {
+                            final JButton defaultButton = (JButton) e.getComponent();
+                            final JRootPane root = SwingUtilities.getRootPane(defaultButton);
+                            if (root != null) {
+                                root.setDefaultButton(defaultButton);
+                            }
+                        }
+                    }
+                });
+                focus = this.okButton;
+                this.defaultButtons.add(this.okButton, "alignx right,tag ok,sizegroup confirms,growx,pushx");
+            }
+            if (!BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_CANCEL)) {
+
+                this.defaultButtons.add(this.cancelButton, "alignx right,tag cancel,sizegroup confirms,growx,pushx");
+                if (BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_OK)) {
+                    getDialog().getRootPane().setDefaultButton(this.cancelButton);
+                    this.cancelButton.requestFocusInWindow();
+                    // focus is on cancel if OK is hidden
+                    focus = this.cancelButton;
+                }
+            }
+            this.addButtons(this.defaultButtons);
+
+            if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_COUNTDOWN)) {
+                // show timer
+                initTimer(Dialog.getInstance().getCountdownTime());
+            } else {
+                timerLbl.setVisible(false);
+            }
+
+            // pack dialog
+            getDialog().invalidate();
+            // this.setMinimumSize(this.getPreferredSize());
+            getDialog().pack();
+            getDialog().setResizable(true);
+
+            // minimum size foir a dialog
+
+            // // Dimension screenDim =
+            // Toolkit.getDefaultToolkit().getScreenSize();
+            getDialog().setMinimumSize(new Dimension(300, 80));
+            // this.setMaximumSize(Toolkit.getDefaultToolkit().getScreenSize());
+            getDialog().toFront();
+
+            // if (this.getDesiredSize() != null) {
+            // this.setSize(this.getDesiredSize());
+            // }
+
+            if (!getDialog().getParent().isDisplayable() || !getDialog().getParent().isVisible()) {
+                final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+                getDialog().setLocation(new Point((int) (screenSize.getWidth() - getDialog().getWidth()) / 2, (int) (screenSize.getHeight() - getDialog().getHeight()) / 2));
+
+            } else if (getDialog().getParent() instanceof Frame && ((Frame) getDialog().getParent()).getExtendedState() == Frame.ICONIFIED) {
+                // dock dialog at bottom right if mainframe is not visible
+                final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+                getDialog().setLocation(new Point((int) (screenSize.getWidth() - getDialog().getWidth() - 20), (int) (screenSize.getHeight() - getDialog().getHeight() - 60)));
+            } else {
+                getDialog().setLocation(SwingUtils.getCenter(getDialog().getParent(), getDialog()));
+            }
+            // register an escape listener to cancel the dialog
+            final KeyStroke ks = KeyStroke.getKeyStroke("ESCAPE");
+            focus.getInputMap().put(ks, "ESCAPE");
+            focus.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ESCAPE");
+            focus.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
+            focus.getActionMap().put("ESCAPE", new AbstractAction() {
+
+                private static final long serialVersionUID = -6666144330707394562L;
+
+                public void actionPerformed(final ActionEvent e) {
+                    Log.L.fine("Answer: Key<ESCAPE>");
+                    AbstractDialog.this.dispose();
+                }
+            });
+            focus.requestFocus();
+            this.packed();
+
+            // System.out.println("NEW ONE "+this.getDialog());
+            /*
+             * workaround a javabug that forces the parentframe to stay always
+             * on top
+             */
+            if (getDialog().getParent() != null && !CrossSystem.isMac()) {
+                ((Window) getDialog().getParent()).setAlwaysOnTop(true);
+                ((Window) getDialog().getParent()).setAlwaysOnTop(false);
+            }
+
             setVisible(true);
         } finally {
-            //System.out.println("SET OLD");
-           Dialog.getInstance().setParentWindow(oldw);
+            // System.out.println("SET OLD");
+            Dialog.getInstance().setParentOwner(getDialog().getParent());
         }
 
         /*
          * workaround a javabug that forces the parentframe to stay always on
          * top
          */
-        if (getDialog().getParent() != null&&!CrossSystem.isMac()) {
-            ((Window)getDialog().getParent()).setAlwaysOnTop(true);
-            ((Window)getDialog().getParent()).setAlwaysOnTop(false);
+        if (getDialog().getParent() != null && !CrossSystem.isMac()) {
+            ((Window) getDialog().getParent()).setAlwaysOnTop(true);
+            ((Window) getDialog().getParent()).setAlwaysOnTop(false);
         }
 
     }
@@ -364,12 +348,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     @Override
     public void dispose() {
         if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
-        try {
-            if (Dialog.getInstance().getParentOwner() != null && AbstractDialog.USE_LOCKPANEL) {
-                LockPanel.create(Dialog.getInstance().getParentOwner()).unlock(300);
-            }
-        } catch (final Exception e1) {
-        }
+
         super.dispose();
     }
 

@@ -9,14 +9,15 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import java.awt.Window;
+import java.awt.Component;
+import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
@@ -203,31 +204,44 @@ public class Dialog {
      */
     public static final int     RETURN_TIMEOUT                       = 1 << 5;
     private static boolean      ShellFolderIDWorkaround              = false;
+
+    public static boolean isClosed(final Object value) {
+        if (!(value instanceof Integer)) { return false; }
+        return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_CLOSED);
+    }
+
+    public static boolean isOK(final Object value) {
+        if (!(value instanceof Integer)) { return false; }
+        return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_OK);
+    }
+
+    private List<? extends Image> iconList                        = null;
     /**
      * Do Not use an Icon. By default dialogs have an Icon
      */
-    public static final int     STYLE_HIDE_ICON                      = 1 << 8;
+    public static final int       STYLE_HIDE_ICON                 = 1 << 8;
     /**
      * Some dialogs are able to render HTML. Use this switch to enable html
      */
-    public static final int     STYLE_HTML                           = 1 << 7;
+    public static final int       STYLE_HTML                      = 1 << 7;
+
     /**
      * Some dialogs are able to layout themselves in a large mode. E:g. to
      * display a huge text.
      */
-    public static final int     STYLE_LARGE                          = 1 << 6;
+    public static final int       STYLE_LARGE                     = 1 << 6;
 
     /**
      * Displays a Checkbox with "do not show this again" text. If the user
      * selects this box, the UserInteraktion class will remember the answer and
      * will not disturb the user with the same question (same title)
      */
-    public static final int     STYLE_SHOW_DO_NOT_DISPLAY_AGAIN      = 1 << 5;
+    public static final int       STYLE_SHOW_DO_NOT_DISPLAY_AGAIN = 1 << 5;
 
     /**
      * Inputdialogs will use passwordfields instead of textfields
      */
-    public static final int     STYLE_PASSWORD                       = 1 << 9;
+    public static final int       STYLE_PASSWORD                  = 1 << 9;
 
     /**
      * tries to find some special markers in the text and selects an appropriate
@@ -262,26 +276,15 @@ public class Dialog {
         return Dialog.INSTANCE;
     }
 
-    public static boolean isClosed(final Object value) {
-        if (!(value instanceof Integer)) { return false; }
-        return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_CLOSED);
-    }
-
-    public static boolean isOK(final Object value) {
-        if (!(value instanceof Integer)) { return false; }
-        return BinaryLogic.containsSome((Integer) value, Dialog.RETURN_OK);
-    }
-
     /**
      * The max counter value for a timeout Dialog
      */
-    private int    countdownTime = 20;
+    private int       countdownTime = 20;
 
     /**
      * Parent window for all dialogs created with abstractdialog
      */
-    private JFrame owner         = null;
-    private Window window;
+    private Component owner         = null;
 
     /**
      * @return the {@link Dialog#countdownTime}
@@ -292,27 +295,19 @@ public class Dialog {
     }
 
     /**
+     * @return
+     */
+    public List<? extends Image> getIconList() {
+        return iconList;
+    }
+
+    /**
      * @return the {@link Dialog#owner}
      * @see Dialog#owner
      */
-    public JFrame getParentOwner() {
-        if (owner == null) {
+    public Component getParentOwner() {
 
-            window = owner = new EDTHelper<JFrame>() {
-
-                @Override
-                public JFrame edtRun() {
-                    // TODO Auto-generated method stub
-                    return new JFrame();
-                }
-
-            }.getReturnValue();
-        }
         return owner;
-    }
-
-    public Window getParentWindow() {
-        return window;
     }
 
     /**
@@ -324,30 +319,22 @@ public class Dialog {
         this.countdownTime = countdownTime;
     }
 
+    public void setIconList(final List<? extends Image> iconList) {
+        this.iconList = iconList;
+    }
+
     /**
      * @param parent
-     *            the {@link Dialog#owner} to set
+     *            this is needed for correct parentWindow handling for correct
+     *            dialog show order the {@link Dialog#owner} to set
      * @see Dialog#owner
      */
-    public void setParentOwner(final JFrame parent) {
+    public void setParentOwner(final Component parent) {
         owner = parent;
         if (parent == null) {
             Log.exception(new NullPointerException("parent == null"));
         }
-        window = owner;
-    }
 
-    /**
-     * this is needed for correct parentWindow handling for correct dialog show
-     * order
-     * 
-     * @param window
-     */
-    protected void setParentWindow(final Window window) {
-        this.window = window;
-        if (window == null) {
-            Log.exception(new NullPointerException("window == null"));
-        }
     }
 
     /**
@@ -607,7 +594,7 @@ public class Dialog {
                             }
                         }
                         if (dialogType == null || dialogType.getId() == FileChooserType.OPEN_DIALOG.getId()) {
-                            switch (maskWrapper[0] = fc.showOpenDialog(Dialog.this.getParentWindow())) {
+                            switch (maskWrapper[0] = fc.showOpenDialog(Dialog.this.getParentOwner())) {
                             case JFileChooser.APPROVE_OPTION:
                                 if (multiSelection) {
                                     final ArrayList<File> rets = new ArrayList<File>();
@@ -645,7 +632,7 @@ public class Dialog {
 
                             }
                         } else if (dialogType.getId() == FileChooserType.SAVE_DIALOG.getId()) {
-                            if ((maskWrapper[0] = fc.showSaveDialog(Dialog.this.getParentWindow())) == JFileChooser.APPROVE_OPTION) {
+                            if ((maskWrapper[0] = fc.showSaveDialog(Dialog.this.getParentOwner())) == JFileChooser.APPROVE_OPTION) {
                                 File ret = fc.getSelectedFile();
                                 /*
                                  * validate selectedFile against

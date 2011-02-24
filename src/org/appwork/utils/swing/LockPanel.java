@@ -170,7 +170,7 @@ public class LockPanel extends JPanel {
                         } else {
                             return null;
                         }
-                    } catch (Throwable e) {
+                    } catch (final Throwable e) {
                         /*
                          * to catch component must be showing on the screen to
                          * determine its location
@@ -198,7 +198,7 @@ public class LockPanel extends JPanel {
         fadeTimer = new Timer(50, new ActionListener() {
 
             public void actionPerformed(final ActionEvent e) {
-                Timer timer = fadeTimer;
+                final Timer timer = fadeTimer;
                 alpha += steps;
 
                 if (alpha >= 1.0) {
@@ -232,7 +232,7 @@ public class LockPanel extends JPanel {
         fadeTimer = new Timer(50, new ActionListener() {
 
             public void actionPerformed(final ActionEvent e) {
-                Timer timer = fadeTimer;
+                final Timer timer = fadeTimer;
                 alpha -= steps;
                 System.out.println(alpha);
                 if (alpha <= 0.0) {
