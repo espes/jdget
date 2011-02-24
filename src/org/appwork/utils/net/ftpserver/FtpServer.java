@@ -67,7 +67,7 @@ public class FtpServer implements Runnable {
     /**
      * @return the localhostOnly
      */
-    protected boolean isLocalhostOnly() {
+    public boolean isLocalhostOnly() {
         return this.localhostOnly;
     }
 
@@ -105,7 +105,7 @@ public class FtpServer implements Runnable {
      * @param localhostOnly
      *            the localhostOnly to set
      */
-    protected void setLocalhostOnly(final boolean localhostOnly) {
+    public void setLocalhostOnly(final boolean localhostOnly) {
         this.localhostOnly = localhostOnly;
     }
 
