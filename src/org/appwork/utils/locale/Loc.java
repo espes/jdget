@@ -35,6 +35,7 @@ import org.appwork.utils.logging.Log;
  * 
  * @author Christian
  */
+@Deprecated
 public class Loc {
     /**
      * The directory, where all localization files are located. A_ because this
@@ -165,8 +166,8 @@ public class Loc {
         });
 
         if (files != null) {
-            for (int i = 0; i < files.length; i++) {
-                ret.add(files[i].substring(0, files[i].length() - 4));
+            for (final String file : files) {
+                ret.add(file.substring(0, file.length() - 4));
             }
         }
 
@@ -212,8 +213,8 @@ public class Loc {
                         });
 
                         if (files != null) {
-                            for (int i = 0; i < files.length; i++) {
-                                ret.add(files[i].substring(0, files[i].length() - 4));
+                            for (final String file : files) {
+                                ret.add(file.substring(0, file.length() - 4));
                             }
                         }
                     }
