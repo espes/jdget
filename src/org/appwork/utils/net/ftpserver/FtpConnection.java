@@ -527,9 +527,13 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 /* localhost only */
                 this.write(227, "Entering Passive Mode. (127,0,0,1," + p1 + "," + p2 + ").");
             } else {
-                String ip = this.controlSocket.getLocalAddress().getHostAddress();
-                ip = ip.replaceAll("\\.", ",");
-                this.write(227, "Entering Passive Mode. (" + ip + "," + p1 + "," + p2 + ").");
+                if (this.controlSocket.getLocalAddress().isLoopbackAddress()) {
+                    this.write(227, "Entering Passive Mode. (127,0,0,1," + p1 + "," + p2 + ").");
+                } else {
+                    String ip = this.controlSocket.getLocalAddress().getHostAddress();
+                    ip = ip.replaceAll("\\.", ",");
+                    this.write(227, "Entering Passive Mode. (" + ip + "," + p1 + "," + p2 + ").");
+                }
             }
             return;
         } catch (final IOException e) {
