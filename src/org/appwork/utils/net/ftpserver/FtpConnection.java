@@ -14,8 +14,10 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 
 import org.appwork.controlling.State;
@@ -371,7 +373,12 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         this.closeDataConnection();
         try {
             this.serverSocket = new ServerSocket();
-            this.serverSocket.bind(null);
+            SocketAddress socketAddress = null;
+            if (this.ftpServer.isLocalhostOnly()) {
+                /* bind socket to localhost */
+                socketAddress = new InetSocketAddress(this.ftpServer.getLocalHost(), 0);
+            }
+            this.serverSocket.bind(socketAddress);
             okay = true;
             final int port = this.serverSocket.getLocalPort();
             this.write(229, "Entering Extended Passive Mode (|||" + port + "|)");
@@ -506,12 +513,24 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         this.closeDataConnection();
         try {
             this.serverSocket = new ServerSocket();
-            this.serverSocket.bind(null);
+            SocketAddress socketAddress = null;
+            if (this.ftpServer.isLocalhostOnly()) {
+                /* bind socket to localhost */
+                socketAddress = new InetSocketAddress(this.ftpServer.getLocalHost(), 0);
+            }
+            this.serverSocket.bind(socketAddress);
             okay = true;
             final int port = this.serverSocket.getLocalPort();
             final int p1 = port / 256;
             final int p2 = port - p1 * 256;
-            this.write(227, "Entering Passive Mode. (127,0,0,1," + p1 + "," + p2 + ").");
+            if (this.ftpServer.isLocalhostOnly()) {
+                /* localhost only */
+                this.write(227, "Entering Passive Mode. (127,0,0,1," + p1 + "," + p2 + ").");
+            } else {
+                String ip = this.controlSocket.getLocalAddress().getHostAddress();
+                ip = ip.replaceAll("\\.", ",");
+                this.write(227, "Entering Passive Mode. (" + ip + "," + p1 + "," + p2 + ").");
+            }
             return;
         } catch (final IOException e) {
             throw new FtpException(421, "could not open port");

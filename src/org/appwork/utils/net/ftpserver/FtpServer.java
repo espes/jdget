@@ -43,7 +43,7 @@ public class FtpServer implements Runnable {
         return this.handler;
     }
 
-    private InetAddress getLocalHost() {
+    protected InetAddress getLocalHost() {
         InetAddress localhost = null;
         try {
             localhost = InetAddress.getByName("127.0.0.1");
