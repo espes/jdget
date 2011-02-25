@@ -182,7 +182,7 @@ public class ExtTable<E> extends JTable {
 
         this.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
-            @Override
+           
             @SuppressWarnings("unchecked")
             public void valueChanged(final ListSelectionEvent e) {
                 ArrayList<E> sel = ExtTable.this.getExtTableModel().getSelectedObjects();
@@ -209,15 +209,15 @@ public class ExtTable<E> extends JTable {
 
         this.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
 
-            @Override
+           
             public void columnAdded(final TableColumnModelEvent e) {
             }
 
-            @Override
+            
             public void columnMarginChanged(final ChangeEvent e) {
             }
 
-            @Override
+           
             public void columnMoved(final TableColumnModelEvent e) {
                 if (e == null) { return; }
                 if (e.getFromIndex() == e.getToIndex()) { return; }
@@ -232,11 +232,11 @@ public class ExtTable<E> extends JTable {
 
             }
 
-            @Override
+         
             public void columnRemoved(final TableColumnModelEvent e) {
             }
 
-            @Override
+           
             public void columnSelectionChanged(final ListSelectionEvent e) {
             }
 
@@ -277,7 +277,7 @@ public class ExtTable<E> extends JTable {
             mi.setSelected(this.getExtTableModel().isVisible(i));
             mi.addActionListener(new ActionListener() {
 
-                @Override
+               
                 public void actionPerformed(final ActionEvent e) {
                     ExtTable.this.getExtTableModel().setVisible(j, mi.isSelected());
                     ExtTable.this.createColumns();
@@ -309,8 +309,7 @@ public class ExtTable<E> extends JTable {
             tableColumn.setHeaderRenderer(this.model.getExtColumn(j).getHeaderRenderer());
             // Save column width
             tableColumn.addPropertyChangeListener(new PropertyChangeListener() {
-                @Override
-                public void propertyChange(final PropertyChangeEvent evt) {
+               public void propertyChange(final PropertyChangeEvent evt) {
                     if (evt.getPropertyName().equals("width")) {
                         try {
                             JSonStorage.getStorage("ExtTable_" + ExtTable.this.tableID).put("WIDTH_COL_" + ExtTable.this.model.getExtColumn(j).getID(), (Integer) evt.getNewValue());
