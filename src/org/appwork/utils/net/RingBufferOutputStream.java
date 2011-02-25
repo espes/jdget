@@ -46,7 +46,6 @@ public class RingBufferOutputStream {
         }
         this.thread = new Thread(new Runnable() {
 
-            @Override
             public void run() {
                 try {
                     while (!RingBufferOutputStream.this.thread.isInterrupted() && RingBufferOutputStream.this.thread.isAlive()) {

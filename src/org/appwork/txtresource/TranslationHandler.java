@@ -233,7 +233,7 @@ public class TranslationHandler implements InvocationHandler {
      * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
      * java.lang.reflect.Method, java.lang.Object[])
      */
-    @Override
+   
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
 
         final ArrayList<TranslateResource> lookup = this.lookup;
