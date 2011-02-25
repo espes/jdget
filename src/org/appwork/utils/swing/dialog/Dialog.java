@@ -18,6 +18,7 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
@@ -62,14 +63,14 @@ public class Dialog {
         private final int id;
 
         private FileChooserSelectionMode(final int num) {
-            id = num;
+            this.id = num;
         }
 
         /**
          * @return the id
          */
         public int getId() {
-            return id;
+            return this.id;
         }
     }
 
@@ -88,7 +89,7 @@ public class Dialog {
          * @return the id
          */
         public int getId() {
-            return id;
+            return this.id;
         }
     }
 
@@ -291,14 +292,14 @@ public class Dialog {
      * @see Dialog#countdownTime
      */
     protected int getCountdownTime() {
-        return countdownTime;
+        return this.countdownTime;
     }
 
     /**
      * @return
      */
     public List<? extends Image> getIconList() {
-        return iconList;
+        return this.iconList;
     }
 
     /**
@@ -307,7 +308,7 @@ public class Dialog {
      */
     public Component getParentOwner() {
 
-        return owner;
+        return this.owner;
     }
 
     /**
@@ -330,11 +331,16 @@ public class Dialog {
      * @see Dialog#owner
      */
     public void setParentOwner(final Component parent) {
-        owner = parent;
+        this.owner = parent;
         if (parent == null) {
             Log.exception(new NullPointerException("parent == null"));
         }
 
+    }
+
+    @Deprecated
+    public void setParentOwner(final JFrame parent) {
+        this.setParentOwner((Component) parent);
     }
 
     /**
