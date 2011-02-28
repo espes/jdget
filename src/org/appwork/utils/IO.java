@@ -124,19 +124,17 @@ public class IO {
      * but not returned
      * 
      * this function skips emtpy lines
-     * 
-     * to get returned string use
-     * 
-     * line = new String(buffer, 0, (read > 0 ? read : buffer.length), "UTF-8");
      */
-    public static Integer readLine(final BufferedInputStream is, final byte[] array) throws IOException {
+    public static String readLine(final BufferedInputStream is, final byte[] array) throws IOException {
         Arrays.fill(array, 0, array.length, (byte) 0);
         int read = 0;
         int total = 0;
+        int totalString = 0;
         boolean nextLineReached = false;
         while (true) {
             read = is.read();
-            if (read == -1 && total == 0) {/* EOS */
+            if (read == -1 && total == 0) {
+                /* EOS */
                 return null;
             }
             if (read == 13 || read == 10) {
@@ -150,15 +148,11 @@ public class IO {
                 break;
             } else if (total < array.length) {
                 /* only write to outputstream if maxlength not reached yet */
-                array[total] = (byte) read;
+                array[totalString++] = (byte) read;
             }
             total++;
         }
-        if (total > array.length) {
-            return -total;
-        } else {
-            return total;
-        }
+        return new String(array, 0, totalString, "UTF-8");
     }
 
     public static byte[] readStream(final int maxSize, final InputStream input) throws IOException {
