@@ -24,7 +24,7 @@ public class JsonConfig {
      */
     public static <T extends ConfigInterface> T create(final Class<T> configInterface) {
 
-        return (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class[] { configInterface }, new StorageHandler(configInterface));
+        return (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(configInterface));
 
     }
 

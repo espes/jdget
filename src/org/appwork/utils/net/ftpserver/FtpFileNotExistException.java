@@ -9,25 +9,15 @@
  */
 package org.appwork.utils.net.ftpserver;
 
-import java.io.IOException;
-
 /**
  * @author daniel
- * 
  */
 public class FtpFileNotExistException extends FtpException {
 
-    /**
-     * @param code
-     * @param message
-     */
+    private static final long serialVersionUID = -5751161549164357818L;
+
     public FtpFileNotExistException() {
         super(550, "No such file or directory.");
     }
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -5751161549164357818L;
 
 }

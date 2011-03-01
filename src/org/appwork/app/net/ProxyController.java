@@ -94,7 +94,6 @@ public class ProxyController {
     /**
      * Checks windows registry for proxy settings
      */
-    @SuppressWarnings("unchecked")
     private static boolean checkReg() {
         try {
             final Preferences userRoot = Preferences.userRoot();

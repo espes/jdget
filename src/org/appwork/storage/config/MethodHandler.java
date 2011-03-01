@@ -268,12 +268,9 @@ public class MethodHandler {
 
                 if (defaultObject == null) {
                     if (Storable.class.isAssignableFrom(rawClass)) {
-                        Constructor<?> c;
-
-                        c = rawClass.getDeclaredConstructor(new Class[] {});
+                        Constructor<?> c = rawClass.getDeclaredConstructor(new Class[] {});
                         c.setAccessible(true);
-                        defaultObject = c.newInstance(null);
-
+                        defaultObject = c.newInstance((Object[]) null);
                     }
                 }
                 checkBadAnnotations(m, DefaultObjectValue.class, CryptedStorage.class, PlainStorage.class);

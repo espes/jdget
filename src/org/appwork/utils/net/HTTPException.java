@@ -18,11 +18,11 @@ import java.net.HttpURLConnection;
  */
 public class HTTPException extends IOException {
 
+    private static final long serialVersionUID = -4661795439663319073L;
     private HttpURLConnection connection;
 
     public HTTPException() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -38,17 +38,14 @@ public class HTTPException extends IOException {
 
     public HTTPException(final String arg0) {
         super(arg0);
-        // TODO Auto-generated constructor stub
     }
 
     public HTTPException(final String arg0, final Throwable arg1) {
         super(arg0, arg1);
-        // TODO Auto-generated constructor stub
     }
 
     public HTTPException(final Throwable arg0) {
         super(arg0);
-        // TODO Auto-generated constructor stub
     }
 
     public HttpURLConnection getConnection() {

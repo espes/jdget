@@ -143,7 +143,7 @@ public class CrossSystem {
         } catch (final Throwable e) {
             Log.exception(Level.WARNING, e);
         }
-        return true;
+        return false;
     }
 
     /**

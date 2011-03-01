@@ -15,12 +15,10 @@ package org.appwork.storage.config;
  */
 public class InterfaceParseException extends RuntimeException {
 
-    /**
-     * 
-     */
+    private static final long serialVersionUID = -5793484842490407594L;
+
     public InterfaceParseException() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -28,7 +26,6 @@ public class InterfaceParseException extends RuntimeException {
      */
     public InterfaceParseException(final String arg0) {
         super(arg0);
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -37,7 +34,6 @@ public class InterfaceParseException extends RuntimeException {
      */
     public InterfaceParseException(final String arg0, final Throwable arg1) {
         super(arg0, arg1);
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -45,7 +41,6 @@ public class InterfaceParseException extends RuntimeException {
      */
     public InterfaceParseException(final Throwable arg0) {
         super(arg0);
-        // TODO Auto-generated constructor stub
     }
 
 }

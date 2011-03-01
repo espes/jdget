@@ -14,7 +14,6 @@ import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.Hash;
 import org.appwork.utils.ImageProvider.ImageProvider;
-import org.appwork.utils.net.HTTP;
 import org.appwork.utils.net.SimpleHTTP;
 
 public class AsynchImage extends JLabel {
