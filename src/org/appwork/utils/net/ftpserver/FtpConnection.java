@@ -312,6 +312,8 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             }
         } catch (final FtpException e) {
             this.write(e.getCode(), e.getMessage());
+        } catch (final Throwable e) {
+            this.write(550, e.getMessage());
         }
     }
 
@@ -407,6 +409,8 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             } catch (final FtpFileNotExistException e) {
                 /* need another error code here */
                 throw new FtpException(450, "Requested file action not taken; File unavailable");
+            } catch (final FtpException e) {
+                throw e;
             } catch (final Exception e) {
                 throw new FtpException(451, "Requested action aborted: local error in processing");
             }
@@ -460,6 +464,8 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             } catch (final FtpFileNotExistException e) {
                 /* need another error code here */
                 throw new FtpException(450, "Requested file action not taken; File unavailable");
+            } catch (final FtpException e) {
+                throw e;
             } catch (final Exception e) {
                 throw new FtpException(451, "Requested action aborted: local error in processing");
             }
@@ -600,10 +606,12 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             } catch (final FtpFileNotExistException e) {
                 /* need another error code here */
                 throw new FtpException(450, "Requested file action not taken; File unavailable");
+            } catch (final FtpException e) {
+                throw e;
             } catch (final IOException e) {
-                throw new FtpException(426, "Requested action aborted: IOException");
+                throw new FtpException(426, e.getMessage());
             } catch (final Exception e) {
-                throw new FtpException(451, "Requested action aborted: local error in processing");
+                throw new FtpException(451, e.getMessage());
             }
             /* we close the passive port after command */
             this.write(226, "Transfer complete. " + bytesWritten + " bytes transfered!");
@@ -687,10 +695,12 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             } catch (final FtpFileNotExistException e) {
                 /* need another error code here */
                 throw new FtpException(450, "Requested file action not taken; File unavailable");
+            } catch (final FtpException e) {
+                throw e;
             } catch (final IOException e) {
-                throw new FtpException(426, "Requested action aborted: IOException");
+                throw new FtpException(426, e.getMessage());
             } catch (final Exception e) {
-                throw new FtpException(451, "Requested action aborted: local error in processing");
+                throw new FtpException(451, e.getMessage());
             }
             /* we close the passive port after command */
             this.write(226, "Transfer complete. " + bytesRead + " bytes received!");
