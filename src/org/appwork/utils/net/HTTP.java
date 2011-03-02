@@ -18,6 +18,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
+import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.swing.EDTHelper;
+import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.dialog.ProgressDialog;
+import org.appwork.utils.swing.dialog.ProgressDialog.ProgressGetter;
+
 /**
  * @author thomas
  * 
@@ -31,7 +38,7 @@ public class HTTP {
      * @param cache
      * @throws IOException
      */
-    public static void download(URL url, File file, DownloadProgress progress) throws IOException {
+    public static void download(final URL url, final File file, final DownloadProgress progress) throws IOException {
         final File parentFile = file.getParentFile();
         if (parentFile != null && !parentFile.exists()) {
             parentFile.mkdirs();
@@ -54,13 +61,17 @@ public class HTTP {
             } else {
                 input = new BufferedInputStream(con.getInputStream());
             }
-            if (progress != null) progress.setTotal(con.getContentLength());
+            if (progress != null) {
+                progress.setTotal(con.getContentLength());
+            }
             final byte[] b = new byte[32767];
             int len;
             while ((len = input.read(b)) != -1) {
                 if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
                 output.write(b, 0, len);
-                if (progress != null) progress.increaseLoaded(len);
+                if (progress != null) {
+                    progress.increaseLoaded(len);
+                }
             }
         } catch (final InterruptedException e) {
             deleteInterrupted = true;
@@ -89,5 +100,71 @@ public class HTTP {
                 file.delete();
             }
         }
+    }
+
+    /**
+     * @param file
+     * @param url
+     * @param hash
+     * @throws Exception
+     */
+    public static void downloadInDialog(final File file, final String url, final String hash) throws Exception {
+        final Exception ret = new EDTHelper<Exception>() {
+
+            @Override
+            public Exception edtRun() {
+                try {
+
+                    final DownloadProgress progress = new DownloadProgress();
+                    final ProgressGetter pg = new ProgressGetter() {
+
+                        private long loaded = 0;
+                        private long total  = 0;
+
+                        @Override
+                        public int getProgress() {
+                            total = progress.getTotal();
+                            loaded = progress.getLoaded();
+                            if (total == 0) { return 0; }
+                            return (int) (loaded * 100 / total);
+                        }
+
+                        @Override
+                        public String getString() {
+                            total = progress.getTotal();
+                            loaded = progress.getLoaded();
+                            if (total <= 0) { return APPWORKUTILS.T.connecting(); }
+                            return APPWORKUTILS.T.progress(loaded, total, loaded * 10000f / total / 100.0);
+                        }
+
+                        @Override
+                        public void run() throws Exception {
+                            HTTP.download(new URL(url), file, progress);
+                        }
+
+                    };
+                    final ProgressDialog dialog = new ProgressDialog(pg, Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK, APPWORKUTILS.T.download_title(), APPWORKUTILS.T.download_msg(), ImageProvider.getImageIcon("payout", 32, 32, true)) {
+                        /**
+                         * 
+                         */
+                        private static final long serialVersionUID = 5303387916537596967L;
+
+                        @Override
+                        public boolean closeAllowed() {
+
+                            Dialog.getInstance().showMessageDialog(APPWORKUTILS.T.please_wait());
+
+                            return false;
+                        }
+                    };
+                    Dialog.getInstance().showDialog(dialog);
+                } catch (final Exception e) {
+                    return e;
+                }
+                return null;
+            }
+
+        }.getReturnValue();
+        if (ret != null) { throw ret; }
     }
 }

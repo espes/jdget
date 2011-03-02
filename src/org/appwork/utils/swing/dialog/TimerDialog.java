@@ -10,6 +10,7 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
@@ -139,6 +140,7 @@ public abstract class TimerDialog {
      */
     public Dimension getPreferredSize() {
         final Dimension pref = getDialog().getRealPreferredSize();
+
         int w = getPreferredWidth();
         int h = getPreferredHeight();
         if (w <= 0) {
@@ -147,9 +149,14 @@ public abstract class TimerDialog {
         if (h <= 0) {
             h = pref.height;
         }
+        // w = Math.min(max.width, w);
+        // w = Math.max(min.width, w);
+        // h = Math.min(max.height, h);
+        // h = Math.max(min.height, h);
+
         try {
             if (getDialog().getParent().isVisible()) {
-                return new Dimension(Math.min(getDialog().getParent().getWidth(), w), Math.min(getDialog().getParent().getHeight(), h));
+                return new Dimension(Math.min(getRoot().getWidth(), w), Math.min(getRoot().getHeight(), h));
             } else {
                 return new Dimension(Math.min((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.75), w), Math.min((int) (Toolkit.getDefaultToolkit().getScreenSize().height * 0.75), h));
 
@@ -167,6 +174,18 @@ public abstract class TimerDialog {
     protected int getPreferredWidth() {
         // TODO Auto-generated method stub
         return -1;
+    }
+
+    /**
+     * @return
+     */
+    private Container getRoot() {
+        Container ret = getDialog().getParent();
+        Container p;
+        while ((p = ret.getParent()) != null) {
+            ret = p;
+        }
+        return ret;
     }
 
     protected void initTimer(final int time) {
@@ -258,6 +277,9 @@ public abstract class TimerDialog {
 
     public void pack() {
         getDialog().pack();
+        System.out.println(getDialog().getPreferredSize());
+        getDialog().setMinimumSize(getDialog().getPreferredSize());
+
     }
 
     public void requestFocus() {

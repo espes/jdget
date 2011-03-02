@@ -72,14 +72,13 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
         // cp.getBackground().darker()));
         more.addActionListener(new ActionListener() {
 
-            
             public void actionPerformed(final ActionEvent e) {
 
                 scrollPane.setVisible(true);
                 logField.setText(Exceptions.getStackTrace(exception));
                 logLabel.setVisible(true);
                 more.setVisible(false);
-
+                setResizable(true);
                 pack();
             }
         });
@@ -105,7 +104,7 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
     @Override
     public JComponent layoutDialogContent() {
 
-        final JPanel cp = new JPanel(new MigLayout("ins 0,wrap 1", "[fill]", "[grow,fill][]"));
+        final JPanel cp = new JPanel(new MigLayout("ins 0,wrap 1", "[fill]", "[][]"));
         textField = new JTextPane() {
             private static final long serialVersionUID = 1L;
 

@@ -53,6 +53,9 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Command -> -", " Befehl -> -" })
     String COMMANDLINEAPP_COMMAND();
 
+    @Default(lngs = { "en", "de" }, values = { "Connecting...", "Verbinden..." })
+    String connecting();
+
     @Default(lngs = { "en", "de" }, values = { "Copy", "Kopieren" })
     String COPYCUTPASTE_COPY();
 
@@ -101,6 +104,12 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Please enter!", "Bitte eingeben" })
     String DIALOG_SLIDER_TITLE();
 
+    @Default(lngs = { "en", "de" }, values = { "Downloading file", "Lade Datei herunter" })
+    String download_msg();
+
+    @Default(lngs = { "en", "de" }, values = { "Download", "Download" })
+    String download_title();
+
     @Default(lngs = { "en", "de" }, values = { "This Error is cause by:", "Grund für diesen Fehler:" })
     String ExceptionDialog_layoutDialogContent_logLabel();
 
@@ -136,6 +145,12 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "Old Password:", "Altes Passwort" })
     String PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD();
+
+    @Default(lngs = { "en", "de" }, values = { "Please wait tuntil download has finished", "Bitte warten bis der Download beendet ist" })
+    String please_wait();
+
+    @Default(lngs = { "en", "de" }, values = { "%s1/%s2 bytes: %s3", "%s1/%s2 Bytes: %s3" })
+    String progress(long loaded, long total, double d);
 
     @Default(lngs = { "en", "de" }, values = { "Find", "Suchen" })
     String SEARCHDIALOG_BUTTON_FIND();

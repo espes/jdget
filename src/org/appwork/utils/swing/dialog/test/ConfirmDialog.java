@@ -25,8 +25,9 @@ public class ConfirmDialog {
      * @throws DialogClosedException
      */
     public static void main(final String[] args) throws DialogClosedException, DialogCanceledException {
-        Dialog.getInstance().showConfirmDialog(0, "title", "message", null, null, null);
-        Dialog.getInstance().showConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, "title", "message", null, null, null);
+        Dialog.getInstance().showConfirmDialog(0, "title", "message this is a longer message. it is very long. probably over one line long. ", null, null, null);
+        // Dialog.getInstance().showConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN,
+        // "title", "message", null, null, null);
     }
 
 }
