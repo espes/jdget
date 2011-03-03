@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Point;
@@ -115,7 +116,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
          * dialogwindow as new root and show dialog. after dialog has been
          * shown, we restore old parentWindow
          */
-
+        Component parentOwner = Dialog.getInstance().getParentOwner();
         Dialog.getInstance().setParentOwner(getDialog());
         try {
             setTitle(title);
@@ -149,8 +150,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                     Log.exception(e);
                 }
             }
-
-            if (Dialog.getInstance().getParentOwner() == null || !Dialog.getInstance().getParentOwner().isShowing()) {
+            if (parentOwner == null || !parentOwner.isShowing()) {             
                 getDialog().setAlwaysOnTop(true);
             }
             // The Dialog Modal
