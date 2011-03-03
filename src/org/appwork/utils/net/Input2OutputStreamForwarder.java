@@ -76,7 +76,7 @@ public class Input2OutputStreamForwarder {
                             if (Input2OutputStreamForwarder.this.writeF > Input2OutputStreamForwarder.this.readF) {
                                 Input2OutputStreamForwarder.this.readP = 0;
                                 Input2OutputStreamForwarder.this.readF = Input2OutputStreamForwarder.this.writeF;
-                                System.out.println("writer flip");
+                                //System.out.println("writer flip");
                             }
                             if (Input2OutputStreamForwarder.this.readP < Input2OutputStreamForwarder.this.writeP) {
                                 /*
@@ -84,18 +84,18 @@ public class Input2OutputStreamForwarder {
                                  * data to get written
                                  */
                                 Input2OutputStreamForwarder.this.readS = Input2OutputStreamForwarder.this.writeP - Input2OutputStreamForwarder.this.readP;
-                                System.out.println("writer normal");
+                                //System.out.println("writer normal");
                             } else if (Input2OutputStreamForwarder.this.writeP < Input2OutputStreamForwarder.this.readP) {
                                 /* write pointer < read pointer */
                                 Input2OutputStreamForwarder.this.readS = Input2OutputStreamForwarder.this.buffer.length - Input2OutputStreamForwarder.this.readP;
-                                System.out.println("writer RestBuffer");
+                                //System.out.println("writer RestBuffer");
                             } else {
                                 /* read pointer=write pointer, no data available */
                                 if (Input2OutputStreamForwarder.this.eof || Input2OutputStreamForwarder.this.readDone) {
-                                    System.out.println("writer normal end");
+                                  //  System.out.println("writer normal end");
                                     break;
                                 }
-                                System.out.println("writer wait");
+                                //System.out.println("writer wait");
                                 try {
                                     Input2OutputStreamForwarder.this.LOCK.wait(100);
                                     continue;
@@ -104,7 +104,7 @@ public class Input2OutputStreamForwarder {
                                 }
                             }
                         }
-                        System.out.println("Writer: " + SizeFormatter.formatBytes(Input2OutputStreamForwarder.this.readS));
+                        //System.out.println("Writer: " + SizeFormatter.formatBytes(Input2OutputStreamForwarder.this.readS));
                         Input2OutputStreamForwarder.this.out.write(Input2OutputStreamForwarder.this.buffer, Input2OutputStreamForwarder.this.readP, Input2OutputStreamForwarder.this.readS);
                         Input2OutputStreamForwarder.this.outC = Input2OutputStreamForwarder.this.outC + Input2OutputStreamForwarder.this.readS;
                         synchronized (Input2OutputStreamForwarder.this.LOCK) {
@@ -138,15 +138,15 @@ public class Input2OutputStreamForwarder {
                         /* read pointer at the end, set write pointer to start */
                         this.writeP = 0;
                         this.writeF++;
-                        System.out.println("reader flip");
+                        //System.out.println("reader flip");
                     }
                     if (this.writeP < this.buffer.length) {
                         /* we still have buffer left to use */
                         this.writeS = this.buffer.length - this.writeP;
-                        System.out.println("read restbuffer");
+                        //System.out.println("read restbuffer");
                     } else {
                         /* no buffer left, wait for signal */
-                        System.out.println("read wait");
+                        //System.out.println("read wait");
                         this.LOCK.notifyAll();
                         try {
                             if (!this.thread.isAlive() || this.thread.isInterrupted()) {
@@ -161,9 +161,9 @@ public class Input2OutputStreamForwarder {
                 }
                 /* read into buffer */
                 read = this.in.read(this.buffer, this.writeP, this.writeS);
-                System.out.println("Reader: " + this.writeP + " " + this.writeS + " read " + read);
+                //System.out.println("Reader: " + this.writeP + " " + this.writeS + " read " + read);
                 if (read == -1) {
-                    System.out.println("reader normal end");
+                    //System.out.println("reader normal end");
                     this.eof = true;
                     break;
                 }

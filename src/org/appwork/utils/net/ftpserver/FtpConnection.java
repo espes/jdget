@@ -32,7 +32,8 @@ import org.appwork.controlling.StateMachineInterface;
 public class FtpConnection implements Runnable, StateMachineInterface {
 
     public static enum COMMAND {
-        /* commands starting with X are experimental, see RFC1123 */
+        /* commands starting with X are experimental, see RFC1123 */        
+        ABOR(true, 0),
         REST(true, 1),
         RNTO(true, 1, -1),
         RNFR(true, 1, -1),
@@ -149,6 +150,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 this.controlSocket.close();
             } catch (final Throwable e2) {
             }
+            this.closeDataConnection();
             throw e;
         }
     }
@@ -213,7 +215,10 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                         this.connectionState.setRenameFile(null);
                         throw new FtpBadSequenceException();
                     }
-                    switch (commandEnum) {
+                    switch (commandEnum) {                    
+                    case ABOR:
+                        this.onABOR();
+                        break;
                     case REST:
                         this.onREST(commandParts);
                         break;
@@ -317,6 +322,15 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         }
     }
 
+   
+    /**
+     * @throws IOException
+     * 
+     */
+    private void onABOR() throws IOException {
+        this.write(226, "Command okay");
+    }
+
     private void onALLO() throws IOException {
         this.write(200, "Command okay");
     }
@@ -328,7 +342,9 @@ public class FtpConnection implements Runnable, StateMachineInterface {
 
     private void onCWD(final String params[]) throws IOException, FtpException {
         this.ftpServer.getFtpCommandHandler().setCurrentDirectory(this.connectionState, this.buildParameter(params));
-        this.write(250, "\"" + this.connectionState.getCurrentDir() + "\" is cwd.");
+        // this.write(250, "\"" + this.connectionState.getCurrentDir() +
+        // "\" is cwd.");
+        this.write(250, "Directory successfully changed.");
     }
 
     /**
@@ -598,11 +614,20 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             } catch (final IOException e) {
                 throw new FtpException(425, "Can't open data connection");
             }
+            /*
+             * we need to make sure that the file exists before opening data
+             * connection, see http://cr.yp.to/ftp/retr.html, RFC 959
+             * 
+             * this will cause the 550 file not found before opening the data
+             * connection
+             */
+            this.ftpServer.getFtpCommandHandler().getSize(this.connectionState, this.buildParameter(commandParts));
             this.write(150, "Opening XY mode data connection for transfer");
             long bytesWritten = 0;
             try {
                 bytesWritten = this.ftpServer.getFtpCommandHandler().onRETR(this.dataSocket.getOutputStream(), this.connectionState, this.buildParameter(commandParts));
                 this.dataSocket.getOutputStream().flush();
+                this.dataSocket.shutdownOutput();
             } catch (final FtpFileNotExistException e) {
                 /* need another error code here */
                 throw new FtpException(450, "Requested file action not taken; File unavailable");
@@ -692,6 +717,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             long bytesRead = 0;
             try {
                 bytesRead = this.ftpServer.getFtpCommandHandler().onSTOR(this.dataSocket.getInputStream(), this.connectionState, append, this.buildParameter(commandParts));
+                dataSocket.shutdownInput();
             } catch (final FtpFileNotExistException e) {
                 /* need another error code here */
                 throw new FtpException(450, "Requested file action not taken; File unavailable");
@@ -792,11 +818,18 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 this.handleCommand(command);
             }
         } catch (final IOException e) {
+        } finally {
+            this.closeDataConnection();
+            try {
+                this.controlSocket.close();
+            } catch (final Throwable e2) {
+            }
         }
     }
 
     private void write(final int code, final String message) throws IOException {
         this.write(code, message, false);
+        System.out.println(code + " " + message);
     }
 
     private void write(final int code, final String message, final boolean multiLine) throws IOException {

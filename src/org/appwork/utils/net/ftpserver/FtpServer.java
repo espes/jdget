@@ -110,11 +110,13 @@ public class FtpServer implements Runnable {
     }
 
     public synchronized void start() throws IOException {
-        this.controlSocket = new ServerSocket(this.port);
         if (this.isLocalhostOnly()) {
             /* we only want localhost bound here */
             final SocketAddress socketAddress = new InetSocketAddress(this.getLocalHost(), this.port);
+            this.controlSocket = new ServerSocket();
             this.controlSocket.bind(socketAddress);
+        } else {
+            this.controlSocket = new ServerSocket(this.port);
         }
         this.controlThread = new Thread(this.threadGroup, this);
         this.controlThread.setName("FtpServerThread");
