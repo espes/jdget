@@ -29,6 +29,7 @@ public class FtpServer implements Runnable {
     private Thread                                        controlThread = null;
     private ThreadGroup                                   threadGroup   = null;
     private boolean                                       localhostOnly = false;
+    private boolean                                       debug         = false;
 
     public FtpServer(final FtpConnectionHandler<? extends FtpFile> handler, final int port) {
         this.handler = handler;
@@ -65,6 +66,13 @@ public class FtpServer implements Runnable {
     }
 
     /**
+     * @return the debug
+     */
+    public boolean isDebug() {
+        return this.debug;
+    }
+
+    /**
      * @return the localhostOnly
      */
     public boolean isLocalhostOnly() {
@@ -93,6 +101,14 @@ public class FtpServer implements Runnable {
             } catch (final Throwable e) {
             }
         }
+    }
+
+    /**
+     * @param debug
+     *            the debug to set
+     */
+    public void setDebug(final boolean debug) {
+        this.debug = debug;
     }
 
     /*
@@ -124,10 +140,10 @@ public class FtpServer implements Runnable {
     }
 
     public synchronized void stop() {
-        this.threadGroup.interrupt();
         try {
             this.controlSocket.close();
         } catch (final Throwable e) {
         }
+        this.threadGroup.interrupt();
     }
 }

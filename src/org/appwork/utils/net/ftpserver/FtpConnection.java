@@ -24,6 +24,7 @@ import org.appwork.controlling.State;
 import org.appwork.controlling.StateConflictException;
 import org.appwork.controlling.StateMachine;
 import org.appwork.controlling.StateMachineInterface;
+import org.appwork.utils.logging.Log;
 
 /**
  * @author daniel
@@ -32,7 +33,7 @@ import org.appwork.controlling.StateMachineInterface;
 public class FtpConnection implements Runnable, StateMachineInterface {
 
     public static enum COMMAND {
-        /* commands starting with X are experimental, see RFC1123 */        
+        /* commands starting with X are experimental, see RFC1123 */
         ABOR(true, 0),
         REST(true, 1),
         RNTO(true, 1, -1),
@@ -142,7 +143,18 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         try {
             this.reader = new BufferedReader(new InputStreamReader(this.controlSocket.getInputStream()));
             this.writer = new BufferedWriter(new OutputStreamWriter(this.controlSocket.getOutputStream()));
-            this.thread = new Thread(ftpServer.getThreadGroup(), this);
+            this.thread = new Thread(ftpServer.getThreadGroup(), this) {
+                @Override
+                public void interrupt() {
+                    /* also close all connections on interrupt */
+                    FtpConnection.this.closeDataConnection();
+                    try {
+                        FtpConnection.this.controlSocket.close();
+                    } catch (final Throwable e) {
+                    }
+                    super.interrupt();
+                }
+            };
             this.thread.setName("FTPConnectionThread: " + this);
             this.thread.start();
         } catch (final IOException e) {
@@ -215,7 +227,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                         this.connectionState.setRenameFile(null);
                         throw new FtpBadSequenceException();
                     }
-                    switch (commandEnum) {                    
+                    switch (commandEnum) {
                     case ABOR:
                         this.onABOR();
                         break;
@@ -322,7 +334,6 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         }
     }
 
-   
     /**
      * @throws IOException
      * 
@@ -717,7 +728,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             long bytesRead = 0;
             try {
                 bytesRead = this.ftpServer.getFtpCommandHandler().onSTOR(this.dataSocket.getInputStream(), this.connectionState, append, this.buildParameter(commandParts));
-                dataSocket.shutdownInput();
+                this.dataSocket.shutdownInput();
             } catch (final FtpFileNotExistException e) {
                 /* need another error code here */
                 throw new FtpException(450, "Requested file action not taken; File unavailable");
@@ -814,7 +825,9 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 if (command == null) {
                     break;
                 }
-                System.out.println(command);
+                if (this.ftpServer.isDebug()) {
+                    Log.L.info("REQ: " + command);
+                }
                 this.handleCommand(command);
             }
         } catch (final IOException e) {
@@ -828,8 +841,10 @@ public class FtpConnection implements Runnable, StateMachineInterface {
     }
 
     private void write(final int code, final String message) throws IOException {
+        if (this.ftpServer.isDebug()) {
+            Log.L.info("RESP: " + code + " " + message);
+        }
         this.write(code, message, false);
-        System.out.println(code + " " + message);
     }
 
     private void write(final int code, final String message, final boolean multiLine) throws IOException {
