@@ -10,10 +10,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import org.appwork.shutdown.ShutdownController;
+import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
-import org.appwork.utils.ShutDownHooksQueue;
 import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.codehaus.jackson.JsonGenerationException;
@@ -40,12 +41,13 @@ public class JSonStorage {
 
     static {
         /* shutdown hook to save all open Storages */
-        ShutDownHooksQueue.add(new Runnable() {
-
+        ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
+            @Override
             public void run() {
                 JSonStorage.save();
             }
         });
+
     }
 
     public static boolean addStorage(final Storage storage) {
