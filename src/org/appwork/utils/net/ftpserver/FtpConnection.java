@@ -24,6 +24,7 @@ import org.appwork.controlling.State;
 import org.appwork.controlling.StateConflictException;
 import org.appwork.controlling.StateMachine;
 import org.appwork.controlling.StateMachineInterface;
+import org.appwork.utils.Regex;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -819,7 +820,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
 
     public void run() {
         try {
-            this.write(220, this.ftpServer.getFtpCommandHandler().getWelcomeMessage(this.connectionState));
+            this.writeMultiLineAuto(220, this.ftpServer.getFtpCommandHandler().getWelcomeMessage(this.connectionState));
             while (true) {
                 final String command = this.reader.readLine();
                 if (command == null) {
@@ -852,6 +853,20 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             this.writer.write(code + "-" + message + "\r\n");
         } else {
             this.writer.write(code + " " + message + "\r\n");
+        }
+        this.writer.flush();
+    }
+
+    private void writeMultiLineAuto(final int code, final String message) throws IOException {
+        final String lines[] = Regex.getLines(message);
+        if (lines != null) {
+            for (int line = 0; line < lines.length; line++) {
+                if (line == lines.length - 1) {
+                    this.writer.write(code + " " + lines[line] + "\r\n");
+                } else {
+                    this.writer.write(code + "-" + lines[line] + "\r\n");
+                }
+            }
         }
         this.writer.flush();
     }
