@@ -1,22 +1,11 @@
 package org.appwork.shutdown;
 
-public abstract class ShutdownEvent extends Thread implements Comparable<ShutdownEvent> {
+public abstract class ShutdownEvent extends Thread {
     private int  hookPriority = 10000;
     private long maxDuration  = 30000l;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    @Override
-    public int compareTo(final ShutdownEvent o) {
-
-        return getHookPriority() < o.getHookPriority() ? 1 : getHookPriority() == o.getHookPriority() ? 0 : -1;
-    }
-
     public int getHookPriority() {
-        return hookPriority;
+        return this.hookPriority;
     }
 
     /**
@@ -25,7 +14,7 @@ public abstract class ShutdownEvent extends Thread implements Comparable<Shutdow
      */
     public long getMaxDuration() {
 
-        return maxDuration;
+        return this.maxDuration;
     }
 
     @Override
@@ -38,7 +27,7 @@ public abstract class ShutdownEvent extends Thread implements Comparable<Shutdow
      */
 
     public void setHookPriority(final int priority) {
-        hookPriority = priority;
+        this.hookPriority = priority;
     }
 
     /**
@@ -51,7 +40,7 @@ public abstract class ShutdownEvent extends Thread implements Comparable<Shutdow
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " Priority: " + getHookPriority();
+        return this.getClass().getSimpleName() + " Priority: " + this.getHookPriority();
     }
 
 }

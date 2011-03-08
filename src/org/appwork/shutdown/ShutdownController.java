@@ -29,7 +29,7 @@ public class ShutdownController extends Thread {
 
             @Override
             public void run() {
-                System.out.println("DO " + getHookPriority());
+                System.out.println("DO " + this.getHookPriority());
             }
 
         });
@@ -42,7 +42,7 @@ public class ShutdownController extends Thread {
 
             @Override
             public void run() {
-                System.out.println("DO " + getHookPriority());
+                System.out.println("DO " + this.getHookPriority());
 
             }
 
@@ -56,7 +56,7 @@ public class ShutdownController extends Thread {
 
             @Override
             public void run() {
-                System.out.println("DO " + getHookPriority());
+                System.out.println("DO " + this.getHookPriority());
             }
 
         });
@@ -72,8 +72,8 @@ public class ShutdownController extends Thread {
     private ShutdownController() {
         super(ShutdownController.class.getSimpleName());
 
-        hooks = new LinkedList<ShutdownEvent>();
-        vetoListeners = new ArrayList<ShutdownVetoListener>();
+        this.hooks = new LinkedList<ShutdownEvent>();
+        this.vetoListeners = new ArrayList<ShutdownVetoListener>();
         Runtime.getRuntime().addShutdownHook(this);
     }
 
@@ -81,31 +81,28 @@ public class ShutdownController extends Thread {
      * @param restartViewUpdaterEvent
      */
     public void addShutdownEvent(final ShutdownEvent event) {
-        if (isAlive()) { throw new IllegalStateException("Cannot add hooks during shutdown"); }
-        synchronized (hooks) {
+        if (this.isAlive()) { throw new IllegalStateException("Cannot add hooks during shutdown"); }
+        synchronized (this.hooks) {
             ShutdownEvent next;
             int i = 0;
             // add event sorted
-            for (final Iterator<ShutdownEvent> it = hooks.iterator(); it.hasNext();) {
+            for (final Iterator<ShutdownEvent> it = this.hooks.iterator(); it.hasNext();) {
                 next = it.next();
-
                 if (next.getHookPriority() <= event.getHookPriority()) {
-                    hooks.add(i, event);
+                    this.hooks.add(i, event);
                     return;
                 }
                 i++;
-
             }
-            hooks.add(event);
-
+            this.hooks.add(event);
         }
 
     }
 
     public void addShutdownVetoListener(final ShutdownVetoListener listener) {
-        synchronized (vetoListeners) {
-            vetoListeners.remove(listener);
-            vetoListeners.add(listener);
+        synchronized (this.vetoListeners) {
+            this.vetoListeners.remove(listener);
+            this.vetoListeners.add(listener);
         }
     }
 
@@ -114,8 +111,8 @@ public class ShutdownController extends Thread {
      */
     public ArrayList<ShutdownVetoException> collectVetos() {
         final ArrayList<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
-        synchronized (vetoListeners) {
-            for (final ShutdownVetoListener v : vetoListeners) {
+        synchronized (this.vetoListeners) {
+            for (final ShutdownVetoListener v : this.vetoListeners) {
                 try {
                     v.onShutdownRequest();
 
@@ -151,12 +148,12 @@ public class ShutdownController extends Thread {
     }
 
     public void removeShutdownEvent(final ShutdownEvent event) {
-        if (isAlive()) { throw new IllegalStateException("Cannot add hooks during shutdown"); }
-        synchronized (hooks) {
+        if (this.isAlive()) { throw new IllegalStateException("Cannot add hooks during shutdown"); }
+        synchronized (this.hooks) {
             ShutdownEvent next;
 
             // add event sorted
-            for (final Iterator<ShutdownEvent> it = hooks.iterator(); it.hasNext();) {
+            for (final Iterator<ShutdownEvent> it = this.hooks.iterator(); it.hasNext();) {
                 next = it.next();
                 if (next == event) {
                     it.remove();
@@ -167,9 +164,8 @@ public class ShutdownController extends Thread {
     }
 
     public void removeShutdownVetoListener(final ShutdownVetoListener listener) {
-        synchronized (vetoListeners) {
-            vetoListeners.remove(listener);
-
+        synchronized (this.vetoListeners) {
+            this.vetoListeners.remove(listener);
         }
     }
 
@@ -177,12 +173,12 @@ public class ShutdownController extends Thread {
      * 
      */
     public void requestShutdown() {
-        final ArrayList<ShutdownVetoException> vetos = collectVetos();
+        final ArrayList<ShutdownVetoException> vetos = this.collectVetos();
         if (vetos.size() == 0) {
             System.exit(0);
         } else {
-            synchronized (vetoListeners) {
-                for (final ShutdownVetoListener v : vetoListeners) {
+            synchronized (this.vetoListeners) {
+                for (final ShutdownVetoListener v : this.vetoListeners) {
                     v.onShutdownVeto(vetos);
                 }
             }
@@ -198,8 +194,8 @@ public class ShutdownController extends Thread {
          * here
          */
         try {
-            synchronized (hooks) {
-                for (final ShutdownEvent e : hooks) {
+            synchronized (this.hooks) {
+                for (final ShutdownEvent e : this.hooks) {
                     try {
                         System.out.println("ShutdownController: start item" + e);
                         e.start();
@@ -211,7 +207,7 @@ public class ShutdownController extends Thread {
                         }
                         if (e.isAlive()) {
                             System.out.println("ShutdownController: " + e + " is still running after " + e.getMaxDuration() + " ms");
-                            System.out.println("ShutdownController: " + e + " StackTrace:\r\n" + getStackTrace(e));
+                            System.out.println("ShutdownController: " + e + " StackTrace:\r\n" + this.getStackTrace(e));
                         }
                     } catch (final Throwable e1) {
                         e1.printStackTrace();
