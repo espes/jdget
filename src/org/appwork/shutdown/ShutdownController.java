@@ -197,7 +197,7 @@ public class ShutdownController extends Thread {
             synchronized (this.hooks) {
                 for (final ShutdownEvent e : this.hooks) {
                     try {
-                        System.out.println("ShutdownController: start item" + e);
+                        System.out.println("ShutdownController: start item->" + e);
                         e.start();
                         try {
                             e.join(e.getMaxDuration());
@@ -206,8 +206,8 @@ public class ShutdownController extends Thread {
 
                         }
                         if (e.isAlive()) {
-                            System.out.println("ShutdownController: " + e + " is still running after " + e.getMaxDuration() + " ms");
-                            System.out.println("ShutdownController: " + e + " StackTrace:\r\n" + this.getStackTrace(e));
+                            System.out.println("ShutdownController: " + e + "->is still running after " + e.getMaxDuration() + " ms");
+                            System.out.println("ShutdownController: " + e + "->StackTrace:\r\n" + this.getStackTrace(e));
                         }
                     } catch (final Throwable e1) {
                         e1.printStackTrace();
