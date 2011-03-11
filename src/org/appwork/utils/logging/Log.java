@@ -28,7 +28,7 @@ public class Log {
         cHandler.setFormatter(new LogFormatter());
         Log.LOGGER.addHandler(cHandler);
         try {
-            LogToFileHandler fh = new LogToFileHandler();
+            final LogToFileHandler fh = new LogToFileHandler();
             fh.setFormatter(new FileLogFormatter());
             Log.LOGGER.addHandler(fh);
         } catch (final Exception e) {
@@ -64,11 +64,13 @@ public class Log {
         if (e == null) {
             e = new NullPointerException("e is null");
         }
-        Level lvl=null;
+        Level lvl = null;
         if (e instanceof ExceptionDefaultLogLevel) {
-            lvl = ((ExceptionDefaultLogLevel) e).getDefaultLogLevel();            
+            lvl = ((ExceptionDefaultLogLevel) e).getDefaultLogLevel();
         }
-        if (lvl==null)lvl=Level.SEVERE;        
+        if (lvl == null) {
+            lvl = Level.SEVERE;
+        }
         Log.exception(lvl, e);
     }
 

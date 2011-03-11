@@ -46,18 +46,37 @@ public class StateMachine {
     private final HashMap<State, Throwable> exceptionMap;
 
     public StateMachine(final StateMachineInterface interfac, final State startState, final State endState) {
-        this.owner = interfac;
-        this.initState = startState;
-        this.currentState = startState;
-        this.finalState = endState;
-        this.exceptionMap = new HashMap<State, Throwable>();
-        this.eventSender = new StateEventsender();
-        this.path = new ArrayList<StatePathEntry>();
-        this.path.add(new StatePathEntry(this.initState));
+        owner = interfac;
+        initState = startState;
+        currentState = startState;
+        finalState = endState;
+        exceptionMap = new HashMap<State, Throwable>();
+        eventSender = new StateEventsender();
+        path = new ArrayList<StatePathEntry>();
+        path.add(new StatePathEntry(initState));
     }
 
     public void addListener(final StateEventListener listener) {
-        this.eventSender.addListener(listener);
+        eventSender.addListener(listener);
+    }
+
+    /**
+     * synchronized execution of a runnable if statemachine is currently in a
+     * given state
+     * 
+     * @param run
+     * @param state
+     * @return
+     */
+    public boolean executeIfOnState(final Runnable run, final State state) {
+        if (run == null || state == null) { return false; }
+        synchronized (lock) {
+            if (isState(state)) {
+                run.run();
+                return true;
+            }
+        }
+        return false;
     }
 
     /*
@@ -67,11 +86,11 @@ public class StateMachine {
     public void executeOnceOnState(final Runnable run, final State state) {
         if (run == null || state == null) { return; }
         boolean reached = false;
-        synchronized (this.lock) {
-            if (this.hasPassed(state)) {
+        synchronized (lock) {
+            if (hasPassed(state)) {
                 reached = true;
             } else {
-                this.addListener(new StateListener(state) {
+                addListener(new StateListener(state) {
                     @Override
                     public void onStateReached(final StateEvent event) {
                         StateMachine.this.removeListener(this);
@@ -85,51 +104,32 @@ public class StateMachine {
         }
     }
 
-    /**
-     * synchronized execution of a runnable if statemachine is currently in a
-     * given state
-     * 
-     * @param run
-     * @param state
-     * @return
-     */
-    public boolean executeIfOnState(final Runnable run, final State state) {
-        if (run == null || state == null) { return false; }
-        synchronized (this.lock) {
-            if (this.isState(state)) {
-                run.run();
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void fireUpdate(final State currentState) {
         if (currentState != null) {
-            synchronized (this.lock) {
+            synchronized (lock) {
                 if (this.currentState != currentState) { throw new StateConflictException("Cannot update state " + currentState + " because current state is " + this.currentState); }
             }
         }
         final StateEvent event = new StateEvent(this, StateEvent.Types.UPDATED, currentState, currentState);
-        this.eventSender.fireEvent(event);
+        eventSender.fireEvent(event);
     }
 
     public void forceState(final State newState) {
         StateEvent event;
-        synchronized (this.lock) {
-            if (this.currentState == newState) { return; }
-            event = new StateEvent(this, StateEvent.Types.CHANGED, this.currentState, newState);
-            synchronized (this.lock2) {
-                this.path.add(new StatePathEntry(newState));
+        synchronized (lock) {
+            if (currentState == newState) { return; }
+            event = new StateEvent(this, StateEvent.Types.CHANGED, currentState, newState);
+            synchronized (lock2) {
+                path.add(new StatePathEntry(newState));
             }
-            Log.L.finest(this.owner + " State changed " + this.currentState + " -> " + newState);
-            this.currentState = newState;
+            Log.L.finest(owner + " State changed " + currentState + " -> " + newState);
+            currentState = newState;
         }
-        this.eventSender.fireEvent(event);
+        eventSender.fireEvent(event);
     }
 
     public Throwable getCause(final State newState) {
-        return this.exceptionMap.get(newState);
+        return exceptionMap.get(newState);
     }
 
     /**
@@ -141,9 +141,9 @@ public class StateMachine {
     public StatePathEntry getLatestStateEntry(final State failedState) {
         try {
             StatePathEntry entry = null;
-            synchronized (this.lock2) {
-                for (int i = this.path.size() - 1; i >= 0; i--) {
-                    entry = this.path.get(i);
+            synchronized (lock2) {
+                for (int i = path.size() - 1; i >= 0; i--) {
+                    entry = path.get(i);
                     if (entry.getState() == failedState) { return entry; }
                 }
             }
@@ -153,18 +153,18 @@ public class StateMachine {
     }
 
     public StateMachineInterface getOwner() {
-        return this.owner;
+        return owner;
     }
 
     /**
      * @return the path
      */
     public ArrayList<StatePathEntry> getPath() {
-        return this.path;
+        return path;
     }
 
     public State getState() {
-        return this.currentState;
+        return currentState;
     }
 
     // public void forceState(int id) {
@@ -179,9 +179,9 @@ public class StateMachine {
     // }
 
     public boolean hasPassed(final State... states) {
-        synchronized (this.lock2) {
+        synchronized (lock2) {
             for (final State s : states) {
-                for (final StatePathEntry e : this.path) {
+                for (final StatePathEntry e : path) {
                     if (e.getState() == s) { return true; }
                 }
             }
@@ -206,8 +206,8 @@ public class StateMachine {
     // }
 
     public boolean isFinal() {
-        synchronized (this.lock) {
-            return this.finalState == this.currentState;
+        synchronized (lock) {
+            return finalState == currentState;
         }
     }
 
@@ -215,49 +215,58 @@ public class StateMachine {
      * returns if the statemachine is in startstate currently
      */
     public boolean isStartState() {
-        synchronized (this.lock) {
-            return this.currentState == this.initState;
+        synchronized (lock) {
+            return currentState == initState;
         }
     }
 
     public boolean isState(final State... states) {
-        synchronized (this.lock) {
+        synchronized (lock) {
             for (final State s : states) {
-                if (s == this.currentState) { return true; }
+                if (s == currentState) { return true; }
             }
         }
         return false;
     }
 
     public void removeListener(final StateEventListener listener) {
-        this.eventSender.removeListener(listener);
+        eventSender.removeListener(listener);
     }
 
     public void reset() {
         StateEvent event;
-        synchronized (this.lock) {
-            if (this.currentState == this.initState) { return; }
-            if (this.finalState != this.currentState) { throw new StateConflictException("Cannot reset from state " + this.currentState); }
-            event = new StateEvent(this, StateEvent.Types.CHANGED, this.currentState, this.initState);
-            Log.L.finest(this.owner + " State changed (reset) " + this.currentState + " -> " + this.initState);
-            this.currentState = this.initState;
-            synchronized (this.lock2) {
-                this.path.clear();
-                this.path.add(new StatePathEntry(this.initState));
+        synchronized (lock) {
+            if (currentState == initState) { return; }
+            if (finalState != currentState) { throw new StateConflictException("Cannot reset from state " + currentState); }
+            event = new StateEvent(this, StateEvent.Types.CHANGED, currentState, initState);
+            Log.L.finest(owner + " State changed (reset) " + currentState + " -> " + initState);
+            currentState = initState;
+            synchronized (lock2) {
+                path.clear();
+                path.add(new StatePathEntry(initState));
             }
         }
-        this.eventSender.fireEvent(event);
+        eventSender.fireEvent(event);
     }
 
     public void setCause(final State failedState, final Throwable e) {
-        this.exceptionMap.put(failedState, e);
+        exceptionMap.put(failedState, e);
     }
 
     public void setStatus(final State newState) {
-        synchronized (this.lock) {
-            if (this.currentState == newState) { return; }
-            if (!this.currentState.getChildren().contains(newState)) { throw new StateConflictException("Cannot change state from " + this.currentState + " to " + newState); }
+        synchronized (lock) {
+            if (currentState == newState) { return; }
+            if (!currentState.getChildren().contains(newState)) { throw new StateConflictException("Cannot change state from " + currentState + " to " + newState); }
         }
-        this.forceState(newState);
+        forceState(newState);
+    }
+
+    /**
+     * Throws a StateViolationException if the current state is not state
+     * 
+     * @param downloadBranchlist
+     */
+    public void validateState(final State state) {
+        if (!isState(state)) { throw new StateViolationException(state); }
     }
 }
