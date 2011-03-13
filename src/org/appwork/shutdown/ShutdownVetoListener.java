@@ -16,9 +16,27 @@ import java.util.ArrayList;
  * 
  */
 public interface ShutdownVetoListener {
+    /**
+     * Step 2a:<br>
+     * Informs listener, that shutdown will be done for sure now. Shutdown will
+     * happen immediatelly after this call
+     */
+    public void onShutdown();
+
+    /**
+     * step 1:<br>
+     * Application requests shutdown. listeners may answer with true to avoid
+     * shutdown.
+     * 
+     * @return
+     * @throws ShutdownVetoException
+     */
     public boolean onShutdownRequest() throws ShutdownVetoException;
 
     /**
+     * step 2b: If one or more listeners in steo a answered with true(veto) all
+     * listeners will be informed afterwards that shutdown has been canceled
+     * 
      * @param vetos
      */
     public void onShutdownVeto(ArrayList<ShutdownVetoException> vetos);

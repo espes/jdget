@@ -147,6 +147,16 @@ public class ShutdownController extends Thread {
         }
     }
 
+    /**
+     * @param instance2
+     * @return
+     */
+    public boolean hasShutdownEvent(final ShutdownEvent instance2) {
+        synchronized (this.hooks) {
+            return this.hooks.contains(instance2);
+        }
+    }
+
     public void removeShutdownEvent(final ShutdownEvent event) {
         if (this.isAlive()) { throw new IllegalStateException("Cannot add hooks during shutdown"); }
         synchronized (this.hooks) {
@@ -175,6 +185,11 @@ public class ShutdownController extends Thread {
     public void requestShutdown() {
         final ArrayList<ShutdownVetoException> vetos = this.collectVetos();
         if (vetos.size() == 0) {
+            synchronized (this.vetoListeners) {
+                for (final ShutdownVetoListener v : this.vetoListeners) {
+                    v.onShutdown();
+                }
+            }
             System.exit(0);
         } else {
             synchronized (this.vetoListeners) {

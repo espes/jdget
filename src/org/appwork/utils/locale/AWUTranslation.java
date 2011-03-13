@@ -71,6 +71,9 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Select", "Markieren" })
     String COPYCUTPASTE_SELECT();
 
+    @Default(lngs = { "en", "de" }, values = { "Please open this link in your browser: ", "Bitte öffnen Sie diesen Link in Ihrem Browser:" })
+    String crossSystem_open_url_failed_msg();
+
     @Default(lngs = { "en", "de" }, values = { "Please confirm!", "Bitte bestätigen!" })
     String DIALOG_CONFIRMDIALOG_TITLE();
 

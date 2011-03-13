@@ -16,11 +16,15 @@ import java.net.URI;
 import java.net.URL;
 import java.util.logging.Level;
 
+import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.mime.Mime;
 import org.appwork.utils.os.mime.MimeDefault;
 import org.appwork.utils.os.mime.MimeLinux;
 import org.appwork.utils.os.mime.MimeWindows;
+import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.dialog.DialogCanceledException;
+import org.appwork.utils.swing.dialog.DialogClosedException;
 
 /**
  * This class provides a few native features.
@@ -237,5 +241,40 @@ public class CrossSystem {
             }
             Log.exception(Level.WARNING, e);
         }
+    }
+
+    /**
+     * @param update_dialog_news_button_url
+     */
+    public static void openURLOrShowMessage(final String urlString) {
+        URL url;
+        try {
+            url = new URL(urlString);
+
+            if (CrossSystem.isWindows()) {
+
+                Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", url.toString() });
+                return;
+
+            }
+            if (!Desktop.isDesktopSupported()) { throw new Exception("Desktop not supported"); }
+            final Desktop desktop = Desktop.getDesktop();
+            if (!desktop.isSupported(Desktop.Action.BROWSE)) { throw new Exception("Desktop doesn't support the browse action (fatal)");
+
+            }
+
+            desktop.browse(url.toURI());
+
+        } catch (final Exception e) {
+            Log.exception(Level.WARNING, e);
+            try {
+                Dialog.getInstance().showInputDialog(Dialog.BUTTONS_HIDE_CANCEL, APPWORKUTILS.T.crossSystem_open_url_failed_msg(), urlString);
+            } catch (final DialogClosedException e1) {
+                // nothing
+            } catch (final DialogCanceledException e1) {
+                // nothing
+            }
+        }
+
     }
 }
