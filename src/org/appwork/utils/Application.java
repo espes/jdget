@@ -10,12 +10,17 @@
 package org.appwork.utils;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 
 import org.appwork.utils.logging.Log;
 
@@ -27,7 +32,20 @@ import org.appwork.utils.logging.Log;
  * 
  */
 public class Application {
-
+    static {
+        if (Charset.defaultCharset() == Charset.forName("cp1252")) {
+            System.out.println("REDIRECT Sys.out");
+            // workaround.
+            // even 1252 is default codepage, windows console expects cp850
+            // codepage input
+            try {
+                System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, "CP850"));
+            } catch (final UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
     private static String APP_FOLDER = ".appwork";
 
     private static String ROOT;

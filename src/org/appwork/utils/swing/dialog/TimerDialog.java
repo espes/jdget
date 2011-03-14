@@ -87,7 +87,7 @@ public abstract class TimerDialog {
     private InternDialog      dialog;
 
     private Dimension         preferredSize;
-    private int               countdownTime;
+    private int               countdownTime    = 0;
 
     public TimerDialog() {
         // super(parentframe, ModalityType.TOOLKIT_MODAL);
@@ -124,7 +124,7 @@ public abstract class TimerDialog {
     /**
      * @return
      */
-    private long getCountdown() {
+    protected long getCountdown() {
         return this.getCountdownTime() > 0 ? this.getCountdownTime() : Dialog.getInstance().getCountdownTime();
     }
 
@@ -205,15 +205,6 @@ public abstract class TimerDialog {
         return ret;
     }
 
-    /**
-     * Override this method to allow dialogs beeing larger than their parents
-     * 
-     * @return
-     */
-    protected boolean isIgnoreSizeLimitations() {
-        return false;
-    }
-
     protected void initTimer(final long time) {
         this.counter = time;
         this.timer = new Thread() {
@@ -263,6 +254,15 @@ public abstract class TimerDialog {
         };
 
         this.timer.start();
+    }
+
+    /**
+     * Override this method to allow dialogs beeing larger than their parents
+     * 
+     * @return
+     */
+    protected boolean isIgnoreSizeLimitations() {
+        return false;
     }
 
     /**

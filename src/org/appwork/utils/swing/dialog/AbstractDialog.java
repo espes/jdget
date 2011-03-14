@@ -226,7 +226,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
             if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_COUNTDOWN)) {
                 // show timer
-                this.initTimer(this.getCountdownTime());
+                this.initTimer(this.getCountdown());
             } else {
                 this.timerLbl.setVisible(false);
             }
