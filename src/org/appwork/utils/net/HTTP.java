@@ -19,6 +19,7 @@ import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
 import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.utils.formatter.SizeFormatter;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.dialog.Dialog;
@@ -123,18 +124,18 @@ public class HTTP {
 
                         @Override
                         public int getProgress() {
-                            total = progress.getTotal();
-                            loaded = progress.getLoaded();
-                            if (total == 0) { return 0; }
-                            return (int) (loaded * 100 / total);
+                            this.total = progress.getTotal();
+                            this.loaded = progress.getLoaded();
+                            if (this.total == 0) { return 0; }
+                            return (int) (this.loaded * 100 / this.total);
                         }
 
                         @Override
                         public String getString() {
-                            total = progress.getTotal();
-                            loaded = progress.getLoaded();
-                            if (total <= 0) { return APPWORKUTILS.T.connecting(); }
-                            return APPWORKUTILS.T.progress(loaded, total, loaded * 10000f / total / 100.0);
+                            this.total = progress.getTotal();
+                            this.loaded = progress.getLoaded();
+                            if (this.total <= 0) { return APPWORKUTILS.T.connecting(); }
+                            return APPWORKUTILS.T.progress(SizeFormatter.formatBytes(this.loaded), SizeFormatter.formatBytes(this.total), this.loaded * 10000f / this.total / 100.0);
                         }
 
                         @Override
