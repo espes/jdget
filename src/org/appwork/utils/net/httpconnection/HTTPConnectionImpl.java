@@ -139,6 +139,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     protected synchronized void connectInputStream() throws IOException {
+        if (this.httpMethod == RequestMethod.POST && this.outputClosed == false) { throw new IllegalStateException("postData not send or forgot to call postDataSend()"); }
         if (this.inputStreamConnected) { return; }
         this.inputStreamConnected = true;
         /* first read http header */
@@ -241,9 +242,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     public long getContentLength() {
         final String length = this.getHeaderField("Content-Length");
-        if (length != null) {
-            Long.parseLong(length);
-        }
+        if (length != null) { return Long.parseLong(length); }
         return -1;
     }
 
