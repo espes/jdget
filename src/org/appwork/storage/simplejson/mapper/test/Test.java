@@ -10,12 +10,11 @@
 package org.appwork.storage.simplejson.mapper.test;
 
 import org.appwork.storage.JSonStorage;
+import org.appwork.storage.TypeRef;
 import org.appwork.storage.simplejson.JSonFactory;
 import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.mapper.JSonMapper;
 import org.appwork.storage.simplejson.mapper.MapperException;
-import org.appwork.storage.simplejson.mapper.TypeRef;
-import org.codehaus.jackson.type.TypeReference;
 
 /**
  * @author thomas
@@ -67,7 +66,7 @@ public class Test {
         // JSonStorage.serializeToJson(obj);
         t = System.currentTimeMillis();
         for (int i = 0; i < iterations; i++) {
-            ss = JSonStorage.restoreFromString(jsonString, new TypeReference<TestClass>() {
+            ss = JSonStorage.restoreFromString(jsonString, new TypeRef<TestClass>() {
             }, null);
             // System.out.println();
         }

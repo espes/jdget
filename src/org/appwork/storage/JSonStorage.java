@@ -19,25 +19,20 @@ import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 
 import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 public class JSonStorage {
     /* hash map contains file location as string and the storage instance */
-    private static final HashMap<String, Storage> MAP    = new HashMap<String, Storage>();
-    private static final ObjectMapper             MAPPER = new ObjectMapper(new ExtJsonFactory());
-    public static final Object                    LOCK   = new Object();
-    static {
-        JSonStorage.MAPPER.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final HashMap<String, Storage> MAP         = new HashMap<String, Storage>();
 
-    }
+    public static final Object                    LOCK        = new Object();
+
+    private static JSONMapper                     JSON_MAPPER = new SimpleMapper();
     /* default key for encrypted json */
-    static public byte[]                          KEY    = new byte[] { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };
+    static public byte[]                          KEY         = new byte[] { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 };
 
     static {
         /* shutdown hook to save all open Storages */
@@ -153,14 +148,8 @@ public class JSonStorage {
         return type.isPrimitive() || type == String.class || type.isEnum();
     }
 
-    /**
-     * Mapper is Thread safe according to <br>
-     * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
-     * 
-     * @return the mapper
-     */
-    public static ObjectMapper getMapper() {
-        return JSonStorage.MAPPER;
+    public static JSONMapper getMapper() {
+        return JSonStorage.JSON_MAPPER;
     }
 
     public static Storage getPlainStorage(final File file) throws StorageException {
@@ -169,7 +158,7 @@ public class JSonStorage {
             final String id = file.getAbsolutePath();
             Storage ret = JSonStorage.MAP.get(id);
             if (ret == null) {
-                ret = new JacksonStorageChest(file, true);
+                ret = new JsonKeyValueStorage(file, true);
                 JSonStorage.MAP.put(ret.getID(), ret);
             }
             return ret;
@@ -184,7 +173,7 @@ public class JSonStorage {
             final String id = Application.getResource("cfg/" + name + ".json").getAbsolutePath();
             Storage ret = JSonStorage.MAP.get(id);
             if (ret == null) {
-                ret = new JacksonStorageChest(name, true);
+                ret = new JsonKeyValueStorage(name, true);
                 JSonStorage.MAP.put(ret.getID(), ret);
             }
             return ret;
@@ -196,7 +185,7 @@ public class JSonStorage {
             final String id = Application.getResource("cfg/" + name + ".ejs").getAbsolutePath();
             Storage ret = JSonStorage.MAP.get(id);
             if (ret == null) {
-                ret = new JacksonStorageChest(name);
+                ret = new JsonKeyValueStorage(name);
                 JSonStorage.MAP.put(ret.getID(), ret);
             }
             return ret;
@@ -211,7 +200,7 @@ public class JSonStorage {
         }
     }
 
-    public static <E> E restoreFrom(final File file, final boolean plain, final byte[] key, final TypeReference<E> type, final E def) {
+    public static <E> E restoreFrom(final File file, final boolean plain, final byte[] key, final TypeRef<E> type, final E def) {
         synchronized (JSonStorage.LOCK) {
             String stri = null;
             byte[] str = null;
@@ -287,16 +276,16 @@ public class JSonStorage {
      * @param string
      *            name of the json object. example: cfg/savedobject.json
      * @param type
-     *            TypeReference instance. This is important for generic classes.
-     *            for example: new TypeReference<ArrayList<Contact>>(){} to
-     *            restore type ArrayList<Contact>
+     *            TypeRef instance. This is important for generic classes. for
+     *            example: new TypeRef<ArrayList<Contact>>(){} to restore type
+     *            ArrayList<Contact>
      * @param def
      *            defaultvalue. if typeref is not set, the method tries to use
      *            the class of def as restoreclass
      * @return
      */
 
-    public static <E> E restoreFrom(final String string, final TypeReference<E> type, final E def) {
+    public static <E> E restoreFrom(final String string, final TypeRef<E> type, final E def) {
         final boolean plain = string.toLowerCase().endsWith(".json");
         return JSonStorage.restoreFrom(Application.getResource(string), plain, JSonStorage.KEY, type, def);
     }
@@ -312,7 +301,7 @@ public class JSonStorage {
     public static <T> T restoreFromString(final String string, final Class<T> class1) throws StorageException {
         synchronized (JSonStorage.LOCK) {
             try {
-                return JSonStorage.MAPPER.readValue(string, class1);
+                return JSonStorage.JSON_MAPPER.stringToObject(string, class1);
             } catch (final Exception e) {
                 throw new StorageException(string, e);
             } finally {
@@ -322,14 +311,14 @@ public class JSonStorage {
     }
 
     @SuppressWarnings("unchecked")
-    public static <E> E restoreFromString(final String string, final TypeReference<E> type, final E def) {
+    public static <E> E restoreFromString(final String string, final TypeRef<E> type, final E def) {
         if (string == null) { return def; }
         try {
             synchronized (JSonStorage.LOCK) {
                 if (type != null) {
-                    return (E) JSonStorage.MAPPER.readValue(string, type);
+                    return JSonStorage.JSON_MAPPER.stringToObject(string, type);
                 } else {
-                    return (E) JSonStorage.MAPPER.readValue(string, def.getClass());
+                    return (E) JSonStorage.JSON_MAPPER.stringToObject(string, def.getClass());
                 }
             }
         } catch (final Exception e) {
@@ -436,13 +425,17 @@ public class JSonStorage {
     public static String serializeToJson(final Object list) throws StorageException {
         synchronized (JSonStorage.LOCK) {
             try {
-                return JSonStorage.MAPPER.writeValueAsString(list);
+                return JSonStorage.JSON_MAPPER.objectToString(list);
             } catch (final Exception e) {
                 throw new StorageException(e);
             } finally {
 
             }
         }
+    }
+
+    public static void setMapper(final JSONMapper mapper) {
+        JSonStorage.JSON_MAPPER = mapper;
     }
 
     /**
@@ -464,15 +457,9 @@ public class JSonStorage {
     public static String toString(final Object list) {
         synchronized (JSonStorage.LOCK) {
             try {
-                return JSonStorage.MAPPER.writeValueAsString(list);
-            } catch (final JsonGenerationException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (final JsonMappingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (final IOException e) {
-                // TODO Auto-generated catch block
+                return JSonStorage.JSON_MAPPER.objectToString(list);
+
+            } catch (final Throwable e) {
                 e.printStackTrace();
             }
             return list.toString();

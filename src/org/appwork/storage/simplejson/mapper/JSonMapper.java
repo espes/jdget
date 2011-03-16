@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.appwork.storage.TypeRef;
 import org.appwork.storage.simplejson.JSonArray;
 import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.JSonObject;
@@ -28,6 +29,10 @@ import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
  * 
  */
 public class JSonMapper {
+
+    private boolean ignorePrimitiveNullMapping    = false;
+
+    private boolean ignoreIllegalArgumentMappings = false;
 
     public JSonMapper() {
 
@@ -129,12 +134,25 @@ public class JSonMapper {
         return null;
     }
 
+    public boolean isIgnoreIllegalArgumentMappings() {
+        return this.ignoreIllegalArgumentMappings;
+    }
+
+    /**
+     * if json maps null to a primitive field
+     * 
+     * @return
+     */
+    public boolean isIgnorePrimitiveNullMapping() {
+        return this.ignorePrimitiveNullMapping;
+    }
+
     /**
      * @param value
      * @param type
      * @return
      */
-    private Object jsonToObject(final JSonNode json, final Type type) {
+    public Object jsonToObject(final JSonNode json, final Type type) {
         final ClassCache cc;
         try {
             if (json instanceof JSonObject) {
@@ -154,7 +172,24 @@ public class JSonMapper {
             if (type instanceof Class) {
                 final Class<?> clazz = (Class<?>) type;
                 if (List.class.isAssignableFrom(clazz)) {
-                    System.err.println("TYPE?!");
+                    @SuppressWarnings("unchecked")
+                    final List<Object> inst = (List<Object>) clazz.newInstance();
+                    final JSonArray obj = (JSonArray) json;
+                    for (final JSonNode n : obj) {
+                        inst.add(this.jsonToObject(n, void.class));
+                    }
+                    return inst;
+                } else if (Map.class.isAssignableFrom(clazz)) {
+                    @SuppressWarnings("unchecked")
+                    final Map<String, Object> inst = (Map<String, Object>) clazz.newInstance();
+                    final JSonObject obj = (JSonObject) json;
+                    Entry<String, JSonNode> next;
+                    for (final Iterator<Entry<String, JSonNode>> it = obj.entrySet().iterator(); it.hasNext();) {
+                        next = it.next();
+                        inst.put(next.getKey(), this.jsonToObject(next.getValue(), void.class));
+                    }
+                    return inst;
+
                 } else if (clazz.isArray()) {
                     final JSonArray obj = (JSonArray) json;
                     final Object arr = Array.newInstance(clazz.getComponentType(), obj.size());
@@ -193,14 +228,24 @@ public class JSonMapper {
                     @SuppressWarnings("unchecked")
                     final Object inst = cc.getInstance();
                     JSonNode value;
+                    Object v;
                     for (final Setter s : cc.getSetter()) {
 
                         value = obj.get(s.getKey());
                         if (value == null) {
                             continue;
                         }
-
-                        s.setValue(inst, this.jsonToObject(value, s.getType()));
+                        v = this.jsonToObject(value, s.getType());
+                        try {
+                            s.setValue(inst, v);
+                        } catch (final IllegalArgumentException e) {
+                            if (this.isIgnoreIllegalArgumentMappings()) {
+                                continue;
+                            } else if (v == null && this.isIgnorePrimitiveNullMapping()) {
+                                continue;
+                            }
+                            throw e;
+                        }
 
                     }
 
@@ -259,9 +304,18 @@ public class JSonMapper {
      * @param json
      * @param typeRef
      */
+    @SuppressWarnings("unchecked")
     public <T> T jsonToObject(final JSonNode json, final TypeRef<T> type) {
-        final Class<?> clazz = (Class<?>) ((ParameterizedTypeImpl) type.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
+        final Type clazz = ((ParameterizedTypeImpl) type.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
 
         return (T) this.jsonToObject(json, clazz);
+    }
+
+    public void setIgnoreIllegalArgumentMappings(final boolean ignoreIllegalArgumentMappings) {
+        this.ignoreIllegalArgumentMappings = ignoreIllegalArgumentMappings;
+    }
+
+    public void setIgnorePrimitiveNullMapping(final boolean ignoreIllegalNullArguments) {
+        this.ignorePrimitiveNullMapping = ignoreIllegalNullArguments;
     }
 }

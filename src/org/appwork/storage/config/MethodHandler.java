@@ -86,38 +86,38 @@ public class MethodHandler {
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public MethodHandler(final StorageHandler<?> storageHandler, final Type getter, final String key, final Method m, final boolean primitive) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
-        getterHandler = this;
+        this.getterHandler = this;
 
-        type = getter;
+        this.type = getter;
         this.key = key;
-        method = m;
+        this.method = m;
 
         this.primitive = primitive;
-        if (isGetter()) {
-            getterHandler = this;
-            rawClass = m.getReturnType();
+        if (this.isGetter()) {
+            this.getterHandler = this;
+            this.rawClass = m.getReturnType();
         } else {
-            setterHandler = this;
-            rawClass = m.getParameterTypes()[0];
+            this.setterHandler = this;
+            this.rawClass = m.getParameterTypes()[0];
         }
 
         // get parent crypt infos
-        crypted = storageHandler.isCrypted();
-        cryptKey = storageHandler.getKey();
+        this.crypted = storageHandler.isCrypted();
+        this.cryptKey = storageHandler.getKey();
         // read local cryptinfos
         final CryptedStorage an = m.getAnnotation(CryptedStorage.class);
         if (an != null) {
-            crypted = true;
+            this.crypted = true;
             if (an.key() != null) {
-                cryptKey = an.key();
-                if (cryptKey.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + m + " is invalid"); }
+                this.cryptKey = an.key();
+                if (this.cryptKey.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + m + " is invalid"); }
             }
         }
         final PlainStorage anplain = m.getAnnotation(PlainStorage.class);
-        if (anplain != null && crypted) {
+        if (anplain != null && this.crypted) {
             if (an != null) { throw new InterfaceParseException("Cannot Set CryptStorage and PlainStorage Annotation"); }
             // parent crypted, but plain for this single entry
-            crypted = false;
+            this.crypted = false;
 
         }
         /*
@@ -126,44 +126,44 @@ public class MethodHandler {
          */
         // init defaultvalues. read from annotations
         if (primitive) {
-            if (rawClass == Boolean.class || rawClass == boolean.class) {
+            if (this.rawClass == Boolean.class || this.rawClass == boolean.class) {
                 final DefaultBooleanValue ann = m.getAnnotation(DefaultBooleanValue.class);
                 if (ann != null) {
-                    defaultBoolean = ann.value();
+                    this.defaultBoolean = ann.value();
                 }
-                checkBadAnnotations(m, DefaultBooleanValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (rawClass == Long.class || rawClass == long.class) {
+                this.checkBadAnnotations(m, DefaultBooleanValue.class, CryptedStorage.class, PlainStorage.class);
+            } else if (this.rawClass == Long.class || this.rawClass == long.class) {
                 final DefaultLongValue ann = m.getAnnotation(DefaultLongValue.class);
                 if (ann != null) {
-                    defaultLong = ann.value();
+                    this.defaultLong = ann.value();
                 }
-                checkBadAnnotations(m, DefaultLongValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (rawClass == Integer.class || rawClass == int.class) {
+                this.checkBadAnnotations(m, DefaultLongValue.class, CryptedStorage.class, PlainStorage.class);
+            } else if (this.rawClass == Integer.class || this.rawClass == int.class) {
                 final DefaultIntValue ann = m.getAnnotation(DefaultIntValue.class);
                 if (ann != null) {
-                    defaultInteger = ann.value();
+                    this.defaultInteger = ann.value();
                 }
-                checkBadAnnotations(m, DefaultIntValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (rawClass == Byte.class || rawClass == byte.class) {
+                this.checkBadAnnotations(m, DefaultIntValue.class, CryptedStorage.class, PlainStorage.class);
+            } else if (this.rawClass == Byte.class || this.rawClass == byte.class) {
                 final DefaultByteValue ann = m.getAnnotation(DefaultByteValue.class);
                 if (ann != null) {
-                    defaultByte = ann.value();
+                    this.defaultByte = ann.value();
                 }
-                checkBadAnnotations(m, DefaultByteValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (rawClass == Float.class || rawClass == float.class) {
+                this.checkBadAnnotations(m, DefaultByteValue.class, CryptedStorage.class, PlainStorage.class);
+            } else if (this.rawClass == Float.class || this.rawClass == float.class) {
                 final DefaultFloatValue ann = m.getAnnotation(DefaultFloatValue.class);
                 if (ann != null) {
-                    defaultFloat = ann.value();
+                    this.defaultFloat = ann.value();
                 }
-                checkBadAnnotations(m, DefaultFloatValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (rawClass == String.class) {
+                this.checkBadAnnotations(m, DefaultFloatValue.class, CryptedStorage.class, PlainStorage.class);
+            } else if (this.rawClass == String.class) {
                 final DefaultStringValue ann = m.getAnnotation(DefaultStringValue.class);
                 if (ann != null) {
-                    defaultString = ann.value();
+                    this.defaultString = ann.value();
                 }
 
-                checkBadAnnotations(m, DefaultStringValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (rawClass.isEnum()) {
+                this.checkBadAnnotations(m, DefaultStringValue.class, CryptedStorage.class, PlainStorage.class);
+            } else if (this.rawClass.isEnum()) {
 
                 final DefaultEnumValue ann = m.getAnnotation(DefaultEnumValue.class);
                 if (ann != null) {
@@ -173,63 +173,63 @@ public class MethodHandler {
                     final String name = ann.value().substring(index + 1);
                     final String clazz = ann.value().substring(0, index);
 
-                    defaultEnum = Enum.valueOf((Class<Enum>) Class.forName(clazz), name);
+                    this.defaultEnum = Enum.valueOf((Class<Enum>) Class.forName(clazz), name);
 
                 }
-                checkBadAnnotations(m, DefaultEnumValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (rawClass == Double.class || rawClass == double.class) {
+                this.checkBadAnnotations(m, DefaultEnumValue.class, CryptedStorage.class, PlainStorage.class);
+            } else if (this.rawClass == Double.class || this.rawClass == double.class) {
                 final DefaultDoubleValue ann = m.getAnnotation(DefaultDoubleValue.class);
                 if (ann != null) {
-                    defaultDouble = ann.value();
+                    this.defaultDouble = ann.value();
                 }
-                checkBadAnnotations(m, DefaultDoubleValue.class, CryptedStorage.class, PlainStorage.class);
+                this.checkBadAnnotations(m, DefaultDoubleValue.class, CryptedStorage.class, PlainStorage.class);
             } else {
-                throw new StorageException("Invalid datatype: " + rawClass);
+                throw new StorageException("Invalid datatype: " + this.rawClass);
             }
         } else {
-            if (rawClass.isArray()) {
-                final Class<?> ct = rawClass.getComponentType();
+            if (this.rawClass.isArray()) {
+                final Class<?> ct = this.rawClass.getComponentType();
                 if (ct == Boolean.class || ct == boolean.class) {
                     final DefaultBooleanArrayValue ann = m.getAnnotation(DefaultBooleanArrayValue.class);
                     if (ann != null) {
-                        defaultObject = ann.value();
+                        this.defaultObject = ann.value();
                     }
-                    checkBadAnnotations(m, DefaultBooleanArrayValue.class, CryptedStorage.class, PlainStorage.class);
-                    checkBadAnnotations(m, DefaultBooleanArrayValue.class);
+                    this.checkBadAnnotations(m, DefaultBooleanArrayValue.class, CryptedStorage.class, PlainStorage.class);
+                    this.checkBadAnnotations(m, DefaultBooleanArrayValue.class);
                 } else if (ct == Long.class || ct == long.class) {
 
                     final DefaultLongArrayValue ann = m.getAnnotation(DefaultLongArrayValue.class);
                     if (ann != null) {
-                        defaultObject = ann.value();
+                        this.defaultObject = ann.value();
                     }
-                    checkBadAnnotations(m, DefaultLongArrayValue.class, CryptedStorage.class, PlainStorage.class);
+                    this.checkBadAnnotations(m, DefaultLongArrayValue.class, CryptedStorage.class, PlainStorage.class);
                 } else if (ct == Integer.class || ct == int.class) {
 
                     final DefaultIntArrayValue ann = m.getAnnotation(DefaultIntArrayValue.class);
                     if (ann != null) {
-                        defaultObject = ann.value();
+                        this.defaultObject = ann.value();
                     }
-                    checkBadAnnotations(m, DefaultIntArrayValue.class, CryptedStorage.class, PlainStorage.class);
+                    this.checkBadAnnotations(m, DefaultIntArrayValue.class, CryptedStorage.class, PlainStorage.class);
                 } else if (ct == Byte.class || ct == byte.class) {
                     final DefaultByteArrayValue ann = m.getAnnotation(DefaultByteArrayValue.class);
                     if (ann != null) {
-                        defaultObject = ann.value();
+                        this.defaultObject = ann.value();
                     }
-                    checkBadAnnotations(m, DefaultByteArrayValue.class, CryptedStorage.class, PlainStorage.class);
+                    this.checkBadAnnotations(m, DefaultByteArrayValue.class, CryptedStorage.class, PlainStorage.class);
                 } else if (ct == Float.class || ct == float.class) {
 
                     final DefaultFloatArrayValue ann = m.getAnnotation(DefaultFloatArrayValue.class);
                     if (ann != null) {
-                        defaultObject = ann.value();
+                        this.defaultObject = ann.value();
                     }
-                    checkBadAnnotations(m, DefaultFloatArrayValue.class, CryptedStorage.class, PlainStorage.class);
+                    this.checkBadAnnotations(m, DefaultFloatArrayValue.class, CryptedStorage.class, PlainStorage.class);
                 } else if (ct == String.class) {
                     /* obsolet here cause String[] is primitive */
                     final DefaultStringArrayValue ann = m.getAnnotation(DefaultStringArrayValue.class);
                     if (ann != null) {
-                        defaultObject = ann.value();
+                        this.defaultObject = ann.value();
                     }
-                    checkBadAnnotations(m, DefaultStringArrayValue.class, CryptedStorage.class, PlainStorage.class);
+                    this.checkBadAnnotations(m, DefaultStringArrayValue.class, CryptedStorage.class, PlainStorage.class);
                 } else if (ct.isEnum()) {
                     final DefaultEnumArrayValue ann = m.getAnnotation(DefaultEnumArrayValue.class);
                     if (ann != null) {
@@ -244,36 +244,36 @@ public class MethodHandler {
 
                             ret[i] = Enum.valueOf((Class<Enum>) Class.forName(clazz), name);
                         }
-                        defaultObject = ret;
+                        this.defaultObject = ret;
 
                     }
-                    checkBadAnnotations(m, DefaultEnumArrayValue.class, CryptedStorage.class, PlainStorage.class);
+                    this.checkBadAnnotations(m, DefaultEnumArrayValue.class, CryptedStorage.class, PlainStorage.class);
                 } else if (ct == Double.class || ct == double.class) {
                     final DefaultDoubleArrayValue ann = m.getAnnotation(DefaultDoubleArrayValue.class);
                     if (ann != null) {
-                        defaultObject = ann.value();
+                        this.defaultObject = ann.value();
                     }
-                    checkBadAnnotations(m, DefaultDoubleArrayValue.class, CryptedStorage.class, PlainStorage.class);
+                    this.checkBadAnnotations(m, DefaultDoubleArrayValue.class, CryptedStorage.class, PlainStorage.class);
                 }
             }
 
-            if (defaultObject == null) {
+            if (this.defaultObject == null) {
                 // if rawtypoe is an storable, we can have defaultvalues in
                 // json7String from
                 final DefaultObjectValue ann = m.getAnnotation(DefaultObjectValue.class);
                 if (ann != null) {
-                    defaultObject = JSonStorage.restoreFromString(ann.value(), rawClass);
+                    this.defaultObject = JSonStorage.restoreFromString(ann.value(), this.rawClass);
                 }
                 // if not, we create an empty storable instance
 
-                if (defaultObject == null) {
-                    if (Storable.class.isAssignableFrom(rawClass)) {
-                        Constructor<?> c = rawClass.getDeclaredConstructor(new Class[] {});
+                if (this.defaultObject == null) {
+                    if (Storable.class.isAssignableFrom(this.rawClass)) {
+                        final Constructor<?> c = this.rawClass.getDeclaredConstructor(new Class[] {});
                         c.setAccessible(true);
-                        defaultObject = c.newInstance((Object[]) null);
+                        this.defaultObject = c.newInstance((Object[]) null);
                     }
                 }
-                checkBadAnnotations(m, DefaultObjectValue.class, CryptedStorage.class, PlainStorage.class);
+                this.checkBadAnnotations(m, DefaultObjectValue.class, CryptedStorage.class, PlainStorage.class);
             }
 
         }
@@ -299,66 +299,66 @@ public class MethodHandler {
     }
 
     public boolean getDefaultBoolean() {
-        return defaultBoolean;
+        return this.defaultBoolean;
     }
 
     public byte getDefaultByte() {
-        return defaultByte;
+        return this.defaultByte;
     }
 
     public double getDefaultDouble() {
-        return defaultDouble;
+        return this.defaultDouble;
     }
 
     public Enum<?> getDefaultEnum() {
-        return defaultEnum;
+        return this.defaultEnum;
     }
 
     public float getDefaultFloat() {
-        return defaultFloat;
+        return this.defaultFloat;
     }
 
     public int getDefaultInteger() {
-        return defaultInteger;
+        return this.defaultInteger;
     }
 
     public long getDefaultLong() {
-        return defaultLong;
+        return this.defaultLong;
     }
 
     public Object getDefaultObject() {
-        return defaultObject;
+        return this.defaultObject;
     }
 
     public String getDefaultString() {
-        return defaultString;
+        return this.defaultString;
     }
 
     public String getKey() {
-        return key;
+        return this.key;
     }
 
     public Method getMethod() {
-        return method;
+        return this.method;
     }
 
     private String getObjectKey() {
-        return "cfg/config_" + method.getDeclaringClass().getSimpleName() + "." + key + "." + (isCrypted() ? "ejs" : "json");
+        return "cfg/config_" + this.method.getDeclaringClass().getSimpleName() + "." + this.key + "." + (this.isCrypted() ? "ejs" : "json");
     }
 
     public Class<?> getRawClass() {
-        return rawClass;
+        return this.rawClass;
     }
 
     public Type getType() {
-        return type;
+        return this.type;
     }
 
     /**
      * @return
      */
     private boolean isCrypted() {
-        return crypted;
+        return this.crypted;
     }
 
     /**
@@ -366,24 +366,24 @@ public class MethodHandler {
      */
     public boolean isGetter() {
 
-        return type == Type.GETTER;
+        return this.type == Type.GETTER;
     }
 
     public boolean isPrimitive() {
-        return primitive;
+        return this.primitive;
     }
 
     /**
      * @return
      */
     public Object read() {
-        final File file = Application.getResource(getObjectKey());
+        final File file = Application.getResource(this.getObjectKey());
         try {
             Log.L.finer("Read Config: " + file.getAbsolutePath());
-            return JSonStorage.restoreFrom(file, !crypted, cryptKey, new TypeRef(method.getGenericReturnType()), defaultObject);
+            return JSonStorage.restoreFrom(file, !this.crypted, this.cryptKey, new ConfigTypeReference(this.method.getGenericReturnType()), this.defaultObject);
         } finally {
             if (!file.exists()) {
-                write(defaultObject);
+                this.write(this.defaultObject);
             }
 
         }
@@ -429,8 +429,8 @@ public class MethodHandler {
      * @param h
      */
     public void setGetter(final MethodHandler h) {
-        getterHandler = h;
-        validDateCrypt();
+        this.getterHandler = h;
+        this.validDateCrypt();
     }
 
     public void setRawClass(final Class<?> rawClass) {
@@ -442,25 +442,25 @@ public class MethodHandler {
      * @param setterhandler
      */
     public void setSetter(final MethodHandler setterhandler) {
-        setterHandler = setterhandler;
-        validDateCrypt();
+        this.setterHandler = setterhandler;
+        this.validDateCrypt();
     }
 
     @Override
     public String toString() {
-        return method + "";
+        return this.method + "";
     }
 
     /**
      * 
      */
     private void validDateCrypt() {
-        if (getterHandler.isCrypted() != setterHandler.isCrypted()) { throw new InterfaceParseException(getterHandler + " cryptsettings != " + setterHandler); }// check
+        if (this.getterHandler.isCrypted() != this.setterHandler.isCrypted()) { throw new InterfaceParseException(this.getterHandler + " cryptsettings != " + this.setterHandler); }// check
         // keys
 
-        if (getterHandler.isCrypted()) {
-            for (int i = 0; i < getterHandler.cryptKey.length; i++) {
-                if (getterHandler.cryptKey[i] != setterHandler.cryptKey[i]) { throw new InterfaceParseException(getterHandler + " cryptkey mismatch" + setterHandler); }
+        if (this.getterHandler.isCrypted()) {
+            for (int i = 0; i < this.getterHandler.cryptKey.length; i++) {
+                if (this.getterHandler.cryptKey[i] != this.setterHandler.cryptKey[i]) { throw new InterfaceParseException(this.getterHandler + " cryptkey mismatch" + this.setterHandler); }
 
             }
 
@@ -471,7 +471,7 @@ public class MethodHandler {
      * @param object
      */
     public void write(final Object object) {
-        JSonStorage.saveTo(getObjectKey(), JSonStorage.serializeToJson(object), cryptKey);
+        JSonStorage.saveTo(this.getObjectKey(), JSonStorage.serializeToJson(object), this.cryptKey);
 
     }
 }

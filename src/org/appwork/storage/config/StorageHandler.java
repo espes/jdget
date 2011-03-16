@@ -16,7 +16,7 @@ import java.util.HashMap;
 
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
-import org.appwork.storage.JacksonStorageChest;
+import org.appwork.storage.JsonKeyValueStorage;
 import org.appwork.storage.StorageException;
 import org.appwork.storage.config.annotations.CryptedStorage;
 
@@ -29,7 +29,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     private final Class<T>                 configInterface;
     private HashMap<Method, MethodHandler> getterMap;
-    private final JacksonStorageChest      primitiveStorage;
+    private final JsonKeyValueStorage      primitiveStorage;
     private boolean                        crypted;
     private byte[]                         key = JSonStorage.KEY;
 
@@ -42,17 +42,17 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         if (crypted != null) {
             this.crypted = true;
             if (crypted.key() != null) {
-                this.primitiveStorage = new JacksonStorageChest("config_" + configInterface.getSimpleName(), false, crypted.key());
+                this.primitiveStorage = new JsonKeyValueStorage("config_" + configInterface.getSimpleName(), false, crypted.key());
                 JSonStorage.addStorage(this.primitiveStorage);
                 this.key = crypted.key();
                 if (this.key.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + configInterface + " is invalid"); }
 
             } else {
-                this.primitiveStorage = (JacksonStorageChest) JSonStorage.getStorage("config_" + configInterface.getSimpleName());
+                this.primitiveStorage = (JsonKeyValueStorage) JSonStorage.getStorage("config_" + configInterface.getSimpleName());
             }
         } else {
             this.crypted = false;
-            this.primitiveStorage = (JacksonStorageChest) JSonStorage.getPlainStorage("config_" + configInterface.getSimpleName());
+            this.primitiveStorage = (JsonKeyValueStorage) JSonStorage.getPlainStorage("config_" + configInterface.getSimpleName());
         }
         try {
             this.parseInterface();

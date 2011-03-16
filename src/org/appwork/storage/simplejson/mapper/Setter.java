@@ -74,7 +74,9 @@ public class Setter {
         if (this.type instanceof Class && ((Class<?>) this.type).isEnum()) {
             parameter = Enum.valueOf((Class<Enum>) this.type, parameter + "");
         }
+        System.out.println(this.key + " = " + parameter + " " + this.type);
 
         this.method.invoke(inst, parameter);
+
     }
 }

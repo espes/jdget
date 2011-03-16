@@ -34,11 +34,11 @@ public class ClassCache {
         final ClassCache cc = new ClassCache(clazz);
         for (final Method m : clazz.getDeclaredMethods()) {
             if (m.getName().startsWith("get") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
-                cc.getter.add(new Getter(m.getName().substring(3), m));
+                cc.getter.add(new Getter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
             } else if (m.getName().startsWith("is") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
-                cc.getter.add(new Getter(m.getName().substring(2), m));
+                cc.getter.add(new Getter(m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3), m));
             } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
-                cc.setter.add(new Setter(m.getName().substring(3), m));
+                cc.setter.add(new Setter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
             }
         }
         cc.constructor = clazz.getConstructor(ClassCache.EMPTY_TYPES);

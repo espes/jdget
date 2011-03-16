@@ -11,20 +11,18 @@ package org.appwork.storage.config;
 
 import java.lang.reflect.Type;
 
-import org.codehaus.jackson.type.TypeReference;
-
 /**
  * @author thomas
  * 
  */
-public class TypeRef extends TypeReference<Object> {
+public class ConfigTypeReference implements org.appwork.storage.TypeRef<Object> {
 
     private final Type type;
 
     /**
      * @param type
      */
-    public TypeRef(final java.lang.reflect.Type type) {
+    public ConfigTypeReference(final java.lang.reflect.Type type) {
         this.type = type;
     }
 
