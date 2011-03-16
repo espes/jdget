@@ -9,7 +9,6 @@
  */
 package org.appwork.storage.simplejson;
 
-
 /**
  * @author thomas
  * 
@@ -140,6 +139,7 @@ public class JSonFactory {
         boolean found;
         int indexKeyStart, indexKeyEnd;
         String key;
+
         while (true) {
             // check for object end markers
             for (var = global; var < str.length(); var++) {
@@ -149,8 +149,11 @@ public class JSonFactory {
                 } else if (c == ',') {
 
                     continue;
+                } else if (c == '{') {
+                    continue;
                 } else if (c == '}') {
                     // object end;
+
                     return var + 1;
                 } else {
                     // no object end found
@@ -206,6 +209,7 @@ public class JSonFactory {
                 _this.put(key, obj);
             } else if (str.charAt(indexKeyStart) == '{') {
                 // object
+                // final String dfsad = str.substring(indexKeyStart);
                 final JSonObject obj = new JSonObject();
                 global = JSonFactory.parseObject(indexKeyStart, obj, str);
                 _this.put(key, obj);
