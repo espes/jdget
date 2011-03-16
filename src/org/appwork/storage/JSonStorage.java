@@ -314,6 +314,7 @@ public class JSonStorage {
     public static <E> E restoreFromString(final String string, final TypeRef<E> type, final E def) {
         if (string == null) { return def; }
         try {
+
             synchronized (JSonStorage.LOCK) {
                 if (type != null) {
                     return JSonStorage.JSON_MAPPER.stringToObject(string, type);

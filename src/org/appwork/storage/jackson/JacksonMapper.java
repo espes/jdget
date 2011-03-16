@@ -7,10 +7,15 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.storage;
+package org.appwork.storage.jackson;
 
 import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
+import org.appwork.storage.JSONMapper;
+import org.appwork.storage.JSonMapperException;
+import org.appwork.storage.TypeRef;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.DeserializationConfig;
@@ -23,6 +28,7 @@ import org.codehaus.jackson.type.TypeReference;
  * 
  */
 public class JacksonMapper implements JSONMapper {
+
     private final ObjectMapper mapper;
 
     public JacksonMapper() {
@@ -32,6 +38,13 @@ public class JacksonMapper implements JSONMapper {
         this.mapper.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.JSONMapper#stringToObject(java.lang.String,
+     * java.lang.Class)
+     */
 
     /*
      * (non-Javadoc)
@@ -52,13 +65,6 @@ public class JacksonMapper implements JSONMapper {
             throw new JSonMapperException(e);
         }
     }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.JSONMapper#stringToObject(java.lang.String,
-     * java.lang.Class)
-     */
 
     @Override
     public <T> T stringToObject(final String jsonString, final Class<T> clazz) throws JSonMapperException {
@@ -84,8 +90,19 @@ public class JacksonMapper implements JSONMapper {
     @Override
     public <T> T stringToObject(final String jsonString, final TypeRef<T> type) throws JSonMapperException {
         try {
-            return this.mapper.readValue(jsonString, new TypeReference<T>() {
-            });
+
+            final Type superClass = type.getClass().getGenericInterfaces()[0];
+            if (superClass instanceof Class) { throw new IllegalArgumentException("Internal error: TypeReference constructed without actual type information"); }
+            final Type _type = ((ParameterizedType) superClass).getActualTypeArguments()[0];
+            final TypeReference<T> tr = new TypeReference<T>() {
+                @Override
+                public Type getType() {
+                    return _type;
+                }
+
+            };
+
+            return this.mapper.readValue(jsonString, tr);
         } catch (final JsonParseException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {

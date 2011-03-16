@@ -34,6 +34,13 @@ public class JSonMapper {
 
     private boolean ignoreIllegalArgumentMappings = false;
 
+    /**
+     * @param value
+     * @param type
+     * @return
+     */
+    private boolean ignoreIllegalEnumMappings     = false;
+
     public JSonMapper() {
 
     }
@@ -138,6 +145,10 @@ public class JSonMapper {
         return this.ignoreIllegalArgumentMappings;
     }
 
+    public boolean isIgnoreIllegalEnumMappings() {
+        return this.ignoreIllegalEnumMappings;
+    }
+
     /**
      * if json maps null to a primitive field
      * 
@@ -147,11 +158,7 @@ public class JSonMapper {
         return this.ignorePrimitiveNullMapping;
     }
 
-    /**
-     * @param value
-     * @param type
-     * @return
-     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public Object jsonToObject(final JSonNode json, final Type type) {
         final ClassCache cc;
         try {
@@ -160,8 +167,20 @@ public class JSonMapper {
                 case BOOLEAN:
                 case DOUBLE:
                 case LONG:
-                case STRING:
                     return ((JSonObject) json).getValue();
+
+                case STRING:
+                    if (type instanceof Class && ((Class<?>) type).isEnum()) {
+                        try {
+                            return Enum.valueOf((Class<Enum>) type, ((JSonObject) json).getValue() + "");
+                        } catch (final IllegalArgumentException e) {
+                            if (this.isIgnoreIllegalArgumentMappings() || this.isIgnoreIllegalEnumMappings()) { return null; }
+                            throw e;
+                        }
+                    } else {
+                        return ((JSonObject) json).getValue();
+
+                    }
 
                 case NULL:
                     return null;
@@ -313,6 +332,10 @@ public class JSonMapper {
 
     public void setIgnoreIllegalArgumentMappings(final boolean ignoreIllegalArgumentMappings) {
         this.ignoreIllegalArgumentMappings = ignoreIllegalArgumentMappings;
+    }
+
+    public void setIgnoreIllegalEnumMappings(final boolean ignoreIllegalEnumMappings) {
+        this.ignoreIllegalEnumMappings = ignoreIllegalEnumMappings;
     }
 
     public void setIgnorePrimitiveNullMapping(final boolean ignoreIllegalNullArguments) {

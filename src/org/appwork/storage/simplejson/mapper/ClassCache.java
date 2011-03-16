@@ -41,7 +41,15 @@ public class ClassCache {
                 cc.setter.add(new Setter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
             }
         }
-        cc.constructor = clazz.getConstructor(ClassCache.EMPTY_TYPES);
+
+        for (final Constructor<?> c : clazz.getDeclaredConstructors()) {
+            if (c.getParameterTypes().length == 0) {
+                cc.constructor = c;
+                c.setAccessible(true);
+                break;
+            }
+        }
+        if (cc.constructor == null) { throw new NoSuchMethodException(" Class " + clazz + " requires a null constructor. please add private " + clazz.getSimpleName() + "(){}"); }
         return cc;
     }
 

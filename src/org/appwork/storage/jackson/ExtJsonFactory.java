@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.storage;
+package org.appwork.storage.jackson;
 
 import java.io.File;
 import java.io.IOException;
