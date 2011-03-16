@@ -10,7 +10,6 @@
 package org.appwork.storage.jackson;
 
 import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 import org.appwork.storage.JSONMapper;
@@ -91,13 +90,10 @@ public class JacksonMapper implements JSONMapper {
     public <T> T stringToObject(final String jsonString, final TypeRef<T> type) throws JSonMapperException {
         try {
 
-            final Type superClass = type.getClass().getGenericInterfaces()[0];
-            if (superClass instanceof Class) { throw new IllegalArgumentException("Internal error: TypeReference constructed without actual type information"); }
-            final Type _type = ((ParameterizedType) superClass).getActualTypeArguments()[0];
             final TypeReference<T> tr = new TypeReference<T>() {
                 @Override
                 public Type getType() {
-                    return _type;
+                    return type.getType();
                 }
 
             };

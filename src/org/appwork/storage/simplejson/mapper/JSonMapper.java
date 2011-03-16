@@ -325,7 +325,7 @@ public class JSonMapper {
      */
     @SuppressWarnings("unchecked")
     public <T> T jsonToObject(final JSonNode json, final TypeRef<T> type) {
-        final Type clazz = ((ParameterizedTypeImpl) type.getClass().getGenericInterfaces()[0]).getActualTypeArguments()[0];
+        final Type clazz = ((ParameterizedTypeImpl) type.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 
         return (T) this.jsonToObject(json, clazz);
     }

@@ -18,6 +18,7 @@ import java.lang.reflect.Method;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storable;
 import org.appwork.storage.StorageException;
+import org.appwork.storage.TypeRef;
 import org.appwork.storage.config.annotations.CryptedStorage;
 import org.appwork.storage.config.annotations.DefaultBooleanArrayValue;
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
@@ -380,7 +381,8 @@ public class MethodHandler {
         final File file = Application.getResource(this.getObjectKey());
         try {
             Log.L.finer("Read Config: " + file.getAbsolutePath());
-            return JSonStorage.restoreFrom(file, !this.crypted, this.cryptKey, new ConfigTypeReference(this.method.getGenericReturnType()), this.defaultObject);
+            return JSonStorage.restoreFrom(file, !this.crypted, this.cryptKey, new TypeRef(this.method.getGenericReturnType()) {
+            }, this.defaultObject);
         } finally {
             if (!file.exists()) {
                 this.write(this.defaultObject);
@@ -459,8 +461,8 @@ public class MethodHandler {
         // keys
 
         if (this.getterHandler.isCrypted()) {
-            for (int i = 0; i < this.getterHandler.cryptKey.length; i++) {
-                if (this.getterHandler.cryptKey[i] != this.setterHandler.cryptKey[i]) { throw new InterfaceParseException(this.getterHandler + " cryptkey mismatch" + this.setterHandler); }
+            for (final byte element : this.getterHandler.cryptKey) {
+                if (element != element) { throw new InterfaceParseException(this.getterHandler + " cryptkey mismatch" + this.setterHandler); }
 
             }
 

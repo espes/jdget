@@ -9,10 +9,33 @@
  */
 package org.appwork.storage;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 /**
  * @author thomas
  * 
  */
-public interface TypeRef<S> {
+public abstract class TypeRef<S> {
+
+    private final Type type;
+
+    public TypeRef() {
+        final Type superClass = this.getClass().getGenericSuperclass();
+
+        if (superClass instanceof Class) { throw new IllegalArgumentException("Wrong TypeRef Construct"); }
+        this.type = ((ParameterizedType) superClass).getActualTypeArguments()[0];
+
+    }
+
+    public TypeRef(final Type t) {
+
+        this.type = t;
+
+    }
+
+    public Type getType() {
+        return this.type;
+    }
 
 }
