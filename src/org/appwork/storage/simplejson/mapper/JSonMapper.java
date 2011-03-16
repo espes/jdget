@@ -9,6 +9,7 @@
  */
 package org.appwork.storage.simplejson.mapper;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.Iterator;
@@ -58,7 +59,8 @@ public class JSonMapper {
                 } else if (clazz == float.class) {
                     return new JSonObject(((Float) obj).doubleValue());
                 } else if (clazz == double.class) { return new JSonObject(((Double) obj).doubleValue()); }
-
+            } else if (clazz.isEnum()) {
+                return new JSonObject(obj + "");
             } else if (obj instanceof Boolean) {
                 return new JSonObject(((Boolean) obj).booleanValue());
             } else if (obj instanceof Character) {
@@ -95,6 +97,11 @@ public class JSonMapper {
                 }
                 return ret;
             } else if (clazz.isArray()) {
+                final JSonArray ret = new JSonArray();
+                for (int i = 0; i < Array.getLength(obj); i++) {
+                    ret.add(this.create(Array.get(obj, i)));
+                }
+                return ret;
 
             } else/* if (obj instanceof Storable) */{
                 final ClassCache cc = ClassCache.getClassCache(clazz);
@@ -146,8 +153,38 @@ public class JSonMapper {
 
             if (type instanceof Class) {
                 final Class<?> clazz = (Class<?>) type;
-                if (List.class.isAssignableFrom(clazz) || clazz.isArray()) {
-                    System.out.println("ARRAY");
+                if (List.class.isAssignableFrom(clazz)) {
+                    System.err.println("TYPE?!");
+                } else if (clazz.isArray()) {
+                    final JSonArray obj = (JSonArray) json;
+                    final Object arr = Array.newInstance(clazz.getComponentType(), obj.size());
+                    for (int i = 0; i < obj.size(); i++) {
+                        Object v = this.jsonToObject(obj.get(i), clazz.getComponentType());
+                        if (clazz.getComponentType().isPrimitive()) {
+                            if (clazz.getComponentType() == boolean.class) {
+                                v = ((Boolean) v).booleanValue();
+                            } else if (clazz.getComponentType() == char.class) {
+                                v = (char) ((Long) v).byteValue();
+                            } else if (clazz.getComponentType() == byte.class) {
+                                v = ((Long) v).byteValue();
+                            } else if (clazz.getComponentType() == short.class) {
+                                v = ((Long) v).shortValue();
+                            } else if (clazz.getComponentType() == int.class) {
+                                v = ((Long) v).intValue();
+                            } else if (clazz.getComponentType() == long.class) {
+                                v = ((Long) v).longValue();
+                            } else if (clazz.getComponentType() == float.class) {
+                                v = ((Double) v).floatValue();
+                            } else if (clazz.getComponentType() == double.class) {
+                                //
+                                v = ((Double) v).doubleValue();
+
+                            }
+                        }
+                        Array.set(arr, i, v);
+
+                    }
+                    return arr;
                 } else {
 
                     final JSonObject obj = (JSonObject) json;
@@ -162,11 +199,8 @@ public class JSonMapper {
                         if (value == null) {
                             continue;
                         }
-                        if (value instanceof JSonArray) {
 
-                        } else {
-                            s.setValue(inst, this.jsonToObject(value, s.getType()));
-                        }
+                        s.setValue(inst, this.jsonToObject(value, s.getType()));
 
                     }
 
@@ -175,7 +209,13 @@ public class JSonMapper {
             } else if (type instanceof ParameterizedTypeImpl) {
                 final ParameterizedTypeImpl pType = (ParameterizedTypeImpl) type;
                 if (List.class.isAssignableFrom(pType.getRawType())) {
-
+                    @SuppressWarnings("unchecked")
+                    final List<Object> inst = (List<Object>) pType.getRawType().newInstance();
+                    final JSonArray obj = (JSonArray) json;
+                    for (final JSonNode n : obj) {
+                        inst.add(this.jsonToObject(n, pType.getActualTypeArguments()[0]));
+                    }
+                    return inst;
                 } else if (Map.class.isAssignableFrom(pType.getRawType())) {
                     @SuppressWarnings("unchecked")
                     final Map<String, Object> inst = (Map<String, Object>) pType.getRawType().newInstance();
@@ -186,9 +226,11 @@ public class JSonMapper {
                         inst.put(next.getKey(), this.jsonToObject(next.getValue(), pType.getActualTypeArguments()[1]));
                     }
                     return inst;
+                } else {
+                    System.err.println("TYPE?!");
                 }
             } else {
-                System.out.println("TYPE?!");
+                System.err.println("TYPE?!");
             }
         } catch (final SecurityException e) {
             // TODO Auto-generated catch block

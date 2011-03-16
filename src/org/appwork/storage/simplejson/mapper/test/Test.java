@@ -9,41 +9,79 @@
  */
 package org.appwork.storage.simplejson.mapper.test;
 
-import java.util.Date;
-
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.simplejson.JSonFactory;
 import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.mapper.JSonMapper;
 import org.appwork.storage.simplejson.mapper.MapperException;
 import org.appwork.storage.simplejson.mapper.TypeRef;
+import org.codehaus.jackson.type.TypeReference;
 
 /**
  * @author thomas
  * 
  */
 public class Test {
+    /**
+     * @return
+     */
+    private static Object create() {
+        TestClass ret = null;
+        ret = TestClass.createObject();
+        // ret = new TestClass();
+        return ret;
+    }
+
     public static void main(final String[] args) throws MapperException {
-        final Object obj = TestClass.createObject();
-        final JSonMapper mapper = new JSonMapper();
-        JSonNode json = mapper.create(obj);
-        final String jsonString = json.toString();
-        json = JSonFactory.parse(jsonString);
 
-        final TestClass ss = mapper.jsonToObject(json, new TypeRef<TestClass>() {
-        });
+        for (int i = 1; i <= 50; i++) {
+            Test.testSerialize(i * 200);
+            Test.testDeserialize(i * 200);
+        }
 
-        System.out.println(mapper.create(ss));
     }
 
     /**
      * @throws MapperException
      * 
      */
-    private static void testSerialize() throws MapperException {
-        Object obj = TestClass.createObject();
-        obj = new Date();
-        final int iterations = 1000;
+    private static void testDeserialize(final int iterations) throws MapperException {
+        final Object obj = Test.create();
+
+        final JSonMapper mapper = new JSonMapper();
+        JSonNode json = mapper.create(obj);
+        final String jsonString = json.toString();
+        json = JSonFactory.parse(jsonString);
+
+        long t = System.currentTimeMillis();
+        TestClass ss;
+        for (int i = 0; i < iterations; i++) {
+            json = JSonFactory.parse(jsonString);
+            ss = mapper.jsonToObject(json, new TypeRef<TestClass>() {
+            });
+            // System.out.println(node);
+        }
+        final long self = System.currentTimeMillis() - t;
+        System.out.println("Des(awu)|" + iterations + ": " + self + "ms");
+
+        // JSonStorage.serializeToJson(obj);
+        t = System.currentTimeMillis();
+        for (int i = 0; i < iterations; i++) {
+            ss = JSonStorage.restoreFromString(jsonString, new TypeReference<TestClass>() {
+            }, null);
+            // System.out.println();
+        }
+        final long jackson = System.currentTimeMillis() - t;
+        System.out.println("Des(jackson)|" + iterations + ": " + jackson + "ms");
+    }
+
+    /**
+     * @throws MapperException
+     * 
+     */
+    private static void testSerialize(final int iterations) throws MapperException {
+        final Object obj = Test.create();
+
         final JSonMapper mapper = new JSonMapper();
 
         // mapper.create(obj);
@@ -55,7 +93,7 @@ public class Test {
             // System.out.println(node);
         }
         final long self = System.currentTimeMillis() - t;
-        System.out.println("Self: " + self + " ms");
+        System.out.println("Ser(awu)|" + iterations + ": " + self + "ms");
 
         // JSonStorage.serializeToJson(obj);
         t = System.currentTimeMillis();
@@ -64,7 +102,6 @@ public class Test {
             // System.out.println();
         }
         final long jackson = System.currentTimeMillis() - t;
-        System.out.println("Jackson: " + jackson + " ms");
-
+        System.out.println("Ser(jackson)|" + iterations + ": " + jackson + "ms");
     }
 }

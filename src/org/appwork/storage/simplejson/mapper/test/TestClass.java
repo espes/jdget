@@ -20,6 +20,12 @@ import org.appwork.storage.Storable;
  */
 public class TestClass implements Storable {
 
+    private enum AnyEnum {
+        TEST,
+        BLUMM
+
+    }
+
     public static ArrayList<TestClass> createList() {
         final ArrayList<TestClass> ret = new ArrayList<TestClass>();
         ret.add(TestClass.createObject());
@@ -63,10 +69,14 @@ public class TestClass implements Storable {
     private Integer                    oInt     = 43253;
     private Byte                       oByte    = 0x24;
     private Character                  oChar    = 0x12;
+    private AnyEnum                    num      = AnyEnum.TEST;
     private Boolean                    oBoolean = true;
-
+    private int[]                      intArray = new int[] { 1, 2 };
+    private TestClass[]                objArray = null;
     private HashMap<String, TestClass> map      = new HashMap<String, TestClass>();
+
     private ArrayList<Integer>         list     = new ArrayList<Integer>();
+
     private TestClass                  obj;
 
     public TestClass() {
@@ -78,9 +88,10 @@ public class TestClass implements Storable {
      */
     public TestClass(final String string2) {
         this.string = string2;
-
+        this.objArray = new TestClass[] { new TestClass(), new TestClass(), new TestClass() };
         this.pDouble = 0.3d;
-
+        this.intArray = new int[] { 3, 2, 1 };
+        this.num = AnyEnum.BLUMM;
         this.pFloat = 0.423f;
         this.pLong = 4355543543l;
         this.pInt = 2435253;
@@ -98,6 +109,10 @@ public class TestClass implements Storable {
 
     }
 
+    public int[] getIntArray() {
+        return this.intArray;
+    }
+
     public ArrayList<Integer> getList() {
         return this.list;
     }
@@ -106,8 +121,16 @@ public class TestClass implements Storable {
         return this.map;
     }
 
+    public AnyEnum getNum() {
+        return this.num;
+    }
+
     public TestClass getObj() {
         return this.obj;
+    }
+
+    public TestClass[] getObjArray() {
+        return this.objArray;
     }
 
     public Boolean getoBoolean() {
@@ -170,6 +193,10 @@ public class TestClass implements Storable {
         return this.pBoolean;
     }
 
+    public void setIntArray(final int[] intArray) {
+        this.intArray = intArray;
+    }
+
     public void setList(final ArrayList<Integer> list) {
         this.list = list;
     }
@@ -178,8 +205,16 @@ public class TestClass implements Storable {
         this.map = map;
     }
 
+    public void setNum(final AnyEnum num) {
+        this.num = num;
+    }
+
     public void setObj(final TestClass obj) {
         this.obj = obj;
+    }
+
+    public void setObjArray(final TestClass[] objArray) {
+        this.objArray = objArray;
     }
 
     public void setoBoolean(final Boolean oBoolean) {

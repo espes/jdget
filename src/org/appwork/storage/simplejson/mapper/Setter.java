@@ -46,6 +46,7 @@ public class Setter {
         return this.type;
     }
 
+    @SuppressWarnings("unchecked")
     public void setValue(final Object inst, Object parameter) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 
         if (parameter instanceof Number) {
@@ -70,9 +71,10 @@ public class Setter {
 
             }
         }
-        if (parameter != null) {
-            System.out.println(this.key + " = " + parameter + " - " + parameter.getClass());
+        if (this.type instanceof Class && ((Class<?>) this.type).isEnum()) {
+            parameter = Enum.valueOf((Class<Enum>) this.type, parameter + "");
         }
+
         this.method.invoke(inst, parameter);
     }
 }
