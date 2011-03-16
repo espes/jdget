@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 
+import org.appwork.utils.encoding.Base64;
+
 public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
 
     public HTTPProxyHTTPConnectionImpl(final URL url, final HTTPProxy p) {
@@ -21,10 +23,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             /* add proxy auth */
             final String user = this.proxy.getUser() == null ? "" : this.proxy.getUser();
             final String pass = this.proxy.getPass() == null ? "" : this.proxy.getPass();
-
-            // this.requestProperties.put("Proxy-Authorization", "Basic " + new
-            // String(Base64.encodeToByte((user + ":" + pass).getBytes(),
-            // false)));
+            this.requestProperties.put("Proxy-Authorization", "Basic " + new String(Base64.encodeToByte((user + ":" + pass).getBytes(), false)));
         }
         if (this.isConnected()) { return;/* oder fehler */
         }
