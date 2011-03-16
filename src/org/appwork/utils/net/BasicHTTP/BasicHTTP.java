@@ -405,6 +405,7 @@ public class BasicHTTP {
                 writer = new OutputStreamWriter(outputStream);
                 writer.write(data);
                 writer.flush();
+                this.connection.postDataSend();
                 reader = new BufferedReader(isr = new InputStreamReader(this.connection.getInputStream(), "UTF-8"));
                 final StringBuilder sb = new StringBuilder();
                 String str;

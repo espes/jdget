@@ -194,19 +194,35 @@ public class JSonMapper {
                     @SuppressWarnings("unchecked")
                     final List<Object> inst = (List<Object>) clazz.newInstance();
                     final JSonArray obj = (JSonArray) json;
+                    final Type gs = clazz.getGenericSuperclass();
+                    final Type gType;
+                    if (gs instanceof ParameterizedTypeImpl) {
+                        gType = ((ParameterizedTypeImpl) gs).getActualTypeArguments()[0];
+                    } else {
+                        gType = void.class;
+                    }
                     for (final JSonNode n : obj) {
-                        inst.add(this.jsonToObject(n, void.class));
+                        inst.add(this.jsonToObject(n, gType));
                     }
                     return inst;
                 } else if (Map.class.isAssignableFrom(clazz)) {
                     @SuppressWarnings("unchecked")
                     final Map<String, Object> inst = (Map<String, Object>) clazz.newInstance();
                     final JSonObject obj = (JSonObject) json;
+                    final Type gs = clazz.getGenericSuperclass();
+                    final Type gType;
+                    if (gs instanceof ParameterizedTypeImpl) {
+                        gType = ((ParameterizedTypeImpl) gs).getActualTypeArguments()[1];
+                    } else {
+                        gType = void.class;
+                    }
+
                     Entry<String, JSonNode> next;
                     for (final Iterator<Entry<String, JSonNode>> it = obj.entrySet().iterator(); it.hasNext();) {
                         next = it.next();
-                        inst.put(next.getKey(), this.jsonToObject(next.getValue(), void.class));
+                        inst.put(next.getKey(), this.jsonToObject(next.getValue(), gType));
                     }
+
                     return inst;
 
                 } else if (clazz.isArray()) {
@@ -325,9 +341,8 @@ public class JSonMapper {
      */
     @SuppressWarnings("unchecked")
     public <T> T jsonToObject(final JSonNode json, final TypeRef<T> type) {
-        final Type clazz = ((ParameterizedTypeImpl) type.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 
-        return (T) this.jsonToObject(json, clazz);
+        return (T) this.jsonToObject(json, type.getType());
     }
 
     public void setIgnoreIllegalArgumentMappings(final boolean ignoreIllegalArgumentMappings) {
