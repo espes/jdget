@@ -40,6 +40,7 @@ import org.appwork.storage.config.annotations.DefaultStringValue;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.reflection.Clazz;
 
 /**
  * @author thomas
@@ -127,31 +128,31 @@ public class MethodHandler {
          */
         // init defaultvalues. read from annotations
         if (primitive) {
-            if (this.rawClass == Boolean.class || this.rawClass == boolean.class) {
+            if (Clazz.isBoolean(this.rawClass)) {
                 final DefaultBooleanValue ann = m.getAnnotation(DefaultBooleanValue.class);
                 if (ann != null) {
                     this.defaultBoolean = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultBooleanValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (this.rawClass == Long.class || this.rawClass == long.class) {
+            } else if (Clazz.isLong(this.rawClass)) {
                 final DefaultLongValue ann = m.getAnnotation(DefaultLongValue.class);
                 if (ann != null) {
                     this.defaultLong = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultLongValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (this.rawClass == Integer.class || this.rawClass == int.class) {
+            } else if (Clazz.isInteger(this.rawClass)) {
                 final DefaultIntValue ann = m.getAnnotation(DefaultIntValue.class);
                 if (ann != null) {
                     this.defaultInteger = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultIntValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (this.rawClass == Byte.class || this.rawClass == byte.class) {
+            } else if (Clazz.isByte(this.rawClass)) {
                 final DefaultByteValue ann = m.getAnnotation(DefaultByteValue.class);
                 if (ann != null) {
                     this.defaultByte = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultByteValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (this.rawClass == Float.class || this.rawClass == float.class) {
+            } else if (Clazz.isFloat(this.rawClass)) {
                 final DefaultFloatValue ann = m.getAnnotation(DefaultFloatValue.class);
                 if (ann != null) {
                     this.defaultFloat = ann.value();
@@ -178,7 +179,7 @@ public class MethodHandler {
 
                 }
                 this.checkBadAnnotations(m, DefaultEnumValue.class, CryptedStorage.class, PlainStorage.class);
-            } else if (this.rawClass == Double.class || this.rawClass == double.class) {
+            } else if (Clazz.isDouble(this.rawClass)) {
                 final DefaultDoubleValue ann = m.getAnnotation(DefaultDoubleValue.class);
                 if (ann != null) {
                     this.defaultDouble = ann.value();
@@ -190,34 +191,34 @@ public class MethodHandler {
         } else {
             if (this.rawClass.isArray()) {
                 final Class<?> ct = this.rawClass.getComponentType();
-                if (ct == Boolean.class || ct == boolean.class) {
+                if (Clazz.isBoolean(ct)) {
                     final DefaultBooleanArrayValue ann = m.getAnnotation(DefaultBooleanArrayValue.class);
                     if (ann != null) {
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultBooleanArrayValue.class, CryptedStorage.class, PlainStorage.class);
                     this.checkBadAnnotations(m, DefaultBooleanArrayValue.class);
-                } else if (ct == Long.class || ct == long.class) {
+                } else if (Clazz.isLong(ct)) {
 
                     final DefaultLongArrayValue ann = m.getAnnotation(DefaultLongArrayValue.class);
                     if (ann != null) {
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultLongArrayValue.class, CryptedStorage.class, PlainStorage.class);
-                } else if (ct == Integer.class || ct == int.class) {
+                } else if (Clazz.isInteger(ct)) {
 
                     final DefaultIntArrayValue ann = m.getAnnotation(DefaultIntArrayValue.class);
                     if (ann != null) {
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultIntArrayValue.class, CryptedStorage.class, PlainStorage.class);
-                } else if (ct == Byte.class || ct == byte.class) {
+                } else if (Clazz.isByte(ct)) {
                     final DefaultByteArrayValue ann = m.getAnnotation(DefaultByteArrayValue.class);
                     if (ann != null) {
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultByteArrayValue.class, CryptedStorage.class, PlainStorage.class);
-                } else if (ct == Float.class || ct == float.class) {
+                } else if (Clazz.isFloat(ct)) {
 
                     final DefaultFloatArrayValue ann = m.getAnnotation(DefaultFloatArrayValue.class);
                     if (ann != null) {
@@ -249,7 +250,7 @@ public class MethodHandler {
 
                     }
                     this.checkBadAnnotations(m, DefaultEnumArrayValue.class, CryptedStorage.class, PlainStorage.class);
-                } else if (ct == Double.class || ct == double.class) {
+                } else if (Clazz.isDouble(ct)) {
                     final DefaultDoubleArrayValue ann = m.getAnnotation(DefaultDoubleArrayValue.class);
                     if (ann != null) {
                         this.defaultObject = ann.value();
@@ -377,6 +378,7 @@ public class MethodHandler {
     /**
      * @return
      */
+    @SuppressWarnings("unchecked")
     public Object read() {
         final File file = Application.getResource(this.getObjectKey());
         try {
@@ -454,15 +456,14 @@ public class MethodHandler {
     }
 
     /**
-     * 
+     * checks wether crypt Annotations in getter equal cryptsettings in setter
      */
     private void validDateCrypt() {
         if (this.getterHandler.isCrypted() != this.setterHandler.isCrypted()) { throw new InterfaceParseException(this.getterHandler + " cryptsettings != " + this.setterHandler); }// check
         // keys
-
         if (this.getterHandler.isCrypted()) {
-            for (final byte element : this.getterHandler.cryptKey) {
-                if (element != element) { throw new InterfaceParseException(this.getterHandler + " cryptkey mismatch" + this.setterHandler); }
+            for (int i = 0; i < this.getterHandler.cryptKey.length; i++) {
+                if (this.getterHandler.cryptKey[i] != this.setterHandler.cryptKey[i]) { throw new InterfaceParseException(this.getterHandler + " cryptkey mismatch" + this.setterHandler); }
 
             }
 

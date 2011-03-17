@@ -155,6 +155,7 @@ public abstract class QueueAction<T, E extends Throwable> {
         try {
             this.result = this.run();
         } catch (final Throwable th) {
+
             if (queue != null && queue.isDebug()) {
                 Log.L.severe("QueueActionCallerStackTrace:\r\n" + this.callerStackTrace);
             }

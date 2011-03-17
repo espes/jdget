@@ -17,6 +17,7 @@ import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
 import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.reflection.Clazz;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -144,8 +145,8 @@ public class JSonStorage {
      * @return
      */
     public static boolean canStorePrimitive(final Class<?> type) {
-        // TODO Auto-generated method stub
-        return type.isPrimitive() || type == String.class || type.isEnum();
+
+        return Clazz.isPrimitive(type) || type == String.class || type.isEnum();
     }
 
     public static JSONMapper getMapper() {
