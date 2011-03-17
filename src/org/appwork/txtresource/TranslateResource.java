@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 
 import org.appwork.storage.JSonStorage;
+import org.appwork.utils.logging.Log;
 
 /**
  * @author thomas
@@ -43,13 +44,13 @@ public class TranslateResource {
 
     public TranslateData getData() throws UnsupportedEncodingException, IOException {
         synchronized (this) {
-            if (data == null) {
-                if (url != null) {
-                    final String txt = read(url);
-                    data = JSonStorage.restoreFromString(txt, TranslateData.class);
+            if (this.data == null) {
+                if (this.url != null) {
+                    final String txt = this.read(this.url);
+                    this.data = JSonStorage.restoreFromString(txt, TranslateData.class);
                 }
             }
-            return data;
+            return this.data;
 
         }
     }
@@ -64,9 +65,9 @@ public class TranslateResource {
 
         // if we have no translation files, but only defaults, read them
         // directly
-        if (url == null) { return readDefaults(method); }
-        final String ret = getData().get(method.getName());
-        if (ret == null) { return readDefaults(method); }
+        if (this.url == null) { return this.readDefaults(method); }
+        final String ret = this.getData().get(method.getName());
+        if (ret == null) { return this.readDefaults(method); }
         return ret;
 
     }
@@ -75,7 +76,7 @@ public class TranslateResource {
      * @return
      */
     public String getName() {
-        return name;
+        return this.name;
     }
 
     /**
@@ -126,8 +127,12 @@ public class TranslateResource {
         // for release, we always should create real translation files
         // instead of using the annotations
         final Default lngAn = method.getAnnotation(Default.class);
+        if (lngAn == null) {
+            Log.L.warning("Default missing for: " + method);
+            return null;
+        }
         for (int i = 0; i < lngAn.lngs().length; i++) {
-            if (lngAn.lngs()[i].equals(name)) { return lngAn.values()[i]; }
+            if (lngAn.lngs()[i].equals(this.name)) { return lngAn.values()[i]; }
         }
         return null;
     }
