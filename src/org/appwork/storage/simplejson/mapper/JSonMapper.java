@@ -217,7 +217,12 @@ public class JSonMapper {
                 case BOOLEAN:
                 case DOUBLE:
                 case LONG:
-                    return this.cast(((JSonValue) json).getValue(), (Class) type);
+                    if (type instanceof Class) {
+                        return this.cast(((JSonValue) json).getValue(), (Class) type);
+                    } else {
+                        return ((JSonValue) json).getValue();
+
+                    }
 
                 case STRING:
                     if (type instanceof Class && ((Class<?>) type).isEnum()) {

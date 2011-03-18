@@ -34,7 +34,8 @@ public class JsonKeyValueStorage extends Storage {
         this.name = file.getName();
         this.key = key;
         synchronized (JSonStorage.LOCK) {
-            final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, null, new HashMap<String, Object>());
+            final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
+            }, new HashMap<String, Object>());
             this.map.putAll(load);
         }
     }
@@ -56,7 +57,8 @@ public class JsonKeyValueStorage extends Storage {
 
         this.key = key;
         synchronized (JSonStorage.LOCK) {
-            final HashMap<String, Object> load = JSonStorage.restoreFrom(this.file, plain, key, null, new HashMap<String, Object>());
+            final HashMap<String, Object> load = JSonStorage.restoreFrom(this.file, plain, key, new TypeRef<HashMap<String, Object>>() {
+            }, new HashMap<String, Object>());
             // Log.L.finer(JSonStorage.toString(load));
             this.map.putAll(load);
         }
