@@ -15,20 +15,149 @@ package org.appwork.storage.simplejson;
  */
 public class JSonFactory {
 
+    public static boolean       DEBUG  = false;
+    private int                 global = 0;
+    private char                c;
+    private final String        str;
+    final StringBuilder         sb;
+    private final StringBuilder sb2;
+    private int                 counter;
+    private String              debug;
+
+    public JSonFactory(final String json) {
+        this.str = json;
+        this.sb = new StringBuilder();
+        this.sb2 = new StringBuilder();
+        this.counter = 0;
+    }
+
     /**
-     * @param jsonString
+     * @return
      */
-    public static JSonNode parse(final String str) {
-        if (str.trim().startsWith("[")) {
-            final JSonArray ret = new JSonArray();
-            JSonFactory.parseArray(0, ret, str);
-            return ret;
-        } else {
-            final JSonObject ret = new JSonObject();
-            JSonFactory.parseObject(0, ret, str);
-            return ret;
+    private ParserException bam(final String expected) {
+        final String pre = this.str.substring(Math.max(this.global - 20, 0), this.global);
+        final StringBuilder sb = new StringBuilder();
+        sb.append(expected);
+        sb.append("\r\n\t");
+        sb.append(pre);
+        sb.append(this.str.substring(this.global, Math.min(this.str.length(), this.global + 20)));
+        sb.append("\r\n\t");
+        for (int i = 1; i < pre.length(); i++) {
+            sb.append("-");
+        }
+        sb.append('\u2934');
+        return new ParserException(sb.toString());
+    }
+
+    /**
+     * @param str
+     * @return
+     * @throws ParserException
+     */
+    private String findString() throws ParserException {
+        // string
+        try {
+            this.sb.delete(0, this.sb.length());
+            this.c = this.str.charAt(this.global++);
+            if (this.c != '\"') { throw this.bam("'\"' expected"); }
+            boolean escaped = false;
+            while (true) {
+                this.c = this.str.charAt(this.global++);
+                switch (this.c) {
+                case '\"':
+                    return JSonUtils.unescape(this.sb.toString());
+
+                case '\\':
+                    escaped = true;
+                    while ((this.c = this.str.charAt(this.global++)) == '\\') {
+                        escaped = !escaped;
+                        if (!escaped) {
+                            this.sb.append("\\");
+                        }
+                    }
+                    if (escaped) {
+
+                        switch (this.c) {
+                        case '"':
+                            this.sb.append('"');
+                            continue;
+                        case '\\':
+                            this.sb.append('\\');
+                            continue;
+                        case 'r':
+                            this.sb.append('\r');
+                            continue;
+                        case 'n':
+                            this.sb.append('\n');
+                            continue;
+                        case 't':
+                            this.sb.append('\t');
+                            continue;
+                        case 'f':
+                            this.sb.append('\f');
+                            continue;
+                        case 'b':
+                            this.sb.append('\b');
+                            continue;
+
+                        case 'u':
+                            this.sb2.delete(0, this.sb2.length());
+
+                            this.global++;
+                            this.counter = this.global + 4;
+                            for (; this.global < this.counter; this.global++) {
+                                this.c = this.getChar();
+                                if (this.sb2.length() > 0 || this.c != '0') {
+                                    this.sb2.append(this.c);
+                                }
+                            }
+                            this.global--;
+                            this.sb.append((char) Short.parseShort(this.sb2.toString(), 16));
+                            continue;
+                        default:
+                            throw this.bam("illegal escape char");
+
+                        }
+
+                    }
+                    break;
+                default:
+                    this.sb.append(this.c);
+                }
+
+            }
+        } catch (final StringIndexOutOfBoundsException e) {
+            this.global--;
+            throw this.bam("Unexpected End of String \"" + this.sb.toString());
         }
 
+    }
+
+    /**
+     * @return
+     */
+    private char getChar() {
+        if (JSonFactory.DEBUG) {
+            final String pos = this.str.substring(0, this.global);
+            this.debug = pos + this.str.substring(this.global) + "\r\n";
+            for (int i = 0; i < pos.length(); i++) {
+                this.debug += "-";
+            }
+            this.debug += '\u2934';
+            System.err.println(this.debug);
+        }
+        return this.str.charAt(this.global);
+    }
+
+    public JSonNode parse() throws ParserException {
+
+        final JSonNode ret = this.parseValue();
+        this.skipWhiteSpace();
+        if (this.global != this.str.length()) {
+            this.global++;
+            throw this.bam("Unexpected End of JSonString");
+        }
+        return ret;
     }
 
     /**
@@ -36,91 +165,40 @@ public class JSonFactory {
      * @param obj
      * @param str
      * @return
+     * @throws ParserException
      */
-    private static int parseArray(int global, final JSonArray _this, final String str) {
-        char c;
-        int var;
-        global++;
-        int counter;
+    private JSonArray parseArray() throws ParserException {
 
-        boolean found;
-        int indexKeyStart, indexKeyEnd;
+        this.global++;
 
+        final JSonArray ret = new JSonArray();
         while (true) {
             // skip whitespace
-            var = 0;
-            c = str.charAt(global + var++);
-            while (Character.isWhitespace(c) || c == ',') {
-                c = str.charAt(global + var++);
-            }
-
-            indexKeyStart = global + var - 1;
-            if (str.charAt(indexKeyStart) == ']') {
-                global = indexKeyStart + 1;
-                return global;
-            }
-            if (str.charAt(indexKeyStart) == '"') {
-                // string
-                indexKeyEnd = str.indexOf('"', indexKeyStart + 1);
-                while (true) {
-
-                    // check if the match is escaped
-                    var = 1;
-                    counter = 0;
-                    while (indexKeyEnd - var >= global && str.charAt(indexKeyEnd - var++) == '\\') {
-                        counter++;
-                    }
-                    if (counter % 2 == 0) {
-                        // not escaped match is ok
-                        break;
-                    } else {
-                        // escaped match is bad
-                        indexKeyEnd = str.indexOf('"', indexKeyEnd + 1);
-                    }
-                }
-                _this.add(new JSonObject(str.substring(indexKeyStart + 1, indexKeyEnd)));
-                global = indexKeyEnd + 1;
-            } else if (str.charAt(indexKeyStart) == '[') {
-                final JSonNode obj = new JSonArray();
-                global = JSonFactory.parseArray(indexKeyStart, (JSonArray) obj, str);
-                _this.add(obj);
-            } else if (str.charAt(indexKeyStart) == '{') {
-                // object
-                final JSonObject obj = new JSonObject();
-                global = JSonFactory.parseObject(indexKeyStart + 1, obj, str);
-                _this.add(obj);
-            } else if (str.charAt(indexKeyStart) == 'n') {
-                _this.add(new JSonObject(null));
-                global = indexKeyStart + 4;
-                // null
-            } else if (str.charAt(indexKeyStart) == 't') {
-                _this.add(new JSonObject(true));
-                global = indexKeyStart + 4;
-            } else if (str.charAt(indexKeyStart) == 'f') {
-                _this.add(new JSonObject(false));
-                global = indexKeyStart + 5;
-            } else {
-                var = 1;
-                c = str.charAt(indexKeyStart + var);
-                found = false;
-
-                while (Character.isDigit(c) || !found && c == '.') {
-                    if (c == '.') {
-                        found = true;
-                    }
-
-                    var++;
-                    c = str.charAt(indexKeyStart + var);
-                }
-                if (found) {
-                    _this.add(new JSonObject(Double.parseDouble(str.substring(indexKeyStart, indexKeyStart + var))));
-                } else {
-                    _this.add(new JSonObject(Long.parseLong(str.substring(indexKeyStart, indexKeyStart + var))));
+            this.skipWhiteSpace();
+            this.c = this.getChar();
+            switch (this.c) {
+            case ']':
+                this.global++;
+                return ret;
+            case ',':
+                throw this.bam("Value missing");
+            default:
+                ret.add(this.parseValue());
+                this.skipWhiteSpace();
+                this.c = this.getChar();
+                switch (this.c) {
+                case ',':
+                    // ok another round:
+                    this.global++;
+                    continue;
+                case ']':
+                    // end
+                    this.global++;
+                    return ret;
+                default:
+                    throw this.bam("']' or ',' expected");
 
                 }
-
-                global = indexKeyStart + var;
-                // number
             }
 
         }
@@ -128,128 +206,167 @@ public class JSonFactory {
     }
 
     /**
+     * @param global
+     * @param i
+     * @param str
+     * @return
+     * @throws ParserException
+     * @throws NoNumberException
+     */
+    private JSonValue parseNumber() throws ParserException, NoNumberException {
+        this.sb.delete(0, this.sb.length());
+        boolean pointFound = false;
+        boolean potFound = false;
+        this.c = this.getChar();
+        if (this.c == '+' || this.c == '-' || Character.isDigit(this.c)) {
+            this.sb.append(this.c);
+            while (this.global + 1 < this.str.length()) {
+                this.global++;
+                this.c = this.getChar();
+                if (Character.isDigit(this.c) || !pointFound && this.c == '.' || pointFound && this.c == 'e' || pointFound && this.c == 'E' || potFound && this.c == '+' || potFound && this.c == '-') {
+                    if (this.c == '.') {
+                        pointFound = true;
+                    } else if (pointFound && (this.c == 'e' || this.c == 'E')) {
+                        potFound = true;
+                    }
+                    this.sb.append(this.c);
+                } else {
+                    this.global--;
+                    break;
+                }
+            }
+            this.global++;
+            if (pointFound) {
+                return new JSonValue(Double.parseDouble(this.sb.toString()));
+
+            } else {
+
+                return new JSonValue(Long.parseLong(this.sb.toString()));
+            }
+
+        } else {
+            throw new NoNumberException();
+        }
+    }
+
+    /**
      * @param _this
      * @param str
+     * @throws ParserException
      */
-    private static int parseObject(int global, final JSonObject _this, final String str) {
+    private JSonObject parseObject() throws ParserException {
 
-        int var;
-        int counter;
-        char c;
-        boolean found;
-        int indexKeyStart, indexKeyEnd;
         String key;
-
+        this.global++;
+        final JSonObject ret = new JSonObject();
         while (true) {
             // check for object end markers
-            for (var = global; var < str.length(); var++) {
-                c = str.charAt(var);
-                if (Character.isWhitespace(c)) {
+            this.skipWhiteSpace();
+            this.c = this.getChar();
+            switch (this.c) {
+            case '}':
+                this.global++;
+                return ret;
+            case '"':
+                key = this.findString();
+                this.skipWhiteSpace();
+                this.c = this.getChar();
+
+                if (this.c != ':') { throw this.bam("':' expected"); }
+                this.global++;
+                this.skipWhiteSpace();
+                ret.put(key, this.parseValue());
+                this.skipWhiteSpace();
+                this.c = this.getChar();
+                switch (this.c) {
+                case ',':
+                    // ok another value...probably
+                    this.global++;
                     continue;
-                } else if (c == ',') {
+                case '}':
+                    // end of object:
+                    this.global++;
+                    return ret;
+                default:
+                    throw this.bam("', or }' expected");
 
-                    continue;
-                } else if (c == '{') {
-                    continue;
-                } else if (c == '}') {
-                    // object end;
-
-                    return var + 1;
-                } else {
-                    // no object end found
-                    break;
                 }
+            default:
+                throw this.bam("\", or }' expected");
+
             }
-            indexKeyStart = str.indexOf('"', global);
-            if (indexKeyStart == -1) {
-                break;
-            }
-            indexKeyEnd = str.indexOf('"', indexKeyStart + 1);
-            key = str.substring(indexKeyStart + 1, indexKeyEnd);
-            // set to true if : has been found
-            found = false;
-            for (var = indexKeyEnd + 1; var < str.length(); var++) {
-                c = str.charAt(var);
-                if (Character.isWhitespace(c)) {
-                    continue;
-                } else if (found) {
-                    break;
-                }
-                if (c == ':') {
-                    found = true;
-                }
-            }
-            // now, next char may be:<br>
-            // number,object,null, or string,boolean,array
-            indexKeyStart = var;
-            if (str.charAt(indexKeyStart) == '"') {
-                // string
-                indexKeyEnd = str.indexOf('"', indexKeyStart + 1);
-                while (true) {
+        }
+    }
 
-                    // check if the match is escaped
-                    var = 1;
-                    counter = 0;
-                    while (indexKeyEnd - var >= global && str.charAt(indexKeyEnd - var++) == '\\') {
-                        counter++;
-                    }
-                    if (counter % 2 == 0) {
-                        // not escaped match is ok
-                        break;
-                    } else {
-                        // escaped match is bad
-                        indexKeyEnd = str.indexOf('"', indexKeyEnd + 1);
-                    }
-                }
-                _this.put(key, new JSonObject(str.substring(indexKeyStart + 1, indexKeyEnd)));
-                global = indexKeyEnd + 1;
-            } else if (str.charAt(indexKeyStart) == '[') {
-                final JSonNode obj = new JSonArray();
-                global = JSonFactory.parseArray(indexKeyStart, (JSonArray) obj, str);
-                _this.put(key, obj);
-            } else if (str.charAt(indexKeyStart) == '{') {
-                // object
-                // final String dfsad = str.substring(indexKeyStart);
-                final JSonObject obj = new JSonObject();
-                global = JSonFactory.parseObject(indexKeyStart, obj, str);
-                _this.put(key, obj);
-            } else if (str.charAt(indexKeyStart) == 'n') {
-                _this.put(key, new JSonObject(null));
-                global = indexKeyStart + 4;
-                // null
-            } else if (str.charAt(indexKeyStart) == 't') {
-                _this.put(key, new JSonObject(true));
-                global = indexKeyStart + 4;
-            } else if (str.charAt(indexKeyStart) == 'f') {
-                _this.put(key, new JSonObject(false));
-                global = indexKeyStart + 5;
-            } else {
-                var = 1;
-                c = str.charAt(indexKeyStart + var);
-                found = false;
+    /**
+     * @param global
+     * @param i
+     * @param str
+     * @return
+     * @throws ParserException
+     */
+    private JSonValue parseString() throws ParserException {
 
-                while (Character.isDigit(c) || !found && c == '.') {
-                    if (c == '.') {
-                        found = true;
-                    }
+        return new JSonValue(this.findString());
+    }
 
-                    var++;
-                    c = str.charAt(indexKeyStart + var);
-                }
-                if (found) {
-                    _this.put(key, new JSonObject(Double.parseDouble(str.substring(indexKeyStart, indexKeyStart + var))));
-                } else {
-                    _this.put(key, new JSonObject(Long.parseLong(str.substring(indexKeyStart, indexKeyStart + var))));
+    /**
+     * @param jsonString
+     * @throws ParserException
+     */
+    private JSonNode parseValue() throws ParserException {
 
-                }
+        this.global = this.skipWhiteSpace();
 
-                global = indexKeyStart + var;
-                // number
-            }
+        switch (this.getChar()) {
+        case '{':
+
+            return this.parseObject();
+
+        case '[':
+            return this.parseArray();
+
+        case 'n':
+            // null
+            this.global += 4;
+            return new JSonValue(null);
+        case 't':
+            // true;
+            this.global += 4;
+            return new JSonValue(true);
+
+        case 'f':
+            // false;
+            this.global += 5;
+            return new JSonValue(false);
+        case '"':
+
+            return this.parseString();
 
         }
-        return global;
+        try {
+            return this.parseNumber();
+        } catch (final NoNumberException e) {
+            this.global++;
+            throw this.bam("Illegal Char");
+        }
 
+    }
+
+    /**
+     * @param i
+     * @param str
+     * @return
+     */
+    private int skipWhiteSpace() {
+        while (this.global < this.str.length()) {
+            if (!Character.isWhitespace(this.str.charAt(this.global++))) {
+                this.global--;
+                break;
+            }
+            ;
+        }
+        return this.global;
     }
 
 }

@@ -49,32 +49,32 @@ public class Setter {
     @SuppressWarnings("unchecked")
     public void setValue(final Object inst, Object parameter) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 
-        if (parameter instanceof Number) {
-            if (this.type == Byte.class || this.type == byte.class) {
-                parameter = ((Long) parameter).byteValue();
-
-            } else if (this.type == Character.class || this.type == char.class) {
-                parameter = (char) ((Long) parameter).byteValue();
-
-            } else if (this.type == Short.class || this.type == short.class) {
-                parameter = ((Long) parameter).shortValue();
-
-            } else if (this.type == Integer.class || this.type == int.class) {
-                parameter = ((Long) parameter).intValue();
-            } else if (this.type == Long.class || this.type == long.class) {
-                parameter = ((Long) parameter).longValue();
-            } else if (this.type == Float.class || this.type == float.class) {
-                parameter = ((Double) parameter).floatValue();
-
-            } else if (this.type == Double.class || this.type == double.class) {
-                parameter = ((Double) parameter).doubleValue();
-
-            }
-        }
+        // if (parameter instanceof Number) {
+        // if (this.type == Byte.class || this.type == byte.class) {
+        // parameter = ((Long) parameter).byteValue();
+        //
+        // } else if (this.type == Character.class || this.type == char.class) {
+        // parameter = (char) ((Long) parameter).byteValue();
+        //
+        // } else if (this.type == Short.class || this.type == short.class) {
+        // parameter = ((Long) parameter).shortValue();
+        //
+        // } else if (this.type == Integer.class || this.type == int.class) {
+        // parameter = ((Long) parameter).intValue();
+        // } else if (this.type == Long.class || this.type == long.class) {
+        // parameter = ((Long) parameter).longValue();
+        // } else if (this.type == Float.class || this.type == float.class) {
+        // parameter = ((Double) parameter).floatValue();
+        //
+        // } else if (this.type == Double.class || this.type == double.class) {
+        // parameter = ((Double) parameter).doubleValue();
+        //
+        // }
+        // }
         if (this.type instanceof Class && ((Class<?>) this.type).isEnum()) {
             parameter = Enum.valueOf((Class<Enum>) this.type, parameter + "");
         }
-        System.out.println(this.key + " = " + parameter + " " + this.type);
+        // System.out.println(this.key + " = " + parameter + " " + this.type);
 
         this.method.invoke(inst, parameter);
 

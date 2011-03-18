@@ -13,10 +13,8 @@ package org.appwork.storage.simplejson;
  * @author thomas
  * 
  */
-public enum Type {
-    STRING,
-    NULL,
-    BOOLEAN,
-    DOUBLE,
-    LONG
+public class NoNumberException extends Exception {
+    public NoNumberException() {
+        super();
+    }
 }

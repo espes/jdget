@@ -21,6 +21,7 @@ import org.appwork.storage.TypeRef;
 import org.appwork.storage.simplejson.JSonArray;
 import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.JSonObject;
+import org.appwork.storage.simplejson.JSonValue;
 
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
@@ -46,6 +47,55 @@ public class JSonMapper {
     }
 
     /**
+     * @param value
+     * @param type
+     * @return
+     */
+    private Object cast(Object v, final Class<?> type) {
+        if (type.isPrimitive()) {
+            if (type == boolean.class) {
+                v = ((Boolean) v).booleanValue();
+            } else if (type == char.class) {
+                v = (char) ((Long) v).byteValue();
+            } else if (type == byte.class) {
+                v = ((Long) v).byteValue();
+            } else if (type == short.class) {
+                v = ((Long) v).shortValue();
+            } else if (type == int.class) {
+                v = ((Long) v).intValue();
+            } else if (type == long.class) {
+                v = ((Long) v).longValue();
+            } else if (type == float.class) {
+                v = ((Double) v).floatValue();
+            } else if (type == double.class) {
+                //
+                v = ((Double) v).doubleValue();
+
+            }
+        } else if (type == Boolean.class) {
+            v = ((Boolean) v).booleanValue();
+        } else if (type == Character.class) {
+            v = (char) ((Long) v).byteValue();
+        } else if (type == Byte.class) {
+            v = ((Long) v).byteValue();
+        } else if (type == Short.class) {
+            v = ((Long) v).shortValue();
+        } else if (type == Integer.class) {
+            v = ((Long) v).intValue();
+        } else if (type == Long.class) {
+            v = ((Long) v).longValue();
+        } else if (type == Float.class) {
+            v = ((Double) v).floatValue();
+        } else if (type == Double.class) {
+            //
+            v = ((Double) v).doubleValue();
+
+        }
+
+        return v;
+    }
+
+    /**
      * @param obj
      * @return
      * @throws MapperException
@@ -53,45 +103,45 @@ public class JSonMapper {
     @SuppressWarnings("unchecked")
     public JSonNode create(final Object obj) throws MapperException {
         try {
-            if (obj == null) { return new JSonObject(null); }
+            if (obj == null) { return new JSonValue(null); }
             final Class<? extends Object> clazz = obj.getClass();
             if (clazz.isPrimitive()) {
                 if (clazz == boolean.class) {
-                    return new JSonObject((Boolean) obj);
+                    return new JSonValue((Boolean) obj);
                 } else if (clazz == char.class) {
-                    return new JSonObject(0 + ((Character) obj).charValue());
+                    return new JSonValue(0 + ((Character) obj).charValue());
                 } else if (clazz == byte.class) {
-                    return new JSonObject(((Byte) obj).longValue());
+                    return new JSonValue(((Byte) obj).longValue());
                 } else if (clazz == short.class) {
-                    return new JSonObject(((Short) obj).longValue());
+                    return new JSonValue(((Short) obj).longValue());
                 } else if (clazz == int.class) {
-                    return new JSonObject(((Integer) obj).longValue());
+                    return new JSonValue(((Integer) obj).longValue());
                 } else if (clazz == long.class) {
-                    return new JSonObject(((Long) obj).longValue());
+                    return new JSonValue(((Long) obj).longValue());
                 } else if (clazz == float.class) {
-                    return new JSonObject(((Float) obj).doubleValue());
-                } else if (clazz == double.class) { return new JSonObject(((Double) obj).doubleValue()); }
+                    return new JSonValue(((Float) obj).doubleValue());
+                } else if (clazz == double.class) { return new JSonValue(((Double) obj).doubleValue()); }
             } else if (clazz.isEnum()) {
-                return new JSonObject(obj + "");
+                return new JSonValue(obj + "");
             } else if (obj instanceof Boolean) {
-                return new JSonObject(((Boolean) obj).booleanValue());
+                return new JSonValue(((Boolean) obj).booleanValue());
             } else if (obj instanceof Character) {
-                return new JSonObject(0 + ((Character) obj).charValue());
+                return new JSonValue(0 + ((Character) obj).charValue());
             } else if (obj instanceof Byte) {
-                return new JSonObject(((Byte) obj).longValue());
+                return new JSonValue(((Byte) obj).longValue());
             } else if (obj instanceof Short) {
-                return new JSonObject(((Short) obj).longValue());
+                return new JSonValue(((Short) obj).longValue());
             } else if (obj instanceof Integer) {
-                return new JSonObject(((Integer) obj).longValue());
+                return new JSonValue(((Integer) obj).longValue());
             } else if (obj instanceof Long) {
-                return new JSonObject(((Long) obj).longValue());
+                return new JSonValue(((Long) obj).longValue());
             } else if (obj instanceof Float) {
-                return new JSonObject(((Float) obj).doubleValue());
+                return new JSonValue(((Float) obj).doubleValue());
             } else if (obj instanceof Double) {
-                return new JSonObject(((Double) obj).doubleValue());
+                return new JSonValue(((Double) obj).doubleValue());
 
             } else if (obj instanceof String) {
-                return new JSonObject((String) obj);
+                return new JSonValue((String) obj);
             } else if (obj instanceof Map) {
 
                 final JSonObject ret = new JSonObject();
@@ -162,32 +212,30 @@ public class JSonMapper {
     public Object jsonToObject(final JSonNode json, final Type type) {
         final ClassCache cc;
         try {
-            if (json instanceof JSonObject) {
-                switch (((JSonObject) json).getType()) {
+            if (json instanceof JSonValue) {
+                switch (((JSonValue) json).getType()) {
                 case BOOLEAN:
                 case DOUBLE:
                 case LONG:
-                    return ((JSonObject) json).getValue();
+                    return this.cast(((JSonValue) json).getValue(), (Class) type);
 
                 case STRING:
                     if (type instanceof Class && ((Class<?>) type).isEnum()) {
                         try {
-                            return Enum.valueOf((Class<Enum>) type, ((JSonObject) json).getValue() + "");
+                            return Enum.valueOf((Class<Enum>) type, ((JSonValue) json).getValue() + "");
                         } catch (final IllegalArgumentException e) {
                             if (this.isIgnoreIllegalArgumentMappings() || this.isIgnoreIllegalEnumMappings()) { return null; }
                             throw e;
                         }
                     } else {
-                        return ((JSonObject) json).getValue();
+                        return ((JSonValue) json).getValue();
 
                     }
 
                 case NULL:
                     return null;
-
                 }
             }
-
             if (type instanceof Class) {
                 final Class<?> clazz = (Class<?>) type;
                 if (List.class.isAssignableFrom(clazz)) {
@@ -229,28 +277,8 @@ public class JSonMapper {
                     final JSonArray obj = (JSonArray) json;
                     final Object arr = Array.newInstance(clazz.getComponentType(), obj.size());
                     for (int i = 0; i < obj.size(); i++) {
-                        Object v = this.jsonToObject(obj.get(i), clazz.getComponentType());
-                        if (clazz.getComponentType().isPrimitive()) {
-                            if (clazz.getComponentType() == boolean.class) {
-                                v = ((Boolean) v).booleanValue();
-                            } else if (clazz.getComponentType() == char.class) {
-                                v = (char) ((Long) v).byteValue();
-                            } else if (clazz.getComponentType() == byte.class) {
-                                v = ((Long) v).byteValue();
-                            } else if (clazz.getComponentType() == short.class) {
-                                v = ((Long) v).shortValue();
-                            } else if (clazz.getComponentType() == int.class) {
-                                v = ((Long) v).intValue();
-                            } else if (clazz.getComponentType() == long.class) {
-                                v = ((Long) v).longValue();
-                            } else if (clazz.getComponentType() == float.class) {
-                                v = ((Double) v).floatValue();
-                            } else if (clazz.getComponentType() == double.class) {
-                                //
-                                v = ((Double) v).doubleValue();
+                        final Object v = this.jsonToObject(obj.get(i), clazz.getComponentType());
 
-                            }
-                        }
                         Array.set(arr, i, v);
 
                     }

@@ -38,7 +38,7 @@ public class JSonArray extends ArrayList<JSonNode> implements JSonNode {
         sb.append("[");
         for (final JSonNode n : this) {
             if (sb.length() > 1) {
-                sb.append(", ");
+                sb.append(",");
             }
             sb.append(n.toString());
         }

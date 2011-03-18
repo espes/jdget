@@ -12,6 +12,7 @@ package org.appwork.storage.simplejson.mapper.test;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.appwork.storage.Storable;
 
 /**
@@ -57,6 +58,7 @@ public class TestClass implements Storable {
     private double                     pDouble  = 0.5d;
 
     private float                      pFloat   = 0.4f;
+
     private long                       pLong    = 43543l;
     private int                        pInt     = 43253;
     private byte                       pByte    = 0x24;
@@ -74,7 +76,6 @@ public class TestClass implements Storable {
     private int[]                      intArray = new int[] { 1, 2 };
     private TestClass[]                objArray = null;
     private HashMap<String, TestClass> map      = new HashMap<String, TestClass>();
-
     private ArrayList<Integer>         list     = new ArrayList<Integer>();
 
     private TestClass                  obj;
@@ -107,6 +108,12 @@ public class TestClass implements Storable {
         this.oChar = 0x10;
         this.oBoolean = false;
 
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+
+        return EqualsBuilder.reflectionEquals(this, obj);
     }
 
     public int[] getIntArray() {

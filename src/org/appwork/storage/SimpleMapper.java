@@ -10,6 +10,7 @@
 package org.appwork.storage;
 
 import org.appwork.storage.simplejson.JSonFactory;
+import org.appwork.storage.simplejson.ParserException;
 import org.appwork.storage.simplejson.mapper.JSonMapper;
 import org.appwork.storage.simplejson.mapper.MapperException;
 
@@ -53,7 +54,11 @@ public class SimpleMapper implements JSONMapper {
     @Override
     public <T> T stringToObject(final String jsonString, final Class<T> clazz) throws JSonMapperException {
 
-        return (T) this.mapper.jsonToObject(JSonFactory.parse(jsonString), clazz);
+        try {
+            return (T) this.mapper.jsonToObject(new JSonFactory(jsonString).parse(), clazz);
+        } catch (final ParserException e) {
+            throw new JSonMapperException(e);
+        }
 
     }
 
@@ -65,7 +70,12 @@ public class SimpleMapper implements JSONMapper {
      */
     @Override
     public <T> T stringToObject(final String jsonString, final TypeRef<T> type) throws JSonMapperException {
-        return this.mapper.jsonToObject(JSonFactory.parse(jsonString), type);
+        try {
+            return this.mapper.jsonToObject(new JSonFactory(jsonString).parse(), type);
+        } catch (final ParserException e) {
+            throw new JSonMapperException(e);
+
+        }
     }
 
 }

@@ -13,6 +13,7 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.storage.simplejson.JSonFactory;
 import org.appwork.storage.simplejson.JSonNode;
+import org.appwork.storage.simplejson.ParserException;
 import org.appwork.storage.simplejson.mapper.JSonMapper;
 import org.appwork.storage.simplejson.mapper.MapperException;
 
@@ -31,7 +32,7 @@ public class Test {
         return ret;
     }
 
-    public static void main(final String[] args) throws MapperException {
+    public static void main(final String[] args) throws MapperException, ParserException {
 
         for (int i = 1; i <= 50; i++) {
             Test.testSerialize(i * 200);
@@ -42,20 +43,21 @@ public class Test {
 
     /**
      * @throws MapperException
+     * @throws ParserException
      * 
      */
-    private static void testDeserialize(final int iterations) throws MapperException {
+    private static void testDeserialize(final int iterations) throws MapperException, ParserException {
         final Object obj = Test.create();
 
         final JSonMapper mapper = new JSonMapper();
         JSonNode json = mapper.create(obj);
         final String jsonString = json.toString();
-        json = JSonFactory.parse(jsonString);
+        json = new JSonFactory(jsonString).parse();
 
         long t = System.currentTimeMillis();
         TestClass ss;
         for (int i = 0; i < iterations; i++) {
-            json = JSonFactory.parse(jsonString);
+            json = new JSonFactory(jsonString).parse();
             ss = mapper.jsonToObject(json, new TypeRef<TestClass>() {
             });
             // System.out.println(node);

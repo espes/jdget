@@ -24,56 +24,12 @@ public class JSonObject extends HashMap<String, JSonNode> implements JSonNode {
      */
     private static final long serialVersionUID = 1L;
 
-    private final Type        type;
-
-    private final Object      value;
-
     /**
      * 
      */
     public JSonObject() {
-        this.type = Type.OBJECT;
-        this.value = null;
+        super();
 
-    }
-
-    /**
-     * @param b
-     */
-    public JSonObject(final boolean b) {
-        this.type = Type.BOOLEAN;
-        this.value = b;
-    }
-
-    /**
-     * @param parseDouble
-     */
-    public JSonObject(final double d) {
-        this.type = Type.DOUBLE;
-        this.value = d;
-    }
-
-    public JSonObject(final long d) {
-        this.type = Type.LONG;
-        this.value = d;
-    }
-
-    /**
-     * @param key
-     * @param substring
-     */
-    public JSonObject(final String value) {
-        this.type = value == null ? Type.NULL : Type.STRING;
-        this.value = value;
-
-    }
-
-    public Type getType() {
-        return this.type;
-    }
-
-    public Object getValue() {
-        return this.value;
     }
 
     @Override
@@ -85,31 +41,23 @@ public class JSonObject extends HashMap<String, JSonNode> implements JSonNode {
     @Override
     public String toString() {
 
-        switch (this.type) {
-        case NULL:
-            return "null";
-        case STRING:
-            return "\"" + this.value + "\"";
-        case OBJECT:
-            final StringBuilder sb = new StringBuilder();
-            sb.append("{");
-            Entry<String, JSonNode> next;
-            for (final Iterator<Entry<String, JSonNode>> it = this.entrySet().iterator(); it.hasNext();) {
-                if (sb.length() > 1) {
-                    sb.append(", ");
-                }
-                next = it.next();
-                sb.append("\"");
-                sb.append(next.getKey());
-                sb.append("\"");
-                sb.append(" : ");
-                sb.append(next.getValue());
+        final StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        Entry<String, JSonNode> next;
+        for (final Iterator<Entry<String, JSonNode>> it = this.entrySet().iterator(); it.hasNext();) {
+            if (sb.length() > 1) {
+                sb.append(",");
             }
-            sb.append("}");
-            return sb.toString();
-        default:
-            return this.value + "";
+            next = it.next();
+            sb.append("\"");
+            sb.append(next.getKey());
+            sb.append("\"");
+            sb.append(":");
+            sb.append(next.getValue());
         }
+        sb.append("}");
+        return sb.toString();
 
     }
+
 }
