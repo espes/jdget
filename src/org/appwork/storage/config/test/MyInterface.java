@@ -105,7 +105,7 @@ public interface MyInterface extends ConfigInterface {
     @CryptedStorage(key = { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 })
     public void setGenericList(ArrayList<TestObject> list);
 
-    public int setInt(int i);
+    public void setInt(int i);
 
     /**
      * @param is

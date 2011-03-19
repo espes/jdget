@@ -11,6 +11,7 @@ package org.appwork.storage.simplejson.mapper.test;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
+import org.appwork.storage.jackson.JacksonMapper;
 import org.appwork.storage.simplejson.JSonFactory;
 import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.ParserException;
@@ -33,7 +34,7 @@ public class Test {
     }
 
     public static void main(final String[] args) throws MapperException, ParserException {
-
+        JSonStorage.setMapper(new JacksonMapper());
         for (int i = 1; i <= 50; i++) {
             Test.testSerialize(i * 200);
             Test.testDeserialize(i * 200);
