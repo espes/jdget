@@ -12,6 +12,7 @@ package org.appwork.storage.simplejson.mapper;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -31,27 +32,12 @@ import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
  */
 public class JSonMapper {
 
-    private boolean ignorePrimitiveNullMapping    = false;
-
-    private boolean ignoreIllegalArgumentMappings = false;
-
     /**
      * @param value
      * @param type
      * @return
      */
-    private boolean ignoreIllegalEnumMappings     = false;
-
-    public JSonMapper() {
-
-    }
-
-    /**
-     * @param value
-     * @param type
-     * @return
-     */
-    private Object cast(Object v, final Class<?> type) {
+    public static Object cast(Object v, final Class<?> type) {
         if (type.isPrimitive()) {
             if (type == boolean.class) {
                 v = ((Boolean) v).booleanValue();
@@ -93,6 +79,21 @@ public class JSonMapper {
         }
 
         return v;
+    }
+
+    private boolean ignorePrimitiveNullMapping    = false;
+
+    private boolean ignoreIllegalArgumentMappings = false;
+
+    /**
+     * @param value
+     * @param type
+     * @return
+     */
+    private boolean ignoreIllegalEnumMappings     = false;
+
+    public JSonMapper() {
+
     }
 
     /**
@@ -218,7 +219,7 @@ public class JSonMapper {
                 case DOUBLE:
                 case LONG:
                     if (type instanceof Class) {
-                        return this.cast(((JSonValue) json).getValue(), (Class) type);
+                        return JSonMapper.cast(((JSonValue) json).getValue(), (Class) type);
                     } else {
                         return ((JSonValue) json).getValue();
 
@@ -289,35 +290,52 @@ public class JSonMapper {
                     }
                     return arr;
                 } else {
+                    if (json instanceof JSonArray) {
 
-                    final JSonObject obj = (JSonObject) json;
-                    cc = ClassCache.getClassCache(clazz);
-
-                    @SuppressWarnings("unchecked")
-                    final Object inst = cc.getInstance();
-                    JSonNode value;
-                    Object v;
-                    for (final Setter s : cc.getSetter()) {
-
-                        value = obj.get(s.getKey());
-                        if (value == null) {
-                            continue;
+                        final ArrayList<Object> inst = new ArrayList<Object>();
+                        final JSonArray obj = (JSonArray) json;
+                        final Type gs = clazz.getGenericSuperclass();
+                        final Type gType;
+                        if (gs instanceof ParameterizedTypeImpl) {
+                            gType = ((ParameterizedTypeImpl) gs).getActualTypeArguments()[0];
+                        } else {
+                            gType = void.class;
                         }
-                        v = this.jsonToObject(value, s.getType());
-                        try {
-                            s.setValue(inst, v);
-                        } catch (final IllegalArgumentException e) {
-                            if (this.isIgnoreIllegalArgumentMappings()) {
-                                continue;
-                            } else if (v == null && this.isIgnorePrimitiveNullMapping()) {
+                        for (final JSonNode n : obj) {
+                            inst.add(this.jsonToObject(n, gType));
+                        }
+                        return inst;
+
+                    } else {
+                        final JSonObject obj = (JSonObject) json;
+                        cc = ClassCache.getClassCache(clazz);
+
+                        @SuppressWarnings("unchecked")
+                        final Object inst = cc.getInstance();
+                        JSonNode value;
+                        Object v;
+                        for (final Setter s : cc.getSetter()) {
+
+                            value = obj.get(s.getKey());
+                            if (value == null) {
                                 continue;
                             }
-                            throw e;
+                            v = this.jsonToObject(value, s.getType());
+                            try {
+                                s.setValue(inst, v);
+                            } catch (final IllegalArgumentException e) {
+                                if (this.isIgnoreIllegalArgumentMappings()) {
+                                    continue;
+                                } else if (v == null && this.isIgnorePrimitiveNullMapping()) {
+                                    continue;
+                                }
+                                throw e;
+                            }
+
                         }
 
+                        return inst;
                     }
-
-                    return inst;
                 }
             } else if (type instanceof ParameterizedTypeImpl) {
                 final ParameterizedTypeImpl pType = (ParameterizedTypeImpl) type;
