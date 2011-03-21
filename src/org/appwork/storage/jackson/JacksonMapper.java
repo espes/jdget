@@ -87,6 +87,7 @@ public class JacksonMapper implements JSONMapper {
      * @see org.appwork.storage.JSONMapper#stringToObject(java.lang.String,
      * org.appwork.storage.TypeRef)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T stringToObject(final String jsonString, final TypeRef<T> type) throws JSonMapperException {
         try {
@@ -98,8 +99,10 @@ public class JacksonMapper implements JSONMapper {
                 }
 
             };
-
-            return this.mapper.readValue(jsonString, tr);
+            // this (T) is required because of java bug
+            // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6302954
+            // (compiles in eclipse, but not with javac)
+            return (T) this.mapper.readValue(jsonString, tr);
         } catch (final JsonParseException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {
