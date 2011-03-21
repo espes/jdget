@@ -54,7 +54,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * Sorting algorithms run in an own thread
      */
     private Thread                 sortThread         = null;
-    private TableCellRenderer      headerrenderer;
+
     private ExtDefaultRowSorter<E> rowSorter;
 
     /**
@@ -67,13 +67,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public ExtColumn(final String name, final ExtTableModel<E> table) {
         this.name = name;
         this.model = table;
-        try {
-            this.headerrenderer = new ExtTableCellHeaderRenderer(this);
-        } catch (final Throwable e) {
-            e.printStackTrace();
-            /* java 1.5 does not have DefaultTableCellHeaderRenderer */
-            this.headerrenderer = null;
-        }
+
         // sort function
         this.rowSorter = new ExtDefaultRowSorter<E>();
     }
@@ -144,15 +138,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public int getDefaultWidth() {
         return 100;
-    }
-
-    /**
-     * overwrite this to implement a custom renderer
-     * 
-     * @return
-     */
-    public TableCellRenderer getHeaderRenderer() {
-        return this.headerrenderer;
     }
 
     /**
