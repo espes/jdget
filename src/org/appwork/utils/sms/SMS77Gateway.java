@@ -115,11 +115,11 @@ public class SMS77Gateway {
         final ArrayList<SMS77GatewayParameter> params = new ArrayList<SMS77GatewayParameter>();
         params.add(SMS77GatewayParameter.create("to", receiver));
         params.add(SMS77GatewayParameter.create("text", message.getMessage()));
+        params.add(SMS77GatewayParameter.create("type", message.getType().name().toLowerCase(Locale.ENGLISH)));
         /* TODO: is basicplus really the right type here */
         if (message.getSender() != null && !message.getType().equals(SMS77Message.TYPE.BASICPLUS)) {
             params.add(SMS77GatewayParameter.create("from", message.getSender()));
         }
-        params.add(SMS77GatewayParameter.create("type", message.getType().name().toLowerCase(Locale.ENGLISH)));
         params.add(SMS77GatewayParameter.create("return_msg_id", "1"));
         final String[] rets = this.callAPI("", params.toArray(new SMS77GatewayParameter[params.size()]));
         final String ret = rets[0];
