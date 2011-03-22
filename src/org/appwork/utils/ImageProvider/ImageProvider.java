@@ -141,6 +141,15 @@ public class ImageProvider {
                     throw e;
                 }
 
+            } catch (final IllegalArgumentException e) {
+                Log.L.severe("Could not Init Image: " + absolutePath);
+                if (createDummy) {
+                    Log.exception(Level.WARNING, e);
+                    return ImageProvider.createIcon(name.toUpperCase(), 48, 48);
+                } else {
+                    throw e;
+                }
+
             }
         }
     }
