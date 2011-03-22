@@ -32,13 +32,18 @@ public class ClassCache {
      */
     private static ClassCache create(final Class<? extends Object> clazz) throws SecurityException, NoSuchMethodException {
         final ClassCache cc = new ClassCache(clazz);
+        Getter g;
+        Setter s;
         for (final Method m : clazz.getDeclaredMethods()) {
             if (m.getName().startsWith("get") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
-                cc.getter.add(new Getter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
+                cc.getter.add(g = new Getter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
+                cc.getterMap.put(g.getKey(), g);
             } else if (m.getName().startsWith("is") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
-                cc.getter.add(new Getter(m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3), m));
+                cc.getter.add(g = new Getter(m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3), m));
+                cc.getterMap.put(g.getKey(), g);
             } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
-                cc.setter.add(new Setter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
+                cc.setter.add(s = new Setter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
+                cc.setterMap.put(s.getKey(), s);
             }
         }
 
@@ -73,6 +78,8 @@ public class ClassCache {
     private final Class<? extends Object> clazz;
     private final ArrayList<Getter>       getter;
     private final ArrayList<Setter>       setter;
+    private final HashMap<String, Getter> getterMap;
+    private final HashMap<String, Setter> setterMap;
 
     /**
      * @param clazz
@@ -81,10 +88,16 @@ public class ClassCache {
         this.clazz = clazz;
         this.getter = new ArrayList<Getter>();
         this.setter = new ArrayList<Setter>();
+        this.getterMap = new HashMap<String, Getter>();
+        this.setterMap = new HashMap<String, Setter>();
     }
 
     public ArrayList<Getter> getGetter() {
         return this.getter;
+    }
+
+    public Getter getGetter(final String key) {
+        return this.getterMap.get(key);
     }
 
     /**
@@ -101,6 +114,10 @@ public class ClassCache {
 
     public ArrayList<Setter> getSetter() {
         return this.setter;
+    }
+
+    public Setter getSetter(final String key) {
+        return this.setterMap.get(key);
     }
 
 }

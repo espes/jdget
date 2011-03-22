@@ -101,6 +101,15 @@ public class Application {
     }
 
     /**
+     * @param class1
+     * @return
+     */
+    public static String getPackagePath(final Class<?> class1) {
+        // TODO Auto-generated method stub
+        return class1.getPackage().getName().replace('.', '/') + "/";
+    }
+
+    /**
      * Returns a ressourcefile relative to the instaldirectory
      * 
      * @param relative

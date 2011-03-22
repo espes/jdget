@@ -3,10 +3,25 @@
 	<property name="src" value="src" />
 	<property name="cls" value="bin" />
 	<property name="dist" value="dist" />
-
+    <path id="classpath">
+           <fileset dir="${cls}" />
+        <!-- Dependencies -->
+        <fileset dir="libs" includes="**/*.jar" />
+    	<!--  <fileset dir="${java.home}/lib" includes="**/*.jar" /> -->
+    	
+    	
+   
+    </path>
+	
+	
 	<target name="compile">
 		<mkdir dir="${cls}" />
-		<javac srcdir="${src}" destdir="${cls}" encoding="UTF-8" source="1.5" target="1.5" />
+		  <delete dir="${cls}" />
+		  <mkdir dir="${cls}" />
+		<javac srcdir="${src}" nowarn="on" excludes="**/test/**" destdir="${cls}" encoding="UTF-8" source="1.6" target="1.6" >
+			 <classpath refid="classpath" />
+			
+			</javac>
 	</target>
 
 	<target name="jar">

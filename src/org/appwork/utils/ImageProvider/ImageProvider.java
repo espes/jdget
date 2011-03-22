@@ -128,7 +128,7 @@ public class ImageProvider {
 
             final URL absolutePath = Application.getRessourceURL("images/" + name + ".png");
             try {
-                Log.L.info("Init Image: " + absolutePath);
+                Log.L.info("Init Image: " + name + ": " + absolutePath);
                 final BufferedImage image = ImageProvider.read(absolutePath);
                 ImageProvider.IMAGE_CACHE.put(name, image);
                 return image;
