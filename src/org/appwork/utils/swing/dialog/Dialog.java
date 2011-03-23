@@ -691,9 +691,12 @@ public class Dialog {
      * @throws DialogCanceledException
      */
     @Deprecated
-    public File[] showFileChooser(final String id, final String title, final int fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final int dialogType, final File preSelect) throws DialogCanceledException, DialogClosedException {
+    public File[] showFileChooser(final String id, final String title, int fileSelectionMode, final FileFilter fileFilter, final boolean multiSelection, final int dialogType, final File preSelect) throws DialogCanceledException, DialogClosedException {
 
         FileChooserSelectionMode fsm = null;
+        if (fileSelectionMode < 0) {
+            fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES;
+        }
         for (final FileChooserSelectionMode f : FileChooserSelectionMode.values()) {
             if (f.getId() == fileSelectionMode) {
                 fsm = f;
