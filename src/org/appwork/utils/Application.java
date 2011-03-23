@@ -198,6 +198,7 @@ public class Application {
         } else {
             Application.ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + Application.APP_FOLDER + System.getProperty("file.separator");
         }
+        Log.L.info("App Root: " + Application.ROOT);
         return Application.ROOT;
     }
 
@@ -215,13 +216,15 @@ public class Application {
             Log.L.severe("getContextClassLoader() is null");
             return true;
         }
+        System.out.println(name);
         final URL caller = cll.getResource(name);
+        System.out.println(caller);
         /*
          * caller is null in case the ressource is not found or not enough
          * rights, in that case we assume its not jared
          */
         if (caller == null) { return false; }
-        return caller.toString().matches("jar\\:.*\\.jar\\!.*");
+        return caller.toString().matches("jar\\:.*\\.(jar|exe)\\!.*");
     }
 
     public static void main(final String[] args) {
