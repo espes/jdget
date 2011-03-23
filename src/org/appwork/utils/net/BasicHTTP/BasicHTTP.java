@@ -1,6 +1,5 @@
 package org.appwork.utils.net.BasicHTTP;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -68,25 +67,16 @@ public class BasicHTTP {
      * @throws IOException
      */
     public void download(final URL url, final DownloadProgress progress, final File file) throws IOException, InterruptedException {
-        BufferedOutputStream out = null;
         FileOutputStream fos = null;
         try {
-            out = new BufferedOutputStream(fos = new FileOutputStream(file, true));
+            fos = new FileOutputStream(file, true);
             try {
-                this.download(url, progress, 0, out, file.length());
+                this.download(url, progress, 0, fos, file.length());
             } catch (final IOException e) {
-                try {
-                    out.close();
-                } catch (final Throwable t) {
-                }
                 final IOException ex = new BasicHTTPException(this.connection, e);
                 throw ex;
             }
         } finally {
-            try {
-                out.close();
-            } catch (final Throwable t) {
-            }
             try {
                 fos.close();
             } catch (final Throwable t) {
@@ -138,7 +128,6 @@ public class BasicHTTP {
             this.connection.connect();
 
             input = this.connection.getInputStream();
-
             if (maxSize > 0 && this.connection.getCompleteContentLength() > maxSize) { throw new IOException("Max size exeeded!"); }
             if (progress != null) {
                 progress.setTotal(this.connection.getCompleteContentLength());
@@ -146,6 +135,9 @@ public class BasicHTTP {
             final byte[] b = new byte[32767];
             int len;
             long loaded = Math.max(0, resumePosition);
+            if (progress != null) {
+                progress.setLoaded(loaded);
+            }
             while ((len = input.read(b)) != -1) {
                 if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
                 if (len > 0) {
