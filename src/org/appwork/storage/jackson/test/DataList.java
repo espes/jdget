@@ -13,9 +13,10 @@ import java.util.ArrayList;
 
 /**
  * @author thomas
- * 
  */
 public class DataList extends ArrayList<Integer> {
+    private static final long serialVersionUID = 1946399313632733726L;
+
     public DataList() {
         super();
     }

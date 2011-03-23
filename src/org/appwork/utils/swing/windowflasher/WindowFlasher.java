@@ -11,12 +11,9 @@ public class WindowFlasher {
     private final JFrame window;
     private final Dialog d;
 
-    /**
-     * @param frame
-     */
     public WindowFlasher(final JFrame frame) {
         this.window = frame;
-        this.d = new java.awt.Dialog(this.window);
+        this.d = new Dialog(this.window);
         this.d.setUndecorated(true);
         this.d.setSize(0, 0);
         this.d.setModal(false);
@@ -27,27 +24,22 @@ public class WindowFlasher {
             public void windowGainedFocus(final WindowEvent e) {
                 WindowFlasher.this.window.requestFocus();
                 WindowFlasher.this.d.setVisible(false);
-
             }
+
         };
         final WindowAdapter windowWindowAdapter = new WindowAdapter() {
 
             @Override
             public void windowGainedFocus(final WindowEvent e) {
                 WindowFlasher.this.d.setVisible(false);
-
             }
+
         };
         this.d.addWindowFocusListener(dWindowListener);
         this.window.addWindowFocusListener(windowWindowAdapter);
-
     }
 
-    /**
-     * 
-     */
     public void start() {
-
         if (!this.window.isFocused()) {
             this.d.setVisible(false);
             this.d.setLocation(0, 0);

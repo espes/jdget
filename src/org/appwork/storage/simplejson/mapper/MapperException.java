@@ -11,28 +11,25 @@ package org.appwork.storage.simplejson.mapper;
 
 /**
  * @author thomas
- * 
  */
 public class MapperException extends Exception {
 
+    private static final long serialVersionUID = -1160630596356061500L;
+
     public MapperException() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
     public MapperException(final String message) {
         super(message);
-        // TODO Auto-generated constructor stub
     }
 
     public MapperException(final String message, final Throwable cause) {
         super(message, cause);
-        // TODO Auto-generated constructor stub
     }
 
     public MapperException(final Throwable cause) {
         super(cause);
-        // TODO Auto-generated constructor stub
     }
 
 }

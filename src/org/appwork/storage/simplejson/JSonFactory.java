@@ -11,7 +11,6 @@ package org.appwork.storage.simplejson;
 
 /**
  * @author thomas
- * 
  */
 public class JSonFactory {
 
@@ -31,9 +30,6 @@ public class JSonFactory {
         this.counter = 0;
     }
 
-    /**
-     * @return
-     */
     private ParserException bam(final String expected) {
         final String pre = this.str.substring(Math.max(this.global - 20, 0), this.global);
         final StringBuilder sb = new StringBuilder();
@@ -49,11 +45,6 @@ public class JSonFactory {
         return new ParserException(sb.toString());
     }
 
-    /**
-     * @param str
-     * @return
-     * @throws ParserException
-     */
     private String findString() throws ParserException {
         // string
         try {
@@ -66,7 +57,6 @@ public class JSonFactory {
                 switch (this.c) {
                 case '\"':
                     return JSonUtils.unescape(this.sb.toString());
-
                 case '\\':
                     escaped = true;
                     while ((this.c = this.str.charAt(this.global++)) == '\\') {
@@ -76,7 +66,6 @@ public class JSonFactory {
                         }
                     }
                     if (escaped) {
-
                         switch (this.c) {
                         case '"':
                             this.sb.append('"');
@@ -99,7 +88,6 @@ public class JSonFactory {
                         case 'b':
                             this.sb.append('\b');
                             continue;
-
                         case 'u':
                             this.sb2.delete(0, this.sb2.length());
 
@@ -116,26 +104,19 @@ public class JSonFactory {
                             continue;
                         default:
                             throw this.bam("illegal escape char");
-
                         }
-
                     }
                     break;
                 default:
                     this.sb.append(this.c);
                 }
-
             }
         } catch (final StringIndexOutOfBoundsException e) {
             this.global--;
             throw this.bam("Unexpected End of String \"" + this.sb.toString());
         }
-
     }
 
-    /**
-     * @return
-     */
     private char getChar() {
         if (JSonFactory.DEBUG) {
             final String pos = this.str.substring(0, this.global);
@@ -150,7 +131,6 @@ public class JSonFactory {
     }
 
     public JSonNode parse() throws ParserException {
-
         final JSonNode ret = this.parseValue();
         this.skipWhiteSpace();
         if (this.global != this.str.length()) {
@@ -160,15 +140,7 @@ public class JSonFactory {
         return ret;
     }
 
-    /**
-     * @param indexKeyStart
-     * @param obj
-     * @param str
-     * @return
-     * @throws ParserException
-     */
     private JSonArray parseArray() throws ParserException {
-
         this.global++;
 
         final JSonArray ret = new JSonArray();
@@ -197,22 +169,11 @@ public class JSonFactory {
                     return ret;
                 default:
                     throw this.bam("']' or ',' expected");
-
                 }
             }
-
         }
-
     }
 
-    /**
-     * @param global
-     * @param i
-     * @param str
-     * @return
-     * @throws ParserException
-     * @throws NoNumberException
-     */
     private JSonValue parseNumber() throws ParserException, NoNumberException {
         this.sb.delete(0, this.sb.length());
         boolean pointFound = false;
@@ -238,24 +199,15 @@ public class JSonFactory {
             this.global++;
             if (pointFound) {
                 return new JSonValue(Double.parseDouble(this.sb.toString()));
-
             } else {
-
                 return new JSonValue(Long.parseLong(this.sb.toString()));
             }
-
         } else {
             throw new NoNumberException();
         }
     }
 
-    /**
-     * @param _this
-     * @param str
-     * @throws ParserException
-     */
     private JSonObject parseObject() throws ParserException {
-
         String key;
         this.global++;
         final JSonObject ret = new JSonObject();
@@ -289,43 +241,25 @@ public class JSonFactory {
                     return ret;
                 default:
                     throw this.bam("', or }' expected");
-
                 }
             default:
                 throw this.bam("\", or }' expected");
-
             }
         }
     }
 
-    /**
-     * @param global
-     * @param i
-     * @param str
-     * @return
-     * @throws ParserException
-     */
     private JSonValue parseString() throws ParserException {
-
         return new JSonValue(this.findString());
     }
 
-    /**
-     * @param jsonString
-     * @throws ParserException
-     */
     private JSonNode parseValue() throws ParserException {
-
         this.global = this.skipWhiteSpace();
 
         switch (this.getChar()) {
         case '{':
-
             return this.parseObject();
-
         case '[':
             return this.parseArray();
-
         case 'n':
             // null
             this.global += 4;
@@ -334,15 +268,12 @@ public class JSonFactory {
             // true;
             this.global += 4;
             return new JSonValue(true);
-
         case 'f':
             // false;
             this.global += 5;
             return new JSonValue(false);
         case '"':
-
             return this.parseString();
-
         }
         try {
             return this.parseNumber();
@@ -353,18 +284,12 @@ public class JSonFactory {
 
     }
 
-    /**
-     * @param i
-     * @param str
-     * @return
-     */
     private int skipWhiteSpace() {
         while (this.global < this.str.length()) {
             if (!Character.isWhitespace(this.str.charAt(this.global++))) {
                 this.global--;
                 break;
             }
-            ;
         }
         return this.global;
     }

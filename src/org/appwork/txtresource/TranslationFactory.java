@@ -20,21 +20,13 @@ public class TranslationFactory {
     private static final HashMap<String, TranslateInterface> CACHE    = new HashMap<String, TranslateInterface>();
     private static final String                              LANGUAGE = "LANGUAGE";
 
-    /**
-     * @param class1
-     * @return
-     */
     public static <T extends TranslateInterface> T create(final Class<T> class1) {
-
         return TranslationFactory.create(class1, TranslationFactory.getDesiredLanguage());
     }
 
     /**
-     * do not call this directly for each translationrequest. use a static cahe
+     * do not call this directly for each translationrequest. use a static cache
      * instead!
-     * 
-     * @param class1
-     * @return
      */
     @SuppressWarnings("unchecked")
     public static <T extends TranslateInterface> T create(final Class<T> class1, final String... lookup) {
@@ -73,7 +65,6 @@ public class TranslationFactory {
 
             public boolean accept(final File dir, final String name) {
                 return name.startsWith(class1.getSimpleName() + ".") && name.endsWith(".lng");
-
             }
 
         };
@@ -135,31 +126,20 @@ public class TranslationFactory {
             Log.exception(e);
         }
         return ret;
-
     }
 
-    /**
-     * @return
-     */
     public static String getDesiredLanguage() {
         return JSonStorage.getPlainStorage("translation").get(TranslationFactory.LANGUAGE, System.getProperty("user.language").toLowerCase());
     }
 
     public static void main(final String[] args) {
-
         final Translate t = TranslationFactory.create(Translate.class);
-
         System.out.println(t.getTestText());
-
         System.out.println(t.getOrderedText(1, 7, 23, 5));
-
         System.out.println(t._getTranslation("en", "getOrderedText", 1, 3, 5, 8));
         System.err.println(t._createFile("en", true));
     }
 
-    /**
-     * @param loc
-     */
     public static boolean setDesiredLanguage(final String loc) {
         if (TranslationFactory.getDesiredLanguage().equals(loc)) { return false; }
         JSonStorage.getPlainStorage("translation").put(TranslationFactory.LANGUAGE, loc);
@@ -167,16 +147,6 @@ public class TranslationFactory {
             i._setLanguage(loc);
         }
         return true;
-
-    }
-
-    private final String name;
-
-    /**
-     * @param string
-     */
-    public TranslationFactory(final String string) {
-        name = string;
     }
 
 }

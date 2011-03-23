@@ -245,7 +245,6 @@ public class JSonMapper {
             if (type instanceof Class) {
                 final Class<?> clazz = (Class<?>) type;
                 if (List.class.isAssignableFrom(clazz)) {
-                    @SuppressWarnings("unchecked")
                     final List<Object> inst = (List<Object>) clazz.newInstance();
                     final JSonArray obj = (JSonArray) json;
                     final Type gs = clazz.getGenericSuperclass();
@@ -260,7 +259,6 @@ public class JSonMapper {
                     }
                     return inst;
                 } else if (Map.class.isAssignableFrom(clazz)) {
-                    @SuppressWarnings("unchecked")
                     final Map<String, Object> inst = (Map<String, Object>) clazz.newInstance();
                     final JSonObject obj = (JSonObject) json;
                     final Type gs = clazz.getGenericSuperclass();
@@ -310,7 +308,6 @@ public class JSonMapper {
                         final JSonObject obj = (JSonObject) json;
                         cc = ClassCache.getClassCache(clazz);
 
-                        @SuppressWarnings("unchecked")
                         final Object inst = cc.getInstance();
                         JSonNode value;
                         Object v;
@@ -340,7 +337,6 @@ public class JSonMapper {
             } else if (type instanceof ParameterizedTypeImpl) {
                 final ParameterizedTypeImpl pType = (ParameterizedTypeImpl) type;
                 if (List.class.isAssignableFrom(pType.getRawType())) {
-                    @SuppressWarnings("unchecked")
                     final List<Object> inst = (List<Object>) pType.getRawType().newInstance();
                     final JSonArray obj = (JSonArray) json;
                     for (final JSonNode n : obj) {
@@ -348,7 +344,6 @@ public class JSonMapper {
                     }
                     return inst;
                 } else if (Map.class.isAssignableFrom(pType.getRawType())) {
-                    @SuppressWarnings("unchecked")
                     final Map<String, Object> inst = (Map<String, Object>) pType.getRawType().newInstance();
                     final JSonObject obj = (JSonObject) json;
                     Entry<String, JSonNode> next;
@@ -364,22 +359,16 @@ public class JSonMapper {
                 System.err.println("TYPE?!");
             }
         } catch (final SecurityException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (final NoSuchMethodException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (final IllegalArgumentException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (final InstantiationException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (final IllegalAccessException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (final InvocationTargetException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return null;
