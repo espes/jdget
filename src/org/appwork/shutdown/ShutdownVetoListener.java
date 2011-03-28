@@ -25,16 +25,16 @@ public interface ShutdownVetoListener {
 
     /**
      * step 1:<br>
-     * Application requests shutdown. listeners may answer with true to avoid
-     * shutdown.
+     * Application requests shutdown. throws ShutdownVetoException if shutdown
+     * currently not possible/wanted
      * 
      * @return
      * @throws ShutdownVetoException
      */
-    public boolean onShutdownRequest() throws ShutdownVetoException;
+    public void onShutdownRequest() throws ShutdownVetoException;
 
     /**
-     * step 2b: If one or more listeners in steo a answered with true(veto) all
+     * step 2b: If one or more listeners in step 1 answered with true(veto) all
      * listeners will be informed afterwards that shutdown has been canceled
      * 
      * @param vetos
