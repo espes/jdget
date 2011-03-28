@@ -115,9 +115,10 @@ public class ShutdownController extends Thread {
             for (final ShutdownVetoListener v : this.vetoListeners) {
                 try {
                     v.onShutdownRequest();
-
                 } catch (final ShutdownVetoException e) {
                     vetos.add(e);
+                } catch (final Throwable e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -187,7 +188,11 @@ public class ShutdownController extends Thread {
         if (vetos.size() == 0) {
             synchronized (this.vetoListeners) {
                 for (final ShutdownVetoListener v : this.vetoListeners) {
-                    v.onShutdown();
+                    try {
+                        v.onShutdown();
+                    } catch (final Throwable e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             System.exit(0);
