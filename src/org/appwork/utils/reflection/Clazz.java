@@ -15,6 +15,14 @@ package org.appwork.utils.reflection;
  */
 public class Clazz {
     /**
+     * @param class1
+     * @return
+     */
+    public static String getPackage(final Class<?> clazz) {
+        return clazz.getPackage().getName();
+    }
+
+    /**
      * returns true if type is a boolean. No Matter if primitive or it's object
      * wrapper
      * 

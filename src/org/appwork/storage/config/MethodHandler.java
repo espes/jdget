@@ -11,12 +11,11 @@ package org.appwork.storage.config;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import org.appwork.storage.JSonStorage;
-import org.appwork.storage.Storable;
 import org.appwork.storage.StorageException;
 import org.appwork.storage.TypeRef;
 import org.appwork.storage.config.annotations.CryptedStorage;
@@ -38,7 +37,6 @@ import org.appwork.storage.config.annotations.DefaultObjectValue;
 import org.appwork.storage.config.annotations.DefaultStringArrayValue;
 import org.appwork.storage.config.annotations.DefaultStringValue;
 import org.appwork.storage.config.annotations.PlainStorage;
-import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.reflection.Clazz;
 
@@ -72,6 +70,7 @@ public class MethodHandler {
     private MethodHandler setterHandler;
     private boolean       crypted;
     private byte[]        cryptKey;
+    private final File    path;
 
     /**
      * @param getter
@@ -106,6 +105,7 @@ public class MethodHandler {
         // get parent crypt infos
         this.crypted = storageHandler.isCrypted();
         this.cryptKey = storageHandler.getKey();
+        this.path = new File(storageHandler.getPath() + "." + this.key + "." + (this.isCrypted() ? "ejs" : "json"));
         // read local cryptinfos
         final CryptedStorage an = m.getAnnotation(CryptedStorage.class);
         if (an != null) {
@@ -266,15 +266,7 @@ public class MethodHandler {
                 if (ann != null) {
                     this.defaultObject = JSonStorage.restoreFromString(ann.value(), this.rawClass);
                 }
-                // if not, we create an empty storable instance
 
-                if (this.defaultObject == null) {
-                    if (Storable.class.isAssignableFrom(this.rawClass)) {
-                        final Constructor<?> c = this.rawClass.getDeclaredConstructor(new Class[] {});
-                        c.setAccessible(true);
-                        this.defaultObject = c.newInstance((Object[]) null);
-                    }
-                }
                 this.checkBadAnnotations(m, DefaultObjectValue.class, CryptedStorage.class, PlainStorage.class);
             }
 
@@ -344,10 +336,6 @@ public class MethodHandler {
         return this.method;
     }
 
-    private String getObjectKey() {
-        return "cfg/config_" + this.method.getDeclaringClass().getSimpleName() + "." + this.key + "." + (this.isCrypted() ? "ejs" : "json");
-    }
-
     public Class<?> getRawClass() {
         return this.rawClass;
     }
@@ -380,13 +368,12 @@ public class MethodHandler {
      */
     @SuppressWarnings("unchecked")
     public Object read() {
-        final File file = Application.getResource(this.getObjectKey());
         try {
-            Log.L.finer("Read Config: " + file.getAbsolutePath());
-            return JSonStorage.restoreFrom(file, !this.crypted, this.cryptKey, new TypeRef(this.method.getGenericReturnType()) {
+            Log.L.finer("Read Config: " + this.path.getAbsolutePath());
+            return JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, new TypeRef(this.method.getGenericReturnType()) {
             }, this.defaultObject);
         } finally {
-            if (!file.exists()) {
+            if (!this.path.exists()) {
                 this.write(this.defaultObject);
             }
 
@@ -462,10 +449,7 @@ public class MethodHandler {
         if (this.getterHandler.isCrypted() != this.setterHandler.isCrypted()) { throw new InterfaceParseException(this.getterHandler + " cryptsettings != " + this.setterHandler); }// check
         // keys
         if (this.getterHandler.isCrypted()) {
-            for (int i = 0; i < this.getterHandler.cryptKey.length; i++) {
-                if (this.getterHandler.cryptKey[i] != this.setterHandler.cryptKey[i]) { throw new InterfaceParseException(this.getterHandler + " cryptkey mismatch" + this.setterHandler); }
-
-            }
+            if (!Arrays.equals(this.getterHandler.cryptKey, this.setterHandler.cryptKey)) { throw new InterfaceParseException(this.getterHandler + " cryptkey mismatch" + this.setterHandler); }
 
         }
     }
@@ -474,7 +458,8 @@ public class MethodHandler {
      * @param object
      */
     public void write(final Object object) {
-        JSonStorage.saveTo(this.getObjectKey(), JSonStorage.serializeToJson(object), this.cryptKey);
+
+        JSonStorage.saveTo(this.path, !this.crypted, this.cryptKey, JSonStorage.serializeToJson(object));
 
     }
 }

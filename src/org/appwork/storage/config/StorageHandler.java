@@ -9,11 +9,14 @@
  */
 package org.appwork.storage.config;
 
+import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
+import org.appwork.shutdown.ShutdownController;
+import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
@@ -32,37 +35,60 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private final JsonKeyValueStorage      primitiveStorage;
     private boolean                        crypted;
     private byte[]                         key = JSonStorage.KEY;
+    private File                           path;
 
     /**
+     * @param name
      * @param configInterface
      */
-    public StorageHandler(final Class<T> configInterface) {
+    public StorageHandler(final File name, final Class<T> configInterface) {
         this.configInterface = configInterface;
+        this.path = name;
         final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
         if (crypted != null) {
             this.crypted = true;
             if (crypted.key() != null) {
-                this.primitiveStorage = new JsonKeyValueStorage("config_" + configInterface.getSimpleName(), false, crypted.key());
-                JSonStorage.addStorage(this.primitiveStorage);
+                this.primitiveStorage = new JsonKeyValueStorage(new File(this.path.getAbsolutePath() + ".ejs"), false, crypted.key());
+
                 this.key = crypted.key();
                 if (this.key.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + configInterface + " is invalid"); }
 
             } else {
-                this.primitiveStorage = (JsonKeyValueStorage) JSonStorage.getStorage("config_" + configInterface.getSimpleName());
+
+                this.primitiveStorage = new JsonKeyValueStorage(new File(this.path.getAbsolutePath() + ".ejs"), false, this.key = JSonStorage.KEY);
+
             }
         } else {
             this.crypted = false;
-            this.primitiveStorage = (JsonKeyValueStorage) JSonStorage.getPlainStorage("config_" + configInterface.getSimpleName());
+            this.primitiveStorage = new JsonKeyValueStorage(new File(this.path.getAbsolutePath() + ".json"), true);
         }
         try {
             this.parseInterface();
         } catch (final Exception e) {
             throw new InterfaceParseException(e);
         }
+        ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
+            @Override
+            public void run() {
+                StorageHandler.this.primitiveStorage.save();
+            }
+
+            @Override
+            public String toString() {
+                return "Save " + StorageHandler.this.path + "[" + configInterface.getName() + "]";
+            }
+        });
     }
 
     public byte[] getKey() {
         return this.key;
+    }
+
+    /**
+     * @return
+     */
+    public File getPath() {
+        return this.path;
     }
 
     public Object invoke(final Object arg0, final Method m, final Object[] parameter) throws Throwable {

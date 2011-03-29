@@ -38,4 +38,13 @@ public class IconIO {
         return new ImageIcon(IconIO.getImage(resource));
     }
 
+    /**
+     * @param resource
+     * @param i
+     * @return
+     */
+    public static ImageIcon getImageIcon(final URL resource, final int size) {
+        return ImageProvider.scaleImageIcon(IconIO.getImageIcon(resource), size, size);
+    }
+
 }

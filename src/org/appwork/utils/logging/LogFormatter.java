@@ -20,20 +20,20 @@ public class LogFormatter extends SimpleFormatter {
     /**
      * Date to convert timestamp to a readable format
      */
-    private final Date date = new Date();
+    private final Date          date          = new Date();
     /**
      * For thread controlled logs
      */
-    private int lastThreadID;
+    private int                 lastThreadID;
 
     /**
      * Dateformat to convert timestamp to a readable format
      */
-    private final DateFormat longTimestamp = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
+    private final DateFormat    longTimestamp = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
     /**
      * Strigbuilder is used to create Strings with less memory and CPU usage
      */
-    private final StringBuilder sb = new StringBuilder();
+    private final StringBuilder sb            = new StringBuilder();
 
     @Override
     public synchronized String format(final LogRecord record) {
@@ -55,8 +55,9 @@ public class LogFormatter extends SimpleFormatter {
         this.lastThreadID = th;
 
         this.sb.append(record.getThreadID());
+        this.sb.append('|');
+        this.sb.append(record.getLoggerName());
         this.sb.append(' ');
-
         this.sb.append(this.longTimestamp.format(this.date));
         this.sb.append(" - ");
         this.sb.append(record.getLevel().getName());

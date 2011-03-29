@@ -43,11 +43,11 @@ public class TranslationHandler implements InvocationHandler {
      * @throws IOException
      */
     public TranslationHandler(final Class<? extends TranslateInterface> class1, final String[] lookup) {
-        tInterface = class1;
-        methods = tInterface.getDeclaredMethods();
-        cache = new HashMap<Method, String>();
-        resourceCache = new HashMap<String, TranslateResource>();
-        this.lookup = fillLookup(lookup);
+        this.tInterface = class1;
+        this.methods = this.tInterface.getDeclaredMethods();
+        this.cache = new HashMap<Method, String>();
+        this.resourceCache = new HashMap<String, TranslateResource>();
+        this.lookup = this.fillLookup(lookup);
 
     }
 
@@ -85,11 +85,11 @@ public class TranslationHandler implements InvocationHandler {
     private String createFile(final String string, final boolean addComments) {
 
         final TranslateData map = new TranslateData();
-        cache.clear();
-        lookup = fillLookup(string);
-        for (final Method m : tInterface.getDeclaredMethods()) {
+        this.cache.clear();
+        this.lookup = this.fillLookup(string);
+        for (final Method m : this.tInterface.getDeclaredMethods()) {
             try {
-                map.put(m.getName(), invoke(null, m, null).toString());
+                map.put(m.getName(), this.invoke(null, m, null).toString());
 
             } catch (final Throwable e) {
                 // TODO Auto-generated catch block
@@ -99,7 +99,7 @@ public class TranslationHandler implements InvocationHandler {
 
         String ret = JSonStorage.serializeToJson(map);
         if (addComments) {
-            for (final Method m : tInterface.getDeclaredMethods()) {
+            for (final Method m : this.tInterface.getDeclaredMethods()) {
                 final Default def = m.getAnnotation(Default.class);
                 final Description desc = m.getAnnotation(Description.class);
 
@@ -131,12 +131,12 @@ public class TranslationHandler implements InvocationHandler {
      * @throws IOException
      */
     private TranslateResource createTranslationResource(final String string) throws IOException {
-        TranslateResource ret = resourceCache.get(string);
+        TranslateResource ret = this.resourceCache.get(string);
         if (ret != null) { return ret; }
-        final String path = tInterface.getName().replace(".", "/") + "." + string + ".lng";
+        final String path = this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
         final URL url = Application.getRessourceURL(path, false);
         miss: if (url == null) {
-            final Defaults ann = tInterface.getAnnotation(Defaults.class);
+            final Defaults ann = this.tInterface.getAnnotation(Defaults.class);
             if (ann != null) {
                 for (final String d : ann.lngs()) {
                     if (d.equals(string)) {
@@ -150,7 +150,7 @@ public class TranslationHandler implements InvocationHandler {
             throw new NullPointerException("Missing Translation: " + path);
         }
         ret = new TranslateResource(url, string);
-        resourceCache.put(string, ret);
+        this.resourceCache.put(string, ret);
         return ret;
 
     }
@@ -169,15 +169,18 @@ public class TranslationHandler implements InvocationHandler {
                 if (TranslationHandler.DEFAULT.equals(o)) {
                     containsDefault = true;
                 }
-                res = createTranslationResource(o);
+                res = this.createTranslationResource(o);
                 ret.add(res);
+            } catch (final NullPointerException e) {
+                Log.L.warning(e.getMessage());
+
             } catch (final Throwable e) {
                 Log.exception(Level.WARNING, e);
             }
         }
         if (!containsDefault) {
             try {
-                res = createTranslationResource(TranslationHandler.DEFAULT);
+                res = this.createTranslationResource(TranslationHandler.DEFAULT);
                 ret.add(res);
             } catch (final Throwable e) {
                 Log.exception(Level.WARNING, e);
@@ -213,14 +216,14 @@ public class TranslationHandler implements InvocationHandler {
                 ret = res.getEntry(method);
                 return ret;
             } catch (final Throwable e) {
-                Log.L.warning("Exception in translation: " + tInterface.getName() + "." + res.getName());
+                Log.L.warning("Exception in translation: " + this.tInterface.getName() + "." + res.getName());
                 Log.exception(Level.WARNING, e);
                 it.remove();
             }
 
         }
         if (ret == null) {
-            ret = tInterface.getSimpleName() + "." + method.getName().substring(3);
+            ret = this.tInterface.getSimpleName() + "." + method.getName().substring(3);
 
         }
 
@@ -233,21 +236,21 @@ public class TranslationHandler implements InvocationHandler {
      * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
      * java.lang.reflect.Method, java.lang.Object[])
      */
-   
+
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
 
         final ArrayList<TranslateResource> lookup = this.lookup;
         // for speed reasons let all controller methods (@see
         // TRanslationINterface.java) start with _
         if (method.getName().startsWith("_")) {
-            if (method.getName().equals("_createFile")) { return createFile(args[0] + "", (Boolean) args[1]); }
+            if (method.getName().equals("_createFile")) { return this.createFile(args[0] + "", (Boolean) args[1]); }
             if (method.getName().equals("_getSupportedLanguages")) {
 
-            return TranslationFactory.findTranslations(tInterface); }
+            return TranslationFactory.findTranslations(this.tInterface); }
             if (method.getName().equals("_setLanguage")) {
-                cache.clear();
-                resourceCache.clear();
-                this.lookup = fillLookup(args[0] + "");
+                this.cache.clear();
+                this.resourceCache.clear();
+                this.lookup = this.fillLookup(args[0] + "");
                 return null;
             }
 
@@ -259,11 +262,11 @@ public class TranslationHandler implements InvocationHandler {
 
                     types[i] = params[i].getClass();
                 }
-                for (final Method m : methods) {
+                for (final Method m : this.methods) {
                     if (m.getName().equals(methodname)) {
-                        if (checkTypes(m, types)) {
-                            final String ret = getValue(m, fillLookup(args[0] + ""));
-                            return format(ret, params);
+                        if (this.checkTypes(m, types)) {
+                            final String ret = this.getValue(m, this.fillLookup(args[0] + ""));
+                            return this.format(ret, params);
                         }
                     }
                 }
@@ -271,14 +274,14 @@ public class TranslationHandler implements InvocationHandler {
             }
         }
 
-        String ret = cache.get(method);
+        String ret = this.cache.get(method);
         if (ret == null) {
-            ret = getValue(method, lookup);
+            ret = this.getValue(method, lookup);
             if (ret != null) {
-                cache.put(method, ret);
+                this.cache.put(method, ret);
             }
         }
-        return format(ret, args);
+        return this.format(ret, args);
 
     }
 }

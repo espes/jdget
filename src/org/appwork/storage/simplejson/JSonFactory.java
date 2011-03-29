@@ -56,7 +56,7 @@ public class JSonFactory {
                 this.c = this.str.charAt(this.global++);
                 switch (this.c) {
                 case '\"':
-                    return JSonUtils.unescape(this.sb.toString());
+                    return this.sb.toString();
                 case '\\':
                     escaped = true;
                     while ((this.c = this.str.charAt(this.global++)) == '\\') {
