@@ -6,7 +6,7 @@
   "COPYCUTPASTE_COPY" : "Kopieren",
   "SEARCHDIALOG_CHECKBOX_CASESENSITIVE" : "Groß/Kleinschreibung",
   "DIALOG_PASSWORD_TITLE" : "Bitte eingeben!",
-  "AppWorkUtils_Graph_getSpeedString" : "Aktuell: %s/s",
+  "AppWorkUtils_Graph_getSpeedString" : "Aktuell: %s1/s",
   "DIALOG_FILECHOOSER_TOOLTIP_LIST" : "Listenansicht",
   "COMMANDLINEAPP_COMMAND" : " Befehl -> -",
   "DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER" : "Einen Ordner nach oben",

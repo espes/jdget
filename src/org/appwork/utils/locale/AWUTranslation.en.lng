@@ -6,7 +6,7 @@
   "COPYCUTPASTE_COPY" : "Copy",
   "SEARCHDIALOG_CHECKBOX_CASESENSITIVE" : "Case sensitive",
   "DIALOG_PASSWORD_TITLE" : "Please enter!",
-  "AppWorkUtils_Graph_getSpeedString" : "Current: %s/s",
+  "AppWorkUtils_Graph_getSpeedString" : "Current: %s1/s",
   "DIALOG_FILECHOOSER_TOOLTIP_LIST" : "Switch to list view",
   "COMMANDLINEAPP_COMMAND" : "Command -> -",
   "DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER" : "Switch to parent folder",
