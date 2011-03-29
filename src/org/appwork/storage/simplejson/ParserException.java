@@ -15,24 +15,22 @@ package org.appwork.storage.simplejson;
  */
 public class ParserException extends Exception {
 
+    private static final long serialVersionUID = 6884248748788291881L;
+
     public ParserException() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
     public ParserException(final String message) {
         super(message);
-        // TODO Auto-generated constructor stub
     }
 
     public ParserException(final String message, final Throwable cause) {
         super(message, cause);
-        // TODO Auto-generated constructor stub
     }
 
     public ParserException(final Throwable cause) {
         super(cause);
-        // TODO Auto-generated constructor stub
     }
 
 }

@@ -11,6 +11,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="Y:/javalibs/commons-lang-2.6/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="libs/commons-lang-2.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

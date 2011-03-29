@@ -14,7 +14,11 @@ package org.appwork.storage.simplejson;
  * 
  */
 public class NoNumberException extends Exception {
+
+    private static final long serialVersionUID = 8096329055700500340L;
+
     public NoNumberException() {
         super();
     }
+
 }
