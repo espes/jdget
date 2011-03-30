@@ -342,7 +342,7 @@ public class ImageProvider {
      * @param height
      * @return
      */
-    public static Image resizeWorkSpace(final Image scaleBufferedImage, final int width, final int height) {
+    public static BufferedImage resizeWorkSpace(final Image scaleBufferedImage, final int width, final int height) {
         // final GraphicsEnvironment ge =
         // GraphicsEnvironment.getLocalGraphicsEnvironment();
         // final GraphicsDevice gd = ge.getDefaultScreenDevice();

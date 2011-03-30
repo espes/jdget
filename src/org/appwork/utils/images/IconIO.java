@@ -1,6 +1,9 @@
 package org.appwork.utils.images;
 
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Transparency;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
@@ -45,6 +48,22 @@ public class IconIO {
      */
     public static ImageIcon getImageIcon(final URL resource, final int size) {
         return ImageProvider.scaleImageIcon(IconIO.getImageIcon(resource), size, size);
+    }
+
+    /**
+     * Converts any image to a BufferedImage
+     * 
+     * @param image
+     * @return
+     */
+    public static BufferedImage toBufferedImage(final Image src) {
+        final int w = src.getWidth(null);
+        final int h = src.getHeight(null);
+        final BufferedImage image = new BufferedImage(w, h, Transparency.TRANSLUCENT);
+        final Graphics2D g = image.createGraphics();
+        g.drawImage(src, 0, 0, null);
+        g.dispose();
+        return image;
     }
 
 }

@@ -26,6 +26,7 @@ import javax.swing.Timer;
 
 import org.appwork.utils.formatter.SizeFormatter;
 import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.swing.graph.Limiter;
 
 /**
  * @author thomas
@@ -37,34 +38,43 @@ abstract public class Graph extends JPanel {
     private int               i;
     private int[]             cache;
     private transient Thread  fetcherThread;
-    private final int         interval         = 1000;
+    private int               interval         = 1000;
     private Timer             painter;
+
     private final Object      LOCK             = new Object();
 
     private Color             colorA;
-
     private Color             colorB;
 
-    private long              average;
+    public long               average;
+
     private int[]             averageCache;
+
     private Color             averageColor     = new Color(0x333333);
     private Color             averageTextColor = new Color(0);
     private int               capacity         = 0;
-
     private Color             textColor        = new Color(0);
-
     private boolean           running          = false;
 
     protected int             value;
 
     private Font              textFont;
+
     private int               all;
 
+    private Limiter[]         limiter;
+
     public Graph() {
+        this(60, 1000);
+
+    }
+
+    public Graph(final int capacity, final int interval) {
         this.colorA = new Color(100, 100, 100, 40);
         this.colorB = new Color(100, 100, 100, 80);
         this.average = 0;
-        this.setCapacity(60);
+        this.setInterval(interval);
+        this.setCapacity(capacity);
 
         this.setOpaque(false);
 
@@ -105,6 +115,17 @@ abstract public class Graph extends JPanel {
      */
     public Color getColorB() {
         return this.colorB;
+    }
+
+    public int getInterval() {
+        return this.interval;
+    }
+
+    /**
+     * @return
+     */
+    public Limiter[] getLimiter() {
+        return this.limiter;
     }
 
     /**
@@ -152,7 +173,12 @@ abstract public class Graph extends JPanel {
             for (final int element : this.averageCache) {
                 max = Math.max(element, max);
             }
+            if (this.getLimiter() != null) {
 
+                for (final Limiter l : this.getLimiter()) {
+                    max = Math.max(l.getValue(), max);
+                }
+            }
             final int height = this.getHeight();
 
             final Polygon poly = new Polygon();
@@ -205,7 +231,31 @@ abstract public class Graph extends JPanel {
                     g2.drawString(speedString, xText - 3 - g2.getFontMetrics().stringWidth(speedString), 12);
                 }
             }
+
+            if (this.getLimiter() != null) {
+                int h;
+                for (final Limiter l : this.getLimiter()) {
+                    if (l.getValue() > 0) {
+
+                        h = this.getHeight() - (int) (this.getHeight() * l.getValue() * 0.9) / max;
+                        g2.setPaint(new GradientPaint(this.getWidth() / 2, h, l.getColorA(), this.getWidth() / 2, h + height / 10, l.getColorB()));
+                        g2.fillRect(0, h, this.getWidth(), height / 10);
+                        // g2.drawRect(0, h, this.getWidth(), height / 5);
+                    }
+                }
+            }
         }
+    }
+
+    /**
+     * resets the average cache and makes sure, that the average recalculates
+     * within a few cycles
+     */
+    protected void resetAverage() {
+
+        this.average /= this.all;
+        this.average *= 3;
+        this.all = 3;
     }
 
     /**
@@ -227,9 +277,9 @@ abstract public class Graph extends JPanel {
     /**
      * @param j
      */
-    private void setCapacity(final int cap) {
+    protected void setCapacity(final int cap) {
         if (this.fetcherThread != null) { throw new IllegalStateException("Already started"); }
-        capacity = cap;
+        this.capacity = cap;
         this.cache = new int[cap];
         for (int x = 0; x < cap; x++) {
             this.cache[x] = 0;
@@ -257,6 +307,14 @@ abstract public class Graph extends JPanel {
         this.colorB = colorB;
     }
 
+    public void setInterval(final int interval) {
+        this.interval = interval;
+    }
+
+    public void setLimiter(final Limiter[] limiter) {
+        this.limiter = limiter;
+    }
+
     /**
      * @param textColor
      *            the textColor to set
@@ -280,7 +338,7 @@ abstract public class Graph extends JPanel {
                 return;
             }
             this.running = true;
-            this.painter = new Timer(1000, new ActionListener() {
+            this.painter = new Timer(this.getInterval(), new ActionListener() {
 
                 public void actionPerformed(final ActionEvent e) {
                     synchronized (Graph.this.LOCK) {
@@ -321,7 +379,7 @@ abstract public class Graph extends JPanel {
                         }
                         if (this.isInterrupted()) { return; }
                         try {
-                            Thread.sleep(Graph.this.interval);
+                            Thread.sleep(Graph.this.getInterval());
                         } catch (final InterruptedException e) {
                             return;
                         }
@@ -345,7 +403,7 @@ abstract public class Graph extends JPanel {
                 this.painter = null;
             }
             Graph.this.repaint();
-            setCapacity(this.capacity);
+            this.setCapacity(this.capacity);
         }
     }
 

@@ -140,7 +140,7 @@ public class ThrottledConnectionManager {
      * 
      * @return
      */
-    public long geIncommingBandwidthLimit() {
+    public long getIncommingBandwidthLimit() {
         return IncommingBandwidthLimit;
     }
 

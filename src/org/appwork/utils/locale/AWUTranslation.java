@@ -44,7 +44,7 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Remember", "Merken?" })
     String AccountNew_layoutDialogContent_save();
 
-    @Default(lngs = { "en", "de" }, values = { "Average: %s1/s |", "Durchschnitt: %s1/s |" })
+    @Default(lngs = { "en", "de" }, values = { "Ø %s1/s |", "Ø %s1/s |" })
     String AppWorkUtils_Graph_getAverageSpeedString(String speed);
 
     @Default(lngs = { "en", "de" }, values = { "Current: %s1/s", "Aktuell: %s1/s" })
