@@ -23,6 +23,7 @@ import java.net.URLDecoder;
 import java.nio.charset.Charset;
 
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.os.CrossSystem;
 
 /**
  * Application utils provide statis helper functions concerning the applications
@@ -46,9 +47,11 @@ public class Application {
             }
         }
     }
-    private static String APP_FOLDER = ".appwork";
+    private static String APP_FOLDER  = ".appwork";
 
     private static String ROOT;
+
+    private static long   javaVersion = 0;
 
     /**
      * Adds a folder to the System classloader classpath this might fail if
@@ -76,6 +79,7 @@ public class Application {
     }
 
     public static long getJavaVersion() {
+        if (Application.javaVersion > 0) { return Application.javaVersion; }
         try {
             final String version = System.getProperty("java.version");
             String v = new Regex(version, "^(\\d+\\.\\d+\\.\\d+)").getMatch(0);
@@ -93,6 +97,7 @@ public class Application {
                 /* append beta number */
                 ret = ret + Long.parseLong(u);
             }
+            Application.javaVersion = ret;
             return ret;
         } catch (final Exception e) {
             Log.exception(e);
@@ -116,7 +121,6 @@ public class Application {
      * @return
      */
     public static File getResource(final String relative) {
-
         return new File(Application.getRoot(), relative);
     }
 
@@ -225,6 +229,45 @@ public class Application {
          */
         if (caller == null) { return false; }
         return caller.toString().matches("jar\\:.*\\.(jar|exe)\\!.*");
+    }
+
+    /**
+     * checks current java version for known issues/bugs or unsupported ones
+     * 
+     * @param support15
+     * @return
+     */
+    public static boolean isOutdatedJavaVersion(final boolean supportJAVA15) {
+        final long java = Application.getJavaVersion();
+        if (java < 16000000l && !CrossSystem.isMac()) {
+            Log.L.warning("Java 1.6 should be available on your System, please upgrade!");
+            /* this is no mac os, so please use java>=1.6 */
+            return true;
+        }
+        if (java < 16000000l && !supportJAVA15) {
+            Log.L.warning("Java 1.5 no longer supported!");
+            /* we no longer support java 1.5 */
+            return true;
+        }
+        if (java >= 16018000l && java < 16019000l) {
+            Log.L.warning("Java 1.6 Update 18 has a serious bug in garbage collector!");
+            /*
+             * java 1.6 update 18 has a bug in garbage collector, causes java
+             * crashes
+             * 
+             * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6847956
+             */
+            return true;
+        }
+        if (java >= 16010000l && java < 16011000l) {
+            Log.L.warning("Java 1.6 Update 10 has a swing bug!");
+            /*
+             * 16010.26
+             * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6657923
+             */
+            return true;
+        }
+        return false;
     }
 
     public static void main(final String[] args) {
