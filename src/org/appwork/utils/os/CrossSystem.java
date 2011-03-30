@@ -13,6 +13,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.logging.Level;
 
@@ -23,8 +24,7 @@ import org.appwork.utils.os.mime.MimeDefault;
 import org.appwork.utils.os.mime.MimeLinux;
 import org.appwork.utils.os.mime.MimeWindows;
 import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
+import org.appwork.utils.swing.dialog.DialogNoAnswerException;
 
 /**
  * This class provides a few native features.
@@ -87,6 +87,41 @@ public class CrossSystem {
         }
     }
 
+    /**
+     * internal function to open a file/folder
+     * 
+     * @param file
+     * @throws IOException
+     */
+    private static void _openFILE(final File file) throws IOException {
+        if (CrossSystem.isWindows()) {
+            // workaround for windows
+            // see http://bugs.sun.com/view_bug.do?bug_id=6599987
+            Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", file.getAbsolutePath() });
+        } else {
+            final Desktop desktop = Desktop.getDesktop();
+            final URI uri = file.getCanonicalFile().toURI();
+            desktop.open(new File(uri));
+        }
+    }
+
+    /**
+     * internal function to open an URL in a browser
+     * 
+     * @param _url
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    private static void _openURL(final String _url) throws IOException, URISyntaxException {
+        final URL url = new URL(_url);
+        if (CrossSystem.isWindows()) {
+            Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", _url });
+        } else {
+            final Desktop desktop = Desktop.getDesktop();
+            desktop.browse(url.toURI());
+        }
+    }
+
     public static byte getID() {
         return CrossSystem.OS_ID;
     }
@@ -124,11 +159,14 @@ public class CrossSystem {
     }
 
     /**
+     * returns true in case of "open an URL in a browser" is supported
+     * 
      * @return
      */
     public static boolean isOpenBrowserSupported() {
         if (CrossSystem.isWindows()) { return true; }
         try {
+            if (!Desktop.isDesktopSupported()) { return false; }
             final Desktop desktop = Desktop.getDesktop();
             if (!desktop.isSupported(Desktop.Action.BROWSE)) { return false; }
             return true;
@@ -138,9 +176,15 @@ public class CrossSystem {
         return false;
     }
 
+    /**
+     * returns true in case of "open a File" is supported
+     * 
+     * @return
+     */
     public static boolean isOpenFileSupported() {
         if (CrossSystem.isWindows()) { return true; }
         try {
+            if (!Desktop.isDesktopSupported()) { return false; }
             final Desktop desktop = Desktop.getDesktop();
             if (!desktop.isSupported(Desktop.Action.OPEN)) { return false; }
             return true;
@@ -176,34 +220,9 @@ public class CrossSystem {
      * @param file
      */
     public static void openFile(final File file) {
-        if (file == null || !file.exists()) { return; }
-        if (CrossSystem.isWindows()) {
-            // workaround for windows
-            // see http://bugs.sun.com/view_bug.do?bug_id=6599987
-            try {
-                Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", file.getAbsolutePath() });
-                return;
-            } catch (final IOException e) {
-                Log.exception(Level.WARNING, e);
-            }
-        }
-        if (!Desktop.isDesktopSupported()) {
-            Log.L.warning("Desktop is not supported (fatal)");
-            return;
-        }
-        final Desktop desktop = Desktop.getDesktop();
-        if (!desktop.isSupported(Desktop.Action.OPEN)) {
-            Log.L.severe("Desktop doesn't support the OPEN action (fatal)");
-            return;
-        }
         try {
-            final URI uri = file.getCanonicalFile().toURI();
-            desktop.open(new File(uri));
-        } catch (final Exception e) {
-            try {
-                Log.L.warning(file.getCanonicalFile().toURI().toString());
-            } catch (final Exception e1) {
-            }
+            CrossSystem._openFILE(file);
+        } catch (final Throwable e) {
             Log.exception(Level.WARNING, e);
         }
     }
@@ -213,66 +232,29 @@ public class CrossSystem {
      * 
      * @param url
      */
-    public static void openURL(final URL url) {
-        if (url == null) { return; }
-        if (CrossSystem.isWindows()) {
-            try {
-                Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", url.toString() });
-                return;
-            } catch (final IOException e) {
-                Log.exception(Level.WARNING, e);
-            }
-        }
-        if (!Desktop.isDesktopSupported()) {
-            Log.L.severe("Desktop is not supported (fatal)");
-            return;
-        }
-        final Desktop desktop = Desktop.getDesktop();
-        if (!desktop.isSupported(Desktop.Action.BROWSE)) {
-            Log.L.warning("Desktop doesn't support the browse action (fatal)");
-            return;
-        }
+    public static void openURL(final String url) {
         try {
-            desktop.browse(url.toURI());
-        } catch (final Exception e) {
-            try {
-                Log.L.warning(url.toURI().toString());
-            } catch (final Exception e1) {
-            }
+            CrossSystem._openURL(url);
+        } catch (final Throwable e) {
             Log.exception(Level.WARNING, e);
         }
+    }
+
+    public static void openURL(final URL url) {
+        CrossSystem.openURL(url.toString());
     }
 
     /**
      * @param update_dialog_news_button_url
      */
     public static void openURLOrShowMessage(final String urlString) {
-        URL url;
         try {
-            url = new URL(urlString);
-
-            if (CrossSystem.isWindows()) {
-
-                Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", url.toString() });
-                return;
-
-            }
-            if (!Desktop.isDesktopSupported()) { throw new Exception("Desktop not supported"); }
-            final Desktop desktop = Desktop.getDesktop();
-            if (!desktop.isSupported(Desktop.Action.BROWSE)) { throw new Exception("Desktop doesn't support the browse action (fatal)");
-
-            }
-
-            desktop.browse(url.toURI());
-
-        } catch (final Exception e) {
+            CrossSystem._openURL(urlString);
+        } catch (final Throwable e) {
             Log.exception(Level.WARNING, e);
             try {
                 Dialog.getInstance().showInputDialog(Dialog.BUTTONS_HIDE_CANCEL, APPWORKUTILS.T.crossSystem_open_url_failed_msg(), urlString);
-            } catch (final DialogClosedException e1) {
-                // nothing
-            } catch (final DialogCanceledException e1) {
-                // nothing
+            } catch (final DialogNoAnswerException donothing) {
             }
         }
 
