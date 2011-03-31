@@ -254,7 +254,7 @@ abstract public class Graph extends JPanel {
     protected void resetAverage() {
         final int tmp = this.all;
         if (tmp == 0) {
-            this.average /= tmp;
+            this.average = 0;
         } else {
             this.average /= tmp;
         }
