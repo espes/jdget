@@ -17,6 +17,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
 
+import javax.swing.BorderFactory;
 import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -37,13 +38,15 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
     private final ExtColumn<?> column;
     private boolean            paintIcon;
     private boolean            order;
+    private final Border       defaultBorder;
 
     /**
      * @param extColumn
      */
     public ExtTableHeaderRenderer(final ExtColumn<?> extColumn) {
         this.column = extColumn;
-        this.setHorizontalTextPosition(10);
+        // this.setHorizontalTextPosition(10);
+        this.defaultBorder = BorderFactory.createEmptyBorder(0, 10, 0, 10);
     }
 
     @Override
@@ -87,6 +90,9 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
         }
         if (border == null) {
             border = DefaultLookup.getBorder(this, this.ui, "TableHeader.cellBorder");
+        }
+        if (border == null) {
+            border = this.defaultBorder;
         }
         this.setBorder(border);
         return this;

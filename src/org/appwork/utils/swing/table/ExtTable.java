@@ -160,7 +160,7 @@ public class ExtTable<E> extends JTable {
                     if (e.getButton() == MouseEvent.BUTTON1) {
                         this.columnPressed = ExtTable.this.columnAtPoint(e.getPoint());
                     } else if (e.getButton() == MouseEvent.BUTTON3) {
-                        ExtTable.this.columControlMenu().show(ExtTable.this.getTableHeader(), e.getX(), e.getY());
+                        ExtTable.this.columnControlMenu().show(ExtTable.this.getTableHeader(), e.getX(), e.getY());
                     }
                 }
             }
@@ -265,7 +265,7 @@ public class ExtTable<E> extends JTable {
      * 
      * @return
      */
-    private JPopupMenu columControlMenu() {
+    private JPopupMenu columnControlMenu() {
         final JPopupMenu popup = new JPopupMenu();
         final JCheckBoxMenuItem[] mis = new JCheckBoxMenuItem[this.getExtTableModel().getColumnCount()];
 
@@ -383,7 +383,7 @@ public class ExtTable<E> extends JTable {
 
     }
 
-    private JComponent createdefaultColumnButton() {
+    private JComponent createDefaultColumnButton() {
         final MigPanel p = new MigPanel("ins 0 2 0 0", "[grow,fill]", "[grow,fill]");
         final URL iconPath = ExtTable.class.getResource("columnButton.png");
         final JButton button;
@@ -393,14 +393,17 @@ public class ExtTable<E> extends JTable {
             button = new JButton("*");
         }
         button.setBorderPainted(false);
+
         button.setContentAreaFilled(false);
+        p.setBackground(null);
+        p.setOpaque(false);
         button.addActionListener(new ActionListener() {
 
             public void actionPerformed(final ActionEvent event) {
                 final JButton source = (JButton) event.getSource();
                 final int x = source.getLocation().x;
                 final int y = source.getLocation().y;
-                ExtTable.this.columControlMenu().show(source, x, y);
+                ExtTable.this.columnControlMenu().show(source, x, y);
             }
 
         });
@@ -449,7 +452,7 @@ public class ExtTable<E> extends JTable {
 
     public JComponent getColumnButton() {
         if (this.columnButton == null) {
-            this.columnButton = this.createdefaultColumnButton();
+            this.columnButton = this.createDefaultColumnButton();
         }
         return this.columnButton;
     }
