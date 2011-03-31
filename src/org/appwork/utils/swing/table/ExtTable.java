@@ -2,6 +2,7 @@ package org.appwork.utils.swing.table;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -16,14 +17,19 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -35,9 +41,11 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import org.appwork.app.gui.MigPanel;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.Application;
 import org.appwork.utils.BinaryLogic;
+import org.appwork.utils.images.IconIO;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
@@ -51,7 +59,7 @@ import org.appwork.utils.swing.EDTHelper;
  */
 public class ExtTable<E> extends JTable {
 
-    private static final long                  serialVersionUID = 2822230056021924679L;
+    private static final long                  serialVersionUID    = 2822230056021924679L;
     /**
      * Column background color if column is NOT selected
      */
@@ -82,9 +90,12 @@ public class ExtTable<E> extends JTable {
     /**
      * true if search is enabled
      */
-    private boolean                            searchEnabled    = false;
+    private boolean                            searchEnabled       = false;
     private SearchDialog                       searchDialog;
     private final ExtTableEventSender          eventSender;
+    private JComponent                         columnButton        = null;
+    private boolean                            columnButtonVisible = true;                 ;
+    private int                                verticalScrollPolicy;
 
     /**
      * @param downloadTableModel
@@ -284,6 +295,12 @@ public class ExtTable<E> extends JTable {
         return popup;
     }
 
+    @Override
+    protected void configureEnclosingScrollPane() {
+        super.configureEnclosingScrollPane();
+        this.reconfigureColumnButton();
+    }
+
     /**
      * Creates the columns based on the model
      */
@@ -366,6 +383,31 @@ public class ExtTable<E> extends JTable {
 
     }
 
+    private JComponent createdefaultColumnButton() {
+        final MigPanel p = new MigPanel("ins 0 2 0 0", "[grow,fill]", "[grow,fill]");
+        final URL iconPath = ExtTable.class.getResource("columnButton.png");
+        final JButton button;
+        if (iconPath != null) {
+            button = new JButton(IconIO.getImageIcon(iconPath, 12));
+        } else {
+            button = new JButton("*");
+        }
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.addActionListener(new ActionListener() {
+
+            public void actionPerformed(final ActionEvent event) {
+                final JButton source = (JButton) event.getSource();
+                final int x = source.getLocation().x;
+                final int y = source.getLocation().y;
+                ExtTable.this.columControlMenu().show(source, x, y);
+            }
+
+        });
+        p.add(button, "width 12!,height 12!");
+        return p;
+    }
+
     /* we do always create columsn ourself */
     @Override
     public boolean getAutoCreateColumnsFromModel() {
@@ -403,6 +445,13 @@ public class ExtTable<E> extends JTable {
      */
     public Color getColumnBackgroundSelected() {
         return this.columnBackgroundSelected;
+    }
+
+    public JComponent getColumnButton() {
+        if (this.columnButton == null) {
+            this.columnButton = this.createdefaultColumnButton();
+        }
+        return this.columnButton;
     }
 
     /**
@@ -491,6 +540,10 @@ public class ExtTable<E> extends JTable {
      */
     public String getTableID() {
         return this.tableID;
+    }
+
+    public boolean isColumnButtonVisible() {
+        return this.columnButtonVisible;
     }
 
     /**
@@ -769,6 +822,32 @@ public class ExtTable<E> extends JTable {
         }
     }
 
+    protected void reconfigureColumnButton() {
+        final Container c1 = this.getParent();
+        if (c1 instanceof JViewport) {
+            final Container c2 = c1.getParent();
+            if (c2 instanceof JScrollPane) {
+                final JScrollPane scrollPane = (JScrollPane) c2;
+                final JViewport viewport = scrollPane.getViewport();
+                if (viewport == null || viewport.getView() != this) { return; }
+                if (this.isColumnButtonVisible()) {
+                    this.verticalScrollPolicy = scrollPane.getVerticalScrollBarPolicy();
+                    scrollPane.setCorner(ScrollPaneConstants.UPPER_TRAILING_CORNER, this.getColumnButton());
+                    scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+                } else {
+                    if (this.verticalScrollPolicy != 0) {
+                        /* http://java.net/jira/browse/SWINGX-155 */
+                        scrollPane.setVerticalScrollBarPolicy(this.verticalScrollPolicy);
+                    }
+                    try {
+                        scrollPane.setCorner(ScrollPaneConstants.UPPER_TRAILING_CORNER, null);
+                    } catch (final Throwable nothing) {
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Removes a rowhilighter
      * 
@@ -820,6 +899,16 @@ public class ExtTable<E> extends JTable {
             }
 
         }.start();
+    }
+
+    public void setColumnBottonVisibility(final boolean visible) {
+        this.columnButtonVisible = visible;
+        this.reconfigureColumnButton();
+    }
+
+    public void setColumnButton(final JComponent c) {
+        this.columnButton = c;
+        this.reconfigureColumnButton();
     }
 
     /**
