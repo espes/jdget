@@ -15,15 +15,18 @@ package org.appwork.utils.speedmeter;
  */
 public class AverageSpeedMeter implements SpeedMeterInterface {
 
-    private long[] bytes;
-    private long[] times;
-    private int size;
-    private int index;
-    private boolean changed = false;
-    private long speed = 0;
-    private final Object LOCK = new Object();
-    private long stalled = 0;
-    private long timeout = -1;/* no timeout for stalled connections */
+    private final long[] bytes;
+    private final long[] times;
+    private final int    size;
+    private int          index;
+    private boolean      changed = false;
+    private long         speed   = 0;
+    private final Object LOCK    = new Object();
+    private long         stalled = 0;
+    private long         timeout = -1;          /*
+                                                  * no timeout for stalled
+                                                  * connections
+                                                  */
 
     /**
      * constructor for AverageSpeedMeter with default size 5
@@ -32,25 +35,37 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
         this(5);
     }
 
-    public void setStallTimeout(long timeout) {
-        if (timeout <= 0) {
-            this.timeout = -1;
-        } else {
-            this.timeout = timeout;
-        }
-    }
-
     /**
      * constructor for AverageSpeedMeter with custom size
      * 
      * @param size
      */
-    public AverageSpeedMeter(int size) {
+    public AverageSpeedMeter(final int size) {
         this.size = size;
-        bytes = new long[this.size];
-        times = new long[this.size];
-        index = 0;
-        resetSpeedMeter();
+        this.bytes = new long[this.size];
+        this.times = new long[this.size];
+        this.index = 0;
+        this.resetSpeedMeter();
+    }
+
+    public long getSpeedMeter() {
+        synchronized (this.LOCK) {
+            if (!this.changed) { return this.speed; }
+            long totalValue = 0;
+            long totalTime = this.stalled;
+            for (int i = 0; i < this.size; i++) {
+                if (this.bytes[i] < 0) {
+                    continue;
+                }
+                totalValue += this.bytes[i];
+                totalTime += this.times[i];
+            }
+            if (totalTime >= 1000) {
+                this.speed = totalValue * 1000 / totalTime;
+            }
+            this.changed = false;
+            return this.speed;
+        }
     }
 
     /*
@@ -59,19 +74,24 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
      * @see org.appwork.utils.speedmeter.SpeedMeterInterface#getSpeedMeter()
      */
 
-    public long getSpeedMeter() {
-        synchronized (LOCK) {
-            if (!changed) return speed;
-            long totalValue = 0;
-            long totalTime = stalled;
-            for (int i = 0; i < size; i++) {
-                if (bytes[i] < 0) continue;
-                totalValue += bytes[i];
-                totalTime += times[i];
+    public void putSpeedMeter(final long x, final long time) {
+        synchronized (this.LOCK) {
+            final long put = Math.max(0, x);
+            if (put == 0) {
+                this.stalled += Math.max(0, time);
+                if (this.timeout > 0 && this.stalled > this.timeout) {
+                    this.resetSpeedMeter();
+                }
+            } else {
+                this.bytes[this.index] = put;
+                this.times[this.index] = Math.max(0, time) + this.stalled;
+                this.stalled = 0;
+                this.index++;
+                if (this.index == this.size) {
+                    this.index = 0;
+                }
             }
-            if (totalTime >= 1000) speed = ((totalValue * 1000) / totalTime);
-            changed = false;
-            return speed;
+            this.changed = true;
         }
     }
 
@@ -82,22 +102,15 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
      * long)
      */
 
-    public void putSpeedMeter(long x, long time) {
-        synchronized (LOCK) {
-            long put = Math.max(0, x);
-            if (put == 0) {
-                stalled += Math.max(0, time);
-                if (timeout > 0 && stalled > timeout) {
-                    resetSpeedMeter();
-                }
-            } else {
-                bytes[index] = put;
-                times[index] = Math.max(0, time) + stalled;
-                stalled = 0;
-                index++;
-                if (index == size) index = 0;
+    public void resetSpeedMeter() {
+        synchronized (this.LOCK) {
+            for (this.index = 0; this.index < this.size; this.index++) {
+                this.bytes[this.index] = -1;
+                this.times[this.index] = 0;
             }
-            changed = true;
+            this.index = 0;
+            this.speed = 0;
+            this.changed = true;
         }
     }
 
@@ -107,15 +120,11 @@ public class AverageSpeedMeter implements SpeedMeterInterface {
      * @see org.appwork.utils.speedmeter.SpeedMeterInterface#resetSpeedMeter()
      */
 
-    public void resetSpeedMeter() {
-        synchronized (LOCK) {
-            for (index = 0; index < size; index++) {
-                bytes[index] = -1;
-                times[index] = 0;
-            }
-            index = 0;
-            speed = 0;
-            changed = true;
+    public void setStallTimeout(final long timeout) {
+        if (timeout <= 0) {
+            this.timeout = -1;
+        } else {
+            this.timeout = timeout;
         }
     }
 

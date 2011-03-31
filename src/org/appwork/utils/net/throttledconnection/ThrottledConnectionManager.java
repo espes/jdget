@@ -19,23 +19,71 @@ import java.util.ArrayList;
  */
 public class ThrottledConnectionManager {
 
-    private ArrayList<ThrottledConnection> managedIn = new ArrayList<ThrottledConnection>();
-    private ArrayList<ThrottledConnection> managedOut = new ArrayList<ThrottledConnection>();
-    private final Object LOCK = new Object();
+    private final ArrayList<ThrottledConnection> managedIn               = new ArrayList<ThrottledConnection>();
+    private final ArrayList<ThrottledConnection> managedOut              = new ArrayList<ThrottledConnection>();
+    private final Object                         LOCK                    = new Object();
     /**
      * how fast do we want to update and check current status
      */
-    private final static int updateSpeed = 2000;
+    private final static int                     updateSpeed             = 2000;
 
-    private Thread watchDog = null;
+    private Thread                               watchDog                = null;
 
-    private long IncommingBandwidthLimit = 0;
-    private long IncommingBandwidthUsage = 0;
+    private volatile int                         IncommingBandwidthLimit = 0;
+    private volatile int                         IncommingBandwidthUsage = 0;
 
-    private long OutgoingBandwidthLimit = 0;
-    private long OutgoingBandwidthUsage = 0;
+    private volatile int                         OutgoingBandwidthLimit  = 0;
+    private volatile int                         OutgoingBandwidthUsage  = 0;
 
     public ThrottledConnectionManager() {
+    }
+
+    /**
+     * adds ThrottledInputStream to this manager
+     * 
+     * @param tin
+     */
+    public void addManagedThrottledInputStream(final ThrottledInputStream tin) {
+        synchronized (this.LOCK) {
+            if (this.managedIn.contains(tin)) { return; }
+            this.managedIn.add(tin);
+            tin.setManager(this);
+            tin.setManagedLimit(this.IncommingBandwidthLimit / this.managedIn.size());
+            this.startWatchDog();
+        }
+    }
+
+    /**
+     * adds ThrottledOutputStream to this manager
+     * 
+     * @param tout
+     */
+    public void addManagedThrottledOutputStream(final ThrottledOutputStream tout) {
+        synchronized (this.LOCK) {
+            if (this.managedOut.contains(tout)) { return; }
+            this.managedOut.add(tout);
+            tout.setManager(this);
+            tout.setManagedLimit(this.OutgoingBandwidthLimit / this.managedOut.size());
+            this.startWatchDog();
+        }
+    }
+
+    /**
+     * returns incomming bandwidth limit
+     * 
+     * @return
+     */
+    public int getIncommingBandwidthLimit() {
+        return this.IncommingBandwidthLimit;
+    }
+
+    /**
+     * returns current incomming bandwidth
+     * 
+     * @return
+     */
+    public int getIncommingBandwidthUsage() {
+        return this.IncommingBandwidthUsage;
     }
 
     /**
@@ -44,9 +92,9 @@ public class ThrottledConnectionManager {
      * @param in
      * @return
      */
-    public ThrottledInputStream getManagedThrottledInputStream(InputStream in) {
-        ThrottledInputStream ret = new ThrottledInputStream(in, this);
-        addManagedThrottledInputStream(ret);
+    public ThrottledInputStream getManagedThrottledInputStream(final InputStream in) {
+        final ThrottledInputStream ret = new ThrottledInputStream(in, this);
+        this.addManagedThrottledInputStream(ret);
         return ret;
     }
 
@@ -56,39 +104,69 @@ public class ThrottledConnectionManager {
      * @param out
      * @return
      */
-    public ThrottledOutputStream getManagedThrottledOutputStream(OutputStream out) {
-        ThrottledOutputStream ret = new ThrottledOutputStream(out, this);
-        addManagedThrottledOutputStream(ret);
+    public ThrottledOutputStream getManagedThrottledOutputStream(final OutputStream out) {
+        final ThrottledOutputStream ret = new ThrottledOutputStream(out, this);
+        this.addManagedThrottledOutputStream(ret);
         return ret;
     }
 
     /**
-     * adds ThrottledInputStream to this manager
+     * returns outgoing bandwidth limit
      * 
-     * @param tin
+     * @return
      */
-    public void addManagedThrottledInputStream(ThrottledInputStream tin) {
-        synchronized (LOCK) {
-            if (managedIn.contains(tin)) return;
-            managedIn.add(tin);
-            tin.setManager(this);
-            tin.setManagedLimit(IncommingBandwidthLimit / managedIn.size());
-            startWatchDog();
-        }
+    public int getOutgoingBandwidthLimit() {
+        return this.OutgoingBandwidthLimit;
     }
 
     /**
-     * adds ThrottledOutputStream to this manager
+     * returns current outgoing bandwidth
      * 
-     * @param tout
+     * @return
      */
-    public void addManagedThrottledOutputStream(ThrottledOutputStream tout) {
-        synchronized (LOCK) {
-            if (managedOut.contains(tout)) return;
-            managedOut.add(tout);
-            tout.setManager(this);
-            tout.setManagedLimit(OutgoingBandwidthLimit / managedOut.size());
-            startWatchDog();
+    public int getOutgoingBandwidthUsage() {
+        return this.OutgoingBandwidthUsage;
+    }
+
+    private int manageConnections(final ArrayList<ThrottledConnection> managed, final int limit) {
+        synchronized (this.LOCK) {
+            int managedConnections = 0;
+            int currentRealSpeed = 0;
+            long ret;
+            for (final ThrottledConnection in : managed) {
+                ret = in.transferedSinceLastCall();
+                currentRealSpeed += ret;
+                if (in.getCustomLimit() == 0) {
+                    /* this connection is managed */
+                    /*
+                     * dont count connections with no bandwidth usage, eg lost
+                     * ones
+                     */
+                    if (ret != 0) {
+                        managedConnections++;
+                    }
+                }
+            }
+            /*
+             * calculate new input limit based on current input bandwidth usage
+             */
+            currentRealSpeed = (int) ((long) currentRealSpeed * 1000 / Math.max(1000, ThrottledConnectionManager.updateSpeed));
+            int newLimit = 0;
+            if (managedConnections == 0) {
+                newLimit = limit;
+            } else {
+                newLimit = limit / managedConnections;
+            }
+            for (final ThrottledConnection in : managed) {
+                if (newLimit == 0) {
+                    /* we do not have a limit set */
+                    in.setManagedLimit(0);
+                } else {
+                    /* set new limit */
+                    in.setManagedLimit(newLimit);
+                }
+            }
+            return currentRealSpeed;
         }
     }
 
@@ -98,9 +176,9 @@ public class ThrottledConnectionManager {
      * @param tin
      * @return
      */
-    public boolean removeManagedThrottledInputStream(ThrottledInputStream tin) {
-        synchronized (LOCK) {
-            boolean ret = managedIn.remove(tin);
+    public boolean removeManagedThrottledInputStream(final ThrottledInputStream tin) {
+        synchronized (this.LOCK) {
+            final boolean ret = this.managedIn.remove(tin);
             if (ret) {
                 tin.setManager(null);
                 tin.setManagedLimit(0);
@@ -115,9 +193,9 @@ public class ThrottledConnectionManager {
      * @param tin
      * @return
      */
-    public boolean removeManagedThrottledOutputStream(ThrottledOutputStream tout) {
-        synchronized (LOCK) {
-            boolean ret = managedOut.remove(tout);
+    public boolean removeManagedThrottledOutputStream(final ThrottledOutputStream tout) {
+        synchronized (this.LOCK) {
+            final boolean ret = this.managedOut.remove(tout);
             if (ret) {
                 tout.setManager(null);
                 tout.setManagedLimit(0);
@@ -131,17 +209,8 @@ public class ThrottledConnectionManager {
      * 
      * @param kpsLimit
      */
-    public void setIncommingBandwidthLimit(long kpsLimit) {
-        IncommingBandwidthLimit = Math.max(0, kpsLimit);
-    }
-
-    /**
-     * returns incomming bandwidth limit
-     * 
-     * @return
-     */
-    public long getIncommingBandwidthLimit() {
-        return IncommingBandwidthLimit;
+    public void setIncommingBandwidthLimit(final int kpsLimit) {
+        this.IncommingBandwidthLimit = Math.max(0, kpsLimit);
     }
 
     /**
@@ -149,94 +218,27 @@ public class ThrottledConnectionManager {
      * 
      * @param kpsLimit
      */
-    public void setOutgoingBandwidthLimit(long kpsLimit) {
-        OutgoingBandwidthLimit = Math.max(0, kpsLimit);
-    }
-
-    /**
-     * returns outgoing bandwidth limit
-     * 
-     * @return
-     */
-    public long getOutgoingBandwidthLimit() {
-        return OutgoingBandwidthLimit;
-    }
-
-    /**
-     * returns current outgoing bandwidth
-     * 
-     * @return
-     */
-    public long getOutgoingBandwidthUsage() {
-        return OutgoingBandwidthUsage;
-    }
-
-    /**
-     * returns current incomming bandwidth
-     * 
-     * @return
-     */
-    public long getIncommingBandwidthUsage() {
-        return IncommingBandwidthUsage;
-    }
-
-    private long manageConnections(ArrayList<ThrottledConnection> managed, long limit) {
-        synchronized (LOCK) {
-            long managedConnections = 0;
-            long currentRealSpeed = 0;
-            long ret;
-            for (ThrottledConnection in : managed) {
-                ret = in.transferedSinceLastCall();
-                currentRealSpeed += ret;
-                if (in.getCustomLimit() == 0) {
-                    /* this connection is managed */
-                    /*
-                     * dont count connections with no bandwidth usage, eg lost
-                     * ones
-                     */
-                    if (ret != 0) managedConnections++;
-                }
-            }
-            /*
-             * calculate new input limit based on current input bandwidth usage
-             */
-            currentRealSpeed = ((currentRealSpeed * 1000) / Math.max(1000, updateSpeed));
-            long newLimit = 0;
-            if (managedConnections == 0) {
-                newLimit = limit;
-            } else {
-                newLimit = limit / managedConnections;
-            }
-            for (ThrottledConnection in : managed) {
-                if (newLimit == 0) {
-                    /* we do not have a limit set */
-                    in.setManagedLimit(0);
-                } else {
-                    /* set new limit */
-                    in.setManagedLimit(newLimit);
-                }
-            }
-            return currentRealSpeed;
-        }
+    public void setOutgoingBandwidthLimit(final int kpsLimit) {
+        this.OutgoingBandwidthLimit = Math.max(0, kpsLimit);
     }
 
     private synchronized void startWatchDog() {
-        if (watchDog != null) return;
-        watchDog = new Thread() {
+        if (this.watchDog != null) { return; }
+        this.watchDog = new Thread() {
             @Override
             public void run() {
-                setName("ThrottlecConnectionManager");
+                this.setName("ThrottlecConnectionManager");
                 while (true) {
                     try {
-                        sleep(Math.max(1000, updateSpeed));
-                    } catch (InterruptedException e) {
+                        Thread.sleep(Math.max(1000, ThrottledConnectionManager.updateSpeed));
+                    } catch (final InterruptedException e) {
                         org.appwork.utils.logging.Log.exception(e);
                     }
-                    IncommingBandwidthUsage = manageConnections(managedIn, IncommingBandwidthLimit);
-                    OutgoingBandwidthUsage = manageConnections(managedOut, OutgoingBandwidthLimit);
+                    ThrottledConnectionManager.this.IncommingBandwidthUsage = ThrottledConnectionManager.this.manageConnections(ThrottledConnectionManager.this.managedIn, ThrottledConnectionManager.this.IncommingBandwidthLimit);
+                    ThrottledConnectionManager.this.OutgoingBandwidthUsage = ThrottledConnectionManager.this.manageConnections(ThrottledConnectionManager.this.managedOut, ThrottledConnectionManager.this.OutgoingBandwidthLimit);
                 }
             }
         };
-        watchDog.start();
+        this.watchDog.start();
     }
 }

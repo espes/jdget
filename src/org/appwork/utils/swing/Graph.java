@@ -252,8 +252,12 @@ abstract public class Graph extends JPanel {
      * within a few cycles
      */
     protected void resetAverage() {
-
-        this.average /= this.all;
+        final int tmp = this.all;
+        if (tmp == 0) {
+            this.average /= tmp;
+        } else {
+            this.average /= tmp;
+        }
         this.average *= 3;
         this.all = 3;
     }

@@ -15,18 +15,11 @@ package org.appwork.utils.net.throttledconnection;
  */
 public interface ThrottledConnection {
     /**
-     * set a new ThrottledConnectionManager
+     * get custom set limit
      * 
-     * @param manager
+     * @return
      */
-    public void setManager(ThrottledConnectionManager manager);
-
-    /**
-     * sets managed limit 0: no limit >0: use managed limit
-     * 
-     * @param kpsLimit
-     */
-    public void setManagedLimit(long kpsLimit);
+    public long getCustomLimit();
 
     /**
      * sets custom speed limit -1 : no limit 0 : use managed limit >0: use
@@ -34,14 +27,21 @@ public interface ThrottledConnection {
      * 
      * @param kpsLimit
      */
-    public void setCustomLimit(long kpsLimit);
+    public void setCustomLimit(int kpsLimit);
 
     /**
-     * get custom set limit
+     * sets managed limit 0: no limit >0: use managed limit
      * 
-     * @return
+     * @param kpsLimit
      */
-    public long getCustomLimit();
+    public void setManagedLimit(int kpsLimit);
+
+    /**
+     * set a new ThrottledConnectionManager
+     * 
+     * @param manager
+     */
+    public void setManager(ThrottledConnectionManager manager);
 
     /**
      * return how many bytes got transfered since last call of the function

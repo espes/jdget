@@ -397,7 +397,14 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     public void setReadTimeout(final int readTimeout) {
-        this.readTimeout = readTimeout;
+        try {
+            if (this.isConnected()) {
+                this.httpSocket.setSoTimeout(readTimeout);
+            }
+            this.readTimeout = readTimeout;
+        } catch (final Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     public void setRequestMethod(final RequestMethod method) {

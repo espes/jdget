@@ -19,31 +19,31 @@ import java.io.OutputStream;
 public class ThrottledOutputStream extends OutputStream implements ThrottledConnection {
 
     private ThrottledConnectionManager manager;
-    private OutputStream out;
+    private final OutputStream         out;
 
-    protected long transferedCounter = 0;
-    protected long transferedCounter2 = 0;
-    private long limitCurrent = 0;
-    private long limitManaged = 0;
-    private long limitCustom = 0;
-    private long limitCounter = 0;
-    private long lastLimitReached = 0;
-    public final static int HIGHStep = 524288;
-    public final static int LOWStep = 1024;
-    private int checkStep = 10240;
-    private int offset;
-    private int todo;
-    private int rest;
-    private long ret;
-    private long timeForCheckStep = 0;
-    private int timeCheck = 0;
+    protected long                     transferedCounter  = 0;
+    protected long                     transferedCounter2 = 0;
+    private long                       limitCurrent       = 0;
+    private long                       limitManaged       = 0;
+    private long                       limitCustom        = 0;
+    private long                       limitCounter       = 0;
+    private long                       lastLimitReached   = 0;
+    public final static int            HIGHStep           = 524288;
+    public final static int            LOWStep            = 1024;
+    private int                        checkStep          = 10240;
+    private int                        offset;
+    private int                        todo;
+    private int                        rest;
+    private long                       ret;
+    private long                       timeForCheckStep   = 0;
+    private int                        timeCheck          = 0;
 
     /**
      * constructor for not managed ThrottledOutputStream
      * 
      * @param in
      */
-    public ThrottledOutputStream(OutputStream out) {
+    public ThrottledOutputStream(final OutputStream out) {
         this.out = out;
     }
 
@@ -54,9 +54,9 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
      * @param in
      * @param kpsLimit
      */
-    public ThrottledOutputStream(OutputStream out, long kpsLimit) {
+    public ThrottledOutputStream(final OutputStream out, final int kpsLimit) {
         this(out);
-        setCustomLimit(kpsLimit);
+        this.setCustomLimit(kpsLimit);
     }
 
     /**
@@ -65,107 +65,23 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
      * @param in
      * @param manager
      */
-    protected ThrottledOutputStream(OutputStream out, ThrottledConnectionManager manager) {
+    protected ThrottledOutputStream(final OutputStream out, final ThrottledConnectionManager manager) {
         this.manager = manager;
         this.out = out;
     }
 
     /**
-     * WARNING: this function has a huge overhead
-     */
-    @Override
-    public void write(int b) throws IOException {
-        out.write(b);
-        increase(1);
-    }
-
-    public int getCheckStepSize() {
-        return checkStep;
-    }
-
-    public void setCheckStepSize(int step) {
-        checkStep = Math.max(HIGHStep, step);
-        checkStep = Math.min(LOWStep, checkStep);
-    }
-
-    @Override
-    public void write(byte b[], int off, int len) throws IOException {
-        offset = off;
-        rest = len;
-        while (rest != 0) {
-            todo = rest;
-            if (todo > checkStep) todo = checkStep;
-            if (limitCurrent != 0) {
-                out.write(b, offset, todo);
-            } else {
-                timeForCheckStep = System.currentTimeMillis();
-                out.write(b, offset, todo);
-                timeCheck = (int) (System.currentTimeMillis() - timeForCheckStep);
-                if (timeCheck > 1000) {
-                    /* we want more than2 update per second */
-                    checkStep = Math.max(LOWStep, (todo / timeCheck) * 500);
-                } else if (timeCheck == 0) {
-                    /* we increase in little steps */
-                    checkStep += 1024;
-                    // checkStep = Math.min(HIGHStep, checkStep + 1024);
-                }
-            }
-            increase(todo);
-            rest -= todo;
-            offset += todo;
-        }
-    }
-
-    final private void increase(int num) {
-        if (num == -1) return;
-        transferedCounter += num;
-        if (limitCurrent != 0) {
-            limitCounter += num;
-            if (limitCounter > limitCurrent) {
-                if (lastLimitReached == 0) {
-                    /* our first write */
-                    lastLimitReached = System.currentTimeMillis();
-                }
-                /* we set limit in kbyte per second */
-                long pause = 1000 - (System.currentTimeMillis() - lastLimitReached);
-                if (pause >= 0) {
-                    if (pause == 0) pause = 1000;
-                    synchronized (this) {
-                        try {
-                            wait(pause);
-                        } catch (InterruptedException e) {
-                            org.appwork.utils.logging.Log.exception(e);
-                        }
-                    }
-                    /* change checkStep according to limit */
-                    if (limitCurrent >= HIGHStep) {
-                        checkStep = HIGHStep + 1;
-                    } else if (limitCurrent <= LOWStep) {
-                        checkStep = LOWStep;
-                    } else {
-                        checkStep = (int) limitCurrent + 1;
-                    }
-                }
-                lastLimitReached = System.currentTimeMillis();
-                limitCounter = 0;
-            }
-        }
-    }
-
-    @Override
-    public void flush() throws IOException {
-        out.flush();
-    }
-
-    /**
-     * return how many bytes got transfered till now and reset counter
+     * change current limit
      * 
-     * @return
+     * @param kpsLimit
      */
-    public synchronized long transferedSinceLastCall() {
-        ret = transferedCounter - transferedCounter2;
-        transferedCounter2 = transferedCounter;
-        return ret;
+    private void changeCurrentLimit(final long kpsLimit) {
+        if (kpsLimit == this.limitCurrent) { return; }
+        /* TODO: maybe allow little jitter here */
+        this.limitCurrent = Math.max(0, kpsLimit);
+        synchronized (this) {
+            this.notify();
+        }
     }
 
     /**
@@ -174,61 +90,23 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     @Override
     public void close() throws IOException {
         /* remove this stream from manager */
-        if (manager != null) {
-            manager.removeManagedThrottledOutputStream(this);
-            manager = null;
+        if (this.manager != null) {
+            this.manager.removeManagedThrottledOutputStream(this);
+            this.manager = null;
         }
         synchronized (this) {
-            notify();
+            this.notify();
         }
-        out.close();
+        this.out.close();
     }
 
-    /**
-     * set a new ThrottledConnectionManager
-     * 
-     * @param manager
-     */
-    public void setManager(ThrottledConnectionManager manager) {
-        if (this.manager != null && this.manager != manager) this.manager.removeManagedThrottledOutputStream(this);
-        this.manager = manager;
-        if (this.manager != null) this.manager.addManagedThrottledOutputStream(this);
+    @Override
+    public void flush() throws IOException {
+        this.out.flush();
     }
 
-    /**
-     * sets managed limit 0: no limit >0: use managed limit
-     * 
-     * @param kpsLimit
-     */
-    public void setManagedLimit(long kpsLimit) {
-        if (kpsLimit == limitManaged) return;
-        if (kpsLimit <= 0) {
-            limitManaged = 0;
-            if (limitCustom == 0) changeCurrentLimit(0);
-        } else {
-            limitManaged = kpsLimit;
-            if (limitCustom == 0) changeCurrentLimit(kpsLimit);
-        }
-    }
-
-    /**
-     * sets custom speed limit -1 : no limit 0 : use managed limit >0: use
-     * custom limit
-     * 
-     * @param kpsLimit
-     */
-    public void setCustomLimit(long kpsLimit) {
-        if (limitCustom == kpsLimit) return;
-        if (kpsLimit < 0) {
-            limitCustom = -1;
-            changeCurrentLimit(0);
-        } else if (kpsLimit == 0) {
-            limitCustom = 0;
-            changeCurrentLimit(limitManaged);
-        } else {
-            limitCustom = kpsLimit;
-            changeCurrentLimit(kpsLimit);
-        }
+    public int getCheckStepSize() {
+        return this.checkStep;
     }
 
     /**
@@ -237,21 +115,155 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
      * @return
      */
     public long getCustomLimit() {
-        return limitCustom;
+        return this.limitCustom;
+    }
+
+    final private void increase(final int num) {
+        if (num == -1) { return; }
+        this.transferedCounter += num;
+        if (this.limitCurrent != 0) {
+            this.limitCounter += num;
+            if (this.limitCounter > this.limitCurrent) {
+                if (this.lastLimitReached == 0) {
+                    /* our first write */
+                    this.lastLimitReached = System.currentTimeMillis();
+                }
+                /* we set limit in kbyte per second */
+                long pause = 1000 - (System.currentTimeMillis() - this.lastLimitReached);
+                if (pause >= 0) {
+                    if (pause == 0) {
+                        pause = 1000;
+                    }
+                    synchronized (this) {
+                        try {
+                            this.wait(pause);
+                        } catch (final InterruptedException e) {
+                            org.appwork.utils.logging.Log.exception(e);
+                        }
+                    }
+                    /* change checkStep according to limit */
+                    if (this.limitCurrent >= ThrottledOutputStream.HIGHStep) {
+                        this.checkStep = ThrottledOutputStream.HIGHStep + 1;
+                    } else if (this.limitCurrent <= ThrottledOutputStream.LOWStep) {
+                        this.checkStep = ThrottledOutputStream.LOWStep;
+                    } else {
+                        this.checkStep = (int) this.limitCurrent + 1;
+                    }
+                }
+                this.lastLimitReached = System.currentTimeMillis();
+                this.limitCounter = 0;
+            }
+        }
+    }
+
+    public void setCheckStepSize(final int step) {
+        this.checkStep = Math.max(ThrottledOutputStream.HIGHStep, step);
+        this.checkStep = Math.min(ThrottledOutputStream.LOWStep, this.checkStep);
     }
 
     /**
-     * change current limit
+     * sets custom speed limit -1 : no limit 0 : use managed limit >0: use
+     * custom limit
      * 
      * @param kpsLimit
      */
-    private void changeCurrentLimit(long kpsLimit) {
-        if (kpsLimit == limitCurrent) return;
-        /* TODO: maybe allow little jitter here */
-        limitCurrent = Math.max(0, kpsLimit);
-        synchronized (this) {
-            notify();
+    public void setCustomLimit(final int kpsLimit) {
+        if (this.limitCustom == kpsLimit) { return; }
+        if (kpsLimit < 0) {
+            this.limitCustom = -1;
+            this.changeCurrentLimit(0);
+        } else if (kpsLimit == 0) {
+            this.limitCustom = 0;
+            this.changeCurrentLimit(this.limitManaged);
+        } else {
+            this.limitCustom = kpsLimit;
+            this.changeCurrentLimit(kpsLimit);
         }
+    }
+
+    /**
+     * sets managed limit 0: no limit >0: use managed limit
+     * 
+     * @param kpsLimit
+     */
+    public void setManagedLimit(final int kpsLimit) {
+        if (kpsLimit == this.limitManaged) { return; }
+        if (kpsLimit <= 0) {
+            this.limitManaged = 0;
+            if (this.limitCustom == 0) {
+                this.changeCurrentLimit(0);
+            }
+        } else {
+            this.limitManaged = kpsLimit;
+            if (this.limitCustom == 0) {
+                this.changeCurrentLimit(kpsLimit);
+            }
+        }
+    }
+
+    /**
+     * set a new ThrottledConnectionManager
+     * 
+     * @param manager
+     */
+    public void setManager(final ThrottledConnectionManager manager) {
+        if (this.manager != null && this.manager != manager) {
+            this.manager.removeManagedThrottledOutputStream(this);
+        }
+        this.manager = manager;
+        if (this.manager != null) {
+            this.manager.addManagedThrottledOutputStream(this);
+        }
+    }
+
+    /**
+     * return how many bytes got transfered till now and reset counter
+     * 
+     * @return
+     */
+    public synchronized long transferedSinceLastCall() {
+        this.ret = this.transferedCounter - this.transferedCounter2;
+        this.transferedCounter2 = this.transferedCounter;
+        return this.ret;
+    }
+
+    @Override
+    public void write(final byte b[], final int off, final int len) throws IOException {
+        this.offset = off;
+        this.rest = len;
+        while (this.rest != 0) {
+            this.todo = this.rest;
+            if (this.todo > this.checkStep) {
+                this.todo = this.checkStep;
+            }
+            if (this.limitCurrent != 0) {
+                this.out.write(b, this.offset, this.todo);
+            } else {
+                this.timeForCheckStep = System.currentTimeMillis();
+                this.out.write(b, this.offset, this.todo);
+                this.timeCheck = (int) (System.currentTimeMillis() - this.timeForCheckStep);
+                if (this.timeCheck > 1000) {
+                    /* we want more than2 update per second */
+                    this.checkStep = Math.max(ThrottledOutputStream.LOWStep, this.todo / this.timeCheck * 500);
+                } else if (this.timeCheck == 0) {
+                    /* we increase in little steps */
+                    this.checkStep += 1024;
+                    // checkStep = Math.min(HIGHStep, checkStep + 1024);
+                }
+            }
+            this.increase(this.todo);
+            this.rest -= this.todo;
+            this.offset += this.todo;
+        }
+    }
+
+    /**
+     * WARNING: this function has a huge overhead
+     */
+    @Override
+    public void write(final int b) throws IOException {
+        this.out.write(b);
+        this.increase(1);
     }
 
 }
