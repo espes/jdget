@@ -706,7 +706,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         } finally {
             this.connectionState.setRenameFile(null);
         }
-        this.write(250, "\"" + this.buildParameter(commandParts) + "\" rename successfull.");
+        this.write(250, "\"" + this.buildParameter(commandParts) + "\" rename successful.");
     }
 
     /**
