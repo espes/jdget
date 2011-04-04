@@ -32,31 +32,36 @@ public class RenderLabel extends JLabel {
     /**
      * * Overridden for performance reasons.
      */
+    @Override
     public void invalidate() {
     }
 
     /**
      * * Overridden for performance reasons.
      */
-    public void validate() {
+    @Override
+    public void repaint() {
     }
 
     /**
      * * Overridden for performance reasons.
      */
+    @Override
+    public void repaint(final long tm, final int x, final int y, final int width, final int height) {
+    }
+
+    /**
+     * * Overridden for performance reasons.
+     */
+    @Override
+    public void repaint(final Rectangle r) {
+    }
+
+    /**
+     * * Overridden for performance reasons.
+     */
+    @Override
     public void revalidate() {
-    }
-
-    /**
-     * * Overridden for performance reasons.
-     */
-    public void repaint(long tm, int x, int y, int width, int height) {
-    }
-
-    /**
-     * * Overridden for performance reasons.
-     */
-    public void repaint(Rectangle r) {
     }
 
     /**
@@ -64,29 +69,32 @@ public class RenderLabel extends JLabel {
      * get cached properly. thats why we override the method here and extend it
      * to use a cached disabled icon
      */
-    public void setIcon(Icon icon) {
-        if (!isEnabled()) {
+    @Override
+    public void setEnabled(final boolean b) {
+        super.setEnabled(b);
+        if (!b && this.getIcon() != null) {
+            this.setDisabledIcon(ImageProvider.getDisabledIcon(this.getIcon()));
+        }
+
+    }
+
+    /**
+     * for renderer reasons, there is a bug in java, that disabled icons to not
+     * get cached properly. thats why we override the method here and extend it
+     * to use a cached disabled icon
+     */
+    @Override
+    public void setIcon(final Icon icon) {
+        if (!this.isEnabled()) {
             this.setDisabledIcon(ImageProvider.getDisabledIcon(icon));
         }
         super.setIcon(icon);
     }
 
     /**
-     * for renderer reasons, there is a bug in java, that disabled icons to not
-     * get cached properly. thats why we override the method here and extend it
-     * to use a cached disabled icon
-     */
-    public void setEnabled(boolean b) {
-        super.setEnabled(b);
-        if (!b && getIcon() != null) {
-            this.setDisabledIcon(ImageProvider.getDisabledIcon(getIcon()));
-        }
-
-    }
-
-    /**
      * * Overridden for performance reasons.
      */
-    public void repaint() {
+    @Override
+    public void validate() {
     }
 }
