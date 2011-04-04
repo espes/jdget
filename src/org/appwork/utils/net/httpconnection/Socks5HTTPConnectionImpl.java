@@ -89,7 +89,7 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
             /* we need to lay ssl over normal socks5 connection */
             SSLSocket sslSocket = null;
             try {
-                final SSLSocketFactory socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+                final SSLSocketFactory socketFactory = TrustALLSSLFactory.getSSLFactoryTrustALL();
                 sslSocket = (SSLSocket) socketFactory.createSocket(establishedConnection, this.httpHost, this.httpPort, true);
                 sslSocket.startHandshake();
             } catch (final SSLHandshakeException e) {

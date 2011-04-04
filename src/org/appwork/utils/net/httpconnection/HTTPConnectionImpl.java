@@ -16,9 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
-
 import org.appwork.utils.LowerCaseHashMap;
 import org.appwork.utils.Regex;
 
@@ -88,8 +85,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
             throw e;
         }
         if (this.httpURL.getProtocol().startsWith("https")) {
-            final SocketFactory socketFactory = SSLSocketFactory.getDefault();
-            this.httpSocket = socketFactory.createSocket();
+            this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
         } else {
             this.httpSocket = this.createSocket();
         }
@@ -456,7 +452,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
         sb.append(new char[] { '\r', '\n' });
 
         return sb.toString();
-
     }
 
 }

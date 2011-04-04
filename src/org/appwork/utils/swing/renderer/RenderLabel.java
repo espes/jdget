@@ -33,6 +33,14 @@ public class RenderLabel extends JLabel {
      * * Overridden for performance reasons.
      */
     @Override
+    public void firePropertyChange(final String propertyName, final boolean oldValue, final boolean newValue) {
+        /* we dont need propertychange events */
+    }
+
+    /**
+     * * Overridden for performance reasons.
+     */
+    @Override
     public void invalidate() {
     }
 
@@ -65,6 +73,14 @@ public class RenderLabel extends JLabel {
     }
 
     /**
+     * * Overridden for performance reasons.
+     */
+    @Override
+    public void setDisplayedMnemonicIndex(final int index) {
+        /* we dont need mnemonic in a table */
+    }
+
+    /**
      * for renderer reasons, there is a bug in java, that disabled icons to not
      * get cached properly. thats why we override the method here and extend it
      * to use a cached disabled icon
@@ -75,7 +91,6 @@ public class RenderLabel extends JLabel {
         if (!b && this.getIcon() != null) {
             this.setDisabledIcon(ImageProvider.getDisabledIcon(this.getIcon()));
         }
-
     }
 
     /**
