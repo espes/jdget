@@ -202,7 +202,8 @@ public class Application {
         } else {
             Application.ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + Application.APP_FOLDER + System.getProperty("file.separator");
         }
-        Log.L.info("App Root: " + Application.ROOT);
+        // do not use Log.L here. this might be null
+        System.out.println("App Root: " + Application.ROOT);
         return Application.ROOT;
     }
 

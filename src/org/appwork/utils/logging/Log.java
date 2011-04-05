@@ -28,6 +28,7 @@ public class Log {
         cHandler.setFormatter(new LogFormatter());
         Log.LOGGER.addHandler(cHandler);
         try {
+
             final LogToFileHandler fh = new LogToFileHandler();
             fh.setFormatter(new FileLogFormatter());
             Log.LOGGER.addHandler(fh);
