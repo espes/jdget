@@ -129,6 +129,7 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
         if (this.limitRead != 0) {
             /* a Limit is set */
             this.limitCounter--;
+            this.slotTimeLeft = 0;
             if (this.limitCounter <= 0 && (this.slotTimeLeft = System.currentTimeMillis() - this.lastTimeRead) < 1000) {
                 /* Limit reached and slotTime not over yet */
                 synchronized (this) {
@@ -161,6 +162,7 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
             this.transferedCounter += this.lastRead2;
         } else {
             /* a Limit is set */
+            this.slotTimeLeft = 0;
             if (this.limitCounter <= 0 && (this.slotTimeLeft = System.currentTimeMillis() - this.lastTimeRead) < 1000) {
                 /* Limit reached and slotTime not over yet */
                 synchronized (this) {
