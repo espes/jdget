@@ -255,14 +255,14 @@ public class Dialog {
         try {
             if (text.contains("?")) {
                 return ImageProvider.getImageIcon(Dialog.ICON_QUESTION, 32, 32, true);
-            } else if (text.matches(Loc.getErrorRegex())) {
+            } else if (text.contains("error")|| text.contains("exception")) {
                 return ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true);
             } else if (text.contains("!")) {
                 return ImageProvider.getImageIcon(Dialog.ICON_WARNING, 32, 32, true);
             } else {
                 return ImageProvider.getImageIcon(Dialog.ICON_INFO, 32, 32, true);
             }
-        } catch (final IOException e) {
+        } catch (final Throwable e) {            
             Log.exception(e);
             return null;
         }
