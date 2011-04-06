@@ -53,7 +53,7 @@ public class ImageProvider {
 
     private static Object                         LOCK                = new Object();
     // stringbuilder die concat strings fast
-    private static StringBuilder                  SB                  = new StringBuilder();
+
     static {
         /* we dont want images to get cached on disk */
         ImageIO.setUseCache(false);
@@ -200,14 +200,14 @@ public class ImageProvider {
      */
     public static ImageIcon getImageIcon(final String name, int width, int height, final boolean createDummy) throws IOException {
         synchronized (ImageProvider.LOCK) {
-            ImageProvider.SB.delete(0, ImageProvider.SB.capacity());
-            ImageProvider.SB.append(name);
-            ImageProvider.SB.append('_');
-            ImageProvider.SB.append(width);
-            ImageProvider.SB.append('_');
-            ImageProvider.SB.append(height);
+            final StringBuilder SB = new StringBuilder();
+            SB.append(name);
+            SB.append('_');
+            SB.append(width);
+            SB.append('_');
+            SB.append(height);
             String key;
-            if (ImageProvider.IMAGEICON_CACHE.containsKey(key = ImageProvider.SB.toString())) { return ImageProvider.IMAGEICON_CACHE.get(key); }
+            if (ImageProvider.IMAGEICON_CACHE.containsKey(key = SB.toString())) { return ImageProvider.IMAGEICON_CACHE.get(key); }
             final Image image = ImageProvider.getBufferedImage(name, createDummy);
             final double faktor = Math.max((double) image.getWidth(null) / width, (double) image.getHeight(null) / height);
             width = (int) (image.getWidth(null) / faktor);

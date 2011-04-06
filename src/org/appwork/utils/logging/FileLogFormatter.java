@@ -24,18 +24,11 @@ public class FileLogFormatter extends SimpleFormatter {
      */
     private final DateFormat dateFormat = new SimpleDateFormat();
 
-    /**
-     * Strigbuilder is used to create Strings with less memory and CPU usage
-     */
-    private final StringBuilder sb = new StringBuilder();
-
     @Override
-    public synchronized String format(LogRecord record) {
+    public synchronized String format(final LogRecord record) {
         /* clear StringBuilder buffer */
-        sb.delete(0, sb.capacity());
-
-        sb.delete(0, sb.capacity());
-        sb.append(dateFormat.format(record.getMillis()));
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.dateFormat.format(record.getMillis()));
         sb.append(" : ");
         sb.append(record.getMessage());
         sb.append("\r\n");
