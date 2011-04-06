@@ -28,7 +28,6 @@ import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.interfaces.ValueConverter;
 import org.appwork.utils.locale.APPWORKUTILS;
-import org.appwork.utils.locale.Loc;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
