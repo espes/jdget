@@ -140,16 +140,10 @@ public class ImageProvider {
                 } else {
                     throw e;
                 }
-
-            } catch (final IllegalArgumentException e) {
+            } catch (final Throwable e) {
                 Log.L.severe("Could not Init Image: " + absolutePath);
-                if (createDummy) {
-                    Log.exception(Level.WARNING, e);
-                    return ImageProvider.createIcon(name.toUpperCase(), 48, 48);
-                } else {
-                    throw e;
-                }
-
+                Log.exception(Level.WARNING, e);
+                return ImageProvider.createIcon(name.toUpperCase(), 48, 48);
             }
         }
     }
@@ -230,11 +224,11 @@ public class ImageProvider {
      * @param targetHeight
      *            the desired height of the scaled instance, in pixels
      * @param hint
-     *            one of the rendering hints that corresponds to
-     *            {@code RenderingHints.KEY_INTERPOLATION} (e.g.
-     *            {@code RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR},
-     *            {@code RenderingHints.VALUE_INTERPOLATION_BILINEAR},
-     *            {@code RenderingHints.VALUE_INTERPOLATION_BICUBIC})
+     *            one of the rendering hints that corresponds to {@code
+     *            RenderingHints.KEY_INTERPOLATION} (e.g. {@code
+     *            RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR}, {@code
+     *            RenderingHints.VALUE_INTERPOLATION_BILINEAR}, {@code
+     *            RenderingHints.VALUE_INTERPOLATION_BICUBIC})
      * @param higherQuality
      *            if true, this method will use a multi-step scaling technique
      *            that provides higher quality than the usual one-step technique

@@ -41,7 +41,7 @@ public class SizeFormatter {
         String[][] matches = new Regex(string, Pattern.compile("([\\d]+)[\\.|\\,|\\:]([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
 
         if (matches == null || matches.length == 0) {
-            matches = new Regex(string, Pattern.compile("([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
+            matches = new Regex(string, Pattern.compile("([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches(); 
         }
         if (matches == null || matches.length == 0) { return -1; }
 

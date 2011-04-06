@@ -31,6 +31,7 @@ import org.appwork.utils.swing.dialog.DialogNoAnswerException;
  * 
  * @author $Author: unknown$
  */
+
 public class CrossSystem {
     public static final byte    OS_LINUX_OTHER   = 6;
     public static final byte    OS_MAC_OTHER     = 5;
