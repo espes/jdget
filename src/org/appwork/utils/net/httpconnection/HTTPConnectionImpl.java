@@ -18,10 +18,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.appwork.utils.LowerCaseHashMap;
 import org.appwork.utils.Regex;
-
-import sun.net.www.MessageHeader;
-import sun.net.www.http.ChunkedInputStream;
-import sun.net.www.http.HttpClient;
+import org.appwork.utils.net.ChunkedInputStream;
 
 public class HTTPConnectionImpl implements HTTPConnection {
 
@@ -194,16 +191,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         headerStrings = null;
         final List<String> chunked = this.headers.get("Transfer-Encoding");
         if (chunked != null && chunked.size() > 0 && "chunked".equalsIgnoreCase(chunked.get(0))) {
-            /* TODO: write own chunkedinputstream */
-            this.inputStream = new ChunkedInputStream(this.httpSocket.getInputStream(), new HttpClient() {
-                @Override
-                public void finished() {
-                }
-
-                @Override
-                public void openServer(final String server, final int port) {
-                }
-            }, new MessageHeader());
+            this.inputStream = new ChunkedInputStream(this.httpSocket.getInputStream());
         } else {
             this.inputStream = this.httpSocket.getInputStream();
         }
