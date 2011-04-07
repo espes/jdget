@@ -29,6 +29,7 @@ public class ChunkedInputStream extends InputStream {
 
     @Override
     public int available() throws IOException {
+        if (this.nextChunkLeft > 0) { return this.nextChunkLeft; }
         return this.is.available();
     }
 
