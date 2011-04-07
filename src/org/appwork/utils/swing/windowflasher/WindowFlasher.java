@@ -45,7 +45,7 @@ public class WindowFlasher {
      * @return
      */
     public boolean hasFocus() {
-        if (this.window.hasFocus()) { return true; }
+        if (this.window.isFocused()) { return true; }
 
         return false;
     }
