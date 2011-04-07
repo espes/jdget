@@ -114,16 +114,21 @@ public class HTMLTranscoder {
         final StringBuilder result = new StringBuilder();
         final StringCharacterIterator iterator = new StringCharacterIterator(text);
         char character = iterator.current();
+        char lastC = 0;
 
         String rep = null;
         while (character != CharacterIterator.DONE) {
+            if (character == '\n' && lastC == '\r') {
+                lastC = character;
+                character = iterator.next();
+            }
             rep = HTMLTranscoder.MAP_SIMPLE.get(character);
             if (rep == null) {
                 result.append(character);
             } else {
                 result.append(rep);
             }
-
+            lastC = character;
             character = iterator.next();
         }
         return result.toString();

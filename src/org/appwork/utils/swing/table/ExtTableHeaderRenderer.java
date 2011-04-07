@@ -19,9 +19,12 @@ import java.awt.RenderingHints;
 
 import javax.swing.BorderFactory;
 import javax.swing.JTable;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
+
+import org.appwork.utils.logging.Log;
 
 import sun.swing.DefaultLookup;
 
@@ -38,43 +41,84 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
     private final ExtColumn<?> column;
     private boolean            paintIcon;
     private boolean            order;
-    private final Border       defaultBorder;
+
+    private Color              focusForeground;
+    private Color              focusBackground;
+    private final Color        foregroundC;
+    private final Color        backgroundC;
+    private Border             focusBorder;
+    private Border             cellBorder;
 
     /**
      * @param extColumn
+     * @param jTableHeader
      */
-    public ExtTableHeaderRenderer(final ExtColumn<?> extColumn) {
+    public ExtTableHeaderRenderer(final ExtColumn<?> extColumn, final JTableHeader header) {
         this.column = extColumn;
         // this.setHorizontalTextPosition(10);
-        this.defaultBorder = BorderFactory.createEmptyBorder(0, 10, 0, 10);
+
+        try {
+
+            try {
+                this.focusForeground = DefaultLookup.getColor(this, this.ui, "TableHeader.focusCellForeground");
+                this.focusBackground = DefaultLookup.getColor(this, this.ui, "TableHeader.focusCellBackground");
+            } catch (final NoSuchMethodError e) {
+                // DefaultLookup is sun.swing, any may not be
+                // available
+                // e.gh. in 1.6.0_01-b06
+                this.focusForeground = (Color) UIManager.get("TableHeader.focusCellForeground", this.getLocale());
+                this.focusBackground = (Color) UIManager.get("TableHeader.focusCellBackground", this.getLocale());
+
+            }
+
+        } catch (final Throwable e) {
+            Log.exception(e);
+        }
+        if (this.focusForeground == null) {
+            this.focusForeground = header.getForeground();
+
+        }
+        if (this.focusBackground == null) {
+            this.focusBackground = header.getBackground();
+        }
+        this.foregroundC = header.getForeground();
+        this.backgroundC = header.getBackground();
+
+        try {
+            try {
+
+                this.focusBorder = DefaultLookup.getBorder(this, this.ui, "TableHeader.focusCellBorder");
+
+                this.cellBorder = DefaultLookup.getBorder(this, this.ui, "TableHeader.cellBorder");
+
+            } catch (final NoSuchMethodError e) {
+                // DefaultLookup is sun.swing, any may not be available
+                // e.gh. in 1.6.0_01-b06
+
+                this.focusBorder = (Border) UIManager.get("TableHeader.focusCellBorder", this.getLocale());
+
+                this.cellBorder = (Border) UIManager.get("TableHeader.focusCellBackground", this.getLocale());
+
+            }
+        } catch (final Throwable e) {
+            Log.exception(e);
+            // avoid that the block above kills edt
+        }
+        if (this.focusBorder == null) {
+            this.focusBorder = BorderFactory.createEmptyBorder(0, 10, 0, 10);
+        }
+        if (this.cellBorder == null) {
+            this.cellBorder = BorderFactory.createEmptyBorder(0, 10, 0, 10);
+        }
+        this.setFont(header.getFont());
+
     }
 
     @Override
     public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        if (table != null) {
-            final JTableHeader header = table.getTableHeader();
-            Color foreground;
-            Color background = null;
-            if (header != null) {
-                foreground = null;
 
-                if (hasFocus) {
-                    foreground = DefaultLookup.getColor(this, this.ui, "TableHeader.focusCellForeground");
-                    background = DefaultLookup.getColor(this, this.ui, "TableHeader.focusCellBackground");
-                }
-                if (foreground == null) {
-                    foreground = header.getForeground();
-                }
-                if (background == null) {
-                    background = header.getBackground();
-                }
-                this.setForeground(foreground);
-                this.setBackground(background);
-                this.setFont(header.getFont());
-
-            }
-        }
-
+        this.setForeground(hasFocus ? this.focusForeground : this.foregroundC);
+        this.setBackground(hasFocus ? this.focusBackground : this.backgroundC);
         // sort column is no current column
         if (this.column.getModel().getSortColumn() != this.column) {
             this.paintIcon = false;
@@ -84,17 +128,7 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
         this.order = this.column.getModel().isSortOrderToggle();
         this.setText(value == null ? "" : value.toString());
 
-        Border border = null;
-        if (hasFocus) {
-            border = DefaultLookup.getBorder(this, this.ui, "TableHeader.focusCellBorder");
-        }
-        if (border == null) {
-            border = DefaultLookup.getBorder(this, this.ui, "TableHeader.cellBorder");
-        }
-        if (border == null) {
-            border = this.defaultBorder;
-        }
-        this.setBorder(border);
+        this.setBorder(hasFocus ? this.focusBorder : this.cellBorder);
         return this;
     }
 

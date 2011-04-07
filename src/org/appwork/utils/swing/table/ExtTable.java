@@ -316,7 +316,7 @@ public class ExtTable<E> extends JTable {
 
             final TableColumn tableColumn = new TableColumn(i);
 
-            tableColumn.setHeaderRenderer(new ExtTableHeaderRenderer(this.model.getExtColumn(j)));
+            tableColumn.setHeaderRenderer(new ExtTableHeaderRenderer(this.model.getExtColumn(j), this.getTableHeader()));
             // Save column width
             tableColumn.addPropertyChangeListener(new PropertyChangeListener() {
                 public void propertyChange(final PropertyChangeEvent evt) {
