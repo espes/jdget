@@ -106,6 +106,7 @@ public class Dialog implements WindowFocusListener {
      * Hide the cancel Button
      */
     public static final int     BUTTONS_HIDE_CANCEL                  = 1 << 4;
+
     /**
      * Hide the OK button
      */
@@ -142,11 +143,11 @@ public class Dialog implements WindowFocusListener {
      * internal singleton instance to access the instance of this class
      */
     private static final Dialog INSTANCE                             = new Dialog();
-
     /**
      * LOGIC_BYPASS all dialogs. Try to fill automatically or return null
      */
     public static final int     LOGIC_BYPASS                         = 1 << 1;
+
     /**
      * Use this flag to show display of the Timer
      */
@@ -156,8 +157,8 @@ public class Dialog implements WindowFocusListener {
      * further sessions
      */
     public static final int     LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT = 1 << 11;
-
     public static final int     LOGIC_DONOTSHOW_BASED_ON_TITLE_ONLY  = 1 << 12;
+
     /**
      * Often, the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} option does not make
      * sense for the cancel option. Use this flag if the option should be
@@ -178,7 +179,6 @@ public class Dialog implements WindowFocusListener {
      * if user closed the window
      */
     public static final int     RETURN_CLOSED                        = 1 << 6;
-
     /**
      * this return flag can be set in two situations:<br>
      * a) The user selected the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option<br>
@@ -189,6 +189,7 @@ public class Dialog implements WindowFocusListener {
      * visible or autoskipped
      */
     public static final int     RETURN_DONT_SHOW_AGAIN               = 1 << 3;
+
     /**
      * If the user pressed OK, the return mask will contain this flag
      */
@@ -200,12 +201,12 @@ public class Dialog implements WindowFocusListener {
      * @see #RETURN_DONT_SHOW_AGAIN
      */
     public static final int     RETURN_SKIPPED_BY_DONT_SHOW          = 1 << 4;
-
     /**
      * If the Timeout ({@link #LOGIC_COUNTDOWN}) has run out, the return mask
      * contains this flag
      */
     public static final int     RETURN_TIMEOUT                       = 1 << 5;
+
     private static boolean      ShellFolderIDWorkaround              = false;
 
     public static boolean isClosed(final Object value) {
@@ -219,6 +220,7 @@ public class Dialog implements WindowFocusListener {
     }
 
     private List<? extends Image> iconList                        = null;
+
     /**
      * Do Not use an Icon. By default dialogs have an Icon
      */
@@ -227,7 +229,6 @@ public class Dialog implements WindowFocusListener {
      * Some dialogs are able to render HTML. Use this switch to enable html
      */
     public static final int       STYLE_HTML                      = 1 << 7;
-
     /**
      * Some dialogs are able to layout themselves in a large mode. E:g. to
      * display a huge text.
@@ -282,12 +283,18 @@ public class Dialog implements WindowFocusListener {
     /**
      * The max counter value for a timeout Dialog
      */
-    private int       countdownTime = 20;
+    private int                     countdownTime = 20;
 
     /**
      * Parent window for all dialogs created with abstractdialog
      */
-    private Component owner         = null;
+    private Component               owner         = null;
+
+    private final ArrayList<Window> parents;
+
+    private Dialog() {
+        this.parents = new ArrayList<Window>();
+    }
 
     /**
      * @return the {@link Dialog#countdownTime}
@@ -314,6 +321,16 @@ public class Dialog implements WindowFocusListener {
     }
 
     /**
+     * returns all windows which have been registerted by
+     * {@link #registerFrame(Window)}
+     * 
+     * @return
+     */
+    public ArrayList<Window> getRegisteredParents() {
+        return this.parents;
+    }
+
+    /**
      * Register all windows here that might become parent for dialogs.
      * Dialogsystem will set them as parent if they gain focus
      * 
@@ -322,6 +339,7 @@ public class Dialog implements WindowFocusListener {
     public void registerFrame(final Window frame) {
         frame.addWindowFocusListener(this);
 
+        this.parents.add(frame);
     }
 
     /**
@@ -983,6 +1001,7 @@ public class Dialog implements WindowFocusListener {
      */
     public void unregisterFrame(final Window win) {
         win.removeWindowFocusListener(this);
+        this.parents.remove(win);
 
     }
 

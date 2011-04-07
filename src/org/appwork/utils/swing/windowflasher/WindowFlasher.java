@@ -18,31 +18,21 @@ public class WindowFlasher {
     private final JFrame           window;
 
     private final ArrayList<Image> flashIcons;
-    private final List<Image>      icons;
+    private List<Image>            icons;
     private Timer                  iconFlashTimer;
+
+    private boolean                running = false;
 
     public WindowFlasher(final JFrame frame, final ArrayList<Image> list) {
         this.window = frame;
         this.flashIcons = list;
 
-        this.icons = frame.getIconImages();
-
         final WindowAdapter windowWindowAdapter = new WindowAdapter() {
 
             @Override
             public void windowGainedFocus(final WindowEvent e) {
-
-                if (WindowFlasher.this.iconFlashTimer != null) {
-                    WindowFlasher.this.iconFlashTimer.stop();
-                    new EDTRunner() {
-
-                        @Override
-                        protected void runInEDT() {
-                            WindowFlasher.this.window.setIconImages(WindowFlasher.this.icons);
-
-                        }
-                    };
-                    WindowFlasher.this.iconFlashTimer = null;
+                if (WindowFlasher.this.running) {
+                    WindowFlasher.this.stop();
                 }
             }
 
@@ -51,12 +41,26 @@ public class WindowFlasher {
         this.window.addWindowFocusListener(windowWindowAdapter);
     }
 
-    public synchronized void start() {
-        if (!this.window.isFocused()) {
+    /**
+     * @return
+     */
+    public boolean hasFocus() {
+        if (this.window.hasFocus()) { return true; }
 
+        return false;
+    }
+
+    public boolean isRunning() {
+        return this.running;
+    }
+
+    public synchronized void start() {
+        if (!this.hasFocus()) {
+            this.running = true;
             if (this.flashIcons != null) {
                 if (this.iconFlashTimer == null) {
-                    this.iconFlashTimer = new Timer(600, new ActionListener() {
+                    this.icons = this.window.getIconImages();
+                    this.iconFlashTimer = new Timer(500, new ActionListener() {
                         private boolean flashy = false;
 
                         @Override
@@ -74,6 +78,34 @@ public class WindowFlasher {
                 }
             }
         }
+    }
+
+    /**
+     * 
+     */
+    public void stop() {
+        this.running = false;
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+
+                if (WindowFlasher.this.iconFlashTimer != null) {
+
+                    WindowFlasher.this.iconFlashTimer.stop();
+                    WindowFlasher.this.iconFlashTimer = null;
+                    new EDTRunner() {
+
+                        @Override
+                        protected void runInEDT() {
+                            WindowFlasher.this.window.setIconImages(WindowFlasher.this.icons);
+
+                        }
+                    };
+
+                }
+            }
+        };
     }
 
 }
