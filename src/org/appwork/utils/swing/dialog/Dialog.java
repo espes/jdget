@@ -11,6 +11,9 @@ package org.appwork.utils.swing.dialog;
 
 import java.awt.Component;
 import java.awt.Image;
+import java.awt.Window;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,7 +38,7 @@ import org.appwork.utils.swing.EDTHelper;
  * A Dialog Instance which provides extended Dialog features and thus replaces
  * JOptionPane
  */
-public class Dialog {
+public class Dialog implements WindowFocusListener {
     /**
      * Requests a FileChooserDialog.
      * 
@@ -254,14 +257,14 @@ public class Dialog {
         try {
             if (text.contains("?")) {
                 return ImageProvider.getImageIcon(Dialog.ICON_QUESTION, 32, 32, true);
-            } else if (text.contains("error")|| text.contains("exception")) {
+            } else if (text.contains("error") || text.contains("exception")) {
                 return ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true);
             } else if (text.contains("!")) {
                 return ImageProvider.getImageIcon(Dialog.ICON_WARNING, 32, 32, true);
             } else {
                 return ImageProvider.getImageIcon(Dialog.ICON_INFO, 32, 32, true);
             }
-        } catch (final Throwable e) {            
+        } catch (final Throwable e) {
             Log.exception(e);
             return null;
         }
@@ -308,6 +311,17 @@ public class Dialog {
     public Component getParentOwner() {
 
         return this.owner;
+    }
+
+    /**
+     * Register all windows here that might become parent for dialogs.
+     * Dialogsystem will set them as parent if they gain focus
+     * 
+     * @param frame
+     */
+    public void registerFrame(final Window frame) {
+        frame.addWindowFocusListener(this);
+
     }
 
     /**
@@ -964,6 +978,14 @@ public class Dialog {
         return this.showDialog(new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter));
     }
 
+    /**
+     * @param chatFrame
+     */
+    public void unregisterFrame(final Window win) {
+        win.removeWindowFocusListener(this);
+
+    }
+
     private File validateFileType(final File ret, final Integer fileSelectionMode, final boolean mkdir) {
         if (ret == null) { return null; }
         if (fileSelectionMode != null) {
@@ -990,6 +1012,33 @@ public class Dialog {
             }
         }
         return ret;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.awt.event.WindowFocusListener#windowGainedFocus(java.awt.event.
+     * WindowEvent)
+     */
+    @Override
+    public void windowGainedFocus(final WindowEvent e) {
+        if (e.getSource() instanceof Window) {
+
+            this.setParentOwner((Component) e.getSource());
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.WindowFocusListener#windowLostFocus(java.awt.event.WindowEvent
+     * )
+     */
+    @Override
+    public void windowLostFocus(final WindowEvent e) {
+        // TODO Auto-generated method stub
+
     }
 
 }

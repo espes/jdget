@@ -22,50 +22,47 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.windowflasher.WindowFlasher;
 
 public abstract class BasicGui {
 
     /**
      * The Mainframe
      */
-    private final JFrame        frame;
+    private final JFrame  frame;
 
-    private LockPanel           lockPanel;
+    private LockPanel     lockPanel;
 
-    private AWTrayIcon          ti;
+    private AWTrayIcon    ti;
 
-    private final WindowFlasher flasher;
-
-    private final Storage       storage;
+    private final Storage storage;
 
     protected BasicGui(final String title) {
 
-        frame = new JFrame(title);
+        this.frame = new JFrame(title);
 
         // dilaog init
-        storage = JSonStorage.getPlainStorage("BasicGui");
-        Dialog.getInstance().setParentOwner(frame);
-        frame.addWindowListener(new WindowAdapter() {
+        this.storage = JSonStorage.getPlainStorage("BasicGui");
+        Dialog.getInstance().setParentOwner(this.frame);
+        this.frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(final WindowEvent arg0) {
                 if (!CrossSystem.isMac()) {
                     new Thread("Closer") {
                         @Override
                         public void run() {
-                            requestExit();
+                            BasicGui.this.requestExit();
 
                         }
 
                     }.start();
                 } else {
-                    if (getFrame().isVisible()) {
-                        getFrame().setVisible(false);
+                    if (BasicGui.this.getFrame().isVisible()) {
+                        BasicGui.this.getFrame().setVisible(false);
                     }
                 }
             }
         });
-        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        this.frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         // set appicon
         final ArrayList<Image> list = new ArrayList<Image>();
 
@@ -75,72 +72,62 @@ public abstract class BasicGui {
             Log.exception(e);
         }
         try {
-            lockPanel = LockPanel.create(frame);
+            this.lockPanel = LockPanel.create(this.frame);
         } catch (final AWTException e1) {
 
             org.appwork.utils.logging.Log.exception(e1);
         }
-        frame.setIconImages(list);
+        this.frame.setIconImages(list);
         // Set Application dimensions and locations
 
         // set extended state
 
-        frame.setExtendedState(JSonStorage.getPlainStorage("Interface").get("EXTENDEDSTATE", Frame.NORMAL));
+        this.frame.setExtendedState(JSonStorage.getPlainStorage("Interface").get("EXTENDEDSTATE", Frame.NORMAL));
         final Dimension dim = new Dimension(JSonStorage.getPlainStorage("Interface").get("DIMENSION_WIDTH", 1000), JSonStorage.getPlainStorage("Interface").get("DIMENSION_HEIGHT", 600));
         // restore size
-        frame.setSize(dim);
-        frame.setPreferredSize(dim);
+        this.frame.setSize(dim);
+        this.frame.setPreferredSize(dim);
 
-        frame.setMinimumSize(new Dimension(100, 100));
+        this.frame.setMinimumSize(new Dimension(100, 100));
         //
 
-        layoutPanel();
+        this.layoutPanel();
         // setGlasPane();
 
         // restore location. use center of screen as default.
         final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        final int x = screenSize.width / 2 - frame.getSize().width / 2;
-        final int y = screenSize.height / 2 - frame.getSize().height / 2;
+        final int x = screenSize.width / 2 - this.frame.getSize().width / 2;
+        final int y = screenSize.height / 2 - this.frame.getSize().height / 2;
 
-        frame.setLocation(JSonStorage.getPlainStorage("Interface").get("LOCATION_X", x), JSonStorage.getPlainStorage("Interface").get("LOCATION_Y", y));
+        this.frame.setLocation(JSonStorage.getPlainStorage("Interface").get("LOCATION_X", x), JSonStorage.getPlainStorage("Interface").get("LOCATION_Y", y));
 
-        frame.pack();
+        this.frame.pack();
 
-        frame.setVisible(true);
+        this.frame.setVisible(true);
         Toolkit.getDefaultToolkit().getSystemEventQueue().push(new CopyCutPasteHandler());
-
-        flasher = new WindowFlasher(frame);
 
     }
 
     public void dispose() {
-        if (frame.getExtendedState() == Frame.NORMAL && frame.isShowing()) {
+        if (this.frame.getExtendedState() == Frame.NORMAL && this.frame.isShowing()) {
 
-            JSonStorage.getPlainStorage("Interface").put("LOCATION_X", frame.getLocationOnScreen().x);
-            JSonStorage.getPlainStorage("Interface").put("LOCATION_Y", frame.getLocationOnScreen().y);
-            JSonStorage.getPlainStorage("Interface").put("DIMENSION_WIDTH", frame.getSize().width);
-            JSonStorage.getPlainStorage("Interface").put("DIMENSION_HEIGHT", frame.getSize().height);
+            JSonStorage.getPlainStorage("Interface").put("LOCATION_X", this.frame.getLocationOnScreen().x);
+            JSonStorage.getPlainStorage("Interface").put("LOCATION_Y", this.frame.getLocationOnScreen().y);
+            JSonStorage.getPlainStorage("Interface").put("DIMENSION_WIDTH", this.frame.getSize().width);
+            JSonStorage.getPlainStorage("Interface").put("DIMENSION_HEIGHT", this.frame.getSize().height);
 
         }
 
-        JSonStorage.getPlainStorage("Interface").put("EXTENDEDSTATE", frame.getExtendedState());
-        if (ti != null) {
-            ti.dispose();
+        JSonStorage.getPlainStorage("Interface").put("EXTENDEDSTATE", this.frame.getExtendedState());
+        if (this.ti != null) {
+            this.ti.dispose();
         }
-        frame.setVisible(false);
-        frame.dispose();
-    }
-
-    /**
-     * @return the {@link GUI#flasher}
-     * @see GUI#flasher
-     */
-    public WindowFlasher getFlasher() {
-        return flasher;
+        this.frame.setVisible(false);
+        this.frame.dispose();
     }
 
     public JFrame getFrame() {
-        return frame;
+        return this.frame;
     }
 
     /**
@@ -148,11 +135,11 @@ public abstract class BasicGui {
      * @see GUI#lockPanel
      */
     protected LockPanel getLockPanel() {
-        return lockPanel;
+        return this.lockPanel;
     }
 
     public Storage getStorage() {
-        return storage;
+        return this.storage;
     }
 
     /**

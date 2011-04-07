@@ -1,50 +1,78 @@
 package org.appwork.utils.swing.windowflasher;
 
-import java.awt.Dialog;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
+import javax.swing.Timer;
+
+import org.appwork.utils.swing.EDTRunner;
 
 public class WindowFlasher {
 
-    private final JFrame window;
-    private final Dialog d;
+    private final JFrame           window;
 
-    public WindowFlasher(final JFrame frame) {
+    private final ArrayList<Image> flashIcons;
+    private final List<Image>      icons;
+    private Timer                  iconFlashTimer;
+
+    public WindowFlasher(final JFrame frame, final ArrayList<Image> list) {
         this.window = frame;
-        this.d = new Dialog(this.window);
-        this.d.setUndecorated(true);
-        this.d.setSize(0, 0);
-        this.d.setModal(false);
+        this.flashIcons = list;
 
-        final WindowAdapter dWindowListener = new WindowAdapter() {
+        this.icons = frame.getIconImages();
 
-            @Override
-            public void windowGainedFocus(final WindowEvent e) {
-                WindowFlasher.this.window.requestFocus();
-                WindowFlasher.this.d.setVisible(false);
-            }
-
-        };
         final WindowAdapter windowWindowAdapter = new WindowAdapter() {
 
             @Override
             public void windowGainedFocus(final WindowEvent e) {
-                WindowFlasher.this.d.setVisible(false);
+
+                if (WindowFlasher.this.iconFlashTimer != null) {
+                    WindowFlasher.this.iconFlashTimer.stop();
+                    new EDTRunner() {
+
+                        @Override
+                        protected void runInEDT() {
+                            WindowFlasher.this.window.setIconImages(WindowFlasher.this.icons);
+
+                        }
+                    };
+                    WindowFlasher.this.iconFlashTimer = null;
+                }
             }
 
         };
-        this.d.addWindowFocusListener(dWindowListener);
+
         this.window.addWindowFocusListener(windowWindowAdapter);
     }
 
-    public void start() {
+    public synchronized void start() {
         if (!this.window.isFocused()) {
-            this.d.setVisible(false);
-            this.d.setLocation(0, 0);
-            this.d.setLocationRelativeTo(this.window);
-            this.d.setVisible(true);
+
+            if (this.flashIcons != null) {
+                if (this.iconFlashTimer == null) {
+                    this.iconFlashTimer = new Timer(600, new ActionListener() {
+                        private boolean flashy = false;
+
+                        @Override
+                        public void actionPerformed(final ActionEvent e) {
+                            this.flashy = !this.flashy;
+                            if (this.flashy) {
+                                WindowFlasher.this.window.setIconImages(WindowFlasher.this.flashIcons);
+                            } else {
+                                WindowFlasher.this.window.setIconImages(WindowFlasher.this.icons);
+                            }
+                        }
+                    });
+                    this.iconFlashTimer.setRepeats(true);
+                    this.iconFlashTimer.start();
+                }
+            }
         }
     }
 
