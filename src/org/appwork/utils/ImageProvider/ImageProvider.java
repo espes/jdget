@@ -339,18 +339,39 @@ public class ImageProvider {
     }
 
     /**
-     * @param image
+     * @param back
      * @param imageIcon
      * @param i
      * @param j
      */
-    public static BufferedImage merge(final Image image, final Image b, final int xoffset, final int yoffset) {
-        final int width = Math.max(image.getWidth(null), xoffset + b.getWidth(null));
-        final int height = Math.max(image.getHeight(null), yoffset + b.getHeight(null));
+    public static BufferedImage merge(final Image back, final Image front, final int xoffset, final int yoffset) {
+        int xoffsetTop, yoffsetTop, xoffsetBottom, yoffsetBottom;
+
+        if (xoffset >= 0) {
+            xoffsetTop = 0;
+            xoffsetBottom = xoffset;
+        } else {
+            xoffsetTop = -xoffset;
+            xoffsetBottom = 0;
+        }
+        if (yoffset >= 0) {
+            yoffsetTop = 0;
+            yoffsetBottom = yoffset;
+        } else {
+            yoffsetTop = -yoffset;
+            yoffsetBottom = 0;
+        }
+        return ImageProvider.merge(back, front, xoffsetTop, yoffsetTop, xoffsetBottom, yoffsetBottom);
+    }
+
+    public static BufferedImage merge(final Image back, final Image front, final int xoffsetBack, final int yoffsetBack, final int xoffsetFront, final int yoffsetFront) {
+
+        final int width = Math.max(xoffsetBack + back.getWidth(null), xoffsetFront + front.getWidth(null));
+        final int height = Math.max(yoffsetBack + back.getHeight(null), yoffsetFront + front.getHeight(null));
         final BufferedImage dest = new BufferedImage(width, height, Transparency.TRANSLUCENT);
         final Graphics2D g2 = dest.createGraphics();
-        g2.drawImage(image, 0, 0, null);
-        g2.drawImage(b, xoffset, yoffset, null);
+        g2.drawImage(back, xoffsetBack, yoffsetBack, null);
+        g2.drawImage(front, xoffsetFront, yoffsetFront, null);
         g2.dispose();
         return dest;
     }
