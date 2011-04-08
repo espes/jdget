@@ -11,6 +11,7 @@ package org.appwork.utils.ImageProvider;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -80,7 +81,7 @@ public class ImageProvider {
      * @param j
      * @return
      */
-    public static Image createIcon(final String string, final int width, final int height) {
+    public static BufferedImage createIcon(final String string, final int width, final int height) {
         final int w = width;
         final int h = height;
 
@@ -114,6 +115,24 @@ public class ImageProvider {
     }
 
     /**
+     * this creates a new BufferedImage from an existing Image. Is used for
+     * dereferencing the sourceImage in scaled Images created with
+     * image.getScaledInstance, which always keeps a reference to its original
+     * image
+     * 
+     * @param image
+     * @return
+     * @throws IOException
+     */
+    public static BufferedImage dereferenceImage(final Image image) throws IOException {
+        final BufferedImage bu = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+        final Graphics g = bu.getGraphics();
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+        return bu;
+    }
+
+    /**
      * 
      * @param name
      *            to the png file
@@ -122,7 +141,11 @@ public class ImageProvider {
      * @return
      * @throws IOException
      */
-    public static Image getBufferedImage(final String name, final boolean createDummy) throws IOException {
+    public static BufferedImage getBufferedImage(final String name, final boolean createDummy) throws IOException {
+        return ImageProvider.getBufferedImage(name, createDummy, true);
+    }
+
+    public static BufferedImage getBufferedImage(final String name, final boolean createDummy, final boolean putIntoCache) throws IOException {
         synchronized (ImageProvider.LOCK) {
             if (ImageProvider.IMAGE_CACHE.containsKey(name)) { return ImageProvider.IMAGE_CACHE.get(name); }
 
@@ -130,7 +153,13 @@ public class ImageProvider {
             try {
                 Log.L.info("Init Image: " + name + ": " + absolutePath);
                 final BufferedImage image = ImageProvider.read(absolutePath);
-                ImageProvider.IMAGE_CACHE.put(name, image);
+                if (putIntoCache) {
+                    if (image.getHeight() * image.getWidth() > 100 * 100) {
+                        // Log.exception(new Throwable("BIG IMAGE IN CACHE: " +
+                        // name));
+                    }
+                    ImageProvider.IMAGE_CACHE.put(name, image);
+                }
                 return image;
             } catch (final IOException e) {
                 Log.L.severe("Could not Init Image: " + absolutePath);
@@ -192,7 +221,11 @@ public class ImageProvider {
      * @return
      * @throws IOException
      */
-    public static ImageIcon getImageIcon(final String name, int width, int height, final boolean createDummy) throws IOException {
+    public static ImageIcon getImageIcon(final String name, final int width, final int height, final boolean createDummy) throws IOException {
+        return ImageProvider.getImageIcon(name, width, height, createDummy, true);
+    }
+
+    public static ImageIcon getImageIcon(final String name, int width, int height, final boolean createDummy, final boolean putIntoCache) throws IOException {
         synchronized (ImageProvider.LOCK) {
             final StringBuilder SB = new StringBuilder();
             SB.append(name);
@@ -202,13 +235,32 @@ public class ImageProvider {
             SB.append(height);
             String key;
             if (ImageProvider.IMAGEICON_CACHE.containsKey(key = SB.toString())) { return ImageProvider.IMAGEICON_CACHE.get(key); }
-            final Image image = ImageProvider.getBufferedImage(name, createDummy);
+            final BufferedImage image = ImageProvider.getBufferedImage(name, createDummy, putIntoCache);
             final double faktor = Math.max((double) image.getWidth(null) / width, (double) image.getHeight(null) / height);
             width = (int) (image.getWidth(null) / faktor);
             height = (int) (image.getHeight(null) / faktor);
-            final ImageIcon imageicon = new ImageIcon(image.getScaledInstance(width, height, Image.SCALE_SMOOTH));
-            ImageProvider.IMAGEICON_CACHE.put(key, imageicon);
+            /**
+             * WARNING: getScaledInstance will return a scaled image, BUT keeps
+             * a reference to original unscaled image
+             */
+            final Image scaledWithFuckingReference = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            final BufferedImage referencelessVersion = ImageProvider.dereferenceImage(scaledWithFuckingReference);
+            final ImageIcon imageicon = new ImageIcon(referencelessVersion);
+            if (putIntoCache) {
+                ImageProvider.IMAGEICON_CACHE.put(key, imageicon);
+            }
             return imageicon;
+        }
+    }
+
+    public static ImageIcon getImageIconUnCached(final String name, final int x, final int y) {
+        // TODO Auto-generated method stub
+        try {
+            return ImageProvider.getImageIcon(name, x, y, true, false);
+        } catch (final IOException e) {
+            // can not happen. true creates a dummyicon in case of io errors
+            Log.exception(e);
+            return null;
         }
     }
 
@@ -224,11 +276,11 @@ public class ImageProvider {
      * @param targetHeight
      *            the desired height of the scaled instance, in pixels
      * @param hint
-     *            one of the rendering hints that corresponds to {@code
-     *            RenderingHints.KEY_INTERPOLATION} (e.g. {@code
-     *            RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR}, {@code
-     *            RenderingHints.VALUE_INTERPOLATION_BILINEAR}, {@code
-     *            RenderingHints.VALUE_INTERPOLATION_BICUBIC})
+     *            one of the rendering hints that corresponds to
+     *            {@code RenderingHints.KEY_INTERPOLATION} (e.g.
+     *            {@code RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR},
+     *            {@code RenderingHints.VALUE_INTERPOLATION_BILINEAR},
+     *            {@code RenderingHints.VALUE_INTERPOLATION_BICUBIC})
      * @param higherQuality
      *            if true, this method will use a multi-step scaling technique
      *            that provides higher quality than the usual one-step technique
@@ -366,7 +418,13 @@ public class ImageProvider {
         width = (int) (img.getWidth() / faktor);
         height = (int) (img.getHeight() / faktor);
         if (faktor == 1.0) { return img; }
-        return img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        final Image image = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        try {
+            return ImageProvider.dereferenceImage(image);
+        } catch (final IOException e) {
+            Log.exception(e);
+            return null;
+        }
 
     }
 

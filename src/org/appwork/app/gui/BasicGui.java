@@ -67,7 +67,7 @@ public abstract class BasicGui {
         final ArrayList<Image> list = new ArrayList<Image>();
 
         try {
-            list.add(ImageProvider.getBufferedImage("appicon", true));
+            list.add(ImageProvider.getBufferedImage("appicon", true, false));
         } catch (final IOException e) {
             Log.exception(e);
         }
