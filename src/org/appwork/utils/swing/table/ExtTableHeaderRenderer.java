@@ -116,7 +116,6 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
 
     @Override
     public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-
         this.setForeground(hasFocus ? this.focusForeground : this.foregroundC);
         this.setBackground(hasFocus ? this.focusBackground : this.backgroundC);
         // sort column is no current column
@@ -125,10 +124,12 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
         } else {
             this.paintIcon = true;
         }
-        this.order = this.column.getModel().isSortOrderToggle();
-        this.setText(value == null ? "" : value.toString());
 
+        this.order = this.column.getModel().isSortOrderToggle();
+
+        this.setText(value == null ? "" : value.toString());
         this.setBorder(hasFocus ? this.focusBorder : this.cellBorder);
+
         return this;
     }
 

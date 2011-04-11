@@ -23,6 +23,10 @@ public abstract class ExtTextEditorColumn<E> extends ExtTextColumn<E> implements
     private static final long serialVersionUID = -3107569347493659178L;
     private final JTextField  text;
 
+    public ExtTextEditorColumn(final String name) {
+        this(name, null);
+    }
+
     public ExtTextEditorColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 

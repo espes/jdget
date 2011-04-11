@@ -10,6 +10,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
+import javax.swing.ListCellRenderer;
 
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
@@ -17,71 +18,135 @@ import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionListener {
 
-    private static final long serialVersionUID = 2114805529462086691L;
+    private static final long         serialVersionUID = 2114805529462086691L;
 
-    private JComboBox comboBoxRend;
-    private JComboBox comboBoxEdit;
-    private int selection;
+    private JComboBox                 comboBoxRend;
+    private JComboBox                 comboBoxEdit;
+    private int                       selection;
     protected DefaultListCellRenderer renderer;
 
-    private ComboBoxModel dataModel;
+    private ComboBoxModel             dataModel;
 
-    public ExtComboColumn(String name, ExtTableModel<E> table, ComboBoxModel model) {
+    public ExtComboColumn(final String name, final ComboBoxModel model) {
+        this(name, null, model);
+
+    }
+
+    public ExtComboColumn(final String name, final ExtTableModel<E> table, ComboBoxModel model) {
         super(name, table);
-        if (model == null) model = new DefaultComboBoxModel();
-        dataModel = model;
-        comboBoxRend = new JComboBox(dataModel) {
+        if (model == null) {
+            model = new DefaultComboBoxModel();
+        }
+        this.dataModel = model;
+        this.comboBoxRend = new JComboBox(this.dataModel) {
             private static final long serialVersionUID = -7223814300276557968L;
 
-            public void addActionListener(ActionListener l) {
-                listenerList.add(ActionListener.class, l);
+            @Override
+            public void addActionListener(final ActionListener l) {
+                this.listenerList.add(ActionListener.class, l);
             }
         };
 
-        comboBoxEdit = new JComboBox(dataModel);
-        comboBoxEdit.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
-        comboBoxRend.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
+        this.comboBoxEdit = new JComboBox(this.dataModel);
+
+        // comboBoxEdit.setRenderer(new DefaultCellEditor(comboBox))
+        this.comboBoxEdit.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
+        this.comboBoxRend.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
+        this.comboBoxEdit.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
+        final ListCellRenderer t = this.comboBoxEdit.getRenderer();
+
+        this.comboBoxRend.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
-            public int compare(E o1, E o2) {
-                if (getComboBoxItem(o1) == getComboBoxItem(o2)) return 0;
+            public int compare(final E o1, final E o2) {
+                if (ExtComboColumn.this.getComboBoxItem(o1) == ExtComboColumn.this.getComboBoxItem(o2)) { return 0; }
                 if (this.isSortOrderToggle()) {
-                    return getComboBoxItem(o1) > getComboBoxItem(o2) ? 1 : -1;
+                    return ExtComboColumn.this.getComboBoxItem(o1) > ExtComboColumn.this.getComboBoxItem(o2) ? 1 : -1;
                 } else {
-                    return getComboBoxItem(o2) > getComboBoxItem(o1) ? 1 : -1;
+                    return ExtComboColumn.this.getComboBoxItem(o2) > ExtComboColumn.this.getComboBoxItem(o1) ? 1 : -1;
 
                 }
             }
         });
     }
 
-    public void setRenderer() {
-        comboBoxRend.setRenderer(renderer);
-        comboBoxEdit.setRenderer(renderer);
+    public void actionPerformed(final ActionEvent e) {
+
+        this.comboBoxEdit.removeActionListener(this);
+        this.stopCellEditing();
+    }
+
+    @Override
+    public Object getCellEditorValue() {
+        return this.comboBoxEdit.getSelectedIndex();
     }
 
     protected abstract int getComboBoxItem(E value);
 
+    @SuppressWarnings("unchecked")
     @Override
-    public boolean isEditable(E obj) {
-        return false;
+    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
+        this.selection = this.getComboBoxItem((E) value);
+        if (this.selection < 0) { return super.getTableCellEditorComponent(table, "", false, row, column); }
+        this.comboBoxEdit.setModel(this.updateModel(this.dataModel, value));
+        this.comboBoxEdit.removeActionListener(this);
+        this.comboBoxEdit.setToolTipText(this.getTooltip(value));
+        this.comboBoxEdit.setSelectedIndex(this.selection);
+        this.comboBoxEdit.addActionListener(this);
+        this.comboBoxEdit.setEnabled(this.isEnabled(value));
+        this.adaptRowHighlighters((E) value, this.comboBoxEdit, isSelected, true, row);
+        this.adaptRowHighlighters((E) value, this.comboBoxRend, isSelected, true, row);
+        this.comboBoxEdit.setOpaque(false);
+        this.comboBoxRend.setOpaque(false);
+        return this.comboBoxEdit;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        selection = getComboBoxItem((E) value);
-        if (selection < 0) { return super.getTableCellRendererComponent(table, "", false, hasFocus, row, column); }
-        comboBoxRend.setModel(updateModel(dataModel, value));
+    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.selection = this.getComboBoxItem((E) value);
+        if (this.selection < 0) { return super.getTableCellRendererComponent(table, "", false, hasFocus, row, column); }
+        this.comboBoxRend.setModel(this.updateModel(this.dataModel, value));
 
-        comboBoxEdit.removeActionListener(this);
-        comboBoxEdit.setToolTipText(getTooltip(value));
-        comboBoxRend.setSelectedIndex(getComboBoxItem((E) value));
-        comboBoxEdit.addActionListener(this);
+        this.comboBoxEdit.removeActionListener(this);
+        this.comboBoxEdit.setToolTipText(this.getTooltip(value));
+        this.comboBoxRend.setSelectedIndex(this.getComboBoxItem((E) value));
+        this.comboBoxEdit.addActionListener(this);
 
-        comboBoxRend.setEnabled(isEnabled(value));
-        return comboBoxRend;
+        this.comboBoxRend.setEnabled(this.isEnabled(value));
+        this.adaptRowHighlighters((E) value, this.comboBoxRend, isSelected, hasFocus, row);
+        return this.comboBoxRend;
+    }
+
+    public String getTooltip(final Object value) {
+
+        return null;
+    }
+
+    @Override
+    public boolean isEditable(final E obj) {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled(final Object obj) {
+
+        return true;
+    }
+
+    @Override
+    public boolean isSortable(final Object obj) {
+        return false;
+    }
+
+    public void setRenderer() {
+        this.comboBoxRend.setRenderer(this.renderer);
+        this.comboBoxEdit.setRenderer(this.renderer);
+    }
+
+    @Override
+    public void setValue(final Object value, final Object object) {
     }
 
     /**
@@ -89,54 +154,9 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
      * 
      * @param dataModel
      */
-    public ComboBoxModel updateModel(ComboBoxModel dataModel, Object value) {
+    public ComboBoxModel updateModel(final ComboBoxModel dataModel, final Object value) {
         return dataModel;
 
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        selection = getComboBoxItem((E) value);
-        if (selection < 0) { return super.getTableCellEditorComponent(table, "", false, row, column); }
-        comboBoxEdit.setModel(updateModel(dataModel, value));
-        comboBoxEdit.removeActionListener(this);
-        comboBoxEdit.setToolTipText(getTooltip(value));
-        comboBoxEdit.setSelectedIndex(selection);
-        comboBoxEdit.addActionListener(this);
-        comboBoxEdit.setEnabled(isEnabled(value));
-        return comboBoxEdit;
-    }
-
-    public String getTooltip(Object value) {
-        
-        return null;
-    }
-
-    @Override
-    public void setValue(Object value, Object object) {
-    }
-
-    @Override
-    public boolean isEnabled(Object obj) {
-        
-        return true;
-    }
-
-    @Override
-    public boolean isSortable(Object obj) {
-        return false;
-    }
-
-    @Override
-    public Object getCellEditorValue() {
-        return comboBoxEdit.getSelectedIndex();
-    }
-
-    public void actionPerformed(ActionEvent e) {
-
-        comboBoxEdit.removeActionListener(this);
-        this.stopCellEditing();
     }
 
 }

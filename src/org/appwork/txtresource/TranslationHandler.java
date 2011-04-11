@@ -199,7 +199,7 @@ public class TranslationHandler implements InvocationHandler {
             int i = 0;
             for (final Object o : args) {
                 i++;
-                ret = ret.replace("%s" + i, o.toString());
+                ret = ret.replace("%s" + i, o == null ? "null" : o.toString());
             }
         }
         return ret;
@@ -214,7 +214,7 @@ public class TranslationHandler implements InvocationHandler {
             res = it.next();
             try {
                 ret = res.getEntry(method);
-                return ret;
+                if (ret != null) { return ret; }
             } catch (final Throwable e) {
                 Log.L.warning("Exception in translation: " + this.tInterface.getName() + "." + res.getName());
                 Log.exception(Level.WARNING, e);

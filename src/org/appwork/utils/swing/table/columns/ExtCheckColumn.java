@@ -14,9 +14,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBox;
+import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 
+import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.renderer.RendererCheckBox;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
@@ -44,6 +47,11 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
 
         this.checkBoxEdit = new JCheckBox();
         this.checkBoxEdit.setHorizontalAlignment(SwingConstants.CENTER);
+        this.checkBoxRend.setOpaque(true);
+        this.checkBoxRend.putClientProperty("Synthetica.opaque", Boolean.TRUE);
+
+        this.checkBoxEdit.setOpaque(true);
+        this.checkBoxEdit.putClientProperty("Synthetica.opaque", Boolean.TRUE);
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             @Override
@@ -65,6 +73,65 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     public void actionPerformed(final ActionEvent e) {
         this.checkBoxEdit.removeActionListener(this);
         this.fireEditingStopped();
+    }
+
+    @Override
+    public JPopupMenu createHeaderPopup() {
+
+        final JPopupMenu ret = new JPopupMenu();
+        boolean allenabled = true;
+        boolean editable = false;
+        for (int i = 0; i < this.getModel().size(); i++) {
+            if (this.isEditable(this.getModel().getElementAt(i))) {
+                editable = true;
+
+                if (this.isEditable(this.getModel().getElementAt(i)) && !this.getBooleanValue(this.getModel().getElementAt(i))) {
+                    allenabled = false;
+                    break;
+                }
+            }
+        }
+        if (!editable) {
+            // column is not editable
+            return null;
+        }
+        final JPopupMenu menu = ret;
+        if (allenabled) {
+
+            final JCheckBox cb = new JCheckBox(APPWORKUTILS.T.extttable_disable_all());
+            cb.setSelected(true);
+            cb.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+                    ExtCheckColumn.this.setEnabledAll(false);
+                    menu.setVisible(false);
+
+                }
+            });
+            ret.add(cb);
+
+        } else {
+            final JCheckBox cb = new JCheckBox(APPWORKUTILS.T.extttable_enabled_all());
+            cb.setSelected(false);
+            cb.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+                    ExtCheckColumn.this.setEnabledAll(true);
+                    menu.setVisible(false);
+                }
+            });
+            ret.add(cb);
+        }
+
+        return ret;
+    }
+
+    @Override
+    public void extendControlButtonMenu(final JPopupMenu popup) {
+        // TODO Auto-generated method stub
+        super.extendControlButtonMenu(popup);
     }
 
     protected abstract boolean getBooleanValue(E value);
@@ -90,6 +157,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         this.checkBoxEdit.removeActionListener(this);
         this.checkBoxEdit.setSelected(this.getBooleanValue((E) value));
         this.checkBoxEdit.addActionListener(this);
+        this.adaptRowHighlighters((E) value, this.checkBoxEdit, isSelected, true, row);
         return this.checkBoxEdit;
     }
 
@@ -97,6 +165,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     @Override
     public final Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         this.checkBoxRend.setSelected(this.getBooleanValue((E) value));
+        this.adaptRowHighlighters((E) value, this.checkBoxRend, isSelected, hasFocus, row);
         return this.checkBoxRend;
     }
 
@@ -116,6 +185,24 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     }
 
     protected abstract void setBooleanValue(boolean value, E object);
+
+    /**
+     * @param b
+     */
+    protected void setEnabledAll(final boolean b) {
+        for (int i = 0; i < this.getModel().size(); i++) {
+            if (this.isEditable(this.getModel().getElementAt(i))) {
+                this.setBooleanValue(b, this.getModel().getElementAt(i));
+            }
+        }
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                ExtCheckColumn.this.getModel().fireTableDataChanged();
+            }
+        };
+    }
 
     @Override
     public final void setValue(final Object value, final E object) {

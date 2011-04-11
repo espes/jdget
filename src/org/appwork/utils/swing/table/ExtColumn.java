@@ -8,10 +8,14 @@ import java.util.EventObject;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractCellEditor;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.text.JTextComponent;
 
 import org.appwork.utils.swing.EDTHelper;
 
@@ -79,11 +83,25 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @param row
      */
     protected void adaptRowHighlighters(final E value, final JComponent comp, final boolean isSelected, final boolean hasFocus, final int row) {
+        comp.setOpaque(false);
+        // important for synthetica textcomponents
+        if (comp instanceof JTextComponent) {
+            comp.putClientProperty("Synthetica.opaque", Boolean.TRUE);
+        }
+
         for (final ExtComponentRowHighlighter<E> rh : this.getModel().getExtComponentRowHighlighters()) {
             if (rh.highlight(this, comp, value, isSelected, hasFocus, row)) {
                 break;
             }
         }
+    }
+
+    /**
+     * @return
+     */
+    public JPopupMenu createHeaderPopup() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     protected void doSort(final Object obj) {
@@ -123,6 +141,14 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.sortThread.start();
     }
 
+    /**
+     * @param popup
+     */
+    public void extendControlButtonMenu(final JPopupMenu popup) {
+        // TODO Auto-generated method stub
+
+    }
+
     public abstract Object getCellEditorValue();
 
     /**
@@ -138,6 +164,25 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public int getDefaultWidth() {
         return 100;
+    }
+
+    /**
+     * override this if you want to show a icon in the table header
+     * 
+     * @return
+     */
+    public ImageIcon getHeaderIcon() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @param jTableHeader
+     * @return
+     */
+    public ExtTableHeaderRenderer getHeaderRenderer(final JTableHeader jTableHeader) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /**
@@ -248,6 +293,18 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public boolean isHidable() {
+        return true;
+    }
+
+    /**
+     * If you want to use only an icon in the table header, you can override
+     * this and let the method return false. This only works if
+     * {@link #getHeaderIcon()} returns an icon
+     * 
+     * @return
+     */
+    public boolean isPaintHeaderText() {
+
         return true;
     }
 

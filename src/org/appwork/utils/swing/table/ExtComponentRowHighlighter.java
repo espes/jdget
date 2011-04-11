@@ -14,6 +14,7 @@ import java.util.HashMap;
 
 import javax.swing.JComponent;
 import javax.swing.border.Border;
+import javax.swing.text.JTextComponent;
 
 /**
  * @author thomas Highlighterclass which can be added to ExtTableModel.
@@ -90,6 +91,7 @@ public abstract class ExtComponentRowHighlighter<E> {
     }
 
     public boolean highlight(final ExtColumn<E> column, final JComponent comp, final E value, final boolean selected, final boolean focus, final int row) {
+
         final Restore restore = this.saveRestoreInfo(comp);
         if (this.accept(column, value, selected, focus, row)) {
 
@@ -98,6 +100,10 @@ public abstract class ExtComponentRowHighlighter<E> {
                 comp.setBackground(this.background);
 
                 comp.setOpaque(true);
+                // important for synthetica textcomponents
+                if (comp instanceof JTextComponent) {
+                    comp.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+                }
             }
             if (this.foreground != null) {
                 comp.setForeground(this.foreground);
@@ -115,6 +121,10 @@ public abstract class ExtComponentRowHighlighter<E> {
             comp.setBorder(restore.border);
 
             comp.setOpaque(restore.opaque);
+            // important for synthetica textcomponents
+            if (comp instanceof JTextComponent) {
+                comp.putClientProperty("Synthetica.opaque", restore.opaque);
+            }
         }
         return false;
     }

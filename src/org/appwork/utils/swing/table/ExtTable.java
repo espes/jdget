@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -35,7 +34,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
-import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -120,24 +118,9 @@ public class ExtTable<E> extends JTable {
         this.tableID = id;
         this.rowHighlighters = new ArrayList<ExtRowHighlighter>();
         this.model = model;
-        this.setColumnModel(new DefaultTableColumnModel() {
+        // workaround
+        this.setColumnModel(new ExtColumnModel(this.getColumnModel()));
 
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public TableColumn getColumn(final int columnIndex) {
-                /*
-                 * Math.max(0, columnIndex)
-                 * 
-                 * WORKAROUND for -1 column access,Index out of Bound,Unknown
-                 * why it happens but this workaround seems to do its job
-                 */
-                return this.tableColumns.elementAt(Math.max(0, columnIndex));
-            }
-        });
         model.setTable(this);
         this.createColumns();
         // get defaultbackground and Foregroundcolors
@@ -155,12 +138,13 @@ public class ExtTable<E> extends JTable {
 
             @Override
             public void mousePressed(final MouseEvent e) {
+
                 // only if we are not in resize mode
                 if (ExtTable.this.getTableHeader().getCursor().getType() == Cursor.getDefaultCursor().getType()) {
                     if (e.getButton() == MouseEvent.BUTTON1) {
                         this.columnPressed = ExtTable.this.columnAtPoint(e.getPoint());
                     } else if (e.getButton() == MouseEvent.BUTTON3) {
-                        ExtTable.this.columnControlMenu().show(ExtTable.this.getTableHeader(), e.getX(), e.getY());
+                        ExtTable.this.columnControlMenu(ExtTable.this.getExtColumnAtPoint(e.getPoint())).show(ExtTable.this.getTableHeader(), e.getX(), e.getY());
                     }
                 }
             }
@@ -263,34 +247,45 @@ public class ExtTable<E> extends JTable {
      * create Columnselection popupmenu. It contains all available columns and
      * let's the user select. The menu does not autoclose on click.
      * 
+     * @param extColumn
+     * 
      * @return
      */
-    private JPopupMenu columnControlMenu() {
-        final JPopupMenu popup = new JPopupMenu();
-        final JCheckBoxMenuItem[] mis = new JCheckBoxMenuItem[this.getExtTableModel().getColumnCount()];
+    protected JPopupMenu columnControlMenu(final ExtColumn<E> extColumn) {
+        JPopupMenu popup;
+        if (extColumn == null) {
+            // controlbutton
+            popup = new JPopupMenu();
+            for (int i = 0; i < this.getExtTableModel().getColumnCount(); i++) {
+                this.getExtTableModel().getExtColumn(i).extendControlButtonMenu(popup);
+            }
+        } else {
+            popup = extColumn.createHeaderPopup();
+            if (popup == null) {
+                popup = new JPopupMenu();
+            }
+        }
 
         for (int i = 0; i < this.getExtTableModel().getColumnCount(); ++i) {
             final int j = i;
-            final ExtCheckBoxMenuItem mi = new ExtCheckBoxMenuItem(this.getExtTableModel().getColumnName(i));
-            mi.setHideOnClick(false);
-            mis[i] = mi;
-            if (i == 0) {
-                mi.setEnabled(false);
-            } else {
-                mi.setEnabled(this.getExtTableModel().isHidable(i));
+            if (this.getExtTableModel().isHidable(i)) {
+                final ExtCheckBoxMenuItem mi = new ExtCheckBoxMenuItem(this.getExtTableModel().getColumnName(i));
+                mi.setHideOnClick(false);
+                // mis[i] = mi;
+
+                mi.setSelected(this.getExtTableModel().isVisible(i));
+                mi.addActionListener(new ActionListener() {
+
+                    public void actionPerformed(final ActionEvent e) {
+                        ExtTable.this.getExtTableModel().setVisible(j, mi.isSelected());
+                        ExtTable.this.createColumns();
+                        ExtTable.this.revalidate();
+                        ExtTable.this.repaint();
+                    }
+
+                });
+                popup.add(mi);
             }
-            mi.setSelected(this.getExtTableModel().isVisible(i));
-            mi.addActionListener(new ActionListener() {
-
-                public void actionPerformed(final ActionEvent e) {
-                    ExtTable.this.getExtTableModel().setVisible(j, mi.isSelected());
-                    ExtTable.this.createColumns();
-                    ExtTable.this.revalidate();
-                    ExtTable.this.repaint();
-                }
-
-            });
-            popup.add(mi);
         }
         return popup;
     }
@@ -316,7 +311,7 @@ public class ExtTable<E> extends JTable {
 
             final TableColumn tableColumn = new TableColumn(i);
 
-            tableColumn.setHeaderRenderer(new ExtTableHeaderRenderer(this.model.getExtColumn(j), this.getTableHeader()));
+            tableColumn.setHeaderRenderer(this.model.getExtColumn(j).getHeaderRenderer(this.getTableHeader()) != null ? this.model.getExtColumn(j).getHeaderRenderer(this.getTableHeader()) : new ExtTableHeaderRenderer(this.model.getExtColumn(j), this.getTableHeader()));
             // Save column width
             tableColumn.addPropertyChangeListener(new PropertyChangeListener() {
                 public void propertyChange(final PropertyChangeEvent evt) {
@@ -403,7 +398,8 @@ public class ExtTable<E> extends JTable {
                 final JButton source = (JButton) event.getSource();
                 final int x = source.getLocation().x;
                 final int y = source.getLocation().y;
-                ExtTable.this.columnControlMenu().show(source, x, y);
+
+                ExtTable.this.columnControlMenu(null).show(source, x, y);
             }
 
         });

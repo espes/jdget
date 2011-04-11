@@ -122,6 +122,12 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Search table", "Tabelle durchsuchen" })
     String EXTTABLE_SEARCH_DIALOG_TITLE();
 
+    @Default(lngs = { "en", "de" }, values = { "Disable all", "Alle deaktivieren" })
+    String extttable_disable_all();
+
+    @Default(lngs = { "en", "de" }, values = { "Enable all", "Alle aktivieren" })
+    String extttable_enabled_all();
+
     @Default(lngs = { "en", "de" }, values = { "Login", "Anmelden" })
     String LOGINDIALOG_BUTTON_LOGIN();
 
