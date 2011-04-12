@@ -74,7 +74,7 @@ public class ChunkedInputStream extends InputStream {
         }
         this.nextChunkSize = 0;
         if (sb.length() > 0) {
-            this.nextChunkSize = Integer.parseInt(sb.toString(), 16);
+            this.nextChunkSize = Integer.parseInt(sb.toString().trim(), 16);
         }
         if (this.nextChunkSize == 0) {
             // System.out.println("lastChunk");
