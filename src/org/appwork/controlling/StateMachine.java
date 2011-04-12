@@ -99,7 +99,8 @@ public class StateMachine {
                 });
             }
             if (reached) {
-                run.run();
+                new Thread(run, "AsyncOnStateWorker").start();
+
             }
         }
     }
