@@ -6,7 +6,7 @@
     <path id="classpath">
            <fileset dir="${cls}" />
         <!-- Dependencies -->
-        <fileset dir="libs" includes="**/*.jar" />
+        <fileset dir="libs" includes="*.jar" />
     	<!--  <fileset dir="${java.home}/lib" includes="**/*.jar" /> -->
     	
     	
