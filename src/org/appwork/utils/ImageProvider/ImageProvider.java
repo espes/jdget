@@ -325,8 +325,9 @@ public class ImageProvider {
                     h = height;
                 }
             }
-
-            final BufferedImage tmp = new BufferedImage(w, h, ret.getType());
+            // use 6 as default image type. java versions <16 u17 return type 0
+            // for loaded pngs
+            final BufferedImage tmp = new BufferedImage(w, h, ret.getType() == 0 ? 6 : ret.getType());
             final Graphics2D g2 = tmp.createGraphics();
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, hint);
             g2.drawImage(ret, 0, 0, w, h, null);
