@@ -50,6 +50,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
 
     public AWTrayIcon(final JFrame frame) throws AWTException {
         this(frame, frame.getIconImages() == null || frame.getIconImages().size() == 0 ? ImageProvider.createIcon(frame.getTitle() != null && frame.getTitle().length() > 0 ? frame.getTitle().charAt(0) + "" : "T", 32, 32) : frame.getIconImages().get(0));
+
     }
 
     public AWTrayIcon(final JFrame frame, final Image icon) throws AWTException {
@@ -124,26 +125,21 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
         return this.frame.isVisible();
     }
 
-    
     public void mouseClicked(final MouseEvent e) {
     }
 
-    
     public void mouseEntered(final MouseEvent e) {
     }
 
-    
     public void mouseExited(final MouseEvent e) {
         this.hideToolTip();
     }
 
-    
     public void mouseMoveOverTray(final MouseEvent me) {
         if (this.trayIconPopup != null && this.trayIconPopup.isVisible()) { return; }
         this.displayToolTip();
     }
 
-    
     public void mousePressed(final MouseEvent e) {
         this.hideToolTip();
 
@@ -206,7 +202,6 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
         }
     }
 
-    
     public void mouseReleased(final MouseEvent e) {
     }
 
@@ -221,7 +216,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
 
         new EDTHelper<Object>() {
 
-            
+            @Override
             public Object edtRun() {
                 /*
                  * This is a workaround, because toFront does not work on all
@@ -247,7 +242,6 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
                 if (visible && resetAlwaysOnTop != null) {
                     SwingUtilities.invokeLater(new Runnable() {
 
-                        
                         public void run() {
                             resetAlwaysOnTop.setAlwaysOnTop(false);
                         }

@@ -54,6 +54,18 @@ public class WindowFlasher {
         return this.running;
     }
 
+    /**
+     * @param flashy
+     */
+    protected void set(final boolean flashy) {
+        if (flashy) {
+
+            WindowFlasher.this.window.setIconImages(WindowFlasher.this.flashIcons);
+        } else {
+            WindowFlasher.this.window.setIconImages(WindowFlasher.this.icons);
+        }
+    }
+
     public synchronized void start() {
         if (!this.hasFocus()) {
             this.running = true;
@@ -66,11 +78,8 @@ public class WindowFlasher {
                         @Override
                         public void actionPerformed(final ActionEvent e) {
                             this.flashy = !this.flashy;
-                            if (this.flashy) {
-                                WindowFlasher.this.window.setIconImages(WindowFlasher.this.flashIcons);
-                            } else {
-                                WindowFlasher.this.window.setIconImages(WindowFlasher.this.icons);
-                            }
+                            WindowFlasher.this.set(this.flashy);
+
                         }
                     });
                     this.iconFlashTimer.setRepeats(true);
@@ -98,8 +107,7 @@ public class WindowFlasher {
 
                         @Override
                         protected void runInEDT() {
-                            WindowFlasher.this.window.setIconImages(WindowFlasher.this.icons);
-
+                            WindowFlasher.this.set(false);
                         }
                     };
 
