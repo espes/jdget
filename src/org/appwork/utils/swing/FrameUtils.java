@@ -9,8 +9,8 @@
  */
 package org.appwork.utils.swing;
 
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 
 import javax.swing.JFrame;
 
@@ -28,21 +28,23 @@ public class FrameUtils {
     public static void toFront(final JFrame frame) {
         if (CrossSystem.isLinux()) {
             final boolean pre = frame.isAlwaysOnTop();
-            frame.addFocusListener(new FocusListener() {
+
+            frame.addWindowFocusListener(new WindowFocusListener() {
 
                 @Override
-                public void focusGained(final FocusEvent e) {
-
+                public void windowGainedFocus(final WindowEvent e) {
+                    frame.setAlwaysOnTop(pre);
+                    frame.removeWindowFocusListener(this);
                 }
 
                 @Override
-                public void focusLost(final FocusEvent e) {
-                    frame.setAlwaysOnTop(pre);
+                public void windowLostFocus(final WindowEvent e) {
+                    // TODO Auto-generated method stub
 
                 }
             });
-
             frame.setAlwaysOnTop(true);
+            frame.toFront();
         } else {
             frame.toFront();
         }
