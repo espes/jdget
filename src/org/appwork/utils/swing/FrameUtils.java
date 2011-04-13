@@ -27,20 +27,27 @@ public class FrameUtils {
      */
     public static void toFront(final JFrame frame) {
         if (CrossSystem.isLinux()) {
+            /**
+             * workaround for linux window manager, toFront does not work same
+             * way as under windows. we add a windowfocuslistener and set window
+             * to alwaysontop, that brings window to front. now the user clicks
+             * on it and windowmanager will bring it finally to front. in case
+             * the window looses its focus, alwaysontop will be set to original
+             * value (eg user clicks on another window)
+             */
             final boolean pre = frame.isAlwaysOnTop();
 
             frame.addWindowFocusListener(new WindowFocusListener() {
 
                 @Override
                 public void windowGainedFocus(final WindowEvent e) {
-                    frame.setAlwaysOnTop(pre);
-                    frame.removeWindowFocusListener(this);
+
                 }
 
                 @Override
                 public void windowLostFocus(final WindowEvent e) {
-                    // TODO Auto-generated method stub
-
+                    frame.setAlwaysOnTop(pre);
+                    frame.removeWindowFocusListener(this);
                 }
             });
             frame.setAlwaysOnTop(true);
