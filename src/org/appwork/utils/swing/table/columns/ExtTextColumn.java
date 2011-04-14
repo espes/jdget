@@ -80,7 +80,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @SuppressWarnings("unchecked")
     @Override
-    public final JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
+    public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
         this.text.removeActionListener(this);
         this.text.setText(this.getStringValue(value));
         this.text.addActionListener(this);
@@ -176,7 +176,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     }
 
     @Override
-    public final void setValue(final Object value, final E object) {
+    public void setValue(final Object value, final E object) {
         this.setStringValue((String) value, object);
     }
 
