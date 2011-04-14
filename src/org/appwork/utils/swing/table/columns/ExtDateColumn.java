@@ -135,13 +135,4 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
         return badDateText2;
     }
 
-    /**
-     * @param format
-     * @return
-     */
-
-    @Override
-    public void setValue(final Object value, final E object) {
-
-    }
 }

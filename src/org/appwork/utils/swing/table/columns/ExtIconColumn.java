@@ -1,14 +1,14 @@
 package org.appwork.utils.swing.table.columns;
 
-import java.awt.Component;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
-import javax.swing.JTable;
+import javax.swing.JComponent;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
+import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 /**
@@ -106,7 +106,7 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    public JComponent getRendererComponent(ExtTable<E> table, E value, boolean isSelected, boolean hasFocus, int row, int column) {
         label.setIcon(getIcon((E) value));
         label.setToolTipText(getToolTip((E) value));
         label.setEnabled(isEnabled((E) value));

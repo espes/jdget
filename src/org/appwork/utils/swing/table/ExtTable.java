@@ -9,6 +9,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -144,7 +145,12 @@ public class ExtTable<E> extends JTable {
                     if (e.getButton() == MouseEvent.BUTTON1) {
                         this.columnPressed = ExtTable.this.columnAtPoint(e.getPoint());
                     } else if (e.getButton() == MouseEvent.BUTTON3) {
-                        ExtTable.this.columnControlMenu(ExtTable.this.getExtColumnAtPoint(e.getPoint())).show(ExtTable.this.getTableHeader(), e.getX(), e.getY());
+                        final JPopupMenu ccm = ExtTable.this.columnControlMenu(ExtTable.this.getExtColumnAtPoint(e.getPoint()));
+                        ccm.show(ExtTable.this.getTableHeader(), e.getX(), e.getY());
+
+                        if (ccm.getComponentCount() == 0) {
+                            Toolkit.getDefaultToolkit().beep();
+                        }
                     }
                 }
             }
@@ -399,7 +405,11 @@ public class ExtTable<E> extends JTable {
                 final int x = source.getLocation().x;
                 final int y = source.getLocation().y;
 
-                ExtTable.this.columnControlMenu(null).show(source, x, y);
+                final JPopupMenu ccm = ExtTable.this.columnControlMenu(null);
+                ccm.show(source, x, y);
+                if (ccm.getComponentCount() == 0) {
+                    Toolkit.getDefaultToolkit().beep();
+                }
             }
 
         });

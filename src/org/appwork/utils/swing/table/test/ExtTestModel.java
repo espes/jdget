@@ -47,6 +47,7 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             protected String getStringValue(final TextObject value) {
                 return value.getA();
             }
+
         });
         this.addColumn(new ExtTextColumn<TextObject>("col 2") {
 

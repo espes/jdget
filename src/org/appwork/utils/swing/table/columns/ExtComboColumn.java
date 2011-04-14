@@ -1,31 +1,29 @@
 package org.appwork.utils.swing.table.columns;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
-import javax.swing.JTable;
+import javax.swing.JComponent;
 import javax.swing.ListCellRenderer;
 
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
+import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionListener {
 
-    private static final long         serialVersionUID = 2114805529462086691L;
+    private static final long serialVersionUID = 2114805529462086691L;
 
-    private JComboBox                 comboBoxRend;
-    private JComboBox                 comboBoxEdit;
-    private int                       selection;
-    protected DefaultListCellRenderer renderer;
+    private JComboBox         comboBoxRend;
+    private JComboBox         comboBoxEdit;
+    private int               selection;
 
-    private ComboBoxModel             dataModel;
+    private ComboBoxModel     dataModel;
 
     public ExtComboColumn(final String name, final ComboBoxModel model) {
         this(name, null, model);
@@ -50,10 +48,10 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
         this.comboBoxEdit = new JComboBox(this.dataModel);
 
         // comboBoxEdit.setRenderer(new DefaultCellEditor(comboBox))
-        this.comboBoxEdit.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
-        this.comboBoxRend.setBorder(BorderFactory.createEmptyBorder(3, 0, 3, 0));
+
+        this.comboBoxEdit.setBorder(BorderFactory.createCompoundBorder(this.comboBoxEdit.getBorder(), BorderFactory.createEmptyBorder(3, 3, 3, 3)));
+        this.comboBoxRend.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3), this.comboBoxRend.getBorder()));
         this.comboBoxEdit.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
-        final ListCellRenderer t = this.comboBoxEdit.getRenderer();
 
         this.comboBoxRend.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
@@ -86,36 +84,42 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
 
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
-        this.selection = this.getComboBoxItem((E) value);
-        if (this.selection < 0) { return super.getTableCellEditorComponent(table, "", false, row, column); }
+    public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
+        this.selection = this.getComboBoxItem(value);
+
         this.comboBoxEdit.setModel(this.updateModel(this.dataModel, value));
         this.comboBoxEdit.removeActionListener(this);
         this.comboBoxEdit.setToolTipText(this.getTooltip(value));
         this.comboBoxEdit.setSelectedIndex(this.selection);
         this.comboBoxEdit.addActionListener(this);
         this.comboBoxEdit.setEnabled(this.isEnabled(value));
-        this.adaptRowHighlighters((E) value, this.comboBoxEdit, isSelected, true, row);
-        this.adaptRowHighlighters((E) value, this.comboBoxRend, isSelected, true, row);
+
         this.comboBoxEdit.setOpaque(false);
         this.comboBoxRend.setOpaque(false);
         return this.comboBoxEdit;
     }
 
+    /**
+     * @return
+     */
+    public ListCellRenderer getRenderer() {
+        return this.comboBoxRend.getRenderer();
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        this.selection = this.getComboBoxItem((E) value);
-        if (this.selection < 0) { return super.getTableCellRendererComponent(table, "", false, hasFocus, row, column); }
+    public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.selection = this.getComboBoxItem(value);
+
         this.comboBoxRend.setModel(this.updateModel(this.dataModel, value));
 
         this.comboBoxEdit.removeActionListener(this);
         this.comboBoxEdit.setToolTipText(this.getTooltip(value));
-        this.comboBoxRend.setSelectedIndex(this.getComboBoxItem((E) value));
+        this.comboBoxRend.setSelectedIndex(this.getComboBoxItem(value));
         this.comboBoxEdit.addActionListener(this);
 
         this.comboBoxRend.setEnabled(this.isEnabled(value));
-        this.adaptRowHighlighters((E) value, this.comboBoxRend, isSelected, hasFocus, row);
+
         return this.comboBoxRend;
     }
 
@@ -140,9 +144,9 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
         return false;
     }
 
-    public void setRenderer() {
-        this.comboBoxRend.setRenderer(this.renderer);
-        this.comboBoxEdit.setRenderer(this.renderer);
+    public void setRenderer(final ListCellRenderer renderer) {
+        this.comboBoxRend.setRenderer(renderer);
+        this.comboBoxEdit.setRenderer(renderer);
     }
 
     @Override

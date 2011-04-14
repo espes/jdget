@@ -9,16 +9,16 @@
  */
 package org.appwork.utils.swing.table.columns;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JComponent;
 import javax.swing.JRadioButton;
-import javax.swing.JTable;
 
 import org.appwork.utils.swing.renderer.RendererCheckBox;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
+import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 /**
@@ -79,7 +79,7 @@ public abstract class ExtRadioColumn<E> extends ExtColumn<E> implements ActionLi
 
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+    public JComponent getEditorComponent(ExtTable<E> table, E value, boolean isSelected, int row, int column) {
         checkBoxEdit.removeActionListener(this);
         checkBoxEdit.setSelected(getBooleanValue((E) value));
         checkBoxEdit.addActionListener(this);
@@ -88,7 +88,7 @@ public abstract class ExtRadioColumn<E> extends ExtColumn<E> implements ActionLi
 
     @SuppressWarnings("unchecked")
     @Override
-    public final Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+    public final JComponent getRendererComponent(ExtTable<E> table, E value, boolean isSelected, boolean hasFocus, int row, int column) {
         checkBoxRend.setSelected(getBooleanValue((E) value));
         return checkBoxRend;
     }

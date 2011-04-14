@@ -9,13 +9,12 @@
  */
 package org.appwork.utils.swing.table.columns;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
-import javax.swing.JTable;
 import javax.swing.SwingConstants;
 
 import org.appwork.utils.locale.APPWORKUTILS;
@@ -23,6 +22,7 @@ import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.renderer.RendererCheckBox;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
+import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionListener {
@@ -141,6 +141,15 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         return this.checkBoxEdit.isSelected();
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
+        this.checkBoxEdit.removeActionListener(this);
+        this.checkBoxEdit.setSelected(this.getBooleanValue(value));
+        this.checkBoxEdit.addActionListener(this);
+        return this.checkBoxEdit;
+    }
+
     @Override
     protected int getMaxWidth() {
         return 70;
@@ -153,19 +162,9 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
 
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
-        this.checkBoxEdit.removeActionListener(this);
-        this.checkBoxEdit.setSelected(this.getBooleanValue((E) value));
-        this.checkBoxEdit.addActionListener(this);
-        this.adaptRowHighlighters((E) value, this.checkBoxEdit, isSelected, true, row);
-        return this.checkBoxEdit;
-    }
+    public final JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.checkBoxRend.setSelected(this.getBooleanValue(value));
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public final Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        this.checkBoxRend.setSelected(this.getBooleanValue((E) value));
-        this.adaptRowHighlighters((E) value, this.checkBoxRend, isSelected, hasFocus, row);
         return this.checkBoxRend;
     }
 

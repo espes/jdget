@@ -1,24 +1,28 @@
 package org.appwork.utils.swing.table.columns;
 
 import java.awt.Color;
-import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JTable;
+import javax.swing.JTextField;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
+import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
-public abstract class ExtTextColumn<E> extends ExtColumn<E> {
+public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionListener {
 
     private static final long serialVersionUID  = 2114805529462086691L;
     protected RenderLabel     label;
     protected Color           defaultForeground = null;
+    private JTextField        text;
 
     /**
      * @param string
@@ -30,6 +34,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     public ExtTextColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
+        this.text = new JTextField();
+        this.prepareTableCellEditorComponent(this.text);
 
         this.label = new RenderLabel();
         this.label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
@@ -62,9 +68,23 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
 
     }
 
+    public void actionPerformed(final ActionEvent e) {
+        this.text.removeActionListener(this);
+        this.fireEditingStopped();
+    }
+
     @Override
     public Object getCellEditorValue() {
-        return null;
+        return this.text.getText();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
+        this.text.removeActionListener(this);
+        this.text.setText(this.getStringValue(value));
+        this.text.addActionListener(this);
+        return this.text;
     }
 
     /**
@@ -75,26 +95,26 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
         return null;
     }
 
-    protected abstract String getStringValue(E value);
-
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        this.prepareLabel((E) value);
-        String str = this.getStringValue((E) value);
+    public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.prepareLabel(value);
+        String str = this.getStringValue(value);
         if (str == null) {
             // under substance, setting setText(null) somehow sets the label
             // opaque.
             str = "";
         }
         this.label.setText(str);
-        this.label.setToolTipText(this.getToolTip((E) value));
-        this.label.setEnabled(this.isEnabled((E) value));
-        this.label.setIcon(this.getIcon((E) value));
-        this.adaptRowHighlighters((E) value, this.label, isSelected, hasFocus, row);
+        this.label.setToolTipText(this.getToolTip(value));
+        this.label.setEnabled(this.isEnabled(value));
+        this.label.setIcon(this.getIcon(value));
+
         return this.label;
 
     }
+
+    protected abstract String getStringValue(E value);
 
     protected String getToolTip(final E obj) {
         final String v = this.getStringValue(obj);
@@ -121,7 +141,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
     }
 
     @Override
-    protected boolean matchSearch(final E object, final Pattern pattern) {
+    public boolean matchSearch(final E object, final Pattern pattern) {
         return pattern.matcher(this.getStringValue(object)).matches();
     }
 
@@ -132,14 +152,32 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> {
     }
 
     /**
+     * Should be overwritten to prepare the component for the TableCellEditor
+     * (e.g. setting tooltips)
+     */
+    protected void prepareTableCellEditorComponent(final JTextField text) {
+    }
+
+    /**
      * Should be overwritten to prepare the componente for the TableCellRenderer
      * (e.g. setting tooltips)
      */
     protected void prepareTableCellRendererComponent(final JLabel jlr) {
     }
 
+    /**
+     * Override to save value after editing
+     * 
+     * @param value
+     * @param object
+     */
+    protected void setStringValue(final String value, final E object) {
+
+    }
+
     @Override
-    public void setValue(final Object value, final E object) {
+    public final void setValue(final Object value, final E object) {
+        this.setStringValue((String) value, object);
     }
 
 }

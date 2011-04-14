@@ -1,12 +1,12 @@
 package org.appwork.utils.swing.table.columns;
 
-import java.awt.Component;
 
+import javax.swing.JComponent;
 import javax.swing.JProgressBar;
-import javax.swing.JTable;
 
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
+import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
@@ -64,7 +64,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+    public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
 
         this.bar.setIndeterminate(false);
         this.bar.setValue(this.getValue((E) value));

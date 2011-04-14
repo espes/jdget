@@ -1,15 +1,15 @@
 package org.appwork.utils.swing.table.columns;
 
-import java.awt.Component;
 import java.text.DecimalFormat;
 import java.text.FieldPosition;
 
 import javax.swing.BorderFactory;
-import javax.swing.JTable;
+import javax.swing.JComponent;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
+import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
@@ -89,7 +89,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+    public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         if ((this.sizeValue = this.getBytes((E) value)) < 0) {
             this.label.setText(this.getInvalidValue());
         } else {
