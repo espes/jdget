@@ -87,17 +87,6 @@ public interface HTTPConnection {
 
     boolean isOK();
 
-    /* needs to get called after postData is send */
-    public void postDataSend() throws IOException;
-
-    /**
-     * returns bytearray that belongs to content, WARNING will get null after
-     * first call
-     * 
-     * @return
-     */
-    public byte[] preReadBytes();
-
     public void setCharset(String charset);
 
     void setConnectTimeout(int connectTimeout);

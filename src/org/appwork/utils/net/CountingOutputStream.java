@@ -25,6 +25,16 @@ public class CountingOutputStream extends OutputStream implements CountingConnec
         this.os = os;
     }
 
+    @Override
+    public void close() throws IOException {
+        this.os.close();
+    }
+
+    @Override
+    public void flush() throws IOException {
+        this.os.flush();
+    }
+
     /*
      * (non-Javadoc)
      * 

@@ -3,6 +3,7 @@ package org.appwork.utils.net.httpconnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PushbackInputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -19,6 +20,7 @@ import java.util.zip.GZIPInputStream;
 import org.appwork.utils.LowerCaseHashMap;
 import org.appwork.utils.Regex;
 import org.appwork.utils.net.ChunkedInputStream;
+import org.appwork.utils.net.CountingOutputStream;
 
 public class HTTPConnectionImpl implements HTTPConnection {
 
@@ -39,13 +41,15 @@ public class HTTPConnectionImpl implements HTTPConnection {
     protected int                            readTimeout          = 30000;
     protected int                            connectTimeout       = 30000;
     protected long                           requestTime          = -1;
+    protected OutputStream                   outputStream         = null;
     protected InputStream                    inputStream          = null;
     protected InputStream                    convertedInputStream = null;
     protected boolean                        inputStreamConnected = false;
     protected String                         httpHeader           = null;
-    protected byte[]                         preReadBytes         = null;
+
     protected boolean                        outputClosed         = false;
     private boolean                          contentDecoded       = true;
+    protected long                           postTodoLength       = -1;
 
     public HTTPConnectionImpl(final URL url) {
         this(url, null);
@@ -120,19 +124,28 @@ public class HTTPConnectionImpl implements HTTPConnection {
             if (this.requestProperties.get(key) == null) {
                 continue;
             }
+            if ("Content-Length".equalsIgnoreCase(key)) {
+                this.postTodoLength = Long.parseLong(this.requestProperties.get(key));
+            }
             sb.append(key).append(": ").append(this.requestProperties.get(key)).append("\r\n");
         }
         sb.append("\r\n");
         this.httpSocket.getOutputStream().write(sb.toString().getBytes("UTF-8"));
         this.httpSocket.getOutputStream().flush();
         if (this.httpMethod != RequestMethod.POST) {
+            this.outputStream = this.httpSocket.getOutputStream();
             this.outputClosed = true;
             this.connectInputStream();
+        } else {
+            this.outputStream = new CountingOutputStream(this.httpSocket.getOutputStream());
         }
     }
 
     protected synchronized void connectInputStream() throws IOException {
-        if (this.httpMethod == RequestMethod.POST && this.outputClosed == false) { throw new IllegalStateException("postData not send or forgot to call postDataSend()"); }
+        if (this.httpMethod == RequestMethod.POST) {
+            final long done = ((CountingOutputStream) this.outputStream).transferedBytes();
+            if (done != this.postTodoLength) { throw new IOException("Content-Length" + this.postTodoLength + " does not match send " + done + " bytes"); }
+        }
         if (this.inputStreamConnected) { return; }
         this.inputStreamConnected = true;
         /* first read http header */
@@ -151,11 +164,14 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 this.httpResponseMessage = "";
             }
         } else {
-            this.preReadBytes = bytes;
             this.httpHeader = "unknown HTTP response";
             this.httpResponseCode = 200;
             this.httpResponseMessage = "unknown HTTP response";
-            this.inputStream = this.httpSocket.getInputStream();
+            this.inputStream = new PushbackInputStream(this.httpSocket.getInputStream(), bytes.length);
+            /*
+             * push back the data that got read because no http header exists
+             */
+            ((PushbackInputStream) this.inputStream).unread(bytes);
             return;
         }
         /* read rest of http headers */
@@ -288,7 +304,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     public OutputStream getOutputStream() throws IOException {
         this.connect();
         if (this.outputClosed) { throw new IOException("OutputStream no longer available"); }
-        return this.httpSocket.getOutputStream();
+        return this.outputStream;
     }
 
     public long[] getRange() {
@@ -350,19 +366,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
     public boolean isOK() {
         if (this.getResponseCode() > -2 && this.getResponseCode() < 400) { return true; }
         return false;
-    }
-
-    public void postDataSend() throws IOException {
-        if (!this.isConnected()) { return; }
-        /* disable outputStream now */
-        this.outputClosed = true;
-        this.connectInputStream();
-    }
-
-    public byte[] preReadBytes() {
-        final byte[] ret = this.preReadBytes;
-        this.preReadBytes = null;
-        return ret;
     }
 
     public void setCharset(final String Charset) {
