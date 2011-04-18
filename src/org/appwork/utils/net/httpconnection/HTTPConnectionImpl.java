@@ -425,6 +425,13 @@ public class HTTPConnectionImpl implements HTTPConnection {
         sb.append(new char[] { '\r', '\n' });
 
         sb.append("----------------Response------------------\r\n");
+        try {
+            if (this.isConnected()) {
+                this.connectInputStream();
+            }
+        } catch (final IOException nothing) {
+            sb.append("----no InputStream available----");
+        }
         sb.append(this.httpHeader).append("\r\n");
         for (final Entry<String, List<String>> next : this.getHeaderFields().entrySet()) {
             // Achtung cookie reihenfolge ist wichtig!!!
