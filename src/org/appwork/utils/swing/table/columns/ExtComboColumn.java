@@ -135,7 +135,6 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
 
     @Override
     public boolean isEnabled(final Object obj) {
-
         return true;
     }
 
