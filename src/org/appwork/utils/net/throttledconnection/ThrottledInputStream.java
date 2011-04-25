@@ -23,7 +23,6 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
     protected volatile long            transferedCounter  = 0;
     protected volatile long            transferedCounter2 = 0;
     private volatile int               limitCurrent       = 0;
-    private int                        limitRead          = 0;
     private int                        limitManaged       = 0;
     private int                        limitCustom        = 0;
     private int                        limitCounter       = 0;
@@ -100,7 +99,7 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
      * 
      * @return
      */
-    public long getCustomLimit() {
+    public int getCustomLimit() {
         return this.limitCustom;
     }
 
@@ -125,8 +124,7 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
             return -1;
         }
         this.transferedCounter++;
-        this.limitRead = this.limitCurrent;
-        if (this.limitRead != 0) {
+        if (this.limitCurrent != 0) {
             /* a Limit is set */
             this.limitCounter--;
             this.slotTimeLeft = 0;
@@ -140,10 +138,10 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
                     }
                 }
                 /* refill Limit */
-                this.limitCounter = this.limitRead;
+                this.limitCounter = this.limitCurrent;
             } else if (this.slotTimeLeft > 1000) {
-                /* slotTime is over, refull Limit too */
-                this.limitCounter = this.limitRead;
+                /* slotTime is over, refill Limit too */
+                this.limitCounter = this.limitCurrent;
             }
             this.lastTimeRead = System.currentTimeMillis();
         }
@@ -152,8 +150,7 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
 
     @Override
     public int read(final byte b[], final int off, final int len) throws IOException {
-        this.limitRead = this.limitCurrent;
-        if (this.limitRead == 0) {
+        if (this.limitCurrent == 0) {
             this.lastRead2 = this.in.read(b, off, len);
             if (this.lastRead2 == -1) {
                 /* end of line */
@@ -173,10 +170,12 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
                     }
                 }
                 /* refill Limit */
-                this.limitCounter = this.limitRead;
+                this.limitCounter = this.limitCurrent;
+                if (this.limitCounter <= 0) this.limitCounter = len;
             } else if (this.slotTimeLeft > 1000) {
-                /* slotTime is over, refull Limit too */
-                this.limitCounter = this.limitRead;
+                /* slotTime is over, refill Limit too */
+                this.limitCounter = this.limitCurrent;
+                if (this.limitCounter <= 0) this.limitCounter = len;
             }
             this.lastRead2 = this.in.read(b, off, Math.min(this.limitCounter, len));
             if (this.lastRead2 == -1) {

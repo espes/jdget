@@ -21,22 +21,19 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     private ThrottledConnectionManager manager;
     private final OutputStream         out;
 
-    protected long                     transferedCounter  = 0;
-    protected long                     transferedCounter2 = 0;
-    private long                       limitCurrent       = 0;
-    private long                       limitManaged       = 0;
-    private long                       limitCustom        = 0;
-    private long                       limitCounter       = 0;
-    private long                       lastLimitReached   = 0;
-    public final static int            HIGHStep           = 524288;
-    public final static int            LOWStep            = 1024;
-    private int                        checkStep          = 10240;
+    protected volatile long            transferedCounter  = 0;
+    protected volatile long            transferedCounter2 = 0;
+    private volatile int               limitCurrent       = 0;
+    private int                        limitManaged       = 0;
+    private int                        limitCustom        = 0;
+    private int                        limitCounter       = 0;
+
     private int                        offset;
     private int                        todo;
     private int                        rest;
-    private long                       ret;
-    private long                       timeForCheckStep   = 0;
-    private int                        timeCheck          = 0;
+    private long                       ret;    
+    private long                       slotTimeLeft       = 0;
+    private long                       lastTimeWrite      = 0;
 
     /**
      * constructor for not managed ThrottledOutputStream
@@ -75,7 +72,7 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
      * 
      * @param kpsLimit
      */
-    private void changeCurrentLimit(final long kpsLimit) {
+    private void changeCurrentLimit(final int kpsLimit) {
         if (kpsLimit == this.limitCurrent) { return; }
         /* TODO: maybe allow little jitter here */
         this.limitCurrent = Math.max(0, kpsLimit);
@@ -105,60 +102,13 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
         this.out.flush();
     }
 
-    public int getCheckStepSize() {
-        return this.checkStep;
-    }
-
     /**
      * get custom set limit
      * 
      * @return
      */
-    public long getCustomLimit() {
+    public int getCustomLimit() {
         return this.limitCustom;
-    }
-
-    final private void increase(final int num) {
-        if (num == -1) { return; }
-        this.transferedCounter += num;
-        if (this.limitCurrent != 0) {
-            this.limitCounter += num;
-            if (this.limitCounter > this.limitCurrent) {
-                if (this.lastLimitReached == 0) {
-                    /* our first write */
-                    this.lastLimitReached = System.currentTimeMillis();
-                }
-                /* we set limit in kbyte per second */
-                long pause = 1000 - (System.currentTimeMillis() - this.lastLimitReached);
-                if (pause >= 0) {
-                    if (pause == 0) {
-                        pause = 1000;
-                    }
-                    synchronized (this) {
-                        try {
-                            this.wait(pause);
-                        } catch (final InterruptedException e) {
-                            org.appwork.utils.logging.Log.exception(e);
-                        }
-                    }
-                    /* change checkStep according to limit */
-                    if (this.limitCurrent >= ThrottledOutputStream.HIGHStep) {
-                        this.checkStep = ThrottledOutputStream.HIGHStep + 1;
-                    } else if (this.limitCurrent <= ThrottledOutputStream.LOWStep) {
-                        this.checkStep = ThrottledOutputStream.LOWStep;
-                    } else {
-                        this.checkStep = (int) this.limitCurrent + 1;
-                    }
-                }
-                this.lastLimitReached = System.currentTimeMillis();
-                this.limitCounter = 0;
-            }
-        }
-    }
-
-    public void setCheckStepSize(final int step) {
-        this.checkStep = Math.max(ThrottledOutputStream.HIGHStep, step);
-        this.checkStep = Math.min(ThrottledOutputStream.LOWStep, this.checkStep);
     }
 
     /**
@@ -228,32 +178,43 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     }
 
     @Override
-    public void write(final byte b[], final int off, final int len) throws IOException {
-        this.offset = off;
-        this.rest = len;
-        while (this.rest != 0) {
-            this.todo = this.rest;
-            if (this.todo > this.checkStep) {
-                this.todo = this.checkStep;
-            }
-            if (this.limitCurrent != 0) {
-                this.out.write(b, this.offset, this.todo);
-            } else {
-                this.timeForCheckStep = System.currentTimeMillis();
-                this.out.write(b, this.offset, this.todo);
-                this.timeCheck = (int) (System.currentTimeMillis() - this.timeForCheckStep);
-                if (this.timeCheck > 1000) {
-                    /* we want more than2 update per second */
-                    this.checkStep = Math.max(ThrottledOutputStream.LOWStep, this.todo / this.timeCheck * 500);
-                } else if (this.timeCheck == 0) {
-                    /* we increase in little steps */
-                    this.checkStep += 1024;
-                    // checkStep = Math.min(HIGHStep, checkStep + 1024);
+    public void write(final byte b[], final int off, final int len) throws IOException {        
+        if (this.limitCurrent == 0) {
+            /* no limit is set */
+            this.out.write(b, off, len);
+            this.transferedCounter+=len;
+        } else {
+            /* a limit is set */
+            offset = off;
+            rest = len;
+            while (rest > 0) {
+                /* loop until all data is written */
+                this.slotTimeLeft = 0;
+                if (this.limitCounter <= 0 && (this.slotTimeLeft = System.currentTimeMillis() - this.lastTimeWrite) < 1000) {
+                    /* Limit reached and slotTime not over yet */
+                    synchronized (this) {
+                        try {
+                            this.wait(1000 - this.slotTimeLeft);
+                        } catch (final InterruptedException e) {
+                            throw new IOException("throttle interrupted");
+                        }
+                    }
+                    /* refill Limit */
+                    this.limitCounter = this.limitCurrent;
+                    if (this.limitCounter <= 0) this.limitCounter = rest;
+                } else if (this.slotTimeLeft > 1000) {
+                    /* slotTime is over, refill Limit too */
+                    this.limitCounter = this.limitCurrent;
+                    if (this.limitCounter <= 0) this.limitCounter = rest;
                 }
+                todo = Math.min(this.limitCounter, rest);
+                out.write(b, offset, todo);
+                offset += todo;
+                rest -= todo;
+                this.transferedCounter += todo;
+                this.limitCounter -= todo;
+                this.lastTimeWrite = System.currentTimeMillis();
             }
-            this.increase(this.todo);
-            this.rest -= this.todo;
-            this.offset += this.todo;
         }
     }
 
@@ -263,7 +224,28 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     @Override
     public void write(final int b) throws IOException {
         this.out.write(b);
-        this.increase(1);
+        this.transferedCounter++;        
+        if (this.limitCurrent != 0) {
+            /* a Limit is set */
+            this.limitCounter--;
+            this.slotTimeLeft = 0;
+            if (this.limitCounter <= 0 && (this.slotTimeLeft = System.currentTimeMillis() - this.lastTimeWrite) < 1000) {
+                /* Limit reached and slotTime not over yet */
+                synchronized (this) {
+                    try {
+                        this.wait(1000 - this.slotTimeLeft);
+                    } catch (final InterruptedException e) {
+                        throw new IOException("throttle interrupted");
+                    }
+                }
+                /* refill Limit */
+                this.limitCounter = this.limitCurrent;
+            } else if (this.slotTimeLeft > 1000) {
+                /* slotTime is over, refill Limit too */
+                this.limitCounter = this.limitCurrent;
+            }
+            this.lastTimeWrite = System.currentTimeMillis();
+        }
     }
 
 }
