@@ -134,12 +134,12 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
     }
 
     @Override
-    public boolean isEnabled(final Object obj) {
+    public boolean isEnabled(final E obj) {
         return true;
     }
 
     @Override
-    public boolean isSortable(final Object obj) {
+    public boolean isSortable(final E obj) {
         return false;
     }
 
@@ -148,9 +148,7 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
         this.comboBoxEdit.setRenderer(renderer);
     }
 
-    @Override
-    public void setValue(final Object value, final Object object) {
-    }
+  
 
     /**
      * overwrite this method to implement different dropdown boxes
