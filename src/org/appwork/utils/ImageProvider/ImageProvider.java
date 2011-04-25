@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.logging.Level;
 
 import javax.imageio.IIOException;
@@ -165,14 +166,14 @@ public class ImageProvider {
                 Log.L.severe("Could not Init Image: " + absolutePath);
                 if (createDummy) {
                     Log.exception(Level.WARNING, e);
-                    return ImageProvider.createIcon(name.toUpperCase(), 48, 48);
+                    return ImageProvider.createIcon(name.toUpperCase(Locale.ENGLISH), 48, 48);
                 } else {
                     throw e;
                 }
             } catch (final Throwable e) {
                 Log.L.severe("Could not Init Image: " + absolutePath);
                 Log.exception(Level.WARNING, e);
-                return ImageProvider.createIcon(name.toUpperCase(), 48, 48);
+                return ImageProvider.createIcon(name.toUpperCase(Locale.ENGLISH), 48, 48);
             }
         }
     }
