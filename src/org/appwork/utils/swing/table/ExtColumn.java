@@ -195,12 +195,15 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     /**
-     * The storageID for this column
+     * The storageID for this column. Override this if you have a selfdefined
+     * column class which is used by several of your columns.
      * 
      * @return
      */
     public String getID() {
-        return this.getClass().getSimpleName() + this.name;
+
+        return this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName();
+
     }
 
     /**
