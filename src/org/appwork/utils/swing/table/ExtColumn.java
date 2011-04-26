@@ -61,6 +61,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     private Thread                 sortThread         = null;
 
     private ExtDefaultRowSorter<E> rowSorter;
+    private String                 id;
 
     /**
      * Create a new ExtColum.
@@ -72,6 +73,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public ExtColumn(final String name, final ExtTableModel<E> table) {
         this.name = name;
         this.model = table;
+        this.id = this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName() + "." + (this.model.getColumnCount() + 1);
 
         // sort function
         this.rowSorter = new ExtDefaultRowSorter<E>();
@@ -202,7 +204,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public String getID() {
 
-        return this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName();
+        return this.id;
 
     }
 
@@ -373,6 +375,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public void setModel(final ExtTableModel<E> model) {
         this.model = model;
+        this.id = this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName() + "." + model.getColumnCount();
     }
 
     /**
