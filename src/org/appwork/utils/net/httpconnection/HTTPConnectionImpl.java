@@ -88,7 +88,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         if (this.httpURL.getProtocol().startsWith("https")) {
             this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
         } else {
-            this.httpSocket = this.createSocket();
+            this.httpSocket = new Socket();
         }
         this.httpSocket.setSoTimeout(this.readTimeout);
         this.httpResponseCode = -1;
@@ -215,10 +215,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
         } else {
             this.inputStream = this.httpSocket.getInputStream();
         }
-    }
-
-    public Socket createSocket() throws IOException {
-        return new Socket();
     }
 
     public void disconnect() {

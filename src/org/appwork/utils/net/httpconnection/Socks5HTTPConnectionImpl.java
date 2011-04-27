@@ -63,7 +63,7 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
         }
         if (this.proxy == null || !this.proxy.getType().equals(HTTPProxy.TYPE.SOCKS5)) { throw new IOException("Socks5HTTPConnection: invalid Socks5 Proxy!"); }
         /* create and connect to socks5 proxy */
-        this.socks5socket = this.createSocket();
+        this.socks5socket = new Socket();
         this.socks5socket.setSoTimeout(this.readTimeout);
         final long startTime = System.currentTimeMillis();
         try {

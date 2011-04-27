@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
@@ -39,7 +40,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             this.requestProperties.put("Proxy-Authorization", "Basic " + new String(Base64.encodeToByte((user + ":" + pass).getBytes(), false)));
         }
         if (this.isConnected()) { return; }
-        this.httpSocket = this.createSocket();
+        this.httpSocket = new Socket();
         this.httpSocket.setSoTimeout(this.readTimeout);
         this.httpResponseCode = -1;
         final InetAddress host = InetAddress.getByName(this.proxy.getHost());
@@ -96,12 +97,28 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                 throw new ProxyConnectException("CONNECT seems not supported:" + proxyResponseStatus);
             }
             /* read rest of CONNECT headers */
-            /* TODO:read until empty line with CR LF or single LF */
-            header = HTTPConnectionUtils.readheader(this.httpSocket.getInputStream(), true);
-            bytes = new byte[header.limit()];
-            header.get(bytes);
-            final String temp = new String(bytes, "UTF-8");
-            this.proxyRequest.append(temp);
+            /*
+             * Again, the response follows the HTTP/1.0 protocol, so the
+             * response line starts with the protocol version specifier, and the
+             * response line is followed by zero or more response headers,
+             * followed by an empty line. The line separator is CR LF pair, or a
+             * single LF.
+             */
+            while (true) {
+                /*
+                 * read line by line until we reach the single empty line as
+                 * seperator
+                 */
+                header = HTTPConnectionUtils.readheader(this.httpSocket.getInputStream(), true);
+                if (header.position() == 0) {
+                    /* empty line */
+                    break;
+                }
+                bytes = new byte[header.limit()];
+                header.get(bytes);
+                final String temp = new String(bytes, "UTF-8");
+                this.proxyRequest.append(temp);
+            }
             SSLSocket sslSocket = null;
             this.httpPort = this.httpURL.getPort();
             this.httpHost = this.httpURL.getHost();

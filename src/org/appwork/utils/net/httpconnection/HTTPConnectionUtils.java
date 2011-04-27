@@ -114,7 +114,7 @@ public class HTTPConnectionUtils {
         return filename;
     }
 
-    public static ByteBuffer readheader(final InputStream in, final boolean onlyHTTPHeader) throws IOException {
+    public static ByteBuffer readheader(final InputStream in, final boolean readSingleLine) throws IOException {
         ByteBuffer bigbuffer = ByteBuffer.allocate(4096);
         final byte[] minibuffer = new byte[1];
         int position;
@@ -130,7 +130,7 @@ public class HTTPConnectionUtils {
             if (c > 0) {
                 bigbuffer.put(minibuffer);
             }
-            if (onlyHTTPHeader) {
+            if (readSingleLine) {
                 if (bigbuffer.position() >= 1) {
                     /*
                      * \n only line termination, for fucking buggy non rfc
