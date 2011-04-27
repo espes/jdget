@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -35,7 +36,15 @@ public abstract class FtpConnectionHandler<E extends FtpFile> {
     public String formatFileList(final ArrayList<? extends FtpFile> list) {
         final String DEL = " ";
         final StringBuilder sb = new StringBuilder();
-        final SimpleDateFormat df = new SimpleDateFormat("MMM dd yyyy", Locale.ENGLISH);
+        final Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(System.currentTimeMillis());
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.MONTH, 0);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MINUTE, 0);
+        final SimpleDateFormat dfCur = new SimpleDateFormat("MMM dd HH:mm", Locale.ENGLISH);
+        final SimpleDateFormat dfHist = new SimpleDateFormat("MMM dd YYYY", Locale.ENGLISH);
         for (final FtpFile f : list) {
             // directory or not
             sb.append(f.isDirectory() ? "d" : "-");
@@ -52,7 +61,11 @@ public abstract class FtpConnectionHandler<E extends FtpFile> {
             sb.append(DEL);
             sb.append(f.getSize());
             sb.append(DEL);
-            sb.append(df.format(new Date(f.getLastModified())));
+            if (f.getLastModified() > cal.getTimeInMillis()) {
+                sb.append(dfCur.format(new Date(f.getLastModified())));
+            } else {
+                sb.append(dfHist.format(new Date(f.getLastModified())));
+            }
             sb.append(DEL);
             sb.append(f.getName());
             sb.append("\r\n");

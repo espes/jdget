@@ -13,6 +13,8 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.appwork.utils.net.CountingOutputStream;
+
 public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
 
     protected Socket       socks5socket       = null;
@@ -123,8 +125,11 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
         this.httpSocket.getOutputStream().write(sb.toString().getBytes("UTF-8"));
         this.httpSocket.getOutputStream().flush();
         if (this.httpMethod != RequestMethod.POST) {
+            this.outputStream = this.httpSocket.getOutputStream();
             this.outputClosed = true;
             this.connectInputStream();
+        } else {
+            this.outputStream = new CountingOutputStream(this.httpSocket.getOutputStream());
         }
     }
 
