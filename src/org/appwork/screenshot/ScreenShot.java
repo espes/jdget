@@ -9,92 +9,126 @@
  */
 package org.appwork.screenshot;
 
-import java.awt.Dimension;
+import java.awt.AWTException;
 import java.awt.DisplayMode;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.Robot;
-import java.awt.Toolkit;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JWindow;
-
-import org.appwork.utils.ImageProvider.ImageProvider;
 
 /**
  * @author thomas
  * 
  */
 public class ScreenShot {
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws AWTException, InterruptedException {
         new ScreenShot().start();
     }
+
+    private BufferedImage complete;
 
     public ScreenShot() {
 
     }
 
     /**
+     * @throws AWTException
      * 
      */
-    private void captureScreen() {
+    private void captureScreen() throws AWTException {
 
-        try {
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice[] screens = ge.getScreenDevices();
 
-            final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        // Get size of each screen
+        final Robot robot;
 
-            final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            final GraphicsDevice[] screens = ge.getScreenDevices();
+        robot = new Robot();
 
-            // Get size of each screen
-            final Robot robot;
+        // for (final GraphicsDevice screen : screens) {
+        int xMax = 0;
+        int xMin = 0;
+        int yMax = 0;
+        int yMin = 0;
+        for (final GraphicsDevice screen : screens) {
+            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
+            xMax = Math.max(xMax, bounds.x + bounds.width);
+            yMax = Math.max(bounds.y + bounds.height, yMax);
+            yMin = Math.min(yMin, bounds.y);
+            xMin = Math.min(xMin, bounds.x);
+        }
+        this.complete = new BufferedImage(xMax - xMin, yMax - yMin, Transparency.TRANSLUCENT);
+        final Graphics2D g2 = this.complete.createGraphics();
 
-            robot = new Robot();
-            int x = 0;
-            for (final GraphicsDevice screen : screens) {
-                final DisplayMode dm = screen.getDisplayMode();
-                final int screenWidth = dm.getWidth();
-                final int screenHeight = dm.getHeight();
+        for (final GraphicsDevice screen : screens) {
+            final DisplayMode dm = screen.getDisplayMode();
+            System.out.println(screen.getDefaultConfiguration().getBounds());
+            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
+            final int screenWidth = dm.getWidth();
+            final int screenHeight = dm.getHeight();
 
-                System.out.println(screen + " : " + screenWidth + "x" + screenHeight);
-                final Rectangle rect = new Rectangle(screenWidth, screenHeight);
-                rect.setLocation(x, 0);
+            System.out.println(screen + " : " + screenWidth + "x" + screenHeight);
+            final Rectangle rect = new Rectangle(screenWidth, screenHeight);
+            rect.setLocation(bounds.x, bounds.y);
 
-                final BufferedImage image = robot.createScreenCapture(rect);
-                final BufferedImage scaled = ImageProvider.getScaledInstance(image, screenWidth / 2, screenHeight / 2, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
-                final JWindow window = new JWindow() {
-
-                    @Override
-                    public void paint(final Graphics g) {
-                        g.drawImage(image, 0, 0, null);
-                        g.drawString(":-P", 0, 0);
-                    }
-
-                };
-                window.setSize(screenWidth, screenHeight);
-                window.setLocation(x, 0);
-                window.setAlwaysOnTop(true);
-                window.setVisible(true);
-
-                x += screenWidth;
-            }
-
-            final Rectangle screenRectangle = new Rectangle(screenSize);
-
-            System.out.println("JHJ");
-        } catch (final Exception e1) {
+            final BufferedImage image = robot.createScreenCapture(rect);
+            g2.drawImage(image, bounds.x, bounds.y, null);
 
         }
+        g2.dispose();
+        final JWindow window = new JWindow() {
+
+            @Override
+            public void paint(final Graphics g) {
+                g.drawImage(ScreenShot.this.complete, 0, 0, null);
+                // g.setColor(Color.RED);
+                // g.drawRect(0, 0, screenWidth, screenHeight);
+            }
+        };
+
+        // this.windows.add(new ScreenWindow(window, image, bounds));
+        window.setSize(this.complete.getWidth(), this.complete.getHeight());
+        window.setVisible(true);
+        // // screen.setFullScreenWindow(window);
+        // System.out.println(window.getLocation());
+        // window.setVisible(true);
+        // try {
+        // Dialog.getInstance().showConfirmDialog(0, "", "", new
+        // ImageIcon(ImageProvider.getScaledInstance(dest, 1500, 1500,
+        // RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR, true)), null,
+        // null);
+        // } catch (final DialogClosedException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // } catch (final DialogCanceledException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // }
+
+    }
+
+    public BufferedImage getComplete() {
+        return this.complete;
     }
 
     /**
+     * @throws AWTException
+     * @throws InterruptedException
      * 
      */
-    private void start() {
+    private void start() throws AWTException, InterruptedException {
         this.captureScreen();
+
+        final Magnifyer mag = new Magnifyer(this);
+
+        Thread.sleep(30000);
+        System.exit(1);
 
     }
 }
