@@ -77,42 +77,58 @@ public class HTTPConnectionImpl implements HTTPConnection {
     public void connect() throws IOException {
         if (this.isConnected()) { return;/* oder fehler */
         }
-        /* host auflösen nur wenn kein proxy, ansonsten über proxy */
-        InetAddress host = null;
+        InetAddress hosts[] = null;
         try {
-            host = InetAddress.getByName(this.httpURL.getHost());
+            /* resolv all possible ip's */
+            hosts = InetAddress.getAllByName(this.httpURL.getHost());
         } catch (final UnknownHostException e) {
-            System.out.println("Unknown Host:" + this.httpURL);
             throw e;
         }
-        if (this.httpURL.getProtocol().startsWith("https")) {
-            this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
-        } else {
-            this.httpSocket = new Socket();
-        }
-        this.httpSocket.setSoTimeout(this.readTimeout);
-        this.httpResponseCode = -1;
-        int port = this.httpURL.getPort();
-        if (port == -1) {
-            port = this.httpURL.getDefaultPort();
-        }
-        final long startTime = System.currentTimeMillis();
-        if (this.proxy != null && !this.proxy.getType().equals(HTTPProxy.TYPE.DIRECT)) {
-            throw new RuntimeException("Invalid Direct Proxy");
-        } else {
-            if (this.proxy != null) {
-                /* bind socket to given interface */
+        /* try all different ip's until one is valid and connectable */
+        IOException ee = null;
+        for (final InetAddress host : hosts) {
+            if (this.httpURL.getProtocol().startsWith("https")) {
+                this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
+            } else {
+                this.httpSocket = new Socket();
+            }
+            this.httpSocket.setSoTimeout(this.readTimeout);
+            this.httpResponseCode = -1;
+            int port = this.httpURL.getPort();
+            if (port == -1) {
+                port = this.httpURL.getDefaultPort();
+            }
+            final long startTime = System.currentTimeMillis();
+            if (this.proxy != null && !this.proxy.getType().equals(HTTPProxy.TYPE.DIRECT)) {
+                throw new RuntimeException("Invalid Direct Proxy");
+            } else {
+                if (this.proxy != null) {
+                    /* bind socket to given interface */
+                    try {
+                        if (this.proxy.getLocalIP() == null) { throw new IOException("Invalid localIP"); }
+                        this.httpSocket.bind(new InetSocketAddress(this.proxy.getLocalIP(), 0));
+                    } catch (final IOException e) {
+                        this.proxy.setStatus(HTTPProxy.STATUS.OFFLINE);
+                        throw new ProxyConnectException(e.getMessage());
+                    }
+                }
+
                 try {
-                    if (this.proxy.getLocalIP() == null) { throw new IOException("Invalid localIP"); }
-                    this.httpSocket.bind(new InetSocketAddress(this.proxy.getLocalIP(), 0));
+                    /* try to connect to given host now */
+                    this.httpSocket.connect(new InetSocketAddress(host, port), this.connectTimeout);
+                    this.requestTime = System.currentTimeMillis() - startTime;
+                    ee = null;
+                    break;
                 } catch (final IOException e) {
-                    this.proxy.setStatus(HTTPProxy.STATUS.OFFLINE);
-                    throw new ProxyConnectException(e.getMessage());
+                    try {
+                        this.httpSocket.close();
+                    } catch (final Throwable nothing) {
+                    }
+                    ee = e;
                 }
             }
-            this.httpSocket.connect(new InetSocketAddress(host, port), this.connectTimeout);
         }
-        this.requestTime = System.currentTimeMillis() - startTime;
+        if (ee != null) { throw ee; }
         this.httpPath = new org.appwork.utils.Regex(this.httpURL.toString(), "https?://.*?(/.+)").getMatch(0);
         if (this.httpPath == null) {
             this.httpPath = "/";
