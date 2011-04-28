@@ -10,9 +10,12 @@
 package org.appwork.utils.swing.table.columns;
 
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 import javax.swing.JTextField;
 
+import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 /**
@@ -21,7 +24,13 @@ import org.appwork.utils.swing.table.ExtTableModel;
  */
 public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implements ActionListener {
 
-    private static final long serialVersionUID = -3107569347493659178L;
+    private static final long   serialVersionUID = -3107569347493659178L;
+    private static final String BLINDTEXT        = "******";
+
+    public ExtPasswordEditorColumn(final String name) {
+        super(name, null);
+
+    }
 
     public ExtPasswordEditorColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
@@ -32,7 +41,13 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
 
     @Override
     protected String getStringValue(final E value) {
-        return "******";
+        return ExtPasswordEditorColumn.BLINDTEXT;
+    }
+
+    @Override
+    protected String getToolTip(final E obj) {
+
+        return APPWORKUTILS.T.extpasswordeditorcolumn_tooltip();
     }
 
     @Override
@@ -46,9 +61,30 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
      */
     @Override
     protected void prepareTableCellEditorComponent(final JTextField text) {
+        text.addFocusListener(new FocusListener() {
+
+            @Override
+            public void focusGained(final FocusEvent e) {
+                text.selectAll();
+
+            }
+
+            @Override
+            public void focusLost(final FocusEvent e) {
+                // TODO Auto-generated method stub
+
+            }
+        });
     }
 
     @Override
     protected abstract void setStringValue(String value, E object);
+
+    @Override
+    public void setValue(final Object value, final E object) {
+        if (!value.toString().equals(ExtPasswordEditorColumn.BLINDTEXT)) {
+            this.setStringValue((String) value, object);
+        }
+    }
 
 }

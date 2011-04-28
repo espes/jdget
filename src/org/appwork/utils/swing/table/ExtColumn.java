@@ -8,13 +8,13 @@ import java.util.EventObject;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractCellEditor;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.text.JTextComponent;
 
 import org.appwork.utils.logging.Log;
@@ -62,6 +62,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     private ExtDefaultRowSorter<E> rowSorter;
     private String                 id;
+    private TableColumn            tableColumn;
 
     /**
      * Create a new ExtColum.
@@ -180,16 +181,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     /**
-     * override this if you want to show a icon in the table header
-     * 
-     * @return
-     */
-    public ImageIcon getHeaderIcon() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
      * @param jTableHeader
      * @return
      */
@@ -277,9 +268,13 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return ret;
     }
 
+    public int getWidth() {
+        return this.tableColumn.getWidth();
+    }
+
     @Override
     public boolean isCellEditable(final EventObject evt) {
-        if (evt instanceof MouseEvent) { return ((MouseEvent) evt).getClickCount() >= this.clickcount && this.clickcount > 0; }
+        if (evt instanceof MouseEvent) { return ((MouseEvent) evt).getClickCount() >= this.getClickcount() && this.getClickcount() > 0; }
         return true;
     }
 
@@ -387,6 +382,16 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public void setRowSorter(final ExtDefaultRowSorter<E> rowSorter) {
         this.rowSorter = rowSorter;
+    }
+
+    /**
+     * Sets the real tableColumn.
+     * 
+     * @param tableColumn
+     */
+    public void setTableColumn(final TableColumn tableColumn) {
+        this.tableColumn = tableColumn;
+
     }
 
     /**

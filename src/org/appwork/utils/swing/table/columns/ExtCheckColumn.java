@@ -141,6 +141,12 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         return this.checkBoxEdit.isSelected();
     }
 
+    @Override
+    public int getClickcount() {
+
+        return 1;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {

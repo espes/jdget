@@ -172,12 +172,14 @@ public class ExtTable<E> extends JTable {
         });
         // mouselistener to display column header tooltips
         this.getTableHeader().addMouseMotionListener(new MouseAdapter() {
+
             @Override
             public void mouseMoved(final MouseEvent e) {
                 final int col = ExtTable.this.getExtColumnIndexByPoint(e.getPoint());
                 if (col >= 0) {
                     ExtTable.this.getTableHeader().setToolTipText(ExtTable.this.getExtTableModel().getExtColumn(col).getName());
                 }
+
             }
         });
 
@@ -316,7 +318,7 @@ public class ExtTable<E> extends JTable {
             final int j = i;
 
             final TableColumn tableColumn = new TableColumn(i);
-
+            this.model.getExtColumn(j).setTableColumn(tableColumn);
             tableColumn.setHeaderRenderer(this.model.getExtColumn(j).getHeaderRenderer(this.getTableHeader()) != null ? this.model.getExtColumn(j).getHeaderRenderer(this.getTableHeader()) : new ExtTableHeaderRenderer(this.model.getExtColumn(j), this.getTableHeader()));
             // Save column width
             tableColumn.addPropertyChangeListener(new PropertyChangeListener() {
@@ -542,6 +544,15 @@ public class ExtTable<E> extends JTable {
      */
     public ArrayList<ExtRowHighlighter> getRowHighlighters() {
         return this.rowHighlighters;
+    }
+
+    /**
+     * @param point
+     * @return
+     */
+    public int getRowIndexByPoint(final Point point) {
+        return this.rowAtPoint(point);
+
     }
 
     /**
@@ -784,7 +795,9 @@ public class ExtTable<E> extends JTable {
     @SuppressWarnings("unchecked")
     @Override
     protected void processMouseEvent(final MouseEvent e) {
+
         super.processMouseEvent(e);
+
         if (e.getID() == MouseEvent.MOUSE_RELEASED) {
             if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
                 final int row = this.rowAtPoint(e.getPoint());
