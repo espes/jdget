@@ -33,15 +33,16 @@ import org.appwork.utils.swing.dialog.DialogNoAnswerException;
  */
 
 public class CrossSystem {
-    public static final byte    OS_LINUX_OTHER   = 6;
-    public static final byte    OS_MAC_OTHER     = 5;
-    public static final byte    OS_WINDOWS_OTHER = 4;
-    public static final byte    OS_WINDOWS_NT    = 3;
-    public static final byte    OS_WINDOWS_2000  = 2;
-    public static final byte    OS_WINDOWS_XP    = 0;
-    public static final byte    OS_WINDOWS_2003  = 7;
-    public static final byte    OS_WINDOWS_VISTA = 1;
-    public static final byte    OS_WINDOWS_7     = 8;
+    public static final byte    OS_LINUX_OTHER         = 6;
+    public static final byte    OS_MAC_OTHER           = 5;
+    public static final byte    OS_WINDOWS_OTHER       = 4;
+    public static final byte    OS_WINDOWS_NT          = 3;
+    public static final byte    OS_WINDOWS_2000        = 2;
+    public static final byte    OS_WINDOWS_XP          = 0;
+    public static final byte    OS_WINDOWS_2003        = 7;
+    public static final byte    OS_WINDOWS_VISTA       = 1;
+    public static final byte    OS_WINDOWS_7           = 8;
+    public static final byte    OS_WINDOWS_SERVER_2008 = 9;
 
     /**
      * Cache to store the OS string in
@@ -70,6 +71,8 @@ public class CrossSystem {
             OS_ID = CrossSystem.OS_WINDOWS_2000;
         } else if (OS.contains("windows 2003")) {
             OS_ID = CrossSystem.OS_WINDOWS_2003;
+        } else if (OS.contains("windows server 2008")) {
+            OS_ID = CrossSystem.OS_WINDOWS_SERVER_2008;
         } else if (OS.contains("nt")) {
             OS_ID = CrossSystem.OS_WINDOWS_NT;
         } else if (OS.contains("windows")) {
