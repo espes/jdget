@@ -11,7 +11,6 @@ package org.appwork.screenshot;
 
 import java.awt.AWTException;
 import java.awt.DisplayMode;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -19,8 +18,6 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
-
-import javax.swing.JWindow;
 
 /**
  * @author thomas
@@ -32,6 +29,7 @@ public class ScreenShot {
     }
 
     private BufferedImage complete;
+    private Layover       layover;
 
     public ScreenShot() {
 
@@ -78,29 +76,21 @@ public class ScreenShot {
             rect.setLocation(bounds.x, bounds.y);
 
             final BufferedImage image = robot.createScreenCapture(rect);
-            g2.drawImage(image, bounds.x, bounds.y, null);
+            g2.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
 
         }
         g2.dispose();
-        final JWindow window = new JWindow() {
-
-            @Override
-            public void paint(final Graphics g) {
-                g.drawImage(ScreenShot.this.complete, 0, 0, null);
-                // g.setColor(Color.RED);
-                // g.drawRect(0, 0, screenWidth, screenHeight);
-            }
-        };
-
+        this.layover = new Layover();
+        this.layover.setImage(this.complete);
         // this.windows.add(new ScreenWindow(window, image, bounds));
-        window.setSize(this.complete.getWidth(), this.complete.getHeight());
-        window.setVisible(true);
+
+        // window.setVisible(true);
         // // screen.setFullScreenWindow(window);
         // System.out.println(window.getLocation());
         // window.setVisible(true);
         // try {
         // Dialog.getInstance().showConfirmDialog(0, "", "", new
-        // ImageIcon(ImageProvider.getScaledInstance(dest, 1500, 1500,
+        // ImageIcon(ImageProvider.getScaledInstance(this.complete, 1500, 1500,
         // RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR, true)), null,
         // null);
         // } catch (final DialogClosedException e) {
@@ -127,7 +117,7 @@ public class ScreenShot {
 
         final Magnifyer mag = new Magnifyer(this);
 
-        Thread.sleep(30000);
+        Thread.sleep(10000);
         System.exit(1);
 
     }
