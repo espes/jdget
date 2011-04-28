@@ -11,6 +11,7 @@ package org.appwork.screenshot;
 
 import java.awt.Dimension;
 import java.awt.DisplayMode;
+import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
@@ -19,10 +20,9 @@ import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 
-import javax.swing.ImageIcon;
+import javax.swing.JWindow;
 
 import org.appwork.utils.ImageProvider.ImageProvider;
-import org.appwork.utils.swing.dialog.Dialog;
 
 /**
  * @author thomas
@@ -62,11 +62,24 @@ public class ScreenShot {
                 System.out.println(screen + " : " + screenWidth + "x" + screenHeight);
                 final Rectangle rect = new Rectangle(screenWidth, screenHeight);
                 rect.setLocation(x, 0);
-                x += screenWidth;
+
                 final BufferedImage image = robot.createScreenCapture(rect);
                 final BufferedImage scaled = ImageProvider.getScaledInstance(image, screenWidth / 2, screenHeight / 2, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
+                final JWindow window = new JWindow() {
 
-                Dialog.getInstance().showConfirmDialog(0, "" + screen, screenWidth + "x" + screenHeight, new ImageIcon(scaled), null, null);
+                    @Override
+                    public void paint(final Graphics g) {
+                        g.drawImage(image, 0, 0, null);
+                        g.drawString(":-P", 0, 0);
+                    }
+
+                };
+                window.setSize(screenWidth, screenHeight);
+                window.setLocation(x, 0);
+                window.setAlwaysOnTop(true);
+                window.setVisible(true);
+
+                x += screenWidth;
             }
 
             final Rectangle screenRectangle = new Rectangle(screenSize);
