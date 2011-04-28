@@ -44,7 +44,7 @@ public abstract class FtpConnectionHandler<E extends FtpFile> {
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MINUTE, 0);
         final SimpleDateFormat dfCur = new SimpleDateFormat("MMM dd HH:mm", Locale.ENGLISH);
-        final SimpleDateFormat dfHist = new SimpleDateFormat("MMM dd YYYY", Locale.ENGLISH);
+        final SimpleDateFormat dfHist = new SimpleDateFormat("MMM dd yyyy", Locale.ENGLISH);
         for (final FtpFile f : list) {
             // directory or not
             sb.append(f.isDirectory() ? "d" : "-");
