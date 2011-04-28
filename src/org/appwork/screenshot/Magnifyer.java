@@ -35,6 +35,7 @@ import javax.swing.Timer;
  * 
  */
 public class Magnifyer extends JWindow implements ActionListener {
+    private static final long serialVersionUID = 2543289315175526228L;
     private static final int    SIZE        = 100;
     private static final double FACTOR      = 4.0;
     private static final int    SCALED_SIZE = (int) (Magnifyer.SIZE / Magnifyer.FACTOR);

@@ -104,12 +104,11 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
         return 30;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public JComponent getRendererComponent(ExtTable<E> table, E value, boolean isSelected, boolean hasFocus, int row, int column) {
-        label.setIcon(getIcon((E) value));
-        label.setToolTipText(getToolTip((E) value));
-        label.setEnabled(isEnabled((E) value));
+        label.setIcon(getIcon(value));
+        label.setToolTipText(getToolTip(value));
+        label.setEnabled(isEnabled(value));
         return label;
     }
 

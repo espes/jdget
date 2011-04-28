@@ -175,7 +175,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return 100;
     }
 
-    @SuppressWarnings("unchecked")
     public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
         return (JComponent) table.getLafCellEditor(row, column).getTableCellEditorComponent(table, value, isSelected, row, column);
     }
@@ -232,7 +231,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return this.name;
     }
 
-    @SuppressWarnings("unchecked")
     public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         return (JComponent) table.getLafCellRenderer(row, column).getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     }
@@ -251,7 +249,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
-        @SuppressWarnings("unchecked")
         final JComponent ret = this.getEditorComponent((ExtTable<E>) table, (E) value, isSelected, row, column);
         ret.setEnabled(this.isEnabled((E) value));
         this.adaptRowHighlighters((E) value, ret, isSelected, true, row);
@@ -261,7 +258,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        @SuppressWarnings("unchecked")
         final JComponent ret = this.getRendererComponent((ExtTable<E>) table, (E) value, isSelected, hasFocus, row, column);
         ret.setEnabled(this.isEnabled((E) value));
         this.adaptRowHighlighters((E) value, ret, isSelected, hasFocus, row);

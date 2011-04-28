@@ -53,7 +53,6 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
         return this.editor.getCellEditorValue();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public JComponent getEditorComponent(final ExtTable<T> table, final T value, final boolean isSelected, final int row, final int column) {
         this.editing = value;
@@ -62,7 +61,6 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
         return this.editor.getEditorComponent(table, value, isSelected, row, column);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public JComponent getRendererComponent(final ExtTable<T> table, final T value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         return this.selectColumn(value).getRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -70,7 +68,6 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
 
     @Override
     public ExtDefaultRowSorter<T> getRowSorter(final boolean sortOrderToggle) {
-        // TODO Auto-generated method stub
         return super.getRowSorter(sortOrderToggle);
     }
 
@@ -82,27 +79,22 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
 
     @Override
     public boolean isEditable(final T obj) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean isEnabled(final T obj) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean isSortable(final T obj) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public boolean matchSearch(final T object, final Pattern pattern) {
-
         return this.selectColumn(object).matchSearch(object, pattern);
-
     }
 
     /**

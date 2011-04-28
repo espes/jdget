@@ -147,7 +147,6 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         return 1;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
         this.checkBoxEdit.removeActionListener(this);
@@ -166,7 +165,6 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         return 30;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public final JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         this.checkBoxRend.setSelected(this.getBooleanValue(value));

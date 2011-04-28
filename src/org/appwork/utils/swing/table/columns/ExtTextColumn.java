@@ -78,7 +78,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         return this.text.getText();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
         this.text.removeActionListener(this);
@@ -95,7 +94,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         this.prepareLabel(value);

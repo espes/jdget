@@ -77,19 +77,17 @@ public abstract class ExtRadioColumn<E> extends ExtColumn<E> implements ActionLi
         return checkBoxEdit.isSelected();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public JComponent getEditorComponent(ExtTable<E> table, E value, boolean isSelected, int row, int column) {
         checkBoxEdit.removeActionListener(this);
-        checkBoxEdit.setSelected(getBooleanValue((E) value));
+        checkBoxEdit.setSelected(getBooleanValue(value));
         checkBoxEdit.addActionListener(this);
         return checkBoxEdit;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public final JComponent getRendererComponent(ExtTable<E> table, E value, boolean isSelected, boolean hasFocus, int row, int column) {
-        checkBoxRend.setSelected(getBooleanValue((E) value));
+        checkBoxRend.setSelected(getBooleanValue(value));
         return checkBoxRend;
     }
 

@@ -60,7 +60,6 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         return 100;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
 

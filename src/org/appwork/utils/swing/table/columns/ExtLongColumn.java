@@ -70,11 +70,10 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
     public void setValue(Object value, E object) {
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public JComponent getRendererComponent(ExtTable<E> table, E value, boolean isSelected, boolean hasFocus, int row, int column) {
-        label.setText(getLong((E) value) + "");
-        label.setEnabled(isEnabled((E) value));
+        label.setText(getLong(value) + "");
+        label.setEnabled(isEnabled(value));
         return label;
     }
 }

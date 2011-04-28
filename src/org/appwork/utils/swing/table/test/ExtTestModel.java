@@ -31,7 +31,6 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
         for (int i = 0; i < 100; i++) {
             this.addElement(new TextObject("a" + i, "b" + i, i + "c"));
         }
-        // TODO Auto-generated constructor stub
     }
 
     /*
@@ -43,6 +42,8 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
     protected void initColumns() {
         this.addColumn(new ExtTextColumn<TextObject>("col 1") {
 
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected String getStringValue(final TextObject value) {
                 return value.getA();
@@ -51,12 +52,16 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
         });
         this.addColumn(new ExtTextColumn<TextObject>("col 2") {
 
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected String getStringValue(final TextObject value) {
                 return value.getB();
             }
         });
         this.addColumn(new ExtTextColumn<TextObject>("col 3") {
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected String getStringValue(final TextObject value) {

@@ -87,15 +87,14 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
         return fileSize + " B";
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        if ((this.sizeValue = this.getBytes((E) value)) < 0) {
+        if ((this.sizeValue = this.getBytes(value)) < 0) {
             this.label.setText(this.getInvalidValue());
         } else {
             this.label.setText(this.getSizeString(this.sizeValue));
         }
-        this.label.setEnabled(this.isEnabled((E) value));
+        this.label.setEnabled(this.isEnabled(value));
         return this.label;
     }
 

@@ -31,6 +31,7 @@ import javax.swing.Timer;
  * 
  */
 public class Layover extends JWindow implements ActionListener {
+    private static final long serialVersionUID = 3184465232251321247L;
     private BufferedImage image;
     private final Timer   timer;
     private int           lastX;

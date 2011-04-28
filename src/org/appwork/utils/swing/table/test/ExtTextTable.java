@@ -9,9 +9,10 @@ import org.appwork.utils.swing.table.ExtTable;
 
 public class ExtTextTable extends ExtTable<TextObject> {
 
-    public static void main(final String[] args) {
+    private static final long serialVersionUID = -6211879933096729574L;
 
-        final BasicGui gui = new BasicGui("testTable") {
+    public static void main(final String[] args) {
+        new BasicGui("testTable") {
 
             @Override
             protected void layoutPanel() {
@@ -32,7 +33,6 @@ public class ExtTextTable extends ExtTable<TextObject> {
     public ExtTextTable() {
         super(new ExtTestModel());
         this.setSearchEnabled(true);
-        // TODO Auto-generated constructor stub
     }
 
     @Override

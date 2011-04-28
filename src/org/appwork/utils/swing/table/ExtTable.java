@@ -93,7 +93,7 @@ public class ExtTable<E> extends JTable {
     private SearchDialog                       searchDialog;
     private final ExtTableEventSender          eventSender;
     private JComponent                         columnButton        = null;
-    private boolean                            columnButtonVisible = true;                 ;
+    private boolean                            columnButtonVisible = true;
     private int                                verticalScrollPolicy;
 
     /**

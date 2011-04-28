@@ -21,7 +21,6 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
@@ -368,11 +367,6 @@ public class Dialog implements WindowFocusListener {
             Log.exception(new NullPointerException("parent == null"));
         }
 
-    }
-
-    @Deprecated
-    public void setParentOwner(final JFrame parent) {
-        this.setParentOwner((Component) parent);
     }
 
     /**
