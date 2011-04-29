@@ -14,7 +14,6 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.ImageIcon;
 
-import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
 import org.appwork.utils.swing.dialog.DialogClosedException;
@@ -26,25 +25,10 @@ import org.appwork.utils.swing.dialog.DialogClosedException;
 public class ScreenShot {
     public static void main(final String[] args) throws AWTException, InterruptedException {
 
-        final ScreenShooter layover = new EDTHelper<ScreenShooter>() {
+        final ScreenShooter layover = ScreenShooter.create();
+        ;
 
-            @Override
-            public ScreenShooter edtRun() {
-                try {
-                    final ScreenShooter layover = ScreenShooter.create();
-                    ;
-
-                    layover.start();
-                    return layover;
-
-                } catch (final AWTException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-        }.getReturnValue();
+        layover.start();
 
         final BufferedImage screenshot = layover.getScreenshot();
         if (screenshot != null) {
