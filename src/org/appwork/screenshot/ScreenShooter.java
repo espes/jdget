@@ -39,6 +39,7 @@ import javax.swing.JWindow;
 
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.os.CrossSystem;
+import org.appwork.utils.swing.EDTHelper;
 
 /**
  * @author thomas
@@ -66,6 +67,7 @@ public class ScreenShooter extends JWindow implements MouseListener {
      * @throws AWTException
      */
     public static ScreenShooter create() throws AWTException {
+
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screens = ge.getScreenDevices();
 
@@ -474,7 +476,7 @@ public class ScreenShooter extends JWindow implements MouseListener {
         this.image = complete;
         this.grayedImage = completeGrayed;
         this.setSize(complete.getWidth(), complete.getHeight());
-        this.setLocation(0, 0);
+        this.setLocation(1920, 0);
 
     }
 
@@ -482,28 +484,34 @@ public class ScreenShooter extends JWindow implements MouseListener {
      * 
      */
     public void start() {
+        new EDTHelper<Object>() {
 
-        this.setVisible(true);
-        this.createBufferStrategy(2);
-
-        // this.timer.start();
-        new Thread("Asynchpainter") {
             @Override
-            public void run() {
-                final long t = System.currentTimeMillis();
-                final int frame = 1000 / ScreenShooter.FPS;
-                while (ScreenShooter.this.isVisible()) {
+            public Object edtRun() {
+                ScreenShooter.this.setVisible(true);
+                ScreenShooter.this.createBufferStrategy(2);
 
-                    ScreenShooter.this.updateGUI(ScreenShooter.this.getBufferStrategy());
-                    try {
-                        Thread.sleep(Math.max(0, frame - System.currentTimeMillis() - t));
-                    } catch (final InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                // this.timer.start();
+                new Thread("Asynchpainter") {
+                    @Override
+                    public void run() {
+                        final long t = System.currentTimeMillis();
+                        final int frame = 1000 / ScreenShooter.FPS;
+                        while (ScreenShooter.this.isVisible()) {
+                            System.out.println(MouseInfo.getPointerInfo().getLocation());
+                            ScreenShooter.this.updateGUI(ScreenShooter.this.getBufferStrategy());
+                            try {
+                                Thread.sleep(Math.max(0, frame - System.currentTimeMillis() - t));
+                            } catch (final InterruptedException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                }
+                }.start();
+                return null;
             }
-        }.start();
+        }.getReturnValue();
 
     }
 
@@ -575,7 +583,9 @@ public class ScreenShooter extends JWindow implements MouseListener {
             this.paintMag(gb, l);
             gb.dispose();
             // flip screen
-            bufferStrategy.show();
+            if (this.isVisible()) {
+                bufferStrategy.show();
+            }
 
         } catch (final Exception e) {
             e.printStackTrace();
