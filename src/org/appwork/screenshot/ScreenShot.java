@@ -23,9 +23,9 @@ public class ScreenShot {
 
             @Override
             protected void runInEDT() {
-                Layover layover;
+                ScreenShooter layover;
                 try {
-                    layover = Layover.create();
+                    layover = ScreenShooter.create();
 
                     layover.start();
                 } catch (final AWTException e) {
