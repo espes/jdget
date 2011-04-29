@@ -9,9 +9,7 @@
  */
 package org.appwork.screenshot;
 
-import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Composite;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -46,6 +44,7 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
     private Point             dragEnd;
     // private VolatileImage volatileImg;
     private final Timer       timer;
+    private BufferedImage     grayedImage;
 
     public Layover() {
         super();
@@ -191,13 +190,15 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
 
     /**
      * @param complete
+     * @param completeGrayed
      */
-    public void setImage(final BufferedImage complete) {
+    public void setImage(final BufferedImage complete, final BufferedImage completeGrayed) {
         this.image = complete;
+        this.grayedImage = completeGrayed;
         this.setSize(complete.getWidth(), complete.getHeight());
-        setLocation(0,0);
+        this.setLocation(0, 0);
         this.setVisible(true);
-   
+
     }
 
     /**
@@ -223,26 +224,29 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
      */
     private void updateGUI(final BufferStrategy bufferStrategy) {
         try {
-            final Graphics2D gb = (Graphics2D) bufferStrategy.getDrawGraphics();
-            if (this.image != null) {
-                gb.drawImage(this.image, 0, 0, null);
-            }
-
             final Point l = MouseInfo.getPointerInfo().getLocation();
-            if (this.dragStart != null) {
-                gb.setColor(Color.BLACK);
+            final Graphics2D gb = (Graphics2D) bufferStrategy.getDrawGraphics();
 
+            if (this.dragStart != null) {
                 final int startX = Math.min(this.dragStart.x, l.x);
                 final int startY = Math.min(this.dragStart.y, l.y);
-                gb.drawRect(startX, startY, Math.abs(l.x - this.dragStart.x), Math.abs(l.y - this.dragStart.y));
-                final Composite comp = gb.getComposite();
-                gb.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
-                gb.fillRect(0, 0, startX, this.image.getHeight());
-                gb.fillRect(l.x, 0, this.image.getWidth() - l.x, this.image.getHeight());
-                gb.fillRect(startX, 0, Math.abs(l.x - this.dragStart.x), startY);
-                gb.fillRect(startX, l.y, Math.abs(l.x - this.dragStart.x), this.image.getHeight() - l.y);
+                gb.drawImage(this.grayedImage, 0, 0, null);
+                gb.drawImage(this.image, startX, startY, l.x, l.y, startX, startY, l.x, l.y, null);
 
-                gb.setComposite(comp);
+                gb.setColor(Color.BLACK);
+
+                gb.drawRect(startX, startY, Math.abs(l.x - this.dragStart.x), Math.abs(l.y - this.dragStart.y));
+
+                // gb.fillRect(0, 0, startX, this.image.getHeight());
+                // gb.fillRect(l.x, 0, this.image.getWidth() - l.x,
+                // this.image.getHeight());
+                // gb.fillRect(startX, 0, Math.abs(l.x - this.dragStart.x),
+                // startY);
+                // gb.fillRect(startX, l.y, Math.abs(l.x - this.dragStart.x),
+                // this.image.getHeight() - l.y);
+
+            } else {
+                gb.drawImage(this.image, 0, 0, null);
             }
             gb.setColor(Color.GRAY);
             gb.drawLine(0, l.y, this.image.getWidth(), l.y);

@@ -10,6 +10,9 @@
 package org.appwork.screenshot;
 
 import java.awt.AWTException;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Composite;
 import java.awt.DisplayMode;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
@@ -30,6 +33,7 @@ public class ScreenShot {
 
     private BufferedImage complete;
     private Layover       layover;
+    private BufferedImage completeGrayed;
 
     public ScreenShot() {
 
@@ -62,6 +66,8 @@ public class ScreenShot {
             xMin = Math.min(xMin, bounds.x);
         }
         this.complete = new BufferedImage(xMax - xMin, yMax - yMin, Transparency.TRANSLUCENT);
+        this.completeGrayed = new BufferedImage(xMax - xMin, yMax - yMin, Transparency.TRANSLUCENT);
+        final Graphics2D g2gray = this.completeGrayed.createGraphics();
         final Graphics2D g2 = this.complete.createGraphics();
 
         for (final GraphicsDevice screen : screens) {
@@ -77,11 +83,18 @@ public class ScreenShot {
 
             final BufferedImage image = robot.createScreenCapture(rect);
             g2.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
-
+            g2gray.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
+            final Composite comp = g2gray.getComposite();
+            g2gray.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+            g2gray.setColor(Color.BLACK);
+            g2gray.fillRect(bounds.x - xMin, bounds.y - yMin, screenWidth, screenHeight);
+            g2gray.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
+            g2gray.setComposite(comp);
         }
         g2.dispose();
+        g2gray.dispose();
         this.layover = new Layover();
-        this.layover.setImage(this.complete);
+        this.layover.setImage(this.complete, this.completeGrayed);
         // this.windows.add(new ScreenWindow(window, image, bounds));
 
         // window.setVisible(true);
@@ -106,6 +119,10 @@ public class ScreenShot {
 
     public BufferedImage getComplete() {
         return this.complete;
+    }
+
+    public BufferedImage getCompleteGrayed() {
+        return this.completeGrayed;
     }
 
     /**
