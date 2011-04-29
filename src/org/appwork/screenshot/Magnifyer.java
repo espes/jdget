@@ -53,7 +53,7 @@ public class Magnifyer extends JWindow implements ActionListener {
         this.setAlwaysOnTop(true);
         this.screenShot = screenShot;
         this.buffer = new BufferedImage(Magnifyer.SIZE, Magnifyer.SIZE, Transparency.TRANSLUCENT);
-        this.timer = new Timer(1000 / 50, this);
+        this.timer = new Timer(1000 / 150, this);
         this.timer.setRepeats(true);
         this.timer.start();
         this.setVisible(true);

@@ -117,8 +117,8 @@ public class ScreenShot {
 
         final Magnifyer mag = new Magnifyer(this);
 
-        Thread.sleep(10000);
-        System.exit(1);
+        // Thread.sleep(10000);
+        // System.exit(1);
 
     }
 }
