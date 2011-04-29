@@ -35,6 +35,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
 
 import javax.swing.JFrame;
+import javax.swing.JWindow;
 
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.os.CrossSystem;
@@ -43,7 +44,7 @@ import org.appwork.utils.os.CrossSystem;
  * @author thomas
  * 
  */
-public class ScreenShooter extends JFrame implements MouseListener {
+public class ScreenShooter extends JWindow implements MouseListener {
     private static final long   serialVersionUID = 3184465232251321247L;
     /**
      * Size of the Mag Glass
@@ -133,7 +134,7 @@ public class ScreenShooter extends JFrame implements MouseListener {
 
         // we extends from a JFrame because JWindow cannot get focus and this
         // cannot listen on key events
-        this.setUndecorated(true);
+        // this.setUndecorated(true);
 
         // invisible cursor
         final int[] pixels = new int[16 * 16];
@@ -141,7 +142,8 @@ public class ScreenShooter extends JFrame implements MouseListener {
         final Cursor transparentCursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(0, 0), "invisibleCursor");
         this.setCursor(transparentCursor);
         this.addMouseListener(this);
-        this.addKeyListener(new KeyListener() {
+        final JFrame frame = new JFrame();
+        frame.addKeyListener(new KeyListener() {
 
             @Override
             public void keyPressed(final KeyEvent e) {
@@ -162,6 +164,8 @@ public class ScreenShooter extends JFrame implements MouseListener {
 
             }
         });
+        frame.setVisible(true);
+        frame.requestFocus();
         // see
         // http://www.javalobby.org/forums/thread.jspa?threadID=16867&tstart=0
 
@@ -507,8 +511,8 @@ public class ScreenShooter extends JFrame implements MouseListener {
      * 
      */
     private void startDrag() {
-        this.isDragging = true;
         this.dragStart = MouseInfo.getPointerInfo().getLocation();
+        this.isDragging = true;
         System.out.println("Start Drag " + this.dragStart);
     }
 
@@ -531,14 +535,15 @@ public class ScreenShooter extends JFrame implements MouseListener {
 
             final Point l = MouseInfo.getPointerInfo().getLocation();
             final Graphics2D gb = (Graphics2D) bufferStrategy.getDrawGraphics();
+            final Point tempDrag = this.dragStart;
+            if (this.isDragging && tempDrag != null) {
 
-            if (this.isDragging) {
-                final int startX = Math.min(this.dragStart.x, l.x);
-                final int startY = Math.min(this.dragStart.y, l.y);
+                final int startX = Math.min(tempDrag.x, l.x);
+                final int startY = Math.min(tempDrag.y, l.y);
                 // draw grayed image over full screen
                 gb.drawImage(this.grayedImage, 0, 0, null);
-                final int endX = Math.max(l.x, this.dragStart.x);
-                final int endY = Math.max(l.y, this.dragStart.y);
+                final int endX = Math.max(l.x, tempDrag.x);
+                final int endY = Math.max(l.y, tempDrag.y);
                 // draw ungrayed icon as selection
                 gb.drawImage(this.image, startX, startY, endX, endY, startX, startY, endX, endY, null);
                 gb.setColor(Color.GRAY);
@@ -550,7 +555,7 @@ public class ScreenShooter extends JFrame implements MouseListener {
                 // Draw selection Border
                 gb.setColor(Color.BLACK);
                 gb.setStroke(new BasicStroke(1));
-                gb.drawRect(startX, startY, Math.abs(l.x - this.dragStart.x), Math.abs(l.y - this.dragStart.y));
+                gb.drawRect(startX, startY, Math.abs(l.x - tempDrag.x), Math.abs(l.y - tempDrag.y));
                 gb.setStroke(new BasicStroke(1));
             } else {
                 // draw screenshot image
