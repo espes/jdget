@@ -9,11 +9,13 @@
  */
 package org.appwork.screenshot;
 
+import java.awt.AWTException;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Cursor;
+import java.awt.DisplayMode;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
@@ -22,7 +24,9 @@ import java.awt.Image;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Robot;
 import java.awt.Toolkit;
+import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -34,6 +38,9 @@ import java.awt.image.MemoryImageSource;
 import javax.swing.JWindow;
 import javax.swing.Timer;
 
+import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.os.CrossSystem;
+
 /**
  * @author thomas
  * 
@@ -43,24 +50,83 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
     private static final int    SIZE             = 150;
     private static final double FACTOR           = 4.0;
     private static final int    SCALED_SIZE      = (int) (Layover.SIZE / Layover.FACTOR);
-    private BufferedImage       image;
 
-    private int                 lastX;
-    private int                 lastY;
+    /**
+     * @return
+     * @throws AWTException
+     */
+    public static Layover create() throws AWTException {
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice[] screens = ge.getScreenDevices();
 
-    private boolean             isDragging       = false;
-    private Point               dragStart;
-    private Point               dragEnd;
+        // Get size of each screen
+        final Robot robot;
+
+        robot = new Robot();
+
+        // for (final GraphicsDevice screen : screens) {
+        int xMax = 0;
+        int xMin = 0;
+        int yMax = 0;
+        int yMin = 0;
+        for (final GraphicsDevice screen : screens) {
+            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
+            xMax = Math.max(xMax, bounds.x + bounds.width);
+            yMax = Math.max(bounds.y + bounds.height, yMax);
+            yMin = Math.min(yMin, bounds.y);
+            xMin = Math.min(xMin, bounds.x);
+        }
+        final BufferedImage complete = new BufferedImage(xMax - xMin, yMax - yMin, Transparency.TRANSLUCENT);
+        final BufferedImage completeGrayed = new BufferedImage(xMax - xMin, yMax - yMin, Transparency.TRANSLUCENT);
+        final Graphics2D g2gray = completeGrayed.createGraphics();
+        final Graphics2D g2 = complete.createGraphics();
+
+        for (final GraphicsDevice screen : screens) {
+            final DisplayMode dm = screen.getDisplayMode();
+            System.out.println(screen.getDefaultConfiguration().getBounds());
+            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
+            final int screenWidth = dm.getWidth();
+            final int screenHeight = dm.getHeight();
+
+            System.out.println(screen + " : " + screenWidth + "x" + screenHeight);
+            final Rectangle rect = new Rectangle(screenWidth, screenHeight);
+            rect.setLocation(bounds.x, bounds.y);
+
+            final BufferedImage image = robot.createScreenCapture(rect);
+            g2.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
+            g2gray.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
+            final Composite comp = g2gray.getComposite();
+            g2gray.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+            g2gray.setColor(Color.BLACK);
+            g2gray.fillRect(bounds.x - xMin, bounds.y - yMin, screenWidth, screenHeight);
+            g2gray.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
+            g2gray.setComposite(comp);
+        }
+        g2.dispose();
+        g2gray.dispose();
+        final Layover layover = new Layover();
+        layover.setImage(complete, completeGrayed);
+        return layover;
+    }
+
+    private BufferedImage     image;
+    private int               lastX;
+
+    private int               lastY;
+    private boolean           isDragging = false;
+    private Point             dragStart;
+    private Point             dragEnd;
     // private VolatileImage volatileImg;
-    private final Timer         timer;
-    private BufferedImage       grayedImage;
-    private final Rectangle[]   bounds;
+    private final Timer       timer;
+    private BufferedImage     grayedImage;
+
+    private final Rectangle[] bounds;
 
     public Layover() {
         super();
         this.timer = new Timer(1000 / 250, this);
         this.timer.setRepeats(true);
-        this.timer.start();
+
         this.setVisible(true);
         final int[] pixels = new int[16 * 16];
         final Image image = Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(16, 16, pixels, 0, 16));
@@ -68,7 +134,6 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
         this.setCursor(transparentCursor);
         this.addMouseListener(this);
         this.createBufferStrategy(2);
-        this.setAlwaysOnTop(true);
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screens = ge.getScreenDevices();
         this.bounds = new Rectangle[screens.length];
@@ -248,6 +313,7 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
         gb.setColor(Color.BLACK);
         gb.setStroke(new BasicStroke(1));
         gb.drawRect(pos.x, pos.y, Layover.SIZE, Layover.SIZE);
+
         final Composite comp = gb.getComposite();
         gb.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
 
@@ -260,6 +326,65 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
         gb.drawLine(pos.x + Layover.SIZE / 2, pos.y + Layover.SIZE / 2 + 4, pos.x + Layover.SIZE / 2, pos.y + Layover.SIZE - 2);
         gb.setComposite(comp);
 
+        //
+        if (this.isDragging) {
+            gb.setStroke(new BasicStroke(1));
+            gb.setColor(Color.WHITE);
+            gb.fillRect(pos.x + 1, pos.y + Layover.SIZE - gb.getFontMetrics().getHeight(), Layover.SIZE - 1, gb.getFontMetrics().getHeight());
+
+            gb.setColor(Color.GRAY);
+            gb.drawLine(pos.x, pos.y + Layover.SIZE - gb.getFontMetrics().getHeight(), pos.x + Layover.SIZE, pos.y + Layover.SIZE - gb.getFontMetrics().getHeight());
+            final String dimension = APPWORKUTILS.T.Layover_size(Math.abs(l.x - this.dragStart.x), Math.abs(l.y - this.dragStart.y));
+            gb.getFontMetrics().stringWidth(dimension);
+            gb.drawString(dimension, pos.x + 5, pos.y + Layover.SIZE - 3);
+        }
+        //
+        String str = l.y + " px";
+        final Rectangle db = this.getDeviceBounds(l);
+        int width = gb.getFontMetrics().stringWidth(str) + 10;
+        int height = gb.getFontMetrics().getHeight() + 5;
+        gb.setStroke(new BasicStroke(1));
+        gb.setColor(Color.white);
+        int y = l.y - height / 2;
+        if (y < db.y) {
+            y = db.y;
+        }
+        if (y + height + 5 > db.height + db.y) {
+            y = db.height + db.y - height - 5;
+        }
+        gb.fillRect(db.x + db.width - width - 10, y, width, height);
+        gb.setColor(Color.GRAY);
+        gb.drawRect(db.x + db.width - width - 10, y, width, height);
+        gb.drawString(str, db.x + db.width - width - 5, y + height - 5);
+
+        //
+        str = l.x + " px";
+
+        width = gb.getFontMetrics().stringWidth(str) + 10;
+        height = gb.getFontMetrics().getHeight() + 5;
+        gb.setStroke(new BasicStroke(1));
+        gb.setColor(Color.white);
+        int x = l.x - width / 2;
+        if (x < db.x + 5) {
+            x = db.x + 5;
+        }
+        if (x + width + 5 > db.x + db.width) {
+            x = db.x + db.width - width - 5;
+        }
+        if (db.y + db.height - height - 5 - y <= height) {
+            // on mac, we cannot override the topbar which is 22 px height
+            gb.fillRect(x, db.y + (CrossSystem.isMac() ? 22 + 5 : 5), width, height);
+            gb.setColor(Color.GRAY);
+            gb.drawRect(x, +(CrossSystem.isMac() ? 22 + 5 : 5), width, height);
+            gb.drawString(str, x + 5, (CrossSystem.isMac() ? 22 + height : height));
+        } else {
+            gb.fillRect(x, db.y + db.height - height - 5, width, height);
+            gb.setColor(Color.GRAY);
+            gb.drawRect(x, db.y + db.height - height - 5, width, height);
+            gb.drawString(str, x + 5, db.y + db.height - 10);
+        }
+        //
+
     }
 
     /**
@@ -271,8 +396,15 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
         this.grayedImage = completeGrayed;
         this.setSize(complete.getWidth(), complete.getHeight());
         this.setLocation(0, 0);
-        this.setVisible(true);
 
+    }
+
+    /**
+     * 
+     */
+    public void start() {
+        this.timer.start();
+        this.setVisible(true);
     }
 
     /**
@@ -327,7 +459,7 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
                 gb.drawLine(l.x, 0, l.x, this.image.getHeight());
             }
             gb.setStroke(new BasicStroke(1));
-            final Color color = Color.BLACK;
+
             gb.drawLine(l.x - 10, l.y, l.x + 10, l.y);
             gb.drawLine(l.x, l.y - 10, l.x, l.y + 10);
             this.paintMag(gb, l);

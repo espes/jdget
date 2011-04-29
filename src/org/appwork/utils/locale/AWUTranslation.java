@@ -131,6 +131,9 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Enable all", "Alle aktivieren" })
     String extttable_enabled_all();
 
+    @Default(lngs = { "en", "de" }, values = { "W: %s1 px; H: %s2 px", "B: %s1 px; H: %s2 px" })
+    String Layover_size(int width, int height);
+
     @Default(lngs = { "en", "de" }, values = { "Login", "Anmelden" })
     String LOGINDIALOG_BUTTON_LOGIN();
 
