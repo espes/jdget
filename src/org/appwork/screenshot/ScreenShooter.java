@@ -26,8 +26,6 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.Transparency;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -36,21 +34,16 @@ import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
 
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.Timer;
 
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.os.CrossSystem;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
 
 /**
  * @author thomas
  * 
  */
-public class ScreenShooter extends JFrame implements ActionListener, MouseListener {
+public class ScreenShooter extends JFrame implements MouseListener {
     private static final long   serialVersionUID = 3184465232251321247L;
     /**
      * Size of the Mag Glass
@@ -62,6 +55,7 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
     private static final double FACTOR           = 5.0;
 
     private static final int    SCALED_SIZE      = (int) (ScreenShooter.SIZE / ScreenShooter.FACTOR);
+    protected static final int  FPS              = 50;
 
     /**
      * Creates a screenshot of all available screens. and returns the
@@ -124,14 +118,11 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
     }
 
     private BufferedImage     image;
-    private int               lastX;
 
-    private int               lastY;
     private boolean           isDragging = false;
     private Point             dragStart;
     private Point             dragEnd;
-    // private VolatileImage volatileImg;
-    private final Timer       timer;
+
     private BufferedImage     grayedImage;
 
     private final Rectangle[] bounds;
@@ -139,13 +130,10 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
 
     public ScreenShooter() {
         super();
-        // 50 fps
-        this.timer = new Timer(1000 / 50, this);
-        this.timer.setRepeats(true);
+
         // we extends from a JFrame because JWindow cannot get focus and this
         // cannot listen on key events
         this.setUndecorated(true);
-        this.setVisible(true);
 
         // invisible cursor
         final int[] pixels = new int[16 * 16];
@@ -176,7 +164,7 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
         });
         // see
         // http://www.javalobby.org/forums/thread.jspa?threadID=16867&tstart=0
-        this.createBufferStrategy(2);
+
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screens = ge.getScreenDevices();
         // store screen device bounds to find current screen later easily
@@ -185,23 +173,6 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
             this.bounds[i] = screens[i].getDefaultConfiguration().getBounds();
         }
 
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    @Override
-    public void actionPerformed(final ActionEvent e) {
-        final Point l = MouseInfo.getPointerInfo().getLocation();
-        if (this.lastX != l.x || this.lastY != l.y) {
-            // only updateGUI if mouseposition changed
-            this.updateGUI(this.getBufferStrategy());
-        }
-        this.lastX = l.x;
-        this.lastY = l.y;
     }
 
     /**
@@ -215,6 +186,7 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
         } else {
 
             this.setVisible(false);
+
             this.dispose();
 
         }
@@ -250,6 +222,7 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
         final int height = Math.abs(y1 - y2);
         final int sX = Math.min(x1, x2);
         final int sY = Math.min(y1, y2);
+        if (width <= 0 || height <= 0) { return null; }
         final BufferedImage ret = new BufferedImage(width, height, Transparency.TRANSLUCENT);
         final Graphics2D gb = (Graphics2D) ret.getGraphics();
         gb.drawImage(this.image, 0, 0, width, height, sX, sY, sX + width, sY + height, null);
@@ -300,6 +273,20 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
         return new Point(x, y);
     }
 
+    /**
+     * gets the selected Screenshot. Blocks until a screenshot is available, or
+     * the user canceled
+     * 
+     * @return
+     * @throws InterruptedException
+     */
+    public BufferedImage getScreenshot() throws InterruptedException {
+        while (this.screenshot == null && this.isVisible()) {
+            Thread.sleep(100);
+        }
+        return this.screenshot;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -307,10 +294,6 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
      */
     @Override
     public void mouseClicked(final MouseEvent e) {
-        if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
-
-            this.cancel();
-        }
 
     }
 
@@ -343,8 +326,10 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
      */
     @Override
     public void mousePressed(final MouseEvent e) {
-        if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) { return; }
-        if (!this.isDragging) {
+        if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
+
+            this.cancel();
+        } else if (!this.isDragging) {
 
             this.startDrag();
         }
@@ -363,15 +348,7 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
             this.stopDrag();
             this.screenshot = this.cut(this.dragStart.x, this.dragStart.y, this.dragEnd.x, this.dragEnd.y);
             this.setVisible(false);
-            try {
-                Dialog.getInstance().showConfirmDialog(0, "", "", new ImageIcon(this.screenshot), null, null);
-            } catch (final DialogClosedException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            } catch (final DialogCanceledException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }
+
         }
     }
 
@@ -501,8 +478,29 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
      * 
      */
     public void start() {
-        this.timer.start();
+
         this.setVisible(true);
+        this.createBufferStrategy(2);
+
+        // this.timer.start();
+        new Thread("Asynchpainter") {
+            @Override
+            public void run() {
+                final long t = System.currentTimeMillis();
+                final int frame = 1000 / ScreenShooter.FPS;
+                while (ScreenShooter.this.isVisible()) {
+
+                    ScreenShooter.this.updateGUI(ScreenShooter.this.getBufferStrategy());
+                    try {
+                        Thread.sleep(Math.max(0, frame - System.currentTimeMillis() - t));
+                    } catch (final InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }.start();
+
     }
 
     /**
@@ -530,6 +528,7 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
      */
     private void updateGUI(final BufferStrategy bufferStrategy) {
         try {
+
             final Point l = MouseInfo.getPointerInfo().getLocation();
             final Graphics2D gb = (Graphics2D) bufferStrategy.getDrawGraphics();
 
@@ -572,8 +571,9 @@ public class ScreenShooter extends JFrame implements ActionListener, MouseListen
             gb.dispose();
             // flip screen
             bufferStrategy.show();
-        } catch (final Exception e) {
 
+        } catch (final Exception e) {
+            e.printStackTrace();
         }
     }
 

@@ -10,8 +10,14 @@
 package org.appwork.screenshot;
 
 import java.awt.AWTException;
+import java.awt.image.BufferedImage;
 
-import org.appwork.utils.swing.EDTRunner;
+import javax.swing.ImageIcon;
+
+import org.appwork.utils.swing.EDTHelper;
+import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.dialog.DialogCanceledException;
+import org.appwork.utils.swing.dialog.DialogClosedException;
 
 /**
  * @author thomas
@@ -19,21 +25,42 @@ import org.appwork.utils.swing.EDTRunner;
  */
 public class ScreenShot {
     public static void main(final String[] args) throws AWTException, InterruptedException {
-        new EDTRunner() {
+
+        final ScreenShooter layover = new EDTHelper<ScreenShooter>() {
 
             @Override
-            protected void runInEDT() {
-                ScreenShooter layover;
+            public ScreenShooter edtRun() {
                 try {
-                    layover = ScreenShooter.create();
+                    final ScreenShooter layover = ScreenShooter.create();
+                    ;
 
                     layover.start();
+                    return layover;
+
                 } catch (final AWTException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
+                    return null;
                 }
             }
-        };
+
+        }.getReturnValue();
+
+        final BufferedImage screenshot = layover.getScreenshot();
+        if (screenshot != null) {
+
+            try {
+                Dialog.getInstance().showConfirmDialog(0, "", "", new ImageIcon(screenshot), null, null);
+            } catch (final DialogClosedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (final DialogCanceledException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+        }
+        System.exit(0);
 
     }
 
