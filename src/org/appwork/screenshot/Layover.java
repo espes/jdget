@@ -59,6 +59,7 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
         this.setCursor(transparentCursor);
         this.addMouseListener(this);
         this.createBufferStrategy(2);
+        this.setAlwaysOnTop(true);
 
     }
 
@@ -194,8 +195,9 @@ public class Layover extends JWindow implements ActionListener, MouseListener {
     public void setImage(final BufferedImage complete) {
         this.image = complete;
         this.setSize(complete.getWidth(), complete.getHeight());
-
+        setLocation(0,0);
         this.setVisible(true);
+   
     }
 
     /**

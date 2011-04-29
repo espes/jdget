@@ -100,7 +100,8 @@ public class ScreenShot {
         // // TODO Auto-generated catch block
         // e.printStackTrace();
         // }
-
+        
+//        GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0].setFullScreenWindow(layover);
     }
 
     public BufferedImage getComplete() {
@@ -118,7 +119,7 @@ public class ScreenShot {
         final Magnifyer mag = new Magnifyer(this);
 
         // Thread.sleep(10000);
-        // System.exit(1);
+//         System.exit(1);
 
     }
 }
