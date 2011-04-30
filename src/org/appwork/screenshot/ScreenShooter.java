@@ -22,20 +22,25 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.Transparency;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
 
 import javax.swing.JFrame;
 import javax.swing.JWindow;
+import javax.swing.Timer;
 
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.os.CrossSystem;
@@ -45,7 +50,7 @@ import org.appwork.utils.swing.EDTHelper;
  * @author thomas
  * 
  */
-public class ScreenShooter extends JWindow implements MouseListener {
+public class ScreenShooter extends JWindow implements MouseListener, MouseMotionListener {
     private static final long   serialVersionUID = 3184465232251321247L;
     /**
      * Size of the Mag Glass
@@ -57,7 +62,7 @@ public class ScreenShooter extends JWindow implements MouseListener {
     private static final double FACTOR           = 5.0;
 
     private static final int    SCALED_SIZE      = (int) (ScreenShooter.SIZE / ScreenShooter.FACTOR);
-    protected static final int  FPS              = 50;
+    protected static final int  FPS              = 5;
 
     /**
      * Creates a screenshot of all available screens. and returns the
@@ -89,8 +94,17 @@ public class ScreenShooter extends JWindow implements MouseListener {
             xMin = Math.min(xMin, bounds.x);
         }
         final BufferedImage complete = new BufferedImage(xMax - xMin, yMax - yMin, Transparency.TRANSLUCENT);
+        // final JWindow w = new JWindow();
+        // w.setSize(xMax - xMin, yMax - yMin);
+        // w.setVisible(true);
+        // final VolatileImage complete = w.createVolatileImage(xMax - xMin,
+        // yMax - yMin);
+
         // we create a normal screenshot and a grayed screenshot
         final BufferedImage completeGrayed = new BufferedImage(xMax - xMin, yMax - yMin, Transparency.TRANSLUCENT);
+        // final VolatileImage completeGrayed = w.createVolatileImage(xMax -
+        // xMin, yMax - yMin);
+        // w.dispose();
         final Graphics2D g2gray = completeGrayed.createGraphics();
         final Graphics2D g2 = complete.createGraphics();
 
@@ -120,16 +134,18 @@ public class ScreenShooter extends JWindow implements MouseListener {
         return layover;
     }
 
-    private BufferedImage     image;
+    private Image             image;
 
     private boolean           isDragging = false;
     private Point             dragStart;
     private Point             dragEnd;
 
-    private BufferedImage     grayedImage;
+    private Image             grayedImage;
 
     private final Rectangle[] bounds;
     private BufferedImage     screenshot;
+    private final JFrame      frame;
+    private long              moved      = 0;
 
     public ScreenShooter() {
         super();
@@ -138,14 +154,11 @@ public class ScreenShooter extends JWindow implements MouseListener {
         // cannot listen on key events
         // this.setUndecorated(true);
 
-        // invisible cursor
-        final int[] pixels = new int[16 * 16];
-        final Image image = Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(16, 16, pixels, 0, 16));
-        final Cursor transparentCursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(0, 0), "invisibleCursor");
-        this.setCursor(transparentCursor);
         this.addMouseListener(this);
-        final JFrame frame = new JFrame();
-        frame.addKeyListener(new KeyListener() {
+        // we need an extra frame to listen for keyevents. jwindow cannot catch
+        // key events
+        this.frame = new JFrame();
+        this.frame.addKeyListener(new KeyListener() {
 
             @Override
             public void keyPressed(final KeyEvent e) {
@@ -166,8 +179,9 @@ public class ScreenShooter extends JWindow implements MouseListener {
 
             }
         });
-        frame.setVisible(true);
-        frame.requestFocus();
+        this.frame.setUndecorated(false);
+        // this.frame.setSize(0, 0);
+
         // see
         // http://www.javalobby.org/forums/thread.jspa?threadID=16867&tstart=0
 
@@ -190,7 +204,8 @@ public class ScreenShooter extends JWindow implements MouseListener {
             this.dragStart = null;
             this.dragEnd = null;
         } else {
-
+            this.frame.setVisible(false);
+            this.frame.dispose();
             this.setVisible(false);
 
             this.dispose();
@@ -229,7 +244,7 @@ public class ScreenShooter extends JWindow implements MouseListener {
         final int sX = Math.min(x1, x2);
         final int sY = Math.min(y1, y2);
         if (width <= 0 || height <= 0) { return null; }
-        final BufferedImage ret = new BufferedImage(width, height, Transparency.TRANSLUCENT);
+        final BufferedImage ret = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         final Graphics2D gb = (Graphics2D) ret.getGraphics();
         gb.drawImage(this.image, 0, 0, width, height, sX, sY, sX + width, sY + height, null);
         gb.dispose();
@@ -306,6 +321,19 @@ public class ScreenShooter extends JWindow implements MouseListener {
     /*
      * (non-Javadoc)
      * 
+     * @see
+     * java.awt.event.MouseMotionListener#mouseDragged(java.awt.event.MouseEvent
+     * )
+     */
+    @Override
+    public void mouseDragged(final MouseEvent e) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
      */
     @Override
@@ -322,6 +350,18 @@ public class ScreenShooter extends JWindow implements MouseListener {
     @Override
     public void mouseExited(final MouseEvent e) {
         // TODO Auto-generated method stub
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.MouseMotionListener#mouseMoved(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void mouseMoved(final MouseEvent e) {
+        this.moved = System.currentTimeMillis();
 
     }
 
@@ -354,6 +394,8 @@ public class ScreenShooter extends JWindow implements MouseListener {
             this.stopDrag();
             this.screenshot = this.cut(this.dragStart.x, this.dragStart.y, this.dragEnd.x, this.dragEnd.y);
             this.setVisible(false);
+            this.frame.setVisible(false);
+            this.frame.dispose();
 
         }
     }
@@ -472,11 +514,10 @@ public class ScreenShooter extends JWindow implements MouseListener {
      * @param complete
      * @param completeGrayed
      */
-    private void setImage(final BufferedImage complete, final BufferedImage completeGrayed) {
+    private void setImage(final Image complete, final Image completeGrayed) {
         this.image = complete;
         this.grayedImage = completeGrayed;
-        this.setSize(complete.getWidth(), complete.getHeight());
-        this.setLocation(1920, 0);
+        this.setSize(complete.getWidth(null), complete.getHeight(null));
 
     }
 
@@ -488,9 +529,45 @@ public class ScreenShooter extends JWindow implements MouseListener {
 
             @Override
             public Object edtRun() {
+                // avoid that this frame shows up
+                ScreenShooter.this.frame.setLocation(-10000, -10000);
+                ScreenShooter.this.frame.setVisible(true);
+                ScreenShooter.this.frame.requestFocus();
                 ScreenShooter.this.setVisible(true);
+                ScreenShooter.this.setLocation(0, 0);
+                ScreenShooter.this.setAlwaysOnTop(false);
+                ScreenShooter.this.requestFocus();
+                ScreenShooter.this.requestFocusInWindow();
                 ScreenShooter.this.createBufferStrategy(2);
 
+                // invisible cursor
+                final int[] pixels = new int[16 * 16];
+                final Image image = Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(16, 16, pixels, 0, 16));
+                final Cursor transparentCursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(0, 0), "invisibleCursor");
+                ScreenShooter.this.setCursor(transparentCursor);
+                // it might happen, that our window looses focus and does not
+                // lsten to mousevents any more. This timer kills the window if
+                // there is no mousemove for >15 seconds
+                ScreenShooter.this.addMouseMotionListener(ScreenShooter.this);
+                ScreenShooter.this.mouseMoved(null);
+                final Timer timer = new Timer(5000, new ActionListener() {
+
+                    @Override
+                    public void actionPerformed(final ActionEvent e) {
+                        if (!ScreenShooter.this.isVisible()) {
+                            ((Timer) e.getSource()).stop();
+                        }
+                        ScreenShooter.this.requestFocus();
+                        ScreenShooter.this.requestFocusInWindow();
+                        if (System.currentTimeMillis() - ScreenShooter.this.moved > 15000) {
+                            // probably lost focus;
+                            System.out.println("NOTAUS");
+                            ScreenShooter.this.cancel();
+                        }
+                    }
+                });
+
+                timer.start();
                 // this.timer.start();
                 new Thread("Asynchpainter") {
                     @Override
@@ -498,7 +575,7 @@ public class ScreenShooter extends JWindow implements MouseListener {
                         final long t = System.currentTimeMillis();
                         final int frame = 1000 / ScreenShooter.FPS;
                         while (ScreenShooter.this.isVisible()) {
-                            System.out.println(MouseInfo.getPointerInfo().getLocation());
+
                             ScreenShooter.this.updateGUI(ScreenShooter.this.getBufferStrategy());
                             try {
                                 Thread.sleep(Math.max(0, frame - System.currentTimeMillis() - t));
@@ -540,8 +617,9 @@ public class ScreenShooter extends JWindow implements MouseListener {
      */
     private void updateGUI(final BufferStrategy bufferStrategy) {
         try {
+            final PointerInfo mi = MouseInfo.getPointerInfo();
 
-            final Point l = MouseInfo.getPointerInfo().getLocation();
+            final Point l = mi.getLocation();
             final Graphics2D gb = (Graphics2D) bufferStrategy.getDrawGraphics();
             final Point tempDrag = this.dragStart;
             if (this.isDragging && tempDrag != null) {
@@ -558,8 +636,8 @@ public class ScreenShooter extends JWindow implements MouseListener {
                 // draw BIG dashed hair cross
                 final float dash[] = { 10.0f };
                 gb.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f));
-                gb.drawLine(0, l.y, this.image.getWidth(), l.y);
-                gb.drawLine(l.x, 0, l.x, this.image.getHeight());
+                gb.drawLine(0, l.y, this.image.getWidth(null), l.y);
+                gb.drawLine(l.x, 0, l.x, this.image.getHeight(null));
                 // Draw selection Border
                 gb.setColor(Color.BLACK);
                 gb.setStroke(new BasicStroke(1));
@@ -573,8 +651,8 @@ public class ScreenShooter extends JWindow implements MouseListener {
                 gb.setColor(Color.GRAY);
                 final float dash[] = { 10.0f };
                 gb.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f));
-                gb.drawLine(0, l.y, this.image.getWidth(), l.y);
-                gb.drawLine(l.x, 0, l.x, this.image.getHeight());
+                gb.drawLine(0, l.y, this.image.getWidth(null), l.y);
+                gb.drawLine(l.x, 0, l.x, this.image.getHeight(null));
             }
             // draw tiny cross at mouse location
             gb.setStroke(new BasicStroke(1));

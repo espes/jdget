@@ -131,6 +131,18 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Enable all", "Alle aktivieren" })
     String extttable_enabled_all();
 
+    @Default(lngs = { "en", "de" }, values = { "Choose editor for Filetype '%s1'", "Editor für %s1-Dateien wählen" })
+    String fileditcontroller_geteditor_for(String fileType);
+
+    @Default(lngs = { "en", "de" }, values = { "Do you want to open the '%s1'-file in your default editor?", "Wollen Sie die '%s1'-Datei im Standard Editor bearbeiten?" })
+    String fileeditcontroller_dialog_message(String extension);
+
+    @Default(lngs = { "en", "de" }, values = { "Use default editor?", "Standard Programm nutzen?" })
+    String fileeditcontroller_dialog_title();
+
+    @Default(lngs = { "en", "de" }, values = { "%s1-Editor (Application)", "%s1-Editor (Anwendung)" })
+    String fileeditcontroller_exechooser_description(String type);
+
     @Default(lngs = { "en", "de" }, values = { "(px)W:%s1; H:%s2", "(px)B:%s1; H:%s2" })
     String Layover_size(int width, int height);
 
@@ -151,6 +163,9 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "Login", "Benutzername" })
     String LOGINDIALOG_LABEL_USERNAME();
+
+    @Default(lngs = { "en", "de" }, values = { "No", "Nein" })
+    String NO();
 
     @Default(lngs = { "en", "de" }, values = { "New Password:", "Neues Passwort" })
     String PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD();
@@ -184,4 +199,7 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "This dialog has a countdown and closes after a few seconds. Click to cancel the countdown", "Dieser Dialog hat einen Countdown und schließt sich in einigen Sekunden. Klicken Sie hier um den Countdown abzubrechen." })
     String TIMERDIALOG_TOOLTIP_TIMERLABEL();
+
+    @Default(lngs = { "en", "de" }, values = { "Yes", "Ja" })
+    String YES();
 }

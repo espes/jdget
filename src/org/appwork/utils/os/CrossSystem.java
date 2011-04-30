@@ -17,6 +17,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.logging.Level;
 
+import javax.swing.filechooser.FileFilter;
+
+import org.appwork.storage.JSonStorage;
+import org.appwork.storage.StorageException;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.mime.Mime;
@@ -24,6 +28,8 @@ import org.appwork.utils.os.mime.MimeDefault;
 import org.appwork.utils.os.mime.MimeLinux;
 import org.appwork.utils.os.mime.MimeWindows;
 import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.dialog.DialogCanceledException;
+import org.appwork.utils.swing.dialog.DialogClosedException;
 import org.appwork.utils.swing.dialog.DialogNoAnswerException;
 
 /**
@@ -123,6 +129,37 @@ public class CrossSystem {
         } else {
             final Desktop desktop = Desktop.getDesktop();
             desktop.browse(url.toURI());
+        }
+    }
+
+    public static String[] getEditor(final String extension) throws DialogCanceledException, DialogClosedException, StorageException {
+        final File[] ret = Dialog.getInstance().showFileChooser("FILE_EDIT_CONTROLLER_" + extension, APPWORKUTILS.T.fileditcontroller_geteditor_for(extension), Dialog.FileChooserSelectionMode.FILES_ONLY, new FileFilter() {
+
+            @Override
+            public boolean accept(final File f) {
+                if (f.isDirectory()) { return true; }
+                if (CrossSystem.isWindows()) {
+                    return f.getName().endsWith(".exe");
+                } else {
+                    return f.canExecute();
+                }
+
+            }
+
+            @Override
+            public String getDescription() {
+
+                return APPWORKUTILS.T.fileeditcontroller_exechooser_description(extension);
+
+            }
+
+        }, false, Dialog.FileChooserType.OPEN_DIALOG_WITH_PRESELECTION, new File(JSonStorage.getPlainStorage("EDITORS").get(extension, "")));
+        if (ret != null && ret.length > 0) {
+            JSonStorage.getPlainStorage("EDITORS").put(extension, ret[0].toString());
+
+            return new String[] { ret[0].toString() };
+        } else {
+            return null;
         }
     }
 
