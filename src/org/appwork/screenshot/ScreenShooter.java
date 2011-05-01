@@ -23,6 +23,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
@@ -36,11 +37,13 @@ import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
 import java.awt.image.VolatileImage;
+import java.io.IOException;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JWindow;
 
+import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
@@ -80,11 +83,6 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screens = ge.getScreenDevices();
 
-        // Get size of each screen
-        final Robot robot;
-
-        robot = new Robot();
-
         // for (final GraphicsDevice screen : screens) {
         int xMax = 0;
         int xMin = 0;
@@ -102,11 +100,18 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         final JWindow w = new JWindow();
         w.setSize(xMax - xMin, yMax - yMin);
         w.setVisible(true);
+        /*
+         * Daniel: falls visible bleibt, hat der screenshot ein leeres jwindow
+         * drin. muss aber visible true/false gemacht werden, damit
+         * createVolatileImage geht
+         */
+        w.setVisible(false);
         final VolatileImage complete = w.createVolatileImage(xMax - xMin, yMax - yMin);
 
         // we create a normal screenshot and a grayed screenshot
         // final BufferedImage completeGrayed = new BufferedImage(xMax - xMin,
         // yMax - yMin, Transparency.TRANSLUCENT);
+
         final VolatileImage completeGrayed = w.createVolatileImage(xMax - xMin, yMax - yMin);
         w.dispose();
         final Graphics2D g2gray = completeGrayed.createGraphics();
@@ -120,7 +125,14 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
             final int screenWidth = dm.getWidth();
             final int screenHeight = dm.getHeight();
             final Rectangle rect = new Rectangle(screenWidth, screenHeight);
-            rect.setLocation(bounds.x, bounds.y);
+            /*
+             * Daniel: ich erzeug nen robot pro monitor da der leere konstruktor
+             * das default device nutzt und man dann mit koordinaten in probleme
+             * kommt, mit current screen im konstruktor brauch ich dann kein
+             * setlocation mehr
+             */
+            // rect.setLocation(bounds.x, bounds.y);
+            Robot robot = new Robot(screen);
             final BufferedImage image = robot.createScreenCapture(rect);
             g2.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
             g2gray.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
@@ -133,6 +145,20 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         }
         g2.dispose();
         g2gray.dispose();
+//        try {
+//            /*Daniel: alles zu BufferedImage*/
+//            //BufferedImage kk = ImageProvider.dereferenceImage(complete);
+//            //Dialog.getInstance().showConfirmDialog(0, "", "", new ImageIcon(ImageProvider.getScaledInstance(kk, 800, 600, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true)), null, null);
+//        } catch (DialogClosedException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        } catch (DialogCanceledException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
         final ScreenShooter layover = new ScreenShooter();
         layover.setImage(complete, completeGrayed);
         return layover;
@@ -141,8 +167,6 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
     public static void main(final String[] args) throws AWTException, InterruptedException {
 
         final ScreenShooter layover = ScreenShooter.create();
-        ;
-
         layover.start();
 
         final BufferedImage screenshot = layover.getScreenshot();
