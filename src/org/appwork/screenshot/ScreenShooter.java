@@ -382,7 +382,17 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      */
     @Override
     public void mouseClicked(final MouseEvent e) {
+        if (this.isDragging) {
+            this.stopDrag();
+            this.screenshot = this.cut(this.dragStart.x, this.dragStart.y, this.dragEnd.x, this.dragEnd.y);
+            this.setVisible(false);
+            this.frame.setVisible(false);
+            this.frame.dispose();
 
+        } else if (!this.isDragging) {
+
+            this.startDrag();
+        }
     }
 
     /*
@@ -445,9 +455,6 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
 
             this.cancel();
-        } else if (!this.isDragging) {
-
-            this.startDrag();
         }
     }
 
@@ -460,14 +467,7 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
     @Override
     public void mouseReleased(final MouseEvent e) {
         if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) { return; }
-        if (this.isDragging) {
-            this.stopDrag();
-            this.screenshot = this.cut(this.dragStart.x, this.dragStart.y, this.dragEnd.x, this.dragEnd.y);
-            this.setVisible(false);
-            this.frame.setVisible(false);
-            this.frame.dispose();
 
-        }
     }
 
     /*
