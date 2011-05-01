@@ -116,7 +116,16 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         w.dispose();
         final Graphics2D g2gray = completeGrayed.createGraphics();
         final Graphics2D g2 = complete.createGraphics();
-
+        try {
+            /*
+             * bei mir ist kurz ein sleep notwendig, damit der rechte screen
+             * refresh ist, sonst ist noch teils das jwindow zu sehen
+             */
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         for (final GraphicsDevice screen : screens) {
             final DisplayMode dm = screen.getDisplayMode();
             // bounds are used to gete the position and size of this screen in
@@ -145,29 +154,45 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         }
         g2.dispose();
         g2gray.dispose();
-//        try {
-//            /*Daniel: alles zu BufferedImage*/
-//            //BufferedImage kk = ImageProvider.dereferenceImage(complete);
-//            //Dialog.getInstance().showConfirmDialog(0, "", "", new ImageIcon(ImageProvider.getScaledInstance(kk, 800, 600, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true)), null, null);
-//        } catch (DialogClosedException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        } catch (DialogCanceledException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
+        // try {
+        // /*Daniel: alles zu BufferedImage*/
+        // //BufferedImage kk = ImageProvider.dereferenceImage(complete);
+        // //Dialog.getInstance().showConfirmDialog(0, "", "", new
+        // ImageIcon(ImageProvider.getScaledInstance(kk, 800, 600,
+        // RenderingHints.VALUE_INTERPOLATION_BILINEAR, true)), null, null);
+        // } catch (DialogClosedException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // } catch (DialogCanceledException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // } catch (IOException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // }
         final ScreenShooter layover = new ScreenShooter();
         layover.setImage(complete, completeGrayed);
         return layover;
     }
 
-    public static void main(final String[] args) throws AWTException, InterruptedException {
+    private static ScreenShooter layover;
 
-        final ScreenShooter layover = ScreenShooter.create();
-        layover.start();
+    public static void main(final String[] args) throws AWTException, InterruptedException {
+        new EDTHelper() {
+
+            @Override
+            public ScreenShooter edtRun() {
+                try {
+                    layover = ScreenShooter.create();
+                } catch (AWTException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                layover.start();
+                return null;
+            }
+
+        }.waitForEDT();
 
         final BufferedImage screenshot = layover.getScreenshot();
         if (screenshot != null) {
