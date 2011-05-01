@@ -16,53 +16,57 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Cursor;
 import java.awt.DisplayMode;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
-import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
-import java.awt.Transparency;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
+import java.awt.image.VolatileImage;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JWindow;
-import javax.swing.Timer;
 
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
+import org.appwork.utils.swing.EDTRunner;
+import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.dialog.DialogCanceledException;
+import org.appwork.utils.swing.dialog.DialogClosedException;
 
 /**
  * @author thomas
  * 
  */
 public class ScreenShooter extends JWindow implements MouseListener, MouseMotionListener {
-    private static final long   serialVersionUID = 3184465232251321247L;
+
+    private static final long  serialVersionUID = 3184465232251321247L;
     /**
      * Size of the Mag Glass
      */
-    private static final int    SIZE             = 150;
+    private static final int   SIZE             = 150;
     /**
      * Mag resize factor
      */
-    private static final double FACTOR           = 5.0;
+    private static final int   FACTOR           = 5;
+    private static final int   SCALED_SIZE      = ScreenShooter.SIZE / ScreenShooter.FACTOR;
 
-    private static final int    SCALED_SIZE      = (int) (ScreenShooter.SIZE / ScreenShooter.FACTOR);
-    protected static final int  FPS              = 5;
+    protected static final int FPS              = 50;
 
     /**
      * Creates a screenshot of all available screens. and returns the
@@ -93,18 +97,18 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
             yMin = Math.min(yMin, bounds.y);
             xMin = Math.min(xMin, bounds.x);
         }
-        final BufferedImage complete = new BufferedImage(xMax - xMin, yMax - yMin, Transparency.TRANSLUCENT);
-        // final JWindow w = new JWindow();
-        // w.setSize(xMax - xMin, yMax - yMin);
-        // w.setVisible(true);
-        // final VolatileImage complete = w.createVolatileImage(xMax - xMin,
-        // yMax - yMin);
+        // final BufferedImage complete = new BufferedImage(xMax - xMin, yMax -
+        // yMin, Transparency.TRANSLUCENT);
+        final JWindow w = new JWindow();
+        w.setSize(xMax - xMin, yMax - yMin);
+        w.setVisible(true);
+        final VolatileImage complete = w.createVolatileImage(xMax - xMin, yMax - yMin);
 
         // we create a normal screenshot and a grayed screenshot
-        final BufferedImage completeGrayed = new BufferedImage(xMax - xMin, yMax - yMin, Transparency.TRANSLUCENT);
-        // final VolatileImage completeGrayed = w.createVolatileImage(xMax -
-        // xMin, yMax - yMin);
-        // w.dispose();
+        // final BufferedImage completeGrayed = new BufferedImage(xMax - xMin,
+        // yMax - yMin, Transparency.TRANSLUCENT);
+        final VolatileImage completeGrayed = w.createVolatileImage(xMax - xMin, yMax - yMin);
+        w.dispose();
         final Graphics2D g2gray = completeGrayed.createGraphics();
         final Graphics2D g2 = complete.createGraphics();
 
@@ -134,6 +138,31 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         return layover;
     }
 
+    public static void main(final String[] args) throws AWTException, InterruptedException {
+
+        final ScreenShooter layover = ScreenShooter.create();
+        ;
+
+        layover.start();
+
+        final BufferedImage screenshot = layover.getScreenshot();
+        if (screenshot != null) {
+
+            try {
+                Dialog.getInstance().showConfirmDialog(0, "", "", new ImageIcon(screenshot), null, null);
+            } catch (final DialogClosedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (final DialogCanceledException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+        }
+        System.exit(0);
+
+    }
+
     private Image             image;
 
     private boolean           isDragging = false;
@@ -145,7 +174,9 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
     private final Rectangle[] bounds;
     private BufferedImage     screenshot;
     private final JFrame      frame;
-    private long              moved      = 0;
+
+    private Point             mouse;
+    private boolean           disposed   = false;
 
     public ScreenShooter() {
         super();
@@ -204,11 +235,16 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
             this.dragStart = null;
             this.dragEnd = null;
         } else {
-            this.frame.setVisible(false);
-            this.frame.dispose();
-            this.setVisible(false);
+            new EDTRunner() {
 
-            this.dispose();
+                @Override
+                protected void runInEDT() {
+                    ScreenShooter.this.frame.setVisible(false);
+                    ScreenShooter.this.frame.dispose();
+                    ScreenShooter.this.setVisible(false);
+                    ScreenShooter.this.dispose();
+                }
+            };
 
         }
     }
@@ -222,10 +258,10 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      * @param yourPoint
      * @return
      */
-    private Point convertMag(final Point l, final Point mag, final Point p) {
+    private Point convertToMagnifier(final Point mag, final Point p) {
 
-        final int tx = (int) ((p.x - l.x) * ScreenShooter.FACTOR + l.x + mag.x + ScreenShooter.SIZE / 2 - l.x);
-        final int ty = (int) ((p.y - l.y) * ScreenShooter.FACTOR + l.y + mag.y + ScreenShooter.SIZE / 2 - l.y);
+        final int tx = (p.x - this.mouse.x) * ScreenShooter.FACTOR + this.mouse.x + mag.x + ScreenShooter.SIZE / 2 - this.mouse.x;
+        final int ty = (p.y - this.mouse.y) * ScreenShooter.FACTOR + this.mouse.y + mag.y + ScreenShooter.SIZE / 2 - this.mouse.y;
         return new Point(tx, ty);
     }
 
@@ -239,8 +275,8 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      * @return
      */
     private BufferedImage cut(final int x1, final int y1, final int x2, final int y2) {
-        final int width = Math.abs(x1 - x2);
-        final int height = Math.abs(y1 - y2);
+        final int width = Math.abs(x1 - x2) + 1;
+        final int height = Math.abs(y1 - y2) + 1;
         final int sX = Math.min(x1, x2);
         final int sY = Math.min(y1, y2);
         if (width <= 0 || height <= 0) { return null; }
@@ -251,18 +287,49 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         return ret;
     }
 
+    @Override
+    public void dispose() {
+        super.dispose();
+        this.disposed = true;
+    }
+
+    /**
+     * @param gb
+     */
+    private void drawBigCross(final Graphics2D gb) {
+        gb.setStroke(new BasicStroke(1));
+        gb.setColor(Color.GRAY);
+        final Area clip = new Area(new Rectangle2D.Double(0, 0, this.getWidth(), this.getHeight()));
+        final Area subClip = new Area(new Rectangle2D.Double(this.mouse.x - 15, this.mouse.y - 15, 30, 30));
+        clip.subtract(subClip);
+        gb.setClip(clip);
+        final float dash[] = { 10.0f };
+        gb.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, System.currentTimeMillis() / ScreenShooter.FPS % 20));
+        gb.drawLine(0, this.mouse.y, this.image.getWidth(null), this.mouse.y);
+        gb.drawLine(this.mouse.x, 0, this.mouse.x, this.image.getHeight(null));
+        gb.setClip(null);
+        // draw tiny cross at mouse location
+        gb.setColor(Color.BLACK);
+        gb.setStroke(new BasicStroke(1));
+        // gb.drawLine(this.mouse.x - 10, this.mouse.y, this.mouse.x + 10,
+        // this.mouse.y);
+        // gb.drawLine(this.mouse.x, this.mouse.y - 10, this.mouse.x,
+        // this.mouse.y + 10);
+        gb.drawLine(this.mouse.x, this.mouse.y, this.mouse.x, this.mouse.y);
+    }
+
     /**
      * get the device bounds of the device l is in. Use to find the currently
      * used screen
      * 
-     * @param l
+     * 
      * @return
      */
-    private Rectangle getDeviceBounds(final Point l) {
+    private Rectangle getDeviceBounds() {
         for (final Rectangle r : this.bounds) {
-            if (l.x >= r.x && l.x <= r.x + r.width) {
+            if (this.mouse.x >= r.x && this.mouse.x <= r.x + r.width) {
                 // x correct
-                if (l.y >= r.y && l.y <= r.y + r.height) {
+                if (this.mouse.y >= r.y && this.mouse.y <= r.y + r.height) {
                     // y correct
                     return r;
                 }
@@ -279,17 +346,17 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      * @param l
      * @return
      */
-    private Point getMagPosition(final Point l) {
+    private Point getMagnifierPosition() {
 
-        final Rectangle bounds = this.getDeviceBounds(l);
+        final Rectangle bounds = this.getDeviceBounds();
         if (bounds == null) { return null; }
-        int x = l.x + 20;
+        int x = this.mouse.x + 20;
         if (x + ScreenShooter.SIZE > bounds.x + bounds.width) {
-            x = l.x - ScreenShooter.SIZE - 20;
+            x = this.mouse.x - ScreenShooter.SIZE - 20;
         }
-        int y = l.y - ScreenShooter.SIZE - 20;
+        int y = this.mouse.y - ScreenShooter.SIZE - 20;
         if (y < bounds.y) {
-            y = l.y + 20;
+            y = this.mouse.y + 20;
         }
         return new Point(x, y);
     }
@@ -327,8 +394,7 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      */
     @Override
     public void mouseDragged(final MouseEvent e) {
-        // TODO Auto-generated method stub
-
+        this.mouse = e.getPoint();
     }
 
     /*
@@ -361,7 +427,11 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      */
     @Override
     public void mouseMoved(final MouseEvent e) {
-        this.moved = System.currentTimeMillis();
+        if (e != null) {
+            this.mouse = e.getPoint();
+        } else {
+            this.mouse = new Point(0, 0);
+        }
 
     }
 
@@ -400,16 +470,27 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.awt.Window#paint(java.awt.Graphics)
+     */
+    @Override
+    public void paint(final Graphics g) {
+        // if we do not override this, this might resuzlt in edt freezes for
+        // some seconds
+    }
+
     /**
      * Paints the mag, and the position values
      * 
      * @param gb
      * @param l
      */
-    private void paintMag(final Graphics2D gb, final Point l) {
-        final Point pos = this.getMagPosition(l);
+    private void paintMagnifier(final Graphics2D gb) {
+        final Point pos = this.getMagnifierPosition();
         // draw and resize the mag image
-        gb.drawImage(this.image, pos.x, pos.y, pos.x + ScreenShooter.SIZE, pos.y + ScreenShooter.SIZE, l.x - ScreenShooter.SCALED_SIZE / 2, l.y - ScreenShooter.SCALED_SIZE / 2, l.x + ScreenShooter.SCALED_SIZE / 2, l.y + ScreenShooter.SCALED_SIZE / 2, Color.BLACK, null);
+        gb.drawImage(this.image, pos.x, pos.y, pos.x + ScreenShooter.SIZE, pos.y + ScreenShooter.SIZE, this.mouse.x - ScreenShooter.SCALED_SIZE / 2, this.mouse.y - ScreenShooter.SCALED_SIZE / 2, this.mouse.x + ScreenShooter.SCALED_SIZE / 2, this.mouse.y + ScreenShooter.SCALED_SIZE / 2, Color.BLACK, null);
 
         // Draws the black alpha cross
         Composite comp = gb.getComposite();
@@ -424,6 +505,27 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
 
         //
         if (this.isDragging) {
+
+            // Paint the blue selection rectangle in the mag.
+            final int startX = Math.min(this.dragStart.x, this.mouse.x);
+            final int startY = Math.min(this.dragStart.y, this.mouse.y);
+            final int endX = Math.max(this.mouse.x, this.dragStart.x) + 1;
+            final int endY = Math.max(this.mouse.y, this.dragStart.y) + 1;
+            final Point start = this.convertToMagnifier(pos, new Point(startX, startY));
+            final Point end = this.convertToMagnifier(pos, new Point(endX, endY));
+            gb.setStroke(new BasicStroke(1));
+            gb.setColor(Color.BLUE);
+            final int x = Math.max(pos.x, start.x);
+            final int y = Math.max(start.y, pos.y);
+            final int width = Math.min(ScreenShooter.SIZE / 2 + (x == pos.x ? ScreenShooter.FACTOR : 0), end.x - start.x);
+            final int height = Math.min(ScreenShooter.SIZE / 2 + (y == pos.y ? ScreenShooter.FACTOR : 0), end.y - start.y);
+            gb.drawRect(x, y, width, height);
+
+            comp = gb.getComposite();
+            gb.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
+
+            gb.fillRect(x, y, width, height);
+            gb.setComposite(comp);
             // if we are dragging we paint a white area to paint the selected
             // are size
             gb.setStroke(new BasicStroke(1));
@@ -431,77 +533,12 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
             gb.fillRect(pos.x + 1, pos.y + ScreenShooter.SIZE - gb.getFontMetrics().getHeight(), ScreenShooter.SIZE - 1, gb.getFontMetrics().getHeight());
             gb.setColor(Color.GRAY);
             gb.drawLine(pos.x, pos.y + ScreenShooter.SIZE - gb.getFontMetrics().getHeight(), pos.x + ScreenShooter.SIZE, pos.y + ScreenShooter.SIZE - gb.getFontMetrics().getHeight());
-            final String dimension = APPWORKUTILS.T.Layover_size(Math.abs(l.x - this.dragStart.x), Math.abs(l.y - this.dragStart.y));
+            final String dimension = APPWORKUTILS.T.Layover_size(Math.abs(this.mouse.x - this.dragStart.x) + 1, Math.abs(this.mouse.y - this.dragStart.y) + 1);
             gb.getFontMetrics().stringWidth(dimension);
             gb.drawString(dimension, pos.x + 5, pos.y + ScreenShooter.SIZE - 3);
 
-            // Paint the blue selection rectangle in the mag.
-            final int startX = Math.min(this.dragStart.x, l.x);
-            final int startY = Math.min(this.dragStart.y, l.y);
-            final int endX = Math.max(l.x, this.dragStart.x);
-            final int endY = Math.max(l.y, this.dragStart.y);
-            final Point start = this.convertMag(l, pos, new Point(startX, startY));
-            final Point end = this.convertMag(l, pos, new Point(endX, endY));
-            gb.setColor(Color.BLUE);
-            gb.drawRect(Math.max(pos.x, start.x), Math.max(start.y, pos.y), Math.min(ScreenShooter.SIZE / 2, end.x - start.x), Math.min(ScreenShooter.SIZE / 2, end.y - start.y));
-
-            comp = gb.getComposite();
-            gb.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
-
-            gb.fillRect(Math.max(pos.x, start.x), Math.max(start.y, pos.y), Math.min(ScreenShooter.SIZE / 2, end.x - start.x), Math.min(ScreenShooter.SIZE / 2, end.y - start.y));
-            gb.setComposite(comp);
-        }
-        // paint the position marker
-        String str = l.y + " px";
-        final Rectangle db = this.getDeviceBounds(l);
-        int width = gb.getFontMetrics().stringWidth(str) + 10;
-        int height = gb.getFontMetrics().getHeight() + 5;
-        gb.setStroke(new BasicStroke(1));
-        gb.setColor(Color.white);
-        int y = l.y - height / 2;
-        if (y < db.y) {
-            // dock marker on top
-            y = db.y;
-        }
-        if (y + height + 5 > db.height + db.y) {
-            y = db.height + db.y - height - 5;
-            // dock marker on bottom
-        }
-        // paint marker
-        gb.fillRect(db.x + db.width - width - 10, y, width, height);
-        gb.setColor(Color.GRAY);
-        gb.drawRect(db.x + db.width - width - 10, y, width, height);
-        gb.drawString(str, db.x + db.width - width - 5, y + height - 5);
-        //
-        str = l.x + " px";
-        width = gb.getFontMetrics().stringWidth(str) + 10;
-        height = gb.getFontMetrics().getHeight() + 5;
-        gb.setStroke(new BasicStroke(1));
-        gb.setColor(Color.white);
-        int x = l.x - width / 2;
-        if (x < db.x + 5) {
-            x = db.x + 5;
-            // marker reached left margin we dock here
-        }
-        if (x + width + 5 > db.x + db.width) {
-            // marker reached right margin. we dock here
-            x = db.x + db.width - width - 5;
         }
 
-        // avoid that marker overlap at the bottom right corner. set X marker to
-        // top if x and y markers share the same y position
-        if (db.y + db.height - height - 5 - y <= height) {
-            // on mac, we cannot override the topbar which is 22 px height
-            gb.fillRect(x, db.y + (CrossSystem.isMac() ? 22 + 5 : 5), width, height);
-            gb.setColor(Color.GRAY);
-            gb.drawRect(x, +(CrossSystem.isMac() ? 22 + 5 : 5), width, height);
-            gb.drawString(str, x + 5, (CrossSystem.isMac() ? 22 + height : height));
-        } else {
-            gb.fillRect(x, db.y + db.height - height - 5, width, height);
-            gb.setColor(Color.GRAY);
-            gb.drawRect(x, db.y + db.height - height - 5, width, height);
-            gb.drawString(str, x + 5, db.y + db.height - 10);
-        }
         // paint black border
 
         gb.setColor(Color.BLACK);
@@ -550,39 +587,40 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
                 // there is no mousemove for >15 seconds
                 ScreenShooter.this.addMouseMotionListener(ScreenShooter.this);
                 ScreenShooter.this.mouseMoved(null);
-                final Timer timer = new Timer(5000, new ActionListener() {
 
-                    @Override
-                    public void actionPerformed(final ActionEvent e) {
-                        if (!ScreenShooter.this.isVisible()) {
-                            ((Timer) e.getSource()).stop();
-                        }
-                        ScreenShooter.this.requestFocus();
-                        ScreenShooter.this.requestFocusInWindow();
-                        if (System.currentTimeMillis() - ScreenShooter.this.moved > 15000) {
-                            // probably lost focus;
-                            System.out.println("NOTAUS");
-                            ScreenShooter.this.cancel();
-                        }
-                    }
-                });
-
-                timer.start();
                 // this.timer.start();
                 new Thread("Asynchpainter") {
                     @Override
                     public void run() {
-                        final long t = System.currentTimeMillis();
+                        long t = System.currentTimeMillis();
                         final int frame = 1000 / ScreenShooter.FPS;
-                        while (ScreenShooter.this.isVisible()) {
+                        // Point oldMouse = ScreenShooter.this.mouse;
+                        ScreenShooter.this.updateGUI(ScreenShooter.this.getBufferStrategy());
+                        try {
+                            Thread.sleep(Math.max(0, frame - System.currentTimeMillis() - t));
+                        } catch (final InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
 
+                        while (!ScreenShooter.this.disposed) {
+                            t = System.currentTimeMillis();
+                            // if (ScreenShooter.this.mouse != oldMouse) {
                             ScreenShooter.this.updateGUI(ScreenShooter.this.getBufferStrategy());
+
+                            // }
+                            // oldMouse = ScreenShooter.this.mouse;
                             try {
-                                Thread.sleep(Math.max(0, frame - System.currentTimeMillis() - t));
+                                final long wait = frame - (System.currentTimeMillis() - t);
+
+                                if (wait > 0) {
+                                    Thread.sleep(wait);
+                                }
                             } catch (final InterruptedException e) {
                                 // TODO Auto-generated catch block
                                 e.printStackTrace();
                             }
+
                         }
                     }
                 }.start();
@@ -596,7 +634,7 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      * 
      */
     private void startDrag() {
-        this.dragStart = MouseInfo.getPointerInfo().getLocation();
+        this.dragStart = this.mouse;
         this.isDragging = true;
         System.out.println("Start Drag " + this.dragStart);
     }
@@ -606,7 +644,7 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      */
     private void stopDrag() {
         this.isDragging = false;
-        this.dragEnd = MouseInfo.getPointerInfo().getLocation();
+        this.dragEnd = this.mouse;
         System.out.println("StopDrag ");
     }
 
@@ -617,53 +655,93 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      */
     private void updateGUI(final BufferStrategy bufferStrategy) {
         try {
-            final PointerInfo mi = MouseInfo.getPointerInfo();
 
-            final Point l = mi.getLocation();
             final Graphics2D gb = (Graphics2D) bufferStrategy.getDrawGraphics();
             final Point tempDrag = this.dragStart;
             if (this.isDragging && tempDrag != null) {
 
-                final int startX = Math.min(tempDrag.x, l.x);
-                final int startY = Math.min(tempDrag.y, l.y);
+                final int startX = Math.min(tempDrag.x, this.mouse.x);
+                final int startY = Math.min(tempDrag.y, this.mouse.y);
                 // draw grayed image over full screen
                 gb.drawImage(this.grayedImage, 0, 0, null);
-                final int endX = Math.max(l.x, tempDrag.x);
-                final int endY = Math.max(l.y, tempDrag.y);
+                final int endX = Math.max(this.mouse.x, tempDrag.x);
+                final int endY = Math.max(this.mouse.y, tempDrag.y);
                 // draw ungrayed icon as selection
                 gb.drawImage(this.image, startX, startY, endX, endY, startX, startY, endX, endY, null);
                 gb.setColor(Color.GRAY);
                 // draw BIG dashed hair cross
-                final float dash[] = { 10.0f };
-                gb.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f));
-                gb.drawLine(0, l.y, this.image.getWidth(null), l.y);
-                gb.drawLine(l.x, 0, l.x, this.image.getHeight(null));
+                this.drawBigCross(gb);
                 // Draw selection Border
                 gb.setColor(Color.BLACK);
                 gb.setStroke(new BasicStroke(1));
-                gb.drawRect(startX, startY, Math.abs(l.x - tempDrag.x), Math.abs(l.y - tempDrag.y));
+                gb.drawRect(startX, startY, endX - startX, endY - startY);
                 gb.setStroke(new BasicStroke(1));
             } else {
                 // draw screenshot image
                 gb.drawImage(this.image, 0, 0, null);
                 // draw dashed cross
-                gb.setStroke(new BasicStroke(1));
-                gb.setColor(Color.GRAY);
-                final float dash[] = { 10.0f };
-                gb.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, dash, 0.0f));
-                gb.drawLine(0, l.y, this.image.getWidth(null), l.y);
-                gb.drawLine(l.x, 0, l.x, this.image.getHeight(null));
+                this.drawBigCross(gb);
+
             }
-            // draw tiny cross at mouse location
+
+            this.paintMagnifier(gb);
+            // paint the position marker
+            String str = this.mouse.y + " px";
+            final Rectangle db = this.getDeviceBounds();
+            int width = gb.getFontMetrics().stringWidth(str) + 10;
+            int height = gb.getFontMetrics().getHeight() + 5;
             gb.setStroke(new BasicStroke(1));
-            gb.drawLine(l.x - 10, l.y, l.x + 10, l.y);
-            gb.drawLine(l.x, l.y - 10, l.x, l.y + 10);
-            this.paintMag(gb, l);
+            gb.setColor(Color.white);
+            int y = this.mouse.y - height / 2;
+            if (y < db.y) {
+                // dock marker on top
+                y = db.y;
+            }
+            if (y + height + 5 > db.height + db.y) {
+                y = db.height + db.y - height - 5;
+                // dock marker on bottom
+            }
+            // paint marker
+            gb.fillRect(db.x + db.width - width - 10, y, width, height);
+            gb.setColor(Color.GRAY);
+            gb.drawRect(db.x + db.width - width - 10, y, width, height);
+            gb.drawString(str, db.x + db.width - width - 5, y + height - 5);
+            //
+            str = this.mouse.x + " px";
+            width = gb.getFontMetrics().stringWidth(str) + 10;
+            height = gb.getFontMetrics().getHeight() + 5;
+            gb.setStroke(new BasicStroke(1));
+            gb.setColor(Color.white);
+            int x = this.mouse.x - width / 2;
+            if (x < db.x + 5) {
+                x = db.x + 5;
+                // marker reached left margin we dock here
+            }
+            if (x + width + 5 > db.x + db.width) {
+                // marker reached right margin. we dock here
+                x = db.x + db.width - width - 5;
+            }
+
+            // avoid that marker overlap at the bottom right corner. set X
+            // marker to
+            // top if x and y markers share the same y position
+            if (db.y + db.height - height - 5 - y <= height) {
+                // on mac, we cannot override the topbar which is 22 px height
+                gb.fillRect(x, db.y + (CrossSystem.isMac() ? 22 + 5 : 5), width, height);
+                gb.setColor(Color.GRAY);
+                gb.drawRect(x, +(CrossSystem.isMac() ? 22 + 5 : 5), width, height);
+                gb.drawString(str, x + 5, (CrossSystem.isMac() ? 22 + height : height));
+            } else {
+                gb.fillRect(x, db.y + db.height - height - 5, width, height);
+                gb.setColor(Color.GRAY);
+                gb.drawRect(x, db.y + db.height - height - 5, width, height);
+                gb.drawString(str, x + 5, db.y + db.height - 10);
+            }
             gb.dispose();
             // flip screen
-            if (this.isVisible()) {
-                bufferStrategy.show();
-            }
+            // if (this.isVisible()) {
+            bufferStrategy.show();
+            // }
 
         } catch (final Exception e) {
             e.printStackTrace();
