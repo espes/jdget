@@ -99,13 +99,9 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         // yMin, Transparency.TRANSLUCENT);
         final JWindow w = new JWindow();
         w.setSize(xMax - xMin, yMax - yMin);
+        w.setLocation(-100000,-100000);
         w.setVisible(true);
-        /*
-         * Daniel: falls visible bleibt, hat der screenshot ein leeres jwindow
-         * drin. muss aber visible true/false gemacht werden, damit
-         * createVolatileImage geht
-         */
-        w.setVisible(false);
+        
         final VolatileImage complete = w.createVolatileImage(xMax - xMin, yMax - yMin);
 
         // we create a normal screenshot and a grayed screenshot
@@ -113,19 +109,25 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         // yMax - yMin, Transparency.TRANSLUCENT);
 
         final VolatileImage completeGrayed = w.createVolatileImage(xMax - xMin, yMax - yMin);
+        /*
+         * Daniel: falls visible bleibt, hat der screenshot ein leeres jwindow
+         * drin. muss aber visible true/false gemacht werden, damit
+         * createVolatileImage geht
+         */
+        //w.setVisible(false);
         w.dispose();
         final Graphics2D g2gray = completeGrayed.createGraphics();
         final Graphics2D g2 = complete.createGraphics();
-        try {
-            /*
-             * bei mir ist kurz ein sleep notwendig, damit der rechte screen
-             * refresh ist, sonst ist noch teils das jwindow zu sehen
-             */
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+//        try {
+//            /*
+//             * bei mir ist kurz ein sleep notwendig, damit der rechte screen
+//             * refresh ist, sonst ist noch teils das jwindow zu sehen
+//             */
+//            Thread.sleep(1000);
+//        } catch (InterruptedException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
         for (final GraphicsDevice screen : screens) {
             final DisplayMode dm = screen.getDisplayMode();
             // bounds are used to gete the position and size of this screen in
