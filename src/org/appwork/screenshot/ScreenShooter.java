@@ -23,7 +23,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
@@ -37,13 +36,11 @@ import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
 import java.awt.image.VolatileImage;
-import java.io.IOException;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JWindow;
 
-import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
@@ -58,18 +55,20 @@ import org.appwork.utils.swing.dialog.DialogClosedException;
  */
 public class ScreenShooter extends JWindow implements MouseListener, MouseMotionListener {
 
-    private static final long  serialVersionUID = 3184465232251321247L;
+    private static final long    serialVersionUID = 3184465232251321247L;
     /**
      * Size of the Mag Glass
      */
-    private static final int   SIZE             = 150;
+    private static final int     SIZE             = 150;
     /**
      * Mag resize factor
      */
-    private static final int   FACTOR           = 5;
-    private static final int   SCALED_SIZE      = ScreenShooter.SIZE / ScreenShooter.FACTOR;
+    private static final int     FACTOR           = 5;
+    private static final int     SCALED_SIZE      = ScreenShooter.SIZE / ScreenShooter.FACTOR;
 
-    protected static final int FPS              = 50;
+    protected static final int   FPS              = 50;
+
+    private static ScreenShooter layover;
 
     /**
      * Creates a screenshot of all available screens. and returns the
@@ -99,9 +98,11 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         // yMin, Transparency.TRANSLUCENT);
         final JWindow w = new JWindow();
         w.setSize(xMax - xMin, yMax - yMin);
-        w.setLocation(-100000,-100000);
+
+        w.setLocation(-100000, -100000);
+
         w.setVisible(true);
-        
+
         final VolatileImage complete = w.createVolatileImage(xMax - xMin, yMax - yMin);
 
         // we create a normal screenshot and a grayed screenshot
@@ -114,20 +115,11 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
          * drin. muss aber visible true/false gemacht werden, damit
          * createVolatileImage geht
          */
-        //w.setVisible(false);
+        w.setVisible(false);
         w.dispose();
         final Graphics2D g2gray = completeGrayed.createGraphics();
         final Graphics2D g2 = complete.createGraphics();
-//        try {
-//            /*
-//             * bei mir ist kurz ein sleep notwendig, damit der rechte screen
-//             * refresh ist, sonst ist noch teils das jwindow zu sehen
-//             */
-//            Thread.sleep(1000);
-//        } catch (InterruptedException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
+
         for (final GraphicsDevice screen : screens) {
             final DisplayMode dm = screen.getDisplayMode();
             // bounds are used to gete the position and size of this screen in
@@ -143,7 +135,7 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
              * setlocation mehr
              */
             // rect.setLocation(bounds.x, bounds.y);
-            Robot robot = new Robot(screen);
+            final Robot robot = new Robot(screen);
             final BufferedImage image = robot.createScreenCapture(rect);
             g2.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
             g2gray.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
@@ -177,26 +169,24 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         return layover;
     }
 
-    private static ScreenShooter layover;
-
     public static void main(final String[] args) throws AWTException, InterruptedException {
         new EDTHelper() {
 
             @Override
             public ScreenShooter edtRun() {
                 try {
-                    layover = ScreenShooter.create();
-                } catch (AWTException e) {
+                    ScreenShooter.layover = ScreenShooter.create();
+                } catch (final AWTException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-                layover.start();
+                ScreenShooter.layover.start();
                 return null;
             }
 
         }.waitForEDT();
 
-        final BufferedImage screenshot = layover.getScreenshot();
+        final BufferedImage screenshot = ScreenShooter.layover.getScreenshot();
         if (screenshot != null) {
 
             try {
@@ -420,7 +410,7 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      * @throws InterruptedException
      */
     public BufferedImage getScreenshot() throws InterruptedException {
-        while (this.screenshot == null && this.isVisible()) {
+        while (this.screenshot == null && !this.disposed) {
             Thread.sleep(100);
         }
         return this.screenshot;
@@ -433,12 +423,19 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      */
     @Override
     public void mouseClicked(final MouseEvent e) {
+        if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) { return; }
         if (this.isDragging) {
             this.stopDrag();
-            this.screenshot = this.cut(this.dragStart.x, this.dragStart.y, this.dragEnd.x, this.dragEnd.y);
             this.setVisible(false);
             this.frame.setVisible(false);
-            this.frame.dispose();
+            new Thread() {
+                @Override
+                public void run() {
+                    ScreenShooter.this.screenshot = ScreenShooter.this.cut(ScreenShooter.this.dragStart.x, ScreenShooter.this.dragStart.y, ScreenShooter.this.dragEnd.x, ScreenShooter.this.dragEnd.y);
+                    ScreenShooter.this.frame.dispose();
+                    ScreenShooter.this.dispose();
+                }
+            }.start();
 
         } else if (!this.isDragging) {
 
@@ -789,10 +786,11 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
                 gb.drawString(str, x + 5, db.y + db.height - 10);
             }
             gb.dispose();
-            // flip screen
-            // if (this.isVisible()) {
-            bufferStrategy.show();
-            // }
+            try {
+                bufferStrategy.show();
+            } catch (final Exception e) {
+
+            }
 
         } catch (final Exception e) {
             e.printStackTrace();
