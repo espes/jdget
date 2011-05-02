@@ -25,7 +25,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         this.bar = new JProgressBar();
         this.bar.setOpaque(false);
         this.bar.setStringPainted(true);
-        this.bar.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        this.bar.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1), this.bar.getBorder()));
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override

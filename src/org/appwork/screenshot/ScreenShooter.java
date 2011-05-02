@@ -381,6 +381,15 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
     }
 
     /**
+     * @return
+     */
+    public BufferedImage getFullScreenShot() {
+        final BufferedImage img = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
+        img.getGraphics().drawImage(this.image, 0, 0, null);
+        return img;
+    }
+
+    /**
      * calculates the position of the mag. mag position relative to the
      * mouseposition changes if we reach the screen devices bounds
      * 
