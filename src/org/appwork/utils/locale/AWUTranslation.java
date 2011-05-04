@@ -119,6 +119,9 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Error details", "Fehlerdetails" })
     String ExceptionDialog_layoutDialogContent_more_button();
 
+    @Default(lngs = { "en", "de" }, values = { "Enter Password", "Passwort eingeben" })
+    String extpasswordeditorcolumn_help();
+
     @Default(lngs = { "en", "de" }, values = { "Your Password", "Ihr Passwort" })
     String extpasswordeditorcolumn_tooltip();
 

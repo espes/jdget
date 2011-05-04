@@ -41,13 +41,22 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
 
     @Override
     protected String getStringValue(final E value) {
-        return ExtPasswordEditorColumn.BLINDTEXT;
+        return this.hasPassword(value) ? ExtPasswordEditorColumn.BLINDTEXT : "";
     }
 
     @Override
     protected String getToolTip(final E obj) {
 
         return APPWORKUTILS.T.extpasswordeditorcolumn_tooltip();
+    }
+
+    /**
+     * @param value
+     * @return
+     */
+    private boolean hasPassword(final E value) {
+        final String pw = this.getPlainStringValue(value);
+        return pw != null && pw.length() > 0;
     }
 
     @Override

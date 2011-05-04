@@ -250,7 +250,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     @Override
     final public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
         final JComponent ret = this.getEditorComponent((ExtTable<E>) table, (E) value, isSelected, row, column);
-        ret.setEnabled(this.isEnabled((E) value));
+        ret.setEnabled(true);
         this.adaptRowHighlighters((E) value, ret, isSelected, true, row);
         return ret;
     }
@@ -285,7 +285,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public boolean isCellEditable(final int rowIndex, final int columnIndex) {
         final E obj = this.model.getValueAt(rowIndex, columnIndex);
         if (obj == null) { return false; }
-        return this.isEditable(obj);
+
+        return this.isEditable(obj, this.isEnabled(obj));
     }
 
     public boolean isDefaultVisible() {
@@ -299,6 +300,18 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public abstract boolean isEditable(E obj);
+
+    /**
+     * override this to enable cell editing if the cell is disabled
+     * 
+     * @param obj
+     * @param enabled
+     * @return if the row with obj is editable
+     */
+    protected boolean isEditable(final E obj, final boolean enabled) {
+
+        return enabled && this.isEditable(obj);
+    }
 
     /**
      * returns if the cell defined by this column and the object is enabled or

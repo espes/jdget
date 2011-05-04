@@ -35,7 +35,7 @@
 				<include name="**/**" />
 			</fileset>
 			<fileset dir="${src}">
-			                <include name="images/**/*" />
+			                <exclude name="**/*.java" />
 			            </fileset>
 		</jar>
 		<delete file="Manifest.MF" failonerror="false" />

@@ -49,8 +49,8 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
 
         // comboBoxEdit.setRenderer(new DefaultCellEditor(comboBox))
 
-        this.comboBoxEdit.setBorder(BorderFactory.createCompoundBorder(this.comboBoxEdit.getBorder(), BorderFactory.createEmptyBorder(3, 3, 3, 3)));
-        this.comboBoxRend.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3), this.comboBoxRend.getBorder()));
+        this.comboBoxEdit.setBorder(BorderFactory.createCompoundBorder(this.comboBoxEdit.getBorder(), BorderFactory.createEmptyBorder(1, 1, 1, 1)));
+        this.comboBoxRend.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1), this.comboBoxRend.getBorder()));
         this.comboBoxEdit.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
 
         this.comboBoxRend.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
@@ -146,7 +146,15 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
         this.comboBoxEdit.setRenderer(renderer);
     }
 
-  
+    /**
+     * @param value
+     */
+    protected abstract void setSelectedIndex(int value, E object);
+
+    @Override
+    final public void setValue(final Object value, final E object) {
+        this.setSelectedIndex((Integer) value, object);
+    }
 
     /**
      * overwrite this method to implement different dropdown boxes
