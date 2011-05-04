@@ -98,21 +98,25 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         }
         // final BufferedImage complete = new BufferedImage(xMax - xMin, yMax -
         // yMin, Transparency.TRANSLUCENT);
-        final VolatileImage complete = ge.getDefaultScreenDevice().getDefaultConfiguration().createCompatibleVolatileImage(xMax - xMin, yMax - yMin);
+        Image complete = null;
+        Graphics2D g2 = null;
+        if (CrossSystem.isLinux()) {
+            final BufferedImage img = new BufferedImage(xMax - xMin, yMax - yMin, BufferedImage.TYPE_INT_RGB);
+            g2 = img.createGraphics();
+            complete = img;
+        } else {
+            final VolatileImage img = ge.getDefaultScreenDevice().getDefaultConfiguration().createCompatibleVolatileImage(xMax - xMin, yMax - yMin);
+            g2 = img.createGraphics();
+            complete = img;
+        }
 
         // we create a normal screenshot and a grayed screenshot
         // final BufferedImage completeGrayed = new BufferedImage(xMax - xMin,
         // yMax - yMin, Transparency.TRANSLUCENT);
 
         final VolatileImage completeGrayed = ge.getDefaultScreenDevice().getDefaultConfiguration().createCompatibleVolatileImage(xMax - xMin, yMax - yMin);
-        /*
-         * Daniel: falls visible bleibt, hat der screenshot ein leeres jwindow
-         * drin. muss aber visible true/false gemacht werden, damit
-         * createVolatileImage geht
-         */
 
-        final Graphics2D g2gray = completeGrayed.createGraphics();
-        final Graphics2D g2 = complete.createGraphics();
+        Graphics2D g2gray = completeGrayed.createGraphics();
 
         for (final GraphicsDevice screen : screens) {
             final DisplayMode dm = screen.getDisplayMode();
@@ -122,13 +126,6 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
             final int screenWidth = dm.getWidth();
             final int screenHeight = dm.getHeight();
             final Rectangle rect = new Rectangle(screenWidth, screenHeight);
-            /*
-             * Daniel: ich erzeug nen robot pro monitor da der leere konstruktor
-             * das default device nutzt und man dann mit koordinaten in probleme
-             * kommt, mit current screen im konstruktor brauch ich dann kein
-             * setlocation mehr
-             */
-            // rect.setLocation(bounds.x, bounds.y);
             final Robot robot = new Robot(screen);
             final BufferedImage image = robot.createScreenCapture(rect);
             g2.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
@@ -142,22 +139,8 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         }
         g2.dispose();
         g2gray.dispose();
-        // try {
-        // /*Daniel: alles zu BufferedImage*/
-        // //BufferedImage kk = ImageProvider.dereferenceImage(complete);
-        // //Dialog.getInstance().showConfirmDialog(0, "", "", new
-        // ImageIcon(ImageProvider.getScaledInstance(kk, 800, 600,
-        // RenderingHints.VALUE_INTERPOLATION_BILINEAR, true)), null, null);
-        // } catch (DialogClosedException e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // } catch (DialogCanceledException e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // } catch (IOException e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // }
+        g2 = null;
+        g2gray = null;
         final ScreenShooter layover = new ScreenShooter();
         layover.setImage(complete, completeGrayed);
         return layover;
@@ -378,6 +361,7 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      * @return
      */
     public BufferedImage getFullScreenShot() {
+        if (this.image instanceof BufferedImage) { return (BufferedImage) this.image; }
         final BufferedImage img = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
         img.getGraphics().drawImage(this.image, 0, 0, null);
         return img;
