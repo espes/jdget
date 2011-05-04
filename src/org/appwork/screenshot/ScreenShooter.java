@@ -98,27 +98,19 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         }
         // final BufferedImage complete = new BufferedImage(xMax - xMin, yMax -
         // yMin, Transparency.TRANSLUCENT);
-        final JWindow w = new JWindow();
-        w.setSize(xMax - xMin, yMax - yMin);
-
-        w.setLocation(-100000, -100000);
-
-        w.setVisible(true);
-
-        final VolatileImage complete = w.createVolatileImage(xMax - xMin, yMax - yMin);
+        final VolatileImage complete = ge.getDefaultScreenDevice().getDefaultConfiguration().createCompatibleVolatileImage(xMax - xMin, yMax - yMin);
 
         // we create a normal screenshot and a grayed screenshot
         // final BufferedImage completeGrayed = new BufferedImage(xMax - xMin,
         // yMax - yMin, Transparency.TRANSLUCENT);
 
-        final VolatileImage completeGrayed = w.createVolatileImage(xMax - xMin, yMax - yMin);
+        final VolatileImage completeGrayed = ge.getDefaultScreenDevice().getDefaultConfiguration().createCompatibleVolatileImage(xMax - xMin, yMax - yMin);
         /*
          * Daniel: falls visible bleibt, hat der screenshot ein leeres jwindow
          * drin. muss aber visible true/false gemacht werden, damit
          * createVolatileImage geht
          */
-        w.setVisible(false);
-        w.dispose();
+
         final Graphics2D g2gray = completeGrayed.createGraphics();
         final Graphics2D g2 = complete.createGraphics();
 
