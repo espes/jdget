@@ -21,7 +21,9 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
+import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
@@ -497,7 +499,8 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         if (e != null) {
             this.mouse = e.getPoint();
         } else {
-            this.mouse = new Point(0, 0);
+            final PointerInfo pi = MouseInfo.getPointerInfo();
+            this.mouse = pi.getLocation();
         }
 
     }
