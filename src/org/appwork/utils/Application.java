@@ -74,6 +74,27 @@ public class Application {
 
     }
 
+    /**
+     * Adds a url to the classloader classpath this might fail if there is a
+     * security manager
+     * 
+     * @param file
+     * @throws IOException
+     */
+    public static void addUrlToClassPath(final URL url, final ClassLoader cl) throws IOException {
+        try {
+            // hack to add an url to the system classpath
+            final Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[] { URL.class });
+            method.setAccessible(true);
+            method.invoke(cl, new Object[] { url });
+
+        } catch (final Throwable t) {
+            Log.exception(t);
+            throw new IOException("Error, could not add URL to system classloader");
+        }
+
+    }
+
     public static String getApplication() {
         return Application.APP_FOLDER;
     }
