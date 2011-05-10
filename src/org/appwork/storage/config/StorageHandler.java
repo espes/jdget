@@ -201,75 +201,86 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         final HashMap<String, Method> keyGetterMap = new HashMap<String, Method>();
         final HashMap<String, Method> keySetterMap = new HashMap<String, Method>();
         String key;
-        for (final Method m : this.configInterface.getDeclaredMethods()) {
-            if (m.getName().startsWith("get")) {
-                key = m.getName().substring(3).toLowerCase();
-                // we do not allow to setters/getters with the same name but
-                // different cases. this only confuses the user when editing the
-                // later config file
-                if (keyGetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.containsKey(key) + "<-->" + m); }
 
-                if (m.getParameterTypes().length > 0) { throw new InterfaceParseException("Getter " + m + " has parameters."); }
-                try {
-                    JSonStorage.canStore(m.getGenericReturnType());
-                } catch (final InvalidTypeException e) {
-                    throw new InterfaceParseException(e);
+        Class<?> clazz = this.configInterface;
+        while (clazz != null && clazz != ConfigInterface.class) {
+            for (final Method m : clazz.getDeclaredMethods()) {
+                if (m.getName().startsWith("get")) {
+                    key = m.getName().substring(3).toLowerCase();
+                    // we do not allow to setters/getters with the same name but
+                    // different cases. this only confuses the user when editing
+                    // the
+                    // later config file
+                    if (keyGetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.containsKey(key) + "<-->" + m); }
+
+                    if (m.getParameterTypes().length > 0) { throw new InterfaceParseException("Getter " + m + " has parameters."); }
+                    try {
+                        JSonStorage.canStore(m.getGenericReturnType());
+                    } catch (final InvalidTypeException e) {
+                        throw new InterfaceParseException(e);
+                    }
+
+                    MethodHandler h;
+                    this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType())));
+                    keyGetterMap.put(key, m);
+                    final MethodHandler setterhandler = this.getterMap.get(keySetterMap.get(key));
+                    if (setterhandler != null) {
+                        setterhandler.setGetter(h);
+                        h.setSetter(setterhandler);
+                    }
+                } else if (m.getName().startsWith("is")) {
+                    key = m.getName().substring(2).toLowerCase();
+                    // we do not allow to setters/getters with the same name but
+                    // different cases. this only confuses the user when editing
+                    // the
+                    // later config file
+                    if (keyGetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.containsKey(key) + "<-->" + m); }
+
+                    if (m.getParameterTypes().length > 0) { throw new InterfaceParseException("Getter " + m + " has parameters."); }
+                    try {
+                        JSonStorage.canStore(m.getGenericReturnType());
+                    } catch (final InvalidTypeException e) {
+                        throw new InterfaceParseException(e);
+                    }
+
+                    MethodHandler h;
+                    this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType())));
+                    keyGetterMap.put(key, m);
+                    final MethodHandler setterhandler = this.getterMap.get(keySetterMap.get(key));
+                    if (setterhandler != null) {
+                        setterhandler.setGetter(h);
+                        h.setSetter(setterhandler);
+                    }
+                } else if (m.getName().startsWith("set")) {
+                    key = m.getName().substring(3).toLowerCase();
+                    if (keySetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keySetterMap.containsKey(key) + "<-->" + m); }
+                    if (m.getParameterTypes().length != 1) { throw new InterfaceParseException("Setter " + m + " has !=1 parameters."); }
+                    if (m.getReturnType() != void.class) { throw new InterfaceParseException("Setter " + m + " has a returntype != void"); }
+                    try {
+                        JSonStorage.canStore(m.getGenericParameterTypes()[0]);
+                    } catch (final InvalidTypeException e) {
+                        throw new InterfaceParseException(e);
+                    }
+                    MethodHandler h;
+                    this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.SETTER, key, m, JSonStorage.canStorePrimitive(m.getParameterTypes()[0])));
+
+                    keySetterMap.put(key, m);
+
+                    final MethodHandler getterHandler = this.getterMap.get(keyGetterMap.get(key));
+                    if (getterHandler != null) {
+                        getterHandler.setSetter(h);
+                        h.setGetter(getterHandler);
+                    }
+                } else {
+                    throw new InterfaceParseException("Only getter and setter allowed:" + m);
+
                 }
-
-                MethodHandler h;
-                this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType())));
-                keyGetterMap.put(key, m);
-                final MethodHandler setterhandler = this.getterMap.get(keySetterMap.get(key));
-                if (setterhandler != null) {
-                    setterhandler.setGetter(h);
-                    h.setSetter(setterhandler);
-                }
-            } else if (m.getName().startsWith("is")) {
-                key = m.getName().substring(2).toLowerCase();
-                // we do not allow to setters/getters with the same name but
-                // different cases. this only confuses the user when editing the
-                // later config file
-                if (keyGetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.containsKey(key) + "<-->" + m); }
-
-                if (m.getParameterTypes().length > 0) { throw new InterfaceParseException("Getter " + m + " has parameters."); }
-                try {
-                    JSonStorage.canStore(m.getGenericReturnType());
-                } catch (final InvalidTypeException e) {
-                    throw new InterfaceParseException(e);
-                }
-
-                MethodHandler h;
-                this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType())));
-                keyGetterMap.put(key, m);
-                final MethodHandler setterhandler = this.getterMap.get(keySetterMap.get(key));
-                if (setterhandler != null) {
-                    setterhandler.setGetter(h);
-                    h.setSetter(setterhandler);
-                }
-            } else if (m.getName().startsWith("set")) {
-                key = m.getName().substring(3).toLowerCase();
-                if (keySetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keySetterMap.containsKey(key) + "<-->" + m); }
-                if (m.getParameterTypes().length != 1) { throw new InterfaceParseException("Setter " + m + " has !=1 parameters."); }
-                if (m.getReturnType() != void.class) { throw new InterfaceParseException("Setter " + m + " has a returntype != void"); }
-                try {
-                    JSonStorage.canStore(m.getGenericParameterTypes()[0]);
-                } catch (final InvalidTypeException e) {
-                    throw new InterfaceParseException(e);
-                }
-                MethodHandler h;
-                this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.SETTER, key, m, JSonStorage.canStorePrimitive(m.getParameterTypes()[0])));
-
-                keySetterMap.put(key, m);
-
-                final MethodHandler getterHandler = this.getterMap.get(keyGetterMap.get(key));
-                if (getterHandler != null) {
-                    getterHandler.setSetter(h);
-                    h.setGetter(getterHandler);
-                }
-            } else {
-                throw new InterfaceParseException("Only getter and setter allowed:" + m);
-
             }
+            // run down the calss hirarchy to find all methods. getMethods does
+            // not work, because it only finds public methods
+            final Class<?>[] interfaces = clazz.getInterfaces();
+            clazz = interfaces[0];
+
         }
     }
 
