@@ -36,6 +36,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private boolean                        crypted;
     private byte[]                         key = JSonStorage.KEY;
     private File                           path;
+    private ConfigInterfaceEventSender<T>  eventSender;
 
     /**
      * @param name
@@ -43,6 +44,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
     public StorageHandler(final File name, final Class<T> configInterface) {
         this.configInterface = configInterface;
+        this.eventSender = new ConfigInterfaceEventSender<T>();
+
         this.path = name;
         final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
         if (crypted != null) {
@@ -91,9 +94,16 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.path;
     }
 
+    @SuppressWarnings("unchecked")
     public Object invoke(final Object arg0, final Method m, final Object[] parameter) throws Throwable {
         if (m.getName().equals("toString")) {
             return this.toString();
+        } else if (m.getName().equals("addListener")) {
+            this.eventSender.addListener((ConfigEventListener) parameter[0]);
+            return null;
+        } else if (m.getName().equals("removeListener")) {
+            this.eventSender.removeListener((ConfigEventListener) parameter[0]);
+            return null;
         } else {
             final MethodHandler handler = this.getterMap.get(m);
             if (handler.isGetter()) {
@@ -130,23 +140,31 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
                     if (handler.getRawClass() == Boolean.class || handler.getRawClass() == boolean.class) {
                         this.primitiveStorage.put(handler.getKey(), (Boolean) parameter[0]);
+                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
                     } else if (handler.getRawClass() == Long.class || handler.getRawClass() == long.class) {
                         this.primitiveStorage.put(handler.getKey(), (Long) parameter[0]);
+                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
                     } else if (handler.getRawClass() == Integer.class || handler.getRawClass() == int.class) {
                         this.primitiveStorage.put(handler.getKey(), (Integer) parameter[0]);
+                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
                     } else if (handler.getRawClass() == Float.class || handler.getRawClass() == float.class) {
                         this.primitiveStorage.put(handler.getKey(), (Float) parameter[0]);
+                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
                     } else if (handler.getRawClass() == Byte.class || handler.getRawClass() == byte.class) {
                         this.primitiveStorage.put(handler.getKey(), (Byte) parameter[0]);
+                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
                     } else if (handler.getRawClass() == String.class) {
                         this.primitiveStorage.put(handler.getKey(), (String) parameter[0]);
+                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
                         // } else if (handler.getRawClass() == String[].class) {
                         // this.primitiveStorage.put(handler.getKey(),
                         // (String[]) parameter);
                     } else if (handler.getRawClass().isEnum()) {
                         this.primitiveStorage.put(handler.getKey(), (Enum<?>) parameter[0]);
+                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
                     } else if (handler.getRawClass() == Double.class || handler.getRawClass() == double.class) {
                         this.primitiveStorage.put(handler.getKey(), (Double) parameter[0]);
+                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
                     } else {
                         throw new StorageException("Invalid datatype: " + handler.getRawClass());
                     }
@@ -154,6 +172,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     return null;
                 } else {
                     handler.write(parameter[0]);
+
+                    this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
                     return null;
                 }
             }

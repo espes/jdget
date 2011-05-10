@@ -9,16 +9,13 @@
  */
 package org.appwork.storage.config;
 
+import java.util.EventListener;
+
 /**
  * @author thomas
  * 
  */
-public interface ConfigInterface {
+public interface ConfigEventListener extends EventListener {
 
-    public void addListener(final ConfigEventListener listener);
-
-    public void removeListener(final ConfigEventListener listener);
-
-    String toString();
-
+    public void onConfigValueModified(ConfigInterface config, String key, Object newValue);
 }

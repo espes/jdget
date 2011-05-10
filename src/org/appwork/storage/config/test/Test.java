@@ -12,6 +12,8 @@ package org.appwork.storage.config.test;
 import java.util.ArrayList;
 
 import org.appwork.storage.JSonStorage;
+import org.appwork.storage.config.ConfigEventListener;
+import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.logging.Log;
 
@@ -42,6 +44,14 @@ public class Test {
         }
         try {
             final MyInterface jc = JsonConfig.create(MyInterface.class);
+
+            jc.addListener(new ConfigEventListener() {
+
+                @Override
+                public void onConfigValueModified(final ConfigInterface config, final String key, final Object newValue) {
+                    System.out.println("New value: " + key + "=\r\n" + JSonStorage.toString(newValue));
+                }
+            });
             /*
              * 3. Use getters and setters as if your storage would be a normal
              * instance.
