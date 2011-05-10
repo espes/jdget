@@ -7,9 +7,11 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.net.ftpserver;
+package org.appwork.utils.net.ftpserver.test;
 
 import java.io.File;
+
+import org.appwork.utils.net.ftpserver.FtpFile;
 
 /**
  * @author daniel

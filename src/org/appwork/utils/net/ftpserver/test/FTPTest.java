@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.net.ftpserver;
+package org.appwork.utils.net.ftpserver.test;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,6 +20,13 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import org.appwork.utils.Files;
+import org.appwork.utils.net.ftpserver.FTPUser;
+import org.appwork.utils.net.ftpserver.FtpConnectionHandler;
+import org.appwork.utils.net.ftpserver.FtpConnectionState;
+import org.appwork.utils.net.ftpserver.FtpException;
+import org.appwork.utils.net.ftpserver.FtpFile;
+import org.appwork.utils.net.ftpserver.FtpFileNotExistException;
+import org.appwork.utils.net.ftpserver.FtpServer;
 
 /**
  * @author daniel
