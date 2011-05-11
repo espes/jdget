@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -132,7 +133,28 @@ public class TranslationFactory {
         return JSonStorage.getPlainStorage("translation").get(TranslationFactory.LANGUAGE, System.getProperty("user.language").toLowerCase());
     }
 
+    /**
+     * @return
+     */
+    public static Locale getDesiredLocale() {
+        final String lng = TranslationFactory.getDesiredLanguage();
+
+        final String[] split = lng.split("[\\-\\_]");
+        switch (split.length) {
+        case 1:
+            return new Locale(split[0]);
+        case 2:
+            return new Locale(split[0], split[1]);
+
+        default:
+            return new Locale(split[0], split[1], split[2]);
+        }
+
+    }
+
     public static void main(final String[] args) {
+        Locale.setDefault(TranslationFactory.getDesiredLocale());
+        System.out.println(TranslationFactory.getDesiredLocale().getDisplayCountry());
         final Translate t = TranslationFactory.create(Translate.class);
         System.out.println(t.getTestText());
         System.out.println(t.getOrderedText(1, 7, 23, 5));
