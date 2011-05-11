@@ -81,7 +81,11 @@ public class Regex {
         if (matcher != null) {
             final Matcher matcher = this.matcher;
             matcher.reset();
-            if (matcher.find()) { return matcher.group(group + 1); }
+            if (matcher.find()) {
+                String ret = matcher.group(group + 1);
+                if (ret != null) return new String(ret);
+                return ret;
+            }
         }
         return null;
     }
@@ -117,6 +121,8 @@ public class Regex {
                 }
 
                 for (int i = d; i <= c; i++) {
+                    String tmp = matcher.group(i);
+                    if (tmp != null) tmp = new String(tmp);
                     group[i - d] = matcher.group(i);
                 }
                 ar.add(group);
@@ -135,7 +141,9 @@ public class Regex {
 
             final ArrayList<String> ar = new ArrayList<String>();
             while (matcher.find()) {
-                ar.add(matcher.group(x));
+                String tmp = matcher.group(x);
+                if (tmp != null) tmp = new String(tmp);
+                ar.add(tmp);
             }
             return ar.toArray(new String[ar.size()]);
         }
@@ -192,7 +200,11 @@ public class Regex {
             entry++;
             int groupCount = 0;
             while (matcher.find()) {
-                if (groupCount == group) { return matcher.group(entry); }
+                if (groupCount == group) {
+                    String ret = matcher.group(entry);
+                    if (ret != null) return new String(ret);
+                    return ret;
+                }
                 groupCount++;
             }
         }
@@ -211,7 +223,12 @@ public class Regex {
                     final String[] group = new String[c];
 
                     for (int i = 1; i <= c; i++) {
-                        group[i - 1] = matcher.group(i);
+                        String tmp = matcher.group(i);
+                        if (tmp == null) {
+                            group[i - 1] = tmp;
+                        } else {
+                            group[i - 1] = new String(matcher.group(i));
+                        }
                     }
                     return group;
                 }
@@ -248,7 +265,7 @@ public class Regex {
             final int tempLength = temp.length;
             final String[] output = new String[tempLength];
             for (int i = 0; i < tempLength; i++) {
-                output[i] = temp[i].trim();
+                output[i] = new String(temp[i].trim());
             }
             return output;
         }

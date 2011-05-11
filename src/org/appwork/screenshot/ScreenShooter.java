@@ -363,7 +363,9 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
     public BufferedImage getFullScreenShot() {
         if (this.image instanceof BufferedImage) { return (BufferedImage) this.image; }
         final BufferedImage img = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
-        img.getGraphics().drawImage(this.image, 0, 0, null);
+        Graphics gd = img.getGraphics();
+        gd.drawImage(this.image, 0, 0, null);
+        gd.dispose();
         return img;
     }
 
@@ -690,9 +692,9 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
      * @param bufferStrategy
      */
     private void updateGUI(final BufferStrategy bufferStrategy) {
+        Graphics2D gb = null;
         try {
-
-            final Graphics2D gb = (Graphics2D) bufferStrategy.getDrawGraphics();
+            gb = (Graphics2D) bufferStrategy.getDrawGraphics();
             final Point tempDrag = this.dragStart;
             if (this.isDragging && tempDrag != null) {
 
@@ -773,15 +775,19 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
                 gb.drawRect(x, db.y + db.height - height - 5, width, height);
                 gb.drawString(str, x + 5, db.y + db.height - 10);
             }
-            gb.dispose();
+
             try {
                 bufferStrategy.show();
             } catch (final Exception e) {
-
             }
 
         } catch (final Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                gb.dispose();
+            } catch (final Throwable e) {
+            }
         }
     }
 
