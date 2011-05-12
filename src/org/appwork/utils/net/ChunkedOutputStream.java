@@ -38,20 +38,22 @@ public class ChunkedOutputStream extends OutputStream {
     }
 
     private void _flush(final boolean emptyFlush) throws IOException {
-        if (this.bufUsed > 0 || emptyFlush) {
-            final byte[] bytes = Integer.toHexString(this.bufUsed).getBytes();
-            /* send chunk size */
-            this.os.write(bytes);
-            this.os.write((byte) '\r');
-            this.os.write((byte) '\n');
-            /* send chunk data */
-            if (this.bufUsed > 0) {
-                /* flush buffered data if any available */
-                this.os.write(this.buffer, 0, this.bufUsed);
+        if (this.closed == false) {
+            if (this.bufUsed > 0 || emptyFlush) {
+                final byte[] bytes = Integer.toHexString(this.bufUsed).getBytes();
+                /* send chunk size */
+                this.os.write(bytes);
                 this.os.write((byte) '\r');
                 this.os.write((byte) '\n');
+                /* send chunk data */
+                if (this.bufUsed > 0) {
+                    /* flush buffered data if any available */
+                    this.os.write(this.buffer, 0, this.bufUsed);
+                    this.os.write((byte) '\r');
+                    this.os.write((byte) '\n');
+                }
+                this.bufUsed = 0;
             }
-            this.bufUsed = 0;
         }
     }
 
@@ -76,7 +78,7 @@ public class ChunkedOutputStream extends OutputStream {
 
     public synchronized void sendEOF() throws IOException {
         /* flush rest available chunk data */
-        this.flush();
+        this._flush(false);
         /* send empty chunk = EOF */
         this._flush(true);
         this.os.flush();

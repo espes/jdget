@@ -124,6 +124,7 @@ public class ChunkedInputStream extends InputStream {
                 this.nextChunkLeft--;
                 return ret;
             }
+            throw new IOException("premature EOF");
         }
         return -1;
     }
@@ -137,6 +138,7 @@ public class ChunkedInputStream extends InputStream {
                 this.nextChunkLeft -= ret;
                 return ret;
             }
+            throw new IOException("premature EOF");
         }
         return -1;
     }
