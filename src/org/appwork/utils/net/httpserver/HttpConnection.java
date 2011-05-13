@@ -191,13 +191,11 @@ public class HttpConnection implements Runnable {
             this.response.getOutputStream();
         } catch (final Throwable e) {
             Log.exception(e);
-            if (this.response == null) {
-                this.response = new HttpResponse(this);
-            }
             try {
+                this.response = new HttpResponse(this);
                 this.response.setResponseCode(ResponseCode.SERVERERROR_INTERNAL);
                 final byte[] bytes = Exceptions.getStackTrace(e).getBytes("UTF-8");
-                this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text/html"));
+                this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
                 this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
                 this.response.getOutputStream().write(bytes);
                 this.response.getOutputStream().flush();
@@ -216,7 +214,7 @@ public class HttpConnection implements Runnable {
      */
     private synchronized void sendResponseHeaders() throws IOException {
         try {
-            if (this.responseHeadersSent == true) { return; }
+            if (this.responseHeadersSent == true) { throw new IOException("Headers already send!"); }
             if (this.response != null) {
                 final OutputStream out = this.clientSocket.getOutputStream();
                 out.write(HttpResponse.HTTP11);
