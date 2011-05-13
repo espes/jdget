@@ -17,10 +17,12 @@ public class RemoteAPIRequest {
 
     private final InterfaceHandler<?> iface;
     private final String              methodName;
+    private final String[]            parameters;
 
-    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName) {
+    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters) {
         this.iface = iface;
         this.methodName = methodName;
+        this.parameters = parameters;
     }
 
     public InterfaceHandler<?> getIface() {
@@ -29,6 +31,10 @@ public class RemoteAPIRequest {
 
     public String getMethodName() {
         return this.methodName;
+    }
+
+    public String[] getParameters() {
+        return this.parameters;
     }
 
 }
