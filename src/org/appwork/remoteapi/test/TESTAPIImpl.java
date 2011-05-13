@@ -33,9 +33,9 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface {
      * @see org.appwork.remoteapi.test.TestApiInterface#sum(int, int)
      */
     @Override
-    public int sum(final int a, final int b) {
+    public int sum(final long a, final Byte b) {
         // TODO Auto-generated method stub
-        return a + b;
+        return (int) (a + b);
     }
 
     /*
@@ -56,7 +56,7 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface {
     @Override
     public boolean toggle(final boolean b) {
         // TODO Auto-generated method stub
-        return false;
+        return !b;
     }
 
 }
