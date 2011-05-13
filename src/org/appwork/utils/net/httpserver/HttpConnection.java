@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
@@ -85,10 +86,10 @@ public class HttpConnection implements Runnable {
                 final String params[] = parameter.split("=", 2);
                 if (params.length == 1) {
                     /* no value */
-                    requestedURLParameters.add(new String[] { params[0], null });
+                    requestedURLParameters.add(new String[] { URLDecoder.decode(params[0], "UTF-8"), null });
                 } else {
                     /* key = value */
-                    requestedURLParameters.add(new String[] { params[0], params[1] });
+                    requestedURLParameters.add(new String[] { URLDecoder.decode(params[0], "UTF-8"), URLDecoder.decode(params[1], "UTF-8") });
                 }
             }
         }

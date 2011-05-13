@@ -55,24 +55,21 @@ public class RemoteAPI implements HttpRequestHandler {
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
         final String[] intf = new Regex(request.getRequestedPath(), "/(.+)/(.+)$").getRow(0);
         if (intf == null) { return null; }
-
         synchronized (this.LOCK) {
             if (intf.length == 2) {
                 final InterfaceHandler<?> interfaceHandler = this.interfaces.get(intf[0]);
                 final ArrayList<String> parameters = new ArrayList<String>();
-                if (request instanceof GetRequest) {
-                    for (final String[] param : request.getRequestedURLParameters()) {
-                        if (param[1] != null) {
-                            /* key=value(parameter) */
-                            parameters.add(param[1]);
-                        } else {
-                            /* key(parameter) */
-                            parameters.add(param[0]);
-                        }
+                /* convert GET parameters to methodParameters */
+                for (final String[] param : request.getRequestedURLParameters()) {
+                    if (param[1] != null) {
+                        /* key=value(parameter) */
+                        parameters.add(param[1]);
+                    } else {
+                        /* key(parameter) */
+                        parameters.add(param[0]);
                     }
-                } else {
-                    throw new RuntimeException("not yet implemented");
                 }
+                if (!(request instanceof GetRequest)) { throw new RuntimeException("not yet implemented"); }
                 if (interfaceHandler != null) { return new RemoteAPIRequest(interfaceHandler, intf[1], parameters.toArray(new String[] {}), request); }
             }
         }
@@ -88,7 +85,6 @@ public class RemoteAPI implements HttpRequestHandler {
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return false; }
-
         try {
             this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
@@ -100,7 +96,6 @@ public class RemoteAPI implements HttpRequestHandler {
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return false; }
-
         try {
             this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
