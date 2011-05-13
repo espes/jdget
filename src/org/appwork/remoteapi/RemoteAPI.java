@@ -77,19 +77,24 @@ public class RemoteAPI implements HttpRequestHandler {
         final Method method = request.getMethod();
         if (method == null) { throw new ApiCommandNotAvailable(); }
         final Object[] parameters = new Object[request.getParameters().length];
-        boolean responseGiven = false;
+        boolean responseIsParameter = false;
         for (int i = 0; i < parameters.length; i++) {
             if (method.getParameterTypes()[i] == RemoteAPIRequest.class) {
                 parameters[i] = request;
             } else if (method.getParameterTypes()[i] == RemoteAPIResponse.class) {
-                responseGiven = true;
+                responseIsParameter = true;
                 parameters[i] = response;
             } else {
                 parameters[i] = this.convert(request.getParameters()[i], method.getGenericParameterTypes()[i]);
             }
         }
         final Object ret = request.getIface().invoke(method, parameters);
-        if (!responseGiven) {
+        if (responseIsParameter) { return; }
+        if (Clazz.isVoid(method.getReturnType())) {
+            response.setResponseCode(ResponseCode.SUCCESS_OK);
+            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
+        } else {
+
             response.setResponseCode(ResponseCode.SUCCESS_OK);
             final String text = JSonStorage.toString(ret);
 
@@ -98,6 +103,7 @@ public class RemoteAPI implements HttpRequestHandler {
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
             response.getOutputStream().write(text.getBytes("UTF-8"));
         }
+
     }
 
     /**
