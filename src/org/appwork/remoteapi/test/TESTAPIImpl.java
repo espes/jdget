@@ -27,14 +27,14 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.appwork.remoteapi.test.TestApiInterface#iAmGod(org.appwork.remoteapi
-     * .RemoteAPIRequest, org.appwork.remoteapi.RemoteAPIResponse)
+     * @see org.appwork.remoteapi.test.TestApiInterface#iAmGod(int,
+     * org.appwork.remoteapi.RemoteAPIRequest, int,
+     * org.appwork.remoteapi.RemoteAPIResponse, int)
      */
     @Override
-    public void iAmGod(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
+    public void iAmGod(final int b, final RemoteAPIRequest request, final int a, final RemoteAPIResponse response, final int c) throws UnsupportedEncodingException, IOException {
         response.setResponseCode(ResponseCode.SUCCESS_OK);
-        final String text = "You called god?";
+        final String text = "You called god?" + b + "-" + a + "-" + c;
 
         final int length = text.getBytes().length;
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));

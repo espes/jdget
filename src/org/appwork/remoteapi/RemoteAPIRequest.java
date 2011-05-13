@@ -25,15 +25,24 @@ import org.appwork.utils.net.httpserver.requests.PostRequest;
 public class RemoteAPIRequest {
 
     private final InterfaceHandler<?> iface;
-    private final String              methodName;
+
     private final String[]            parameters;
     private final HttpRequest         request;
 
+    private Method                    method;
+
+    private int                       parameterCount;
+
     public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request) {
         this.iface = iface;
-        this.methodName = methodName;
         this.parameters = parameters;
         this.request = request;
+        this.method = this.iface.getMethod(methodName, this.parameters.length);
+        try {
+            this.parameterCount = iface.getParameterCount(this.method);
+        } catch (final Throwable e) {
+            this.method = null;
+        }
     }
 
     public InterfaceHandler<?> getIface() {
@@ -49,11 +58,12 @@ public class RemoteAPIRequest {
      * @return
      */
     public Method getMethod() {
-        return this.iface.getMethod(this.methodName, this.parameters.length);
+
+        return this.method;
     }
 
-    public String getMethodName() {
-        return this.methodName;
+    public int getParameterCount() {
+        return this.parameterCount;
     }
 
     public String[] getParameters() {

@@ -22,7 +22,7 @@ import org.appwork.remoteapi.RemoteAPIResponse;
  * 
  */
 public interface TestApiInterface extends RemoteAPIInterface {
-    public void iAmGod(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException;
+    public void iAmGod(int b, final RemoteAPIRequest request, int a, final RemoteAPIResponse response, int c) throws UnsupportedEncodingException, IOException;
 
     public String merge(String s1, String s2, int i, boolean b);
 

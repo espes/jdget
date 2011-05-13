@@ -49,6 +49,7 @@ public class InterfaceHandler<T> {
     private final RemoteAPIInterface                        impl;
     private final Class<T>                                  interfaceClass;
     private final TreeMap<String, TreeMap<Integer, Method>> methods;
+    private final HashMap<Method, Integer>                  parameterCountMap;
     private static Method                                   HELP;
     static {
         try {
@@ -75,6 +76,8 @@ public class InterfaceHandler<T> {
         TreeMap<Integer, Method> map;
         this.methods.put("help", map = new TreeMap<Integer, Method>());
         map.put(0, InterfaceHandler.HELP);
+        this.parameterCountMap = new HashMap<Method, Integer>();
+        this.parameterCountMap.put(InterfaceHandler.HELP, 0);
     }
 
     /**
@@ -84,9 +87,20 @@ public class InterfaceHandler<T> {
      */
     public Method getMethod(final String methodName, final int length) {
         if (methodName.equals(InterfaceHandler.HELP.getName())) { return InterfaceHandler.HELP; }
+
         final TreeMap<Integer, Method> methodsByName = this.methods.get(methodName);
         if (methodsByName == null) { return null; }
+
         return methodsByName.get(length);
+    }
+
+    /**
+     * @param method
+     * @return
+     */
+    public int getParameterCount(final Method method) {
+
+        return this.parameterCountMap.get(method);
     }
 
     public void help(final RemoteAPIRequest request, final RemoteAPIResponse response) throws InstantiationException, IllegalAccessException, UnsupportedEncodingException, IOException {
@@ -116,8 +130,12 @@ public class InterfaceHandler<T> {
 
                 final HashMap<Type, Integer> map = new HashMap<Type, Integer>();
                 String call = "/" + m.getName();
+                int count = 0;
                 for (int i = 0; i < m.getGenericParameterTypes().length; i++) {
-
+                    if (m.getParameterTypes()[i] == RemoteAPIRequest.class || m.getParameterTypes()[i] == RemoteAPIResponse.class) {
+                        continue;
+                    }
+                    count++;
                     if (i > 0) {
                         call += "&";
 
@@ -132,7 +150,7 @@ public class InterfaceHandler<T> {
                     }
                     num++;
                     call += m.getParameterTypes()[i].getSimpleName() + "" + num;
-                    sb.append("\r\n      Parameter: " + (i + 1) + " - " + m.getParameterTypes()[i].getSimpleName() + "" + num);
+                    sb.append("\r\n      Parameter: " + count + " - " + m.getParameterTypes()[i].getSimpleName() + "" + num);
                     map.put(m.getParameterTypes()[i], num);
 
                 }
@@ -178,8 +196,15 @@ public class InterfaceHandler<T> {
                 methodsByName = new TreeMap<Integer, Method>();
                 this.methods.put(m.getName(), methodsByName);
             }
-            if (methodsByName.containsKey(m.getParameterTypes().length)) { throw new ParseException(this.interfaceClass + " Contains ambiguous methods: \r\n" + m + "\r\n" + methodsByName.get(m.getParameterTypes().length)); }
-            methodsByName.put(m.getParameterTypes().length, m);
+            int l = 0;
+            for (final Class<?> c : m.getParameterTypes()) {
+                if (c != RemoteAPIRequest.class && c != RemoteAPIResponse.class) {
+                    l++;
+                }
+            }
+            this.parameterCountMap.put(m, l);
+            if (methodsByName.containsKey(l)) { throw new ParseException(this.interfaceClass + " Contains ambiguous methods: \r\n" + m + "\r\n" + methodsByName.get(l)); }
+            methodsByName.put(l, m);
 
         }
 
@@ -218,4 +243,5 @@ public class InterfaceHandler<T> {
         }
 
     }
+
 }

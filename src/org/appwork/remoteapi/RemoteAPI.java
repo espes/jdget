@@ -72,12 +72,13 @@ public class RemoteAPI implements HttpRequestHandler {
     public RemoteAPI() {
     }
 
-    private void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ApiCommandNotAvailable {
+    private void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ApiCommandNotAvailable, BadParameterException {
 
         final Method method = request.getMethod();
         if (method == null) { throw new ApiCommandNotAvailable(); }
         final Object[] parameters = new Object[method.getParameterTypes().length];
         boolean responseIsParameter = false;
+        int count = 0;
         for (int i = 0; i < parameters.length; i++) {
             if (method.getParameterTypes()[i] == RemoteAPIRequest.class) {
                 parameters[i] = request;
@@ -85,7 +86,12 @@ public class RemoteAPI implements HttpRequestHandler {
                 responseIsParameter = true;
                 parameters[i] = response;
             } else {
-                parameters[i] = this.convert(request.getParameters()[i], method.getGenericParameterTypes()[i]);
+                try {
+                    parameters[i] = this.convert(request.getParameters()[count], method.getGenericParameterTypes()[i]);
+                } catch (final Throwable e) {
+                    throw new BadParameterException(request.getParameters()[count], e);
+                }
+                count++;
             }
         }
         final Object ret = request.getIface().invoke(method, parameters);
