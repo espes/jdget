@@ -30,8 +30,8 @@ import org.appwork.utils.net.httpserver.responses.HttpResponse;
 public class RemoteAPI implements HttpRequestHandler {
 
     /* hashmap that holds all registered interfaces and their pathes */
-    private final HashMap<String, RemoteAPIInterface> interfaces = new HashMap<String, RemoteAPIInterface>();
-    private final Object                              LOCK       = new Object();
+    private final HashMap<String, InterfaceHandler<?>> interfaces = new HashMap<String, InterfaceHandler<?>>();
+    private final Object                               LOCK       = new Object();
 
     public RemoteAPI() {
     }
@@ -54,63 +54,73 @@ public class RemoteAPI implements HttpRequestHandler {
 
     }
 
-    public boolean canHandle(final HttpRequest request) {
+    public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
         final String[] intf = new Regex(request.getRequestedPath(), "/(.+)/(.+)$").getRow(0);
-        if (intf == null) { return false; }
-        RemoteAPIInterface x = null;
+        if (intf == null) { return null; }
+
         synchronized (this.LOCK) {
             if (intf.length == 2) {
-                x = this.interfaces.get(intf[0]);
+                final InterfaceHandler<?> interfaceHandler = this.interfaces.get(intf[0]);
+                if (interfaceHandler != null) { return new RemoteAPIRequest(interfaceHandler, intf[1]); }
             }
         }
-        if (x != null) {
-            /*
-             * TODO: hier bereits aus dem Cache oder Live schaun, obs den
-             * methoden namen überhaupt gibt
-             */
-            final RemoteAPIRequest call = new RemoteAPIRequest(x, intf[1]);
-            request.setHandlerExtension(call);
-            return true;
-        } else {
-            return false;
-        }
+        return null;
     }
 
-    public void onGetRequest(final GetRequest request, final HttpResponse response) {
-        final RemoteAPIRequest r = (RemoteAPIRequest) request.getHandlerExtension();
-        /* TODO: build paramterArray */
+    /**
+     * @param interfaceHandler
+     * @param string
+     * @return
+     */
+
+    public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
+        final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+        if (apiRequest == null) { return false; }
+
         try {
-            this._handleRemoteAPICall(r, new RemoteAPIResponse(response));
+            this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
             throw new RuntimeException(e);
 
         }
+        return true;
 
     }
 
-    public void onPostRequest(final PostRequest request, final HttpResponse response) {
-        final RemoteAPIRequest r = (RemoteAPIRequest) request.getHandlerExtension();
-        /* TODO: parse postData into parameter+build paramterArray */
+    public boolean onPostRequest(final PostRequest request, final HttpResponse response) {
+        final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+        if (apiRequest == null) { return false; }
+
         try {
-            this._handleRemoteAPICall(r, new RemoteAPIResponse(response));
+            this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
             throw new RuntimeException(e);
+
         }
+        return true;
     }
 
-    public void register(final RemoteAPIInterface x) {
+    @SuppressWarnings("unchecked")
+    public void register(final RemoteAPIInterface x) throws ParseException {
         synchronized (this.LOCK) {
-            this.interfaces.put(x.getClass().getName(), x);
-            /*
-             * TODO: caches von funktionsnamen und paramter und co hier
-             * erstellen, das nicht immer nachschaun müssen
-             */
+            for (final Class<?> c : x.getClass().getInterfaces()) {
+                if (RemoteAPIInterface.class.isAssignableFrom(c)) {
+                    if (this.interfaces.containsKey(c.getName())) { throw new IllegalStateException("Interface " + c.getName() + " already has been registered by " + this.interfaces.get(c.getName())); }
+                    this.interfaces.put(c.getName(), InterfaceHandler.create((Class<RemoteAPIInterface>) c, x));
+                }
+            }
+
         }
     }
 
     public void unregister(final RemoteAPIInterface x) {
         synchronized (this.LOCK) {
-            this.interfaces.remove(x.getClass().getName());
+
+            for (final Class<?> c : x.getClass().getInterfaces()) {
+                if (RemoteAPIInterface.class.isAssignableFrom(c)) {
+                    this.interfaces.remove(c.getName());
+                }
+            }
         }
     }
 

@@ -11,6 +11,7 @@ package org.appwork.remoteapi.test;
 
 import java.io.IOException;
 
+import org.appwork.remoteapi.ParseException;
 import org.appwork.remoteapi.RemoteAPI;
 import org.appwork.utils.net.httpserver.HttpServer;
 
@@ -27,6 +28,11 @@ public class Test {
         server.registerRequestHandler(Test.rapi);
         server.start();
 
-        Test.rapi.register(new TESTAPIImpl());
+        try {
+            Test.rapi.register(new TESTAPIImpl());
+        } catch (final ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 }

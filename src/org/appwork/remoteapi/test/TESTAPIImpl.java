@@ -9,11 +9,23 @@
  */
 package org.appwork.remoteapi.test;
 
+
 /**
  * @author daniel
  * 
  */
-public class TESTAPIImpl implements TESTAPI {
+public class TESTAPIImpl implements TESTAPI, TestApiInterface {
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.remoteapi.test.TestApiInterface#sum(int, int)
+     */
+    @Override
+    public int sum(final int a, final int b) {
+        // TODO Auto-generated method stub
+        return a + b;
+    }
 
     /*
      * (non-Javadoc)
@@ -21,9 +33,8 @@ public class TESTAPIImpl implements TESTAPI {
      * @see org.appwork.remoteapi.test.TESTAPI#test()
      */
     @Override
-    public void test() {
-        // TODO Auto-generated method stub
-
+    public String test() {
+        return "TestSucessfull";
     }
 
 }

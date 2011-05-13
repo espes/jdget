@@ -11,7 +11,7 @@ package org.appwork.remoteapi;
 
 /**
  * @author daniel
- *
+ * 
  */
 public interface RemoteAPIInterface {
 

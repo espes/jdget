@@ -17,5 +17,6 @@ import org.appwork.remoteapi.RemoteAPIInterface;
  */
 public interface TESTAPI extends RemoteAPIInterface {
 
-    public void test();
+    public String test();
+
 }

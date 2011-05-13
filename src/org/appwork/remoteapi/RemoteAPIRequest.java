@@ -9,17 +9,16 @@
  */
 package org.appwork.remoteapi;
 
-
 /**
  * @author daniel
  * 
  */
 public class RemoteAPIRequest {
 
-    private final RemoteAPIInterface iface;
-    private final String             methodName;
+    private final InterfaceHandler<?> iface;
+    private final String              methodName;
 
-    public RemoteAPIRequest(final RemoteAPIInterface iface, final String methodName) {
+    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName) {
         this.iface = iface;
         this.methodName = methodName;
     }
