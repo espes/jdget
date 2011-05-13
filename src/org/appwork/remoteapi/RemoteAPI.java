@@ -76,7 +76,7 @@ public class RemoteAPI implements HttpRequestHandler {
 
         final Method method = request.getMethod();
         if (method == null) { throw new ApiCommandNotAvailable(); }
-        final Object[] parameters = new Object[request.getParameters().length];
+        final Object[] parameters = new Object[method.getParameterTypes().length];
         boolean responseIsParameter = false;
         for (int i = 0; i < parameters.length; i++) {
             if (method.getParameterTypes()[i] == RemoteAPIRequest.class) {
@@ -199,7 +199,13 @@ public class RemoteAPI implements HttpRequestHandler {
                 if (RemoteAPIInterface.class.isAssignableFrom(c)) {
                     if (this.interfaces.containsKey(c.getName())) { throw new IllegalStateException("Interface " + c.getName() + " already has been registered by " + this.interfaces.get(c.getName())); }
                     System.out.println(c.getName());
-                    this.interfaces.put(c.getName(), InterfaceHandler.create((Class<RemoteAPIInterface>) c, x));
+                    try {
+                        this.interfaces.put(c.getName(), InterfaceHandler.create((Class<RemoteAPIInterface>) c, x));
+                    } catch (final SecurityException e) {
+                        throw new ParseException(e);
+                    } catch (final NoSuchMethodException e) {
+                        throw new ParseException(e);
+                    }
                 }
             }
 

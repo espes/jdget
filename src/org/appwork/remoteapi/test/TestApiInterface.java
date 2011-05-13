@@ -12,6 +12,7 @@ package org.appwork.remoteapi.test;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+import org.appwork.remoteapi.ApiDoc;
 import org.appwork.remoteapi.RemoteAPIInterface;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
@@ -25,7 +26,9 @@ public interface TestApiInterface extends RemoteAPIInterface {
 
     public String merge(String s1, String s2, int i, boolean b);
 
+    @ApiDoc("Returns the sum of long1 and byte1")
     public int sum(long a, Byte b);
 
+    @ApiDoc("Inverts boolean1")
     public boolean toggle(boolean b);
 }
