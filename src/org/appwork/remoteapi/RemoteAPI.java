@@ -56,6 +56,7 @@ public class RemoteAPI implements HttpRequestHandler {
 
     public boolean canHandle(final HttpRequest request) {
         final String[] intf = new Regex(request.getRequestedPath(), "/(.+)/(.+)$").getRow(0);
+        if (intf == null) { return false; }
         RemoteAPIInterface x = null;
         synchronized (this.LOCK) {
             if (intf.length == 2) {

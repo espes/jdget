@@ -38,6 +38,14 @@ public class HttpResponse {
         this.responseHeaders.add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONNECTION, "Close"));
     }
 
+    /**
+     * returns this HttpResonse's OutputStream. NOTE: set ResponseHeaders/Code
+     * before first call of this. once the OutputStream is available you cannot
+     * change ResponseHeaders/Code anymore
+     * 
+     * @return
+     * @throws IOException
+     */
     public OutputStream getOutputStream() throws IOException {
         if (this.outputStream == null) {
             this.outputStream = this.connection.getOutputStream();
