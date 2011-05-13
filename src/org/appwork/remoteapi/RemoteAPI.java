@@ -38,10 +38,7 @@ public class RemoteAPI implements HttpRequestHandler {
 
     private void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
 
-        /*
-         * hier die antwort als string setzen, können wahlweise auch bytearray
-         * nehmen
-         */
+        final InterfaceHandler<?> handler = request.getIface();
         response.setResponseString("YEAH");
         response.setResponseCode(ResponseCode.SUCCESS_OK);
         String text = response.getResponseString();
@@ -62,7 +59,7 @@ public class RemoteAPI implements HttpRequestHandler {
         synchronized (this.LOCK) {
             if (intf.length == 2) {
                 final InterfaceHandler<?> interfaceHandler = this.interfaces.get(intf[0]);
-                if (interfaceHandler != null) { return new RemoteAPIRequest(interfaceHandler, intf[1]); }
+                if (interfaceHandler != null) { return new RemoteAPIRequest(interfaceHandler, intf[1], new String[] { "1", "2" }); }
             }
         }
         return null;

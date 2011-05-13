@@ -11,7 +11,6 @@ package org.appwork.remoteapi;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.appwork.storage.InvalidTypeException;
@@ -35,9 +34,9 @@ public class InterfaceHandler<T> {
         return ret;
     }
 
-    private final RemoteAPIInterface                                   impl;
-    private final Class<T>                                             interfaceClass;
-    private final HashMap<String, HashMap<Integer, ArrayList<Method>>> methods;
+    private final RemoteAPIInterface                        impl;
+    private final Class<T>                                  interfaceClass;
+    private final HashMap<String, HashMap<Integer, Method>> methods;
 
     /**
      * @param <T>
@@ -47,7 +46,7 @@ public class InterfaceHandler<T> {
     private InterfaceHandler(final Class<T> c, final RemoteAPIInterface x) {
         this.interfaceClass = c;
         this.impl = x;
-        this.methods = new HashMap<String, HashMap<Integer, ArrayList<Method>>>();
+        this.methods = new HashMap<String, HashMap<Integer, Method>>();
     }
 
     /**
@@ -57,18 +56,13 @@ public class InterfaceHandler<T> {
     private void parse() throws ParseException {
         for (final Method m : this.interfaceClass.getMethods()) {
             this.validateMethod(m);
-            HashMap<Integer, ArrayList<Method>> methodsByName = this.methods.get(m.getName());
+            HashMap<Integer, Method> methodsByName = this.methods.get(m.getName());
             if (methodsByName == null) {
-                methodsByName = new HashMap<Integer, ArrayList<Method>>();
+                methodsByName = new HashMap<Integer, Method>();
                 this.methods.put(m.getName(), methodsByName);
             }
-            ArrayList<Method> methodsByNameAndArgumentCount = methodsByName.get(m.getParameterTypes().length);
-            if (methodsByNameAndArgumentCount == null) {
-                methodsByNameAndArgumentCount = new ArrayList<Method>();
-                methodsByName.put(m.getParameterTypes().length, methodsByNameAndArgumentCount);
-            }
-
-            methodsByNameAndArgumentCount.add(m);
+            if (methodsByName.containsKey(m.getParameterTypes().length)) { throw new ParseException(this.interfaceClass + " Contains ambiguous methods: \r\n" + m + "\r\n" + methodsByName.get(m.getParameterTypes().length)); }
+            methodsByName.put(m.getParameterTypes().length, m);
 
         }
 
