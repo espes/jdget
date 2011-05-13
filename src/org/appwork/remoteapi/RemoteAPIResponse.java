@@ -23,7 +23,6 @@ import org.appwork.utils.net.httpserver.responses.HttpResponse;
 public class RemoteAPIResponse {
 
     private final HttpResponse response;
-    public String              responseString = null;
 
     public RemoteAPIResponse(final HttpResponse response) {
         this.response = response;
@@ -45,13 +44,6 @@ public class RemoteAPIResponse {
     }
 
     /**
-     * @return the responseString
-     */
-    public String getResponseString() {
-        return this.responseString;
-    }
-
-    /**
      * @param responseCode
      *            the responseCode to set
      */
@@ -59,7 +51,4 @@ public class RemoteAPIResponse {
         this.response.setResponseCode(responseCode);
     }
 
-    public void setResponseString(final String text) {
-        this.responseString = text;
-    }
 }

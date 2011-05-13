@@ -9,6 +9,14 @@
  */
 package org.appwork.remoteapi;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.LinkedList;
+
+import org.appwork.utils.net.HeaderCollection;
+import org.appwork.utils.net.httpserver.requests.HttpRequest;
+import org.appwork.utils.net.httpserver.requests.PostRequest;
+
 /**
  * @author daniel
  * 
@@ -18,15 +26,22 @@ public class RemoteAPIRequest {
     private final InterfaceHandler<?> iface;
     private final String              methodName;
     private final String[]            parameters;
+    private final HttpRequest         request;
 
-    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters) {
+    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request) {
         this.iface = iface;
         this.methodName = methodName;
         this.parameters = parameters;
+        this.request = request;
     }
 
     public InterfaceHandler<?> getIface() {
         return this.iface;
+    }
+
+    public InputStream getInputStream() throws IOException {
+        if (this.request instanceof PostRequest) { return ((PostRequest) this.request).getInputStream(); }
+        return null;
     }
 
     public String getMethodName() {
@@ -35,6 +50,25 @@ public class RemoteAPIRequest {
 
     public String[] getParameters() {
         return this.parameters;
+    }
+
+    public String getRequestedPath() {
+        return this.request.getRequestedPath();
+    }
+
+    public String getRequestedURL() {
+        return this.request.getRequestedURL();
+    }
+
+    /**
+     * @return the requestedURLParameters
+     */
+    public LinkedList<String[]> getRequestedURLParameters() {
+        return this.request.getRequestedURLParameters();
+    }
+
+    public HeaderCollection getRequestHeaders() {
+        return this.request.getRequestHeaders();
     }
 
 }

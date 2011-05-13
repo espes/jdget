@@ -11,6 +11,7 @@ package org.appwork.remoteapi;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.appwork.net.protocol.http.HTTPConstants;
@@ -39,17 +40,16 @@ public class RemoteAPI implements HttpRequestHandler {
     private void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
 
         final InterfaceHandler<?> handler = request.getIface();
-        response.setResponseString("YEAH");
+
         response.setResponseCode(ResponseCode.SUCCESS_OK);
-        String text = response.getResponseString();
-        if (text == null) {
-            text = "";
+        String text = "Yeah";
+        for (final String p : request.getParameters()) {
+            text = text + "\r\n" + p;
         }
         final int length = text.getBytes().length;
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
         response.getOutputStream().write(text.getBytes("UTF-8"));
-
     }
 
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
@@ -59,7 +59,21 @@ public class RemoteAPI implements HttpRequestHandler {
         synchronized (this.LOCK) {
             if (intf.length == 2) {
                 final InterfaceHandler<?> interfaceHandler = this.interfaces.get(intf[0]);
-                if (interfaceHandler != null) { return new RemoteAPIRequest(interfaceHandler, intf[1], new String[] { "1", "2" }); }
+                final ArrayList<String> parameters = new ArrayList<String>();
+                if (request instanceof GetRequest) {
+                    for (final String[] param : request.getRequestedURLParameters()) {
+                        if (param[1] != null) {
+                            /* key=value(parameter) */
+                            parameters.add(param[1]);
+                        } else {
+                            /* key(parameter) */
+                            parameters.add(param[0]);
+                        }
+                    }
+                } else {
+                    throw new RuntimeException("not yet implemented");
+                }
+                if (interfaceHandler != null) { return new RemoteAPIRequest(interfaceHandler, intf[1], parameters.toArray(new String[] {}), request); }
             }
         }
         return null;
@@ -79,10 +93,8 @@ public class RemoteAPI implements HttpRequestHandler {
             this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
             throw new RuntimeException(e);
-
         }
         return true;
-
     }
 
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) {
@@ -93,7 +105,6 @@ public class RemoteAPI implements HttpRequestHandler {
             this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
             throw new RuntimeException(e);
-
         }
         return true;
     }
@@ -104,6 +115,7 @@ public class RemoteAPI implements HttpRequestHandler {
             for (final Class<?> c : x.getClass().getInterfaces()) {
                 if (RemoteAPIInterface.class.isAssignableFrom(c)) {
                     if (this.interfaces.containsKey(c.getName())) { throw new IllegalStateException("Interface " + c.getName() + " already has been registered by " + this.interfaces.get(c.getName())); }
+                    System.out.println(c.getName());
                     this.interfaces.put(c.getName(), InterfaceHandler.create((Class<RemoteAPIInterface>) c, x));
                 }
             }

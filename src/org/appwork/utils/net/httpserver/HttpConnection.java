@@ -208,7 +208,6 @@ public class HttpConnection implements Runnable {
             }
             /* send response headers if they have not been sent yet send yet */
             this.response.getOutputStream();
-
         } catch (final Throwable e) {
             Log.exception(e);
             try {
