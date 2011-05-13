@@ -51,6 +51,12 @@ public class HeaderCollection implements Iterable<HTTPHeader> {
         return this.headersMap.get(key);
     }
 
+    public String getValue(final String key) {
+        final HTTPHeader ret = this.headersMap.get(key);
+        if (ret != null) { return ret.getValue(); }
+        return null;
+    }
+
     @Override
     public Iterator<HTTPHeader> iterator() {
         return this.headers.iterator();

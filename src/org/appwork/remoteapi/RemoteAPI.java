@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
@@ -42,7 +43,6 @@ public class RemoteAPI implements HttpRequestHandler {
             if (type == boolean.class) {
                 v = ((Boolean) v).booleanValue();
             } else if (type == char.class) {
-
                 v = (char) ((Long) v).byteValue();
             } else if (type == byte.class) {
                 v = ((Number) v).byteValue();
@@ -139,7 +139,25 @@ public class RemoteAPI implements HttpRequestHandler {
                         parameters.add(param[0]);
                     }
                 }
-                if (!(request instanceof GetRequest)) { throw new RuntimeException("not yet implemented"); }
+                if (request instanceof PostRequest) {
+                    try {
+                        final LinkedList<String[]> ret = ((PostRequest) request).getPostParameter();
+                        if (ret != null) {
+                            /* add POST parameters to methodParameters */
+                            for (final String[] param : ret) {
+                                if (param[1] != null) {
+                                    /* key=value(parameter) */
+                                    parameters.add(param[1]);
+                                } else {
+                                    /* key(parameter) */
+                                    parameters.add(param[0]);
+                                }
+                            }
+                        }
+                    } catch (final Throwable e) {
+                        throw new RuntimeException(e);
+                    }
+                }
                 if (interfaceHandler != null) { return new RemoteAPIRequest(interfaceHandler, intf[1], parameters.toArray(new String[] {}), request); }
             }
         }

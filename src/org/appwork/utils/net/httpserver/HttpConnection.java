@@ -36,10 +36,31 @@ import org.appwork.utils.net.httpserver.responses.HttpResponse;
  */
 public class HttpConnection implements Runnable {
 
+    public static LinkedList<String[]> parseParameterList(final String requestedParameters) throws IOException {
+        final LinkedList<String[]> requestedURLParameters = new LinkedList<String[]>();
+        if (requestedParameters != null) {
+            /* build requestedParamters */
+            final String[] parameters = requestedParameters.split("&(?!#)");
+            for (final String parameter : parameters) {
+                /* we only want the first = be parsed */
+                final String params[] = parameter.split("=", 2);
+                if (params.length == 1) {
+                    /* no value */
+                    requestedURLParameters.add(new String[] { URLDecoder.decode(params[0], "UTF-8"), null });
+                } else {
+                    /* key = value */
+                    requestedURLParameters.add(new String[] { URLDecoder.decode(params[0], "UTF-8"), URLDecoder.decode(params[1], "UTF-8") });
+                }
+            }
+        }
+        return requestedURLParameters;
+    }
+
     private final HttpServer server;
     private final Socket     clientSocket;
     private final Thread     thread;
     private boolean          responseHeadersSent = false;
+
     private HttpResponse     response            = null;
 
     public HttpConnection(final HttpServer server, final Socket clientSocket) {
@@ -77,22 +98,7 @@ public class HttpConnection implements Runnable {
         final String requestedURL = new Regex(requestLine, " (/.*?) ").getMatch(0);
         final String requestedPath = new Regex(requestedURL, "(/.*?)($|\\?)").getMatch(0);
         final String requestedParameters = new Regex(requestedURL, "\\?(.+)").getMatch(0);
-        final LinkedList<String[]> requestedURLParameters = new LinkedList<String[]>();
-        if (requestedParameters != null) {
-            /* build requestedParamters */
-            final String[] parameters = requestedParameters.split("&(?!#)");
-            for (final String parameter : parameters) {
-                /* we only want the first = be parsed */
-                final String params[] = parameter.split("=", 2);
-                if (params.length == 1) {
-                    /* no value */
-                    requestedURLParameters.add(new String[] { URLDecoder.decode(params[0], "UTF-8"), null });
-                } else {
-                    /* key = value */
-                    requestedURLParameters.add(new String[] { URLDecoder.decode(params[0], "UTF-8"), URLDecoder.decode(params[1], "UTF-8") });
-                }
-            }
-        }
+        final LinkedList<String[]> requestedURLParameters = HttpConnection.parseParameterList(requestedParameters);
         /* read request Headers */
         ByteBuffer headers = HTTPConnectionUtils.readheader(this.clientSocket.getInputStream(), false);
         byte[] bytesHeaders = new byte[headers.limit()];
