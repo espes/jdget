@@ -9,13 +9,20 @@
  */
 package org.appwork.remoteapi.test;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
 import org.appwork.remoteapi.RemoteAPIInterface;
+import org.appwork.remoteapi.RemoteAPIRequest;
+import org.appwork.remoteapi.RemoteAPIResponse;
 
 /**
  * @author thomas
  * 
  */
 public interface TestApiInterface extends RemoteAPIInterface {
+    public void iAmGod(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException;
+
     public String merge(String s1, String s2, int i, boolean b);
 
     public int sum(long a, Byte b);

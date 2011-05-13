@@ -9,11 +9,39 @@
  */
 package org.appwork.remoteapi.test;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
+import org.appwork.net.protocol.http.HTTPConstants;
+import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
+import org.appwork.remoteapi.RemoteAPIRequest;
+import org.appwork.remoteapi.RemoteAPIResponse;
+import org.appwork.utils.net.HTTPHeader;
+
 /**
  * @author daniel
  * 
  */
 public class TESTAPIImpl implements TESTAPI, TestApiInterface {
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.remoteapi.test.TestApiInterface#iAmGod(org.appwork.remoteapi
+     * .RemoteAPIRequest, org.appwork.remoteapi.RemoteAPIResponse)
+     */
+    @Override
+    public void iAmGod(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
+        response.setResponseCode(ResponseCode.SUCCESS_OK);
+        final String text = "You called god?";
+
+        final int length = text.getBytes().length;
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
+        response.getOutputStream().write(text.getBytes("UTF-8"));
+
+    }
 
     /*
      * (non-Javadoc)

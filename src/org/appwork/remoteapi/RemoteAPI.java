@@ -36,6 +36,7 @@ import org.appwork.utils.reflection.Clazz;
  */
 public class RemoteAPI implements HttpRequestHandler {
 
+    @SuppressWarnings("unchecked")
     public static <T> T cast(Object v, final Class<T> type) {
         if (type.isPrimitive()) {
             if (type == boolean.class) {
@@ -76,19 +77,27 @@ public class RemoteAPI implements HttpRequestHandler {
         final Method method = request.getMethod();
         if (method == null) { throw new ApiCommandNotAvailable(); }
         final Object[] parameters = new Object[request.getParameters().length];
-
+        boolean responseGiven = false;
         for (int i = 0; i < parameters.length; i++) {
-            parameters[i] = this.convert(request.getParameters()[i], method.getGenericParameterTypes()[i]);
+            if (method.getParameterTypes()[i] == RemoteAPIRequest.class) {
+                parameters[i] = request;
+            } else if (method.getParameterTypes()[i] == RemoteAPIResponse.class) {
+                responseGiven = true;
+                parameters[i] = response;
+            } else {
+                parameters[i] = this.convert(request.getParameters()[i], method.getGenericParameterTypes()[i]);
+            }
         }
         final Object ret = request.getIface().invoke(method, parameters);
+        if (!responseGiven) {
+            response.setResponseCode(ResponseCode.SUCCESS_OK);
+            final String text = JSonStorage.toString(ret);
 
-        response.setResponseCode(ResponseCode.SUCCESS_OK);
-        final String text = JSonStorage.toString(ret);
-
-        final int length = text.getBytes().length;
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
-        response.getOutputStream().write(text.getBytes("UTF-8"));
+            final int length = text.getBytes().length;
+            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
+            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
+            response.getOutputStream().write(text.getBytes("UTF-8"));
+        }
     }
 
     /**

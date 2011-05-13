@@ -99,17 +99,29 @@ public class InterfaceHandler<T> {
      */
     private void validateMethod(final Method m) throws ParseException {
 
-        try {
-            JSonStorage.canStore(m.getGenericReturnType());
-        } catch (final InvalidTypeException e) {
-            throw new ParseException("return Type of " + m + " is invalid", e);
-        }
-
+        boolean responseIsParamater = false;
         for (final Type t : m.getGenericParameterTypes()) {
+            if (RemoteAPIRequest.class == t) {
+                continue;
+            } else if (RemoteAPIResponse.class == t) {
+                responseIsParamater = true;
+                continue;
+            } else {
+
+                try {
+                    JSonStorage.canStore(t);
+                } catch (final InvalidTypeException e) {
+                    throw new ParseException("Parameter " + t + " of " + m + " is invalid", e);
+                }
+            }
+        }
+        if (responseIsParamater) {
+            if (m.getGenericReturnType() != void.class && m.getGenericReturnType() != Void.class) { throw new ParseException("Response in Parameters. " + m + " must return void, and has to handle the response itself"); }
+        } else {
             try {
-                JSonStorage.canStore(t);
+                JSonStorage.canStore(m.getGenericReturnType());
             } catch (final InvalidTypeException e) {
-                throw new ParseException("Parameter " + t + " of " + m + " is invalid", e);
+                throw new ParseException("return Type of " + m + " is invalid", e);
             }
         }
 
