@@ -100,7 +100,6 @@ public class RemoteAPI implements HttpRequestHandler {
             response.setResponseCode(ResponseCode.SUCCESS_OK);
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
         } else {
-
             response.setResponseCode(ResponseCode.SUCCESS_OK);
             final String text = JSonStorage.toString(ret);
 

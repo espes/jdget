@@ -16,6 +16,7 @@ import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
+import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 
 /**
@@ -23,6 +24,27 @@ import org.appwork.utils.net.HTTPHeader;
  * 
  */
 public class TESTAPIImpl implements TESTAPI, TestApiInterface {
+
+    @Override
+    public void async(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
+        response.setResponseCode(ResponseCode.SUCCESS_OK);
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING, HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text/html"));
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONNECTION, "keep-alive"));
+        final ChunkedOutputStream cos = new ChunkedOutputStream(response.getOutputStream());
+        cos.write("<html><div id='news'>ddd</div></html>".getBytes());
+        cos.flush();
+        while (true) {
+            try {
+                Thread.sleep(5);
+            } catch (final InterruptedException e) {
+                return;
+            }
+            final String kk = "<script type=\"text/javascript\">document.getElementById('news').innerHTML = \"" + System.currentTimeMillis() + "\";</script>\r\n";
+            cos.write(kk.getBytes());
+            cos.flush();
+        }
+    }
 
     /*
      * (non-Javadoc)

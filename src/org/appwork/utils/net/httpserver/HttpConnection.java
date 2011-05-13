@@ -206,7 +206,6 @@ public class HttpConnection implements Runnable {
             }
             if (!handled) {
                 /* generate error handler */
-
                 if (request instanceof GetRequest) {
                     this.response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
                 } else if (request instanceof PostRequest) {
