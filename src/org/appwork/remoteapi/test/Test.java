@@ -13,6 +13,8 @@ import java.io.IOException;
 
 import org.appwork.remoteapi.ParseException;
 import org.appwork.remoteapi.RemoteAPI;
+import org.appwork.storage.JSonStorage;
+import org.appwork.storage.jackson.JacksonMapper;
 import org.appwork.utils.net.httpserver.HttpServer;
 
 /**
@@ -20,7 +22,11 @@ import org.appwork.utils.net.httpserver.HttpServer;
  * 
  */
 public class Test {
+    static {
+        // USe Jacksonmapper in this project
+        JSonStorage.setMapper(new JacksonMapper());
 
+    }
     public static RemoteAPI rapi = new RemoteAPI();
 
     public static void main(final String[] args) throws IOException {

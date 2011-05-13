@@ -11,11 +11,16 @@ package org.appwork.remoteapi;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
+import org.appwork.storage.JSonStorage;
+import org.appwork.storage.TypeRef;
 import org.appwork.utils.Regex;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.HttpRequestHandler;
@@ -23,6 +28,7 @@ import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
+import org.appwork.utils.reflection.Clazz;
 
 /**
  * @author daniel
@@ -30,26 +36,75 @@ import org.appwork.utils.net.httpserver.responses.HttpResponse;
  */
 public class RemoteAPI implements HttpRequestHandler {
 
+    public static <T> T cast(Object v, final Class<T> type) {
+        if (type.isPrimitive()) {
+            if (type == boolean.class) {
+                v = ((Boolean) v).booleanValue();
+            } else if (type == char.class) {
+
+                v = (char) ((Long) v).byteValue();
+            } else if (type == byte.class) {
+                v = ((Number) v).byteValue();
+            } else if (type == short.class) {
+                v = ((Number) v).shortValue();
+            } else if (type == int.class) {
+                v = ((Number) v).intValue();
+            } else if (type == long.class) {
+                v = ((Number) v).longValue();
+            } else if (type == float.class) {
+                v = ((Number) v).floatValue();
+            } else if (type == double.class) {
+                //
+                v = ((Number) v).doubleValue();
+
+            }
+        }
+
+        return (T) v;
+    }
+
     /* hashmap that holds all registered interfaces and their pathes */
     private final HashMap<String, InterfaceHandler<?>> interfaces = new HashMap<String, InterfaceHandler<?>>();
+
     private final Object                               LOCK       = new Object();
 
     public RemoteAPI() {
     }
 
-    private void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
+    private void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ApiCommandNotAvailable {
 
-        final InterfaceHandler<?> handler = request.getIface();
+        final Method method = request.getMethod();
+        if (method == null) { throw new ApiCommandNotAvailable(); }
+        final Object[] parameters = new Object[request.getParameters().length];
+
+        for (int i = 0; i < parameters.length; i++) {
+            parameters[i] = this.convert(request.getParameters()[i], method.getGenericParameterTypes()[i]);
+        }
+        final Object ret = request.getIface().invoke(method, parameters);
 
         response.setResponseCode(ResponseCode.SUCCESS_OK);
-        String text = "Yeah";
-        for (final String p : request.getParameters()) {
-            text = text + "\r\n" + p;
-        }
+        final String text = JSonStorage.toString(ret);
+
         final int length = text.getBytes().length;
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
         response.getOutputStream().write(text.getBytes("UTF-8"));
+    }
+
+    /**
+     * @param string
+     * @param type
+     * @return
+     */
+    private Object convert(final String string, final Type type) {
+        @SuppressWarnings("unchecked")
+        final Object v = JSonStorage.restoreFromString(string, new TypeRef(type) {
+        }, null);
+        if (type instanceof Class && Clazz.isPrimitive((Class<?>) type)) {
+            return RemoteAPI.cast(v, (Class<?>) type);
+        } else {
+            return v;
+        }
     }
 
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {

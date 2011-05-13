@@ -11,6 +11,7 @@ package org.appwork.remoteapi;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 
 import org.appwork.utils.net.HeaderCollection;
@@ -42,6 +43,13 @@ public class RemoteAPIRequest {
     public InputStream getInputStream() throws IOException {
         if (this.request instanceof PostRequest) { return ((PostRequest) this.request).getInputStream(); }
         return null;
+    }
+
+    /**
+     * @return
+     */
+    public Method getMethod() {
+        return this.iface.getMethod(this.methodName, this.parameters.length);
     }
 
     public String getMethodName() {

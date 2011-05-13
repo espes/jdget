@@ -9,6 +9,7 @@
  */
 package org.appwork.remoteapi;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -47,6 +48,30 @@ public class InterfaceHandler<T> {
         this.interfaceClass = c;
         this.impl = x;
         this.methods = new HashMap<String, HashMap<Integer, Method>>();
+    }
+
+    /**
+     * @param length
+     * @param methodName
+     * @return
+     */
+    public Method getMethod(final String methodName, final int length) {
+        final HashMap<Integer, Method> methodsByName = this.methods.get(methodName);
+        if (methodsByName == null) { return null; }
+        return methodsByName.get(length);
+    }
+
+    /**
+     * @param method
+     * @param parameters
+     * @return
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     * @throws IllegalArgumentException
+     */
+    public Object invoke(final Method method, final Object[] parameters) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+
+        return method.invoke(this.impl, parameters);
     }
 
     /**

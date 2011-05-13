@@ -9,12 +9,23 @@
  */
 package org.appwork.remoteapi.test;
 
-
 /**
  * @author daniel
  * 
  */
 public class TESTAPIImpl implements TESTAPI, TestApiInterface {
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.remoteapi.test.TestApiInterface#merge(java.lang.String,
+     * java.lang.String, int, boolean)
+     */
+    @Override
+    public String merge(final String a, final String b, final int a2, final boolean b2) {
+        // TODO Auto-generated method stub
+        return a + b + a2 + b2;
+    }
 
     /*
      * (non-Javadoc)
@@ -35,6 +46,17 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface {
     @Override
     public String test() {
         return "TestSucessfull";
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.remoteapi.test.TestApiInterface#toggle(boolean)
+     */
+    @Override
+    public boolean toggle(final boolean b) {
+        // TODO Auto-generated method stub
+        return false;
     }
 
 }

@@ -16,5 +16,9 @@ import org.appwork.remoteapi.RemoteAPIInterface;
  * 
  */
 public interface TestApiInterface extends RemoteAPIInterface {
+    public String merge(String s1, String s2, int i, boolean b);
+
     public int sum(int a, int b);
+
+    public boolean toggle(boolean b);
 }
