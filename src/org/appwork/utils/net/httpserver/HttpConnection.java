@@ -151,7 +151,6 @@ public class HttpConnection implements Runnable {
             this.clientSocket.close();
         } catch (final Throwable nothing) {
         }
-        this.server.removeConnection(this);
     }
 
     /**
@@ -195,7 +194,7 @@ public class HttpConnection implements Runnable {
                 this.response = new HttpResponse(this);
                 this.response.setResponseCode(ResponseCode.SERVERERROR_INTERNAL);
                 final byte[] bytes = Exceptions.getStackTrace(e).getBytes("UTF-8");
-                this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
+                this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text; charset=UTF-8"));
                 this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
                 this.response.getOutputStream().write(bytes);
                 this.response.getOutputStream().flush();

@@ -36,13 +36,11 @@ public class HttpServer implements Runnable {
     private ThreadGroup                    threadGroup   = null;
     private boolean                        localhostOnly = false;
     private boolean                        debug         = false;
-    private LinkedList<HttpConnection>     connections   = null;
     private LinkedList<HttpRequestHandler> handler       = null;
 
     public HttpServer(final int port) {
         this.port = port;
         this.threadGroup = new ThreadGroup("HttpServer");
-        this.connections = new LinkedList<HttpConnection>();
         this.handler = new LinkedList<HttpRequestHandler>();
     }
 
@@ -114,12 +112,6 @@ public class HttpServer implements Runnable {
         }
     }
 
-    protected void removeConnection(final HttpConnection connection) {
-        synchronized (this.connections) {
-            this.connections.remove(connection);
-        }
-    }
-
     public void run() {
         final Thread current = this.controlThread;
         final ServerSocket socket = this.controlSocket;
@@ -127,10 +119,7 @@ public class HttpServer implements Runnable {
             while (true) {
                 try {
                     final Socket clientSocket = socket.accept();
-                    final HttpConnection connection = new HttpConnection(this, clientSocket);
-                    synchronized (this.connections) {
-                        this.connections.add(connection);
-                    }
+                    new HttpConnection(this, clientSocket);
                 } catch (final IOException e) {
                     break;
                 }
