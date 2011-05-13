@@ -19,8 +19,6 @@ import org.appwork.utils.net.HeaderCollection;
  */
 public abstract class HttpRequest {
 
-    protected Object               handlerExtension       = null;
-
     protected String               requestedURL           = null;
 
     protected HeaderCollection     requestHeaders         = null;
@@ -28,13 +26,6 @@ public abstract class HttpRequest {
     protected String               requestedPath          = null;
 
     protected LinkedList<String[]> requestedURLParameters = null;
-
-    /**
-     * @return the handlerExtension
-     */
-    public Object getHandlerExtension() {
-        return this.handlerExtension;
-    }
 
     public String getRequestedPath() {
         return this.requestedPath;
@@ -53,14 +44,6 @@ public abstract class HttpRequest {
 
     public HeaderCollection getRequestHeaders() {
         return this.requestHeaders;
-    }
-
-    /**
-     * @param handlerExtension
-     *            the handlerExtension to set
-     */
-    public void setHandlerExtension(final Object handlerExtension) {
-        this.handlerExtension = handlerExtension;
     }
 
     /**

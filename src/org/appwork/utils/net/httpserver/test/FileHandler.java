@@ -39,7 +39,7 @@ public class FileHandler implements HttpRequestHandler {
      * org.appwork.utils.net.httpserver.HttpRequestHandler#canHandle(org.appwork
      * .utils.net.httpserver.requests.HttpRequest)
      */
-    @Override
+
     public boolean canHandle(final HttpRequest request) {
         final String path = request.getRequestedPath();
         final File f = new File("/home/daniel", path);
@@ -56,7 +56,8 @@ public class FileHandler implements HttpRequestHandler {
      * org.appwork.utils.net.httpserver.responses.HttpResponse)
      */
     @Override
-    public void onGetRequest(final GetRequest request, final HttpResponse response) {
+    public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
+        if (!this.canHandle(request)) { return false; }
         final String path = request.getRequestedPath();
         final File f = new File("/home/daniel", path);
         response.setResponseCode(ResponseCode.SUCCESS_OK);
@@ -82,6 +83,7 @@ public class FileHandler implements HttpRequestHandler {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        return true;
 
     }
 
@@ -94,9 +96,8 @@ public class FileHandler implements HttpRequestHandler {
      * org.appwork.utils.net.httpserver.responses.HttpResponse)
      */
     @Override
-    public void onPostRequest(final PostRequest request, final HttpResponse response) {
-        // TODO Auto-generated method stub
-
+    public boolean onPostRequest(final PostRequest request, final HttpResponse response) {
+        return false;
     }
 
 }

@@ -18,12 +18,6 @@ import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 
-import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
-import org.appwork.utils.net.httpserver.requests.GetRequest;
-import org.appwork.utils.net.httpserver.requests.HttpRequest;
-import org.appwork.utils.net.httpserver.requests.PostRequest;
-import org.appwork.utils.net.httpserver.responses.HttpResponse;
-
 /**
  * @author daniel
  * 
@@ -44,6 +38,10 @@ public class HttpServer implements Runnable {
         this.handler = new LinkedList<HttpRequestHandler>();
     }
 
+    public LinkedList<HttpRequestHandler> getHandler() {
+        return this.handler;
+    }
+
     protected InetAddress getLocalHost() {
         InetAddress localhost = null;
         try {
@@ -56,33 +54,6 @@ public class HttpServer implements Runnable {
         } catch (final UnknownHostException e1) {
         }
         return localhost;
-    }
-
-    protected HttpRequestHandler getRequestHandler(final HttpRequest request) {
-        synchronized (this.handler) {
-            for (final HttpRequestHandler h : this.handler) {
-                if (h.canHandle(request)) { return h; }
-            }
-        }
-        /* generate error handler */
-        return new HttpRequestHandler() {
-
-            @Override
-            public boolean canHandle(final HttpRequest request) {
-                return true;
-            }
-
-            @Override
-            public void onGetRequest(final GetRequest request, final HttpResponse response) {
-                response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
-            }
-
-            @Override
-            public void onPostRequest(final PostRequest request, final HttpResponse response) {
-                response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
-            }
-
-        };
     }
 
     /**

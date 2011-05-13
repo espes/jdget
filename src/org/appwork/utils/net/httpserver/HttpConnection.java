@@ -177,17 +177,38 @@ public class HttpConnection implements Runnable {
     public void run() {
         try {
             final HttpRequest request = this.buildRequest();
-            final HttpRequestHandler handler = this.server.getRequestHandler(request);
             this.response = new HttpResponse(this);
-            if (request instanceof GetRequest) {
-                handler.onGetRequest((GetRequest) request, this.response);
-            } else if (request instanceof PostRequest) {
-                handler.onPostRequest((PostRequest) request, this.response);
-            } else {
-                throw new IOException("Unsupported " + request);
+            boolean handled = false;
+            synchronized (this.server.getHandler()) {
+                for (final HttpRequestHandler handler : this.server.getHandler()) {
+
+                    if (request instanceof GetRequest) {
+                        if (handler.onGetRequest((GetRequest) request, this.response)) {
+                            handled = true;
+                            break;
+                        }
+                    } else if (request instanceof PostRequest) {
+                        if (handler.onPostRequest((PostRequest) request, this.response)) {
+                            handled = true;
+                            break;
+                        }
+                    }
+
+                }
+
+            }
+            if (!handled) {
+                /* generate error handler */
+
+                if (request instanceof GetRequest) {
+                    this.response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
+                } else if (request instanceof PostRequest) {
+                    this.response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
+                }
             }
             /* send response headers if they have not been sent yet send yet */
             this.response.getOutputStream();
+
         } catch (final Throwable e) {
             Log.exception(e);
             try {

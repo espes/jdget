@@ -23,4 +23,12 @@ public class RemoteAPIRequest {
         this.methodName = methodName;
     }
 
+    public InterfaceHandler<?> getIface() {
+        return this.iface;
+    }
+
+    public String getMethodName() {
+        return this.methodName;
+    }
+
 }

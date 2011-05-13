@@ -10,7 +10,6 @@
 package org.appwork.utils.net.httpserver;
 
 import org.appwork.utils.net.httpserver.requests.GetRequest;
-import org.appwork.utils.net.httpserver.requests.HttpRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
 
@@ -20,10 +19,8 @@ import org.appwork.utils.net.httpserver.responses.HttpResponse;
  */
 public interface HttpRequestHandler {
 
-    public abstract boolean canHandle(final HttpRequest request);
+    public abstract boolean onGetRequest(final GetRequest request, final HttpResponse response);
 
-    public abstract void onGetRequest(final GetRequest request, final HttpResponse response);
-
-    public abstract void onPostRequest(final PostRequest request, final HttpResponse response);
+    public abstract boolean onPostRequest(final PostRequest request, final HttpResponse response);
 
 }

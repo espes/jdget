@@ -37,6 +37,7 @@ public class RemoteAPI implements HttpRequestHandler {
     }
 
     private void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
+
         /*
          * hier die antwort als string setzen, können wahlweise auch bytearray
          * nehmen
