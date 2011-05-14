@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 public class Regex {
 
     private Matcher matcher;
+    private boolean memOpt = true;
 
     public Regex(final Matcher matcher) {
         if (matcher != null) {
@@ -83,7 +84,7 @@ public class Regex {
             matcher.reset();
             if (matcher.find()) {
                 String ret = matcher.group(group + 1);
-                if (ret != null) return new String(ret);
+                if (ret != null && memOpt) return new String(ret);
                 return ret;
             }
         }
@@ -122,8 +123,8 @@ public class Regex {
 
                 for (int i = d; i <= c; i++) {
                     String tmp = matcher.group(i);
-                    if (tmp != null) tmp = new String(tmp);
-                    group[i - d] = matcher.group(i);
+                    if (tmp != null && memOpt) tmp = new String(tmp);
+                    group[i - d] = tmp;
                 }
                 ar.add(group);
             }
@@ -142,7 +143,7 @@ public class Regex {
             final ArrayList<String> ar = new ArrayList<String>();
             while (matcher.find()) {
                 String tmp = matcher.group(x);
-                if (tmp != null) tmp = new String(tmp);
+                if (tmp != null && memOpt) tmp = new String(tmp);
                 ar.add(tmp);
             }
             return ar.toArray(new String[ar.size()]);
@@ -202,7 +203,7 @@ public class Regex {
             while (matcher.find()) {
                 if (groupCount == group) {
                     String ret = matcher.group(entry);
-                    if (ret != null) return new String(ret);
+                    if (ret != null && memOpt) return new String(ret);
                     return ret;
                 }
                 groupCount++;
@@ -224,11 +225,8 @@ public class Regex {
 
                     for (int i = 1; i <= c; i++) {
                         String tmp = matcher.group(i);
-                        if (tmp == null) {
-                            group[i - 1] = tmp;
-                        } else {
-                            group[i - 1] = new String(matcher.group(i));
-                        }
+                        if (tmp != null && memOpt) tmp = new String(tmp);
+                        group[i - 1] = tmp;
                     }
                     return group;
                 }
@@ -277,6 +275,11 @@ public class Regex {
 
     public static boolean matches(final Object page, final String string) {
         return new Regex(page, string).matches();
+    }
+
+    public Regex setMemoryOptimized(boolean t) {
+        this.memOpt = t;
+        return this;
     }
 
 }
