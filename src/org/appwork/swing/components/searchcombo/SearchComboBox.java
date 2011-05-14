@@ -2,19 +2,23 @@ package org.appwork.swing.components.searchcombo;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.ArrayList;
 
 import javax.swing.ComboBoxEditor;
 import javax.swing.Icon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.plaf.basic.ComboPopup;
 
 import org.appwork.app.gui.MigPanel;
 import org.appwork.scheduler.SingleSchedule;
@@ -95,7 +99,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
         private void auto() {
             if (this.setting) { return; }
-
+            System.out.println("AC");
             this.sheduler.submit(new Runnable() {
 
                 @Override
@@ -110,37 +114,59 @@ public abstract class SearchComboBox<T> extends JComboBox {
          * 
          */
         protected boolean autoComplete() {
+
             final String txt = Editor.this.tf.getText();
-            T found = null;
+
             String text = null;
+            final ArrayList<T> found = new ArrayList<T>();
+
             for (int i = 0; i < SearchComboBox.this.getModel().getSize(); i++) {
                 text = SearchComboBox.this.getText((T) SearchComboBox.this.getModel().getElementAt(i));
                 if (text != null && text.startsWith(txt)) {
-                    found = (T) SearchComboBox.this.getModel().getElementAt(i);
-                    break;
+                    found.add((T) SearchComboBox.this.getModel().getElementAt(i));
+
                 }
             }
-            final T fFound = found;
 
             new EDTRunner() {
 
                 @Override
                 protected void runInEDT() {
                     final int pos = Editor.this.tf.getCaretPosition();
-                    if (fFound == null) {
-                        Editor.this.tf.setForeground(SearchComboBox.this.getForegroundBad());
 
+                    if (found.size() == 0) {
+                        Editor.this.tf.setForeground(SearchComboBox.this.getForegroundBad());
+                        SearchComboBox.this.hidePopup();
                     } else {
                         Editor.this.tf.setForeground(Editor.this.defaultForeground);
-
-                        Editor.this.setItem(fFound);
+                        // Editor.this.setItem(found.get(0));
+                        SearchComboBox.this.setSelectedItem(found.get(0));
                         Editor.this.tf.setCaretPosition(pos);
                         Editor.this.tf.select(txt.length(), Editor.this.tf.getText().length());
+                        if (found.size() > 1) {
+                            SearchComboBox.this.setMaximumRowCount(found.size());
+                            SearchComboBox.this.showPopup();
+
+                            final Object popup = SearchComboBox.this.getUI().getAccessibleChild(SearchComboBox.this, 0);
+                            if (popup instanceof Container) {
+                                final Component scrollPane = ((Container) popup).getComponent(0);
+                                if (popup instanceof ComboPopup) {
+                                    final JList jlist = ((ComboPopup) popup).getList();
+                                    if (scrollPane instanceof JScrollPane) {
+                                        jlist.ensureIndexIsVisible(SearchComboBox.this.getSelectedIndex());
+
+                                    }
+                                }
+                            }
+                        } else {
+                            SearchComboBox.this.hidePopup();
+                        }
 
                     }
+
                 }
             };
-            return fFound != null;
+            return found.size() > 0;
         }
 
         /*
@@ -245,5 +271,6 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     public void setForegroundBad(final Color forgroundGood) {
         this.foregroundBad = forgroundGood;
+
     }
 }
