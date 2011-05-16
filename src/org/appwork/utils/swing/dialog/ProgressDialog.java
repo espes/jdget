@@ -54,6 +54,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     private JTextPane            textField;
     private Timer                updater;
     private long                 waitForTermination = 20000;
+    protected Throwable          throwable          = null;
 
     /**
      * @param progressGetter
@@ -72,9 +73,9 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         super(flags | Dialog.BUTTONS_HIDE_OK, title, icon, ok, cancel);
         this.message = message;
 
-        getter = progressGetter;
+        this.getter = progressGetter;
 
-        setReturnmask(true);
+        this.setReturnmask(true);
 
     }
 
@@ -86,18 +87,18 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     @Override
     protected Integer createReturnValue() {
         // TODO Auto-generated method stub
-        return getReturnmask();
+        return this.getReturnmask();
     }
 
     @Override
     public void dispose() {
-        if (disposed) { return; }
+        if (this.disposed) { return; }
         System.out.println("Dispose Progressdialog");
-        disposed = true;
-        executer.interrupt();
+        this.disposed = true;
+        this.executer.interrupt();
 
         try {
-            executer.join(waitForTermination);
+            this.executer.join(this.waitForTermination);
 
         } catch (final InterruptedException e) {
 
@@ -107,10 +108,10 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     }
 
     private JComponent getTextfield() {
-        textField = new JTextPane();
-        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_HTML)) {
-            textField.setContentType("text/html");
-            textField.addHyperlinkListener(new HyperlinkListener() {
+        this.textField = new JTextPane();
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
+            this.textField.setContentType("text/html");
+            this.textField.addHyperlinkListener(new HyperlinkListener() {
 
                 public void hyperlinkUpdate(final HyperlinkEvent e) {
                     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -120,45 +121,52 @@ public class ProgressDialog extends AbstractDialog<Integer> {
 
             });
         } else {
-            textField.setContentType("text");
-            textField.setMaximumSize(new Dimension(450, 600));
+            this.textField.setContentType("text");
+            this.textField.setMaximumSize(new Dimension(450, 600));
         }
 
-        textField.setText(message);
-        textField.setEditable(false);
-        textField.setBackground(null);
-        textField.setOpaque(false);
-        textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        this.textField.setText(this.message);
+        this.textField.setEditable(false);
+        this.textField.setBackground(null);
+        this.textField.setOpaque(false);
+        this.textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
-        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
-            final JScrollPane sp = new JScrollPane(textField);
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
+            final JScrollPane sp = new JScrollPane(this.textField);
             sp.setMaximumSize(new Dimension(450, 600));
             return sp;
         } else {
-            return textField;
+            return this.textField;
         }
     }
 
+    /**
+     * @return the throwable
+     */
+    public Throwable getThrowable() {
+        return this.throwable;
+    }
+
     public long getWaitForTermination() {
-        return waitForTermination;
+        return this.waitForTermination;
     }
 
     @Override
     public JComponent layoutDialogContent() {
-        getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        this.getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         final JPanel p = new JPanel(new MigLayout("ins 0"));
 
-        p.add(getTextfield(), "growx,pushx");
+        p.add(this.getTextfield(), "growx,pushx");
         final JProgressBar bar;
         p.add(bar = new JProgressBar(0, 100), "growx,pushx,newline");
         bar.setStringPainted(true);
 
-        updater = new Timer(50, new ActionListener() {
+        this.updater = new Timer(50, new ActionListener() {
 
             public void actionPerformed(final ActionEvent e) {
-                if (getter != null) {
-                    final int prg = getter.getProgress();
-                    final String text = getter.getString();
+                if (ProgressDialog.this.getter != null) {
+                    final int prg = ProgressDialog.this.getter.getProgress();
+                    final String text = ProgressDialog.this.getter.getString();
 
                     if (prg < 0) {
                         bar.setIndeterminate(true);
@@ -176,23 +184,24 @@ public class ProgressDialog extends AbstractDialog<Integer> {
                     }
 
                     if (prg >= 100) {
-                        updater.stop();
+                        ProgressDialog.this.updater.stop();
                         ProgressDialog.this.dispose();
                         return;
                     }
                 }
             }
         });
-        updater.setRepeats(true);
-        updater.setInitialDelay(50);
-        updater.start();
-        executer = new Thread("ProgressDialogExecuter") {
+        this.updater.setRepeats(true);
+        this.updater.setInitialDelay(50);
+        this.updater.start();
+        this.executer = new Thread("ProgressDialogExecuter") {
+
             @Override
             public void run() {
                 try {
-                    getter.run();
-                } catch (final Exception e) {
-
+                    ProgressDialog.this.getter.run();
+                } catch (final Throwable e) {
+                    ProgressDialog.this.throwable = e;
                     ProgressDialog.this.setReturnmask(false);
                 } finally {
                     new EDTHelper<Object>() {
@@ -205,12 +214,12 @@ public class ProgressDialog extends AbstractDialog<Integer> {
 
                     }.start();
 
-                    updater.stop();
+                    ProgressDialog.this.updater.stop();
                 }
 
             }
         };
-        executer.start();
+        this.executer.start();
 
         return p;
     }
