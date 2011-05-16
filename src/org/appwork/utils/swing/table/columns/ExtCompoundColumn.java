@@ -18,6 +18,10 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
     private ExtColumn<T>      editor;
     private T                 editing;
 
+    public ExtCompoundColumn(final String name) {
+        this(name, null);
+    }
+
     /**
      * @param name
      * @param table

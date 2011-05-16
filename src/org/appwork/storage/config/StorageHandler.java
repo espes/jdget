@@ -32,6 +32,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     private final Class<T>                 configInterface;
     private HashMap<Method, MethodHandler> getterMap;
+
     private final JsonKeyValueStorage      primitiveStorage;
     private boolean                        crypted;
     private byte[]                         key = JSonStorage.KEY;
@@ -83,8 +84,20 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         });
     }
 
+    public Class<T> getConfigInterface() {
+        return this.configInterface;
+    }
+
     public byte[] getKey() {
         return this.key;
+    }
+
+    /**
+     * @return
+     */
+    public HashMap<Method, MethodHandler> getMap() {
+        // TODO Auto-generated method stub
+        return this.getterMap;
     }
 
     /**
@@ -104,6 +117,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         } else if (m.getName().equals("removeListener")) {
             this.eventSender.removeListener((ConfigEventListener) parameter[0]);
             return null;
+        } else if (m.getName().equals("getStorageHandler")) {
+            return this;
+
         } else {
             final MethodHandler handler = this.getterMap.get(m);
             if (handler.isGetter()) {

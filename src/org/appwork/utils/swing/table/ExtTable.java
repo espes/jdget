@@ -634,7 +634,7 @@ public class ExtTable<E> extends JTable {
      */
     protected boolean onShortcutSearch(final ArrayList<E> selectedObjects, final KeyEvent evt) {
 
-        if (this.searchEnabled && this.hasFocus()) {
+        if (this.isSearchEnabled() && this.hasFocus()) {
             this.startSearch();
             return true;
         }

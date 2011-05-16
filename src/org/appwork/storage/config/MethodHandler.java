@@ -281,7 +281,13 @@ public class MethodHandler {
         /**
          * This main mark is important!!
          */
+        final String packag = PlainStorage.class.getPackage().getName();
         main: for (final Annotation a : m.getAnnotations()) {
+            // all other Annotations are ok anyway
+            if (!a.getClass().getName().startsWith(packag)) {
+                continue;
+            }
+
             for (final Class<? extends Annotation> ok : classes) {
                 if (ok.isAssignableFrom(a.getClass())) {
                     continue main;

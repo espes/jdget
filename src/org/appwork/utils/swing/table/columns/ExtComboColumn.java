@@ -161,7 +161,7 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
      * 
      * @param dataModel
      */
-    public ComboBoxModel updateModel(final ComboBoxModel dataModel, final Object value) {
+    public ComboBoxModel updateModel(final ComboBoxModel dataModel, final E value) {
         return dataModel;
 
     }

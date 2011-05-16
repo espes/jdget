@@ -27,10 +27,10 @@ import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionListener {
 
-    private static final long      serialVersionUID = -5391898292508477789L;
+    private static final long        serialVersionUID = -5391898292508477789L;
 
-    private final RendererCheckBox checkBoxRend;
-    private final JCheckBox        checkBoxEdit;
+    protected final RendererCheckBox checkBoxRend;
+    protected final JCheckBox        checkBoxEdit;
 
     /**
      * @param string
@@ -68,6 +68,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
             }
 
         });
+        this.init();
     }
 
     public void actionPerformed(final ActionEvent e) {
@@ -170,6 +171,14 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         this.checkBoxRend.setSelected(this.getBooleanValue(value));
 
         return this.checkBoxRend;
+    }
+
+    /**
+     * 
+     */
+    protected void init() {
+        // TODO Auto-generated method stub
+
     }
 
     @Override
