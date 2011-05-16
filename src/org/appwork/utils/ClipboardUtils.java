@@ -10,6 +10,7 @@
 package org.appwork.utils;
 
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public class ClipboardUtils {
         return ClipboardUtils.INSTANCE;
     }
 
-    public static ArrayList<String> getLinks(final TransferSupport trans) {
+    public static ArrayList<String> getLinks(final Transferable trans) {
         final ArrayList<String> links = new ArrayList<String>();
         String content = null;
         DataFlavor htmlFlavor = null;
@@ -97,7 +98,7 @@ public class ClipboardUtils {
          * workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=385421
          */
         try {
-            for (final DataFlavor flav : trans.getTransferable().getTransferDataFlavors()) {
+            for (final DataFlavor flav : trans.getTransferDataFlavors()) {
                 if (flav.getMimeType().contains("html") && flav.getRepresentationClass().isInstance(ClipboardUtils.tmpByteArray)) {
                     if (htmlFlavor != null) {
                         htmlFlavor = flav;
@@ -113,7 +114,7 @@ public class ClipboardUtils {
 
             if (htmlFlavor != null) {
                 final String charSet = new Regex(htmlFlavor.toString(), "charset=(.*?)]").getMatch(0);
-                byte[] html = (byte[]) trans.getTransferable().getTransferData(htmlFlavor);
+                byte[] html = (byte[]) trans.getTransferData(htmlFlavor);
                 if (CrossSystem.isLinux()) {
                     /*
                      * workaround for
@@ -140,7 +141,7 @@ public class ClipboardUtils {
             } else {
                 /* try stringFlavor */
                 if (trans.isDataFlavorSupported(ClipboardUtils.stringFlavor)) {
-                    content = (String) trans.getTransferable().getTransferData(ClipboardUtils.stringFlavor);
+                    content = (String) trans.getTransferData(ClipboardUtils.stringFlavor);
                 }
             }
             if (content != null) {
@@ -150,6 +151,10 @@ public class ClipboardUtils {
             Log.L.info(e.getMessage());
         }
         return links;
+    }
+
+    public static ArrayList<String> getLinks(final TransferSupport trans) {
+        return ClipboardUtils.getLinks(trans.getTransferable());
     }
 
     public static boolean hasSupport(final DataFlavor flavor) {
