@@ -2,9 +2,12 @@ package org.appwork.utils.swing.table.columns;
 
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
-import javax.swing.SpinnerModel;
+import javax.swing.JSpinner.DefaultEditor;
+import javax.swing.JSpinner.NumberEditor;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 
+import org.appwork.utils.reflection.Clazz;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
@@ -13,10 +16,33 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
     /**
      * 
      */
-    private static final long serialVersionUID = 1L;
+    private static final long  serialVersionUID = 1L;
 
-    private JSpinner          editor;
-    private String            editorFormat;
+    private JSpinner           editor;
+
+    private NumberEditor       intEditor;
+
+    private NumberEditor       longEditor;
+
+    private NumberEditor       byteEditor;
+
+    private NumberEditor       shortEditor;
+
+    private NumberEditor       doubleEditor;
+
+    private NumberEditor       floatEditor;
+
+    private SpinnerNumberModel intModel;
+
+    private SpinnerNumberModel longModel;
+
+    private SpinnerNumberModel byteModel;
+
+    private SpinnerNumberModel shortModel;
+
+    private SpinnerNumberModel doubleModel;
+
+    private SpinnerNumberModel floatModel;
 
     public ExtSpinnerColumn(final String name) {
         this(name, null);
@@ -28,7 +54,19 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
 
         this.editor = new JSpinner();
         this.editor.setBorder(null);
+        this.intEditor = new JSpinner.NumberEditor(this.editor, "#");
+        this.longEditor = this.intEditor;
+        this.byteEditor = this.intEditor;
+        this.shortEditor = this.intEditor;
+        this.doubleEditor = new JSpinner.NumberEditor(this.editor, "###.##");
+        this.floatEditor = this.doubleEditor;
 
+        this.intModel = new SpinnerNumberModel(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 1);
+        this.longModel = new SpinnerNumberModel(0l, Long.MIN_VALUE, Long.MAX_VALUE, 1l);
+        this.byteModel = new SpinnerNumberModel((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 1);
+        this.shortModel = new SpinnerNumberModel((short) 0, Short.MIN_VALUE, Short.MAX_VALUE, (short) 1);
+        this.doubleModel = new SpinnerNumberModel(0.0d, Long.MIN_VALUE, Long.MAX_VALUE, 1.0d);
+        this.floatModel = new SpinnerNumberModel(0.0f, Long.MIN_VALUE, Long.MAX_VALUE, 1.0f);
         this.init();
         this.label.setHorizontalAlignment(SwingConstants.RIGHT);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
@@ -50,6 +88,14 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
         });
     }
 
+    public NumberEditor getByteEditor() {
+        return this.byteEditor;
+    }
+
+    public SpinnerNumberModel getByteModel() {
+        return this.byteModel;
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -61,35 +107,111 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
         return this.editor.getValue();
     }
 
-    @Override
-    public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
-        final SpinnerModel m = this.getModel(value);
-        if (m != this.editor.getModel()) {
-            this.editor.setModel(m);
-        }
-
-        final String f = this.getFormat(value);
-        if (!f.equals(this.editorFormat)) {
-            this.editor.setEditor(new JSpinner.NumberEditor(this.editor, f));
-            this.editorFormat = f;
-        }
-        this.editor.setValue(this.getNumber(value));
-        return this.editor;
+    public NumberEditor getDoubleEditor() {
+        return this.doubleEditor;
     }
 
-    protected abstract String getFormat(E value);
+    public SpinnerNumberModel getDoubleModel() {
+        return this.doubleModel;
+    }
 
     /**
      * @param value
+     * @param n
+     * @param editor2
      * @return
      */
-    protected abstract SpinnerModel getModel(E value);
+    protected DefaultEditor getEditor(final E value, final Number n, final JSpinner editor2) {
+        if (Clazz.isDouble(n.getClass())) {
+            return this.getDoubleEditor();
+        } else if (Clazz.isFloat(n.getClass())) {
+            return this.getFloatEditor();
+        } else if (Clazz.isLong(n.getClass())) {
+            return this.getLongEditor();
+        } else if (Clazz.isInteger(n.getClass())) {
+            return this.getIntEditor();
+        } else if (Clazz.isShort(n.getClass())) {
+            return this.getShortEditor();
+        } else if (Clazz.isByte(n.getClass())) {
+            return this.getByteEditor();
+        } else {
+            return this.getLongEditor();
+        }
+
+    }
+
+    @Override
+    public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
+
+        final Number n = this.getNumber(value);
+        this.editor.setModel(this.getModel(value, n));
+        this.editor.setEditor(this.getEditor(value, n, this.editor));
+
+        this.editor.setValue(n);
+        return this.editor;
+    }
+
+    public NumberEditor getFloatEditor() {
+        return this.floatEditor;
+    }
+
+    public SpinnerNumberModel getFloatModel() {
+        return this.floatModel;
+    }
+
+    public NumberEditor getIntEditor() {
+        return this.intEditor;
+    }
+
+    public SpinnerNumberModel getIntModel() {
+        return this.intModel;
+    }
+
+    public NumberEditor getLongEditor() {
+        return this.longEditor;
+    }
+
+    public SpinnerNumberModel getLongModel() {
+        return this.longModel;
+    }
+
+    /**
+     * @param value
+     * @param b
+     *            TODO
+     * @return
+     */
+    protected SpinnerNumberModel getModel(final E value, final Number n) {
+        if (Clazz.isDouble(n.getClass())) {
+            return this.getDoubleModel();
+        } else if (Clazz.isFloat(n.getClass())) {
+            return this.getFloatModel();
+        } else if (Clazz.isLong(n.getClass())) {
+            return this.getLongModel();
+        } else if (Clazz.isInteger(n.getClass())) {
+            return this.getIntModel();
+        } else if (Clazz.isShort(n.getClass())) {
+            return this.getShortModel();
+        } else if (Clazz.isByte(n.getClass())) {
+            return this.getByteModel();
+        } else {
+            return this.getLongModel();
+        }
+    }
 
     /**
      * @param value
      * @return
      */
     abstract protected Number getNumber(final E value);
+
+    public NumberEditor getShortEditor() {
+        return this.shortEditor;
+    }
+
+    public SpinnerNumberModel getShortModel() {
+        return this.shortModel;
+    }
 
     /**
      * 
@@ -132,11 +254,59 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
         return true;
     }
 
+    public void setByteEditor(final NumberEditor byteEditor) {
+        this.byteEditor = byteEditor;
+    }
+
+    public void setByteModel(final SpinnerNumberModel byteModel) {
+        this.byteModel = byteModel;
+    }
+
+    public void setDoubleEditor(final NumberEditor doubleEditor) {
+        this.doubleEditor = doubleEditor;
+    }
+
+    public void setDoubleModel(final SpinnerNumberModel doubleModel) {
+        this.doubleModel = doubleModel;
+    }
+
+    public void setFloatEditor(final NumberEditor floatEditor) {
+        this.floatEditor = floatEditor;
+    }
+
+    public void setFloatModel(final SpinnerNumberModel floatModel) {
+        this.floatModel = floatModel;
+    }
+
+    public void setIntEditor(final NumberEditor intEditor) {
+        this.intEditor = intEditor;
+    }
+
+    public void setIntModel(final SpinnerNumberModel intModel) {
+        this.intModel = intModel;
+    }
+
+    public void setLongEditor(final NumberEditor longEditor) {
+        this.longEditor = longEditor;
+    }
+
+    public void setLongModel(final SpinnerNumberModel longModel) {
+        this.longModel = longModel;
+    }
+
     /**
      * @param value
      * @param object
      */
     abstract protected void setNumberValue(Number value, E object);
+
+    public void setShortEditor(final NumberEditor shortEditor) {
+        this.shortEditor = shortEditor;
+    }
+
+    public void setShortModel(final SpinnerNumberModel shortModel) {
+        this.shortModel = shortModel;
+    }
 
     @Override
     final public void setValue(final Object value, final E object) {

@@ -13,7 +13,6 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
@@ -66,8 +65,7 @@ public class MethodHandler {
     private byte          defaultByte    = 0;
     private Object        defaultObject  = null;
     private float         defaultFloat   = 0.0f;
-    private MethodHandler getterHandler;
-    private MethodHandler setterHandler;
+
     private boolean       crypted;
     private byte[]        cryptKey;
     private final File    path;
@@ -87,7 +85,6 @@ public class MethodHandler {
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public MethodHandler(final StorageHandler<?> storageHandler, final Type getter, final String key, final Method m, final boolean primitive) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
-        this.getterHandler = this;
 
         this.type = getter;
         this.key = key;
@@ -95,10 +92,10 @@ public class MethodHandler {
 
         this.primitive = primitive;
         if (this.isGetter()) {
-            this.getterHandler = this;
+
             this.rawClass = m.getReturnType();
         } else {
-            this.setterHandler = this;
+
             this.rawClass = m.getParameterTypes()[0];
         }
 
@@ -298,6 +295,10 @@ public class MethodHandler {
 
     }
 
+    public byte[] getCryptKey() {
+        return this.cryptKey;
+    }
+
     public boolean getDefaultBoolean() {
         return this.defaultBoolean;
     }
@@ -353,7 +354,7 @@ public class MethodHandler {
     /**
      * @return
      */
-    private boolean isCrypted() {
+    public boolean isCrypted() {
         return this.crypted;
     }
 
@@ -422,42 +423,14 @@ public class MethodHandler {
         this.defaultString = defaultString;
     }
 
-    /**
-     * @param h
-     */
-    public void setGetter(final MethodHandler h) {
-        this.getterHandler = h;
-        this.validDateCrypt();
-    }
-
     public void setRawClass(final Class<?> rawClass) {
         this.rawClass = rawClass;
 
     }
 
-    /**
-     * @param setterhandler
-     */
-    public void setSetter(final MethodHandler setterhandler) {
-        this.setterHandler = setterhandler;
-        this.validDateCrypt();
-    }
-
     @Override
     public String toString() {
         return this.method + "";
-    }
-
-    /**
-     * checks wether crypt Annotations in getter equal cryptsettings in setter
-     */
-    private void validDateCrypt() {
-        if (this.getterHandler.isCrypted() != this.setterHandler.isCrypted()) { throw new InterfaceParseException(this.getterHandler + " cryptsettings != " + this.setterHandler); }// check
-        // keys
-        if (this.getterHandler.isCrypted()) {
-            if (!Arrays.equals(this.getterHandler.cryptKey, this.setterHandler.cryptKey)) { throw new InterfaceParseException(this.getterHandler + " cryptkey mismatch" + this.setterHandler); }
-
-        }
     }
 
     /**
@@ -468,4 +441,5 @@ public class MethodHandler {
         JSonStorage.saveTo(this.path, !this.crypted, this.cryptKey, JSonStorage.serializeToJson(object));
 
     }
+
 }

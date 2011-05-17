@@ -20,7 +20,6 @@ import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
-import org.appwork.storage.StorageException;
 import org.appwork.storage.config.annotations.CryptedStorage;
 
 /**
@@ -30,14 +29,14 @@ import org.appwork.storage.config.annotations.CryptedStorage;
  */
 public class StorageHandler<T extends ConfigInterface> implements InvocationHandler {
 
-    private final Class<T>                 configInterface;
-    private HashMap<Method, MethodHandler> getterMap;
+    private final Class<T>                configInterface;
+    private HashMap<Method, KeyHandler>   methodMap;
 
-    private final JsonKeyValueStorage      primitiveStorage;
-    private boolean                        crypted;
-    private byte[]                         key = JSonStorage.KEY;
-    private File                           path;
-    private ConfigInterfaceEventSender<T>  eventSender;
+    private final JsonKeyValueStorage     primitiveStorage;
+    private boolean                       crypted;
+    private byte[]                        key = JSonStorage.KEY;
+    private File                          path;
+    private ConfigInterfaceEventSender<T> eventSender;
 
     /**
      * @param name
@@ -95,9 +94,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     /**
      * @return
      */
-    public HashMap<Method, MethodHandler> getMap() {
+    public HashMap<Method, KeyHandler> getMap() {
         // TODO Auto-generated method stub
-        return this.getterMap;
+        return this.methodMap;
     }
 
     /**
@@ -107,8 +106,19 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.path;
     }
 
+    /**
+     * @param <E>
+     * @param key2
+     * @param defaultBoolean
+     * @return
+     */
+    public <E> E getPrimitive(final String key, final E def) {
+
+        return this.primitiveStorage.get(key, def);
+    }
+
     @SuppressWarnings("unchecked")
-    public Object invoke(final Object arg0, final Method m, final Object[] parameter) throws Throwable {
+    public Object invoke(final Object instance, final Method m, final Object[] parameter) throws Throwable {
         if (m.getName().equals("toString")) {
             return this.toString();
         } else if (m.getName().equals("addListener")) {
@@ -121,77 +131,14 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             return this;
 
         } else {
-            final MethodHandler handler = this.getterMap.get(m);
-            if (handler.isGetter()) {
-                if (handler.isPrimitive()) {
-                    if (handler.getRawClass() == Boolean.class || handler.getRawClass() == boolean.class) {
-                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultBoolean());
-                    } else if (handler.getRawClass() == Long.class || handler.getRawClass() == long.class) {
-                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultLong());
-                    } else if (handler.getRawClass() == Integer.class || handler.getRawClass() == int.class) {
-                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultInteger());
-                    } else if (handler.getRawClass() == Float.class || handler.getRawClass() == float.class) {
-                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultFloat());
-                    } else if (handler.getRawClass() == Byte.class || handler.getRawClass() == byte.class) {
-                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultByte());
-                    } else if (handler.getRawClass() == String.class) {
-                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultString());
-                        // } else if (handler.getRawClass() == String[].class) {
-                        // return this.primitiveStorage.get(handler.getKey(),
-                        // handler.getDefaultStringArray());
-                    } else if (handler.getRawClass().isEnum()) {
-                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultEnum());
-                    } else if (handler.getRawClass() == Double.class | handler.getRawClass() == double.class) {
-                        return this.primitiveStorage.get(handler.getKey(), handler.getDefaultDouble());
-                    } else {
-                        throw new StorageException("Invalid datatype: " + handler.getRawClass());
-                    }
-
-                } else {
-                    return handler.read();
-                }
+            final KeyHandler handler = this.methodMap.get(m);
+            if (handler.isGetter(m)) {
+                return handler.getValue();
 
             } else {
-                if (handler.isPrimitive()) {
-
-                    if (handler.getRawClass() == Boolean.class || handler.getRawClass() == boolean.class) {
-                        this.primitiveStorage.put(handler.getKey(), (Boolean) parameter[0]);
-                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
-                    } else if (handler.getRawClass() == Long.class || handler.getRawClass() == long.class) {
-                        this.primitiveStorage.put(handler.getKey(), (Long) parameter[0]);
-                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
-                    } else if (handler.getRawClass() == Integer.class || handler.getRawClass() == int.class) {
-                        this.primitiveStorage.put(handler.getKey(), (Integer) parameter[0]);
-                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
-                    } else if (handler.getRawClass() == Float.class || handler.getRawClass() == float.class) {
-                        this.primitiveStorage.put(handler.getKey(), (Float) parameter[0]);
-                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
-                    } else if (handler.getRawClass() == Byte.class || handler.getRawClass() == byte.class) {
-                        this.primitiveStorage.put(handler.getKey(), (Byte) parameter[0]);
-                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
-                    } else if (handler.getRawClass() == String.class) {
-                        this.primitiveStorage.put(handler.getKey(), (String) parameter[0]);
-                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
-                        // } else if (handler.getRawClass() == String[].class) {
-                        // this.primitiveStorage.put(handler.getKey(),
-                        // (String[]) parameter);
-                    } else if (handler.getRawClass().isEnum()) {
-                        this.primitiveStorage.put(handler.getKey(), (Enum<?>) parameter[0]);
-                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
-                    } else if (handler.getRawClass() == Double.class || handler.getRawClass() == double.class) {
-                        this.primitiveStorage.put(handler.getKey(), (Double) parameter[0]);
-                        this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
-                    } else {
-                        throw new StorageException("Invalid datatype: " + handler.getRawClass());
-                    }
-
-                    return null;
-                } else {
-                    handler.write(parameter[0]);
-
-                    this.eventSender.fireEvent(new ConfigEvent<T>((T) arg0, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
-                    return null;
-                }
+                handler.setValue(parameter[0]);
+                this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
+                return null;
             }
         }
 
@@ -212,11 +159,12 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * 
      */
     private void parseInterface() throws SecurityException, IllegalArgumentException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
-        this.getterMap = new HashMap<Method, MethodHandler>();
+        this.methodMap = new HashMap<Method, KeyHandler>();
 
         final HashMap<String, Method> keyGetterMap = new HashMap<String, Method>();
         final HashMap<String, Method> keySetterMap = new HashMap<String, Method>();
         String key;
+        final HashMap<String, KeyHandler> parseMap = new HashMap<String, KeyHandler>();
 
         Class<?> clazz = this.configInterface;
         while (clazz != null && clazz != ConfigInterface.class) {
@@ -235,15 +183,16 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     } catch (final InvalidTypeException e) {
                         throw new InterfaceParseException(e);
                     }
-
-                    MethodHandler h;
-                    this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType())));
-                    keyGetterMap.put(key, m);
-                    final MethodHandler setterhandler = this.getterMap.get(keySetterMap.get(key));
-                    if (setterhandler != null) {
-                        setterhandler.setGetter(h);
-                        h.setSetter(setterhandler);
+                    KeyHandler kh = parseMap.get(key);
+                    if (kh == null) {
+                        kh = new KeyHandler(this, key);
+                        parseMap.put(key, kh);
                     }
+                    final MethodHandler h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType()));
+                    kh.setGetter(h);
+
+                    this.methodMap.put(m, kh);
+
                 } else if (m.getName().startsWith("is")) {
                     key = m.getName().substring(2).toLowerCase();
                     // we do not allow to setters/getters with the same name but
@@ -259,14 +208,15 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         throw new InterfaceParseException(e);
                     }
 
-                    MethodHandler h;
-                    this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType())));
-                    keyGetterMap.put(key, m);
-                    final MethodHandler setterhandler = this.getterMap.get(keySetterMap.get(key));
-                    if (setterhandler != null) {
-                        setterhandler.setGetter(h);
-                        h.setSetter(setterhandler);
+                    KeyHandler kh = parseMap.get(key);
+                    if (kh == null) {
+                        kh = new KeyHandler(this, key);
+                        parseMap.put(key, kh);
                     }
+                    final MethodHandler h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType()));
+                    kh.setGetter(h);
+
+                    this.methodMap.put(m, kh);
                 } else if (m.getName().startsWith("set")) {
                     key = m.getName().substring(3).toLowerCase();
                     if (keySetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keySetterMap.containsKey(key) + "<-->" + m); }
@@ -277,16 +227,17 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     } catch (final InvalidTypeException e) {
                         throw new InterfaceParseException(e);
                     }
-                    MethodHandler h;
-                    this.getterMap.put(m, h = new MethodHandler(this, MethodHandler.Type.SETTER, key, m, JSonStorage.canStorePrimitive(m.getParameterTypes()[0])));
 
-                    keySetterMap.put(key, m);
-
-                    final MethodHandler getterHandler = this.getterMap.get(keyGetterMap.get(key));
-                    if (getterHandler != null) {
-                        getterHandler.setSetter(h);
-                        h.setGetter(getterHandler);
+                    KeyHandler kh = parseMap.get(key);
+                    if (kh == null) {
+                        kh = new KeyHandler(this, key);
+                        parseMap.put(key, kh);
                     }
+                    final MethodHandler h = new MethodHandler(this, MethodHandler.Type.SETTER, key, m, JSonStorage.canStorePrimitive(m.getParameterTypes()[0]));
+                    kh.setSetter(h);
+
+                    this.methodMap.put(m, kh);
+
                 } else {
                     throw new InterfaceParseException("Only getter and setter allowed:" + m);
 
@@ -300,18 +251,87 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         }
     }
 
+    /**
+     * @param key
+     * @param object
+     */
+    public void putPrimitive(final String key, final Boolean value) {
+        this.primitiveStorage.put(key, value);
+
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    public void putPrimitive(final String key2, final Byte object) {
+        this.primitiveStorage.put(key2, object);
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    public void putPrimitive(final String key2, final Double object) {
+        this.primitiveStorage.put(key2, object);
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    public void putPrimitive(final String key2, final Enum<?> object) {
+        this.primitiveStorage.put(key2, object);
+
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    public void putPrimitive(final String key2, final Float object) {
+        this.primitiveStorage.put(key2, object);
+
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    public void putPrimitive(final String key2, final Integer object) {
+        this.primitiveStorage.put(key2, object);
+
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    public void putPrimitive(final String key2, final Long object) {
+        this.primitiveStorage.put(key2, object);
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    public void putPrimitive(final String key2, final String object) {
+        this.primitiveStorage.put(key2, object);
+
+    }
+
     @Override
     public String toString() {
         final HashMap<String, Object> ret = new HashMap<String, Object>();
-        for (final MethodHandler h : this.getterMap.values()) {
-            if (h.getType() == MethodHandler.Type.GETTER) {
-                try {
-                    ret.put(h.getKey(), this.invoke(null, h.getMethod(), new Object[] {}));
-                } catch (final Throwable e) {
-                    e.printStackTrace();
-                    ret.put(h.getKey(), e.getMessage());
-                }
+        for (final KeyHandler h : this.methodMap.values()) {
+
+            try {
+                ret.put(h.getGetter().getKey(), this.invoke(null, h.getGetter().getMethod(), new Object[] {}));
+            } catch (final Throwable e) {
+                e.printStackTrace();
+                ret.put(h.getKey(), e.getMessage());
             }
+
         }
         return JSonStorage.toString(ret);
     }
