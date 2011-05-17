@@ -47,9 +47,10 @@ public class KeyHandler {
      * @return
      */
     public <T extends Annotation> T getAnnotation(final Class<T> class1) {
-        T ret = this.getter.getClass().getAnnotation(class1);
-        if (ret == null) {
-            ret = this.setter.getClass().getAnnotation(class1);
+
+        T ret = this.getter.getMethod().getAnnotation(class1);
+        if (ret == null && this.setter != null) {
+            ret = this.setter.getMethod().getAnnotation(class1);
         }
         return ret;
     }
