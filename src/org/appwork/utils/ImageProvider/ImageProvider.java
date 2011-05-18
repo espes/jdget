@@ -59,6 +59,7 @@ public class ImageProvider {
     // stringbuilder die concat strings fast
 
     static {
+
         /* we dont want images to get cached on disk */
         ImageIO.setUseCache(false);
     }
