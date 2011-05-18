@@ -34,6 +34,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.UIManager;
 
+import org.appwork.storage.config.MinTimeWeakReference;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
 
@@ -46,14 +47,15 @@ import sun.awt.image.ToolkitImage;
  * 
  */
 public class ImageProvider {
+    private static final long                                           MIN_LIFETIME        = 10000l;
     /**
      * Hashcashmap to cache images.
      */
-    private static HashMap<String, BufferedImage> IMAGE_CACHE         = new HashMap<String, BufferedImage>();
-    private static HashMap<String, ImageIcon>     IMAGEICON_CACHE     = new HashMap<String, ImageIcon>();
-    private static HashMap<Icon, Icon>            DISABLED_ICON_CACHE = new HashMap<Icon, Icon>();
+    private static HashMap<String, MinTimeWeakReference<BufferedImage>> IMAGE_CACHE         = new HashMap<String, MinTimeWeakReference<BufferedImage>>();
+    private static HashMap<String, MinTimeWeakReference<ImageIcon>>     IMAGEICON_CACHE     = new HashMap<String, MinTimeWeakReference<ImageIcon>>();
+    private static HashMap<Icon, MinTimeWeakReference<Icon>>            DISABLED_ICON_CACHE = new HashMap<Icon, MinTimeWeakReference<Icon>>();
 
-    private static Object                         LOCK                = new Object();
+    private static Object                                               LOCK                = new Object();
     // stringbuilder die concat strings fast
 
     static {
@@ -148,7 +150,11 @@ public class ImageProvider {
 
     public static BufferedImage getBufferedImage(final String name, final boolean createDummy, final boolean putIntoCache) throws IOException {
         synchronized (ImageProvider.LOCK) {
-            if (ImageProvider.IMAGE_CACHE.containsKey(name)) { return ImageProvider.IMAGE_CACHE.get(name); }
+            if (ImageProvider.IMAGE_CACHE.containsKey(name)) {
+
+                final MinTimeWeakReference<BufferedImage> cache = ImageProvider.IMAGE_CACHE.get(name);
+                if (cache.get() != null) { return cache.get(); }
+            }
 
             final URL absolutePath = Application.getRessourceURL("images/" + name + ".png");
             try {
@@ -159,7 +165,7 @@ public class ImageProvider {
                         // Log.exception(new Throwable("BIG IMAGE IN CACHE: " +
                         // name));
                     }
-                    ImageProvider.IMAGE_CACHE.put(name, image);
+                    ImageProvider.IMAGE_CACHE.put(name, new MinTimeWeakReference<BufferedImage>(image, ImageProvider.MIN_LIFETIME));
                 }
                 return image;
             } catch (final IOException e) {
@@ -186,10 +192,11 @@ public class ImageProvider {
      */
     public static Icon getDisabledIcon(final Icon icon) {
         if (icon == null) { return null; }
-        Icon ret = ImageProvider.DISABLED_ICON_CACHE.get(icon);
+        final MinTimeWeakReference<Icon> cache = ImageProvider.DISABLED_ICON_CACHE.get(icon);
+        Icon ret = cache == null ? null : cache.get();
         if (ret != null) { return ret; }
         ret = UIManager.getLookAndFeel().getDisabledIcon(null, icon);
-        ImageProvider.DISABLED_ICON_CACHE.put(icon, ret);
+        ImageProvider.DISABLED_ICON_CACHE.put(icon, new MinTimeWeakReference<Icon>(ret, ImageProvider.MIN_LIFETIME));
         return ret;
     }
 
@@ -235,7 +242,10 @@ public class ImageProvider {
             SB.append('_');
             SB.append(height);
             String key;
-            if (ImageProvider.IMAGEICON_CACHE.containsKey(key = SB.toString())) { return ImageProvider.IMAGEICON_CACHE.get(key); }
+            if (ImageProvider.IMAGEICON_CACHE.containsKey(key = SB.toString())) {
+                final MinTimeWeakReference<ImageIcon> cache = ImageProvider.IMAGEICON_CACHE.get(key);
+                if (cache.get() != null) { return cache.get(); }
+            }
             final BufferedImage image = ImageProvider.getBufferedImage(name, createDummy, putIntoCache);
             final double faktor = Math.max((double) image.getWidth(null) / width, (double) image.getHeight(null) / height);
             width = (int) (image.getWidth(null) / faktor);
@@ -248,7 +258,7 @@ public class ImageProvider {
             final BufferedImage referencelessVersion = ImageProvider.dereferenceImage(scaledWithFuckingReference);
             final ImageIcon imageicon = new ImageIcon(referencelessVersion);
             if (putIntoCache) {
-                ImageProvider.IMAGEICON_CACHE.put(key, imageicon);
+                ImageProvider.IMAGEICON_CACHE.put(key, new MinTimeWeakReference<ImageIcon>(imageicon, ImageProvider.MIN_LIFETIME));
             }
             return imageicon;
         }
