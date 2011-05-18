@@ -47,7 +47,7 @@ import sun.awt.image.ToolkitImage;
  * 
  */
 public class ImageProvider {
-    private static final long                                           MIN_LIFETIME        = 10000l;
+    private static final long                                           MIN_LIFETIME        = 20000l;
     /**
      * Hashcashmap to cache images.
      */
@@ -165,7 +165,7 @@ public class ImageProvider {
                         // Log.exception(new Throwable("BIG IMAGE IN CACHE: " +
                         // name));
                     }
-                    ImageProvider.IMAGE_CACHE.put(name, new MinTimeWeakReference<BufferedImage>(image, ImageProvider.MIN_LIFETIME));
+                    ImageProvider.IMAGE_CACHE.put(name, new MinTimeWeakReference<BufferedImage>(image, ImageProvider.MIN_LIFETIME, name));
                 }
                 return image;
             } catch (final IOException e) {
@@ -196,7 +196,7 @@ public class ImageProvider {
         Icon ret = cache == null ? null : cache.get();
         if (ret != null) { return ret; }
         ret = UIManager.getLookAndFeel().getDisabledIcon(null, icon);
-        ImageProvider.DISABLED_ICON_CACHE.put(icon, new MinTimeWeakReference<Icon>(ret, ImageProvider.MIN_LIFETIME));
+        ImageProvider.DISABLED_ICON_CACHE.put(icon, new MinTimeWeakReference<Icon>(ret, ImageProvider.MIN_LIFETIME, "disabled icon"));
         return ret;
     }
 
@@ -258,7 +258,7 @@ public class ImageProvider {
             final BufferedImage referencelessVersion = ImageProvider.dereferenceImage(scaledWithFuckingReference);
             final ImageIcon imageicon = new ImageIcon(referencelessVersion);
             if (putIntoCache) {
-                ImageProvider.IMAGEICON_CACHE.put(key, new MinTimeWeakReference<ImageIcon>(imageicon, ImageProvider.MIN_LIFETIME));
+                ImageProvider.IMAGEICON_CACHE.put(key, new MinTimeWeakReference<ImageIcon>(imageicon, ImageProvider.MIN_LIFETIME, key));
             }
             return imageicon;
         }
