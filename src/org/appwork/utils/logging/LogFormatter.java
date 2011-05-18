@@ -20,25 +20,21 @@ public class LogFormatter extends SimpleFormatter {
     /**
      * Date to convert timestamp to a readable format
      */
-    private final Date          date          = new Date();
+    private final Date       date          = new Date();
     /**
      * For thread controlled logs
      */
-    private int                 lastThreadID;
+    private int              lastThreadID;
 
     /**
      * Dateformat to convert timestamp to a readable format
      */
-    private final DateFormat    longTimestamp = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
-    /**
-     * Strigbuilder is used to create Strings with less memory and CPU usage
-     */
-    private final StringBuilder sb            = new StringBuilder();
+    private final DateFormat longTimestamp = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
 
     @Override
     public synchronized String format(final LogRecord record) {
         /* clear StringBuilder buffer */
-        this.sb.delete(0, this.sb.capacity());
+        final StringBuilder sb = new StringBuilder();
 
         // Minimize memory allocations here.
         this.date.setTime(record.getMillis());
@@ -48,40 +44,39 @@ public class LogFormatter extends SimpleFormatter {
 
         // new Thread.
         if (th != this.lastThreadID) {
-            this.sb.append("\r\n THREAD: ");
-            this.sb.append(th);
-            this.sb.append("\r\n");
+            sb.append("\r\n THREAD: ");
+            sb.append(th);
+            sb.append("\r\n");
         }
         this.lastThreadID = th;
 
-        this.sb.append(record.getThreadID());
-        this.sb.append('|');
-        this.sb.append(record.getLoggerName());
-        this.sb.append(' ');
-        this.sb.append(this.longTimestamp.format(this.date));
-        this.sb.append(" - ");
-        this.sb.append(record.getLevel().getName());
-        this.sb.append(" [");
+        sb.append(record.getThreadID());
+        sb.append('|');
+        sb.append(record.getLoggerName());
+        sb.append(' ');
+        sb.append(this.longTimestamp.format(this.date));
+        sb.append(" - ");
+        sb.append(record.getLevel().getName());
+        sb.append(" [");
         if (record.getSourceClassName() != null) {
-            this.sb.append(record.getSourceClassName());
+            sb.append(record.getSourceClassName());
         } else {
-            this.sb.append(record.getLoggerName());
+            sb.append(record.getLoggerName());
         }
         if (record.getSourceMethodName() != null) {
-            this.sb.append('(');
-            this.sb.append(record.getSourceMethodName());
-            this.sb.append(')');
+            sb.append('(');
+            sb.append(record.getSourceMethodName());
+            sb.append(')');
         }
 
-        this.sb.append("] ");
+        sb.append("] ");
 
-        this.sb.append("-> ");
-        this.sb.append(message);
-        this.sb.append("\r\n");
+        sb.append("-> ");
+        sb.append(message);
+        sb.append("\r\n");
         if (record.getThrown() != null) {
-            this.sb.append(Exceptions.getStackTrace(record.getThrown()));
+            sb.append(Exceptions.getStackTrace(record.getThrown()));
         }
-        return this.sb.toString();
+        return sb.toString();
     }
-
 }
