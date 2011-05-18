@@ -146,7 +146,7 @@ public class KeyHandler {
             if (ret == null) {
                 ret = this.getter.read();
 
-                this.cache = new MinTimeWeakReference<Object>(ret, KeyHandler.MIN_LIFETIME);
+                this.cache = new MinTimeWeakReference<Object>(ret, KeyHandler.MIN_LIFETIME, "Storage " + this.getKey());
 
             }
             return ret;
@@ -219,7 +219,7 @@ public class KeyHandler {
 
         } else {
             this.setter.write(object);
-            this.cache = new MinTimeWeakReference<Object>(object, KeyHandler.MIN_LIFETIME);
+            this.cache = new MinTimeWeakReference<Object>(object, KeyHandler.MIN_LIFETIME, "Storage " + this.getKey());
 
         }
     }
