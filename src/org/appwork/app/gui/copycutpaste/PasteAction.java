@@ -7,17 +7,15 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
 
+import org.appwork.resources.AWUTheme;
 import org.appwork.utils.ClipboardUtils;
-import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.APPWORKUTILS;
-import org.appwork.utils.logging.Log;
 
 /**
  * @author $Author: unknown$
@@ -32,15 +30,11 @@ public class PasteAction extends AbstractAction {
 
     public PasteAction(final JTextComponent c) {
         super(APPWORKUTILS.T.COPYCUTPASTE_PASTE());
-        text = c;
+        this.text = c;
 
-        try {
-            putValue(Action.SMALL_ICON, ImageProvider.getImageIcon("paste", 16, 16, true));
-        } catch (final IOException e) {
-            Log.exception(e);
-        }
+        this.putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("paste", 16));
 
-        putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
+        this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
 
     }
 
@@ -50,15 +44,15 @@ public class PasteAction extends AbstractAction {
      * @seecom.rapidshare.utils.event.Event.ActionListener#actionPerformed(com.
      * rapidshare.utils.event.Event.ActionEvent)
      */
-   
+
     public void actionPerformed(final ActionEvent e) {
-        text.paste();
+        this.text.paste();
 
     }
 
     @Override
     public boolean isEnabled() {
-        if (text.isEditable() && text.isEnabled()) {
+        if (this.text.isEditable() && this.text.isEnabled()) {
             return Toolkit.getDefaultToolkit().getSystemClipboard().isDataFlavorAvailable(ClipboardUtils.stringFlavor);
         } else {
             return false;

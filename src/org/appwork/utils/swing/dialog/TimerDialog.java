@@ -13,17 +13,11 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.IOException;
 
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 
-import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.formatter.TimeFormatter;
-import org.appwork.utils.locale.APPWORKUTILS;
-import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.SwingUtils;
 
@@ -278,24 +272,8 @@ public abstract class TimerDialog {
         if (this.preferredSize != null) {
             this.dialog.setPreferredSize(this.preferredSize);
         }
+
         this.timerLbl = new JLabel(TimeFormatter.formatSeconds(this.getCountdown(), 0));
-
-        this.timerLbl.addMouseListener(new MouseAdapter() {
-
-            @Override
-            public void mouseClicked(final MouseEvent e) {
-                TimerDialog.this.cancel();
-                TimerDialog.this.timerLbl.removeMouseListener(this);
-            }
-
-        });
-        this.timerLbl.setToolTipText(APPWORKUTILS.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
-
-        try {
-            this.timerLbl.setIcon(ImageProvider.getImageIcon("cancel", 16, 16, true));
-        } catch (final IOException e1) {
-            Log.exception(e1);
-        }
 
     }
 

@@ -19,6 +19,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.HashMap;
@@ -39,6 +41,7 @@ import javax.swing.WindowConstants;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale.APPWORKUTILS;
@@ -110,6 +113,21 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     private void _init() {
 
         this.layoutDialog();
+
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_COUNTDOWN)) {
+            this.timerLbl.addMouseListener(new MouseAdapter() {
+
+                @Override
+                public void mouseClicked(final MouseEvent e) {
+                    AbstractDialog.this.cancel();
+                    AbstractDialog.this.timerLbl.removeMouseListener(this);
+                }
+
+            });
+            this.timerLbl.setToolTipText(APPWORKUTILS.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
+
+            this.timerLbl.setIcon(AWUTheme.I().getIcon("cancel", 16));
+        }
         /**
          * this is very important so the new shown dialog will become root for
          * all following dialogs! we save old parentWindow, then set current

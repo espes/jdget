@@ -14,18 +14,32 @@ import java.util.HashMap;
 
 import javax.swing.ImageIcon;
 
-import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.resources.AWUTheme;
 
 public class MimeDefault implements Mime {
     /**
      * Cachemap for fileicons
      */
-    private static HashMap<String, ImageIcon> IMAGE_ICON_CACHE = new HashMap<String, ImageIcon>();
+    private static HashMap<String, ImageIcon> IMAGE_ICON_CACHE  = new HashMap<String, ImageIcon>();
 
     /**
      * Cache for the MIME descriptions
      */
-    private static HashMap<String, String> DESCRIPTION_CACHE = new HashMap<String, String>();
+    private static HashMap<String, String>    DESCRIPTION_CACHE = new HashMap<String, String>();
+
+    /**
+     * Returns a icon from the cache.
+     * 
+     * @param iconKey
+     * @return
+     */
+    protected ImageIcon getCacheIcon(final String iconKey) {
+        return MimeDefault.IMAGE_ICON_CACHE.get(iconKey);
+    }
+
+    public ImageIcon getFileIcon(final String extension, final int width, final int height) throws IOException {
+        return AWUTheme.I().getIcon("fileIcon", width);
+    }
 
     /**
      * Builds the icon key.
@@ -35,7 +49,7 @@ public class MimeDefault implements Mime {
      * @param height
      * @return
      */
-    protected String getIconKey(String extension, int width, int height) {
+    protected String getIconKey(final String extension, final int width, final int height) {
         final StringBuilder sb = new StringBuilder();
         sb.append(extension);
         sb.append("_");
@@ -46,24 +60,8 @@ public class MimeDefault implements Mime {
         return sb.toString();
     }
 
-    /**
-     * Returns a icon from the cache.
-     * 
-     * @param iconKey
-     * @return
-     */
-    protected ImageIcon getCacheIcon(String iconKey) {
-        return IMAGE_ICON_CACHE.get(iconKey);
-    }
-
-    /**
-     * Saves a icon in the cache.
-     * 
-     * @param iconKey
-     * @param icon
-     */
-    protected void saveIconCache(String iconKey, ImageIcon icon) {
-        IMAGE_ICON_CACHE.put(iconKey, icon);
+    public String getMimeDescription(final String mimetype) {
+        return mimetype;
     }
 
     /**
@@ -72,8 +70,18 @@ public class MimeDefault implements Mime {
      * @param mimetype
      * @return
      */
-    protected String getMimeDescriptionCache(String mimetype) {
-        return DESCRIPTION_CACHE.get(mimetype);
+    protected String getMimeDescriptionCache(final String mimetype) {
+        return MimeDefault.DESCRIPTION_CACHE.get(mimetype);
+    }
+
+    /**
+     * Saves a icon in the cache.
+     * 
+     * @param iconKey
+     * @param icon
+     */
+    protected void saveIconCache(final String iconKey, final ImageIcon icon) {
+        MimeDefault.IMAGE_ICON_CACHE.put(iconKey, icon);
     }
 
     /**
@@ -82,15 +90,7 @@ public class MimeDefault implements Mime {
      * @param mimetype
      * @param description
      */
-    protected void saveMimeDescriptionCache(String mimetype, String description) {
-        DESCRIPTION_CACHE.put(mimetype, description);
-    }
-
-    public ImageIcon getFileIcon(String extension, int width, int height) throws IOException {
-        return ImageProvider.getImageIcon("fileIcon", width, height, true);
-    }
-
-    public String getMimeDescription(String mimetype) {
-        return mimetype;
+    protected void saveMimeDescriptionCache(final String mimetype, final String description) {
+        MimeDefault.DESCRIPTION_CACHE.put(mimetype, description);
     }
 }

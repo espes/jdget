@@ -325,6 +325,7 @@ public class JSonStorage {
             }
         } catch (final Exception e) {
             Log.exception(Level.WARNING, e);
+            Log.L.warning(string);
             return def;
         }
     }

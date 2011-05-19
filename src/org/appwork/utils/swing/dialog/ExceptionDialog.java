@@ -27,9 +27,9 @@ import javax.swing.event.HyperlinkListener;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.resources.AWUTheme;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.Exceptions;
-import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
@@ -74,12 +74,12 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
 
             public void actionPerformed(final ActionEvent e) {
 
-                scrollPane.setVisible(true);
-                logField.setText(Exceptions.getStackTrace(exception));
-                logLabel.setVisible(true);
+                ExceptionDialog.this.scrollPane.setVisible(true);
+                ExceptionDialog.this.logField.setText(Exceptions.getStackTrace(ExceptionDialog.this.exception));
+                ExceptionDialog.this.logLabel.setVisible(true);
                 more.setVisible(false);
-                setResizable(true);
-                pack();
+                ExceptionDialog.this.setResizable(true);
+                ExceptionDialog.this.pack();
             }
         });
         more.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -89,23 +89,23 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
     @Override
     protected Integer createReturnValue() {
         // TODO Auto-generated method stub
-        return getReturnmask();
+        return this.getReturnmask();
     }
 
     @Override
     protected String getDontShowAgainKey() {
-        return "ABSTRACTDIALOG_DONT_SHOW_AGAIN_" + exception.hashCode() + "_" + toString();
+        return "ABSTRACTDIALOG_DONT_SHOW_AGAIN_" + this.exception.hashCode() + "_" + this.toString();
     }
 
     public Throwable getException() {
-        return exception;
+        return this.exception;
     }
 
     @Override
     public JComponent layoutDialogContent() {
 
         final JPanel cp = new JPanel(new MigLayout("ins 0,wrap 1", "[fill]", "[][]"));
-        textField = new JTextPane() {
+        this.textField = new JTextPane() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -113,9 +113,9 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
                 return !BinaryLogic.containsAll(ExceptionDialog.this.flagMask, Dialog.STYLE_LARGE);
             }
         };
-        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_HTML)) {
-            textField.setContentType("text/html");
-            textField.addHyperlinkListener(new HyperlinkListener() {
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
+            this.textField.setContentType("text/html");
+            this.textField.addHyperlinkListener(new HyperlinkListener() {
 
                 public void hyperlinkUpdate(final HyperlinkEvent e) {
                     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -125,38 +125,38 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
 
             });
         } else {
-            textField.setContentType("text");
+            this.textField.setContentType("text");
             // this.textField.setMaximumSize(new Dimension(450, 600));
         }
 
-        textField.setText(message);
-        textField.setEditable(false);
-        textField.setBackground(null);
-        textField.setOpaque(false);
-        textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
-        textField.setCaretPosition(0);
-        cp.add(new JLabel(ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32)), "width 32!,split 2");
-        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
-            cp.add(new JScrollPane(textField), "pushx,growx");
+        this.textField.setText(this.message);
+        this.textField.setEditable(false);
+        this.textField.setBackground(null);
+        this.textField.setOpaque(false);
+        this.textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        this.textField.setCaretPosition(0);
+        cp.add(new JLabel(AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32)), "width 32!,split 2");
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
+            cp.add(new JScrollPane(this.textField), "pushx,growx");
         } else {
-            cp.add(textField, "pushx,growx");
+            cp.add(this.textField, "pushx,growx");
         }
 
-        logField = new JTextArea();
-        logField.setLineWrap(false);
+        this.logField = new JTextArea();
+        this.logField.setLineWrap(false);
 
-        logField.setEditable(true);
-        logField.setAutoscrolls(true);
-        scrollPane = new JScrollPane(logField);
-        scrollPane.setVisible(false);
-        logField.setEditable(true);
-        logField.setAutoscrolls(true);
-        logField.setForeground(Color.RED);
-        logLabel = new JLabel(APPWORKUTILS.T.ExceptionDialog_layoutDialogContent_logLabel());
-        logLabel.setVisible(false);
-        cp.add(logLabel, "hidemode 3,gaptop 5");
+        this.logField.setEditable(true);
+        this.logField.setAutoscrolls(true);
+        this.scrollPane = new JScrollPane(this.logField);
+        this.scrollPane.setVisible(false);
+        this.logField.setEditable(true);
+        this.logField.setAutoscrolls(true);
+        this.logField.setForeground(Color.RED);
+        this.logLabel = new JLabel(APPWORKUTILS.T.ExceptionDialog_layoutDialogContent_logLabel());
+        this.logLabel.setVisible(false);
+        cp.add(this.logLabel, "hidemode 3,gaptop 5");
 
-        cp.add(scrollPane, "hidemode 3,height 100:300:n,width 200:600:n,pushx,growx,pushy,growy");
+        cp.add(this.scrollPane, "hidemode 3,height 100:300:n,width 200:600:n,pushx,growx,pushy,growy");
 
         return cp;
 
@@ -164,7 +164,7 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
 
     @Override
     public String toString() {
-        return ("dialog-" + getTitle() + "_" + message).replaceAll("\\W", "_");
+        return ("dialog-" + this.getTitle() + "_" + this.message).replaceAll("\\W", "_");
     }
 
 }

@@ -15,7 +15,6 @@ import java.awt.Window;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,9 +24,9 @@ import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 
+import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.interfaces.ValueConverter;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
@@ -256,13 +255,13 @@ public class Dialog implements WindowFocusListener {
     public static ImageIcon getIconByText(final String text) {
         try {
             if (text.contains("?")) {
-                return ImageProvider.getImageIcon(Dialog.ICON_QUESTION, 32, 32, true);
+                return AWUTheme.I().getIcon(Dialog.ICON_QUESTION, 32);
             } else if (text.contains("error") || text.contains("exception")) {
-                return ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true);
+                return AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32);
             } else if (text.contains("!")) {
-                return ImageProvider.getImageIcon(Dialog.ICON_WARNING, 32, 32, true);
+                return AWUTheme.I().getIcon(Dialog.ICON_WARNING, 32);
             } else {
-                return ImageProvider.getImageIcon(Dialog.ICON_INFO, 32, 32, true);
+                return AWUTheme.I().getIcon(Dialog.ICON_INFO, 32);
             }
         } catch (final Throwable e) {
             Log.exception(e);
@@ -494,18 +493,15 @@ public class Dialog implements WindowFocusListener {
     }
 
     public int showErrorDialog(final String s) {
+
         try {
-            try {
-                return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.T.DIALOG_ERROR_TITLE(), s, ImageProvider.getImageIcon(Dialog.ICON_ERROR, 32, 32, true), null, null);
-            } catch (final DialogClosedException e) {
-                return Dialog.RETURN_CLOSED;
-            } catch (final DialogCanceledException e) {
-                return Dialog.RETURN_CANCEL;
-            }
-        } catch (final IOException e) {
-            e.printStackTrace();
+            return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, APPWORKUTILS.T.DIALOG_ERROR_TITLE(), s, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
+        } catch (final DialogClosedException e) {
+            return Dialog.RETURN_CLOSED;
+        } catch (final DialogCanceledException e) {
+            return Dialog.RETURN_CANCEL;
         }
-        return 0;
+
     }
 
     /**

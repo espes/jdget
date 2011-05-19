@@ -8,7 +8,6 @@ import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
@@ -23,7 +22,7 @@ import javax.swing.ToolTipManager;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.resources.AWUTheme;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
@@ -48,7 +47,7 @@ public class Statusbar extends JMenuBar {
 
     public Statusbar(final String manufactor, final String manufactorUrl) {
         this.manufactorUrl = manufactorUrl;
-        mouseHoverAdapter = new MouseAdapter() {
+        this.mouseHoverAdapter = new MouseAdapter() {
             @Override
             public void mouseEntered(final MouseEvent e) {
 
@@ -56,7 +55,7 @@ public class Statusbar extends JMenuBar {
                 if (tt == null || tt.trim().length() == 0) {
                     tt = ((JComponent) e.getSource()).getName();
                 }
-                setTip(tt);
+                Statusbar.this.setTip(tt);
             }
 
             @Override
@@ -67,97 +66,90 @@ public class Statusbar extends JMenuBar {
                 // we check here if we really moved OUT
 
                 if (e.getPoint().x < 0 || e.getPoint().y < 0 || e.getPoint().y >= rec.height || e.getPoint().x >= rec.width) {
-                    setTip("");
+                    Statusbar.this.setTip("");
                 }
             }
         };
-        removeAll();
-        setLayout(new MigLayout("ins 2", "[][][grow,fill][]", "[]"));
-        setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, getBackground().darker().darker()));
+        this.removeAll();
+        this.setLayout(new MigLayout("ins 2", "[][][grow,fill][]", "[]"));
+        this.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker().darker()));
         // ToolTipManager.sharedInstance().setEnabled(false);
         // ToolTipManager.sharedInstance().setDismissDelay(0);
         ToolTipManager.sharedInstance().setReshowDelay(2000);
         ToolTipManager.sharedInstance().setInitialDelay(2000);
-        try {
-            help = new JLabel(ImageProvider.getImageIcon("info", 16, 16, true));
 
-            help.setToolTipText(APPWORKUTILS.T.Statusbar_Statusbar_visiturl_tooltip());
-            this.add(help);
-        } catch (final IOException e2) {
+        this.help = new JLabel(AWUTheme.I().getIcon("info", 16));
 
-            org.appwork.utils.logging.Log.exception(e2);
-        }
-        tip = new JLabel("");
-        tip.setForeground(Color.GRAY);
-        this.add(tip);
+        this.help.setToolTipText(APPWORKUTILS.T.Statusbar_Statusbar_visiturl_tooltip());
+        this.add(this.help);
 
-        contextLabel = new JLabel("");
-        contextLabel.setForeground(Color.GRAY);
-        contextLabel.setHorizontalTextPosition(SwingConstants.RIGHT);
+        this.tip = new JLabel("");
+        this.tip.setForeground(Color.GRAY);
+        this.add(this.tip);
+
+        this.contextLabel = new JLabel("");
+        this.contextLabel.setForeground(Color.GRAY);
+        this.contextLabel.setHorizontalTextPosition(SwingConstants.RIGHT);
 
         this.add(Box.createHorizontalGlue(), "pushx,growx");
-        this.add(contextLabel);
+        this.add(this.contextLabel);
 
-        try {
-            urlLabel = new JLabel(manufactor);
+        this.urlLabel = new JLabel(manufactor);
 
-            urlLabel.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(final MouseEvent e) {
-                    if (Statusbar.this.manufactorUrl == null) { return; }
-                    try {
-                        CrossSystem.openURL(new URL(Statusbar.this.manufactorUrl));
-                    } catch (final MalformedURLException e1) {
+        this.urlLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(final MouseEvent e) {
+                if (Statusbar.this.manufactorUrl == null) { return; }
+                try {
+                    CrossSystem.openURL(new URL(Statusbar.this.manufactorUrl));
+                } catch (final MalformedURLException e1) {
 
-                        org.appwork.utils.logging.Log.exception(e1);
-                    }
-
+                    org.appwork.utils.logging.Log.exception(e1);
                 }
 
-            });
-            urlLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            urlLabel.setForeground(Color.GRAY);
-            urlLabel.setToolTipText(APPWORKUTILS.T.Statusbar_Statusbar_visiturl_tooltip());
-            urlLabel.setIcon(ImageProvider.getImageIcon("appicon", 16, 16, true));
-            urlLabel.setHorizontalTextPosition(SwingConstants.LEFT);
-            urlLabel.addMouseListener(new MouseAdapter() {
+            }
 
-                private Font originalFont;
+        });
+        this.urlLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        this.urlLabel.setForeground(Color.GRAY);
+        this.urlLabel.setToolTipText(APPWORKUTILS.T.Statusbar_Statusbar_visiturl_tooltip());
+        this.urlLabel.setIcon(AWUTheme.I().getIcon("appicon", 16));
+        this.urlLabel.setHorizontalTextPosition(SwingConstants.LEFT);
+        this.urlLabel.addMouseListener(new MouseAdapter() {
 
-                @Override
-                @SuppressWarnings({ "unchecked", "rawtypes" })
-                public void mouseEntered(final MouseEvent evt) {
-                    originalFont = urlLabel.getFont();
-                    if (urlLabel.isEnabled()) {
-                        final Map attributes = originalFont.getAttributes();
-                        attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-                        urlLabel.setFont(originalFont.deriveFont(attributes));
-                    }
+            private Font originalFont;
+
+            @Override
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+            public void mouseEntered(final MouseEvent evt) {
+                this.originalFont = Statusbar.this.urlLabel.getFont();
+                if (Statusbar.this.urlLabel.isEnabled()) {
+                    final Map attributes = this.originalFont.getAttributes();
+                    attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+                    Statusbar.this.urlLabel.setFont(this.originalFont.deriveFont(attributes));
                 }
+            }
 
-                @Override
-                public void mouseExited(final MouseEvent evt) {
-                    urlLabel.setFont(originalFont);
-                }
+            @Override
+            public void mouseExited(final MouseEvent evt) {
+                Statusbar.this.urlLabel.setFont(this.originalFont);
+            }
 
-            });
-            this.add(urlLabel);
-        } catch (final IOException e) {
-            org.appwork.utils.logging.Log.exception(e);
-        }
+        });
+        this.add(this.urlLabel);
 
-        registerAllToolTip(this);
+        this.registerAllToolTip(this);
     }
 
     public void registerAllToolTip(final JComponent component) {
         for (final Component c : component.getComponents()) {
-            registerToolTip(c);
+            this.registerToolTip(c);
         }
     }
 
     public void registerToolTip(final Component c) {
-        c.removeMouseListener(mouseHoverAdapter);
-        c.addMouseListener(mouseHoverAdapter);
+        c.removeMouseListener(this.mouseHoverAdapter);
+        c.addMouseListener(this.mouseHoverAdapter);
 
     }
 
@@ -166,14 +158,14 @@ public class Statusbar extends JMenuBar {
 
             @Override
             protected void runInEDT() {
-                contextLabel.setText(s);
+                Statusbar.this.contextLabel.setText(s);
             }
         };
 
     }
 
     public void setManufactor(final String manuf, final String url) {
-        manufactorUrl = url;
+        this.manufactorUrl = url;
         new EDTRunner() {
 
             @Override
@@ -185,9 +177,9 @@ public class Statusbar extends JMenuBar {
 
     public void setTip(final String text) {
         if (text == null) {
-            tip.setText("");
+            this.tip.setText("");
         } else {
-            tip.setText(text.replaceAll("<.*?>", " "));
+            this.tip.setText(text.replaceAll("<.*?>", " "));
         }
     }
 

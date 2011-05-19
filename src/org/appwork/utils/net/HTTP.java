@@ -18,7 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
-import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.resources.AWUTheme;
 import org.appwork.utils.formatter.SizeFormatter;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.swing.EDTHelper;
@@ -144,7 +144,7 @@ public class HTTP {
                         }
 
                     };
-                    final ProgressDialog dialog = new ProgressDialog(pg, Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK, APPWORKUTILS.T.download_title(), APPWORKUTILS.T.download_msg(), ImageProvider.getImageIcon("payout", 32, 32, true)) {
+                    final ProgressDialog dialog = new ProgressDialog(pg, Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK, APPWORKUTILS.T.download_title(), APPWORKUTILS.T.download_msg(), AWUTheme.I().getIcon("payput", 32)) {
                         /**
                          * 
                          */
