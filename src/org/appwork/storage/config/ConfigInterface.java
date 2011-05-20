@@ -14,12 +14,7 @@ package org.appwork.storage.config;
  * 
  */
 public interface ConfigInterface {
-
-    public void addListener(final ConfigEventListener listener);
-
     public StorageHandler<?> getStorageHandler();
-
-    public void removeListener(final ConfigEventListener listener);
 
     String toString();
 

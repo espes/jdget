@@ -34,17 +34,8 @@ public class AWUTheme extends Theme {
      * only existing instance by using {@link #getInstance()}.
      */
     private AWUTheme() {
-        super();
-    }
+        super("org/appwork/");
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.resources.Theme#getNameSpace()
-     */
-    @Override
-    protected String getNameSpace() {
-        return "org/appwork/";
     }
 
 }

@@ -45,7 +45,7 @@ public class Test {
         try {
             final MyInterface jc = JsonConfig.create(MyInterface.class);
 
-            jc.addListener(new ConfigEventListener() {
+            jc.getStorageHandler().getEventSender().addListener(new ConfigEventListener() {
 
                 @Override
                 public void onConfigValueModified(final ConfigInterface config, final String key, final Object newValue) {

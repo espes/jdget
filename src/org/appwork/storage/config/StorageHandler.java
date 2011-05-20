@@ -87,6 +87,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.configInterface;
     }
 
+    public ConfigInterfaceEventSender<T> getEventSender() {
+        return this.eventSender;
+    }
+
     public byte[] getKey() {
         return this.key;
     }

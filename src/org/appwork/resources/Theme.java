@@ -32,7 +32,7 @@ import org.appwork.utils.swing.dialog.DialogClosedException;
  * @author thomas
  * 
  */
-public abstract class Theme {
+public class Theme {
     private String                                                 path;
 
     // private final HashMap<String, MinTimeWeakReference<BufferedImage>>
@@ -44,14 +44,18 @@ public abstract class Theme {
 
     private String                                                 theme;
 
-    public Theme() {
-        this.setTheme("standard");
+    private String                                                 nameSpace;
 
+    public Theme(final String namespace) {
+        this.setNameSpace(namespace);
+        this.setTheme("standard");
     }
 
-    public Theme(final String theme) {
-        this.setTheme(theme);
-
+    /**
+     * 
+     */
+    public void clearCache() {
+        this.imageIconCache.clear();
     }
 
     /**
@@ -118,10 +122,9 @@ public abstract class Theme {
         return this.getIcon(relativePath, size).getImage();
     }
 
-    /**
-     * @return
-     */
-    protected abstract String getNameSpace();
+    public String getNameSpace() {
+        return this.nameSpace;
+    }
 
     private String getPath(final String pre, final String path, final String ext) {
         final StringBuilder sb = new StringBuilder();
@@ -180,12 +183,20 @@ public abstract class Theme {
         this.cacheLifetime = cacheLifetime;
     }
 
+    public void setNameSpace(final String nameSpace) {
+        this.nameSpace = nameSpace;
+        this.path = "/themes/" + this.getTheme() + "/" + this.getNameSpace();
+        this.clearCache();
+    }
+
     /**
      * @param theme
      */
     public void setTheme(final String theme) {
         this.theme = theme;
-        this.path = "/themes/" + theme + "/" + this.getNameSpace();
+        this.path = "/themes/" + this.getTheme() + "/" + this.getNameSpace();
+
+        this.clearCache();
     }
 
 }
