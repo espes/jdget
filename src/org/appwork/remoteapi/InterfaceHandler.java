@@ -99,7 +99,6 @@ public class InterfaceHandler<T> {
      * @return
      */
     public int getParameterCount(final Method method) {
-
         return this.parameterCountMap.get(method);
     }
 

@@ -77,9 +77,17 @@ public class HttpServer implements Runnable {
         return this.localhostOnly;
     }
 
+    /*
+     * to register a new handler we create a copy of current handlerList and
+     * then add new handler to it and set it as new handlerList. by doing so,
+     * all current connections dont have to sync on their handlerlist
+     */
     public void registerRequestHandler(final HttpRequestHandler handler) {
         synchronized (this.handler) {
-            this.handler.add(handler);
+            @SuppressWarnings("unchecked")
+            final LinkedList<HttpRequestHandler> newhandler = (LinkedList<HttpRequestHandler>) this.handler.clone();
+            newhandler.add(handler);
+            this.handler = newhandler;
         }
     }
 
@@ -150,9 +158,17 @@ public class HttpServer implements Runnable {
         this.threadGroup.interrupt();
     }
 
+    /*
+     * to unregister a new handler we create a copy of current handlerList and
+     * then remove handler to it and set it as new handlerList. by doing so, all
+     * current connections dont have to sync on their handlerlist
+     */
     public void unregisterRequestHandler(final HttpRequestHandler handler) {
         synchronized (this.handler) {
-            this.handler.remove(handler);
+            @SuppressWarnings("unchecked")
+            final LinkedList<HttpRequestHandler> newhandler = (LinkedList<HttpRequestHandler>) this.handler.clone();
+            newhandler.remove(handler);
+            this.handler = newhandler;
         }
     }
 }

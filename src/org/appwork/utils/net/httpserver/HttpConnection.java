@@ -186,23 +186,22 @@ public class HttpConnection implements Runnable {
             final HttpRequest request = this.buildRequest();
             this.response = new HttpResponse(this);
             boolean handled = false;
+            LinkedList<HttpRequestHandler> handlers = null;
             synchronized (this.server.getHandler()) {
-                for (final HttpRequestHandler handler : this.server.getHandler()) {
-
-                    if (request instanceof GetRequest) {
-                        if (handler.onGetRequest((GetRequest) request, this.response)) {
-                            handled = true;
-                            break;
-                        }
-                    } else if (request instanceof PostRequest) {
-                        if (handler.onPostRequest((PostRequest) request, this.response)) {
-                            handled = true;
-                            break;
-                        }
+                handlers = this.server.getHandler();
+            }
+            for (final HttpRequestHandler handler : handlers) {
+                if (request instanceof GetRequest) {
+                    if (handler.onGetRequest((GetRequest) request, this.response)) {
+                        handled = true;
+                        break;
                     }
-
+                } else if (request instanceof PostRequest) {
+                    if (handler.onPostRequest((PostRequest) request, this.response)) {
+                        handled = true;
+                        break;
+                    }
                 }
-
             }
             if (!handled) {
                 /* generate error handler */

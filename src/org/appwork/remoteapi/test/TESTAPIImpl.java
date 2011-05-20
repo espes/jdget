@@ -23,7 +23,7 @@ import org.appwork.utils.net.HTTPHeader;
  * @author daniel
  * 
  */
-public class TESTAPIImpl implements TESTAPI, TestApiInterface {
+public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla {
 
     @Override
     public void async(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
@@ -36,7 +36,7 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface {
         cos.flush();
         while (true) {
             try {
-                Thread.sleep(5);
+                Thread.sleep(1000);
             } catch (final InterruptedException e) {
                 return;
             }
@@ -96,6 +96,16 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface {
     @Override
     public String test() {
         return "TestSucessfull";
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.remoteapi.test.bla#test1()
+     */
+    @Override
+    public String test1() {
+        return "super";
     }
 
     /*

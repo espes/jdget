@@ -102,7 +102,6 @@ public class RemoteAPI implements HttpRequestHandler {
         } else {
             response.setResponseCode(ResponseCode.SUCCESS_OK);
             final String text = JSonStorage.toString(ret);
-
             final int length = text.getBytes().length;
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
@@ -128,45 +127,47 @@ public class RemoteAPI implements HttpRequestHandler {
     }
 
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
-        final String[] intf = new Regex(request.getRequestedPath(), "/(.+)/(.+)$").getRow(0);
-        if (intf == null) { return null; }
+        final String[] intf = new Regex(request.getRequestedPath(), "/((.+)/)?(.+)$").getRow(0);
+        if (intf == null || intf.length != 3) { return null; }
+        InterfaceHandler<?> interfaceHandler = null;
+        if (intf[1] == null) {
+            intf[1] = "";
+        }
         synchronized (this.LOCK) {
-            if (intf.length == 2) {
-                final InterfaceHandler<?> interfaceHandler = this.interfaces.get(intf[0]);
-                final ArrayList<String> parameters = new ArrayList<String>();
-                /* convert GET parameters to methodParameters */
-                for (final String[] param : request.getRequestedURLParameters()) {
-                    if (param[1] != null) {
-                        /* key=value(parameter) */
-                        parameters.add(param[1]);
-                    } else {
-                        /* key(parameter) */
-                        parameters.add(param[0]);
-                    }
-                }
-                if (request instanceof PostRequest) {
-                    try {
-                        final LinkedList<String[]> ret = ((PostRequest) request).getPostParameter();
-                        if (ret != null) {
-                            /* add POST parameters to methodParameters */
-                            for (final String[] param : ret) {
-                                if (param[1] != null) {
-                                    /* key=value(parameter) */
-                                    parameters.add(param[1]);
-                                } else {
-                                    /* key(parameter) */
-                                    parameters.add(param[0]);
-                                }
-                            }
-                        }
-                    } catch (final Throwable e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                if (interfaceHandler != null) { return new RemoteAPIRequest(interfaceHandler, intf[1], parameters.toArray(new String[] {}), request); }
+            interfaceHandler = this.interfaces.get(intf[1]);
+        }
+        if (interfaceHandler == null) { return null; }
+        final ArrayList<String> parameters = new ArrayList<String>();
+        /* convert GET parameters to methodParameters */
+        for (final String[] param : request.getRequestedURLParameters()) {
+            if (param[1] != null) {
+                /* key=value(parameter) */
+                parameters.add(param[1]);
+            } else {
+                /* key(parameter) */
+                parameters.add(param[0]);
             }
         }
-        return null;
+        if (request instanceof PostRequest) {
+            try {
+                final LinkedList<String[]> ret = ((PostRequest) request).getPostParameter();
+                if (ret != null) {
+                    /* add POST parameters to methodParameters */
+                    for (final String[] param : ret) {
+                        if (param[1] != null) {
+                            /* key=value(parameter) */
+                            parameters.add(param[1]);
+                        } else {
+                            /* key(parameter) */
+                            parameters.add(param[0]);
+                        }
+                    }
+                }
+            } catch (final Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request);
     }
 
     /**
@@ -202,10 +203,15 @@ public class RemoteAPI implements HttpRequestHandler {
         synchronized (this.LOCK) {
             for (final Class<?> c : x.getClass().getInterfaces()) {
                 if (RemoteAPIInterface.class.isAssignableFrom(c)) {
-                    if (this.interfaces.containsKey(c.getName())) { throw new IllegalStateException("Interface " + c.getName() + " already has been registered by " + this.interfaces.get(c.getName())); }
-                    System.out.println(c.getName());
+                    String namespace = c.getName();
+                    final ApiNamespace a = c.getAnnotation(ApiNamespace.class);
+                    if (a != null) {
+                        namespace = a.value();
+                    }
+                    if (this.interfaces.containsKey(namespace)) { throw new IllegalStateException("Interface " + c.getName() + " with namespace " + namespace + " already has been registered by " + this.interfaces.get(namespace)); }
+                    System.out.println("Register: " + c.getName() + "->" + namespace);
                     try {
-                        this.interfaces.put(c.getName(), InterfaceHandler.create((Class<RemoteAPIInterface>) c, x));
+                        this.interfaces.put(namespace, InterfaceHandler.create((Class<RemoteAPIInterface>) c, x));
                     } catch (final SecurityException e) {
                         throw new ParseException(e);
                     } catch (final NoSuchMethodException e) {
@@ -219,10 +225,14 @@ public class RemoteAPI implements HttpRequestHandler {
 
     public void unregister(final RemoteAPIInterface x) {
         synchronized (this.LOCK) {
-
             for (final Class<?> c : x.getClass().getInterfaces()) {
                 if (RemoteAPIInterface.class.isAssignableFrom(c)) {
-                    this.interfaces.remove(c.getName());
+                    String namespace = c.getName();
+                    final ApiNamespace a = c.getAnnotation(ApiNamespace.class);
+                    if (a != null) {
+                        namespace = a.value();
+                    }
+                    this.interfaces.remove(namespace);
                 }
             }
         }
