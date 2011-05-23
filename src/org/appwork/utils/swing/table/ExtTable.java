@@ -539,6 +539,15 @@ public class ExtTable<E> extends JTable {
         return super.getCellRenderer(row, column);
     }
 
+    public Point getPointinCell(final Point x) {
+        final int row = this.rowAtPoint(x);
+        if (row == -1) { return null; }
+        final Rectangle cellPosition = this.getCellRect(row, this.columnAtPoint(x), true);
+        final Point p = new Point();
+        p.setLocation(x.getX() - cellPosition.getX(), x.getY() - cellPosition.getY());
+        return p;
+    }
+
     /**
      * @return the rowHighlighters
      */
@@ -583,7 +592,7 @@ public class ExtTable<E> extends JTable {
      * 
      * @param obj
      */
-    protected void onDoubleClick(final E obj) {
+    protected void onDoubleClick(final MouseEvent e, final E obj) {
     }
 
     protected void onSelectionChanged(final ArrayList<E> selected) {
@@ -639,6 +648,14 @@ public class ExtTable<E> extends JTable {
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param e
+     * @param obj
+     */
+    protected void onSingleClick(final MouseEvent e, final E obj) {
+
     }
 
     @Override
@@ -726,7 +743,7 @@ public class ExtTable<E> extends JTable {
             }
             break;
         case KeyEvent.VK_UP:
-            if (this.getSelectedRow() == 0) {
+            if (this.getSelectedRow() == 0 && !evt.isShiftDown()) {
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
                 }
@@ -735,7 +752,7 @@ public class ExtTable<E> extends JTable {
             }
             break;
         case KeyEvent.VK_DOWN:
-            if (this.getSelectedRow() == this.getRowCount() - 1) {
+            if (this.getSelectedRow() == this.getRowCount() - 1 && !evt.isShiftDown()) {
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
                 }
@@ -830,10 +847,16 @@ public class ExtTable<E> extends JTable {
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
                 // System.out.println(row);
-                if (obj == null || row == -1) {
-                    this.onDoubleClick(obj);
+                if (obj != null) {
+                    this.onDoubleClick(e, obj);
                     this.eventSender.fireEvent(new ExtTableEvent<E>(this, ExtTableEvent.Types.DOUBLECLICK, obj));
-
+                }
+            } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 1) {
+                final int row = this.rowAtPoint(e.getPoint());
+                final E obj = this.getExtTableModel().getObjectbyRow(row);
+                // System.out.println(row);
+                if (obj != null) {
+                    this.onSingleClick(e, obj);
                 }
             }
         } else if (e.getID() == MouseEvent.MOUSE_PRESSED) {
