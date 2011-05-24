@@ -33,22 +33,26 @@ import org.appwork.utils.swing.dialog.DialogClosedException;
  * 
  */
 public class Theme {
-    private String                                                 path;
+    private String                                                   path;
 
     // private final HashMap<String, MinTimeWeakReference<BufferedImage>>
     // imageCache = new HashMap<String, MinTimeWeakReference<BufferedImage>>();
 
-    private final HashMap<String, MinTimeWeakReference<ImageIcon>> imageIconCache = new HashMap<String, MinTimeWeakReference<ImageIcon>>();
+    protected final HashMap<String, MinTimeWeakReference<ImageIcon>> imageIconCache = new HashMap<String, MinTimeWeakReference<ImageIcon>>();
 
-    private long                                                   cacheLifetime  = 20000l;
+    private long                                                     cacheLifetime  = 20000l;
 
-    private String                                                 theme;
+    private String                                                   theme;
 
-    private String                                                 nameSpace;
+    private String                                                   nameSpace;
 
     public Theme(final String namespace) {
         this.setNameSpace(namespace);
         this.setTheme("standard");
+    }
+
+    protected void cache(final ImageIcon ret, final String key) {
+        this.imageIconCache.put(key, new MinTimeWeakReference<ImageIcon>(ret, this.getCacheLifetime(), key));
     }
 
     /**
@@ -58,12 +62,18 @@ public class Theme {
         this.imageIconCache.clear();
     }
 
+    protected ImageIcon getCached(final String key) {
+        final MinTimeWeakReference<ImageIcon> cache = this.imageIconCache.get(key);
+        if (cache != null) { return cache.get(); }
+        return null;
+    }
+
     /**
      * @param relativePath
      * @param size
      * @return
      */
-    private String getCacheKey(final Object... objects) {
+    protected String getCacheKey(final Object... objects) {
         if (objects.length == 1) { return objects.toString(); }
         final StringBuilder sb = new StringBuilder();
         for (final Object o : objects) {
@@ -89,11 +99,22 @@ public class Theme {
     }
 
     public ImageIcon getIcon(final String relativePath, final int size) {
+        return this.getIcon(relativePath, size, true);
+
+    }
+
+    /**
+     * @param relativePath
+     * @param size
+     * @param b
+     * @return
+     */
+    public ImageIcon getIcon(final String relativePath, final int size, final boolean useCache) {
         ImageIcon ret = null;
-        final String key = this.getCacheKey(relativePath, size);
-        final MinTimeWeakReference<ImageIcon> cache = this.imageIconCache.get(key);
-        if (cache != null) {
-            ret = cache.get();
+        String key = null;
+        if (useCache) {
+            key = this.getCacheKey(relativePath, size);
+            ret = this.getCached(key);
         }
         if (ret == null) {
             final URL url = this.getURL("images/", relativePath, ".png");
@@ -101,6 +122,7 @@ public class Theme {
             ret = IconIO.getImageIcon(url, size);
             if (url == null) {
 
+                Log.exception(new Exception("Icon missing: " + this.getPath("images/", relativePath, ".png")));
                 try {
                     Dialog.getInstance().showConfirmDialog(0, "Icon Missing", "Please add the\r\n" + this.getPath("images/", relativePath, ".png") + " to the classpath", ret, null, null);
                 } catch (final DialogClosedException e) {
@@ -112,14 +134,19 @@ public class Theme {
                 }
 
             }
-            this.imageIconCache.put(key, new MinTimeWeakReference<ImageIcon>(ret, this.cacheLifetime, key));
+            if (useCache) {
+                this.cache(ret, key);
+            }
         }
         return ret;
-
     }
 
     public Image getImage(final String relativePath, final int size) {
-        return this.getIcon(relativePath, size).getImage();
+        return this.getImage(relativePath, size, false);
+    }
+
+    public Image getImage(final String key, final int size, final boolean useCache) {
+        return this.getIcon(key, size, useCache).getImage();
     }
 
     public String getNameSpace() {

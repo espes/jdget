@@ -47,7 +47,9 @@ public class IconIO {
      * @return
      */
     public static ImageIcon getImageIcon(final URL resource, final int size) {
-        return ImageProvider.scaleImageIcon(IconIO.getImageIcon(resource), size, size);
+        final ImageIcon ret = IconIO.getImageIcon(resource);
+        if (size <= 0) { return ret; }
+        return ImageProvider.scaleImageIcon(ret, size, size);
     }
 
     /**
