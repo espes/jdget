@@ -9,19 +9,25 @@
  */
 package org.appwork.resources;
 
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Transparency;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.UIManager;
 
 import org.appwork.storage.config.MinTimeWeakReference;
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.images.IconIO;
+import org.appwork.utils.images.Interpolation;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
@@ -74,13 +80,13 @@ public class Theme {
      * @return
      */
     protected String getCacheKey(final Object... objects) {
-        if (objects.length == 1) { return objects.toString(); }
+        if (objects.length == 1) { return objects[0].toString(); }
         final StringBuilder sb = new StringBuilder();
         for (final Object o : objects) {
             if (sb.length() > 0) {
                 sb.append("_");
             }
-            sb.append(o);
+            sb.append(o.toString());
         }
         return sb.toString();
     }
@@ -96,6 +102,23 @@ public class Theme {
         sb.append(path);
         sb.append(ext);
         return sb.toString();
+    }
+
+    public ImageIcon getDisabledIcon(final ImageIcon _getIcon) {
+        final String key = this.getCacheKey(_getIcon, "disabled");
+        ImageIcon ret = this.getCached(key);
+        if (ret == null) {
+            final Icon ico = UIManager.getLookAndFeel().getDisabledIcon(null, _getIcon);
+            final BufferedImage dest = new BufferedImage(_getIcon.getIconWidth(), _getIcon.getIconHeight(), Transparency.TRANSLUCENT);
+            final Graphics2D g2 = dest.createGraphics();
+
+            ico.paintIcon(null, g2, 0, 0);
+            g2.dispose();
+            ret = new ImageIcon(dest);
+            this.cache(ret, key);
+        }
+        return ret;
+
     }
 
     public ImageIcon getIcon(final String relativePath, final int size) {
@@ -141,6 +164,16 @@ public class Theme {
         return ret;
     }
 
+    public ImageIcon getIcon(final URL ressourceURL) {
+        final String key = this.getCacheKey(ressourceURL);
+        ImageIcon ret = this.getCached(key);
+        if (ret == null) {
+            ret = IconIO.getImageIcon(ressourceURL);
+            this.cache(ret, key);
+        }
+        return ret;
+    }
+
     public Image getImage(final String relativePath, final int size) {
         return this.getImage(relativePath, size, false);
     }
@@ -160,6 +193,16 @@ public class Theme {
         sb.append(path);
         sb.append(ext);
         return sb.toString();
+    }
+
+    public ImageIcon getScaledInstance(final ImageIcon imageIcon, final int size) {
+        final String key = this.getCacheKey(imageIcon, size);
+        ImageIcon ret = this.getCached(key);
+        if (ret == null) {
+            ret = new ImageIcon(IconIO.getScaledInstance(imageIcon.getImage(), size, size, Interpolation.BILINEAR, true));
+            this.cache(ret, key);
+        }
+        return ret;
     }
 
     public String getText(final String string) {
