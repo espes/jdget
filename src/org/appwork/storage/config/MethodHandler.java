@@ -69,6 +69,7 @@ public class MethodHandler {
     private boolean       crypted;
     private byte[]        cryptKey;
     private final File    path;
+    private final Object  defaultFactory;
 
     /**
      * @param getter
@@ -124,40 +125,53 @@ public class MethodHandler {
          * could implement a @NoDefaultValues Annotation
          */
         // init defaultvalues. read from annotations
+        this.defaultFactory = storageHandler.getDefaultFactory();
+        final boolean hasDefaultFactory = storageHandler.getDefaultFactory() != null;
         if (primitive) {
             if (Clazz.isBoolean(this.rawClass)) {
                 final DefaultBooleanValue ann = m.getAnnotation(DefaultBooleanValue.class);
                 if (ann != null) {
+                    if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
                     this.defaultBoolean = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultBooleanValue.class, CryptedStorage.class, PlainStorage.class);
             } else if (Clazz.isLong(this.rawClass)) {
                 final DefaultLongValue ann = m.getAnnotation(DefaultLongValue.class);
                 if (ann != null) {
+                    if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                     this.defaultLong = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultLongValue.class, CryptedStorage.class, PlainStorage.class);
             } else if (Clazz.isInteger(this.rawClass)) {
                 final DefaultIntValue ann = m.getAnnotation(DefaultIntValue.class);
                 if (ann != null) {
+                    if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                     this.defaultInteger = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultIntValue.class, CryptedStorage.class, PlainStorage.class);
             } else if (Clazz.isByte(this.rawClass)) {
                 final DefaultByteValue ann = m.getAnnotation(DefaultByteValue.class);
                 if (ann != null) {
+                    if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                     this.defaultByte = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultByteValue.class, CryptedStorage.class, PlainStorage.class);
             } else if (Clazz.isFloat(this.rawClass)) {
                 final DefaultFloatValue ann = m.getAnnotation(DefaultFloatValue.class);
                 if (ann != null) {
+                    if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                     this.defaultFloat = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultFloatValue.class, CryptedStorage.class, PlainStorage.class);
             } else if (this.rawClass == String.class) {
                 final DefaultStringValue ann = m.getAnnotation(DefaultStringValue.class);
                 if (ann != null) {
+                    if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                     this.defaultString = ann.value();
                 }
 
@@ -166,6 +180,8 @@ public class MethodHandler {
 
                 final DefaultEnumValue ann = m.getAnnotation(DefaultEnumValue.class);
                 if (ann != null) {
+                    if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                     // chek if this is really the best way to convert string to
                     // enum
                     final int index = ann.value().lastIndexOf(".");
@@ -179,6 +195,8 @@ public class MethodHandler {
             } else if (Clazz.isDouble(this.rawClass)) {
                 final DefaultDoubleValue ann = m.getAnnotation(DefaultDoubleValue.class);
                 if (ann != null) {
+                    if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                     this.defaultDouble = ann.value();
                 }
                 this.checkBadAnnotations(m, DefaultDoubleValue.class, CryptedStorage.class, PlainStorage.class);
@@ -191,6 +209,8 @@ public class MethodHandler {
                 if (Clazz.isBoolean(ct)) {
                     final DefaultBooleanArrayValue ann = m.getAnnotation(DefaultBooleanArrayValue.class);
                     if (ann != null) {
+                        if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultBooleanArrayValue.class, CryptedStorage.class, PlainStorage.class);
@@ -199,6 +219,8 @@ public class MethodHandler {
 
                     final DefaultLongArrayValue ann = m.getAnnotation(DefaultLongArrayValue.class);
                     if (ann != null) {
+                        if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultLongArrayValue.class, CryptedStorage.class, PlainStorage.class);
@@ -206,12 +228,16 @@ public class MethodHandler {
 
                     final DefaultIntArrayValue ann = m.getAnnotation(DefaultIntArrayValue.class);
                     if (ann != null) {
+                        if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultIntArrayValue.class, CryptedStorage.class, PlainStorage.class);
                 } else if (Clazz.isByte(ct)) {
                     final DefaultByteArrayValue ann = m.getAnnotation(DefaultByteArrayValue.class);
                     if (ann != null) {
+                        if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultByteArrayValue.class, CryptedStorage.class, PlainStorage.class);
@@ -219,6 +245,8 @@ public class MethodHandler {
 
                     final DefaultFloatArrayValue ann = m.getAnnotation(DefaultFloatArrayValue.class);
                     if (ann != null) {
+                        if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultFloatArrayValue.class, CryptedStorage.class, PlainStorage.class);
@@ -226,12 +254,16 @@ public class MethodHandler {
                     /* obsolet here cause String[] is primitive */
                     final DefaultStringArrayValue ann = m.getAnnotation(DefaultStringArrayValue.class);
                     if (ann != null) {
+                        if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultStringArrayValue.class, CryptedStorage.class, PlainStorage.class);
                 } else if (ct.isEnum()) {
                     final DefaultEnumArrayValue ann = m.getAnnotation(DefaultEnumArrayValue.class);
                     if (ann != null) {
+                        if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                         // chek if this is really the best way to convert string
                         // to
                         // enum
@@ -250,6 +282,8 @@ public class MethodHandler {
                 } else if (Clazz.isDouble(ct)) {
                     final DefaultDoubleArrayValue ann = m.getAnnotation(DefaultDoubleArrayValue.class);
                     if (ann != null) {
+                        if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                         this.defaultObject = ann.value();
                     }
                     this.checkBadAnnotations(m, DefaultDoubleArrayValue.class, CryptedStorage.class, PlainStorage.class);
@@ -261,6 +295,8 @@ public class MethodHandler {
                 // json7String from
                 final DefaultObjectValue ann = m.getAnnotation(DefaultObjectValue.class);
                 if (ann != null) {
+                    if (hasDefaultFactory) { throw new InterfaceParseException(m + " is not allowed to have defaultvalues because interface has a Defaultfactory. Set Defaults in " + storageHandler.getDefaultFactory().getClass().getName() + "'s getters"); }
+
                     this.defaultObject = JSonStorage.restoreFromString(ann.value(), this.rawClass);
                 }
 
@@ -300,38 +336,113 @@ public class MethodHandler {
     }
 
     public boolean getDefaultBoolean() {
+        if (this.defaultFactory != null) {
+            try {
+
+                return (Boolean) this.method.invoke(this.defaultFactory, new Object[] {});
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
+        ;
         return this.defaultBoolean;
     }
 
     public byte getDefaultByte() {
+        if (this.defaultFactory != null) {
+            try {
+
+                return (Byte) this.method.invoke(this.defaultFactory, new Object[] {});
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
         return this.defaultByte;
     }
 
     public double getDefaultDouble() {
+        if (this.defaultFactory != null) {
+            try {
+
+                return (Double) this.method.invoke(this.defaultFactory, new Object[] {});
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
         return this.defaultDouble;
     }
 
     public Enum<?> getDefaultEnum() {
+        if (this.defaultFactory != null) {
+            try {
+
+                final Enum<?> ret = (Enum<?>) this.method.invoke(this.defaultFactory, new Object[] {});
+                if (ret != null) { return ret; }
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
         return this.defaultEnum;
     }
 
     public float getDefaultFloat() {
+        if (this.defaultFactory != null) {
+            try {
+
+                return (Float) this.method.invoke(this.defaultFactory, new Object[] {});
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
         return this.defaultFloat;
     }
 
     public int getDefaultInteger() {
+        if (this.defaultFactory != null) {
+            try {
+
+                return (Integer) this.method.invoke(this.defaultFactory, new Object[] {});
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
         return this.defaultInteger;
     }
 
     public long getDefaultLong() {
+        if (this.defaultFactory != null) {
+            try {
+
+                return (Long) this.method.invoke(this.defaultFactory, new Object[] {});
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
         return this.defaultLong;
     }
 
     public Object getDefaultObject() {
+        if (this.defaultFactory != null) {
+            try {
+
+                return this.method.invoke(this.defaultFactory, new Object[] {});
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
         return this.defaultObject;
     }
 
     public String getDefaultString() {
+        if (this.defaultFactory != null) {
+            try {
+                final String ret = (String) this.method.invoke(this.defaultFactory, new Object[] {});
+                return ret;
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
+
         return this.defaultString;
     }
 
@@ -377,8 +488,25 @@ public class MethodHandler {
     public Object read() {
         try {
             Log.L.finer("Read Config: " + this.path.getAbsolutePath());
-            return JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, new TypeRef(this.method.getGenericReturnType()) {
-            }, this.defaultObject);
+            if (this.defaultFactory != null) {
+                final Object dummy = new Object();
+                Object ret = JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, new TypeRef(this.method.getGenericReturnType()) {
+                }, dummy);
+                if (ret == dummy) {
+                    try {
+                        ret = this.method.invoke(this.defaultFactory, new Object[] {});
+                    } catch (final Exception e) {
+                        Log.exception(e);
+                        ret = null;
+                    }
+                    this.defaultObject = ret;
+                }
+                return ret;
+            } else {
+                return JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, new TypeRef(this.method.getGenericReturnType()) {
+                }, this.defaultObject);
+            }
+
         } finally {
             if (!this.path.exists()) {
                 this.write(this.defaultObject);

@@ -118,28 +118,7 @@ public class KeyHandler {
 
         if (this.getter.isPrimitive()) {
 
-            if (this.getter.getRawClass() == Boolean.class || this.getter.getRawClass() == boolean.class) {
-                return this.storageHandler.getPrimitive(this.getter.getKey(), this.getter.getDefaultBoolean());
-            } else if (this.getter.getRawClass() == Long.class || this.getter.getRawClass() == long.class) {
-                return this.storageHandler.getPrimitive(this.getter.getKey(), this.getter.getDefaultLong());
-            } else if (this.getter.getRawClass() == Integer.class || this.getter.getRawClass() == int.class) {
-                return this.storageHandler.getPrimitive(this.getter.getKey(), this.getter.getDefaultInteger());
-            } else if (this.getter.getRawClass() == Float.class || this.getter.getRawClass() == float.class) {
-                return this.storageHandler.getPrimitive(this.getter.getKey(), this.getter.getDefaultFloat());
-            } else if (this.getter.getRawClass() == Byte.class || this.getter.getRawClass() == byte.class) {
-                return this.storageHandler.getPrimitive(this.getter.getKey(), this.getter.getDefaultByte());
-            } else if (this.getter.getRawClass() == String.class) {
-                return this.storageHandler.getPrimitive(this.getter.getKey(), this.getter.getDefaultString());
-                // } else if (getter.getRawClass() == String[].class) {
-                // return this.storageHandler.get(getter.getKey(),
-                // getter.getDefaultStringArray());
-            } else if (this.getter.getRawClass().isEnum()) {
-                return this.storageHandler.getPrimitive(this.getter.getKey(), this.getter.getDefaultEnum());
-            } else if (this.getter.getRawClass() == Double.class | this.getter.getRawClass() == double.class) {
-                return this.storageHandler.getPrimitive(this.getter.getKey(), this.getter.getDefaultDouble());
-            } else {
-                throw new StorageException("Invalid datatype: " + this.getter.getRawClass());
-            }
+            return this.storageHandler.getPrimitive(this.getter);
 
         } else {
             Object ret = this.cache != null ? this.cache.get() : null;

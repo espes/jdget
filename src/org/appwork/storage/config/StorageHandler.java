@@ -20,7 +20,9 @@ import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
+import org.appwork.storage.StorageException;
 import org.appwork.storage.config.annotations.CryptedStorage;
+import org.appwork.storage.config.annotations.DefaultFactory;
 
 /**
  * @author thomas
@@ -37,15 +39,37 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private byte[]                        key = JSonStorage.KEY;
     private File                          path;
     private ConfigInterfaceEventSender<T> eventSender;
+    private T                             defaultFactory;
 
     /**
      * @param name
      * @param configInterface
      */
+    @SuppressWarnings("unchecked")
     public StorageHandler(final File name, final Class<T> configInterface) {
         this.configInterface = configInterface;
         this.eventSender = new ConfigInterfaceEventSender<T>();
+        final DefaultFactory defaultFactoryAnnotation = configInterface.getAnnotation(DefaultFactory.class);
+        if (defaultFactoryAnnotation != null && defaultFactoryAnnotation.value() != null) {
+            try {
+                final Class<? extends ConfigInterface> clazz = defaultFactoryAnnotation.value();
+                for (final Class<?> c : clazz.getInterfaces()) {
+                    if (c == configInterface) {
+                        this.defaultFactory = (T) defaultFactoryAnnotation.value().newInstance();
+                        break;
+                    }
 
+                }
+                if (this.defaultFactory == null) {
+
+                throw new InterfaceParseException("Defaultfactory " + clazz + " has to implement " + configInterface); }
+
+            } catch (final InstantiationException e) {
+                throw new InterfaceParseException(e);
+            } catch (final IllegalAccessException e) {
+                throw new InterfaceParseException(e);
+            }
+        }
         this.path = name;
         final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
         if (crypted != null) {
@@ -87,6 +111,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.configInterface;
     }
 
+    public T getDefaultFactory() {
+        return this.defaultFactory;
+    }
+
     public ConfigInterfaceEventSender<T> getEventSender() {
         return this.eventSender;
     }
@@ -108,6 +136,66 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
     public File getPath() {
         return this.path;
+    }
+
+    /**
+     * @param getter
+     * @return
+     */
+    public Object getPrimitive(final MethodHandler getter) {
+        // only evaluate defaults of required
+        if (this.primitiveStorage.hasProperty(getter.getKey())) {
+            if (getter.getRawClass() == Boolean.class || getter.getRawClass() == boolean.class) {
+
+                return this.getPrimitive(getter.getKey(), false);
+
+            } else if (getter.getRawClass() == Long.class || getter.getRawClass() == long.class) {
+                return this.getPrimitive(getter.getKey(), 0l);
+            } else if (getter.getRawClass() == Integer.class || getter.getRawClass() == int.class) {
+                return this.getPrimitive(getter.getKey(), 0);
+            } else if (getter.getRawClass() == Float.class || getter.getRawClass() == float.class) {
+                return this.getPrimitive(getter.getKey(), 0.0f);
+            } else if (getter.getRawClass() == Byte.class || getter.getRawClass() == byte.class) {
+                return this.getPrimitive(getter.getKey(), (byte) 0);
+            } else if (getter.getRawClass() == String.class) {
+                return this.getPrimitive(getter.getKey(), (String) null);
+                // } else if (getter.getRawClass() == String[].class) {
+                // return this.get(getter.getKey(),
+                // getter.getDefaultStringArray());
+            } else if (getter.getRawClass().isEnum()) {
+
+                return this.getPrimitive(getter.getKey(), getter.getDefaultEnum());
+            } else if (getter.getRawClass() == Double.class | getter.getRawClass() == double.class) {
+                return this.getPrimitive(getter.getKey(), 0.0d);
+            } else {
+                throw new StorageException("Invalid datatype: " + getter.getRawClass());
+            }
+        } else {
+            if (getter.getRawClass() == Boolean.class || getter.getRawClass() == boolean.class) {
+
+                return this.getPrimitive(getter.getKey(), getter.getDefaultBoolean());
+
+            } else if (getter.getRawClass() == Long.class || getter.getRawClass() == long.class) {
+                return this.getPrimitive(getter.getKey(), getter.getDefaultLong());
+            } else if (getter.getRawClass() == Integer.class || getter.getRawClass() == int.class) {
+                return this.getPrimitive(getter.getKey(), getter.getDefaultInteger());
+            } else if (getter.getRawClass() == Float.class || getter.getRawClass() == float.class) {
+                return this.getPrimitive(getter.getKey(), getter.getDefaultFloat());
+            } else if (getter.getRawClass() == Byte.class || getter.getRawClass() == byte.class) {
+                return this.getPrimitive(getter.getKey(), getter.getDefaultByte());
+            } else if (getter.getRawClass() == String.class) {
+                return this.getPrimitive(getter.getKey(), getter.getDefaultString());
+                // } else if (getter.getRawClass() == String[].class) {
+                // return this.get(getter.getKey(),
+                // getter.getDefaultStringArray());
+            } else if (getter.getRawClass().isEnum()) {
+                return this.getPrimitive(getter.getKey(), getter.getDefaultEnum());
+            } else if (getter.getRawClass() == Double.class | getter.getRawClass() == double.class) {
+                return this.getPrimitive(getter.getKey(), getter.getDefaultDouble());
+            } else {
+                throw new StorageException("Invalid datatype: " + getter.getRawClass());
+            }
+        }
     }
 
     /**
