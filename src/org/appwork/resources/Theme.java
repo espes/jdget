@@ -259,6 +259,13 @@ public class Theme {
         this.clearCache();
     }
 
+    public void setPath(final String path) {
+        this.path = path;
+        this.nameSpace = null;
+        this.theme = null;
+        this.clearCache();
+    }
+
     /**
      * @param theme
      */
