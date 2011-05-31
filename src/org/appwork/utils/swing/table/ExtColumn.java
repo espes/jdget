@@ -282,6 +282,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     @Override
     final public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
         final JComponent ret = this.getEditorComponent((E) value, isSelected, row, column);
+
         this.resetEditor();
         this.configureEditorHighlighters(ret, (E) value, isSelected, row);
         this.configureEditorComponent((E) value, isSelected, row, column);

@@ -64,7 +64,7 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
     @Override
     public JComponent getEditorComponent(final T value, final boolean isSelected, final int row, final int column) {
 
-        return null;
+        return this.getInternalEditorComponent(value, isSelected, row, column);
     }
 
     /**
@@ -149,18 +149,6 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
     protected void onCellUpdate(final int col, final int row) {
         this.stopCellEditing();
         this.getModel().getTable().editCellAt(row, col);
-
-    }
-
-    @Override
-    public void resetEditor() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void resetRenderer() {
-        // TODO Auto-generated method stub
 
     }
 
