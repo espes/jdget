@@ -8,14 +8,15 @@ import java.util.EventObject;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractCellEditor;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.border.Border;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import javax.swing.text.JTextComponent;
 
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
@@ -35,6 +36,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     protected static Color         foregroundselected = null;
 
     private static final long      serialVersionUID   = -2662459732650363059L;
+    protected static final Border  DEFAULT_BORDER     = BorderFactory.createEmptyBorder(0, 5, 0, 5);
     /**
      * If this colum is editable, this parameter says how many clicks are
      * required to start edit mode
@@ -88,12 +90,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @param hasFocus
      * @param row
      */
-    protected void adaptRowHighlighters(final E value, final JComponent comp, final boolean isSelected, final boolean hasFocus, final int row) {
-        comp.setOpaque(false);
-        // important for synthetica textcomponents
-        if (comp instanceof JTextComponent) {
-            comp.putClientProperty("Synthetica.opaque", Boolean.TRUE);
-        }
+    protected void adaptHighlighters(final E value, final JComponent comp, final boolean isSelected, final boolean hasFocus, final int row) {
+
         try {
             for (final ExtComponentRowHighlighter<E> rh : this.getModel().getExtComponentRowHighlighters()) {
                 if (rh.highlight(this, comp, value, isSelected, hasFocus, row)) {
@@ -103,6 +101,20 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         } catch (final Throwable e) {
             Log.exception(e);
         }
+    }
+
+    abstract public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column);
+
+    public void configureEditorHighlighters(final JComponent component, final E value, final boolean isSelected, final int row) {
+        this.adaptHighlighters(value, component, isSelected, true, row);
+
+    }
+
+    abstract public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column);
+
+    public void configureRendererHighlighters(final JComponent component, final E value, final boolean isSelected, final boolean hasFocus, final int row) {
+        this.adaptHighlighters(value, component, isSelected, hasFocus, row);
+
     }
 
     /**
@@ -175,9 +187,18 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return 100;
     }
 
-    public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
-        return (JComponent) table.getLafCellEditor(row, column).getTableCellEditorComponent(table, value, isSelected, row, column);
-    }
+    /**
+     * @param value
+     *            TODO
+     * @param isSelected
+     *            TODO
+     * @param row
+     *            TODO
+     * @param column
+     *            TODO
+     * @return
+     */
+    abstract public JComponent getEditorComponent(E value, boolean isSelected, int row, int column);
 
     /**
      * @param jTableHeader
@@ -231,9 +252,20 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return this.name;
     }
 
-    public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        return (JComponent) table.getLafCellRenderer(row, column).getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-    }
+    /**
+     * @param value
+     *            TODO
+     * @param isSelected
+     *            TODO
+     * @param hasFocus
+     *            TODO
+     * @param row
+     *            TODO
+     * @param column
+     *            TODO
+     * @return
+     */
+    abstract public JComponent getRendererComponent(E value, boolean isSelected, boolean hasFocus, int row, int column);
 
     /**
      * Returns null or a sorting comperator for this column
@@ -249,19 +281,30 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
-        final JComponent ret = this.getEditorComponent((ExtTable<E>) table, (E) value, isSelected, row, column);
-        ret.setEnabled(true);
-        this.adaptRowHighlighters((E) value, ret, isSelected, true, row);
+        final JComponent ret = this.getEditorComponent((E) value, isSelected, row, column);
+        this.resetEditor();
+        this.configureEditorHighlighters(ret, (E) value, isSelected, row);
+        this.configureEditorComponent((E) value, isSelected, row, column);
+        ret.setEnabled(this.isEnabled((E) value));
+        ret.setToolTipText(this.getToolTip((E) value));
+
         return ret;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        final JComponent ret = this.getRendererComponent((ExtTable<E>) table, (E) value, isSelected, hasFocus, row, column);
+        final JComponent ret = this.getRendererComponent((E) value, isSelected, hasFocus, row, column);
+        this.resetRenderer();
+        this.configureRendererHighlighters(ret, (E) value, isSelected, hasFocus, row);
+        this.configureRendererComponent((E) value, isSelected, hasFocus, row, column);
         ret.setEnabled(this.isEnabled((E) value));
-        this.adaptRowHighlighters((E) value, ret, isSelected, hasFocus, row);
+        ret.setToolTipText(this.getToolTip((E) value));
         return ret;
+    }
+
+    protected String getToolTip(final E obj) {
+        return null;
     }
 
     public int getWidth() {
@@ -364,6 +407,16 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public boolean matchSearch(final E object, final Pattern pattern) {
         return false;
     }
+
+    /**
+     * 
+     */
+    public abstract void resetEditor();
+
+    /**
+     * 
+     */
+    public abstract void resetRenderer();
 
     /**
      * @param clickcount

@@ -22,15 +22,14 @@ import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.renderer.RendererCheckBox;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionListener {
 
     private static final long        serialVersionUID = -5391898292508477789L;
 
-    protected final RendererCheckBox checkBoxRend;
-    protected final JCheckBox        checkBoxEdit;
+    protected final RendererCheckBox renderer;
+    protected final JCheckBox        editor;
 
     /**
      * @param string
@@ -42,16 +41,9 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     public ExtCheckColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 
-        this.checkBoxRend = new RendererCheckBox();
-        this.checkBoxRend.setHorizontalAlignment(SwingConstants.CENTER);
+        this.renderer = new RendererCheckBox();
 
-        this.checkBoxEdit = new JCheckBox();
-        this.checkBoxEdit.setHorizontalAlignment(SwingConstants.CENTER);
-        this.checkBoxRend.setOpaque(true);
-        this.checkBoxRend.putClientProperty("Synthetica.opaque", Boolean.TRUE);
-
-        this.checkBoxEdit.setOpaque(true);
-        this.checkBoxEdit.putClientProperty("Synthetica.opaque", Boolean.TRUE);
+        this.editor = new JCheckBox();
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             @Override
@@ -72,8 +64,22 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     }
 
     public void actionPerformed(final ActionEvent e) {
-        this.checkBoxEdit.removeActionListener(this);
+        this.editor.removeActionListener(this);
         this.fireEditingStopped();
+    }
+
+    @Override
+    public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        this.editor.removeActionListener(this);
+        this.editor.setSelected(this.getBooleanValue(value));
+        this.editor.addActionListener(this);
+
+    }
+
+    @Override
+    public final void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.renderer.setSelected(this.getBooleanValue(value));
+
     }
 
     @Override
@@ -139,7 +145,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
 
     @Override
     public final Object getCellEditorValue() {
-        return this.checkBoxEdit.isSelected();
+        return this.editor.isSelected();
     }
 
     @Override
@@ -149,11 +155,9 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     }
 
     @Override
-    public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
-        this.checkBoxEdit.removeActionListener(this);
-        this.checkBoxEdit.setSelected(this.getBooleanValue(value));
-        this.checkBoxEdit.addActionListener(this);
-        return this.checkBoxEdit;
+    public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        // TODO Auto-generated method stub
+        return this.editor;
     }
 
     @Override
@@ -167,17 +171,21 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     }
 
     @Override
-    public final JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        this.checkBoxRend.setSelected(this.getBooleanValue(value));
+    public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
 
-        return this.checkBoxRend;
+        return this.renderer;
+    }
+
+    @Override
+    protected String getToolTip(final E obj) {
+
+        return this.getBooleanValue(obj) ? APPWORKUTILS.T.active() : APPWORKUTILS.T.inactive();
     }
 
     /**
      * 
      */
     protected void init() {
-        // TODO Auto-generated method stub
 
     }
 
@@ -194,6 +202,22 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     @Override
     public boolean isSortable(final E obj) {
         return true;
+    }
+
+    @Override
+    public void resetEditor() {
+        this.editor.setHorizontalAlignment(SwingConstants.CENTER);
+        this.editor.setOpaque(false);
+        this.editor.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+
+    }
+
+    @Override
+    public void resetRenderer() {
+        this.renderer.setHorizontalAlignment(SwingConstants.CENTER);
+        this.renderer.setOpaque(false);
+        this.renderer.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+
     }
 
     protected abstract void setBooleanValue(boolean value, E object);

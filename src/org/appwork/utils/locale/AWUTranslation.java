@@ -44,6 +44,9 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Remember", "Merken?" })
     String AccountNew_layoutDialogContent_save();
 
+    @Default(lngs = { "en", "de" }, values = { "Enabled", "Aktiviert" })
+    String active();
+
     @Default(lngs = { "en", "de" }, values = { "Ø %s1/s |", "Ø %s1/s |" })
     String AppWorkUtils_Graph_getAverageSpeedString(String speed);
 
@@ -145,6 +148,9 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "%s1-Editor (Application)", "%s1-Editor (Anwendung)" })
     String fileeditcontroller_exechooser_description(String type);
+
+    @Default(lngs = { "en", "de" }, values = { "Disabled", "Deaktiviert" })
+    String inactive();
 
     @Default(lngs = { "en", "de" }, values = { "(px)W:%s1; H:%s2", "(px)B:%s1; H:%s2" })
     String Layover_size(int width, int height);

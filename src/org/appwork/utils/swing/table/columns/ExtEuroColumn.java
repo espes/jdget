@@ -2,80 +2,110 @@ package org.appwork.utils.swing.table.columns;
 
 import java.text.DecimalFormat;
 
-import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtEuroColumn<E> extends ExtColumn<E> {
 
-    private static final long serialVersionUID = 3468695684952592989L;
-    private RenderLabel label;
-    final private DecimalFormat format = new DecimalFormat("0.00");
+    private static final long   serialVersionUID = 3468695684952592989L;
+    private RenderLabel         renderer;
+    final private DecimalFormat format           = new DecimalFormat("0.00");
 
-    public ExtEuroColumn(String name, ExtTableModel<E> table) {
+    public ExtEuroColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
-        this.label = new RenderLabel();
-        label.setBorder(null);
-        label.setOpaque(false);
-        label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+        this.renderer = new RenderLabel();
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             /**
              * sorts the icon by hashcode
              */
             @Override
-            public int compare(Object o1, Object o2) {
-                if (getCent(o1) == getCent(o2)) return 0;
+            public int compare(final Object o1, final Object o2) {
+                if (ExtEuroColumn.this.getCent(o1) == ExtEuroColumn.this.getCent(o2)) { return 0; }
                 if (this.isSortOrderToggle()) {
-                    return getCent(o1) > getCent(o2) ? -1 : 1;
+                    return ExtEuroColumn.this.getCent(o1) > ExtEuroColumn.this.getCent(o2) ? -1 : 1;
                 } else {
-                    return getCent(o1) < getCent(o2) ? -1 : 1;
+                    return ExtEuroColumn.this.getCent(o1) < ExtEuroColumn.this.getCent(o2) ? -1 : 1;
                 }
             }
 
         });
     }
 
-    abstract protected long getCent(Object o2);
+    @Override
+    public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+
+        try {
+            this.renderer.setText(this.format.format(this.getCent(value) / 100.0f) + " €");
+        } catch (final Exception e) {
+            this.renderer.setText(this.format.format("0.0f") + " €");
+        }
+
+    }
 
     @Override
     public Object getCellEditorValue() {
         return null;
     }
 
+    abstract protected long getCent(Object o2);
+
+    /**
+     * @return
+     */
     @Override
-    public boolean isEditable(Object obj) {
+    public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        return null;
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        return this.renderer;
+    }
+
+    @Override
+    protected String getToolTip(final E obj) {
+        // TODO Auto-generated method stub
+        return super.getToolTip(obj);
+    }
+
+    @Override
+    public boolean isEditable(final Object obj) {
         return false;
     }
 
     @Override
-    public boolean isEnabled(Object obj) {
+    public boolean isEnabled(final Object obj) {
         return true;
     }
 
     @Override
-    public boolean isSortable(Object obj) {
+    public boolean isSortable(final Object obj) {
         return true;
     }
 
     @Override
-    public void setValue(Object value, Object object) {
+    public void resetEditor() {
+        // TODO Auto-generated method stub
+
     }
 
     @Override
-    public JComponent getRendererComponent(ExtTable<E> table, E value, boolean isSelected, boolean hasFocus, int row, int column) {
+    public void resetRenderer() {
 
-        try {
-            label.setText(format.format(getCent(value) / 100.0f) + " €");
-        } catch (Exception e) {
-            label.setText(format.format("0.0f") + " €");
-        }
-        label.setEnabled(isEnabled(value));
-        return label;
+        this.renderer.setOpaque(false);
+        this.renderer.setBorder(ExtColumn.DEFAULT_BORDER);
+
+    }
+
+    @Override
+    public void setValue(final Object value, final Object object) {
     }
 }

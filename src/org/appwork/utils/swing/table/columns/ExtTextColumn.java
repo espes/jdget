@@ -1,6 +1,7 @@
 package org.appwork.utils.swing.table.columns;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -10,21 +11,24 @@ import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionListener, FocusListener {
 
-    private static final long serialVersionUID  = 2114805529462086691L;
-    protected RenderLabel     label;
-    protected Color           defaultForeground = null;
-    private JTextField        text;
+    private static final long serialVersionUID = 2114805529462086691L;
+    protected RenderLabel     renderer;
+    protected JTextField      editor;
+    private final Border      defaultBorder    = BorderFactory.createEmptyBorder(0, 5, 0, 5);
+    private Color             rendererForeground;
+    private Color             editorForeground;
+    private Font              rendererFont;
+    private Font              editorFont;
 
     /**
      * @param string
@@ -36,17 +40,13 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     public ExtTextColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
-        this.text = new JTextField();
-        this.text.addFocusListener(this);
-        this.prepareTableCellEditorComponent(this.text);
-
-        this.label = new RenderLabel();
-        this.label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-        this.label.setOpaque(false);
-        this.defaultForeground = this.label.getForeground();
-
-        this.prepareTableCellRendererComponent(this.label);
-
+        this.editor = new JTextField();
+        this.editor.addFocusListener(this);
+        this.renderer = new RenderLabel();
+        this.rendererForeground = this.renderer.getForeground();
+        this.editorForeground = this.editor.getForeground();
+        this.rendererFont = this.renderer.getFont();
+        this.editorFont = this.editor.getFont();
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
@@ -72,13 +72,43 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     }
 
     public void actionPerformed(final ActionEvent e) {
-        this.text.removeActionListener(this);
+        this.editor.removeActionListener(this);
         this.fireEditingStopped();
     }
 
     @Override
+    public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        this.editor.removeActionListener(this);
+
+        String str = this.getStringValue(value);
+        if (str == null) {
+            // under substance, setting setText(null) somehow sets the label
+            // opaque.
+            str = "";
+        }
+        this.editor.setText(str);
+        this.editor.addActionListener(this);
+
+    }
+
+    @Override
+    public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+
+        String str = this.getStringValue(value);
+        if (str == null) {
+            // under substance, setting setText(null) somehow sets the label
+            // opaque.
+            str = "";
+        }
+
+        this.renderer.setText(str);
+        this.renderer.setIcon(this.getIcon(value));
+
+    }
+
+    @Override
     public void focusGained(final FocusEvent e) {
-        this.text.selectAll();
+        this.editor.selectAll();
     }
 
     @Override
@@ -89,23 +119,15 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public Object getCellEditorValue() {
-        return this.text.getText();
+        return this.editor.getText();
     }
 
+    /**
+     * @return
+     */
     @Override
-    public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
-        this.text.removeActionListener(this);
-
-        String str = this.getStringValue(value);
-        if (str == null) {
-            // under substance, setting setText(null) somehow sets the label
-            // opaque.
-            str = "";
-        }
-        this.text.setText(str);
-        this.text.addActionListener(this);
-
-        return this.text;
+    public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        return this.editor;
     }
 
     /*
@@ -117,26 +139,17 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         return null;
     }
 
+    /**
+     * @return
+     */
     @Override
-    public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-
-        this.prepareLabel(value);
-        String str = this.getStringValue(value);
-        if (str == null) {
-            // under substance, setting setText(null) somehow sets the label
-            // opaque.
-            str = "";
-        }
-
-        this.label.setText(str);
-        this.label.setToolTipText(this.getToolTip(value));
-        this.label.setIcon(this.getIcon(value));
-        return this.label;
-
+    public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        return this.renderer;
     }
 
     protected abstract String getStringValue(E value);
 
+    @Override
     protected String getToolTip(final E obj) {
         final String v = this.getStringValue(obj);
         if (v != null && v.length() > 0) {
@@ -166,40 +179,51 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         return pattern.matcher(this.getStringValue(object)).matches();
     }
 
-    /**
-     * @param value
-     */
-    protected void prepareLabel(final E value) {
+    @Override
+    public void resetEditor() {
+        this.editor.setFont(this.editorFont);
+        this.editor.setForeground(this.editorForeground);
+        this.editor.setOpaque(false);
+        this.editor.setBackground(null);
     }
 
-    /**
-     * @param label2
-     */
-    protected void prepareLabelForHelpText(final JLabel label) {
-
-        label.setForeground(Color.lightGray);
-
-    }
-
-    /**
-     * Should be overwritten to prepare the component for the TableCellEditor
-     * (e.g. setting tooltips)
-     */
-    protected void prepareTableCellEditorComponent(final JTextField text) {
-    }
-
-    /**
-     * Should be overwritten to prepare the componente for the TableCellRenderer
-     * (e.g. setting tooltips)
-     */
-    protected void prepareTableCellRendererComponent(final JLabel jlr) {
-    }
-
-    protected void prepareTextfieldForHelpText(final JTextField tf) {
-
-        tf.setForeground(Color.lightGray);
+    @Override
+    public void resetRenderer() {
+        this.renderer.setBorder(this.defaultBorder);
+        this.renderer.setOpaque(false);
+        this.renderer.setBackground(null);
+        this.renderer.setFont(this.rendererFont);
+        this.renderer.setForeground(this.rendererForeground);
 
     }
+
+    // /**
+    // * @param value
+    // */
+    // protected void prepareLabel(final E value) {
+    // }
+
+    // /**
+    // * @param label2
+    // */
+    // protected void prepareLabelForHelpText(final JLabel label) {
+    //
+    // label.setForeground(Color.lightGray);
+    //
+    // }
+
+    // /**
+    // * Should be overwritten to prepare the component for the TableCellEditor
+    // * (e.g. setting tooltips)
+    // */
+    // protected void prepareTableCellEditorComponent(final JTextField text) {
+    // }
+
+    // protected void prepareTextfieldForHelpText(final JTextField tf) {
+    //
+    // tf.setForeground(Color.lightGray);
+    //
+    // }
 
     /**
      * Override to save value after editing

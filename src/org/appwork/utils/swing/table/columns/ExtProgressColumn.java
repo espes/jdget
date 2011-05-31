@@ -3,15 +3,16 @@ package org.appwork.utils.swing.table.columns;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JProgressBar;
+import javax.swing.border.CompoundBorder;
 
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     private static final long serialVersionUID = -2473320164484034664L;
-    protected JProgressBar    bar;
+    protected JProgressBar    renderer;
+    private CompoundBorder    defaultBorder;
 
     /**
      * 
@@ -22,10 +23,8 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
     public ExtProgressColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
-        this.bar = new JProgressBar();
-        this.bar.setOpaque(false);
-        this.bar.setStringPainted(true);
-        this.bar.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1), this.bar.getBorder()));
+        this.renderer = new JProgressBar();
+        this.defaultBorder = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1), this.renderer.getBorder());
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
@@ -43,6 +42,40 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         });
     }
 
+    @Override
+    public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+
+        this.renderer.setIndeterminate(false);
+        // Normalize value and maxvalue to fit in the integer range
+        long v = this.getValue(value);
+        long m = this.getMax(value);
+        final double factor = Math.max(v / (double) Integer.MAX_VALUE, m / (double) Integer.MAX_VALUE);
+
+        if (factor >= 1.0) {
+            v /= factor;
+            m /= factor;
+        }
+        // take care to set the maximum before the value!!
+        this.renderer.setMaximum((int) m);
+        this.renderer.setValue((int) v);
+
+        this.renderer.setString(this.getString(value));
+        if (isSelected) {
+            this.renderer.setForeground(this.getModel().getTable().getColumnForegroundSelected());
+            this.renderer.setBackground(this.getModel().getTable().getColumnBackgroundSelected());
+        } else {
+            this.renderer.setForeground(this.getModel().getTable().getColumnForeground());
+            this.renderer.setBackground(this.getModel().getTable().getColumnBackground());
+        }
+
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -56,43 +89,33 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         return null;
     }
 
+    /**
+     * @return
+     */
+    @Override
+    public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        return null;
+    }
+
     protected long getMax(final E value) {
         return 100;
     }
 
+    /**
+     * @return
+     */
     @Override
-    public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-
-        this.bar.setIndeterminate(false);
-        // Normalize value and maxvalue to fit in the integer range
-        long v = this.getValue(value);
-        long m = this.getMax(value);
-        final double factor = Math.max(v / (double) Integer.MAX_VALUE, m / (double) Integer.MAX_VALUE);
-
-        if (factor >= 1.0) {
-            v /= factor;
-            m /= factor;
-        }
-        // take care to set the maximum before the value!!
-        this.bar.setMaximum((int) m);
-        this.bar.setValue((int) v);
-
-        this.bar.setString(this.getString(value));
-        if (isSelected) {
-            this.bar.setForeground(this.getModel().getTable().getColumnForegroundSelected());
-            this.bar.setBackground(this.getModel().getTable().getColumnBackgroundSelected());
-        } else {
-            this.bar.setForeground(this.getModel().getTable().getColumnForeground());
-            this.bar.setBackground(this.getModel().getTable().getColumnBackground());
-        }
-
-        this.bar.setOpaque(true);
-        this.bar.setEnabled(this.isEnabled(value));
-        this.bar.setToolTipText(this.bar.getString());
-        return this.bar;
+    public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        return this.renderer;
     }
 
     abstract protected String getString(E value);
+
+    @Override
+    protected String getToolTip(final E value) {
+
+        return this.getString(value);
+    }
 
     abstract protected long getValue(E value);
 
@@ -133,6 +156,20 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     public boolean isSortable(final E obj) {
 
         return true;
+    }
+
+    @Override
+    public void resetEditor() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void resetRenderer() {
+        this.renderer.setOpaque(false);
+        this.renderer.setStringPainted(true);
+        this.renderer.setBorder(this.defaultBorder);
+
     }
 
     /*

@@ -6,7 +6,6 @@ import javax.swing.JComponent;
 
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
@@ -17,6 +16,7 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
     private static final long serialVersionUID = 1L;
     private ExtColumn<T>      editor;
     private T                 editing;
+    private ExtColumn<T>      renderer;
 
     public ExtCompoundColumn(final String name) {
         this(name, null);
@@ -53,21 +53,40 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
     }
 
     @Override
+    public void configureEditorComponent(final T value, final boolean isSelected, final int row, final int column) {
+
+        this.editor.configureEditorComponent(value, isSelected, row, column);
+    }
+
+    @Override
+    public void configureRendererComponent(final T value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+
+        this.renderer.configureRendererComponent(value, isSelected, hasFocus, row, column);
+    }
+
+    @Override
     public Object getCellEditorValue() {
         return this.editor.getCellEditorValue();
     }
 
     @Override
-    public JComponent getEditorComponent(final ExtTable<T> table, final T value, final boolean isSelected, final int row, final int column) {
+    public JComponent getEditorComponent(final T value, final boolean isSelected, final int row, final int column) {
         this.editing = value;
-        this.editor = this.selectColumn(this.editing);
 
-        return this.editor.getEditorComponent(table, value, isSelected, row, column);
+        this.editor = this.selectColumn(this.editing);
+        if (this.editor.getModel() != this.getModel()) {
+            this.editor.setModel(this.getModel());
+        }
+        return this.editor.getEditorComponent(value, isSelected, row, column);
     }
 
     @Override
-    public JComponent getRendererComponent(final ExtTable<T> table, final T value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        return this.selectColumn(value).getRendererComponent(table, value, isSelected, hasFocus, row, column);
+    public JComponent getRendererComponent(final T value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.renderer = this.selectColumn(value);
+        if (this.renderer.getModel() != this.getModel()) {
+            this.renderer.setModel(this.getModel());
+        }
+        return this.renderer.getRendererComponent(value, isSelected, hasFocus, row, column);
     }
 
     @Override
@@ -80,6 +99,12 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
      * @return
      */
     public abstract String getSortString(T o1);
+
+    @Override
+    protected String getToolTip(final T obj) {
+        // TODO Auto-generated method stub
+        return super.getToolTip(obj);
+    }
 
     @Override
     public boolean isEditable(final T obj) {
@@ -101,25 +126,29 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
         return this.selectColumn(object).matchSearch(object, pattern);
     }
 
+    @Override
+    public void resetEditor() {
+        this.editor.resetEditor();
+    }
+
+    @Override
+    public void resetRenderer() {
+        this.renderer.resetRenderer();
+    }
+
     /**
      * @param object
      * @return
      */
     abstract public ExtColumn<T> selectColumn(T object);
 
-    @Override
-    public void setModel(final ExtTableModel<T> model) {
-        this.setModelToCompounds(model);
-        super.setModel(model);
-    }
-
-    /**
-     * @param model
-     */
-    public abstract void setModelToCompounds(ExtTableModel<T> model);
+    // @Override
+    // public void setModel(final ExtTableModel<T> model) {
+    // super.setModel(model);
+    // }
 
     @Override
     public void setValue(final Object value, final T object) {
-        this.selectColumn(object).setValue(value, object);
+        this.editor.setValue(value, object);
     }
 }

@@ -1,39 +1,36 @@
 package org.appwork.utils.swing.table.columns;
 
-
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.border.Border;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtLongColumn<E> extends ExtColumn<E> {
 
-    private static final long serialVersionUID = -6917352290094392921L;
-    private final RenderLabel label;
+    private static final long   serialVersionUID = -6917352290094392921L;
+    protected final RenderLabel renderer;
+    private final Border        defaultBorder    = BorderFactory.createEmptyBorder(0, 5, 0, 5);
 
-    
     public ExtLongColumn(final String name) {
         this(name, null);
 
     }
-    public ExtLongColumn(String name, ExtTableModel<E> table) {
+
+    public ExtLongColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 
-        label = new RenderLabel();
-        label.setBorder(null);
-        label.setOpaque(false);
-        label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+        this.renderer = new RenderLabel();
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             @Override
-            public int compare(E o1, E o2) {
-                long l1=getLong(o1);
-                long l2=getLong(o2);
-                if (l1==l2) return 0;
+            public int compare(final E o1, final E o2) {
+                final long l1 = ExtLongColumn.this.getLong(o1);
+                final long l2 = ExtLongColumn.this.getLong(o2);
+                if (l1 == l2) { return 0; }
                 if (this.isSortOrderToggle()) {
                     return l1 > l2 ? -1 : 1;
                 } else {
@@ -44,36 +41,78 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
         });
     }
 
-    protected abstract long getLong(E value);
+    @Override
+    public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.renderer.setText(this.getLong(value) + "");
+        this.renderer.setEnabled(this.isEnabled(value));
+
+    }
 
     @Override
     public Object getCellEditorValue() {
         return null;
     }
 
+    /**
+     * @return
+     */
     @Override
-    public boolean isEditable(E obj) {
+    public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        return null;
+    }
+
+    protected abstract long getLong(E value);
+
+    /**
+     * @return
+     */
+    @Override
+    public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        return this.renderer;
+    }
+
+    @Override
+    protected String getToolTip(final E obj) {
+
+        return this.getLong(obj) + "";
+    }
+
+    @Override
+    public boolean isEditable(final E obj) {
         return false;
     }
 
     @Override
-    public boolean isEnabled(E obj) {
+    public boolean isEnabled(final E obj) {
         return true;
     }
 
     @Override
-    public boolean isSortable(Object obj) {
+    public boolean isSortable(final Object obj) {
         return true;
     }
 
     @Override
-    public void setValue(Object value, E object) {
+    public void resetEditor() {
+        // TODO Auto-generated method stub
+
     }
 
     @Override
-    public JComponent getRendererComponent(ExtTable<E> table, E value, boolean isSelected, boolean hasFocus, int row, int column) {
-        label.setText(getLong(value) + "");
-        label.setEnabled(isEnabled(value));
-        return label;
+    public void resetRenderer() {
+
+        this.renderer.setOpaque(false);
+        this.renderer.setBorder(this.defaultBorder);
+
+    }
+
+    @Override
+    public void setValue(final Object value, final E object) {
     }
 }

@@ -9,21 +9,26 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.ListCellRenderer;
+import javax.swing.border.CompoundBorder;
 
+import org.appwork.utils.swing.renderer.RendererComboBox;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionListener {
 
-    private static final long serialVersionUID = 2114805529462086691L;
+    private static final long    serialVersionUID = 2114805529462086691L;
 
-    private JComboBox         comboBoxRend;
-    private JComboBox         comboBoxEdit;
-    private int               selection;
+    private JComboBox            editor;
 
-    private ComboBoxModel     dataModel;
+    private ComboBoxModel        dataModel;
+
+    private DefaultComboBoxModel emptyModel;
+
+    private JComboBox            renderer;
+
+    private CompoundBorder       border;
 
     public ExtComboColumn(final String name, final ComboBoxModel model) {
         this(name, null, model);
@@ -32,98 +37,104 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
 
     public ExtComboColumn(final String name, final ExtTableModel<E> table, ComboBoxModel model) {
         super(name, table);
+        this.emptyModel = new DefaultComboBoxModel();
         if (model == null) {
-            model = new DefaultComboBoxModel();
+            model = this.emptyModel;
         }
         this.dataModel = model;
-        this.comboBoxRend = new JComboBox(this.dataModel) {
-            private static final long serialVersionUID = -7223814300276557968L;
-
-            @Override
-            public void addActionListener(final ActionListener l) {
-                this.listenerList.add(ActionListener.class, l);
-            }
-        };
-
-        this.comboBoxEdit = new JComboBox(this.dataModel);
-
+        this.renderer = new RendererComboBox();
+        this.renderer.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
         // comboBoxEdit.setRenderer(new DefaultCellEditor(comboBox))
 
-        this.comboBoxEdit.setBorder(BorderFactory.createCompoundBorder(this.comboBoxEdit.getBorder(), BorderFactory.createEmptyBorder(1, 1, 1, 1)));
-        this.comboBoxRend.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1), this.comboBoxRend.getBorder()));
-        this.comboBoxEdit.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
+        // this.comboBoxRendereer.setBorder(BorderFactory.createCompoundBorder(this.comboBoxRendereer.getBorder(),
+        // BorderFactory.createEmptyBorder(2, 2, 2, 2)));
 
-        this.comboBoxRend.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
+        this.editor = new JComboBox(model);
+        this.editor.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
+        this.border = BorderFactory.createCompoundBorder(this.editor.getBorder(), BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        // comboBoxEdit.setRenderer(new DefaultCellEditor(comboBox))
+
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
             public int compare(final E o1, final E o2) {
-                if (ExtComboColumn.this.getComboBoxItem(o1) == ExtComboColumn.this.getComboBoxItem(o2)) { return 0; }
+                if (ExtComboColumn.this.getSelectedIndex(o1) == ExtComboColumn.this.getSelectedIndex(o2)) { return 0; }
                 if (this.isSortOrderToggle()) {
-                    return ExtComboColumn.this.getComboBoxItem(o1) > ExtComboColumn.this.getComboBoxItem(o2) ? 1 : -1;
+                    return ExtComboColumn.this.getSelectedIndex(o1) > ExtComboColumn.this.getSelectedIndex(o2) ? 1 : -1;
                 } else {
-                    return ExtComboColumn.this.getComboBoxItem(o2) > ExtComboColumn.this.getComboBoxItem(o1) ? 1 : -1;
+                    return ExtComboColumn.this.getSelectedIndex(o2) > ExtComboColumn.this.getSelectedIndex(o1) ? 1 : -1;
 
                 }
             }
         });
     }
 
+    @Override
     public void actionPerformed(final ActionEvent e) {
 
-        this.comboBoxEdit.removeActionListener(this);
+        this.editor.removeActionListener(this);
         this.stopCellEditing();
     }
 
     @Override
-    public Object getCellEditorValue() {
-        return this.comboBoxEdit.getSelectedIndex();
+    public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        final int selection = this.getSelectedIndex(value);
+        this.editor.removeActionListener(this);
+
+        final ComboBoxModel newModel = this.updateModel(this.dataModel, value);
+        newModel.setSelectedItem(newModel.getElementAt(selection));
+        if (this.editor.getModel() != newModel) {
+            this.editor.setModel(newModel);
+        }
+
+        // this.comboBoxEdit.setSelectedIndex(selection);
+        this.editor.addActionListener(this);
+        // this.comboBoxEdit.setEnabled(this.isEnabled(value));
+
     }
 
-    protected abstract int getComboBoxItem(E value);
+    @Override
+    public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        // TODO Auto-generated method stub
+
+        this.renderer.getModel().setSelectedItem(this.updateModel(this.dataModel, value).getElementAt(this.getSelectedIndex(value)));
+
+    }
 
     @Override
-    public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
-        this.selection = this.getComboBoxItem(value);
+    public Object getCellEditorValue() {
+        return this.editor.getSelectedIndex();
+    }
 
-        this.comboBoxEdit.setModel(this.updateModel(this.dataModel, value));
-        this.comboBoxEdit.removeActionListener(this);
-        this.comboBoxEdit.setToolTipText(this.getTooltip(value));
-        this.comboBoxEdit.setSelectedIndex(this.selection);
-        this.comboBoxEdit.addActionListener(this);
-        this.comboBoxEdit.setEnabled(this.isEnabled(value));
+    public ComboBoxModel getDataModel() {
+        return this.dataModel;
+    }
 
-        this.comboBoxEdit.setOpaque(false);
-        this.comboBoxRend.setOpaque(false);
-        return this.comboBoxEdit;
+    @Override
+    public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        // TODO Auto-generated method stub
+        return this.editor;
     }
 
     /**
      * @return
      */
     public ListCellRenderer getRenderer() {
-        return this.comboBoxRend.getRenderer();
+        return this.editor.getRenderer();
     }
 
     @Override
-    public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        this.selection = this.getComboBoxItem(value);
-
-        this.comboBoxRend.setModel(this.updateModel(this.dataModel, value));
-
-        this.comboBoxEdit.removeActionListener(this);
-        this.comboBoxEdit.setToolTipText(this.getTooltip(value));
-        this.comboBoxRend.setSelectedIndex(this.getComboBoxItem(value));
-        this.comboBoxEdit.addActionListener(this);
-
-        this.comboBoxRend.setEnabled(this.isEnabled(value));
-
-        return this.comboBoxRend;
+    public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        // TODO Auto-generated method stub
+        return this.renderer;
     }
 
-    public String getTooltip(final Object value) {
+    protected abstract int getSelectedIndex(E value);
 
-        return null;
+    @Override
+    protected String getToolTip(final E obj) {
+        // TODO Auto-generated method stub
+        return super.getToolTip(obj);
     }
 
     @Override
@@ -136,14 +147,36 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
         return true;
     }
 
+    // @Override
+    // protected String getStringValue(final E value) {
+    // return this.updateModel(this.dataModel,
+    // value).getElementAt(this.getComboBoxItem(value)) + "";
+    // }
+
     @Override
     public boolean isSortable(final E obj) {
         return false;
     }
 
+    @Override
+    public void resetEditor() {
+        this.editor.setBorder(this.border);
+
+    }
+
+    @Override
+    public void resetRenderer() {
+        this.renderer.setBorder(null);
+
+        this.renderer.setOpaque(true);
+        this.renderer.setBackground(null);
+
+    }
+
     public void setRenderer(final ListCellRenderer renderer) {
-        this.comboBoxRend.setRenderer(renderer);
-        this.comboBoxEdit.setRenderer(renderer);
+        this.renderer.setRenderer(renderer);
+        this.editor.setRenderer(renderer);
+
     }
 
     /**

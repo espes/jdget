@@ -9,7 +9,6 @@ import javax.swing.SwingConstants;
 
 import org.appwork.utils.reflection.Clazz;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
@@ -53,7 +52,7 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
         super(name, table);
 
         this.editor = new JSpinner();
-        this.editor.setBorder(null);
+
         this.intEditor = new JSpinner.NumberEditor(this.editor, "#");
         this.longEditor = this.intEditor;
         this.byteEditor = this.intEditor;
@@ -67,8 +66,7 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
         this.shortModel = new SpinnerNumberModel((short) 0, Short.MIN_VALUE, Short.MAX_VALUE, (short) 1);
         this.doubleModel = new SpinnerNumberModel(0.0d, Long.MIN_VALUE, Long.MAX_VALUE, 1.0d);
         this.floatModel = new SpinnerNumberModel(0.0f, Long.MIN_VALUE, Long.MAX_VALUE, 1.0f);
-        this.init();
-        this.label.setHorizontalAlignment(SwingConstants.RIGHT);
+
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
@@ -86,6 +84,16 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
             }
 
         });
+    }
+
+    @Override
+    public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+
+        final Number n = this.getNumber(value);
+        this.editor.setModel(this.getModel(value, n));
+        this.editor.setEditor(this.getEditor(value, n, this.editor));
+        this.editor.setValue(n);
+
     }
 
     public NumberEditor getByteEditor() {
@@ -140,14 +148,11 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
 
     }
 
+    /**
+     * @return
+     */
     @Override
-    public JComponent getEditorComponent(final ExtTable<E> table, final E value, final boolean isSelected, final int row, final int column) {
-
-        final Number n = this.getNumber(value);
-        this.editor.setModel(this.getModel(value, n));
-        this.editor.setEditor(this.getEditor(value, n, this.editor));
-
-        this.editor.setValue(n);
+    public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
         return this.editor;
     }
 
@@ -205,20 +210,20 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
      */
     abstract protected Number getNumber(final E value);
 
+    /**
+     * @return
+     */
+    @Override
+    public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        return this.renderer;
+    }
+
     public NumberEditor getShortEditor() {
         return this.shortEditor;
     }
 
     public SpinnerNumberModel getShortModel() {
         return this.shortModel;
-    }
-
-    /**
-     * 
-     */
-    protected void init() {
-        // TODO Auto-generated method stub
-
     }
 
     /*
@@ -252,6 +257,18 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
     public boolean isSortable(final E obj) {
         // TODO Auto-generated method stub
         return true;
+    }
+
+    @Override
+    public void resetEditor() {
+        this.editor.setBorder(null);
+    }
+
+    @Override
+    public void resetRenderer() {
+
+        super.resetRenderer();
+        this.renderer.setHorizontalAlignment(SwingConstants.RIGHT);
     }
 
     public void setByteEditor(final NumberEditor byteEditor) {

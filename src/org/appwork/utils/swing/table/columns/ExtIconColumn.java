@@ -1,14 +1,12 @@
 package org.appwork.utils.swing.table.columns;
 
-
-import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.SwingConstants;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 /**
@@ -16,20 +14,20 @@ import org.appwork.utils.swing.table.ExtTableModel;
  */
 public abstract class ExtIconColumn<E> extends ExtColumn<E> {
 
-    private RenderLabel label;
+    private RenderLabel       renderer;
 
-    public ExtIconColumn(String name) {
+    private static final long serialVersionUID = -5751315870107507714L;
+
+    public ExtIconColumn(final String name) {
         this(name, null);
     }
 
-    public ExtIconColumn(String name, ExtTableModel<E> table) {
+    public ExtIconColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 
-        label = new RenderLabel();
-        label.setOpaque(false);
-        label.setHorizontalAlignment(RenderLabel.CENTER);
-        label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-        initIcons();
+        this.renderer = new RenderLabel();
+
+        this.initIcons();
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
@@ -37,12 +35,12 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
              * sorts the icon by hashcode
              */
             @Override
-            public int compare(E o1, E o2) {
-                Icon ic1 = getIcon(o1);
-                Icon ic2 = getIcon(o2);
-                int h1 = ic1 == null ? 0 : ic1.hashCode();
-                int h2 = ic2 == null ? 0 : ic2.hashCode();
-                if (h1 == h2) return 0;
+            public int compare(final E o1, final E o2) {
+                final Icon ic1 = ExtIconColumn.this.getIcon(o1);
+                final Icon ic2 = ExtIconColumn.this.getIcon(o2);
+                final int h1 = ic1 == null ? 0 : ic1.hashCode();
+                final int h2 = ic2 == null ? 0 : ic2.hashCode();
+                if (h1 == h2) { return 0; }
                 if (this.isSortOrderToggle()) {
                     return h1 > h2 ? -1 : 1;
                 } else {
@@ -53,43 +51,35 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
         });
     }
 
-    protected String getToolTip(E obj) {
-        return null;
+    @Override
+    public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        // TODO Auto-generated method stub
+
     }
 
-    protected void initIcons() {
+    @Override
+    public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.renderer.setIcon(this.getIcon(value));
+
     }
-
-    private static final long serialVersionUID = -5751315870107507714L;
-
-    /**
-     * Returns the icon for o1;
-     */
-    protected abstract Icon getIcon(E value);
 
     @Override
     public Object getCellEditorValue() {
         return null;
     }
 
+    /**
+     * @return
+     */
     @Override
-    public boolean isEditable(E obj) {
-        return false;
+    public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        return null;
     }
 
-    @Override
-    public boolean isEnabled(E obj) {
-        return true;
-    }
-
-    @Override
-    public boolean isSortable(E obj) {
-        return true;
-    }
-
-    @Override
-    public void setValue(Object value, E object) {
-    }
+    /**
+     * Returns the icon for o1;
+     */
+    protected abstract Icon getIcon(E value);
 
     /**
      * Sets max width to 30. overwrite to set other maxsizes
@@ -104,12 +94,52 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
         return 30;
     }
 
+    /**
+     * @return
+     */
     @Override
-    public JComponent getRendererComponent(ExtTable<E> table, E value, boolean isSelected, boolean hasFocus, int row, int column) {
-        label.setIcon(getIcon(value));
-        label.setToolTipText(getToolTip(value));
-        label.setEnabled(isEnabled(value));
-        return label;
+    public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        return this.renderer;
+    }
+
+    @Override
+    protected String getToolTip(final E obj) {
+        return null;
+    }
+
+    protected void initIcons() {
+    }
+
+    @Override
+    public boolean isEditable(final E obj) {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled(final E obj) {
+        return true;
+    }
+
+    @Override
+    public boolean isSortable(final E obj) {
+        return true;
+    }
+
+    @Override
+    public void resetEditor() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void resetRenderer() {
+        this.renderer.setOpaque(false);
+        this.renderer.setHorizontalAlignment(SwingConstants.CENTER);
+        this.renderer.setBorder(ExtColumn.DEFAULT_BORDER);
+    }
+
+    @Override
+    public void setValue(final Object value, final E object) {
     }
 
 }

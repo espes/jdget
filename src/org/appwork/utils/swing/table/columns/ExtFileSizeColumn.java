@@ -3,13 +3,11 @@ package org.appwork.utils.swing.table.columns;
 import java.text.DecimalFormat;
 import java.text.FieldPosition;
 
-import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
-import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
 public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
@@ -18,17 +16,14 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
      * 
      */
     private static final long serialVersionUID = -5812486934156037376L;
-    protected RenderLabel     label;
+    protected RenderLabel     renderer;
     protected long            sizeValue;
     private StringBuffer      sb;
     private DecimalFormat     formatter;
 
     public ExtFileSizeColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
-        this.label = new RenderLabel();
-        this.label.setBorder(null);
-        this.label.setOpaque(false);
-        this.label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+        this.renderer = new RenderLabel();
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             /**
@@ -65,6 +60,22 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
         };
     }
 
+    @Override
+    public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        if ((this.sizeValue = this.getBytes(value)) < 0) {
+            this.renderer.setText(this.getInvalidValue());
+        } else {
+            this.renderer.setText(this.getSizeString(this.sizeValue));
+        }
+
+    }
+
     abstract protected long getBytes(E o2);
 
     @Override
@@ -75,8 +86,24 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
     /**
      * @return
      */
+    @Override
+    public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        return null;
+    }
+
+    /**
+     * @return
+     */
     protected String getInvalidValue() {
         return "";
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        return this.renderer;
     }
 
     private String getSizeString(final long fileSize) {
@@ -88,14 +115,9 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
     }
 
     @Override
-    public JComponent getRendererComponent(final ExtTable<E> table, final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        if ((this.sizeValue = this.getBytes(value)) < 0) {
-            this.label.setText(this.getInvalidValue());
-        } else {
-            this.label.setText(this.getSizeString(this.sizeValue));
-        }
-        this.label.setEnabled(this.isEnabled(value));
-        return this.label;
+    protected String getToolTip(final E obj) {
+        // TODO Auto-generated method stub
+        return this.renderer.getText();
     }
 
     @Override
@@ -111,6 +133,20 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
     @Override
     public boolean isSortable(final E obj) {
         return true;
+    }
+
+    @Override
+    public void resetEditor() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void resetRenderer() {
+
+        this.renderer.setOpaque(false);
+        this.renderer.setBorder(ExtColumn.DEFAULT_BORDER);
+
     }
 
     @Override

@@ -62,12 +62,9 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
     }
 
     @Override
-    public final JComponent getEditorComponent(final ExtTable<T> table, final T value, final boolean isSelected, final int row, final int column) {
-        if (this.listener != null) {
-            this.getModel().getTable().addMouseMotionListener(this.listener);
-            this.listener = null;
-        }
-        return this.getEditorComponent(value, isSelected, row, column);
+    public JComponent getEditorComponent(final T value, final boolean isSelected, final int row, final int column) {
+
+        return null;
     }
 
     /**
@@ -77,26 +74,34 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
      * @param column
      * @return
      */
-    protected abstract JComponent getEditorComponent(T value, boolean isSelected, int row, int column);
+    abstract protected JComponent getInternalEditorComponent(T value, boolean isSelected, int row, int column);
+
+    /**
+     * @param value
+     * @param isSelected
+     * @param hasFocus
+     * @param row
+     * @param column
+     * @return
+     */
+    /**
+     * @param value
+     * @param isSelected
+     * @param row
+     * @param column
+     * @return
+     */
+
+    abstract protected JComponent getInternalRendererComponent(T value, boolean isSelected, boolean hasFocus, int row, int column);
 
     @Override
-    public final JComponent getRendererComponent(final ExtTable<T> table, final T value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+    public final JComponent getRendererComponent(final T value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         if (this.listener != null) {
             this.getModel().getTable().addMouseMotionListener(this.listener);
             this.listener = null;
         }
-
-        return this.getRendererComponent(value, isSelected, row, column);
+        return this.getInternalRendererComponent(value, isSelected, hasFocus, row, column);
     }
-
-    /**
-     * @param value
-     * @param isSelected
-     * @param row
-     * @param column
-     * @return
-     */
-    abstract protected JComponent getRendererComponent(T value, boolean isSelected, int row, int column);
 
     @Override
     public boolean isCellEditable(final EventObject evt) {
@@ -144,6 +149,18 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
     protected void onCellUpdate(final int col, final int row) {
         this.stopCellEditing();
         this.getModel().getTable().editCellAt(row, col);
+
+    }
+
+    @Override
+    public void resetEditor() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void resetRenderer() {
+        // TODO Auto-generated method stub
 
     }
 

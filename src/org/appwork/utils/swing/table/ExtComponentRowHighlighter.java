@@ -10,7 +10,6 @@
 package org.appwork.utils.swing.table;
 
 import java.awt.Color;
-import java.util.HashMap;
 
 import javax.swing.JComponent;
 import javax.swing.border.Border;
@@ -23,34 +22,12 @@ import javax.swing.text.JTextComponent;
  * @see ExtRowHighlighter
  */
 public abstract class ExtComponentRowHighlighter<E> {
-    private class Restore {
-        private final Color   background;
-        private final Color   foreground;
-        private final Border  border;
-        private final boolean opaque;
 
-        /**
-         * @param background
-         * @param foreground
-         * @param border
-         * @param opaque
-         */
-        public Restore(final Color background, final Color foreground, final Border border, final boolean opaque) {
-            this.background = background;
-            this.foreground = foreground;
-            this.border = border;
-            this.opaque = opaque;
-        }
+    private Color  foreground;
 
-    }
+    private Color  background;
 
-    private Color                              foreground;
-
-    private Color                              background;
-
-    private Border                             border;
-
-    private final HashMap<JComponent, Restore> map = new HashMap<JComponent, Restore>();
+    private Border border;
 
     public ExtComponentRowHighlighter(final Color foreground, final Color background, final Border border) {
         super();
@@ -92,7 +69,6 @@ public abstract class ExtComponentRowHighlighter<E> {
 
     public boolean highlight(final ExtColumn<E> column, final JComponent comp, final E value, final boolean selected, final boolean focus, final int row) {
 
-        final Restore restore = this.saveRestoreInfo(comp);
         if (this.accept(column, value, selected, focus, row)) {
 
             if (this.background != null) {
@@ -112,34 +88,8 @@ public abstract class ExtComponentRowHighlighter<E> {
                 comp.setBorder(this.border);
             }
             return true;
-        } else {
-
-            comp.setBackground(restore.background);
-
-            comp.setForeground(restore.foreground);
-
-            comp.setBorder(restore.border);
-
-            comp.setOpaque(restore.opaque);
-            // important for synthetica textcomponents
-            if (comp instanceof JTextComponent) {
-                comp.putClientProperty("Synthetica.opaque", restore.opaque);
-            }
         }
         return false;
-    }
-
-    /**
-     * @param comp
-     */
-    private Restore saveRestoreInfo(final JComponent comp) {
-        Restore ret = this.map.get(comp);
-        if (ret == null) {
-            ret = new Restore(comp.getBackground(), comp.getForeground(), comp.getBorder(), comp.isOpaque());
-            this.map.put(comp, ret);
-        }
-        return ret;
-
     }
 
     /**

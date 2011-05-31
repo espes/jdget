@@ -13,7 +13,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-import javax.swing.JTextField;
+import javax.swing.JComponent;
 
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.swing.table.ExtTableModel;
@@ -28,13 +28,35 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
     private static final String BLINDTEXT        = "******";
 
     public ExtPasswordEditorColumn(final String name) {
-        super(name, null);
+        this(name, null);
 
     }
 
     public ExtPasswordEditorColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
+        this.editor.addFocusListener(new FocusListener() {
 
+            @Override
+            public void focusGained(final FocusEvent e) {
+                ExtPasswordEditorColumn.this.editor.selectAll();
+
+            }
+
+            @Override
+            public void focusLost(final FocusEvent e) {
+                // TODO Auto-generated method stub
+
+            }
+        });
+
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public JComponent getEditorComponent(E value, boolean isSelected, int row, int column) {
+        return this.editor;
     }
 
     protected abstract String getPlainStringValue(E value);
@@ -62,28 +84,6 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
     @Override
     public boolean isEditable(final E obj) {
         return true;
-    }
-
-    /**
-     * Should be overwritten to prepare the component for the TableCellEditor
-     * (e.g. setting tooltips)
-     */
-    @Override
-    protected void prepareTableCellEditorComponent(final JTextField text) {
-        text.addFocusListener(new FocusListener() {
-
-            @Override
-            public void focusGained(final FocusEvent e) {
-                text.selectAll();
-
-            }
-
-            @Override
-            public void focusLost(final FocusEvent e) {
-                // TODO Auto-generated method stub
-
-            }
-        });
     }
 
     @Override
