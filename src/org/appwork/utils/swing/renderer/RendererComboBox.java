@@ -163,7 +163,6 @@ public class RendererComboBox extends JComboBox {
      */
     @Override
     public void revalidate() {
-        System.out.println(1);
         super.revalidate();
     }
 
@@ -173,7 +172,7 @@ public class RendererComboBox extends JComboBox {
      */
     @Override
     public void validate() {
-        System.out.println(2);
+
         super.validate();
     }
 }

@@ -22,14 +22,14 @@ import java.util.EventListener;
  * 
  */
 
-public abstract class Eventsender<T extends EventListener, TT extends DefaultEvent> {
+public abstract class Eventsender<ListenerType extends EventListener, EventType extends DefaultEvent> {
 
-    transient protected ArrayList<T>          addRequestedListeners    = null;
+    transient protected ArrayList<ListenerType>          addRequestedListeners    = null;
     /**
      * List of registered Eventlistener
      */
     // TODO: DO we really need ArrayLists here?
-    transient volatile protected ArrayList<T> listeners                = null;
+    transient volatile protected ArrayList<ListenerType> listeners                = null;
     private final Object                      LOCK                     = new Object();
     private volatile long                     readR                    = 0;
     /**
@@ -37,7 +37,7 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
      * 
      */
     // We use a removeList to avoid threating problems
-    transient protected ArrayList<T>          removeRequestedListeners = null;
+    transient protected ArrayList<ListenerType>          removeRequestedListeners = null;
 
     private volatile long                     writeR                   = 0;
 
@@ -45,9 +45,9 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
      * Creates a new Eventsender Instance
      */
     public Eventsender() {
-        this.listeners = new ArrayList<T>();
-        this.removeRequestedListeners = new ArrayList<T>();
-        this.addRequestedListeners = new ArrayList<T>();
+        this.listeners = new ArrayList<ListenerType>();
+        this.removeRequestedListeners = new ArrayList<ListenerType>();
+        this.addRequestedListeners = new ArrayList<ListenerType>();
     }
 
     /**
@@ -55,8 +55,8 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
      * 
      * @param listener
      */
-    public void addAllListener(final ArrayList<T> listener) {
-        for (final T l : listener) {
+    public void addAllListener(final ArrayList<ListenerType> listener) {
+        for (final ListenerType l : listener) {
             this.addListener(l);
         }
 
@@ -67,7 +67,7 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
      * 
      * @param listener
      */
-    public void addListener(final T t) {
+    public void addListener(final ListenerType t) {
         synchronized (this.LOCK) {
             /* decrease WriteCounter in case we remove the removeRequested */
             if (this.removeRequestedListeners.contains(t)) {
@@ -93,7 +93,7 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
      */
     final public void fireEvent(final int id, final Object... parameters) {
 
-        ArrayList<T> listeners;
+        ArrayList<ListenerType> listeners;
         synchronized (this.LOCK) {
             if (this.writeR == this.readR) {
                 /* nothing changed, we can use old pointer to listeners */
@@ -101,7 +101,7 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
                 listeners = this.listeners;
             } else {
                 /* create new list with copy of old one */
-                listeners = new ArrayList<T>(this.listeners);
+                listeners = new ArrayList<ListenerType>(this.listeners);
                 /* remove and add wished items */
                 listeners.removeAll(this.removeRequestedListeners);
                 this.removeRequestedListeners.clear();
@@ -113,14 +113,14 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
                 if (this.listeners.size() == 0) { return; }
             }
         }
-        for (final T t : listeners) {
+        for (final ListenerType t : listeners) {
             this.fireEvent(t, id, parameters);
         }
         synchronized (this.LOCK) {
             if (this.writeR != this.readR) {
                 /* something changed, lets update the list */
                 /* create new list with copy of old one */
-                listeners = new ArrayList<T>(this.listeners);
+                listeners = new ArrayList<ListenerType>(this.listeners);
                 /* remove and add wished items */
                 listeners.removeAll(this.removeRequestedListeners);
                 this.removeRequestedListeners.clear();
@@ -139,7 +139,7 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
      * @param id
      * @param parameters
      */
-    protected void fireEvent(final T listener, final int id, final Object... parameters) {
+    protected void fireEvent(final ListenerType listener, final int id, final Object... parameters) {
         throw new RuntimeException("Not implemented. Overwrite org.appwork.utils.event.Eventsender.fireEvent(T, int, Object...) to use this");
 
     }
@@ -150,11 +150,11 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
      * @param listener
      * @param event
      */
-    protected abstract void fireEvent(T listener, TT event);
+    protected abstract void fireEvent(ListenerType listener, EventType event);
 
-    final public void fireEvent(final TT event) {
+    final public void fireEvent(final EventType event) {
         if (event == null) { return; }
-        ArrayList<T> listeners;
+        ArrayList<ListenerType> listeners;
         synchronized (this.LOCK) {
             if (this.writeR == this.readR) {
                 /* nothing changed, we can use old pointer to listeners */
@@ -162,7 +162,7 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
                 listeners = this.listeners;
             } else {
                 /* create new list with copy of old one */
-                listeners = new ArrayList<T>(this.listeners);
+                listeners = new ArrayList<ListenerType>(this.listeners);
                 /* remove and add wished items */
                 listeners.removeAll(this.removeRequestedListeners);
                 this.removeRequestedListeners.clear();
@@ -174,7 +174,7 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
                 if (this.listeners.size() == 0) { return; }
             }
         }
-        for (final T t : listeners) {
+        for (final ListenerType t : listeners) {
             // final long tt = System.currentTimeMillis();
 
             this.fireEvent(t, event);
@@ -184,7 +184,7 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
             if (this.writeR != this.readR) {
                 /* something changed, lets update the list */
                 /* create new list with copy of old one */
-                listeners = new ArrayList<T>(this.listeners);
+                listeners = new ArrayList<ListenerType>(this.listeners);
                 /* remove and add wished items */
                 listeners.removeAll(this.removeRequestedListeners);
                 this.removeRequestedListeners.clear();
@@ -197,9 +197,9 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
         }
     }
 
-    public ArrayList<T> getListener() {
+    public ArrayList<ListenerType> getListener() {
         synchronized (this.LOCK) {
-            return new ArrayList<T>(this.listeners);
+            return new ArrayList<ListenerType>(this.listeners);
         }
     }
 
@@ -209,7 +209,7 @@ public abstract class Eventsender<T extends EventListener, TT extends DefaultEve
         }
     }
 
-    public void removeListener(final T t) {
+    public void removeListener(final ListenerType t) {
         synchronized (this.LOCK) {
             /* decrease WriteCounter in case we remove the addRequest */
             if (this.addRequestedListeners.contains(t)) {

@@ -16,7 +16,7 @@ import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
 
-public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionListener {
+public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements ActionListener {
 
     private static final long    serialVersionUID = 2114805529462086691L;
 
@@ -41,6 +41,7 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
         if (model == null) {
             model = this.emptyModel;
         }
+
         this.dataModel = model;
         this.renderer = new RendererComboBox();
         this.renderer.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
@@ -96,9 +97,12 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
     @Override
     public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         // TODO Auto-generated method stub
+        if (!this.isEnabled(value)) {
+            super.configureRendererComponent(value, isSelected, hasFocus, row, column);
+        } else {
 
-        this.renderer.getModel().setSelectedItem(this.updateModel(this.dataModel, value).getElementAt(this.getSelectedIndex(value)));
-
+            this.renderer.getModel().setSelectedItem(this.updateModel(this.dataModel, value).getElementAt(this.getSelectedIndex(value)));
+        }
     }
 
     @Override
@@ -126,10 +130,17 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
     @Override
     public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         // TODO Auto-generated method stub
+        if (!this.isEnabled(value)) { return super.getRendererComponent(value, isSelected, hasFocus, row, column); }
         return this.renderer;
     }
 
     protected abstract int getSelectedIndex(E value);
+
+    @Override
+    protected String getStringValue(final E value) {
+        // TODO Auto-generated method stub
+        return this.updateModel(this.dataModel, value).getElementAt(this.getSelectedIndex(value)) + "";
+    }
 
     @Override
     protected String getToolTip(final E obj) {
@@ -166,7 +177,8 @@ public abstract class ExtComboColumn<E> extends ExtColumn<E> implements ActionLi
 
     @Override
     public void resetRenderer() {
-        this.renderer.setBorder(null);
+        super.resetRenderer();
+        this.renderer.setBorder(ExtColumn.DEFAULT_BORDER);
 
         this.renderer.setOpaque(true);
         this.renderer.setBackground(null);
