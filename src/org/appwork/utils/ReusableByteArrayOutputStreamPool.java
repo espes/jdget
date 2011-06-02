@@ -31,24 +31,52 @@ public class ReusableByteArrayOutputStreamPool {
         final int wished = Math.max(32, wishedMinimumSize);
         synchronized (ReusableByteArrayOutputStreamPool.pool) {
             ReusableByteArrayOutputStream ret = null;
+            ReusableByteArrayOutputStream best = null;
             if (!ReusableByteArrayOutputStreamPool.pool.isEmpty()) {
-                final Iterator<SoftReference<ReusableByteArrayOutputStream>> it = ReusableByteArrayOutputStreamPool.pool.iterator();
+                Iterator<SoftReference<ReusableByteArrayOutputStream>> it = ReusableByteArrayOutputStreamPool.pool.iterator();
                 while (it.hasNext()) {
                     final SoftReference<ReusableByteArrayOutputStream> next = it.next();
                     ret = next.get();
-                    if (ret != null) {
+                    if (ret == null) {
+                        /* buffer already gced, remove it from pool */
+                        it.remove();
+                    } else {
                         if (ret.bufferSize() >= wishedMinimumSize) {
+                            /*
+                             * hit with >= desired Size, remove it from pool and
+                             * return it
+                             */
+                            it.remove();
+                            return ret;
+                        } else if (best == null) {
+                            /* first best hit */
+                            best = ret;
+                        } else if (ret.bufferSize() > best.bufferSize()) {
+                            /* a better hit */
+                            best = ret;
+                        }
+                    }
+                }
+                if (best != null) {
+                    /* return best hit from previous search */
+                    it = ReusableByteArrayOutputStreamPool.pool.iterator();
+                    while (it.hasNext()) {
+                        final SoftReference<ReusableByteArrayOutputStream> next = it.next();
+                        ret = next.get();
+                        if (ret == null) {
+                            /* buffer already gced, remove it from pool */
+                            it.remove();
+                        } else if (ret == best) {
+                            /* we reuse best hit */
                             it.remove();
                             return ret;
                         }
-                        break;
                     }
                 }
             }
-            if (ret == null) {
-                ret = new ReusableByteArrayOutputStream(wished);
-            }
-            return ret;
+            /* create new buffer */
+            return new ReusableByteArrayOutputStream(wished);
+
         }
     }
 
