@@ -81,6 +81,11 @@ public abstract class ExtRadioColumn<E> extends ExtColumn<E> implements ActionLi
         return this.editor.isSelected();
     }
 
+    @Override
+    public int getClickcount() {
+        return 1;
+    }
+
     /**
      * @return
      */
@@ -125,12 +130,14 @@ public abstract class ExtRadioColumn<E> extends ExtColumn<E> implements ActionLi
     @Override
     public void resetEditor() {
         this.editor.setHorizontalAlignment(SwingConstants.CENTER);
+        this.editor.setOpaque(false);
 
     }
 
     @Override
     public void resetRenderer() {
         this.renderer.setHorizontalAlignment(SwingConstants.CENTER);
+        this.renderer.setOpaque(false);
 
     }
 

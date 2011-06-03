@@ -45,7 +45,7 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected String getStringValue(final TextObject value) {
+            public String getStringValue(final TextObject value) {
                 return value.getA();
             }
 
@@ -55,7 +55,7 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected String getStringValue(final TextObject value) {
+            public String getStringValue(final TextObject value) {
                 return value.getB();
             }
         });
@@ -64,7 +64,7 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected String getStringValue(final TextObject value) {
+            public String getStringValue(final TextObject value) {
                 return value.getC();
             }
         });

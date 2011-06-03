@@ -62,7 +62,7 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
     protected abstract String getPlainStringValue(E value);
 
     @Override
-    protected String getStringValue(final E value) {
+    public String getStringValue(final E value) {
         return this.hasPassword(value) ? ExtPasswordEditorColumn.BLINDTEXT : "";
     }
 

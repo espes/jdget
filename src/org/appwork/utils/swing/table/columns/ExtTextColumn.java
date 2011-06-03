@@ -147,7 +147,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         return this.renderer;
     }
 
-    protected abstract String getStringValue(E value);
+    public abstract String getStringValue(E value);
 
     @Override
     protected String getToolTip(final E obj) {

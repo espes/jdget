@@ -97,7 +97,7 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
     @Override
     public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         // TODO Auto-generated method stub
-        if (!this.isEnabled(value)) {
+        if (!this.isEnabled(value) || !this.isEditable(value)) {
             super.configureRendererComponent(value, isSelected, hasFocus, row, column);
         } else {
 
@@ -130,14 +130,14 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
     @Override
     public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         // TODO Auto-generated method stub
-        if (!this.isEnabled(value)) { return super.getRendererComponent(value, isSelected, hasFocus, row, column); }
+        if (!this.isEnabled(value) || !this.isEditable(value)) { return super.getRendererComponent(value, isSelected, hasFocus, row, column); }
         return this.renderer;
     }
 
     protected abstract int getSelectedIndex(E value);
 
     @Override
-    protected String getStringValue(final E value) {
+    public String getStringValue(final E value) {
         // TODO Auto-generated method stub
         return this.updateModel(this.dataModel, value).getElementAt(this.getSelectedIndex(value)) + "";
     }
@@ -150,7 +150,7 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
 
     @Override
     public boolean isEditable(final E obj) {
-        return false;
+        return this.dataModel.getSize() > 1;
     }
 
     @Override
@@ -166,7 +166,7 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
 
     @Override
     public boolean isSortable(final E obj) {
-        return false;
+        return true;
     }
 
     @Override
@@ -179,7 +179,7 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
     public void resetRenderer() {
         super.resetRenderer();
         this.renderer.setBorder(ExtColumn.DEFAULT_BORDER);
-
+        super.renderer.setBorder(ExtColumn.DEFAULT_BORDER);
         this.renderer.setOpaque(true);
         this.renderer.setBackground(null);
 

@@ -108,12 +108,12 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
 
     @Override
     public boolean isEditable(final T obj) {
-        return false;
+        return this.selectColumn(obj).isEditable(obj);
     }
 
     @Override
     public boolean isEnabled(final T obj) {
-        return false;
+        return this.selectColumn(obj).isEnabled(obj);
     }
 
     @Override

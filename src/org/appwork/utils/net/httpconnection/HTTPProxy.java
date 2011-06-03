@@ -165,6 +165,10 @@ public class HTTPProxy {
         this.status = status;
     }
 
+    public void setType(final TYPE type) {
+        this.type = type;
+    }
+
     public void setUser(final String user) {
         this.user = user;
     }
