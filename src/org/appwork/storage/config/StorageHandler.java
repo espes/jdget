@@ -23,6 +23,7 @@ import org.appwork.storage.JsonKeyValueStorage;
 import org.appwork.storage.StorageException;
 import org.appwork.storage.config.annotations.CryptedStorage;
 import org.appwork.storage.config.annotations.DefaultFactory;
+import org.appwork.storage.config.annotations.ValueValidator;
 
 /**
  * @author thomas
@@ -40,6 +41,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private File                          path;
     private ConfigInterfaceEventSender<T> eventSender;
     private T                             defaultFactory;
+    private T                             validator;
 
     /**
      * @param name
@@ -70,6 +72,29 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 throw new InterfaceParseException(e);
             }
         }
+
+        final ValueValidator validator = configInterface.getAnnotation(ValueValidator.class);
+        if (validator != null && validator.value() != null) {
+            try {
+                final Class<? extends ConfigInterface> clazz = validator.value();
+                for (final Class<?> c : clazz.getInterfaces()) {
+                    if (c == configInterface) {
+                        this.validator = (T) validator.value().newInstance();
+                        break;
+                    }
+
+                }
+                if (this.validator == null) {
+
+                throw new InterfaceParseException("ValueValidator " + clazz + " has to implement " + configInterface); }
+
+            } catch (final InstantiationException e) {
+                throw new InterfaceParseException(e);
+            } catch (final IllegalAccessException e) {
+                throw new InterfaceParseException(e);
+            }
+        }
+
         this.path = name;
         final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
         if (crypted != null) {
@@ -209,6 +234,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.primitiveStorage.get(key, def);
     }
 
+    public T getValidator() {
+        return this.validator;
+    }
+
     @SuppressWarnings("unchecked")
     public Object invoke(final Object instance, final Method m, final Object[] parameter) throws Throwable {
         if (m.getName().equals("toString")) {
@@ -228,8 +257,14 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 return handler.getValue();
 
             } else {
-                handler.setValue(parameter[0]);
-                this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
+                try {
+                    handler.setValue(parameter[0]);
+                    this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
+
+                } catch (final Throwable t) {
+                    this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALIDATOR_ERROR, t));
+
+                }
                 return null;
             }
         }

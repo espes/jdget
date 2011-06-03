@@ -1,14 +1,19 @@
 package org.appwork.utils.swing.table.columns;
 
+import java.awt.event.MouseEvent;
+import java.util.EventObject;
 import java.util.regex.Pattern;
 
 import javax.swing.JComponent;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
 
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
+import org.appwork.utils.swing.table.ExtTable;
 import org.appwork.utils.swing.table.ExtTableModel;
 
-public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
+public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellEditorListener {
 
     /**
      * 
@@ -65,6 +70,16 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
     }
 
     @Override
+    public void editingCanceled(final ChangeEvent e) {
+        this.cancelCellEditing();
+    }
+
+    @Override
+    public void editingStopped(final ChangeEvent e) {
+        this.stopCellEditing();
+    }
+
+    @Override
     public Object getCellEditorValue() {
         return this.editor.getCellEditorValue();
     }
@@ -76,7 +91,11 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
         this.editor = this.selectColumn(this.editing);
         if (this.editor.getModel() != this.getModel()) {
             this.editor.setModel(this.getModel());
+
         }
+
+        this.editor.removeCellEditorListener(this);
+        this.editor.addCellEditorListener(this);
         return this.editor.getEditorComponent(value, isSelected, row, column);
     }
 
@@ -104,6 +123,25 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> {
     protected String getToolTip(final T obj) {
         // TODO Auto-generated method stub
         return super.getToolTip(obj);
+    }
+
+    @Override
+    public boolean isCellEditable(final EventObject evt) {
+        if (evt instanceof MouseEvent) {
+            final ExtTable<T> table = this.getModel().getTable();
+            // final int col =
+            // table.columnAtPoint(((MouseEvent)evt).getPoint());
+            final int row = table.getRowIndexByPoint(((MouseEvent) evt).getPoint());
+            // final int modelIndex =
+            // table.getColumnModel().getColumn(col).getModelIndex();
+            // JComponent edit =
+            // this.getEditorComponent(getModel().getElementAt(row), true, row,
+            // modelIndex);
+            final ExtColumn<T> edit = this.selectColumn(this.getModel().getElementAt(row));
+
+            return ((MouseEvent) evt).getClickCount() >= edit.getClickcount() && edit.getClickcount() > 0;
+        }
+        return true;
     }
 
     @Override

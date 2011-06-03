@@ -41,7 +41,9 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
                     if (ExtComponentColumn.this.getModel().getExtColumn(modelIndex) == ExtComponentColumn.this) {
                         ExtComponentColumn.this.onCellUpdate(col, row);
                     } else {
-                        ExtComponentColumn.this.stopCellEditing();
+                        if (table.getEditingColumn() == col && table.getEditingRow() == row) {
+                            ExtComponentColumn.this.stopCellEditing();
+                        }
                     }
                     this.col = col;
                     this.row = row;

@@ -60,12 +60,13 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
             }
 
         });
-        this.init();
+
     }
 
     public void actionPerformed(final ActionEvent e) {
         this.editor.removeActionListener(this);
-        this.fireEditingStopped();
+        this.stopCellEditing();
+
     }
 
     @Override
@@ -180,13 +181,6 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     protected String getToolTip(final E obj) {
 
         return this.getBooleanValue(obj) ? APPWORKUTILS.T.active() : APPWORKUTILS.T.inactive();
-    }
-
-    /**
-     * 
-     */
-    protected void init() {
-
     }
 
     @Override

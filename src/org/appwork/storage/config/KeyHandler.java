@@ -171,7 +171,14 @@ public class KeyHandler {
     /**
      * @param object
      */
-    public void setValue(final Object object) {
+    public void setValue(final Object object) throws Throwable {
+        final Object validator = this.storageHandler.getValidator();
+        if (validator != null) {
+            // we call the defaultfactory setter to validate
+
+            this.getSetter().getMethod().invoke(validator, new Object[] { object });
+
+        }
         if (this.setter.isPrimitive()) {
 
             if (this.setter.getRawClass() == Boolean.class || this.setter.getRawClass() == boolean.class) {

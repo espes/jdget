@@ -17,7 +17,11 @@ import org.appwork.utils.event.SimpleEvent;
  */
 public class ConfigEvent<T extends ConfigInterface> extends SimpleEvent<T, Object, ConfigEvent.Types> {
     public static enum Types {
-        VALUE_UPDATED
+        VALUE_UPDATED,
+        /**
+         * Parameter[0] = Throwable from value validator
+         */
+        VALIDATOR_ERROR
 
     }
 
