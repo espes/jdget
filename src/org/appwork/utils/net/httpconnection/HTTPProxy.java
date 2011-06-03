@@ -55,7 +55,7 @@ public class HTTPProxy {
     private TYPE        type    = TYPE.DIRECT;
     private STATUS      status  = STATUS.OK;
 
-    private HTTPProxy(final TYPE type) {
+    public HTTPProxy(final TYPE type) {
         this.type = type;
     }
 

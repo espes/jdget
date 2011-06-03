@@ -14,7 +14,6 @@ import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,14 +26,14 @@ public class HTTPProxyUtils {
     public static LinkedList<InetAddress> getLocalIPs() {
         final LinkedList<InetAddress> ipsLocal = new LinkedList<InetAddress>();
         // debug
-        try {
-            ipsLocal.add(InetAddress.getByName("google.de"));
-
-            ipsLocal.add(InetAddress.getByName("jdownloader.org"));
-        } catch (final UnknownHostException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
+        // try {
+        // ipsLocal.add(InetAddress.getByName("google.de"));
+        //
+        // ipsLocal.add(InetAddress.getByName("jdownloader.org"));
+        // } catch (final UnknownHostException e1) {
+        // // TODO Auto-generated catch block
+        // e1.printStackTrace();
+        // }
         try {
             final Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
             while (nets.hasMoreElements()) {

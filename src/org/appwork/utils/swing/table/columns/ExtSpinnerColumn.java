@@ -1,5 +1,7 @@
 package org.appwork.utils.swing.table.columns;
 
+import java.awt.event.ActionEvent;
+
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.DefaultEditor;
@@ -60,6 +62,10 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
         this.doubleEditor = new JSpinner.NumberEditor(this.editor, "###.##");
         this.floatEditor = this.doubleEditor;
 
+        this.intEditor.getTextField().addActionListener(this);
+
+        this.doubleEditor.getTextField().addActionListener(this);
+
         this.intModel = new SpinnerNumberModel(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 1);
         this.longModel = new SpinnerNumberModel(0l, Long.MIN_VALUE, Long.MAX_VALUE, 1l);
         this.byteModel = new SpinnerNumberModel((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 1);
@@ -84,6 +90,13 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
             }
 
         });
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent e) {
+
+        this.stopCellEditing();
+        super.actionPerformed(e);
     }
 
     @Override
