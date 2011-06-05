@@ -266,8 +266,18 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     private Color foregroundBad = Color.red;
 
+    /**
+     * @param plugins
+     */
     public SearchComboBox() {
+        this(null);
+    }
+
+    public SearchComboBox(final ArrayList<T> plugins) {
         super((ComboBoxModel) null);
+        if (plugins != null) {
+            this.setList(plugins);
+        }
 
         this.setEditor(new Editor());
         this.setEditable(true);
@@ -299,7 +309,9 @@ public abstract class SearchComboBox<T> extends JComboBox {
             public Component getListCellRendererComponent(final JList list, final Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
                 try {
                     final JLabel ret = (JLabel) org.getListCellRendererComponent(list, SearchComboBox.this.getText((T) value), index, isSelected, cellHasFocus);
+
                     ret.setIcon(SearchComboBox.this.getIcon((T) value));
+
                     // ret.setOpaque(false);
                     return ret;
                 } catch (final Throwable e) {

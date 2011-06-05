@@ -47,6 +47,7 @@ import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
+import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.SwingUtils;
 
 public abstract class AbstractDialog<T> extends TimerDialog implements ActionListener, WindowListener {
@@ -80,7 +81,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     protected int            flagMask;
 
-    private final ImageIcon  icon;
+    private ImageIcon        icon;
 
     private boolean          initialized   = false;
 
@@ -95,6 +96,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     private AbstractAction[] actions       = null;
 
     private final String     title;
+
+    private JLabel           iconLabel;
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
@@ -194,7 +197,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             this.cancelButton.addActionListener(this);
             // add icon if available
             if (this.icon != null) {
-                this.getDialog().add(new JLabel(this.icon), "split 2,alignx left,aligny center,shrinkx,gapright 10");
+                this.getDialog().add(this.iconLabel = new JLabel(this.icon), "split 2,alignx left,aligny center,shrinkx,gapright 10");
             }
             // Layout the dialog content and add it to the contentpane
             this.panel = this.layoutDialogContent();
@@ -403,6 +406,20 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         return "ABSTRACTDIALOG_DONT_SHOW_AGAIN_" + this.getClass().getSimpleName() + "_" + this.toString();
     }
 
+    public ImageIcon getIcon() {
+        return this.icon;
+    }
+
+    /**
+     * Return the returnbitmask
+     * 
+     * @return
+     */
+    public int getReturnmask() {
+        if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
+        return this.returnBitMask;
+    }
+
     // /**
     // * should be overwritten and return a Dimension of the dialog should have
     // a
@@ -414,16 +431,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     //
     // return null;
     // }
-
-    /**
-     * Return the returnbitmask
-     * 
-     * @return
-     */
-    public int getReturnmask() {
-        if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
-        return this.returnBitMask;
-    }
 
     public T getReturnValue() {
         if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
@@ -466,6 +473,20 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * may be overwritten to set focus to special components etc.
      */
     protected void packed() {
+    }
+
+    public void setIcon(final ImageIcon icon) {
+
+        this.icon = icon;
+        if (this.iconLabel != null) {
+            new EDTRunner() {
+
+                @Override
+                protected void runInEDT() {
+                    AbstractDialog.this.iconLabel.setIcon(AbstractDialog.this.icon);
+                }
+            };
+        }
     }
 
     /**

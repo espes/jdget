@@ -379,7 +379,7 @@ public class Dialog implements WindowFocusListener {
      *            The Dialog is able to show a question to the user.
      * @param options
      *            A list of various options to select
-     * @param defaultSelection
+     * @param defaultSelectedIndex
      *            The option which is selected by default
      * @param icon
      *            The dialog is able to display an Icon If this is null, the
@@ -395,9 +395,51 @@ public class Dialog implements WindowFocusListener {
      * @throws DialogCanceledException
      * @throws DialogClosedException
      */
-    public int showComboDialog(final int flag, final String title, final String question, final Object[] options, final int defaultSelection, final ImageIcon icon, final String okOption, final String cancelOption, final ListCellRenderer renderer) throws DialogClosedException, DialogCanceledException {
-        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultSelection; }
-        return this.showDialog(new ComboBoxDialog(flag, title, question, options, defaultSelection, icon, okOption, cancelOption, renderer));
+    public int showComboDialog(final int flag, final String title, final String question, final Object[] options, final int defaultSelectedIndex, final ImageIcon icon, final String okOption, final String cancelOption, final ListCellRenderer renderer) throws DialogClosedException, DialogCanceledException {
+        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultSelectedIndex; }
+        return this.showDialog(new ComboBoxDialog(flag, title, question, options, defaultSelectedIndex, icon, okOption, cancelOption, renderer));
+    }
+
+    /**
+     * 
+     * @param flag
+     *            see {@link Dialog} - Flags. There are various flags to
+     *            customize the dialog
+     * @param title
+     *            The Dialog's Window Title
+     * @param question
+     *            The Dialog is able to show a question to the user.
+     * @param options
+     *            A list of various options to select
+     * @param defaultSelectedItem
+     *            The option which is selected by default
+     * @param icon
+     *            The dialog is able to display an Icon If this is null, the
+     *            dialog might select an Icon derived from the message and title
+     *            text
+     * @param okOption
+     *            Text for OK Button [null for default]
+     * @param cancelOption
+     *            Text for Cancel Button [null for default]
+     * @param renderer
+     *            A renderer to customize the Dialog. Might be null
+     * @return
+     * @throws DialogCanceledException
+     * @throws DialogClosedException
+     */
+    public Object showComboDialog(final int flag, final String title, final String question, final Object[] options, final Object defaultSelectedItem, final ImageIcon icon, final String okOption, final String cancelOption, final ListCellRenderer renderer) throws DialogClosedException, DialogCanceledException {
+        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultSelectedItem; }
+        int def = 0;
+        for (int i = 0; i < options.length; i++) {
+            if (options[i] == defaultSelectedItem) {
+                def = i;
+                break;
+            }
+
+        }
+        final Integer returnIndex = this.showDialog(new ComboBoxDialog(flag, title, question, options, def, icon, okOption, cancelOption, renderer));
+        return options[returnIndex];
+
     }
 
     /**

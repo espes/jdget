@@ -61,9 +61,9 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
         super(flag, title, icon, okText, cancelText);
         Log.L.fine("Dialog    [" + okText + "][" + cancelText + "]\r\nflag:  " + Integer.toBinaryString(flag) + "\r\ntitle: " + title + "\r\nmsg:   \r\n" + question + "\r\noptions:   \r\n" + Arrays.toString(options) + "\r\ndef:" + defaultSelection);
 
-        message = question;
+        this.message = question;
         this.renderer = renderer;
-        defaultAnswer = defaultSelection;
+        this.defaultAnswer = defaultSelection;
         this.options = options;
     }
 
@@ -74,12 +74,42 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
      */
     @Override
     protected Integer createReturnValue() {
-        return getReturnIndex();
+        return this.getReturnIndex();
+    }
+
+    /**
+     * @param options2
+     * @return
+     */
+    protected JComboBox getComboBox(final Object[] options2) {
+
+        final JComboBox ret = new JComboBox(options2);
+        final ListCellRenderer rend = this.getRenderer(ret.getRenderer());
+        if (rend != null) {
+            ret.setRenderer(rend);
+        }
+
+        try {
+
+            ret.setSelectedIndex(this.defaultAnswer);
+        } catch (final Exception e) {
+            Log.exception(e);
+        }
+        return ret;
+    }
+
+    /**
+     * @param renderer2
+     * @return
+     */
+    protected ListCellRenderer getRenderer(final ListCellRenderer orgRenderer) {
+        // TODO Auto-generated method stub
+        return this.renderer;
     }
 
     public Integer getReturnIndex() {
-        if ((getReturnmask() & Dialog.RETURN_OK) == 0) { return Integer.valueOf(-1); }
-        return Integer.valueOf(box.getSelectedIndex());
+        if ((this.getReturnmask() & Dialog.RETURN_OK) == 0) { return Integer.valueOf(-1); }
+        return Integer.valueOf(this.box.getSelectedIndex());
     }
 
     /*
@@ -90,26 +120,18 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
     @Override
     public JComponent layoutDialogContent() {
         final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
-        textpane = new JTextPane();
-        textpane.setBorder(null);
-        textpane.setBackground(null);
-        textpane.setOpaque(false);
-        textpane.putClientProperty("Synthetica.opaque", Boolean.FALSE);
-        textpane.setText(message);
-        textpane.setEditable(false);
+        this.textpane = new JTextPane();
+        this.textpane.setBorder(null);
+        this.textpane.setBackground(null);
+        this.textpane.setOpaque(false);
+        this.textpane.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        this.textpane.setText(this.message);
+        this.textpane.setEditable(false);
 
-        contentpane.add(textpane);
+        contentpane.add(this.textpane);
 
-        box = new JComboBox(options);
-        if (renderer != null) {
-            box.setRenderer(renderer);
-        }
-        try {
+        this.box = this.getComboBox(this.options);
 
-            box.setSelectedIndex(defaultAnswer);
-        } catch (final Exception e) {
-            Log.exception(e);
-        }
         // no idea what this has been good for
         // if (this.getDesiredSize() != null) {
         // this.box.setBounds(0, 0, (int) this.getDesiredSize().getWidth(),
@@ -119,7 +141,7 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
         // this.box.setBounds(0, 0, 450, 600);
         // this.box.setMaximumSize(new Dimension(450, 600));
         // }
-        contentpane.add(box, "pushy,growy, width n:n:450");
+        contentpane.add(this.box, "pushy,growy, width n:n:450");
 
         return contentpane;
     }

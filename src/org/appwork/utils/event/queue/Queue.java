@@ -259,15 +259,18 @@ public abstract class Queue extends Thread {
 
     public void killQueue() {
         synchronized (this.queueLock) {
+            System.out.println(this.queue);
             for (final QueuePriority prio : this.prios) {
                 for (final QueueAction<?, ? extends Throwable> item : this.queue.get(prio)) {
                     /* kill item */
+                    System.out.println("K");
                     item.kill();
                     synchronized (item) {
                         item.notify();
                     }
                 }
                 /* clear queue */
+
                 this.queue.get(prio).clear();
             }
 

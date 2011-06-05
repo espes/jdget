@@ -66,13 +66,13 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         this.renderer.setValue((int) v);
 
         this.renderer.setString(this.getString(value));
-        if (isSelected) {
-            this.renderer.setForeground(this.getModel().getTable().getColumnForegroundSelected());
-            this.renderer.setBackground(this.getModel().getTable().getColumnBackgroundSelected());
-        } else {
-            this.renderer.setForeground(this.getModel().getTable().getColumnForeground());
-            this.renderer.setBackground(this.getModel().getTable().getColumnBackground());
-        }
+        // if (isSelected) {
+        // this.renderer.setForeground(this.getModel().getTable().getColumnForegroundSelected());
+        // this.renderer.setBackground(this.getModel().getTable().getColumnBackgroundSelected());
+        // } else {
+        // this.renderer.setForeground(this.getModel().getTable().getColumnForeground());
+        // this.renderer.setBackground(this.getModel().getTable().getColumnBackground());
+        // }
 
     }
 
