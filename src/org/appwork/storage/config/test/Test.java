@@ -15,6 +15,7 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.ConfigEventListener;
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.JsonConfig;
+import org.appwork.storage.config.KeyHandler;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -46,6 +47,12 @@ public class Test {
             final MyInterface jc = JsonConfig.create(MyInterface.class);
 
             jc.getStorageHandler().getEventSender().addListener(new ConfigEventListener() {
+
+                @Override
+                public void onConfigValidatorError(final ConfigInterface config, final Throwable validateException, final KeyHandler methodHandler) {
+                    // TODO Auto-generated method stub
+
+                }
 
                 @Override
                 public void onConfigValueModified(final ConfigInterface config, final String key, final Object newValue) {

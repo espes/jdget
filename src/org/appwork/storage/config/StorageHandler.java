@@ -262,9 +262,11 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 try {
                     handler.setValue(parameter[0]);
                     this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
+                } catch (final InvocationTargetException t) {
+                    this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALIDATOR_ERROR, t.getTargetException(), handler));
 
                 } catch (final Throwable t) {
-                    this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALIDATOR_ERROR, t));
+                    this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALIDATOR_ERROR, t, handler));
 
                 }
                 return null;

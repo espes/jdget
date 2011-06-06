@@ -12,14 +12,13 @@ import java.util.Locale;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
-import org.appwork.storage.JSonStorage;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
 
 public class TranslationFactory {
 
     private static final HashMap<String, TranslateInterface> CACHE    = new HashMap<String, TranslateInterface>();
-    private static final String                              LANGUAGE = "LANGUAGE";
+    private static String                                    language = System.getProperty("user.language").toLowerCase();
 
     public static <T extends TranslateInterface> T create(final Class<T> class1) {
         return TranslationFactory.create(class1, TranslationFactory.getDesiredLanguage());
@@ -130,7 +129,7 @@ public class TranslationFactory {
     }
 
     public static String getDesiredLanguage() {
-        return JSonStorage.getPlainStorage("translation").get(TranslationFactory.LANGUAGE, System.getProperty("user.language").toLowerCase());
+        return TranslationFactory.language;
     }
 
     /**
@@ -164,7 +163,8 @@ public class TranslationFactory {
 
     public static boolean setDesiredLanguage(final String loc) {
         if (TranslationFactory.getDesiredLanguage().equals(loc)) { return false; }
-        JSonStorage.getPlainStorage("translation").put(TranslationFactory.LANGUAGE, loc);
+        TranslationFactory.language = loc;
+
         for (final TranslateInterface i : TranslationFactory.CACHE.values()) {
             i._setLanguage(loc);
         }

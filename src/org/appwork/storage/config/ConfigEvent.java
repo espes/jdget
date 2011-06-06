@@ -19,7 +19,8 @@ public class ConfigEvent<T extends ConfigInterface> extends SimpleEvent<T, Objec
     public static enum Types {
         VALUE_UPDATED,
         /**
-         * Parameter[0] = Throwable from value validator
+         * Parameter[0] = Throwable from value validator<br>
+         * Parameter[1] = Methodhandler
          */
         VALIDATOR_ERROR
 

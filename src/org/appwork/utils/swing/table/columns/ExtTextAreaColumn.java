@@ -93,7 +93,7 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
             str = "";
         }
         this.txt.setText(str);
-        final int prefSize = Math.min(120, Math.max(this.getModel().getTable().getRowHeight(row) + 20, this.txt.getPreferredSize().height));
+        final int prefSize = Math.min(this.getMaxHeight(value), Math.max(this.getModel().getTable().getRowHeight(row) + 20, this.txt.getPreferredSize().height));
 
         if (prefSize != this.getModel().getTable().getRowHeight(row)) {
             this.oldRowHeight = this.getModel().getTable().getRowHeight(row);
@@ -151,6 +151,15 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
      */
     protected Icon getIcon(final E value) {
         return null;
+    }
+
+    /**
+     * @param value
+     * @return
+     */
+    private int getMaxHeight(final E value) {
+        // TODO Auto-generated method stub
+        return 300;
     }
 
     /**

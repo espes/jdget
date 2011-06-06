@@ -52,20 +52,15 @@ public abstract class SearchComboBox<T> extends JComboBox {
             this.tf = new JTextField();
             this.icon = new JLabel();
             // editor panel
-            this.panel = new MigPanel("ins 0", "[][grow,fill]", "[grow,fill]");
-            this.panel.addFocusListener(new FocusListener() {
+            this.panel = new MigPanel("ins 0", "[][grow,fill]", "[grow,fill]") {
 
                 @Override
-                public void focusGained(final FocusEvent e) {
+                public void requestFocus() {
                     Editor.this.tf.requestFocus();
                 }
 
-                @Override
-                public void focusLost(final FocusEvent e) {
-                    // TODO Auto-generated method stub
+            };
 
-                }
-            });
             this.panel.add(this.icon);
             this.panel.setOpaque(true);
             this.panel.setBackground(this.tf.getBackground());

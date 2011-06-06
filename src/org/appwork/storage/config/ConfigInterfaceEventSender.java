@@ -29,6 +29,12 @@ public class ConfigInterfaceEventSender<T extends ConfigInterface> extends Event
         switch (event.getType()) {
         case VALUE_UPDATED:
             listener.onConfigValueModified(event.getCaller(), (String) event.getParameter(0), event.getParameter(1));
+            break;
+        case VALIDATOR_ERROR:
+            listener.onConfigValidatorError(event.getCaller(), (Throwable) event.getParameter(0), (KeyHandler) event.getParameter(1));
+            break;
+        default:
+            throw new RuntimeException(event.getType() + " is not handled");
         }
 
     }
