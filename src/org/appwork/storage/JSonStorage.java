@@ -76,7 +76,7 @@ public class JSonStorage {
 
         if (gType instanceof Class) {
             final Class<?> type = (Class<?>) gType;
-            if (type == void.class) { throw new InvalidTypeException("Void is not accepted: " + path); }
+            if (type == void.class) { throw new InvalidTypeException(gType, "Void is not accepted: " + path); }
             if (type.isPrimitive()) { return; }
             if (type == Boolean.class || type == Long.class || type == Integer.class || type == Byte.class || type == Double.class || type == Float.class || type == String.class) { return; }
             if (type.isEnum()) { return; }
@@ -96,17 +96,17 @@ public class JSonStorage {
                     for (final Method m : type.getDeclaredMethods()) {
                         if (m.getName().startsWith("get")) {
 
-                            if (m.getParameterTypes().length > 0) { throw new InvalidTypeException("Getter " + path + "." + m + " has parameters."); }
+                            if (m.getParameterTypes().length > 0) { throw new InvalidTypeException(gType, "Getter " + path + "." + m + " has parameters."); }
                             JSonStorage.canStoreIntern(m.getGenericReturnType(), path + "->" + m.getGenericReturnType());
 
                         } else if (m.getName().startsWith("set")) {
-                            if (m.getParameterTypes().length != 1) { throw new InvalidTypeException("Setter " + path + "." + m + " has != Parameters."); }
+                            if (m.getParameterTypes().length != 1) { throw new InvalidTypeException(gType, "Setter " + path + "." + m + " has != Parameters."); }
 
                         }
                     }
                     return;
                 } catch (final NoSuchMethodException e) {
-                    throw new InvalidTypeException("Storable " + path + " has no empty Constructor");
+                    throw new InvalidTypeException(gType, "Storable " + path + " has no empty Constructor");
                 }
 
             }
@@ -133,10 +133,10 @@ public class JSonStorage {
             JSonStorage.canStoreIntern(t, path + "[" + t + "]");
             return;
         } else {
-            throw new InvalidTypeException("Generic Type Structure not implemented: " + gType.getClass() + " in " + path);
+            throw new InvalidTypeException(gType, "Generic Type Structure not implemented: " + gType.getClass() + " in " + path);
         }
 
-        throw new InvalidTypeException("Type " + path + " is not supported.");
+        throw new InvalidTypeException(gType, "Type " + path + " is not supported.");
 
     }
 

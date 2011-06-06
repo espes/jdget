@@ -9,6 +9,8 @@
  */
 package org.appwork.storage;
 
+import java.lang.reflect.Type;
+
 /**
  * @author thomas
  * 
@@ -19,20 +21,13 @@ public class InvalidTypeException extends Exception {
      * 
      */
     private static final long serialVersionUID = 1L;
+    private Type              type;
 
     /**
      * 
      */
     public InvalidTypeException() {
         super();
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * @param message
-     */
-    public InvalidTypeException(final String message) {
-        super(message);
         // TODO Auto-generated constructor stub
     }
 
@@ -51,6 +46,24 @@ public class InvalidTypeException extends Exception {
     public InvalidTypeException(final Throwable cause) {
         super(cause);
         // TODO Auto-generated constructor stub
+    }
+
+    /**
+     * @param gType
+     * @param message
+     */
+    public InvalidTypeException(final Type gType, final String message) {
+        super(message);
+        this.type = gType;
+        // TODO Auto-generated constructor stub
+    }
+
+    public Type getType() {
+        return this.type;
+    }
+
+    public void setType(final Type type) {
+        this.type = type;
     }
 
 }

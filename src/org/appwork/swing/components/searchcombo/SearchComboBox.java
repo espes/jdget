@@ -53,6 +53,19 @@ public abstract class SearchComboBox<T> extends JComboBox {
             this.icon = new JLabel();
             // editor panel
             this.panel = new MigPanel("ins 0", "[][grow,fill]", "[grow,fill]");
+            this.panel.addFocusListener(new FocusListener() {
+
+                @Override
+                public void focusGained(final FocusEvent e) {
+                    Editor.this.tf.requestFocus();
+                }
+
+                @Override
+                public void focusLost(final FocusEvent e) {
+                    // TODO Auto-generated method stub
+
+                }
+            });
             this.panel.add(this.icon);
             this.panel.setOpaque(true);
             this.panel.setBackground(this.tf.getBackground());
@@ -275,6 +288,19 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     public SearchComboBox(final ArrayList<T> plugins) {
         super((ComboBoxModel) null);
+        this.addFocusListener(new FocusListener() {
+
+            @Override
+            public void focusGained(final FocusEvent e) {
+                SearchComboBox.this.getEditor().getEditorComponent().requestFocus();
+            }
+
+            @Override
+            public void focusLost(final FocusEvent e) {
+                // TODO Auto-generated method stub
+
+            }
+        });
         if (plugins != null) {
             this.setList(plugins);
         }
@@ -361,6 +387,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * 
      * @deprecated use {@link #setList(ArrayList)}
      */
+    @Override
     @Deprecated
     public void setModel(final ComboBoxModel aModel) {
         if (aModel == null) {

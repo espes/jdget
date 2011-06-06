@@ -103,7 +103,6 @@ public class MethodHandler {
         // get parent crypt infos
         this.crypted = storageHandler.isCrypted();
         this.cryptKey = storageHandler.getKey();
-        this.path = new File(storageHandler.getPath() + "." + this.key + "." + (this.isCrypted() ? "ejs" : "json"));
         // read local cryptinfos
         final CryptedStorage an = m.getAnnotation(CryptedStorage.class);
         if (an != null) {
@@ -120,6 +119,9 @@ public class MethodHandler {
             this.crypted = false;
 
         }
+
+        this.path = new File(storageHandler.getPath() + "." + this.key + "." + (this.isCrypted() ? "ejs" : "json"));
+
         /*
          * the following is all default value creation. To speed this up, we
          * could implement a @NoDefaultValues Annotation

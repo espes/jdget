@@ -21,6 +21,7 @@ import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
 import org.appwork.storage.StorageException;
+import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.storage.config.annotations.CryptedStorage;
 import org.appwork.storage.config.annotations.DefaultFactory;
 import org.appwork.storage.config.annotations.ValueValidator;
@@ -242,12 +243,13 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     public Object invoke(final Object instance, final Method m, final Object[] parameter) throws Throwable {
         if (m.getName().equals("toString")) {
             return this.toString();
-        } else if (m.getName().equals("addListener")) {
-            this.eventSender.addListener((ConfigEventListener) parameter[0]);
-            return null;
-        } else if (m.getName().equals("removeListener")) {
-            this.eventSender.removeListener((ConfigEventListener) parameter[0]);
-            return null;
+            // } else if (m.getName().equals("addListener")) {
+            // this.eventSender.addListener((ConfigEventListener) parameter[0]);
+            // return null;
+            // } else if (m.getName().equals("removeListener")) {
+            // this.eventSender.removeListener((ConfigEventListener)
+            // parameter[0]);
+            // return null;
         } else if (m.getName().equals("getStorageHandler")) {
             return this;
 
@@ -308,7 +310,17 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     try {
                         JSonStorage.canStore(m.getGenericReturnType());
                     } catch (final InvalidTypeException e) {
-                        throw new InterfaceParseException(e);
+                        final AllowStorage allow = m.getAnnotation(AllowStorage.class);
+                        boolean found = false;
+                        if (allow != null) {
+                            for (final Class<?> c : allow.value()) {
+                                if (e.getType() == c) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!found) { throw new InterfaceParseException(e); }
                     }
                     KeyHandler kh = parseMap.get(key);
                     if (kh == null) {
@@ -352,7 +364,17 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     try {
                         JSonStorage.canStore(m.getGenericParameterTypes()[0]);
                     } catch (final InvalidTypeException e) {
-                        throw new InterfaceParseException(e);
+                        final AllowStorage allow = m.getAnnotation(AllowStorage.class);
+                        boolean found = false;
+                        if (allow != null) {
+                            for (final Class<?> c : allow.value()) {
+                                if (e.getType() == c) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!found) { throw new InterfaceParseException(e); }
                     }
 
                     KeyHandler kh = parseMap.get(key);
