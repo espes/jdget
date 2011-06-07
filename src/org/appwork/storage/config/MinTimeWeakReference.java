@@ -14,17 +14,15 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+
+import org.appwork.scheduler.DelayedRunnable;
 
 /**
  * @author thomas
  * 
  */
-public class MinTimeWeakReference<T> extends WeakReference<T> implements Runnable {
+public class MinTimeWeakReference<T> extends WeakReference<T> {
 
-    // private static final ReferenceQueue<? super Object> QUEUE = new
-    // ReferenceQueue<Object>();
     private static final ScheduledExecutorService       EXECUTER = Executors.newSingleThreadScheduledExecutor();
 
     private static final ReferenceQueue<? super Object> QUEUE    = new ReferenceQueue<Object>();
@@ -52,7 +50,7 @@ public class MinTimeWeakReference<T> extends WeakReference<T> implements Runnabl
 
     public static void main(final String[] args) {
 
-        final MinTimeWeakReference<double[]> ref = new MinTimeWeakReference<double[]>(new double[Integer.MAX_VALUE / 100], 10000, null);
+        final MinTimeWeakReference<double[]> ref = new MinTimeWeakReference<double[]>(new double[20000], 2000, null);
         for (int i = 0; i < 20; i++) {
             System.out.println(i * 1000 + " - " + ref.get().length);
             try {
@@ -71,18 +69,16 @@ public class MinTimeWeakReference<T> extends WeakReference<T> implements Runnabl
                 e.printStackTrace();
             }
             System.gc();
-            System.out.println(i * 1000 + " - " + ref.superget() != null);
+            System.out.println(i * 1000 + " - " + (ref.superget() != null));
         }
 
     }
 
-    private Object             hard;
+    private T                     hard;
 
-    private ScheduledFuture<?> sustainer;
+    private final String          id;
 
-    private final long         minlifetime;
-
-    private final String       id;
+    private final DelayedRunnable delayer;
 
     /**
      * @param ret
@@ -94,8 +90,14 @@ public class MinTimeWeakReference<T> extends WeakReference<T> implements Runnabl
         super(ret, MinTimeWeakReference.QUEUE);
         this.hard = ret;
         this.id = id;
-        this.minlifetime = minlifetime;
-        this.sustainer = MinTimeWeakReference.EXECUTER.schedule(this, minlifetime, TimeUnit.MILLISECONDS);
+        this.delayer = new DelayedRunnable(MinTimeWeakReference.EXECUTER, minlifetime) {
+
+            @Override
+            public void delayedrun() {
+                MinTimeWeakReference.this.hard = null;
+            }
+
+        };
         System.out.println("Created Week " + id);
     }
 
@@ -105,28 +107,13 @@ public class MinTimeWeakReference<T> extends WeakReference<T> implements Runnabl
     @Override
     public T get() {
         final T ret = super.get();
-        if (this.sustainer != null) {
-            this.sustainer.cancel(true);
-        }
-        this.hard = ret;
-
-        if (this.hard == null) {
-            this.sustainer = null;
+        if (ret == null) {
+            this.delayer.stop();
         } else {
-            this.sustainer = MinTimeWeakReference.EXECUTER.schedule(this, this.minlifetime, TimeUnit.MILLISECONDS);
+            this.hard = ret;
+            this.delayer.run();
         }
-        return ret;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Runnable#run()
-     */
-    @Override
-    public void run() {
-        this.hard = null;
-
+        return this.hard;
     }
 
     /**

@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import javax.swing.ComboBoxEditor;
 import javax.swing.ComboBoxModel;
@@ -26,7 +28,7 @@ import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.basic.ComboPopup;
 
 import org.appwork.app.gui.MigPanel;
-import org.appwork.scheduler.SingleSchedule;
+import org.appwork.scheduler.DelayedRunnable;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTRunner;
 
@@ -40,15 +42,15 @@ import org.appwork.utils.swing.EDTRunner;
  */
 public abstract class SearchComboBox<T> extends JComboBox {
     class Editor implements ComboBoxEditor {
-        private final JTextField     tf;
-        private final MigPanel       panel;
-        private final JLabel         icon;
-        private T                    value;
-        private final SingleSchedule sheduler;
-        private final Color          defaultForeground;
-        private boolean              setting;
+        private final JTextField      tf;
+        private final MigPanel        panel;
+        private final JLabel          icon;
+        private T                     value;
+        private final DelayedRunnable sheduler;
+        private final Color           defaultForeground;
+        private boolean               setting;
 
-        public Editor() {
+        public Editor(final ScheduledExecutorService scheduler) {
             this.tf = new JTextField();
             this.icon = new JLabel();
             // editor panel
@@ -70,7 +72,14 @@ public abstract class SearchComboBox<T> extends JComboBox {
             this.tf.putClientProperty("Synthetica.opaque", Boolean.FALSE);
             this.defaultForeground = this.tf.getForeground();
             this.panel.add(this.tf);
-            this.sheduler = new SingleSchedule(50);
+            this.sheduler = new DelayedRunnable(scheduler, 150l) {
+
+                @Override
+                public void delayedrun() {
+                    Editor.this.autoComplete(true);
+                }
+
+            };
             // this.panel.setBorder(this.tf.getBorder());
             this.tf.setBorder(null);
             this.tf.addFocusListener(new FocusListener() {
@@ -125,13 +134,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         private void auto() {
             if (this.setting) { return; }
             // scheduler executes at least 50 ms after this submit.
-            this.sheduler.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    Editor.this.autoComplete(true);
-                }
-            });
+            this.sheduler.run();
 
         }
 
@@ -278,10 +281,10 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * @param plugins
      */
     public SearchComboBox() {
-        this(null);
+        this(null, Executors.newSingleThreadScheduledExecutor());
     }
 
-    public SearchComboBox(final ArrayList<T> plugins) {
+    public SearchComboBox(final ArrayList<T> plugins, final ScheduledExecutorService scheduler) {
         super((ComboBoxModel) null);
         this.addFocusListener(new FocusListener() {
 
@@ -300,7 +303,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
             this.setList(plugins);
         }
 
-        this.setEditor(new Editor());
+        this.setEditor(new Editor(scheduler));
         this.setEditable(true);
 
         // we extends the existing renderer. this avoids LAF incompatibilities
