@@ -97,9 +97,11 @@ public class Hash {
             final byte[] b = new byte[32767];
 
             fis = new FileInputStream(arg);
-
-            for (int n = 0; (n = fis.read(b)) > -1;) {
-                md.update(b, 0, n);
+            int n = 0;
+            while ((n = fis.read(b)) >= 0) {
+                if (n > 0) {
+                    md.update(b, 0, n);
+                }
             }
         } catch (final Throwable e) {
             e.printStackTrace();
@@ -140,19 +142,19 @@ public class Hash {
     }
 
     /**
-     * @param createPostData
-     * @return
-     */
-    public static String getSHA256(final String createPostData) {
-        return Hash.getStringHash(createPostData, Hash.HASH_TYPE_SHA256);
-    }
-
-    /**
      * @param f
      * @return
      */
     public static String getSHA256(final File f) {
         return Hash.getFileHash(f, Hash.HASH_TYPE_SHA256);
+    }
+
+    /**
+     * @param createPostData
+     * @return
+     */
+    public static String getSHA256(final String createPostData) {
+        return Hash.getStringHash(createPostData, Hash.HASH_TYPE_SHA256);
     }
 
     public static String getStringHash(final String arg, final String type) {

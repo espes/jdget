@@ -39,6 +39,21 @@ public class ThrottledConnectionManager {
     }
 
     /**
+     * adds ThrottledConnection for Input to this manager
+     * 
+     * @param tin
+     */
+    public void addManagedThrottledInputConnection(final ThrottledConnection tcon) {
+        synchronized (this.LOCK) {
+            if (this.managedIn.contains(tcon)) { return; }
+            this.managedIn.add(tcon);
+            tcon.setManager(this);
+            tcon.setManagedLimit(this.IncommingBandwidthLimit / this.managedIn.size());
+            this.startWatchDog();
+        }
+    }
+
+    /**
      * adds ThrottledInputStream to this manager
      * 
      * @param tin
@@ -167,6 +182,23 @@ public class ThrottledConnectionManager {
                 }
             }
             return currentRealSpeed;
+        }
+    }
+
+    /**
+     * removes ThrottledConnection for Input from this manager
+     * 
+     * @param tin
+     * @return
+     */
+    public boolean removeManagedThrottledInputConnection(final ThrottledConnection tcon) {
+        synchronized (this.LOCK) {
+            final boolean ret = this.managedIn.remove(tcon);
+            if (ret) {
+                tcon.setManager(null);
+                tcon.setManagedLimit(0);
+            }
+            return ret;
         }
     }
 
