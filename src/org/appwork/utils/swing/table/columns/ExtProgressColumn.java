@@ -1,9 +1,15 @@
 package org.appwork.utils.swing.table.columns;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
+
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JProgressBar;
 import javax.swing.border.CompoundBorder;
+import javax.swing.event.TableModelEvent;
 
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
@@ -11,8 +17,12 @@ import org.appwork.utils.swing.table.ExtTableModel;
 
 abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     private static final long serialVersionUID = -2473320164484034664L;
-    protected JProgressBar    renderer;
+    protected JProgressBar    determinatedRenderer;
     private CompoundBorder    defaultBorder;
+    private JProgressBar      indeterminatedRenderer;
+    private JProgressBar      renderer;
+    private HashMap<E, Long>  map;
+    private int               columnIndex      = -1;
 
     /**
      * 
@@ -21,10 +31,78 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         this(title, null);
     }
 
-    public ExtProgressColumn(final String name, final ExtTableModel<E> table) {
-        super(name, table);
-        this.renderer = new JProgressBar();
-        this.defaultBorder = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1), this.renderer.getBorder());
+    public ExtProgressColumn(final String name, final ExtTableModel<E> extModel) {
+        super(name, extModel);
+        this.determinatedRenderer = new JProgressBar();
+
+        this.indeterminatedRenderer = new JProgressBar() {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+            private long              timer            = 0;
+            private long              cleanupTimer     = 0;
+
+            @Override
+            public boolean isDisplayable() {
+                return true;
+            }
+
+            @Override
+            public void repaint() {
+                if (extModel.getTable() != null && extModel.getTable().isShowing()) {
+
+                    // cleanup map in case we removed a indeterminated value
+                    if (System.currentTimeMillis() - this.cleanupTimer > 30000) {
+                        Entry<E, Long> next;
+                        for (final Iterator<Entry<E, Long>> it = ExtProgressColumn.this.map.entrySet().iterator(); it.hasNext();) {
+                            next = it.next();
+                            final long lastUpdate = System.currentTimeMillis() - next.getValue();
+                            if (lastUpdate > 5000) {
+                                it.remove();
+                            }
+                        }
+
+                        this.cleanupTimer = System.currentTimeMillis();
+                        if (ExtProgressColumn.this.map.size() == 0) {
+                            ExtProgressColumn.this.indeterminatedRenderer.setIndeterminate(false);
+                            return;
+                        }
+
+                    }
+                    if (System.currentTimeMillis() - this.timer > 1000 / ExtProgressColumn.this.getFps() && ExtProgressColumn.this.columnIndex >= 0) {
+                        final ArrayList<E> selection = extModel.getSelectedObjects();
+
+                        extModel.fireTableChanged(new TableModelEvent(extModel, 0, Integer.MAX_VALUE, ExtProgressColumn.this.columnIndex, TableModelEvent.UPDATE));
+                        extModel.setSelectedObjects(selection);
+                        System.out.println("Repaint");
+                        this.timer = System.currentTimeMillis();
+                    }
+
+                }
+
+            }
+
+        };
+        this.map = new HashMap<E, Long>();
+
+        // this.getModel().addTableModelListener(new TableModelListener() {
+        //
+        // @Override
+        // public void tableChanged(final TableModelEvent e) {
+        // switch (e.getType()) {
+        // case TableModelEvent.DELETE:
+        // case TableModelEvent.UPDATE:
+        // System.out.println(e);
+        // if (ExtProgressColumn.this.map.size() == 0) {
+        // ExtProgressColumn.this.indeterminatedRenderer.setIndeterminate(false);
+        // }
+        // }
+        //
+        // }
+        // });
+        this.renderer = this.determinatedRenderer;
+        this.defaultBorder = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1), this.determinatedRenderer.getBorder());
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
@@ -50,29 +128,29 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
     @Override
     public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        if (this.renderer == this.determinatedRenderer) {
 
-        this.renderer.setIndeterminate(false);
-        // Normalize value and maxvalue to fit in the integer range
-        long v = this.getValue(value);
-        long m = this.getMax(value);
-        final double factor = Math.max(v / (double) Integer.MAX_VALUE, m / (double) Integer.MAX_VALUE);
+            // Normalize value and maxvalue to fit in the integer range
+            long v = this.getValue(value);
+            long m = this.getMax(value);
+            final double factor = Math.max(v / (double) Integer.MAX_VALUE, m / (double) Integer.MAX_VALUE);
 
-        if (factor >= 1.0) {
-            v /= factor;
-            m /= factor;
+            if (factor >= 1.0) {
+                v /= factor;
+                m /= factor;
+            }
+            // take care to set the maximum before the value!!
+            this.renderer.setMaximum((int) m);
+            this.renderer.setValue((int) v);
+
+            this.renderer.setString(this.getString(value));
+
+        } else {
+            this.renderer.setString(this.getString(value));
+            if (!this.renderer.isIndeterminate()) {
+                this.renderer.setIndeterminate(true);
+            }
         }
-        // take care to set the maximum before the value!!
-        this.renderer.setMaximum((int) m);
-        this.renderer.setValue((int) v);
-
-        this.renderer.setString(this.getString(value));
-        // if (isSelected) {
-        // this.renderer.setForeground(this.getModel().getTable().getColumnForegroundSelected());
-        // this.renderer.setBackground(this.getModel().getTable().getColumnBackgroundSelected());
-        // } else {
-        // this.renderer.setForeground(this.getModel().getTable().getColumnForeground());
-        // this.renderer.setBackground(this.getModel().getTable().getColumnBackground());
-        // }
 
     }
 
@@ -97,6 +175,13 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         return null;
     }
 
+    /**
+     * @return
+     */
+    protected int getFps() {
+        return 20;
+    }
+
     protected long getMax(final E value) {
         return 100;
     }
@@ -106,6 +191,22 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      */
     @Override
     public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.columnIndex = column;
+        if (this.isIndeterminated(value, isSelected, hasFocus, row, column)) {
+            this.renderer = this.indeterminatedRenderer;
+            if (this.map.size() == 0) {
+                this.indeterminatedRenderer.setIndeterminate(true);
+            }
+            this.map.put(value, System.currentTimeMillis());
+            System.out.println(this.map);
+
+        } else {
+            this.renderer = this.determinatedRenderer;
+            this.map.remove(value);
+            if (this.map.size() == 0) {
+                this.indeterminatedRenderer.setIndeterminate(false);
+            }
+        }
         return this.renderer;
     }
 
@@ -143,6 +244,19 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     public boolean isEnabled(final E obj) {
 
         return true;
+    }
+
+    /**
+     * @param column
+     * @param row
+     * @param hasFocus
+     * @param isSelected
+     * @param value
+     * @return
+     */
+    protected boolean isIndeterminated(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        // TODO Auto-generated method stub
+        return false;
     }
 
     /*
