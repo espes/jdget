@@ -21,12 +21,21 @@ public abstract class DelayedRunnable implements Runnable {
 
     private final ScheduledExecutorService service;
     private final long                     delayInMS;
-    private volatile long                  lastRunRequest = 0;
+    private volatile long                  lastRunRequest  = 0;
+    private volatile long                  firstRunRequest = 0;
     private ScheduledFuture<?>             delayer;
+    private final long                     maxInMS;
 
     public DelayedRunnable(final ScheduledExecutorService service, final long delayInMS) {
+        this(service, delayInMS, -1);
+    }
+
+    public DelayedRunnable(final ScheduledExecutorService service, final long minDelayInMS, final long maxDelayInMS) {
         this.service = service;
-        this.delayInMS = delayInMS;
+        this.delayInMS = minDelayInMS;
+        this.maxInMS = maxDelayInMS;
+        if (this.delayInMS <= 0) { throw new IllegalArgumentException("minDelay must be >=0"); }
+        if (this.maxInMS == 0) { throw new IllegalArgumentException("maxDelay must be !=0"); }
     }
 
     abstract public void delayedrun();
@@ -36,11 +45,15 @@ public abstract class DelayedRunnable implements Runnable {
         synchronized (this) {
             this.lastRunRequest = System.currentTimeMillis();
             if (this.delayer == null) {
+                this.firstRunRequest = System.currentTimeMillis();
                 this.delayer = this.service.schedule(new Runnable() {
                     public void run() {
                         boolean delayAgain = false;
                         synchronized (DelayedRunnable.this) {
                             delayAgain = System.currentTimeMillis() - DelayedRunnable.this.lastRunRequest > DelayedRunnable.this.delayInMS;
+                            if (DelayedRunnable.this.maxInMS > 0 && System.currentTimeMillis() - DelayedRunnable.this.firstRunRequest > DelayedRunnable.this.maxInMS) {
+                                delayAgain = false;
+                            }
                         }
                         if (!delayAgain) {
                             synchronized (DelayedRunnable.this) {
