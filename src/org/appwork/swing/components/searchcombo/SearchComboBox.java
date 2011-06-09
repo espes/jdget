@@ -394,4 +394,11 @@ public abstract class SearchComboBox<T> extends JComboBox {
         }
         throw new RuntimeException("Use setList()");
     }
+
+    @Override
+    public void setRenderer(final ListCellRenderer aRenderer) {
+        // TODO Auto-generated method stub
+        System.out.println("SET " + aRenderer);
+        super.setRenderer(aRenderer);
+    }
 }
