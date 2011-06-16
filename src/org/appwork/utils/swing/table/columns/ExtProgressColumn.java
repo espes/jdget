@@ -50,7 +50,8 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
             @Override
             public void repaint() {
-                if (extModel.getTable() != null && extModel.getTable().isShowing()) {
+                final ExtTableModel<E> mod = extModel;
+                if (mod != null && mod.getTable() != null && mod.getTable().isShowing()) {
 
                     // cleanup map in case we removed a indeterminated value
                     if (System.currentTimeMillis() - this.cleanupTimer > 30000) {
@@ -73,8 +74,8 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
                     if (System.currentTimeMillis() - this.timer > 1000 / ExtProgressColumn.this.getFps() && ExtProgressColumn.this.columnIndex >= 0) {
                         final ArrayList<E> selection = extModel.getSelectedObjects();
 
-                        extModel.fireTableChanged(new TableModelEvent(extModel, 0, Integer.MAX_VALUE, ExtProgressColumn.this.columnIndex, TableModelEvent.UPDATE));
-                        extModel.setSelectedObjects(selection);
+                        mod.fireTableChanged(new TableModelEvent(mod, 0, Integer.MAX_VALUE, ExtProgressColumn.this.columnIndex, TableModelEvent.UPDATE));
+                        mod.setSelectedObjects(selection);
                         System.out.println("Repaint");
                         this.timer = System.currentTimeMillis();
                     }
