@@ -84,7 +84,7 @@ public class TreeModelStateSaver {
                         TreeModelStateSaver.this.tree.getSelectionModel().clearSelection();
                         TreeModelStateSaver.this.tree.getSelectionModel().setSelectionPaths(selectedPathes);
                     }
-                } catch (Throwable e) {
+                } catch (final Throwable e) {
                     Log.exception(Level.WARNING, e);
                 }
                 return null;
@@ -148,7 +148,8 @@ public class TreeModelStateSaver {
             Log.exception(e);
 
         }
-        final int max = this.tree.getModel().getChildCount(node);
+
+        final int max = this.tree.getModel().isLeaf(node) ? 0 : this.tree.getModel().getChildCount(node);
         for (int i = 0; i < max; i++) {
             try {
                 this.saveState(this.tree.getModel().getChild(node, i), new ArrayList<Object>(path));

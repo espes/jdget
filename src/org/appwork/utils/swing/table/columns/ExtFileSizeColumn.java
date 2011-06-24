@@ -21,6 +21,13 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
     private StringBuffer      sb;
     private DecimalFormat     formatter;
 
+    /**
+     * @param createtablemodel_column_size
+     */
+    public ExtFileSizeColumn(final String name) {
+        this(name, null);
+    }
+
     public ExtFileSizeColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
         this.renderer = new RenderLabel();
