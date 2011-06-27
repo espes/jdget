@@ -15,7 +15,7 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
     private static final long serialVersionUID = -5812486934156037376L;
 
     private SimpleDateFormat  dateFormat;
-    private Date              date;
+    protected Date            date;
     protected String          badDateText      = "~";
 
     /**
