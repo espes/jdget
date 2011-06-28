@@ -44,6 +44,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
     class Editor implements ComboBoxEditor {
         private final JTextField      tf;
         private final MigPanel        panel;
+
         private final JLabel          icon;
         private T                     value;
         private final DelayedRunnable sheduler;
@@ -92,7 +93,11 @@ public abstract class SearchComboBox<T> extends JComboBox {
                 @Override
                 public void focusLost(final FocusEvent e) {
                     if (!Editor.this.autoComplete(false)) {
-                        Editor.this.tf.setText(Editor.this.value == null ? "" : SearchComboBox.this.getText(Editor.this.value));
+                        try {
+                            Editor.this.tf.setText(SearchComboBox.this.getText(Editor.this.value));
+                        } catch (final NullPointerException e2) {
+                            Editor.this.tf.setText("");
+                        }
                         Editor.this.autoComplete(false);
                     }
 
@@ -235,6 +240,10 @@ public abstract class SearchComboBox<T> extends JComboBox {
             return this.value;
         }
 
+        public JTextField getTf() {
+            return this.tf;
+        }
+
         /*
          * (non-Javadoc)
          * 
@@ -349,6 +358,14 @@ public abstract class SearchComboBox<T> extends JComboBox {
         });
     }
 
+    /**
+     * @return
+     */
+    public String getEditorText() {
+
+        return this.getTextField().getText();
+    }
+
     public Color getForegroundBad() {
         return this.foregroundBad;
     }
@@ -364,6 +381,10 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * @return
      */
     abstract protected String getText(T value);
+
+    public JTextField getTextField() {
+        return ((Editor) this.getEditor()).getTf();
+    }
 
     public void setForegroundBad(final Color forgroundGood) {
         this.foregroundBad = forgroundGood;
