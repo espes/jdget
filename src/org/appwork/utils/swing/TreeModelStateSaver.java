@@ -71,6 +71,7 @@ public class TreeModelStateSaver {
      * Restore the saved tree state
      */
     public void restore() {
+
         new EDTHelper<Object>() {
 
             @Override
