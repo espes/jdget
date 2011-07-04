@@ -700,6 +700,9 @@ public class ExtTable<E> extends JTable {
         if (!pressed) { return super.processKeyBinding(stroke, evt, condition, pressed); }
 
         switch (evt.getKeyCode()) {
+        case KeyEvent.VK_ESCAPE:
+            this.clearSelection();
+            return true;
         case KeyEvent.VK_X:
             if (evt.isControlDown() || evt.isMetaDown()) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_CUT, this.getExtTableModel().getSelectedObjects()));
