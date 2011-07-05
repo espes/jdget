@@ -113,7 +113,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
                 if (this.isSortOrderToggle()) {
                     return v1 > v2 ? -1 : 1;
                 } else {
-                    return v2 < v1 ? -1 : 1;
+                    return v2 > v1 ? -1 : 1;
                 }
             }
 

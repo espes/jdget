@@ -31,34 +31,28 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
         this.dateFormat = new SimpleDateFormat("dd.MM.yy HH:mm");
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
-            private final Date a    = new Date();
-            private boolean    aset = false;
-            private final Date b    = new Date();
-            private boolean    bset = false;
+            private long a = 0;
+            private long b = 0;
 
             @Override
             public int compare(final E o1, final E o2) {
                 Date tmp = ExtDateColumn.this.getDate(o1);
                 if (tmp != null) {
-                    this.a.setTime(tmp.getTime());
-                    this.aset = true;
+                    this.a = tmp.getTime();
                 } else {
-                    this.aset = false;
+                    this.a = 0;
                 }
                 tmp = ExtDateColumn.this.getDate(o2);
                 if (tmp != null) {
-                    this.b.setTime(tmp.getTime());
-                    this.bset = true;
+                    this.b = tmp.getTime();
                 } else {
-                    this.bset = false;
+                    this.b = 0;
                 }
-                if (this.aset == this.bset == false) { return 0; }
-                if (!this.aset && this.bset) { return 1; }
-                if (this.aset && !this.bset) { return -1; }
+                if (this.a == this.b) { return 0; }
                 if (this.isSortOrderToggle()) {
-                    return this.a.compareTo(this.b);
+                    return this.a > this.b ? -1 : 1;
                 } else {
-                    return this.b.compareTo(this.a);
+                    return this.b > this.a ? -1 : 1;
                 }
             }
 

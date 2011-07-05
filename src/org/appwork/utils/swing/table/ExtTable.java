@@ -163,7 +163,7 @@ public class ExtTable<E> extends JTable {
                         final int col = ExtTable.this.getExtColumnIndexByPoint(e.getPoint());
                         if (col == -1) { return; }
                         if (ExtTable.this.getExtTableModel().getExtColumn(col).isSortable(null)) {
-                            ExtTable.this.getExtTableModel().getExtColumn(col).doSort(null);
+                            ExtTable.this.getExtTableModel().getExtColumn(col).doSort();
                         }
                     }
                 }

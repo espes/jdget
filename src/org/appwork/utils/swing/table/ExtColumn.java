@@ -60,7 +60,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     /**
      * Sorting algorithms run in an own thread
      */
-    private Thread                 sortThread         = null;
+    private static Thread          sortThread         = null;
+    private static Object          sortLOCK           = new Object();
 
     private ExtDefaultRowSorter<E> rowSorter;
     private String                 id;
@@ -125,41 +126,47 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return null;
     }
 
-    protected void doSort(final Object obj) {
+    protected void doSort() {
+        synchronized (ExtColumn.sortLOCK) {
+            if (ExtColumn.sortThread != null && ExtColumn.sortThread.isAlive()) { return; }
 
-        if (this.sortThread != null) { return; }
+            ExtColumn.sortThread = new Thread("TableSorter " + this.getID()) {
+                @Override
+                public void run() {
+                    try {
+                        // get selections before sorting
+                        final ArrayList<E> data = ExtColumn.this.model.getElements();
+                        try {
+                            // sort data
+                            ExtColumn.this.sortOrderToggle = !ExtColumn.this.sortOrderToggle;
+                            ExtColumn.this.getModel().sort(data, ExtColumn.this, ExtColumn.this.sortOrderToggle);
+                        } catch (final Exception e) {
+                        }
+                        // switch toggle
 
-        this.sortThread = new Thread("TableSorter " + this.getID()) {
-            @Override
-            public void run() {
-                // get selections before sorting
-                final ArrayList<E> selections = ExtColumn.this.model.getSelectedObjects();
-                try {
-                    // sort data
-                    ExtColumn.this.sortOrderToggle = !ExtColumn.this.sortOrderToggle;
-                    ExtColumn.this.getModel().sort(ExtColumn.this, ExtColumn.this.sortOrderToggle);
+                        // Do this in EDT
+                        new EDTHelper<Object>() {
 
-                } catch (final Exception e) {
-                }
-                // switch toggle
-
-                ExtColumn.this.sortThread = null;
-                // Do this in EDT
-                new EDTHelper<Object>() {
-
-                    @Override
-                    public Object edtRun() {
-                        // inform model about structure change
-                        ExtColumn.this.model.fireTableStructureChanged();
-                        // restore selection
-                        ExtColumn.this.model.setSelectedObjects(selections);
-
-                        return null;
+                            @Override
+                            public Object edtRun() {
+                                final ArrayList<E> selections = ExtColumn.this.model.getSelectedObjects();
+                                ExtColumn.this.model.tableData = data;
+                                // inform model about structure change
+                                ExtColumn.this.model.fireTableStructureChanged();
+                                // restore selection
+                                ExtColumn.this.model.setSelectedObjects(selections);
+                                return null;
+                            }
+                        }.waitForEDT();
+                    } finally {
+                        synchronized (ExtColumn.sortLOCK) {
+                            ExtColumn.sortThread = null;
+                        }
                     }
-                }.start();
-            }
-        };
-        this.sortThread.start();
+                }
+            };
+            ExtColumn.sortThread.start();
+        }
     }
 
     /**

@@ -75,12 +75,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param files
      */
     public void addAllElements(final E... files) {
-        final E[] tmp = files.clone();
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
                 final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
-                for (final E e : tmp) {
+                for (final E e : files) {
                     ExtTableModel.this.tableData.add(e);
                 }
 
@@ -454,8 +453,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * 
      * 
      */
+    /* better sort outside edt and then set new,sorted table data */
+    @Deprecated
     public void refreshSort() {
-        this.sort(this.sortColumn == null ? this.getExtColumn(0) : this.sortColumn, this.sortOrderToggle);
+        this.refreshSort(this.getTableData());
+    }
+
+    public void refreshSort(final ArrayList<E> data) {
+        this.sort(data, this.sortColumn == null ? this.getExtColumn(0) : this.sortColumn, this.sortOrderToggle);
     }
 
     /**
@@ -617,22 +622,20 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
-     * Sorts the model with the column's rowsorter
+     * Sorts given modeldata with the column's rowsorter
      * 
-     * @param column
-     * @param sortOrderToggle
-     */
-    public void sort(final ExtColumn<E> column, final boolean sortOrderToggle) {
+     **/
+    public void sort(final ArrayList<E> data, final ExtColumn<E> column, final boolean sortOrderToggle) {
         this.sortColumn = column;
         this.sortOrderToggle = sortOrderToggle;
 
         try {
-            JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("SORTCOLUMN", column.getID());
             JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("SORTORDER", sortOrderToggle);
+            JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("SORTCOLUMN", column.getID());
         } catch (final Exception e) {
             Log.exception(e);
         }
-        Collections.sort(this.getTableData(), column.getRowSorter(sortOrderToggle));
+        Collections.sort(data, column.getRowSorter(sortOrderToggle));
     }
 
 }
