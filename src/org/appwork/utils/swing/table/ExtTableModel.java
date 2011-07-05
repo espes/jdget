@@ -459,8 +459,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.refreshSort(this.getTableData());
     }
 
-    public void refreshSort(final ArrayList<E> data) {
-        this.sort(data, this.sortColumn == null ? this.getExtColumn(0) : this.sortColumn, this.sortOrderToggle);
+    public ArrayList<E> refreshSort(final ArrayList<E> data) {
+        return this.sort(data, this.sortColumn == null ? this.getExtColumn(0) : this.sortColumn, this.sortOrderToggle);
     }
 
     /**
@@ -625,17 +625,18 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * Sorts given modeldata with the column's rowsorter
      * 
      **/
-    public void sort(final ArrayList<E> data, final ExtColumn<E> column, final boolean sortOrderToggle) {
+    public ArrayList<E> sort(final ArrayList<E> data, final ExtColumn<E> column, final boolean sortOrderToggle) {
         this.sortColumn = column;
         this.sortOrderToggle = sortOrderToggle;
 
         try {
-            JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("SORTORDER", sortOrderToggle);
-            JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("SORTCOLUMN", column.getID());
+            JSonStorage.getStorage("ExtTableModel_" + this.getModelID()).put("SORTORDER", sortOrderToggle);
+            JSonStorage.getStorage("ExtTableModel_" + this.getModelID()).put("SORTCOLUMN", column.getID());
         } catch (final Exception e) {
             Log.exception(e);
         }
         Collections.sort(data, column.getRowSorter(sortOrderToggle));
+        return data;
     }
 
 }

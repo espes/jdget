@@ -135,13 +135,14 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                 public void run() {
                     try {
                         // get selections before sorting
-                        final ArrayList<E> data = ExtColumn.this.model.getElements();
+                        ArrayList<E> data = ExtColumn.this.model.getElements();
                         try {
                             // sort data
                             ExtColumn.this.sortOrderToggle = !ExtColumn.this.sortOrderToggle;
-                            ExtColumn.this.getModel().sort(data, ExtColumn.this, ExtColumn.this.sortOrderToggle);
+                            data = ExtColumn.this.getModel().sort(data, ExtColumn.this, ExtColumn.this.sortOrderToggle);
                         } catch (final Exception e) {
                         }
+                        final ArrayList<E> newData = data;
                         // switch toggle
 
                         // Do this in EDT
@@ -150,7 +151,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                             @Override
                             public Object edtRun() {
                                 final ArrayList<E> selections = ExtColumn.this.model.getSelectedObjects();
-                                ExtColumn.this.model.tableData = data;
+                                ExtColumn.this.model.tableData = newData;
                                 // inform model about structure change
                                 ExtColumn.this.model.fireTableStructureChanged();
                                 // restore selection
