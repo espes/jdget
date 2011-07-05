@@ -103,7 +103,7 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
     }
 
     @Override
-    protected String getToolTip(final E obj) {
+    protected String getTooltipText(final E obj) {
         return null;
     }
 

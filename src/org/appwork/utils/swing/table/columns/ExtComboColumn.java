@@ -143,9 +143,9 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
     }
 
     @Override
-    protected String getToolTip(final E obj) {
+    protected String getTooltipText(final E obj) {
         // TODO Auto-generated method stub
-        return super.getToolTip(obj);
+        return super.getTooltipText(obj);
     }
 
     @Override

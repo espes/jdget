@@ -120,9 +120,9 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
     public abstract String getSortString(T o1);
 
     @Override
-    protected String getToolTip(final T obj) {
+    protected String getTooltipText(final T obj) {
         // TODO Auto-generated method stub
-        return super.getToolTip(obj);
+        return super.getTooltipText(obj);
     }
 
     @Override

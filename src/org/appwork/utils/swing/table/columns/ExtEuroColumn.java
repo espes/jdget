@@ -71,12 +71,6 @@ public abstract class ExtEuroColumn<E> extends ExtColumn<E> {
     }
 
     @Override
-    protected String getToolTip(final E obj) {
-        // TODO Auto-generated method stub
-        return super.getToolTip(obj);
-    }
-
-    @Override
     public boolean isEditable(final Object obj) {
         return false;
     }

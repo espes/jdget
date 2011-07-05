@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 import java.text.FieldPosition;
 
 import javax.swing.JComponent;
+import javax.swing.SwingConstants;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
@@ -31,7 +32,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
     public ExtFileSizeColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
         this.renderer = new RenderLabel();
-
+        this.renderer.setHorizontalAlignment(SwingConstants.RIGHT);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             /**
              * sorts the icon by hashcode
@@ -122,9 +123,13 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
     }
 
     @Override
-    protected String getToolTip(final E obj) {
-        // TODO Auto-generated method stub
-        return this.renderer.getText();
+    protected String getTooltipText(final E value) {
+        if ((this.sizeValue = this.getBytes(value)) < 0) {
+            return this.getInvalidValue();
+        } else {
+            return this.getSizeString(this.sizeValue);
+        }
+
     }
 
     @Override

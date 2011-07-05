@@ -212,7 +212,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     abstract protected String getString(E value);
 
     @Override
-    protected String getToolTip(final E value) {
+    protected String getTooltipText(final E value) {
 
         return this.getString(value);
     }

@@ -2,6 +2,7 @@ package org.appwork.utils.swing.table.columns;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
 import org.appwork.utils.swing.renderer.RenderLabel;
@@ -24,7 +25,7 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
         super(name, table);
 
         this.renderer = new RenderLabel();
-
+        this.renderer.setHorizontalAlignment(SwingConstants.RIGHT);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             @Override
             public int compare(final E o1, final E o2) {
@@ -78,7 +79,7 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
     }
 
     @Override
-    protected String getToolTip(final E obj) {
+    protected String getTooltipText(final E obj) {
 
         return this.getLong(obj) + "";
     }

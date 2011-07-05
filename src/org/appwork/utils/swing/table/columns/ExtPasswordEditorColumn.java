@@ -67,7 +67,7 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
     }
 
     @Override
-    protected String getToolTip(final E obj) {
+    protected String getTooltipText(final E obj) {
 
         return APPWORKUTILS.T.extpasswordeditorcolumn_tooltip();
     }

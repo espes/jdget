@@ -1,6 +1,7 @@
 package org.appwork.utils.swing.table.columns;
 
 import java.text.DateFormat;
+import java.text.FieldPosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -18,6 +19,8 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
     protected Date            date;
     protected String          badDateText      = "~";
 
+    private StringBuffer      sb;
+
     /**
      * @param string
      */
@@ -28,7 +31,38 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
     public ExtDateColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 
-        this.dateFormat = new SimpleDateFormat("dd.MM.yy HH:mm");
+        this.date = new Date();
+        this.sb = new StringBuffer();
+        try {
+            this.dateFormat = new SimpleDateFormat(this.getDateFormatString()) {
+
+                /**
+                 * 
+                 */
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public StringBuffer format(final Date date, final StringBuffer toAppendTo, final FieldPosition pos) {
+                    ExtDateColumn.this.sb.setLength(0);
+                    return super.format(date, ExtDateColumn.this.sb, pos);
+                }
+            };
+        } catch (final Exception e) {
+            this.dateFormat = new SimpleDateFormat("dd.MM.yy HH:mm") {
+
+                /**
+                 * 
+                 */
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public StringBuffer format(final Date date, final StringBuffer toAppendTo, final FieldPosition pos) {
+                    ExtDateColumn.this.sb.setLength(0);
+                    return super.format(date, ExtDateColumn.this.sb, pos);
+                }
+            };
+        }
+
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             private long a = 0;
@@ -36,13 +70,13 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
 
             @Override
             public int compare(final E o1, final E o2) {
-                Date tmp = ExtDateColumn.this.getDate(o1);
+                Date tmp = ExtDateColumn.this.getDate(o1, null);
                 if (tmp != null) {
                     this.a = tmp.getTime();
                 } else {
                     this.a = 0;
                 }
-                tmp = ExtDateColumn.this.getDate(o2);
+                tmp = ExtDateColumn.this.getDate(o2, null);
                 if (tmp != null) {
                     this.b = tmp.getTime();
                 } else {
@@ -60,6 +94,14 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
         this.init();
     }
 
+    /**
+     * @param value
+     * @return the String which will be shown if there is no valid (null) date
+     */
+    protected String getBadDateText(final E value) {
+        return this.badDateText;
+    }
+
     @Override
     public Object getCellEditorValue() {
 
@@ -70,9 +112,11 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
      * Returns the Date or null of there ois no valid date
      * 
      * @param o2
+     * @param date
+     *            TODO
      * @return
      */
-    abstract protected Date getDate(E o2);
+    abstract protected Date getDate(E o2, Date date);
 
     /**
      * Override this method to use a custom dateformat
@@ -83,13 +127,24 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
         return this.dateFormat;
     }
 
+    /**
+     * @return The dateformat used for this column
+     */
+    protected String getDateFormatString() {
+
+        return "dd.MM.yy HH:mm";
+    }
+
     @Override
     public String getStringValue(final E value) {
-        this.date = this.getDate(value);
-        if (this.date == null) {
-            return this.setText(value, this.badDateText);
+        final Date d = this.getDate(value, this.date);
+        if (d != null) {
+            this.date = d;
+        }
+        if (d == null) {
+            return this.setText(value, this.getBadDateText(value));
         } else {
-            return this.setText(value, this.getDateFormat().format(this.date));
+            return this.setText(value, this.getDateFormat().format(d));
         }
 
     }

@@ -12,6 +12,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.JToolTip;
 import javax.swing.border.Border;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
@@ -66,6 +67,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     private ExtDefaultRowSorter<E> rowSorter;
     private String                 id;
     private TableColumn            tableColumn;
+    private ExtToolTip             tip;
 
     /**
      * Create a new ExtColum.
@@ -77,7 +79,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public ExtColumn(final String name, final ExtTableModel<E> table) {
         this.name = name;
         this.model = table;
-
+        this.tip = new ExtToolTip();
         if (this.model != null) {
             this.id = this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName() + "." + (this.model.getColumnCount() + 1);
         }
@@ -124,6 +126,14 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public JPopupMenu createHeaderPopup() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public JToolTip createToolTip(final E obj) {
+        final String txt = this.getTooltipText(obj);
+        if (txt == null || txt.length() == 0) { return null; }
+
+        this.tip.setExtText(txt);
+        return this.tip;
     }
 
     protected void doSort() {
@@ -295,7 +305,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.configureEditorHighlighters(ret, (E) value, isSelected, row);
         this.configureEditorComponent((E) value, isSelected, row, column);
         ret.setEnabled(this.isEnabled((E) value));
-        ret.setToolTipText(this.getToolTip((E) value));
 
         return ret;
     }
@@ -308,11 +317,16 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.configureRendererHighlighters(ret, (E) value, isSelected, hasFocus, row);
         this.configureRendererComponent((E) value, isSelected, hasFocus, row, column);
         ret.setEnabled(this.isEnabled((E) value));
-        ret.setToolTipText(this.getToolTip((E) value));
+
         return ret;
     }
 
-    protected String getToolTip(final E obj) {
+    /**
+     * @param obj
+     * @return
+     */
+    protected String getTooltipText(final E value) {
+        // TODO Auto-generated method stub
         return null;
     }
 
@@ -463,6 +477,10 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public void setTableColumn(final TableColumn tableColumn) {
         this.tableColumn = tableColumn;
 
+    }
+
+    public void setTip(final ExtToolTip tip) {
+        this.tip = tip;
     }
 
     /**

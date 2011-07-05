@@ -27,6 +27,7 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JToolTip;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
@@ -95,6 +96,9 @@ public class ExtTable<E> extends JTable {
     private JComponent                         columnButton        = null;
     private boolean                            columnButtonVisible = true;
     private int                                verticalScrollPolicy;
+
+    private E                                  toolTipObject;
+    private JToolTip                           tooltip;
 
     /**
      * @param downloadTableModel
@@ -419,6 +423,12 @@ public class ExtTable<E> extends JTable {
         return p;
     }
 
+    @Override
+    public JToolTip createToolTip() {
+
+        return this.tooltip;
+    }
+
     /* we do always create columsn ourself */
     @Override
     public boolean getAutoCreateColumnsFromModel() {
@@ -569,6 +579,31 @@ public class ExtTable<E> extends JTable {
      */
     public String getTableID() {
         return this.tableID;
+    }
+
+    // @Override
+    // public Point getToolTipLocation(final MouseEvent event) {
+    // // this.toolTipPosition = event.getPoint();
+    // return super.getToolTipLocation(event);
+    // }
+
+    @Override
+    public String getToolTipText(final MouseEvent event) {
+        /*
+         * 
+         * this method gets called very often. it is not a good idea to create
+         * the tooltip here.
+         */
+
+        final int row = this.getRowIndexByPoint(event.getPoint());
+        if (row < 0) { return null; }
+        final ExtColumn<E> col = this.getExtColumnAtPoint(event.getPoint());
+        this.toolTipObject = this.getExtTableModel().getElementAt(row);
+        this.tooltip = col.createToolTip(this.toolTipObject);
+        if (this.tooltip != null) {
+            this.tooltip.setComponent(this);
+        }
+        return this.tooltip != null ? "" + col.hashCode() + "_" + row : null;
     }
 
     public boolean isColumnButtonVisible() {

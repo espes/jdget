@@ -178,7 +178,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     }
 
     @Override
-    protected String getToolTip(final E obj) {
+    protected String getTooltipText(final E obj) {
 
         return this.getBooleanValue(obj) ? APPWORKUTILS.T.active() : APPWORKUTILS.T.inactive();
     }
