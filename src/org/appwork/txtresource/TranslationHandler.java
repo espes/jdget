@@ -82,7 +82,7 @@ public class TranslationHandler implements InvocationHandler {
      * @param addComments
      * @return
      */
-    private String createFile(final String string, final boolean addComments) {
+    public String createFile(final String string, final boolean addComments) {
 
         final TranslateData map = new TranslateData();
         this.cache.clear();
@@ -205,6 +205,63 @@ public class TranslationHandler implements InvocationHandler {
         return ret;
     }
 
+    /**
+     * @param method
+     * @return
+     */
+    public String getDefault(final Method method) {
+        final TranslateResource res = this.resourceCache.get(TranslationHandler.DEFAULT);
+
+        return res.readDefaults(method);
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
+     * java.lang.reflect.Method, java.lang.Object[])
+     */
+
+    /**
+     * @return
+     */
+    public Method[] getMethods() {
+        return this.methods;
+    }
+
+    /**
+     * @param method
+     * @return
+     */
+    public String getTranslation(final Method method, final Object... params) {
+        return this.getValue(method, this.lookup);
+    }
+
+    /**
+     * @param string
+     * @param string2
+     * @return
+     */
+    public String getTranslation(final String languageKey, final String methodname, final Object... params) {
+
+        final Class<?>[] types = new Class<?>[params.length];
+        for (int i = 0; i < params.length; i++) {
+
+            types[i] = params[i].getClass();
+        }
+        for (final Method m : this.methods) {
+            if (m.getName().equals(methodname)) {
+                if (this.checkTypes(m, types)) {
+                    final String ret = this.getValue(m, this.fillLookup(languageKey));
+                    return this.format(ret, params);
+                }
+            }
+        }
+        return null;
+
+    }
+
     public String getValue(final Method method, final ArrayList<TranslateResource> lookup) {
 
         String ret = null;
@@ -230,49 +287,22 @@ public class TranslationHandler implements InvocationHandler {
         return ret;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
-     * java.lang.reflect.Method, java.lang.Object[])
-     */
-
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
 
         final ArrayList<TranslateResource> lookup = this.lookup;
         // for speed reasons let all controller methods (@see
         // TRanslationINterface.java) start with _
-        if (method.getName().startsWith("_")) {
-            if (method.getName().equals("_createFile")) { return this.createFile(args[0] + "", (Boolean) args[1]); }
-            if (method.getName().equals("_getSupportedLanguages")) {
+        if (method.getDeclaringClass() == Object.class) { return method.invoke(this, args); }
+        // else if (method.getName().startsWith("_")) {
+        if (method.getName().equals("_getHandler")) { return this; }
+        // if (method.getName().equals("_getSupportedLanguages")) {
+        //
+        // return TranslationFactory.listAvailableTranslations(this.tInterface);
+        // }
+        // if (method.getName().equals("_setLanguage")) {
 
-            return TranslationFactory.listAvailableTranslations(this.tInterface); }
-            if (method.getName().equals("_setLanguage")) {
-                this.cache.clear();
-                this.resourceCache.clear();
-                this.lookup = this.fillLookup(args[0] + "");
-                return null;
-            }
-
-            if (method.getName().equals("_getTranslation")) {
-                final String methodname = args[1] + "";
-                final Object[] params = (Object[]) args[2];
-                final Class<?>[] types = new Class<?>[params.length];
-                for (int i = 0; i < params.length; i++) {
-
-                    types[i] = params[i].getClass();
-                }
-                for (final Method m : this.methods) {
-                    if (m.getName().equals(methodname)) {
-                        if (this.checkTypes(m, types)) {
-                            final String ret = this.getValue(m, this.fillLookup(args[0] + ""));
-                            return this.format(ret, params);
-                        }
-                    }
-                }
-
-            }
-        }
+        //
+        // if (method.getName().equals("_getTranslation")) {
 
         String ret = this.cache.get(method);
         if (ret == null) {
@@ -282,6 +312,22 @@ public class TranslationHandler implements InvocationHandler {
             }
         }
         return this.format(ret, args);
+
+    }
+
+    /**
+     * Tells the TranslationHandler to use this language from now on.clears
+     * 
+     * cache.
+     * 
+     * for speed reasons, cache access is not synchronized
+     * 
+     * @param loc
+     */
+    public void setLanguage(final String loc) {
+        this.cache.clear();
+        this.resourceCache.clear();
+        this.lookup = this.fillLookup(loc);
 
     }
 }

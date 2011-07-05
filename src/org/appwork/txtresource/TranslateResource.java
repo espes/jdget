@@ -122,7 +122,7 @@ public class TranslateResource {
      * @param method
      * @return
      */
-    private String readDefaults(final Method method) {
+    public String readDefaults(final Method method) {
         // check Annotations. this is slow, but ok for dev enviroment.
         // for release, we always should create real translation files
         // instead of using the annotations

@@ -9,7 +9,6 @@
  */
 package org.appwork.txtresource;
 
-import java.util.ArrayList;
 
 /**
  * Youc an define controller methods in here. all Translation interfaces have
@@ -22,33 +21,6 @@ import java.util.ArrayList;
  */
 public interface TranslateInterface {
 
-    public String _createFile(String lng, boolean comments);
+    public TranslationHandler _getHandler();
 
-    /**
-     * returns all supported languagecodes.
-     * 
-     * @deprecated Use
-     *             org.appwork.txtresource.TranslationFactory.findTranslations
-     *             (Class<? extends TranslateInterface>) instead
-     * @return
-     */
-    @Deprecated
-    ArrayList<String> _getSupportedLanguages();
-
-    /**
-     * Use this method if you need a special translated string
-     * 
-     * @param lng
-     * @param methodname
-     * @param parameter
-     * @return
-     */
-    public String _getTranslation(String lng, String methodname, Object... parameter);
-
-    /**
-     * Resets the Languageinterface and uses the new language from now
-     * 
-     * @param loc
-     */
-    public void _setLanguage(String loc);
 }

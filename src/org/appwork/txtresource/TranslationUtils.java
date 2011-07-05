@@ -25,7 +25,7 @@ public class TranslationUtils {
 
             for (final String lng : class1.getAnnotation(Defaults.class).lngs()) {
                 final File f = new File(file + "/" + class1.getSimpleName() + "." + lng + ".lng");
-                final String txt = TranslationFactory.create(class1)._createFile(lng, addComments);
+                final String txt = TranslationFactory.create(class1)._getHandler().createFile(lng, addComments);
                 f.delete();
                 IO.writeStringToFile(f, txt);
                 System.out.println("Wrote " + f);

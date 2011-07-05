@@ -240,7 +240,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public int getMinWidth() {
-        return 0;
+        return 10;
     }
 
     /**

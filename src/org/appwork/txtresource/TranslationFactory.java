@@ -199,7 +199,7 @@ public class TranslationFactory {
         TranslationFactory.language = loc;
 
         for (final TranslateInterface i : TranslationFactory.CACHE.values()) {
-            i._setLanguage(loc);
+            i._getHandler().setLanguage(loc);
         }
         return true;
     }
