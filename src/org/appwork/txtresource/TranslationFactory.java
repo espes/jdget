@@ -8,7 +8,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -30,6 +32,7 @@ public class TranslationFactory {
      */
     @SuppressWarnings("unchecked")
     public static <T extends TranslateInterface> T create(final Class<T> class1, final String... lookup) {
+
         synchronized (TranslationFactory.CACHE) {
             final StringBuilder sb = new StringBuilder();
             sb.append(class1.getName());
@@ -42,12 +45,42 @@ public class TranslationFactory {
                 ret = (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class[] { class1 }, new TranslationHandler(class1, lookup));
                 TranslationFactory.CACHE.put(id, ret);
             }
+
             return ret;
         }
 
     }
 
-    public static ArrayList<String> findTranslations(final Class<? extends TranslateInterface> class1) {
+    /**
+     * 
+     */
+    public static ArrayList<TranslateInterface> getCachedInterfaces() {
+        final ArrayList<TranslateInterface> ret = new ArrayList<TranslateInterface>();
+        Entry<String, TranslateInterface> next;
+        for (final Iterator<Entry<String, TranslateInterface>> it = TranslationFactory.CACHE.entrySet().iterator(); it.hasNext();) {
+            next = it.next();
+            ret.remove(next.getValue());
+            ret.add(next.getValue());
+        }
+        return ret;
+
+    }
+
+    public static String getDesiredLanguage() {
+        return TranslationFactory.language;
+    }
+
+    /**
+     * @return
+     */
+    public static Locale getDesiredLocale() {
+        final String lng = TranslationFactory.getDesiredLanguage();
+
+        return TranslationFactory.stringToLocale(lng);
+
+    }
+
+    public static ArrayList<String> listAvailableTranslations(final Class<? extends TranslateInterface> class1) {
 
         final String path = class1.getPackage().getName().replace(".", "/");
 
@@ -128,37 +161,37 @@ public class TranslationFactory {
         return ret;
     }
 
-    public static String getDesiredLanguage() {
-        return TranslationFactory.language;
-    }
-
     /**
      * @return
      */
-    public static Locale getDesiredLocale() {
-        final String lng = TranslationFactory.getDesiredLanguage();
-
-        final String[] split = lng.split("[\\-\\_]");
-        switch (split.length) {
-        case 1:
-            return new Locale(split[0]);
-        case 2:
-            return new Locale(split[0], split[1]);
-
-        default:
-            return new Locale(split[0], split[1], split[2]);
+    public static String localeToString(final Locale l) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(l.getLanguage());
+        String c = l.getCountry();
+        if (c != null && c.trim().length() > 0) {
+            sb.append("-");
+            sb.append(l.getCountry());
+            c = l.getVariant();
+            if (c != null && c.trim().length() > 0) {
+                sb.append("-");
+                sb.append(l.getCountry());
+            }
         }
-
+        return sb.toString();
     }
 
     public static void main(final String[] args) {
-        Locale.setDefault(TranslationFactory.getDesiredLocale());
-        System.out.println(TranslationFactory.getDesiredLocale().getDisplayCountry());
-        final Translate t = TranslationFactory.create(Translate.class);
-        System.out.println(t.getTestText());
-        System.out.println(t.getOrderedText(1, 7, 23, 5));
-        System.out.println(t._getTranslation("en", "getOrderedText", 1, 3, 5, 8));
-        System.err.println(t._createFile("en", true));
+        // Locale.setDefault(TranslationFactory.getDesiredLocale());
+        // System.out.println(TranslationFactory.getDesiredLocale().getDisplayCountry());
+        // final Translate t = TranslationFactory.create(Translate.class);
+        // System.out.println(t.getTestText());
+        // System.out.println(t.getOrderedText(1, 7, 23, 5));
+        // System.out.println(t._getTranslation("en", "getOrderedText", 1, 3, 5,
+        // 8));
+        // System.err.println(t._createFile("en", true));
+
+        System.out.println(new Locale("zh", "DE", "hans").getDisplayName());
+        System.out.println(Locale.TRADITIONAL_CHINESE.getDisplayName());
     }
 
     public static boolean setDesiredLanguage(final String loc) {
@@ -169,6 +202,23 @@ public class TranslationFactory {
             i._setLanguage(loc);
         }
         return true;
+    }
+
+    /**
+     * @param lng
+     * @return
+     */
+    public static Locale stringToLocale(final String lng) {
+        final String[] split = lng.split("[\\-\\_]");
+        switch (split.length) {
+        case 1:
+            return new Locale(split[0]);
+        case 2:
+            return new Locale(split[0], split[1]);
+
+        default:
+            return new Locale(split[0], split[1], split[2]);
+        }
     }
 
 }

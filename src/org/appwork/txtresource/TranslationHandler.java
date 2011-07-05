@@ -246,7 +246,7 @@ public class TranslationHandler implements InvocationHandler {
             if (method.getName().equals("_createFile")) { return this.createFile(args[0] + "", (Boolean) args[1]); }
             if (method.getName().equals("_getSupportedLanguages")) {
 
-            return TranslationFactory.findTranslations(this.tInterface); }
+            return TranslationFactory.listAvailableTranslations(this.tInterface); }
             if (method.getName().equals("_setLanguage")) {
                 this.cache.clear();
                 this.resourceCache.clear();
