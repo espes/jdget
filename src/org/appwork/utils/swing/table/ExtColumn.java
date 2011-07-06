@@ -67,7 +67,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     private ExtDefaultRowSorter<E> rowSorter;
     private String                 id;
     private TableColumn            tableColumn;
-    private ExtToolTip             tip;
+    protected ExtToolTip           tip;
 
     /**
      * Create a new ExtColum.

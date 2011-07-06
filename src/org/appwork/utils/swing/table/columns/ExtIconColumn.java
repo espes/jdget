@@ -68,6 +68,12 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
         return null;
     }
 
+    @Override
+    public int getDefaultWidth() {
+
+        return 30;
+    }
+
     /**
      * @return
      */
@@ -86,12 +92,12 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
      */
     @Override
     protected int getMaxWidth() {
-        return 30;
+        return this.getDefaultWidth();
     }
 
     @Override
     public int getMinWidth() {
-        return 30;
+        return this.getDefaultWidth();
     }
 
     /**
