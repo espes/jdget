@@ -617,7 +617,7 @@ public class ExtTable<E> extends JTable {
         return this.searchEnabled;
     }
 
-    protected JPopupMenu onContextMenu(final JPopupMenu popup, final E contextObject, final ArrayList<E> selection) {
+    protected JPopupMenu onContextMenu(final JPopupMenu popup, final E contextObject, final ArrayList<E> selection, final ExtColumn<E> column) {
         return null;
     }
 
@@ -857,11 +857,12 @@ public class ExtTable<E> extends JTable {
             if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
+                final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
                 // System.out.println(row);
                 if (obj == null || row == -1) {
                     /* no object under mouse, lets clear the selection */
                     this.clearSelection();
-                    final JPopupMenu popup = this.onContextMenu(new JPopupMenu(), null, null);
+                    final JPopupMenu popup = this.onContextMenu(new JPopupMenu(), null, null, col);
                     this.eventSender.fireEvent(new ExtTableEvent<JPopupMenu>(this, ExtTableEvent.Types.CONTEXTMENU, popup));
                     if (popup != null && popup.getComponentCount() > 0) {
                         popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
@@ -874,7 +875,7 @@ public class ExtTable<E> extends JTable {
                         this.addRowSelectionInterval(row, row);
                     }
                     final ArrayList<E> selected = this.getExtTableModel().getSelectedObjects();
-                    final JPopupMenu popup = this.onContextMenu(new JPopupMenu(), obj, selected);
+                    final JPopupMenu popup = this.onContextMenu(new JPopupMenu(), obj, selected, col);
 
                     if (popup != null && popup.getComponentCount() > 0) {
                         popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
