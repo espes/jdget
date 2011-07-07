@@ -10,7 +10,18 @@ import javax.swing.table.TableCellEditor;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
+import org.appwork.utils.swing.EDTRunner;
 
+/**
+ * NOTE about Selection issues: in case you use fireTableXYEvents, it will clear
+ * the SelectionModel and you will loose your current ongoing Selection! you
+ * have to save anchor/lead of selectionmodel, then fire event, restore saved
+ * selections and then set anchor/lead again
+ * 
+ * @author daniel
+ * 
+ * @param <E>
+ */
 public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     /**
@@ -69,6 +80,26 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         }
         this.sortOrderToggle = JSonStorage.getStorage("ExtTableModel_" + this.modelID).get("SORTORDER", false);
         this.refreshSort();
+    }
+
+    public void _fireTableStructureChanged(ArrayList<E> newtableData, final boolean refreshSort) {
+        if (refreshSort) {
+            newtableData = this.refreshSort(newtableData);
+        }
+        final ArrayList<E> newdata = newtableData;
+        new EDTRunner() {
+            @Override
+            protected void runInEDT() {
+                final ArrayList<E> selected = ExtTableModel.this.getSelectedObjects();
+                final int anchor = ExtTableModel.this.getTable().getSelectionModel().getAnchorSelectionIndex();
+                final int lead = ExtTableModel.this.getTable().getSelectionModel().getLeadSelectionIndex();
+                ExtTableModel.this.tableData = newdata;
+                ExtTableModel.this.fireTableStructureChanged();
+                ExtTableModel.this.setSelectedObjects(selected);
+                ExtTableModel.this.getTable().getSelectionModel().setAnchorSelectionIndex(anchor);
+                ExtTableModel.this.getTable().getSelectionModel().setLeadSelectionIndex(lead);
+            }
+        };
     }
 
     /**
@@ -557,11 +588,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             @Override
             public Object edtRun() {
                 if (ExtTableModel.this.table == null) { return null; }
-                if (selections == null) {
+                if (selections == null || selections.size() == 0) {
                     ExtTableModel.this.clearSelection();
                     return null;
                 }
-                if (selections.size() == 0) { return null; }
                 // Transform to rowindex list
                 final ArrayList<Integer> selectedRows = new ArrayList<Integer>();
                 int rowIndex = -1;

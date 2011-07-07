@@ -101,6 +101,10 @@ public class ThrottledConnectionManager {
         return this.IncommingBandwidthUsage;
     }
 
+    public int getIncommingConnections() {
+        return this.managedIn.size();
+    }
+
     /**
      * returns a managed ThrottledInputStream for given InputStream
      * 
@@ -141,6 +145,10 @@ public class ThrottledConnectionManager {
      */
     public int getOutgoingBandwidthUsage() {
         return this.OutgoingBandwidthUsage;
+    }
+
+    public int getOutgoingConnections() {
+        return this.managedOut.size();
     }
 
     private int manageConnections(final ArrayList<ThrottledConnection> managed, final int limit) {

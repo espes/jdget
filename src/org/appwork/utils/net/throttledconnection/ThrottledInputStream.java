@@ -134,7 +134,7 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
                     try {
                         this.wait(1000 - this.slotTimeLeft);
                     } catch (final InterruptedException e) {
-                        throw new IOException("throttle interrupted");
+                        throw new IOException("throttle interrupted", e);
                     }
                 }
                 /* refill Limit */
@@ -166,16 +166,20 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
                     try {
                         this.wait(1000 - this.slotTimeLeft);
                     } catch (final InterruptedException e) {
-                        throw new IOException("throttle interrupted");
+                        throw new IOException("throttle interrupted", e);
                     }
                 }
                 /* refill Limit */
                 this.limitCounter = this.limitCurrent;
-                if (this.limitCounter <= 0) this.limitCounter = len;
+                if (this.limitCounter <= 0) {
+                    this.limitCounter = len;
+                }
             } else if (this.slotTimeLeft > 1000) {
                 /* slotTime is over, refill Limit too */
                 this.limitCounter = this.limitCurrent;
-                if (this.limitCounter <= 0) this.limitCounter = len;
+                if (this.limitCounter <= 0) {
+                    this.limitCounter = len;
+                }
             }
             this.lastRead2 = this.in.read(b, off, Math.min(this.limitCounter, len));
             if (this.lastRead2 == -1) {
