@@ -30,6 +30,7 @@ public class Test {
     public static void main(final String[] args) throws IOException {
         final HttpServer server = new HttpServer(3128);
         server.registerRequestHandler(Test.rapi);
+        server.registerRequestHandler(new ResourceHandler());
         server.start();
 
         try {
