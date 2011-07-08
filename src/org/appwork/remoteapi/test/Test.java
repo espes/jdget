@@ -13,7 +13,7 @@ import java.io.IOException;
 
 import org.appwork.remoteapi.ParseException;
 import org.appwork.remoteapi.RemoteAPI;
-import org.appwork.utils.net.httpserver.HttpServer;
+import org.appwork.utils.net.httpserver.HttpServerController;
 
 /**
  * @author daniel
@@ -28,10 +28,10 @@ public class Test {
     public static RemoteAPI rapi = new RemoteAPI();
 
     public static void main(final String[] args) throws IOException {
-        final HttpServer server = new HttpServer(3128);
-        server.registerRequestHandler(Test.rapi);
-        server.registerRequestHandler(new ResourceHandler());
-        server.start();
+        final HttpServerController server = new HttpServerController();
+
+        server.registerRequestHandler(3128, false, Test.rapi);
+        server.registerRequestHandler(3129, false, new ResourceHandler());
 
         try {
             Test.rapi.register(new TESTAPIImpl());

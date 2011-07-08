@@ -57,6 +57,13 @@ public class HttpServer implements Runnable {
     }
 
     /**
+     * @return the port
+     */
+    public int getPort() {
+        return this.port;
+    }
+
+    /**
      * @return the clientThreadGroup
      */
     protected ThreadGroup getThreadGroup() {
@@ -77,17 +84,24 @@ public class HttpServer implements Runnable {
         return this.localhostOnly;
     }
 
+    public boolean isRunning() {
+        return this.controlThread != null;
+    }
+
     /*
      * to register a new handler we create a copy of current handlerList and
      * then add new handler to it and set it as new handlerList. by doing so,
      * all current connections dont have to sync on their handlerlist
      */
-    public void registerRequestHandler(final HttpRequestHandler handler) {
+    public HttpRequestHandlerInfo registerRequestHandler(final HttpRequestHandler handler) {
         synchronized (this.handler) {
-            @SuppressWarnings("unchecked")
-            final LinkedList<HttpRequestHandler> newhandler = (LinkedList<HttpRequestHandler>) this.handler.clone();
-            newhandler.add(handler);
-            this.handler = newhandler;
+            if (!this.handler.contains(handler)) {
+                @SuppressWarnings("unchecked")
+                final LinkedList<HttpRequestHandler> newhandler = (LinkedList<HttpRequestHandler>) this.handler.clone();
+                newhandler.add(handler);
+                this.handler = newhandler;
+            }
+            return new HttpRequestHandlerInfo(this, handler);
         }
     }
 
@@ -122,6 +136,12 @@ public class HttpServer implements Runnable {
         this.debug = debug;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Runnable#run()
+     */
+
     /**
      * @param localhostOnly
      *            the localhostOnly to set
@@ -130,11 +150,13 @@ public class HttpServer implements Runnable {
         this.localhostOnly = localhostOnly;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Runnable#run()
-     */
+    public synchronized void shutdown() {
+        try {
+            this.controlSocket.close();
+        } catch (final Throwable e) {
+        }
+        this.controlThread = null;
+    }
 
     public synchronized void start() throws IOException {
         if (this.isLocalhostOnly()) {
@@ -146,7 +168,7 @@ public class HttpServer implements Runnable {
             this.controlSocket = new ServerSocket(this.port);
         }
         this.controlThread = new Thread(this.threadGroup, this);
-        this.controlThread.setName("HttpServerThread");
+        this.controlThread.setName("HttpServerThread:" + this.port + ":" + this.localhostOnly);
         this.controlThread.start();
     }
 
@@ -156,6 +178,7 @@ public class HttpServer implements Runnable {
         } catch (final Throwable e) {
         }
         this.threadGroup.interrupt();
+        this.controlThread = null;
     }
 
     /*
@@ -171,4 +194,5 @@ public class HttpServer implements Runnable {
             this.handler = newhandler;
         }
     }
+
 }
