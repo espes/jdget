@@ -8,9 +8,9 @@ import org.appwork.utils.swing.table.ExtTable;
 
 public class MinimumSelectionObserver implements ListSelectionListener {
 
-    private final ExtTable<?>    table;
-    private final AbstractAction action;
-    private final int            minSelections;
+    protected final ExtTable<?>    table;
+    protected final AbstractAction action;
+    protected final int            minSelections;
 
     /**
      * @param table

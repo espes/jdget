@@ -12,6 +12,7 @@ package org.appwork.utils.swing.table.columns;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.regex.Pattern;
 
 import javax.swing.JComponent;
 
@@ -55,7 +56,7 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
      * @return
      */
     @Override
-    public JComponent getEditorComponent(E value, boolean isSelected, int row, int column) {
+    public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
         return this.editor;
     }
 
@@ -84,6 +85,11 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
     @Override
     public boolean isEditable(final E obj) {
         return true;
+    }
+
+    @Override
+    public boolean matchSearch(final E object, final Pattern pattern) {
+        return false;
     }
 
     @Override
