@@ -9,6 +9,8 @@
  */
 package org.appwork.remoteapi.test;
 
+import java.util.HashMap;
+
 import org.appwork.remoteapi.ApiNamespace;
 import org.appwork.remoteapi.RemoteAPIInterface;
 
@@ -18,5 +20,7 @@ import org.appwork.remoteapi.RemoteAPIInterface;
  */
 @ApiNamespace("test/test")
 public interface bla extends RemoteAPIInterface {
+    public HashMap<String, String> getTranslation();
+
     public String test1();
 }

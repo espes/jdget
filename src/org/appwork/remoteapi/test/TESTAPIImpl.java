@@ -11,11 +11,14 @@ package org.appwork.remoteapi.test;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
+import org.appwork.txtresource.TranslationFactory;
 import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 
@@ -44,6 +47,23 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla {
             cos.write(kk.getBytes());
             cos.flush();
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.remoteapi.test.bla#getTranslation()
+     */
+    @Override
+    public HashMap<String, String> getTranslation() {
+        final Webinterface ti = TranslationFactory.create(Webinterface.class);
+        final Method[] methods = ti._getHandler().getMethods();
+
+        final HashMap<String, String> map = new HashMap<String, String>();
+        for (final Method m : methods) {
+            map.put(m.getName(), ti._getHandler().getTranslation(m));
+        }
+        return map;
     }
 
     /*
