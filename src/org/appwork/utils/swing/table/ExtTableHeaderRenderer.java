@@ -9,9 +9,12 @@
  */
 package org.appwork.utils.swing.table;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Composite;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
@@ -137,33 +140,39 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
     public void paintComponent(final Graphics g) {
         super.paintComponent(g);
         if (this.paintIcon) {
-            if (this.order) {
-                final Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setStroke(new BasicStroke(1));
+            final Dimension size = this.getSize();
+            final int h = 6;
+            final int w = 6;
+            final int left = 2;
 
-                g2.setColor(Color.black);
+            final Graphics2D g2 = (Graphics2D) g;
+            final Composite comp = g2.getComposite();
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setStroke(new BasicStroke(1));
+
+            g2.setColor(Color.black);
+            if (this.order) {
+
                 final Polygon poly = new Polygon();
 
-                poly.addPoint(this.getSize().width / 2, 2);
-                poly.addPoint(this.getSize().width / 2 + 4, 4);
-                poly.addPoint(this.getSize().width / 2 - 4, 4);
+                poly.addPoint(left + w / 2, size.height / 2 + h / 2);
+                poly.addPoint(left, size.height / 2 - h / 2);
+                poly.addPoint(left + w, size.height / 2 - h / 2);
 
                 g2.fill(poly);
             } else {
-                final Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setStroke(new BasicStroke(1));
 
-                g2.setColor(Color.black);
                 final Polygon poly = new Polygon();
 
-                poly.addPoint(this.getSize().width / 2, this.getSize().height - 2);
-                poly.addPoint(this.getSize().width / 2 + 4, this.getSize().height - 4);
-                poly.addPoint(this.getSize().width / 2 - 4, this.getSize().height - 4);
+                poly.addPoint(left + w / 2, size.height / 2 - h / 2);
+                poly.addPoint(left, size.height / 2 + h / 2);
+                poly.addPoint(left + w, size.height / 2 + h / 2);
 
                 g2.fill(poly);
+                // g2.draw(poly);
             }
+            g2.setComposite(comp);
         }
 
     }

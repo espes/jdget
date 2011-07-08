@@ -191,6 +191,18 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "%s3 %s1/%s2", "%s3 %s1/%s2" })
     String progress(String loaded, String total, double d);
 
+    @Default(lngs = { "en", "de" }, values = { "Direct", "Direkt" })
+    String proxy_direct();
+
+    @Default(lngs = { "en", "de" }, values = { "%s1:%s2 (Http Proxy)", "%s1:%s2 (Http Proxy)" })
+    String proxy_http(String host, int port);
+
+    @Default(lngs = { "en", "de" }, values = { "Direct", "Direkt" })
+    String proxy_none();
+
+    @Default(lngs = { "en", "de" }, values = { "s1:%s2 (Socks5 Proxy)", "%s1:%s2 (Socks5 Proxy)" })
+    String proxy_socks(String host, int port);
+
     @Default(lngs = { "en", "de" }, values = { "Find", "Suchen" })
     String SEARCHDIALOG_BUTTON_FIND();
 

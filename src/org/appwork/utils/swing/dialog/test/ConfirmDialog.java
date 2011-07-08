@@ -24,8 +24,17 @@ public class ConfirmDialog {
      * @throws DialogCanceledException
      * @throws DialogClosedException
      */
-    public static void main(final String[] args) throws DialogClosedException, DialogCanceledException {
-        Dialog.getInstance().showConfirmDialog(0, "title", "After adding links, JDownloader lists them in the Linkgrabber View to find file/package information likeOnlinestatus, Filesize, or Filename. Afterwards, Links are sorted into packages. Please choose whether JDownloader shall auto start download to your default downloadfolder \"(%s1)\"afterwards, or keep links in Linkgrabber until you click [continue] manually. You can change this option at any timein the Linkgrabber View.message this is a longer message. it is very long. probably over one line long. ", null, null, null);
+    public static void main(final String[] args) {
+
+        try {
+            Dialog.getInstance().showConfirmDialog(0, "title", "After adding links, JDownloader lists them in the Linkgrabber View to find file/package information likeOnlinestatus, Filesize, or Filename. Afterwards, Links are sorted into packages. Please choose whether JDownloader shall auto start download to your default downloadfolder \"(%s1)\"afterwards, or keep links in Linkgrabber until you click [continue] manually. You can change this option at any timein the Linkgrabber View.message this is a longer message. it is very long. probably over one line long. ", null, null, null);
+        } catch (final DialogClosedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (final DialogCanceledException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         // Dialog.getInstance().showConfirmDialog(Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN,
         // "title", "message", null, null, null);
     }
