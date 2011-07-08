@@ -295,6 +295,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
                 public void actionPerformed(final ActionEvent e) {
                     Log.L.fine("Answer: Key<ESCAPE>");
+                    AbstractDialog.this.setReturnmask(false);
                     AbstractDialog.this.dispose();
                 }
             });
