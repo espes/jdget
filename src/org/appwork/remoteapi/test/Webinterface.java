@@ -12,6 +12,7 @@ package org.appwork.remoteapi.test;
 import java.net.URL;
 
 import org.appwork.txtresource.Default;
+import org.appwork.txtresource.Defaults;
 import org.appwork.txtresource.Description;
 import org.appwork.txtresource.TranslateInterface;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
@@ -20,6 +21,7 @@ import org.appwork.utils.net.httpconnection.HTTPProxy;
  * @author thomas
  * 
  */
+@Defaults(lngs = { "en" })
 public interface Webinterface extends TranslateInterface {
     @Default(lngs = { "en" }, values = { "Really remove %s1" })
     String account_remove_action_msg(String string);
