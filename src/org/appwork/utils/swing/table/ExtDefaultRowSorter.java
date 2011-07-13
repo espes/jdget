@@ -10,14 +10,21 @@ import java.util.Comparator;
  */
 public class ExtDefaultRowSorter<E> implements Comparator<E> {
 
-    private boolean sortOrderToggle = true;
+    private String sortOrderIdentifier = ExtColumn.SORT_ASC;
 
-    /**
-     * @return the {@link ExtDefaultRowSorter#sortOrderToggle}
-     * @see ExtDefaultRowSorter#sortOrderToggle
-     */
-    public boolean isSortOrderToggle() {
-        return sortOrderToggle;
+    @SuppressWarnings("unchecked")
+    public int compare(final E o1, final E o2) {
+        if (this.getSortOrderIdentifier().equals(ExtColumn.SORT_ASC)) {
+            if (o1 instanceof Comparable<?>) { return ((Comparable<E>) o1).compareTo(o2); }
+            return o1.toString().compareTo(o2.toString());
+        } else {
+            if (o1 instanceof Comparable<?>) { return ((Comparable<E>) o2).compareTo(o1); }
+            return o2.toString().compareTo(o1.toString());
+        }
+    }
+
+    public String getSortOrderIdentifier() {
+        return this.sortOrderIdentifier;
     }
 
     /**
@@ -25,19 +32,8 @@ public class ExtDefaultRowSorter<E> implements Comparator<E> {
      *            the {@link ExtDefaultRowSorter#sortOrderToggle} to set
      * @see ExtDefaultRowSorter#sortOrderToggle
      */
-    public void setSortOrderToggle(boolean sortOrderToggle) {
-        this.sortOrderToggle = sortOrderToggle;
-    }
-
-    @SuppressWarnings("unchecked")
-    public int compare(E o1, E o2) {
-        if (sortOrderToggle) {
-            if (o1 instanceof Comparable<?>) return ((Comparable<E>) o1).compareTo(o2);
-            return o1.toString().compareTo(o2.toString());
-        } else {
-            if (o1 instanceof Comparable<?>) return ((Comparable<E>) o2).compareTo(o1);
-            return o2.toString().compareTo(o1.toString());
-        }
+    public void setSortOrderIdentifier(final String sortOrderIdentifier) {
+        this.sortOrderIdentifier = sortOrderIdentifier;
     }
 
 }

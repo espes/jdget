@@ -8,6 +8,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 
 import org.appwork.storage.JSonStorage;
+import org.appwork.storage.Storage;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
@@ -27,15 +28,23 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * 
      */
-    private static final long                              serialVersionUID = 939549808899567618L;
+    public static final String                             SORT_ORDER_ID_KEY = "SORT_ORDER_ID";
+    /**
+     * 
+     */
+    public static final String                             SORTCOLUMN_KEY    = "SORTCOLUMN";
+    /**
+     * 
+     */
+    private static final long                              serialVersionUID  = 939549808899567618L;
     /**
      * complete table structure has changed
      */
-    protected static final int                             UPDATE_STRUCTURE = 1;
+    protected static final int                             UPDATE_STRUCTURE  = 1;
     /**
      * Column instances
      */
-    protected ArrayList<ExtColumn<E>>                      columns          = new ArrayList<ExtColumn<E>>();
+    protected ArrayList<ExtColumn<E>>                      columns           = new ArrayList<ExtColumn<E>>();
 
     /**
      * Modelid to have an seperate key for database savong
@@ -45,15 +54,15 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * the table that uses this model
      */
-    private ExtTable<E>                                    table            = null;
+    private ExtTable<E>                                    table             = null;
 
     /**
      * a list of objects. Each object represents one table row
      */
-    protected ArrayList<E>                                 tableData        = new ArrayList<E>();
+    protected ArrayList<E>                                 tableData         = new ArrayList<E>();
 
     protected ExtColumn<E>                                 sortColumn;
-    protected boolean                                      sortOrderToggle  = true;
+
     private final ArrayList<ExtComponentRowHighlighter<E>> extComponentRowHighlighters;
 
     /**
@@ -71,14 +80,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.modelID = id;
         this.initColumns();
 
-        final String columnId = JSonStorage.getStorage("ExtTableModel_" + this.modelID).get("SORTCOLUMN", this.columns.get(0).getID());
+        final String columnId = this.getStorage().get(ExtTableModel.SORTCOLUMN_KEY, this.columns.get(0).getID());
         for (final ExtColumn<E> col : this.columns) {
             if (col.getID().equals(columnId)) {
                 this.sortColumn = col;
                 break;
             }
         }
-        this.sortOrderToggle = JSonStorage.getStorage("ExtTableModel_" + this.modelID).get("SORTORDER", false);
+        this.sortColumn.setSortOrderIdentifier(this.getStorage().get(ExtTableModel.SORT_ORDER_ID_KEY, ExtColumn.SORT_ASC));
         this.refreshSort();
     }
 
@@ -375,6 +384,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
+     * @return
+     */
+    protected Storage getStorage() {
+        return JSonStorage.getStorage("ExtTableModel_" + this.modelID);
+    }
+
+    /**
      * @return the {@link ExtTableModel#table}
      * @see ExtTableModel#table
      */
@@ -452,16 +468,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
-     * Returns the current sortOrderToggle
-     * 
-     * @return the {@link ExtTableModel#sortOrderToggle}
-     * @see ExtTableModel#sortOrderToggle
-     */
-    public boolean isSortOrderToggle() {
-        return this.sortOrderToggle;
-    }
-
-    /**
      * Retrieves visible information form database interface to determine if the
      * column is visible or not
      * 
@@ -491,7 +497,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     public ArrayList<E> refreshSort(final ArrayList<E> data) {
-        return this.sort(data, this.sortColumn == null ? this.getExtColumn(0) : this.sortColumn, this.sortOrderToggle);
+        return this.sort(data, this.sortColumn == null ? this.getExtColumn(0) : this.sortColumn);
     }
 
     /**
@@ -655,18 +661,17 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * Sorts given modeldata with the column's rowsorter
      * 
      **/
-    public ArrayList<E> sort(final ArrayList<E> data, final ExtColumn<E> column, final boolean sortOrderToggle) {
+    public ArrayList<E> sort(final ArrayList<E> data, final ExtColumn<E> column) {
         this.sortColumn = column;
-        this.sortOrderToggle = sortOrderToggle;
+        final String id = column.getSortOrderIdentifier();
 
         try {
-            JSonStorage.getStorage("ExtTableModel_" + this.getModelID()).put("SORTORDER", sortOrderToggle);
-            JSonStorage.getStorage("ExtTableModel_" + this.getModelID()).put("SORTCOLUMN", column.getID());
+            this.getStorage().put(ExtTableModel.SORT_ORDER_ID_KEY, id);
+            this.getStorage().put(ExtTableModel.SORTCOLUMN_KEY, column.getID());
         } catch (final Exception e) {
             Log.exception(e);
         }
-        Collections.sort(data, column.getRowSorter(sortOrderToggle));
+        Collections.sort(data, column.getRowSorter());
         return data;
     }
-
 }

@@ -41,7 +41,7 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
                 final int h1 = ic1 == null ? 0 : ic1.hashCode();
                 final int h2 = ic2 == null ? 0 : ic2.hashCode();
                 if (h1 == h2) { return 0; }
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return h1 > h2 ? -1 : 1;
                 } else {
                     return h2 < h1 ? -1 : 1;

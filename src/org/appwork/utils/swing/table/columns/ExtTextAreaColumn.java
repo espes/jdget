@@ -65,7 +65,7 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
                 if (o2s == null) {
                     o2s = "";
                 }
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return o1s.compareTo(o2s);
                 } else {
                     return o2s.compareTo(o1s);

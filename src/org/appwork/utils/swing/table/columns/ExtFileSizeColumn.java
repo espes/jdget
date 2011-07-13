@@ -42,7 +42,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
                 final long s1 = ExtFileSizeColumn.this.getBytes(o1);
                 final long s2 = ExtFileSizeColumn.this.getBytes(o2);
                 if (s1 == s2) { return 0; }
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return s1 > s2 ? -1 : 1;
                 } else {
                     return s1 < s2 ? -1 : 1;

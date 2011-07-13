@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -19,6 +21,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
+import org.appwork.resources.AWUTheme;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
@@ -54,11 +57,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     private final String           name;
 
     /**
-     * A toggle to select the next sortingorder. ASC or DESC
-     */
-    private boolean                sortOrderToggle    = true;
-
-    /**
      * Sorting algorithms run in an own thread
      */
     private static Thread          sortThread         = null;
@@ -68,6 +66,11 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     private String                 id;
     private TableColumn            tableColumn;
     protected ExtToolTip           tip;
+    private final ImageIcon        iconAsc;
+    private final ImageIcon        iconDesc;
+    private String                 sortOrderIdentifier;
+    public static final String     SORT_DESC          = "DESC";
+    public static final String     SORT_ASC           = "ASC";
 
     /**
      * Create a new ExtColum.
@@ -85,6 +88,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         }
         // sort function
         this.rowSorter = new ExtDefaultRowSorter<E>();
+        this.iconAsc = AWUTheme.I().getIcon("sortAsc", -1);
+        this.iconDesc = AWUTheme.I().getIcon("sortDesc", -1);
+
     }
 
     /**
@@ -137,6 +143,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     protected void doSort() {
+        final String newID = ExtColumn.this.getNextSortIdentifier();
+
+        System.out.println("Sort: " + newID);
         synchronized (ExtColumn.sortLOCK) {
             if (ExtColumn.sortThread != null && ExtColumn.sortThread.isAlive()) { return; }
 
@@ -148,8 +157,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                         ArrayList<E> data = ExtColumn.this.model.getElements();
                         try {
                             // sort data
-                            ExtColumn.this.sortOrderToggle = !ExtColumn.this.sortOrderToggle;
-                            data = ExtColumn.this.getModel().sort(data, ExtColumn.this, ExtColumn.this.sortOrderToggle);
+
+                            ExtColumn.this.setSortOrderIdentifier(newID);
+                            data = ExtColumn.this.getModel().sort(data, ExtColumn.this);
                         } catch (final Exception e) {
                         }
                         final ArrayList<E> newData = data;
@@ -166,6 +176,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                                 ExtColumn.this.model.fireTableStructureChanged();
                                 // restore selection
                                 ExtColumn.this.model.setSelectedObjects(selections);
+                                ExtColumn.this.getModel().getTable().getTableHeader().repaint();
                                 return null;
                             }
                         }.waitForEDT();
@@ -240,6 +251,16 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     /**
+     * returns the real visible columnindex
+     * 
+     * @return
+     */
+    public int getIndex() {
+        return this.getModel().getTable().convertColumnIndexToView(this.tableColumn.getModelIndex());
+
+    }
+
+    /**
      * Should be overwritten when there should be a maximal width for this
      * column (e.g. for checkboxes)
      */
@@ -271,6 +292,18 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     /**
+     * @return
+     */
+    protected String getNextSortIdentifier() {
+        if (this.getSortOrderIdentifier() == null || this.getSortOrderIdentifier().equals(ExtColumn.SORT_ASC)) {
+            return ExtColumn.SORT_DESC;
+        } else {
+            return ExtColumn.SORT_ASC;
+        }
+
+    }
+
+    /**
      * @param value
      *            TODO
      * @param isSelected
@@ -291,9 +324,25 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @param sortToggle
      * @return
      */
-    public ExtDefaultRowSorter<E> getRowSorter(final boolean sortOrderToggle) {
-        this.rowSorter.setSortOrderToggle(sortOrderToggle);
+    public ExtDefaultRowSorter<E> getRowSorter() {
+        this.rowSorter.setSortOrderIdentifier(this.getSortOrderIdentifier());
         return this.rowSorter;
+    }
+
+    /**
+     * @return
+     */
+    public Icon getSortIcon() {
+        if (this.getSortOrderIdentifier() == null || this.getSortOrderIdentifier().equals(ExtColumn.SORT_ASC)) {
+            return this.iconAsc;
+        } else {
+            return this.iconDesc;
+        }
+
+    }
+
+    public String getSortOrderIdentifier() {
+        return this.sortOrderIdentifier;
     }
 
     @SuppressWarnings("unchecked")
@@ -419,14 +468,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     abstract public boolean isSortable(E obj);
 
-    /**
-     * @return the {@link ExtColumn#sortOrderToggle}
-     * @see ExtColumn#sortOrderToggle
-     */
-    protected boolean isSortOrderToggle() {
-        return this.sortOrderToggle;
-    }
-
     public boolean matchSearch(final E object, final Pattern pattern) {
         return false;
     }
@@ -458,6 +499,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public void setModel(final ExtTableModel<E> model) {
         this.model = model;
         this.id = this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName() + "." + model.getColumnCount();
+        System.out.println(this.id);
     }
 
     /**
@@ -467,6 +509,13 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public void setRowSorter(final ExtDefaultRowSorter<E> rowSorter) {
         this.rowSorter = rowSorter;
+    }
+
+    /**
+     * @param string
+     */
+    public void setSortOrderIdentifier(final String id) {
+        this.sortOrderIdentifier = id;
     }
 
     /**

@@ -32,7 +32,7 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
                 final long l1 = ExtLongColumn.this.getLong(o1);
                 final long l2 = ExtLongColumn.this.getLong(o2);
                 if (l1 == l2) { return 0; }
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return l1 > l2 ? -1 : 1;
                 } else {
                     return l1 < l2 ? -1 : 1;

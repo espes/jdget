@@ -110,7 +110,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
                 final long v1 = ExtProgressColumn.this.getValue(o1);
                 final long v2 = ExtProgressColumn.this.getValue(o2);
                 if (v1 == v2) { return 0; }
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return v1 > v2 ? -1 : 1;
                 } else {
                     return v2 > v1 ? -1 : 1;

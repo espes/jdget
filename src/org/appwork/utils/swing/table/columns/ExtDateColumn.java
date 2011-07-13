@@ -5,6 +5,7 @@ import java.text.FieldPosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
 
@@ -83,7 +84,7 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
                     this.b = 0;
                 }
                 if (this.a == this.b) { return 0; }
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return this.a > this.b ? -1 : 1;
                 } else {
                     return this.b > this.a ? -1 : 1;

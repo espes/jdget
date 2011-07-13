@@ -52,7 +52,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
                 final boolean b2 = ExtCheckColumn.this.getBooleanValue(o2);
 
                 if (b1 == b2) { return 0; }
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return b1 && !b2 ? -1 : 1;
                 } else {
                     return !b1 && b2 ? -1 : 1;

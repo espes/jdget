@@ -7,6 +7,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD })
+/**
+ * can be used to assign a description to a config entry. This makes sense of there is no settings panel, but only advanced config (about:config) or config-json-files
+ */
 public @interface Description {
 
     String value();

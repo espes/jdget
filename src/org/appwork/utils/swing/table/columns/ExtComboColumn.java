@@ -60,7 +60,7 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
             @Override
             public int compare(final E o1, final E o2) {
                 if (ExtComboColumn.this.getSelectedIndex(o1) == ExtComboColumn.this.getSelectedIndex(o2)) { return 0; }
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return ExtComboColumn.this.getSelectedIndex(o1) > ExtComboColumn.this.getSelectedIndex(o2) ? 1 : -1;
                 } else {
                     return ExtComboColumn.this.getSelectedIndex(o2) > ExtComboColumn.this.getSelectedIndex(o1) ? 1 : -1;

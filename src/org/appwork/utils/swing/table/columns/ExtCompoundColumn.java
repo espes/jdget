@@ -45,7 +45,7 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
                 if (o2s == null) {
                     o2s = "";
                 }
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return o1s.compareTo(o2s);
                 } else {
                     return o2s.compareTo(o1s);
@@ -109,8 +109,8 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
     }
 
     @Override
-    public ExtDefaultRowSorter<T> getRowSorter(final boolean sortOrderToggle) {
-        return super.getRowSorter(sortOrderToggle);
+    public ExtDefaultRowSorter<T> getRowSorter() {
+        return super.getRowSorter();
     }
 
     /**

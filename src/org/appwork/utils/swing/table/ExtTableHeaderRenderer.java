@@ -10,17 +10,14 @@
 package org.appwork.utils.swing.table;
 
 import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.RenderingHints;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -43,7 +40,6 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
     private static final long  serialVersionUID = 1L;
     private final ExtColumn<?> column;
     private boolean            paintIcon;
-    private boolean            order;
 
     private Color              focusForeground;
     private Color              focusBackground;
@@ -128,8 +124,6 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
             this.paintIcon = true;
         }
 
-        this.order = this.column.getModel().isSortOrderToggle();
-
         this.setText(value == null ? "" : value.toString());
         this.setBorder(hasFocus ? this.focusBorder : this.cellBorder);
 
@@ -140,38 +134,15 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
     public void paintComponent(final Graphics g) {
         super.paintComponent(g);
         if (this.paintIcon) {
-            final Dimension size = this.getSize();
-            final int h = 6;
-            final int w = 6;
+
             final int left = 2;
 
             final Graphics2D g2 = (Graphics2D) g;
             final Composite comp = g2.getComposite();
+            final Icon icon = this.column.getModel().getSortColumn().getSortIcon();
+
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setStroke(new BasicStroke(1));
-
-            g2.setColor(Color.black);
-            if (this.order) {
-
-                final Polygon poly = new Polygon();
-
-                poly.addPoint(left + w / 2, size.height / 2 + h / 2);
-                poly.addPoint(left, size.height / 2 - h / 2);
-                poly.addPoint(left + w, size.height / 2 - h / 2);
-
-                g2.fill(poly);
-            } else {
-
-                final Polygon poly = new Polygon();
-
-                poly.addPoint(left + w / 2, size.height / 2 - h / 2);
-                poly.addPoint(left, size.height / 2 + h / 2);
-                poly.addPoint(left + w, size.height / 2 + h / 2);
-
-                g2.fill(poly);
-                // g2.draw(poly);
-            }
+            icon.paintIcon(this, g2, left, (this.getHeight() - icon.getIconHeight()) / 2);
             g2.setComposite(comp);
         }
 

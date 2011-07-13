@@ -26,7 +26,7 @@ public abstract class ExtEuroColumn<E> extends ExtColumn<E> {
             @Override
             public int compare(final Object o1, final Object o2) {
                 if (ExtEuroColumn.this.getCent(o1) == ExtEuroColumn.this.getCent(o2)) { return 0; }
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return ExtEuroColumn.this.getCent(o1) > ExtEuroColumn.this.getCent(o2) ? -1 : 1;
                 } else {
                     return ExtEuroColumn.this.getCent(o1) < ExtEuroColumn.this.getCent(o2) ? -1 : 1;

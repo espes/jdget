@@ -10,6 +10,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 
 import org.appwork.utils.reflection.Clazz;
+import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
 
@@ -81,7 +82,7 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
                 final float _1 = ExtSpinnerColumn.this.getNumber(o1).floatValue();
                 final float _2 = ExtSpinnerColumn.this.getNumber(o2).floatValue();
 
-                if (this.isSortOrderToggle()) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return _1 == _2 ? 0 : _1 < _2 ? -1 : 1;
                 } else {
                     return _1 == _2 ? 0 : _1 > _2 ? -1 : 1;
