@@ -52,6 +52,8 @@ public class HTTPConstants {
          * The request cannot be fulfilled due to bad syntax.[2
          */
         ERROR_BAD_REQUEST(400, "Bad Request"),
+
+        ERROR_UNAUTHORIZED(401, "Unauthorized"),
         /**
          * The request was a legal request, but the server is refusing to
          * respond to it.[2] Unlike a 401 Unauthorized response, authenticating

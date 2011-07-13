@@ -12,6 +12,7 @@ package org.appwork.utils.net.httpserver.session;
 import org.appwork.remoteapi.ApiDoc;
 import org.appwork.remoteapi.ApiNamespace;
 import org.appwork.remoteapi.RemoteAPIInterface;
+import org.appwork.remoteapi.RemoteAPIRequest;
 
 /**
  * @author daniel
@@ -20,6 +21,8 @@ import org.appwork.remoteapi.RemoteAPIInterface;
 @ApiNamespace("session")
 public interface LoginAPIInterface extends RemoteAPIInterface {
 
-    @ApiDoc("returns an authenticated token for given username and password")
+    public boolean disconnect(final RemoteAPIRequest request);
+
+    @ApiDoc("returns an un/authenticated token for given username and password or \"error\" in case login failed")
     public String handshake(String user, String password);
 }

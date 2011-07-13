@@ -12,6 +12,7 @@ package org.appwork.utils.net.httpserver.test;
 import java.io.IOException;
 
 import org.appwork.remoteapi.ParseException;
+import org.appwork.remoteapi.SessionRemoteAPI;
 import org.appwork.remoteapi.test.TESTAPIImpl;
 import org.appwork.utils.net.httpserver.HttpServer;
 
@@ -25,7 +26,7 @@ public class serverTest {
      * @param args
      * @throws IOException
      */
-    public static SessionAPI rapi = new SessionAPI();
+    public static SessionRemoteAPI<TestSession> rapi = new SessionRemoteAPI<TestSession>();
 
     public static void main(final String[] args) throws IOException {
         final HttpServer server = new HttpServer(3128);

@@ -72,7 +72,7 @@ public class RemoteAPI implements HttpRequestHandler {
     public RemoteAPI() {
     }
 
-    private void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ApiCommandNotAvailable, BadParameterException {
+    protected void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ApiCommandNotAvailable, BadParameterException {
 
         final Method method = request.getMethod();
         if (method == null) { throw new ApiCommandNotAvailable(); }
@@ -80,9 +80,9 @@ public class RemoteAPI implements HttpRequestHandler {
         boolean responseIsParameter = false;
         int count = 0;
         for (int i = 0; i < parameters.length; i++) {
-            if (method.getParameterTypes()[i] == RemoteAPIRequest.class) {
+            if (RemoteAPIRequest.class.isAssignableFrom(method.getParameterTypes()[i])) {
                 parameters[i] = request;
-            } else if (method.getParameterTypes()[i] == RemoteAPIResponse.class) {
+            } else if (RemoteAPIResponse.class.isAssignableFrom(method.getParameterTypes()[i])) {
                 responseIsParameter = true;
                 parameters[i] = response;
             } else {
@@ -94,7 +94,31 @@ public class RemoteAPI implements HttpRequestHandler {
                 count++;
             }
         }
-        final Object ret = request.getIface().invoke(method, parameters);
+        Object ret = null;
+        try {
+            ret = request.getIface().invoke(method, parameters);
+        } catch (final InvocationTargetException e) {
+            final Throwable cause = e.getCause();
+            if (cause instanceof RemoteAPIException) {
+                final RemoteAPIException ex = (RemoteAPIException) cause;
+                response.setResponseCode(ex.getResponseCode());
+                String message = "";
+                if (ex.getMessage() != null) {
+                    message = ex.getMessage();
+                }
+                if (message.length() == 0) {
+                    response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
+                } else {
+                    final int length = message.getBytes("UTF-8").length;
+                    response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
+                    response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
+                    response.getOutputStream().write(message.getBytes("UTF-8"));
+                }
+                return;
+            } else {
+                throw e;
+            }
+        }
         if (responseIsParameter) { return; }
         if (Clazz.isVoid(method.getReturnType())) {
             response.setResponseCode(ResponseCode.SUCCESS_OK);
@@ -116,7 +140,6 @@ public class RemoteAPI implements HttpRequestHandler {
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
             response.getOutputStream().write(text.getBytes("UTF-8"));
         }
-
     }
 
     /**
@@ -191,7 +214,7 @@ public class RemoteAPI implements HttpRequestHandler {
             }
         }
         if (jqueryCallback != null) {
-            System.out.println("found jquery callback: " + jqueryCallback);
+            // System.out.println("found jquery callback: " + jqueryCallback);
         }
         return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback);
     }

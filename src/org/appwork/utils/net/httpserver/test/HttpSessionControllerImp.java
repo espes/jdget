@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.net.httpserver.test;
 
-import org.appwork.utils.net.httpserver.requests.HttpRequest;
 import org.appwork.utils.net.httpserver.session.HttpSessionController;
 
 /**
@@ -22,15 +21,15 @@ public class HttpSessionControllerImp extends HttpSessionController<TestSession>
      * (non-Javadoc)
      * 
      * @see
-     * org.appwork.utils.net.httpserver.session.HttpSessionController#createSession
-     * (java.lang.String, java.lang.String)
+     * org.appwork.utils.net.httpserver.HttpSessionController#getSession(org
+     * .appwork.utils.net.httpserver.requests.HttpRequest)
      */
     @Override
-    protected TestSession createSession(final String username, final String password) {
+    public TestSession getSession(final String id) {
         return new TestSession() {
             @Override
             public String getSessionID() {
-                return System.currentTimeMillis() + "";
+                return id;
             }
         };
     }
@@ -39,15 +38,34 @@ public class HttpSessionControllerImp extends HttpSessionController<TestSession>
      * (non-Javadoc)
      * 
      * @see
-     * org.appwork.utils.net.httpserver.HttpSessionController#getSession(org
-     * .appwork.utils.net.httpserver.requests.HttpRequest)
+     * org.appwork.utils.net.httpserver.session.HttpSessionController#createSession
+     * (java.lang.String, java.lang.String)
      */
     @Override
-    public TestSession getSession(final HttpRequest request, final String id) {
-        System.out.println(id);
-        return new TestSession() {
+    protected TestSession newSession(final String username, final String password) {
+        if (!"wron".equals(password)) {
+            return new TestSession() {
+                @Override
+                public String getSessionID() {
+                    return System.currentTimeMillis() + "";
+                }
+            };
+        } else {
+            return null;
+        }
+    }
 
-        };
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.utils.net.httpserver.session.HttpSessionController#removeSession
+     * (org.appwork.utils.net.httpserver.session.HttpSession)
+     */
+    @Override
+    protected boolean removeSession(final TestSession session) {
+        System.out.println("remove " + session.getSessionID());
+        return true;
     }
 
 }

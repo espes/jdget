@@ -35,11 +35,14 @@ public class RemoteAPIRequest {
 
     private final String              jqueryCallback;
 
+    private final String              methodName;
+
     public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request, final String jqueryCallback) {
         this.iface = iface;
         this.parameters = parameters;
         this.request = request;
         this.jqueryCallback = jqueryCallback;
+        this.methodName = methodName;
         this.method = this.iface.getMethod(methodName, this.parameters.length);
         try {
             this.parameterCount = iface.getParameterCount(this.method);
@@ -70,6 +73,13 @@ public class RemoteAPIRequest {
     public Method getMethod() {
 
         return this.method;
+    }
+
+    /**
+     * @return the methodName
+     */
+    public String getMethodName() {
+        return this.methodName;
     }
 
     public int getParameterCount() {

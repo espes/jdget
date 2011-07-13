@@ -11,11 +11,13 @@ package org.appwork.utils.net.httpserver.session;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 
+import org.appwork.remoteapi.RemoteAPIRequest;
+import org.appwork.remoteapi.SessionRemoteAPIRequest;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.handler.HttpSessionRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
-import org.appwork.utils.net.httpserver.requests.HttpRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
 
@@ -31,17 +33,17 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
         this.handler = new ArrayList<HttpSessionRequestHandler<T>>();
     }
 
-    /**
-     * create new session for given username, password.
-     * 
-     * @param username
-     * @param password
-     * @return
-     */
-    protected abstract T createSession(String username, String password);
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean disconnect(final RemoteAPIRequest request) {
+        final SessionRemoteAPIRequest<T> req = (SessionRemoteAPIRequest<T>) request;
+        final T session = req.getSession();
+        if (session != null) { return this.removeSession(session); }
+        return false;
+    }
 
-    protected String extractSessionID(final HttpRequest request) {
-        final Iterator<String[]> it = request.getRequestedURLParameters().iterator();
+    private String extractSessionID(final LinkedList<String[]> params) {
+        final Iterator<String[]> it = params.iterator();
         while (it.hasNext()) {
             final String[] next = it.next();
             if ("token".equalsIgnoreCase(next[0])) {
@@ -60,13 +62,23 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
      * @param sessionID
      * @return
      */
-    protected abstract T getSession(final HttpRequest request, final String sessionID);
+    protected abstract T getSession(final String sessionID);
 
     @Override
     public String handshake(final String user, final String password) {
-        final T session = this.createSession(user, password);
+        final T session = this.newSession(user, password);
+        if (session == null) { return "error"; }
         return session.getSessionID();
     }
+
+    /**
+     * create new session for given username, password.
+     * 
+     * @param username
+     * @param password
+     * @return
+     */
+    protected abstract T newSession(String username, String password);
 
     /*
      * (non-Javadoc)
@@ -82,7 +94,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
         synchronized (this.handler) {
             handlers = this.handler;
         }
-        final T session = this.getSession(request, this.extractSessionID(request));
+        final T session = this.getSession(this.extractSessionID(request.getRequestedURLParameters()));
         for (final HttpSessionRequestHandler<T> handler : handlers) {
             if (handler.onGetSessionRequest(session, request, response)) { return true; }
         }
@@ -103,7 +115,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
         synchronized (this.handler) {
             handlers = this.handler;
         }
-        final T session = this.getSession(request, this.extractSessionID(request));
+        final T session = this.getSession(this.extractSessionID(request.getRequestedURLParameters()));
         for (final HttpSessionRequestHandler<T> handler : handlers) {
             if (handler.onPostSessionRequest(session, request, response)) { return true; }
         }
@@ -119,6 +131,8 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
             }
         }
     }
+
+    protected abstract boolean removeSession(final T session);
 
     public void unregisterSessionRequestHandler(final HttpSessionRequestHandler<T> handler) {
         synchronized (this.handler) {

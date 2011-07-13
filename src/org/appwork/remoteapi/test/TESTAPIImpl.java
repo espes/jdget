@@ -28,7 +28,7 @@ import org.appwork.utils.net.HTTPHeader;
  * @author daniel
  * 
  */
-public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP {
+public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP, Ping {
 
     private final LinkedList<Color> colors = new LinkedList<Color>();
     private volatile boolean        stop   = false;
@@ -126,6 +126,30 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP {
     public String merge(final String a, final String b, final int a2, final boolean b2) {
         // TODO Auto-generated method stub
         return a + b + a2 + b2;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.remoteapi.test.Ping#ping()
+     */
+    @Override
+    public String ping() {
+        return "pong";
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.remoteapi.test.Ping#ping(java.lang.String,
+     * java.lang.String)
+     */
+    @Override
+    public HashMap<String, String> ping(final String a, final String b) {
+        final HashMap<String, String> map = new HashMap<String, String>();
+        map.put("pid", "foo");
+        map.put("returnValue", b);
+        return map;
     }
 
     /*
