@@ -16,7 +16,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-import java.util.LinkedList;
+import java.util.ArrayList;
+
+import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 
 /**
  * @author daniel
@@ -24,21 +26,21 @@ import java.util.LinkedList;
  */
 public class HttpServer implements Runnable {
 
-    private final int                      port;
-    private ServerSocket                   controlSocket;
-    private Thread                         controlThread = null;
-    private ThreadGroup                    threadGroup   = null;
-    private boolean                        localhostOnly = false;
-    private boolean                        debug         = false;
-    private LinkedList<HttpRequestHandler> handler       = null;
+    private final int                     port;
+    private ServerSocket                  controlSocket;
+    private Thread                        controlThread = null;
+    private ThreadGroup                   threadGroup   = null;
+    private boolean                       localhostOnly = false;
+    private boolean                       debug         = false;
+    private ArrayList<HttpRequestHandler> handler       = null;
 
     public HttpServer(final int port) {
         this.port = port;
         this.threadGroup = new ThreadGroup("HttpServer");
-        this.handler = new LinkedList<HttpRequestHandler>();
+        this.handler = new ArrayList<HttpRequestHandler>();
     }
 
-    public LinkedList<HttpRequestHandler> getHandler() {
+    public ArrayList<HttpRequestHandler> getHandler() {
         return this.handler;
     }
 
@@ -93,15 +95,14 @@ public class HttpServer implements Runnable {
      * then add new handler to it and set it as new handlerList. by doing so,
      * all current connections dont have to sync on their handlerlist
      */
-    public HttpRequestHandlerInfo registerRequestHandler(final HttpRequestHandler handler) {
+    public HttpHandlerInfo registerRequestHandler(final HttpRequestHandler handler) {
         synchronized (this.handler) {
             if (!this.handler.contains(handler)) {
-                @SuppressWarnings("unchecked")
-                final LinkedList<HttpRequestHandler> newhandler = (LinkedList<HttpRequestHandler>) this.handler.clone();
+                final ArrayList<HttpRequestHandler> newhandler = new ArrayList<HttpRequestHandler>(this.handler);
                 newhandler.add(handler);
                 this.handler = newhandler;
             }
-            return new HttpRequestHandlerInfo(this, handler);
+            return new HttpHandlerInfo(this, handler);
         }
     }
 
@@ -188,8 +189,7 @@ public class HttpServer implements Runnable {
      */
     public void unregisterRequestHandler(final HttpRequestHandler handler) {
         synchronized (this.handler) {
-            @SuppressWarnings("unchecked")
-            final LinkedList<HttpRequestHandler> newhandler = (LinkedList<HttpRequestHandler>) this.handler.clone();
+            final ArrayList<HttpRequestHandler> newhandler = new ArrayList<HttpRequestHandler>(this.handler);
             newhandler.remove(handler);
             this.handler = newhandler;
         }

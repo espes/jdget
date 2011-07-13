@@ -24,7 +24,7 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.utils.Regex;
 import org.appwork.utils.net.HTTPHeader;
-import org.appwork.utils.net.httpserver.HttpRequestHandler;
+import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
@@ -101,8 +101,17 @@ public class RemoteAPI implements HttpRequestHandler {
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
         } else {
             response.setResponseCode(ResponseCode.SUCCESS_OK);
-            final String text = JSonStorage.toString(ret);
-            final int length = text.getBytes().length;
+            String text = JSonStorage.toString(ret);
+            if (request.getJqueryCallback() != null) {
+                /* wrap response into a valid jquery response format */
+                final StringBuilder sb = new StringBuilder();
+                sb.append(request.getJqueryCallback());
+                sb.append("(");
+                sb.append(text);
+                sb.append(");");
+                text = sb.toString();
+            }
+            final int length = text.getBytes("UTF-8").length;
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
             response.getOutputStream().write(text.getBytes("UTF-8"));
@@ -115,7 +124,10 @@ public class RemoteAPI implements HttpRequestHandler {
      * @param type
      * @return
      */
-    private Object convert(final String string, final Type type) {
+    private Object convert(String string, final Type type) {
+        if (type == String.class && !string.startsWith("\"")) {
+            string = "\"" + string + "\"";
+        }
         @SuppressWarnings("unchecked")
         final Object v = JSonStorage.restoreFromString(string, new TypeRef(type) {
         }, null);
@@ -138,10 +150,16 @@ public class RemoteAPI implements HttpRequestHandler {
         }
         if (interfaceHandler == null) { return null; }
         final ArrayList<String> parameters = new ArrayList<String>();
+        String jqueryCallback = null;
         /* convert GET parameters to methodParameters */
         for (final String[] param : request.getRequestedURLParameters()) {
             if (param[1] != null) {
                 /* key=value(parameter) */
+                if ("callback".equalsIgnoreCase(param[0])) {
+                    /* filter jquery callback */
+                    jqueryCallback = param[1];
+                    continue;
+                }
                 parameters.add(param[1]);
             } else {
                 /* key(parameter) */
@@ -155,6 +173,11 @@ public class RemoteAPI implements HttpRequestHandler {
                     /* add POST parameters to methodParameters */
                     for (final String[] param : ret) {
                         if (param[1] != null) {
+                            if ("callback".equalsIgnoreCase(param[0])) {
+                                /* filter jquery callback */
+                                jqueryCallback = param[1];
+                                continue;
+                            }
                             /* key=value(parameter) */
                             parameters.add(param[1]);
                         } else {
@@ -167,7 +190,10 @@ public class RemoteAPI implements HttpRequestHandler {
                 throw new RuntimeException(e);
             }
         }
-        return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request);
+        if (jqueryCallback != null) {
+            System.out.println("found jquery callback: " + jqueryCallback);
+        }
+        return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback);
     }
 
     /**

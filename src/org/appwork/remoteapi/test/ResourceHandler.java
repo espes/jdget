@@ -12,11 +12,10 @@ package org.appwork.remoteapi.test;
 import java.io.IOException;
 import java.net.URL;
 
-import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
-import org.appwork.utils.IO;
-import org.appwork.utils.net.httpserver.HttpRequestHandler;
+import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
+import org.appwork.utils.net.httpserver.responses.FileResponse;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
 
 /**
@@ -38,22 +37,17 @@ public class ResourceHandler implements HttpRequestHandler {
         // TODO Auto-generated method stub
         // TODO: SECURITY
         if (!request.getRequestedPath().startsWith("/resources/")) { return false; }
-        response.setResponseCode(ResponseCode.SUCCESS_OK);
-        try {
-            final URL url = this.getClass().getResource(request.getRequestedPath().substring(1));
-            if (url != null) {
-
-                response.getOutputStream().write(IO.readURL(url));
-
-                response.getOutputStream().flush();
-                return true;
+        final URL url = this.getClass().getResource(request.getRequestedPath().substring(1));
+        if (url != null) {
+            final FileResponse fr = new FileResponse(request, response, url);
+            try {
+                fr.sendFile();
+            } catch (final IOException e) {
+                throw new RuntimeException(e);
             }
-        } catch (final IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            return true;
         }
-        response.setResponseCode(ResponseCode.ERROR_NOT_FOUND);
-        return true;
+        return false;
     }
 
     /*

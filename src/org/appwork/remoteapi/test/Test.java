@@ -32,6 +32,7 @@ public class Test {
 
         server.registerRequestHandler(3128, false, Test.rapi);
         server.registerRequestHandler(3129, false, new ResourceHandler());
+        server.registerRequestHandler(3129, false, new FileServer());
 
         try {
             Test.rapi.register(new TESTAPIImpl());

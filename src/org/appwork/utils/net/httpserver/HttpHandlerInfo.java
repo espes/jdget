@@ -9,21 +9,23 @@
  */
 package org.appwork.utils.net.httpserver;
 
+import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
+
 /**
  * @author daniel
  * 
  */
-public class HttpRequestHandlerInfo {
+public class HttpHandlerInfo {
 
     private final HttpServer         server;
     private final HttpRequestHandler handler;
 
-    protected HttpRequestHandlerInfo(final HttpServer server, final HttpRequestHandler handler) {
+    protected HttpHandlerInfo(final HttpServer server, final HttpRequestHandler handler) {
         this.server = server;
         this.handler = handler;
     }
 
-    protected HttpRequestHandler getHttpRequestHandler() {
+    protected HttpRequestHandler getHttpHandler() {
         return this.handler;
     }
 

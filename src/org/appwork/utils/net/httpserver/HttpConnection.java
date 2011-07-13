@@ -13,8 +13,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import org.appwork.net.protocol.http.HTTPConstants;
@@ -25,6 +27,7 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.HeaderCollection;
 import org.appwork.utils.net.httpconnection.HTTPConnectionUtils;
+import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
@@ -49,6 +52,12 @@ public class HttpConnection implements Runnable {
                     requestedURLParameters.add(new String[] { URLDecoder.decode(params[0], "UTF-8"), null });
                 } else {
                     /* key = value */
+                    if ("_".equals(params[0])) {
+                        /* we remove random timestamp from jquery here */
+                        // System.out.println("remove timestamp param from jquery: "
+                        // + params[1]);
+                        continue;
+                    }
                     requestedURLParameters.add(new String[] { URLDecoder.decode(params[0], "UTF-8"), URLDecoder.decode(params[1], "UTF-8") });
                 }
             }
@@ -63,7 +72,7 @@ public class HttpConnection implements Runnable {
 
     private HttpResponse     response            = null;
 
-    public HttpConnection(final HttpServer server, final Socket clientSocket) {
+    public HttpConnection(final HttpServer server, final Socket clientSocket) throws SocketException {
         this.server = server;
         this.clientSocket = clientSocket;
         this.thread = new Thread(server.getThreadGroup(), this) {
@@ -76,7 +85,7 @@ public class HttpConnection implements Runnable {
                 }
             }
         };
-        this.thread.setName("HttpConnectionThread: " + this);
+        this.thread.setName("" + this);
         this.thread.start();
     }
 
@@ -186,7 +195,7 @@ public class HttpConnection implements Runnable {
             final HttpRequest request = this.buildRequest();
             this.response = new HttpResponse(this);
             boolean handled = false;
-            LinkedList<HttpRequestHandler> handlers = null;
+            ArrayList<HttpRequestHandler> handlers = null;
             synchronized (this.server.getHandler()) {
                 handlers = this.server.getHandler();
             }
@@ -205,11 +214,7 @@ public class HttpConnection implements Runnable {
             }
             if (!handled) {
                 /* generate error handler */
-                if (request instanceof GetRequest) {
-                    this.response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
-                } else if (request instanceof PostRequest) {
-                    this.response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
-                }
+                this.response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
             }
             /* send response headers if they have not been sent yet send yet */
             this.response.getOutputStream();
@@ -256,5 +261,10 @@ public class HttpConnection implements Runnable {
         } finally {
             this.responseHeadersSent = true;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "HttpConnectionThread: " + this.clientSocket.toString();
     }
 }

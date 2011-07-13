@@ -264,4 +264,5 @@ public class HTTPConstants {
     public static final String HEADER_RESPONSE_TRANSFER_ENCODING         = "Transfer-Encoding";
     public static final String HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED = "chunked";
     public static final String HEADER_REQUEST_ACCEPT_RANGES              = "Accept-Ranges";
+    public static final String HEADER_RESPONSE_CONTENT_ENCODING          = "Content-Encoding";
 }

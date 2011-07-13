@@ -33,10 +33,13 @@ public class RemoteAPIRequest {
 
     private int                       parameterCount;
 
-    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request) {
+    private final String              jqueryCallback;
+
+    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request, final String jqueryCallback) {
         this.iface = iface;
         this.parameters = parameters;
         this.request = request;
+        this.jqueryCallback = jqueryCallback;
         this.method = this.iface.getMethod(methodName, this.parameters.length);
         try {
             this.parameterCount = iface.getParameterCount(this.method);
@@ -52,6 +55,13 @@ public class RemoteAPIRequest {
     public InputStream getInputStream() throws IOException {
         if (this.request instanceof PostRequest) { return ((PostRequest) this.request).getInputStream(); }
         return null;
+    }
+
+    /**
+     * @return the jqueryCallback
+     */
+    public String getJqueryCallback() {
+        return this.jqueryCallback;
     }
 
     /**

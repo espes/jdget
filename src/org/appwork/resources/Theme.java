@@ -29,9 +29,6 @@ import org.appwork.utils.IO;
 import org.appwork.utils.images.IconIO;
 import org.appwork.utils.images.Interpolation;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
 
 /**
  * 
@@ -146,15 +143,18 @@ public class Theme {
             if (url == null) {
 
                 Log.exception(new Exception("Icon missing: " + this.getPath("images/", relativePath, ".png")));
-                try {
-                    Dialog.getInstance().showConfirmDialog(0, "Icon Missing", "Please add the\r\n" + this.getPath("images/", relativePath, ".png") + " to the classpath", ret, null, null);
-                } catch (final DialogClosedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (final DialogCanceledException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                // try {
+                // // Dialog.getInstance().showConfirmDialog(0, "Icon Missing",
+                // // "Please add the\r\n" + this.getPath("images/",
+                // // relativePath, ".png") + " to the classpath", ret, null,
+                // // null);
+                // } catch (final DialogClosedException e) {
+                // // TODO Auto-generated catch block
+                // e.printStackTrace();
+                // } catch (final DialogCanceledException e) {
+                // // TODO Auto-generated catch block
+                // e.printStackTrace();
+                // }
 
             }
             if (useCache) {

@@ -7,20 +7,20 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.net.httpserver;
+package org.appwork.utils.net.httpserver.handler;
 
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
+import org.appwork.utils.net.httpserver.session.HttpSession;
 
 /**
  * @author daniel
  * 
  */
-public interface HttpRequestHandler {
+public interface HttpSessionRequestHandler<T extends HttpSession> {
 
-    public abstract boolean onGetRequest(final GetRequest request, final HttpResponse response);
+    public abstract boolean onGetSessionRequest(final T session, final GetRequest request, final HttpResponse response);
 
-    public abstract boolean onPostRequest(final PostRequest request, final HttpResponse response);
-
+    public abstract boolean onPostSessionRequest(final T session, final PostRequest request, final HttpResponse response);
 }

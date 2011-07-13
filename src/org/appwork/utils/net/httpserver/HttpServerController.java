@@ -12,6 +12,8 @@ package org.appwork.utils.net.httpserver;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
+
 /**
  * @author daniel
  * 
@@ -23,10 +25,10 @@ public class HttpServerController {
     public HttpServerController() {
     }
 
-    public synchronized HttpRequestHandlerInfo registerRequestHandler(final int port, final boolean localhost, final HttpRequestHandler handler) throws IOException {
+    public synchronized HttpHandlerInfo registerRequestHandler(final int port, final boolean localhost, final HttpRequestHandler handler) throws IOException {
         HttpServer server = null;
         for (final HttpServer s : this.servers) {
-            if (s.getPort() == port && s.isLocalhostOnly() == localhost) {
+            if (s.getPort() == port) {
                 server = s;
                 break;
             }
@@ -37,8 +39,13 @@ public class HttpServerController {
             server.start();
             this.servers.add(server);
         }
+        if (localhost == false && server.isLocalhostOnly()) {
+            server.shutdown();
+            server.setLocalhostOnly(false);
+            server.start();
+        }
         server.registerRequestHandler(handler);
-        return new HttpRequestHandlerInfo(server, handler) {
+        return new HttpHandlerInfo(server, handler) {
             @Override
             public void unregisterRequestHandler() {
                 HttpServerController.this.unregisterRequestHandler(this);
@@ -46,9 +53,9 @@ public class HttpServerController {
         };
     }
 
-    public synchronized void unregisterRequestHandler(final HttpRequestHandlerInfo handlerInfo) {
+    public synchronized void unregisterRequestHandler(final HttpHandlerInfo handlerInfo) {
         if (this.servers.contains(handlerInfo.getHttpServer())) {
-            handlerInfo.getHttpServer().unregisterRequestHandler(handlerInfo.getHttpRequestHandler());
+            handlerInfo.getHttpServer().unregisterRequestHandler(handlerInfo.getHttpHandler());
             if (handlerInfo.getHttpServer().getHandler().isEmpty()) {
                 this.servers.remove(handlerInfo.getHttpServer());
                 handlerInfo.getHttpServer().shutdown();

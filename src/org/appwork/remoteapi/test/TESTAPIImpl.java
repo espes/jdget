@@ -9,44 +9,75 @@
  */
 package org.appwork.remoteapi.test;
 
+import java.awt.Color;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
 import org.appwork.txtresource.TranslationFactory;
-import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 
 /**
  * @author daniel
  * 
  */
-public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla {
+public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP {
+
+    private final LinkedList<Color> colors = new LinkedList<Color>();
+    private volatile boolean        stop   = false;
 
     @Override
     public void async(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
         response.setResponseCode(ResponseCode.SUCCESS_OK);
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING, HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
+        System.out.println("connect");
+        // response.getResponseHeaders().add(new
+        // HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING,
+        // HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text/html"));
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONNECTION, "keep-alive"));
-        final ChunkedOutputStream cos = new ChunkedOutputStream(response.getOutputStream());
-        cos.write("<html><div id='news'>ddd</div></html>".getBytes());
-        cos.flush();
+        // response.getResponseHeaders().add(new
+        // HTTPHeader(HTTPConstants.HEADER_REQUEST_CONNECTION, "keep-alive"));
+        // final ChunkedOutputStream cos = new
+        // ChunkedOutputStream(response.getOutputStream());
+        final OutputStream os = response.getOutputStream();
+        os.write("<html><div id='news'>ddd</div></html>".getBytes());
+        // cos.flush();
         while (true) {
+            final String kk = "<script type=\"text/javascript\">document.getElementById('news').innerHTML = \"" + System.currentTimeMillis() + "\";</script>\r\n";
+            os.write(kk.getBytes());
+            os.flush();
             try {
-                Thread.sleep(1000);
+                Thread.sleep(10);
             } catch (final InterruptedException e) {
                 return;
             }
-            final String kk = "<script type=\"text/javascript\">document.getElementById('news').innerHTML = \"" + System.currentTimeMillis() + "\";</script>\r\n";
-            cos.write(kk.getBytes());
-            cos.flush();
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.remoteapi.test.JSONP#color(int, int, int)
+     */
+    @Override
+    public boolean color(final int r, final int g, final int b) {
+        System.out.println(r + " " + g + " " + b);
+        synchronized (this.colors) {
+            if (r < 0 || g < 0 || b < 0) {
+                this.stop = true;
+                this.colors.clear();
+            } else {
+                this.colors.add(new Color(r, g, b));
+            }
+            this.colors.notify();
+        }
+        return true;
     }
 
     /*
@@ -116,6 +147,61 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla {
     @Override
     public String test() {
         return "TestSucessfull";
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.remoteapi.test.JSONP#test(org.appwork.remoteapi.RemoteAPIRequest
+     * , org.appwork.remoteapi.RemoteAPIResponse)
+     */
+    @Override
+    public void test(final String callback, final long id, final long timestamp, final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
+        System.out.println(callback + " " + id + " " + timestamp);
+        response.setResponseCode(ResponseCode.SUCCESS_OK);
+        // response.getResponseHeaders().add(new
+        // HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING,
+        // HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/javascript"));
+        // response.getResponseHeaders().add(new
+        // HTTPHeader(HTTPConstants.HEADER_REQUEST_CONNECTION, "keep-alive"));
+
+        // cos.flush();
+
+        Color next = null;
+        while (true) {
+            synchronized (this.colors) {
+                if (!this.colors.isEmpty()) {
+                    next = this.colors.removeFirst();
+                } else {
+                    if (!this.stop) {
+                        try {
+                            this.colors.wait();
+                        } catch (final InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            if (next != null || this.stop == true) {
+                if (this.stop == true) {
+                    this.stop = false;
+                    final String ret = callback + "({\"id\":" + (id + 1) + ",\"_\":\"system\",\"action\":\"disconnect\"});";
+                    System.out.println(ret);
+                    response.getOutputStream().write(ret.getBytes());
+                } else {
+                    final String value = Integer.toHexString(next.getRGB()).substring(2);
+                    final String ret = callback + "({\"id\":" + (id + 1) + ",\"rgb\":\"" + value + "\"});";
+                    System.out.println(ret);
+                    response.getOutputStream().write(ret.getBytes());
+                }
+                response.getOutputStream().flush();
+                break;
+            }
+        }
+
     }
 
     /*
