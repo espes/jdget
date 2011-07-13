@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 import javax.swing.AbstractCellEditor;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -21,7 +20,6 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
-import org.appwork.resources.AWUTheme;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
@@ -66,8 +64,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     private String                 id;
     private TableColumn            tableColumn;
     protected ExtToolTip           tip;
-    private final ImageIcon        iconAsc;
-    private final ImageIcon        iconDesc;
+
     private String                 sortOrderIdentifier;
     public static final String     SORT_DESC          = "DESC";
     public static final String     SORT_ASC           = "ASC";
@@ -88,8 +85,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         }
         // sort function
         this.rowSorter = new ExtDefaultRowSorter<E>();
-        this.iconAsc = AWUTheme.I().getIcon("sortAsc", -1);
-        this.iconDesc = AWUTheme.I().getIcon("sortDesc", -1);
 
     }
 
@@ -295,11 +290,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     protected String getNextSortIdentifier() {
-        if (this.getSortOrderIdentifier() == null || this.getSortOrderIdentifier().equals(ExtColumn.SORT_ASC)) {
-            return ExtColumn.SORT_DESC;
-        } else {
-            return ExtColumn.SORT_ASC;
-        }
+        return this.getModel().getNextSortIdentifier(this.getSortOrderIdentifier());
 
     }
 
@@ -333,11 +324,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public Icon getSortIcon() {
-        if (this.getSortOrderIdentifier() == null || this.getSortOrderIdentifier().equals(ExtColumn.SORT_ASC)) {
-            return this.iconAsc;
-        } else {
-            return this.iconDesc;
-        }
+        return this.getModel().getSortIcon(this.getSortOrderIdentifier());
 
     }
 

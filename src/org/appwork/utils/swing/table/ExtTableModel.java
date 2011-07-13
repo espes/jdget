@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.regex.Pattern;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 
+import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storage;
 import org.appwork.utils.logging.Log;
@@ -64,6 +67,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     protected ExtColumn<E>                                 sortColumn;
 
     private final ArrayList<ExtComponentRowHighlighter<E>> extComponentRowHighlighters;
+    private final ImageIcon                                iconAsc;
+    private final ImageIcon                                iconDesc;
 
     /**
      * Create a new ExtTableModel.
@@ -79,7 +84,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.extComponentRowHighlighters = new ArrayList<ExtComponentRowHighlighter<E>>();
         this.modelID = id;
         this.initColumns();
-
+        this.iconAsc = AWUTheme.I().getIcon("sortAsc", -1);
+        this.iconDesc = AWUTheme.I().getIcon("sortDesc", -1);
         final String columnId = this.getStorage().get(ExtTableModel.SORTCOLUMN_KEY, this.columns.get(0).getID());
         for (final ExtColumn<E> col : this.columns) {
             if (col.getID().equals(columnId)) {
@@ -321,6 +327,18 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
+     * @param sortOrderIdentifier
+     */
+    public String getNextSortIdentifier(final String sortOrderIdentifier) {
+        if (sortOrderIdentifier == null || sortOrderIdentifier.equals(ExtColumn.SORT_ASC)) {
+            return ExtColumn.SORT_DESC;
+        } else {
+            return ExtColumn.SORT_ASC;
+        }
+
+    }
+
+    /**
      * Returns the object that represents the row
      * 
      * @param index
@@ -381,6 +399,18 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public ExtColumn<E> getSortColumn() {
         return this.sortColumn;
+    }
+
+    /**
+     * @param sortOrderIdentifier
+     * @return
+     */
+    public Icon getSortIcon(final String sortOrderIdentifier) {
+        if (sortOrderIdentifier == null || sortOrderIdentifier == ExtColumn.SORT_ASC) {
+            return this.iconAsc;
+        } else {
+            return this.iconDesc;
+        }
     }
 
     /**
