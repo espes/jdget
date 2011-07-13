@@ -107,10 +107,11 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
             @Override
             public int compare(final E o1, final E o2) {
-                final long v1 = ExtProgressColumn.this.getValue(o1);
-                final long v2 = ExtProgressColumn.this.getValue(o2);
+                final double v1 = (double) ExtProgressColumn.this.getValue(o1) / ExtProgressColumn.this.getMax(o1);
+                final double v2 = (double) ExtProgressColumn.this.getValue(o2) / ExtProgressColumn.this.getMax(o2);
+
                 if (v1 == v2) { return 0; }
-                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
+                if (this.getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
                     return v1 > v2 ? -1 : 1;
                 } else {
                     return v2 > v1 ? -1 : 1;
