@@ -79,6 +79,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public ExtColumn(final String name, final ExtTableModel<E> table) {
         this.name = name;
         this.model = table;
+        this.sortOrderIdentifier = null;
         this.tip = new ExtToolTip();
         if (this.model != null) {
             this.id = this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName() + "." + (this.model.getColumnCount() + 1);

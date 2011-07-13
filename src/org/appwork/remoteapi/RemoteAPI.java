@@ -227,39 +227,46 @@ public class RemoteAPI implements HttpRequestHandler {
     @SuppressWarnings("unchecked")
     public void register(final RemoteAPIInterface x) throws ParseException {
         synchronized (this.LOCK) {
-            for (final Class<?> c : x.getClass().getInterfaces()) {
-                if (RemoteAPIInterface.class.isAssignableFrom(c)) {
-                    String namespace = c.getName();
-                    final ApiNamespace a = c.getAnnotation(ApiNamespace.class);
-                    if (a != null) {
-                        namespace = a.value();
-                    }
-                    if (this.interfaces.containsKey(namespace)) { throw new IllegalStateException("Interface " + c.getName() + " with namespace " + namespace + " already has been registered by " + this.interfaces.get(namespace)); }
-                    System.out.println("Register: " + c.getName() + "->" + namespace);
-                    try {
-                        this.interfaces.put(namespace, InterfaceHandler.create((Class<RemoteAPIInterface>) c, x));
-                    } catch (final SecurityException e) {
-                        throw new ParseException(e);
-                    } catch (final NoSuchMethodException e) {
-                        throw new ParseException(e);
+            Class<?> clazz = x.getClass();
+            while (clazz != null) {
+                for (final Class<?> c : clazz.getInterfaces()) {
+                    if (RemoteAPIInterface.class.isAssignableFrom(c)) {
+                        String namespace = c.getName();
+                        final ApiNamespace a = c.getAnnotation(ApiNamespace.class);
+                        if (a != null) {
+                            namespace = a.value();
+                        }
+                        if (this.interfaces.containsKey(namespace)) { throw new IllegalStateException("Interface " + c.getName() + " with namespace " + namespace + " already has been registered by " + this.interfaces.get(namespace)); }
+                        System.out.println("Register: " + c.getName() + "->" + namespace);
+                        try {
+                            this.interfaces.put(namespace, InterfaceHandler.create((Class<RemoteAPIInterface>) c, x));
+                        } catch (final SecurityException e) {
+                            throw new ParseException(e);
+                        } catch (final NoSuchMethodException e) {
+                            throw new ParseException(e);
+                        }
                     }
                 }
+                clazz = clazz.getSuperclass();
             }
-
         }
     }
 
     public void unregister(final RemoteAPIInterface x) {
         synchronized (this.LOCK) {
-            for (final Class<?> c : x.getClass().getInterfaces()) {
-                if (RemoteAPIInterface.class.isAssignableFrom(c)) {
-                    String namespace = c.getName();
-                    final ApiNamespace a = c.getAnnotation(ApiNamespace.class);
-                    if (a != null) {
-                        namespace = a.value();
+            Class<?> clazz = x.getClass();
+            while (clazz != null) {
+                for (final Class<?> c : clazz.getInterfaces()) {
+                    if (RemoteAPIInterface.class.isAssignableFrom(c)) {
+                        String namespace = c.getName();
+                        final ApiNamespace a = c.getAnnotation(ApiNamespace.class);
+                        if (a != null) {
+                            namespace = a.value();
+                        }
+                        this.interfaces.remove(namespace);
                     }
-                    this.interfaces.remove(namespace);
                 }
+                clazz = clazz.getSuperclass();
             }
         }
     }

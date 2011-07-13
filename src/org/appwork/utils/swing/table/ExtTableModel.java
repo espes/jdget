@@ -86,15 +86,19 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.initColumns();
         this.iconAsc = AWUTheme.I().getIcon("sortAsc", -1);
         this.iconDesc = AWUTheme.I().getIcon("sortDesc", -1);
-        final String columnId = this.getStorage().get(ExtTableModel.SORTCOLUMN_KEY, this.columns.get(0).getID());
-        for (final ExtColumn<E> col : this.columns) {
-            if (col.getID().equals(columnId)) {
-                this.sortColumn = col;
-                break;
+        final String columnId = this.getStorage().get(ExtTableModel.SORTCOLUMN_KEY, this.getDefaultSortColumn().getID());
+        if (columnId != null) {
+            for (final ExtColumn<E> col : this.columns) {
+                if (col.getID().equals(columnId)) {
+                    this.sortColumn = col;
+                    break;
+                }
             }
         }
-        this.sortColumn.setSortOrderIdentifier(this.getStorage().get(ExtTableModel.SORT_ORDER_ID_KEY, ExtColumn.SORT_ASC));
-        this.refreshSort();
+        if (this.sortColumn != null) {
+            this.sortColumn.setSortOrderIdentifier(this.getStorage().get(ExtTableModel.SORT_ORDER_ID_KEY, ExtColumn.SORT_DESC));
+            this.refreshSort();
+        }
     }
 
     public void _fireTableStructureChanged(ArrayList<E> newtableData, final boolean refreshSort) {
@@ -284,6 +288,16 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
          * happens but this workaround seems to do its job
          */
         return this.columns.get(Math.max(0, column)).getName();
+    }
+
+    /**
+     * @return
+     */
+    protected ExtColumn<E> getDefaultSortColumn() {
+        for (final ExtColumn<E> c : this.columns) {
+            if (c.isSortable(null)) { return c; }
+        }
+        return null;
     }
 
     /**
