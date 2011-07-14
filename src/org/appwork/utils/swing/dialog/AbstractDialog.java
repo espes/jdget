@@ -56,7 +56,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN = new HashMap<String, Integer>();
 
-    private static Integer getSessionDontShowAgainValue(final String key) {
+    static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
         if (ret == null) { return -1; }
 
@@ -77,7 +77,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     private final String     cancelOption;
     private JPanel           defaultButtons;
 
-    private JCheckBox        dontshowagain;
+    protected JCheckBox      dontshowagain;
 
     protected int            flagMask;
 
@@ -91,7 +91,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     protected JComponent     panel;
 
-    private int              returnBitMask = 0;
+    protected int            returnBitMask = 0;
 
     private AbstractAction[] actions       = null;
 
@@ -113,7 +113,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     /**
      * this function will init and show the dialog
      */
-    private void _init() {
+    protected void _init() {
 
         this.layoutDialog();
 

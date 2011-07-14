@@ -36,6 +36,7 @@ public abstract class TimerDialog {
             if (Dialog.getInstance().getIconList() != null) {
                 this.setIconImages(Dialog.getInstance().getIconList());
             }
+
         }
 
         @Override
@@ -78,7 +79,7 @@ public abstract class TimerDialog {
      */
     protected JLabel          timerLbl;
 
-    private InternDialog      dialog;
+    protected InternDialog    dialog;
 
     private Dimension         preferredSize;
     private int               countdownTime    = 0;

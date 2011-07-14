@@ -530,7 +530,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     /**
      * Restores the sort order according to {@link #getSortColumn()} and
-     * {@link #isSortOrderToggle()}
+     * {@link #getSortOrderIdentifier() == ExtColumn.SORT_ASC}
      * 
      * 
      */
