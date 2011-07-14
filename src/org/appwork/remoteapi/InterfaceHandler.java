@@ -26,6 +26,8 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.HTTPHeader;
 
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+
 /**
  * @author thomas
  * 
@@ -40,8 +42,8 @@ public class InterfaceHandler<T> {
      * @throws NoSuchMethodException
      * @throws SecurityException
      */
-    public static <T extends RemoteAPIInterface> InterfaceHandler<T> create(final Class<T> c, final RemoteAPIInterface x) throws ParseException, SecurityException, NoSuchMethodException {
-        final InterfaceHandler<T> ret = new InterfaceHandler<T>(c, x);
+    public static <T extends RemoteAPIInterface> InterfaceHandler<T> create(final Class<T> c, final RemoteAPIInterface x, final int defaultAuthLevel) throws ParseException, SecurityException, NoSuchMethodException {
+        final InterfaceHandler<T> ret = new InterfaceHandler<T>(c, x, defaultAuthLevel);
         ret.parse();
         return ret;
     }
@@ -50,6 +52,8 @@ public class InterfaceHandler<T> {
     private final Class<T>                                  interfaceClass;
     private final TreeMap<String, TreeMap<Integer, Method>> methods;
     private final HashMap<Method, Integer>                  parameterCountMap;
+    private final HashMap<Method, Integer>                  methodsAuthLevel;
+    private final int                                       defaultAuthLevel;
     private static Method                                   HELP;
     static {
         try {
@@ -69,15 +73,24 @@ public class InterfaceHandler<T> {
      * @throws NoSuchMethodException
      * @throws SecurityException
      */
-    private InterfaceHandler(final Class<T> c, final RemoteAPIInterface x) throws SecurityException, NoSuchMethodException {
+    private InterfaceHandler(final Class<T> c, final RemoteAPIInterface x, final int defaultAuthLevel) throws SecurityException, NoSuchMethodException {
         this.interfaceClass = c;
         this.impl = x;
         this.methods = new TreeMap<String, TreeMap<Integer, Method>>();
         TreeMap<Integer, Method> map;
         this.methods.put("help", map = new TreeMap<Integer, Method>());
+        this.defaultAuthLevel = defaultAuthLevel;
         map.put(0, InterfaceHandler.HELP);
         this.parameterCountMap = new HashMap<Method, Integer>();
         this.parameterCountMap.put(InterfaceHandler.HELP, 0);
+        this.methodsAuthLevel = new HashMap<Method, Integer>();
+        this.methodsAuthLevel.put(InterfaceHandler.HELP, 0);
+    }
+
+    public int getAuthLevel(final Method m) {
+        final Integer auth = this.methodsAuthLevel.get(m);
+        if (auth != null) { return auth; }
+        return this.defaultAuthLevel;
     }
 
     /**
@@ -161,7 +174,7 @@ public class InterfaceHandler<T> {
         response.setResponseCode(ResponseCode.SUCCESS_OK);
         final String text = sb.toString();
 
-        final int length = text.getBytes().length;
+        final int length = text.getBytes("UTF-8").length;
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
         response.getOutputStream().write(text.getBytes("UTF-8"));
@@ -189,6 +202,10 @@ public class InterfaceHandler<T> {
      */
     private void parse() throws ParseException {
         for (final Method m : this.interfaceClass.getMethods()) {
+            final ApiHiddenMethod hidden = m.getAnnotation(ApiHiddenMethod.class);
+            if (hidden != null) {
+                continue;
+            }
             this.validateMethod(m);
             TreeMap<Integer, Method> methodsByName = this.methods.get(m.getName());
             if (methodsByName == null) {
@@ -204,9 +221,11 @@ public class InterfaceHandler<T> {
             this.parameterCountMap.put(m, l);
             if (methodsByName.containsKey(l)) { throw new ParseException(this.interfaceClass + " Contains ambiguous methods: \r\n" + m + "\r\n" + methodsByName.get(l)); }
             methodsByName.put(l, m);
-
+            final ApiAuthLevel auth = m.getAnnotation(ApiAuthLevel.class);
+            if (auth != null) {
+                this.methodsAuthLevel.put(m, auth.value());
+            }
         }
-
     }
 
     /**
@@ -235,7 +254,20 @@ public class InterfaceHandler<T> {
             if (m.getGenericReturnType() != void.class && m.getGenericReturnType() != Void.class) { throw new ParseException("Response in Parameters. " + m + " must return void, and has to handle the response itself"); }
         } else {
             try {
-                JSonStorage.canStore(m.getGenericReturnType());
+                if (RemoteAPIProcess.class.isAssignableFrom(m.getReturnType())) {
+                    final Type t = m.getReturnType().getGenericSuperclass();
+                    if (t instanceof ParameterizedTypeImpl) {
+                        final ParameterizedTypeImpl p = (ParameterizedTypeImpl) t;
+                        final Type[] oo = p.getActualTypeArguments();
+                        for (final Type o : oo) {
+                            JSonStorage.canStore(o);
+                        }
+                    } else {
+                        throw new ParseException("return Type of " + m + " is invalid");
+                    }
+                } else {
+                    JSonStorage.canStore(m.getGenericReturnType());
+                }
             } catch (final InvalidTypeException e) {
                 throw new ParseException("return Type of " + m + " is invalid", e);
             }

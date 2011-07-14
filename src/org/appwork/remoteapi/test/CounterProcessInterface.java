@@ -9,22 +9,15 @@
  */
 package org.appwork.remoteapi.test;
 
-import java.util.HashMap;
-
-import org.appwork.remoteapi.ApiNamespace;
-import org.appwork.remoteapi.RemoteAPIInterface;
+import org.appwork.remoteapi.RemoteApiProcessInterface;
 
 /**
  * @author daniel
  * 
  */
-@ApiNamespace("")
-public interface Ping extends RemoteAPIInterface {
+public interface CounterProcessInterface extends RemoteApiProcessInterface {
 
-    public String ping();
+    public int getValue();
 
-    public HashMap<String, String> ping(String a, String b);
-
-    public CounterProcess startCounter();
-
+    public boolean stopCounter();
 }

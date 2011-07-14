@@ -30,8 +30,9 @@ import org.appwork.utils.net.HTTPHeader;
  */
 public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP, Ping {
 
-    private final LinkedList<Color> colors = new LinkedList<Color>();
-    private volatile boolean        stop   = false;
+    private final LinkedList<Color> colors  = new LinkedList<Color>();
+    private volatile boolean        stop    = false;
+    private int                     counter = 0;
 
     @Override
     public void async(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
@@ -116,6 +117,19 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP, Ping 
 
     }
 
+    private void longping() {
+        while (true) {
+            try {
+                Thread.sleep(5000);
+            } catch (final InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            this.counter = this.counter + 1;
+        }
+
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -150,6 +164,25 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP, Ping 
         map.put("pid", "foo");
         map.put("returnValue", b);
         return map;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.remoteapi.test.Ping#startCounter()
+     */
+    @Override
+    public CounterProcess startCounter() {
+        final CounterProcess cp = new CounterProcess();
+        new Thread(cp).start();
+        return cp;
+    }
+
+    /**
+     * 
+     */
+    private void startPinging() {
+
     }
 
     /*

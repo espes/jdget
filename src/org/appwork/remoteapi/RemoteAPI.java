@@ -16,7 +16,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
@@ -35,7 +38,7 @@ import org.appwork.utils.reflection.Clazz;
  * @author daniel
  * 
  */
-public class RemoteAPI implements HttpRequestHandler {
+public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
 
     @SuppressWarnings("unchecked")
     public static <T> T cast(Object v, final Class<T> type) {
@@ -66,16 +69,27 @@ public class RemoteAPI implements HttpRequestHandler {
 
     /* hashmap that holds all registered interfaces and their pathes */
     private final HashMap<String, InterfaceHandler<?>> interfaces = new HashMap<String, InterfaceHandler<?>>();
+    private final HashMap<String, RemoteAPIProcess<?>> processes  = new HashMap<String, RemoteAPIProcess<?>>();
 
     private final Object                               LOCK       = new Object();
 
     public RemoteAPI() {
+        try {
+            this.register(this);
+        } catch (final Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     protected void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ApiCommandNotAvailable, BadParameterException {
 
         final Method method = request.getMethod();
         if (method == null) { throw new ApiCommandNotAvailable(); }
+        if (!this.isAllowed(request)) {
+            response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
+            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
+            return;
+        }
         final Object[] parameters = new Object[method.getParameterTypes().length];
         boolean responseIsParameter = false;
         int count = 0;
@@ -125,7 +139,23 @@ public class RemoteAPI implements HttpRequestHandler {
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
         } else {
             response.setResponseCode(ResponseCode.SUCCESS_OK);
-            String text = JSonStorage.toString(ret);
+            /* we wrap response object in data:object,pid:pid(optional) */
+            final HashMap<String, Object> resp = new HashMap<String, Object>();
+            if (RemoteAPIProcess.class.isAssignableFrom(method.getReturnType())) {
+                /* data and pid */
+                final RemoteAPIProcess<?> pidResp = (RemoteAPIProcess<?>) ret;
+                resp.put("data", pidResp.getResponse());
+                resp.put("pid", pidResp.getPID());
+                try {
+                    this.registerProcess(pidResp);
+                } catch (final ParseException e) {
+                    System.out.println("could not register process " + pidResp.getPID());
+                }
+            } else {
+                /* only data */
+                resp.put("data", ret);
+            }
+            String text = JSonStorage.toString(resp);
             if (request.getJqueryCallback() != null) {
                 /* wrap response into a valid jquery response format */
                 final StringBuilder sb = new StringBuilder();
@@ -151,7 +181,7 @@ public class RemoteAPI implements HttpRequestHandler {
         if (type == String.class && !string.startsWith("\"")) {
             string = "\"" + string + "\"";
         }
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         final Object v = JSonStorage.restoreFromString(string, new TypeRef(type) {
         }, null);
         if (type instanceof Class && Clazz.isPrimitive((Class<?>) type)) {
@@ -220,6 +250,55 @@ public class RemoteAPI implements HttpRequestHandler {
     }
 
     /**
+     * override this if you want to authorize usage of methods
+     * 
+     * @param request
+     * @return
+     */
+    protected boolean isAllowed(final RemoteAPIRequest request) {
+        return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.remoteapi.RemoteAPIProcessList#list()
+     */
+    @Override
+    public void list(final RemoteAPIRequest request, final RemoteAPIResponse response) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.getClass().getName());
+        sb.append("\r\n\r\n");
+        Entry<String, RemoteAPIProcess<?>> next = null;
+        sb.append("Processes: ");
+        synchronized (this.LOCK) {
+            sb.append(this.processes.size());
+            sb.append("\r\n");
+            for (final Iterator<Entry<String, RemoteAPIProcess<?>>> it = this.processes.entrySet().iterator(); it.hasNext();) {
+                next = it.next();
+                sb.append(next.getValue().getPID());
+                if (!next.getValue().isRunning()) {
+                    sb.append("-->idle");
+                } else {
+                    sb.append("-->running");
+                }
+                sb.append("\r\n");
+            }
+        }
+        response.setResponseCode(ResponseCode.SUCCESS_OK);
+        final String text = sb.toString();
+        int length;
+        try {
+            length = text.getBytes("UTF-8").length;
+            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
+            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
+            response.getOutputStream().write(text.getBytes("UTF-8"));
+        } catch (final Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * @param interfaceHandler
      * @param string
      * @return
@@ -249,20 +328,73 @@ public class RemoteAPI implements HttpRequestHandler {
 
     @SuppressWarnings("unchecked")
     public void register(final RemoteAPIInterface x) throws ParseException {
+        final HashSet<Class<?>> interfaces = new HashSet<Class<?>>();
         synchronized (this.LOCK) {
             Class<?> clazz = x.getClass();
             while (clazz != null) {
-                for (final Class<?> c : clazz.getInterfaces()) {
+                main: for (final Class<?> c : clazz.getInterfaces()) {
                     if (RemoteAPIInterface.class.isAssignableFrom(c)) {
+                        for (final Class<?> e : interfaces) {
+                            /* avoid multiple adding of same interfaces */
+                            if (c.isAssignableFrom(e)) {
+                                continue main;
+                            }
+                        }
+                        interfaces.add(c);
                         String namespace = c.getName();
                         final ApiNamespace a = c.getAnnotation(ApiNamespace.class);
                         if (a != null) {
                             namespace = a.value();
                         }
+                        int defaultAuthLevel = 0;
+                        final ApiAuthLevel b = c.getAnnotation(ApiAuthLevel.class);
+                        if (b != null) {
+                            defaultAuthLevel = b.value();
+                        }
                         if (this.interfaces.containsKey(namespace)) { throw new IllegalStateException("Interface " + c.getName() + " with namespace " + namespace + " already has been registered by " + this.interfaces.get(namespace)); }
-                        System.out.println("Register: " + c.getName() + "->" + namespace);
+                        System.out.println("Register:   " + c.getName() + "->" + namespace);
                         try {
-                            this.interfaces.put(namespace, InterfaceHandler.create((Class<RemoteAPIInterface>) c, x));
+                            this.interfaces.put(namespace, InterfaceHandler.create((Class<RemoteAPIInterface>) c, x, defaultAuthLevel));
+                        } catch (final SecurityException e) {
+                            throw new ParseException(e);
+                        } catch (final NoSuchMethodException e) {
+                            throw new ParseException(e);
+                        }
+                    }
+                }
+                clazz = clazz.getSuperclass();
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void registerProcess(final RemoteAPIProcess<?> process) throws ParseException {
+        synchronized (this.LOCK) {
+            if (process.isFinished()) { return; }
+            process.setRemoteAPI(this);
+            this.processes.put(process.getPID(), process);
+            final String namespace = "processes/" + process.getPID();
+            Class<?> clazz = process.getClass();
+            final ArrayList<Class<?>> interfaces = new ArrayList<Class<?>>();
+            while (clazz != null) {
+                main: for (final Class<?> c : clazz.getInterfaces()) {
+                    if (RemoteAPIInterface.class.isAssignableFrom(c)) {
+                        for (final Class<?> e : interfaces) {
+                            /* avoid multiple adding of same interfaces */
+                            if (c.isAssignableFrom(e)) {
+                                continue main;
+                            }
+                        }
+                        interfaces.add(c);
+                        int defaultAuthLevel = 0;
+                        final ApiAuthLevel b = c.getAnnotation(ApiAuthLevel.class);
+                        if (b != null) {
+                            defaultAuthLevel = b.value();
+                        }
+                        if (this.interfaces.containsKey(namespace)) { throw new IllegalStateException("Interface " + c.getName() + " with namespace " + namespace + " already has been registered by " + this.interfaces.get(namespace)); }
+                        System.out.println("Register:   " + c.getName() + "->" + namespace);
+                        try {
+                            this.interfaces.put(namespace, InterfaceHandler.create((Class<RemoteAPIInterface>) c, process, defaultAuthLevel));
                         } catch (final SecurityException e) {
                             throw new ParseException(e);
                         } catch (final NoSuchMethodException e) {
@@ -276,11 +408,19 @@ public class RemoteAPI implements HttpRequestHandler {
     }
 
     public void unregister(final RemoteAPIInterface x) {
+        final HashSet<Class<?>> interfaces = new HashSet<Class<?>>();
         synchronized (this.LOCK) {
             Class<?> clazz = x.getClass();
             while (clazz != null) {
-                for (final Class<?> c : clazz.getInterfaces()) {
+                main: for (final Class<?> c : clazz.getInterfaces()) {
                     if (RemoteAPIInterface.class.isAssignableFrom(c)) {
+                        for (final Class<?> e : interfaces) {
+                            /* avoid multiple removing of same interfaces */
+                            if (c.isAssignableFrom(e)) {
+                                continue main;
+                            }
+                        }
+                        interfaces.add(c);
                         String namespace = c.getName();
                         final ApiNamespace a = c.getAnnotation(ApiNamespace.class);
                         if (a != null) {
@@ -294,4 +434,28 @@ public class RemoteAPI implements HttpRequestHandler {
         }
     }
 
+    public void unregisterProcess(final RemoteAPIProcess<?> process) {
+        final HashSet<Class<?>> interfaces = new HashSet<Class<?>>();
+        synchronized (this.LOCK) {
+            this.processes.remove(process.getPID());
+            final String namespace = "processes/" + process.getPID();
+            Class<?> clazz = process.getClass();
+            while (clazz != null) {
+                main: for (final Class<?> c : clazz.getInterfaces()) {
+                    if (RemoteAPIInterface.class.isAssignableFrom(c)) {
+                        for (final Class<?> e : interfaces) {
+                            /* avoid multiple removing of same interfaces */
+                            if (c.isAssignableFrom(e)) {
+                                continue main;
+                            }
+                        }
+                        interfaces.add(c);
+                        this.interfaces.remove(namespace);
+                        System.out.println("UnRegister: " + c.getName() + "->" + namespace);
+                    }
+                }
+                clazz = clazz.getSuperclass();
+            }
+        }
+    }
 }

@@ -21,6 +21,7 @@ import org.appwork.remoteapi.RemoteAPIRequest;
 @ApiNamespace("session")
 public interface LoginAPIInterface extends RemoteAPIInterface {
 
+    @ApiDoc("invalides the current token")
     public boolean disconnect(final RemoteAPIRequest request);
 
     @ApiDoc("returns an un/authenticated token for given username and password or \"error\" in case login failed")
