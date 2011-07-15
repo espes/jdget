@@ -48,12 +48,15 @@ public class CounterProcess extends RemoteAPIProcess<Boolean> implements Counter
     public void process() {
         while (!this.stopped) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(250);
             } catch (final InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             this.counter++;
+            if (this.counter > 400) {
+                break;
+            }
         }
     }
 

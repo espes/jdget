@@ -9,15 +9,14 @@
  */
 package org.appwork.remoteapi;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
  * @author daniel
  * 
  */
-@ApiNamespace("processes")
-public interface RemoteAPIProcessList extends RemoteAPIInterface {
+public interface EventsAPIInterface extends RemoteAPIInterface {
 
-    public ArrayList<HashMap<String, String>> list();
+    @ApiDoc("establish a connection to event stream")
+    public HashMap<String, Object> listen(final RemoteAPIRequest request);
 }

@@ -10,14 +10,11 @@
 package org.appwork.remoteapi;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
@@ -25,6 +22,7 @@ import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
+import org.appwork.utils.Exceptions;
 import org.appwork.utils.Regex;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
@@ -81,37 +79,37 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         }
     }
 
-    protected void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ApiCommandNotAvailable, BadParameterException {
-
-        final Method method = request.getMethod();
-        if (method == null) { throw new ApiCommandNotAvailable(); }
-        if (!this.isAllowed(request)) {
-            response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
-            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
-            return;
-        }
-        final Object[] parameters = new Object[method.getParameterTypes().length];
-        boolean responseIsParameter = false;
-        int count = 0;
-        for (int i = 0; i < parameters.length; i++) {
-            if (RemoteAPIRequest.class.isAssignableFrom(method.getParameterTypes()[i])) {
-                parameters[i] = request;
-            } else if (RemoteAPIResponse.class.isAssignableFrom(method.getParameterTypes()[i])) {
-                responseIsParameter = true;
-                parameters[i] = response;
-            } else {
-                try {
-                    parameters[i] = this.convert(request.getParameters()[count], method.getGenericParameterTypes()[i]);
-                } catch (final Throwable e) {
-                    throw new BadParameterException(request.getParameters()[count], e);
-                }
-                count++;
-            }
-        }
+    protected void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws IOException {
         Object ret = null;
+        final Method method = request.getMethod();
         try {
+            if (method == null) { throw new ApiCommandNotAvailable(); }
+            if (!this.isAllowed(request)) {
+                response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
+                response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
+                return;
+            }
+            final Object[] parameters = new Object[method.getParameterTypes().length];
+            boolean responseIsParameter = false;
+            int count = 0;
+            for (int i = 0; i < parameters.length; i++) {
+                if (RemoteAPIRequest.class.isAssignableFrom(method.getParameterTypes()[i])) {
+                    parameters[i] = request;
+                } else if (RemoteAPIResponse.class.isAssignableFrom(method.getParameterTypes()[i])) {
+                    responseIsParameter = true;
+                    parameters[i] = response;
+                } else {
+                    try {
+                        parameters[i] = this.convert(request.getParameters()[count], method.getGenericParameterTypes()[i]);
+                    } catch (final Throwable e) {
+                        throw new BadParameterException(request.getParameters()[count], e);
+                    }
+                    count++;
+                }
+            }
             ret = request.getIface().invoke(method, parameters);
-        } catch (final InvocationTargetException e) {
+            if (responseIsParameter) { return; }
+        } catch (final Throwable e) {
             final Throwable cause = e.getCause();
             if (cause instanceof RemoteAPIException) {
                 final RemoteAPIException ex = (RemoteAPIException) cause;
@@ -129,47 +127,54 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                     response.getOutputStream().write(message.getBytes("UTF-8"));
                 }
                 return;
-            } else {
-                throw e;
             }
+            ret = this.exception2APIResponse(e);
         }
-        if (responseIsParameter) { return; }
-        if (Clazz.isVoid(method.getReturnType())) {
-            response.setResponseCode(ResponseCode.SUCCESS_OK);
-            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
-        } else {
-            response.setResponseCode(ResponseCode.SUCCESS_OK);
-            /* we wrap response object in data:object,pid:pid(optional) */
-            final HashMap<String, Object> resp = new HashMap<String, Object>();
-            if (RemoteAPIProcess.class.isAssignableFrom(method.getReturnType())) {
-                /* data and pid */
-                final RemoteAPIProcess<?> pidResp = (RemoteAPIProcess<?>) ret;
-                resp.put("data", pidResp.getResponse());
-                resp.put("pid", pidResp.getPID());
-                try {
-                    this.registerProcess(pidResp);
-                } catch (final ParseException e) {
-                    System.out.println("could not register process " + pidResp.getPID());
+        String text = null;
+        response.setResponseCode(ResponseCode.SUCCESS_OK);
+        if (method != null && ret != null) {
+            /* no exception thrown and method available */
+            if (Clazz.isVoid(method.getReturnType())) {
+                /* no content */
+                text = "";
+                response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
+            } else {
+                /* we wrap response object in data:object,pid:pid(optional) */
+                final HashMap<String, Object> resp = new HashMap<String, Object>();
+                if (RemoteAPIProcess.class.isAssignableFrom(method.getReturnType())) {
+                    /* data and pid */
+                    final RemoteAPIProcess<?> pidResp = (RemoteAPIProcess<?>) ret;
+                    resp.put("data", pidResp.getResponse());
+                    resp.put("pid", pidResp.getPID());
+                    try {
+                        this.registerProcess(pidResp);
+                    } catch (final ParseException e) {
+                        System.out.println("could not register process " + pidResp.getPID());
+                    }
+                } else {
+                    /* only data */
+                    resp.put("data", ret);
                 }
-            } else {
-                /* only data */
-                resp.put("data", ret);
+                text = JSonStorage.toString(resp);
             }
-            String text = JSonStorage.toString(resp);
-            if (request.getJqueryCallback() != null) {
-                /* wrap response into a valid jquery response format */
-                final StringBuilder sb = new StringBuilder();
-                sb.append(request.getJqueryCallback());
-                sb.append("(");
-                sb.append(text);
-                sb.append(");");
-                text = sb.toString();
-            }
-            final int length = text.getBytes("UTF-8").length;
-            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
-            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
-            response.getOutputStream().write(text.getBytes("UTF-8"));
+        } else {
+            /* caught an exception */
+            text = JSonStorage.toString(ret);
         }
+        if (request.getJqueryCallback() != null) {
+            /* wrap response into a valid jquery callback response format */
+            final StringBuilder sb = new StringBuilder();
+            sb.append(request.getJqueryCallback());
+            sb.append("(");
+            sb.append(text);
+            sb.append(");");
+            text = sb.toString();
+        }
+        final int length = text.getBytes("UTF-8").length;
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
+        response.getOutputStream().write(text.getBytes("UTF-8"));
+
     }
 
     /**
@@ -189,6 +194,15 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         } else {
             return v;
         }
+    }
+
+    /* wrap an throwable into an APIResponse */
+    protected HashMap<String, Object> exception2APIResponse(final Throwable e) {
+        final HashMap<String, Object> ret = new HashMap<String, Object>();
+        ret.put("type", "system");
+        ret.put("message", "exception");
+        ret.put("data", Exceptions.getStackTrace(e));
+        return ret;
     }
 
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
@@ -265,37 +279,21 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
      * @see org.appwork.remoteapi.RemoteAPIProcessList#list()
      */
     @Override
-    public void list(final RemoteAPIRequest request, final RemoteAPIResponse response) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(this.getClass().getName());
-        sb.append("\r\n\r\n");
-        Entry<String, RemoteAPIProcess<?>> next = null;
-        sb.append("Processes: ");
+    public ArrayList<HashMap<String, String>> list() {
+        final ArrayList<HashMap<String, String>> ret = new ArrayList<HashMap<String, String>>();
         synchronized (this.LOCK) {
-            sb.append(this.processes.size());
-            sb.append("\r\n");
-            for (final Iterator<Entry<String, RemoteAPIProcess<?>>> it = this.processes.entrySet().iterator(); it.hasNext();) {
-                next = it.next();
-                sb.append(next.getValue().getPID());
+            for (final Entry<String, RemoteAPIProcess<?>> next : this.processes.entrySet()) {
+                final HashMap<String, String> data = new HashMap<String, String>();
+                data.put("pid", next.getValue().getPID());
                 if (!next.getValue().isRunning()) {
-                    sb.append("-->idle");
+                    data.put("status", "idle");
                 } else {
-                    sb.append("-->running");
+                    data.put("status", "running");
                 }
-                sb.append("\r\n");
+                ret.add(data);
             }
         }
-        response.setResponseCode(ResponseCode.SUCCESS_OK);
-        final String text = sb.toString();
-        int length;
-        try {
-            length = text.getBytes("UTF-8").length;
-            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
-            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
-            response.getOutputStream().write(text.getBytes("UTF-8"));
-        } catch (final Throwable e) {
-            e.printStackTrace();
-        }
+        return ret;
     }
 
     /**

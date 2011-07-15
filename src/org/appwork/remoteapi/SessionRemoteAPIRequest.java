@@ -18,24 +18,20 @@ import org.appwork.utils.net.httpserver.session.HttpSession;
  */
 public class SessionRemoteAPIRequest<T extends HttpSession> extends RemoteAPIRequest {
 
-    private T session;
+    private final T session;
 
     /**
      * @param apiRequest
      * @param session
      * @return
      */
-    public SessionRemoteAPIRequest(final HttpRequest request, final RemoteAPIRequest apiRequest, final T session) {
+    protected SessionRemoteAPIRequest(final HttpRequest request, final RemoteAPIRequest apiRequest, final T session) {
         super(apiRequest.getIface(), apiRequest.getMethodName(), apiRequest.getParameters(), request, apiRequest.getJqueryCallback());
         this.session = session;
     }
 
     public T getSession() {
         return this.session;
-    }
-
-    protected void setSession(final T session) {
-        this.session = session;
     }
 
 }
