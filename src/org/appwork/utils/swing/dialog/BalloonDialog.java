@@ -10,10 +10,8 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Component;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
+import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -29,6 +27,7 @@ import javax.swing.WindowConstants;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
@@ -36,15 +35,14 @@ import org.appwork.utils.formatter.TimeFormatter;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
-
-import com.sun.awt.AWTUtilities;
+import org.appwork.utils.swing.EDTRunner;
 
 public class BalloonDialog extends AbstractDialog<Integer> {
 
     private static final long serialVersionUID = -7647771640756844691L;
     private final JComponent  component;
     private final Point       desiredLocation;
-    private GraphicsDevice    screen;
+
     private BallonPanel       ballonPanel;
 
     public BalloonDialog(final int flag, final JComponent comp, final Point point) throws OffScreenException {
@@ -52,28 +50,12 @@ public class BalloonDialog extends AbstractDialog<Integer> {
         this.component = comp;
         this.desiredLocation = point;
 
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        final GraphicsDevice[] screens = ge.getScreenDevices();
-        // store screen device bounds to find current screen later easily
-
-        main: for (int i = 0; i < ge.getScreenDevices().length; i++) {
-            final Rectangle r = screens[i].getDefaultConfiguration().getBounds();
-            if (this.desiredLocation.x >= r.x && this.desiredLocation.x <= r.x + r.width) {
-                // x correct
-                if (this.desiredLocation.y >= r.y && this.desiredLocation.y <= r.y + r.height) {
-                    // y correct
-                    this.screen = screens[i];
-                    break main;
-                }
-
-            }
-        }
-        if (this.screen == null) { throw new OffScreenException("Point not on screen"); }
-
     }
 
     /**
      * this function will init and show the dialog
+     * 
+     * @throws OffScreenException
      */
     @Override
     protected void _init() {
@@ -144,8 +126,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             }
             // The Dialog Modal
             this.getDialog().setModal(true);
-            // Layout manager
-            this.getDialog().setLayout(new MigLayout("ins 0", "[]", "[]"));
+
             // Dispose dialog on close
             this.getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
             this.getDialog().addWindowListener(this);
@@ -164,10 +145,18 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                 // "growx,pushx,alignx right,gapleft 20");
             }
 
-            this.ballonPanel = new BallonPanel(this.component, this.timerLbl, this.dontshowagain, this.screen.getDefaultConfiguration().getBounds(), this.desiredLocation);
-            this.getDialog().setLayout(new MigLayout("ins 0", "[]", "[]"));
+            try {
+                this.ballonPanel = new BallonPanel(this.component, this.timerLbl, this.dontshowagain, this.desiredLocation);
+            } catch (final OffScreenException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+                throw new RuntimeException(e1);
+            }
+            this.getDialog().setLayout(new MigLayout("ins 0,", "0[]0", "0[]0"));
             this.getDialog().getContentPane().add(this.ballonPanel);
-            AWTUtilities.setWindowOpaque(BalloonDialog.this.getDialog(), false);
+            // this.getDialog().setContentPane(this.ballonPanel);
+            // AWTUtilities.setWindowOpaque(BalloonDialog.this.getDialog(),
+            // false);
 
             if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_COUNTDOWN)) {
                 // show timer
@@ -222,7 +211,32 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                 ((Window) this.getDialog().getParent()).setAlwaysOnTop(true);
                 ((Window) this.getDialog().getParent()).setAlwaysOnTop(false);
             }
+            new Thread() {
+                @Override
+                public void run() {
+                    while (true) {
+                        try {
+                            Thread.sleep(20);
+                        } catch (final InterruptedException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
 
+                        final Point mouse = MouseInfo.getPointerInfo().getLocation();
+
+                        new EDTRunner() {
+
+                            @Override
+                            protected void runInEDT() {
+
+                                BalloonDialog.this.getDialog().setLocation(mouse);
+
+                            }
+                        };
+
+                    }
+                }
+            }.start();
             this.setVisible(true);
         } finally {
             // System.out.println("SET OLD");
@@ -254,13 +268,33 @@ public class BalloonDialog extends AbstractDialog<Integer> {
     @Override
     protected void layoutDialog() {
         this.dialog = new InternDialog() {
+            {
+                final MigPanel cp = new MigPanel("ins 0", "[]", "[]") {
+
+                };
+
+                this.setContentPane(cp);
+
+            }
 
             @Override
             public void setLocation(final Point p) {
-                p.x += BalloonDialog.this.ballonPanel.getXOffset();
-                p.y += BalloonDialog.this.ballonPanel.getYOffset();
-                System.out.println("Locaetion " + p);
-                super.setLocation(p);
+                try {
+                    BalloonDialog.this.ballonPanel.relayout(p);
+
+                    p.x += BalloonDialog.this.ballonPanel.getXOffset();
+                    p.y += BalloonDialog.this.ballonPanel.getYOffset();
+
+                    super.setLocation(p);
+                    // this.invalidate();
+                    // BalloonDialog.this.ballonPanel.invalidate();
+
+                    BalloonDialog.this.ballonPanel.revalidate();
+                    BalloonDialog.this.ballonPanel.repaint();
+                } catch (final OffScreenException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
 
         };

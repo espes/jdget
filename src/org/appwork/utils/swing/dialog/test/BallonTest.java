@@ -27,9 +27,10 @@ public class BallonTest {
     public static void main(final String[] args) {
         final JTextArea tx = new JTextArea();
         tx.setEditable(false);
-        tx.setText("Hallo Nase das \r\nist meine Message\r\nZweite Zeile\r\nDritte zeishafkjsdgfja hkdgsdakfdsafdsf  dsf dsfnd ko\r\nIch bin eine ziemlich lange zeile");
+        tx.setText("Hallo Nase das \r\nist meine Message\r\nZweite Zeile\r\nDritte  fsd fbdsjhfgsadjfdsajhkdsfaf a fds fadsfsadfds zeishafkjsdgfja hkdgsdakfdsafdsf  dsf dsfnd ko\r\nIch bin eine ziemlich lange zeile");
+        // tx.setText("Schau dir das an! Das ist doch toll");
         try {
-            final BalloonDialog d = new BalloonDialog(Dialog.LOGIC_COUNTDOWN | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, tx, new Point(100, 100));
+            final BalloonDialog d = new BalloonDialog(0, tx, new Point(100, 800));
 
             Dialog.getInstance().showDialog(d);
         } catch (final DialogClosedException e) {

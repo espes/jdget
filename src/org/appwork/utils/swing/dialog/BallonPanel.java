@@ -15,6 +15,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -38,17 +40,23 @@ import org.appwork.app.gui.MigPanel;
  */
 public class BallonPanel extends MigPanel {
 
-    private final int       shadowSize = 3;
+    private final int        shadowSize = 3;
 
-    private int             topInset;
-    private final int       leftInset;
-    private int             bottomInset;
-    private final int       rightInset;
-    private final Dimension contentSize;
+    private int              topInset;
+    private int              leftInset;
+    private int              bottomInset;
+    private int              rightInset;
+    private Dimension        contentSize;
 
-    private int             yposition;
+    private int              yposition;
 
-    private int             xPosition;
+    private int              xPosition;
+
+    private Point            desiredLocation;
+
+    private int              rounded;
+
+    private static final int GAP        = 15;
 
     /**
      * @param component
@@ -59,9 +67,10 @@ public class BallonPanel extends MigPanel {
      * @param constraints
      * @param columns
      * @param rows
+     * @throws OffScreenException
      */
-    public BallonPanel(final JComponent component, final JLabel timerLbl, final JCheckBox dontshowagain, final Rectangle bounds, final Point desiredLocation) {
-        super("ins 10,wrap 1,debug", "[grow,fill]", "[][grow,fill][]");
+    public BallonPanel(final JComponent component, final JLabel timerLbl, final JCheckBox dontshowagain, final Point desiredLocation) throws OffScreenException {
+        super("ins 10,wrap 1", "[grow,fill]", "[][grow,fill][]");
 
         // this.setDoubleBuffered(false);
         this.setOpaque(false);
@@ -71,49 +80,7 @@ public class BallonPanel extends MigPanel {
         this.add(component, "pushx,growx");
         this.add(this.getBottom(timerLbl, dontshowagain));
 
-        this.contentSize = this.getPreferredSize();
-        System.out.println("Desired Contentsite: " + this.contentSize);
-
-        final int x = desiredLocation.x - bounds.x;
-        final int y = desiredLocation.y - bounds.y;
-
-        final boolean right = bounds.width - x > bounds.width / 2;
-        final boolean bottom = bounds.height - y > bounds.height / 2;
-
-        this.topInset = 0;
-        this.leftInset = 0;
-        this.bottomInset = 0;
-        this.rightInset = 0;
-        this.xPosition = -this.contentSize.width / 2;
-        if (!right) {
-            this.xPosition -= this.contentSize.width / 6;
-        } else {
-            this.xPosition += this.contentSize.width / 6;
-        }
-        if (bottom) {
-            this.topInset = this.contentSize.height / 6;
-            this.yposition = 0;
-        } else {
-            this.bottomInset = this.contentSize.height / 6;
-            this.yposition = -this.contentSize.height - this.bottomInset;
-        }
-
-        final int xp = desiredLocation.x - bounds.x + this.xPosition;
-        if (xp < 0) {
-            this.xPosition -= xp;
-        }
-        final int rightSpace = bounds.width - xp + this.xPosition;
-        if (rightSpace < this.contentSize.width / 2) {
-            this.xPosition -= this.contentSize.width / 2 - rightSpace;
-        }
-        // final int bottomSpace = bounds.y + bounds.height - (desiredLocation.y
-        // + this.contentSize.height + this.topInset + this.bottomInset);
-
-        // this.xPosition -= Math.min(spaceleft, 0);
-        // this.xPosition -= Math.max(spaceRight, 0);
-        System.out.println("ins " + this.topInset + " " + this.leftInset + " " + this.bottomInset + " " + this.rightInset);
-        this.setLayout(new MigLayout("ins " + (10 + this.topInset) + " " + (10 + this.leftInset) + " " + (10 + this.bottomInset) + " " + (10 + this.rightInset) + ",wrap 1", "[grow,fill]", "[][grow,fill][]"));
-
+        this.relayout(desiredLocation);
     }
 
     /**
@@ -166,16 +133,19 @@ public class BallonPanel extends MigPanel {
 
         final int w = this.getWidth() - this.leftInset - this.shadowSize - this.rightInset;
         final int h = this.getHeight() - this.topInset - this.shadowSize - this.bottomInset;
-        System.out.println(new Rectangle(this.leftInset, this.topInset, w, h));
-        final Double shape = new RoundRectangle2D.Double(this.leftInset, this.topInset, w, h, 25, 25);
+
+        final Double shape = new RoundRectangle2D.Double(this.leftInset, this.topInset, w, h, this.rounded, this.rounded);
+
         final Area areaOne = new Area(shape);
         final Polygon dart = new Polygon();
         if (this.bottomInset > this.topInset) {
-            dart.addPoint(-this.xPosition, this.getHeight() - this.shadowSize * 2);
+            // unten
+            dart.addPoint(-this.xPosition, this.getHeight());
             dart.addPoint(this.leftInset + 25, this.topInset);
             dart.addPoint(this.leftInset + w - 25, this.topInset);
 
         } else {
+            // top
             dart.addPoint(-this.xPosition, -this.yposition);
             dart.addPoint(this.leftInset + 25, this.topInset + h);
             dart.addPoint(this.leftInset + w - 25, this.topInset + h);
@@ -199,8 +169,71 @@ public class BallonPanel extends MigPanel {
         g2.draw(areaOne);
         // g2.translate(0, dartHeight);
 
-        System.out.println("TOTAL " + this.getPreferredSize() + "  - " + this.getSize());
         super.paintComponent(g);
+    }
+
+    /**
+     * @param desiredLocation2
+     * @throws OffScreenException
+     * 
+     */
+    public void relayout(final Point desiredLocation) throws OffScreenException {
+        this.desiredLocation = desiredLocation;
+        this.setLayout(new MigLayout("ins 0,wrap 1", "[grow,fill]", "[][grow,fill][]"));
+
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice[] screens = ge.getScreenDevices();
+        // store screen device bounds to find current screen later easily
+
+        Rectangle bounds = null;
+        main: for (int i = 0; i < ge.getScreenDevices().length; i++) {
+            final Rectangle r = screens[i].getDefaultConfiguration().getBounds();
+            if (this.desiredLocation.x >= r.x && this.desiredLocation.x <= r.x + r.width) {
+                // x correct
+                if (this.desiredLocation.y >= r.y && this.desiredLocation.y <= r.y + r.height) {
+                    // y correct
+                    bounds = r;
+                    break main;
+                }
+
+            }
+        }
+        if (bounds == null) { throw new OffScreenException("Point not on screen"); }
+        this.contentSize = this.getPreferredSize();
+        this.rounded = Math.min(this.contentSize.width, this.contentSize.height) / 2;
+        final int x = this.desiredLocation.x - bounds.x;
+        final int y = this.desiredLocation.y - bounds.y;
+
+        final boolean bottom = bounds.height - y > bounds.height / 2;
+
+        this.topInset = BallonPanel.GAP;
+        this.leftInset = BallonPanel.GAP;
+        this.bottomInset = BallonPanel.GAP;
+        this.rightInset = BallonPanel.GAP;
+        final int half = (this.contentSize.width + (BallonPanel.GAP + this.rounded / 2) * 2) / 2;
+        System.out.println(this.contentSize.width + " äää ");
+        final int dartHeight = this.contentSize.height / 2;
+        if (bottom) {
+            this.xPosition = -half;
+            this.topInset = dartHeight;
+            this.yposition = 0;
+        } else {
+            this.xPosition = -half;
+            this.bottomInset = dartHeight;
+            this.yposition = -(this.topInset + this.bottomInset + this.rounded + this.contentSize.height);
+        }
+        final int xp = this.desiredLocation.x - bounds.x + this.xPosition;
+        if (xp < 0) {
+            this.xPosition -= xp;
+        }
+
+        final int rightSpace = bounds.x + bounds.width - (desiredLocation.x + half * 2 + this.xPosition);
+        System.out.println(half * 2);
+        this.xPosition += Math.min(rightSpace, 0);
+        final String insets = "debug,ins " + (this.rounded / 2 + this.topInset) + " " + (this.rounded / 2 + this.leftInset) + " " + (this.rounded / 2 + this.bottomInset) + " " + (this.rounded / 2 + this.rightInset) + ",wrap 1";
+        System.out.println(insets);
+        this.setLayout(new MigLayout(insets, "[grow,fill]", "[][grow,fill][]"));
+
     }
 
 }
