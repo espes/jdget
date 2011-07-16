@@ -30,7 +30,7 @@ public class BallonTest {
         tx.setText("Hallo Nase das \r\nist meine Message\r\nZweite Zeile\r\nDritte  fsd fbdsjhfgsadjfdsajhkdsfaf a fds fadsfsadfds zeishafkjsdgfja hkdgsdakfdsafdsf  dsf dsfnd ko\r\nIch bin eine ziemlich lange zeile");
         // tx.setText("Schau dir das an! Das ist doch toll");
         try {
-            final BalloonDialog d = new BalloonDialog(0, tx, new Point(100, 800));
+            final BalloonDialog d = new BalloonDialog(0, tx, new Point(1610, 390));
 
             Dialog.getInstance().showDialog(d);
         } catch (final DialogClosedException e) {

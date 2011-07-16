@@ -10,6 +10,7 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Component;
+import java.awt.Image;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Window;
@@ -27,8 +28,8 @@ import javax.swing.WindowConstants;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
+import org.appwork.screenshot.ScreensShotHelper;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.formatter.TimeFormatter;
@@ -44,6 +45,8 @@ public class BalloonDialog extends AbstractDialog<Integer> {
     private final Point       desiredLocation;
 
     private BallonPanel       ballonPanel;
+
+    private ScreenShotPanel   screenshotPanel;
 
     public BalloonDialog(final int flag, final JComponent comp, final Point point) throws OffScreenException {
         super(flag | Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK | Dialog.STYLE_HIDE_ICON, "Balloon", null, null, null);
@@ -216,14 +219,19 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                 public void run() {
                     while (true) {
                         try {
-                            Thread.sleep(20);
+                            Thread.sleep(1000);
                         } catch (final InterruptedException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
+                        if (!BalloonDialog.this.isVisible()) {
 
+                            System.exit(0);
+                            return;
+                        }
                         final Point mouse = MouseInfo.getPointerInfo().getLocation();
-
+                        // mouse.x /= 2;
+                        // mouse.y /= 2;
                         new EDTRunner() {
 
                             @Override
@@ -268,29 +276,36 @@ public class BalloonDialog extends AbstractDialog<Integer> {
     @Override
     protected void layoutDialog() {
         this.dialog = new InternDialog() {
+
             {
-                final MigPanel cp = new MigPanel("ins 0", "[]", "[]") {
+                BalloonDialog.this.screenshotPanel = new ScreenShotPanel("ins 0", "[]", "[]");
 
-                };
-
-                this.setContentPane(cp);
+                this.setContentPane(BalloonDialog.this.screenshotPanel);
 
             }
 
             @Override
             public void setLocation(final Point p) {
                 try {
+
                     BalloonDialog.this.ballonPanel.relayout(p);
 
                     p.x += BalloonDialog.this.ballonPanel.getXOffset();
                     p.y += BalloonDialog.this.ballonPanel.getYOffset();
 
                     super.setLocation(p);
+                    final boolean v = this.isVisible();
+                    this.setVisible(false);
+                    final Image screenshot = ScreensShotHelper.getScreenShot(p.x, p.y, this.getWidth(), this.getHeight());
+
+                    BalloonDialog.this.screenshotPanel.setScreenShot(screenshot);
+                    System.out.println("point " + p);
                     // this.invalidate();
                     // BalloonDialog.this.ballonPanel.invalidate();
 
                     BalloonDialog.this.ballonPanel.revalidate();
                     BalloonDialog.this.ballonPanel.repaint();
+                    this.setVisible(v);
                 } catch (final OffScreenException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
