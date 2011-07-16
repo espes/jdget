@@ -239,7 +239,7 @@ public class BallonPanel extends MigPanel {
         final int rightSpace = bounds.x + bounds.width - (desiredLocation.x + half * 2 + this.xPosition);
 
         this.xPosition += Math.min(rightSpace, 0);
-        final String insets = "debug,ins " + (this.rounded / 2 + this.topInset) + " " + (this.rounded / 2 + this.leftInset) + " " + (this.rounded / 2 + this.bottomInset) + " " + (this.rounded / 2 + this.rightInset) + ",wrap 1";
+        final String insets = "ins " + (this.rounded / 2 + this.topInset) + " " + (this.rounded / 2 + this.leftInset) + " " + (this.rounded / 2 + this.bottomInset) + " " + (this.rounded / 2 + this.rightInset) + ",wrap 1";
 
         this.setLayout(new MigLayout(insets, "[grow,fill]", "[][grow,fill][]"));
 

@@ -45,6 +45,8 @@ public class ScreenShotPanel extends MigPanel {
                 if (this.screenshot != null) {
                     g.drawImage(this.screenshot, 0, 0, null);
                 }
+                // g.setColor(Color.ORANGE);
+                // g.fillRect(0, 0, this.getWidth(), this.getHeight());
                 this.ui.paint(g, this);
 
             } finally {

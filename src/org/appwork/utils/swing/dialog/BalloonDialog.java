@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Image;
 import java.awt.MouseInfo;
@@ -278,16 +279,17 @@ public class BalloonDialog extends AbstractDialog<Integer> {
         this.dialog = new InternDialog() {
 
             {
-                BalloonDialog.this.screenshotPanel = new ScreenShotPanel("ins 0", "[]", "[]");
+                BalloonDialog.this.screenshotPanel = new ScreenShotPanel("ins 10,debug", "[]", "[]");
 
                 this.setContentPane(BalloonDialog.this.screenshotPanel);
 
             }
 
             @Override
-            public void setLocation(Point p) {
+            public void setLocation(final Point p) {
                 try {
 
+                    this.setLayout(new BorderLayout());
                     BalloonDialog.this.ballonPanel.relayout(p);
 
                     p.x += BalloonDialog.this.ballonPanel.getXOffset();
@@ -296,14 +298,14 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                     final boolean v = this.isVisible();
                     this.setVisible(false);
                     super.setLocation(p);
-                    p = super.getLocation();
+                    System.out.println(BalloonDialog.this.ballonPanel.getSize() + " . " + this.getSize());
                     final Image screenshot = ScreensShotHelper.getScreenShot(p.x, p.y, this.getWidth(), this.getHeight());
 
                     BalloonDialog.this.screenshotPanel.setScreenShot(screenshot);
-                    System.out.println("point " + p);
+
                     // this.invalidate();
                     // BalloonDialog.this.ballonPanel.invalidate();
-                    this.setSize(BalloonDialog.this.ballonPanel.getSize());
+                    // this.setSize(BalloonDialog.this.ballonPanel.getSize());
 
                     BalloonDialog.this.ballonPanel.revalidate();
                     BalloonDialog.this.ballonPanel.repaint();
