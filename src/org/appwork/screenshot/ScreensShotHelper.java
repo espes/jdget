@@ -27,6 +27,55 @@ import java.awt.image.BufferedImage;
 public class ScreensShotHelper {
 
     /**
+     * @return
+     * @throws AWTException
+     */
+    public static Image getFullScreenShot() throws AWTException {
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice[] screens = ge.getScreenDevices();
+
+        // for (final GraphicsDevice screen : screens) {
+        int xMax = 0;
+        int xMin = 0;
+        int yMax = 0;
+        int yMin = 0;
+        for (final GraphicsDevice screen : screens) {
+            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
+            xMax = Math.max(xMax, bounds.x + bounds.width);
+            yMax = Math.max(bounds.y + bounds.height, yMax);
+            yMin = Math.min(yMin, bounds.y);
+            xMin = Math.min(xMin, bounds.x);
+        }
+        // final BufferedImage complete = new BufferedImage(xMax - xMin, yMax -
+        // yMin, Transparency.TRANSLUCENT);
+        Image complete = null;
+        Graphics2D g2 = null;
+
+        final BufferedImage img = new BufferedImage(xMax - xMin, yMax - yMin, BufferedImage.TYPE_INT_RGB);
+        g2 = img.createGraphics();
+        complete = img;
+
+        for (final GraphicsDevice screen : screens) {
+            final DisplayMode dm = screen.getDisplayMode();
+            // bounds are used to gete the position and size of this screen in
+            // the complete screen configuration
+            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
+            final int screenWidth = dm.getWidth();
+            final int screenHeight = dm.getHeight();
+            final Rectangle rect = new Rectangle(screenWidth, screenHeight);
+            final Robot robot = new Robot(screen);
+            final BufferedImage image = robot.createScreenCapture(rect);
+            g2.drawImage(image, bounds.x - xMin, bounds.y - yMin, null);
+
+        }
+        g2.dispose();
+
+        g2 = null;
+
+        return img;
+    }
+
+    /**
      * @param x
      * @param y
      * @param width

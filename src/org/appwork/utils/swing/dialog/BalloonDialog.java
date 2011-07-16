@@ -11,7 +11,6 @@ package org.appwork.utils.swing.dialog;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Image;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Window;
@@ -30,7 +29,6 @@ import javax.swing.WindowConstants;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.resources.AWUTheme;
-import org.appwork.screenshot.ScreensShotHelper;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.formatter.TimeFormatter;
@@ -48,6 +46,8 @@ public class BalloonDialog extends AbstractDialog<Integer> {
     private BallonPanel       ballonPanel;
 
     private ScreenShotPanel   screenshotPanel;
+
+    private final boolean     linuxworkaround  = true;
 
     public BalloonDialog(final int flag, final JComponent comp, final Point point) throws OffScreenException {
         super(flag | Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK | Dialog.STYLE_HIDE_ICON, "Balloon", null, null, null);
@@ -220,7 +220,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                 public void run() {
                     while (true) {
                         try {
-                            Thread.sleep(1000);
+                            Thread.sleep(100);
                         } catch (final InterruptedException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
@@ -279,7 +279,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
         this.dialog = new InternDialog() {
 
             {
-                BalloonDialog.this.screenshotPanel = new ScreenShotPanel("ins 10,debug", "[]", "[]");
+                BalloonDialog.this.screenshotPanel = new ScreenShotPanel();
 
                 this.setContentPane(BalloonDialog.this.screenshotPanel);
 
@@ -295,13 +295,8 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                     p.x += BalloonDialog.this.ballonPanel.getXOffset();
                     p.y += BalloonDialog.this.ballonPanel.getYOffset();
 
-                    final boolean v = this.isVisible();
-                    this.setVisible(false);
                     super.setLocation(p);
                     System.out.println(BalloonDialog.this.ballonPanel.getSize() + " . " + this.getSize());
-                    final Image screenshot = ScreensShotHelper.getScreenShot(p.x, p.y, this.getWidth(), this.getHeight());
-
-                    BalloonDialog.this.screenshotPanel.setScreenShot(screenshot);
 
                     // this.invalidate();
                     // BalloonDialog.this.ballonPanel.invalidate();
@@ -309,7 +304,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
 
                     BalloonDialog.this.ballonPanel.revalidate();
                     BalloonDialog.this.ballonPanel.repaint();
-                    this.setVisible(v);
+
                 } catch (final OffScreenException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
