@@ -285,7 +285,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             }
 
             @Override
-            public void setLocation(final Point p) {
+            public void setLocation(Point p) {
                 try {
 
                     BalloonDialog.this.ballonPanel.relayout(p);
@@ -295,6 +295,8 @@ public class BalloonDialog extends AbstractDialog<Integer> {
 
                     final boolean v = this.isVisible();
                     this.setVisible(false);
+                    super.setLocation(p);
+                    p = super.getLocation();
                     final Image screenshot = ScreensShotHelper.getScreenShot(p.x, p.y, this.getWidth(), this.getHeight());
 
                     BalloonDialog.this.screenshotPanel.setScreenShot(screenshot);
@@ -302,7 +304,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                     // this.invalidate();
                     // BalloonDialog.this.ballonPanel.invalidate();
                     this.setSize(BalloonDialog.this.ballonPanel.getSize());
-                    super.setLocation(p);
+
                     BalloonDialog.this.ballonPanel.revalidate();
                     BalloonDialog.this.ballonPanel.repaint();
                     this.setVisible(v);
