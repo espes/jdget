@@ -293,7 +293,6 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                     p.x += BalloonDialog.this.ballonPanel.getXOffset();
                     p.y += BalloonDialog.this.ballonPanel.getYOffset();
 
-                    super.setLocation(p);
                     final boolean v = this.isVisible();
                     this.setVisible(false);
                     final Image screenshot = ScreensShotHelper.getScreenShot(p.x, p.y, this.getWidth(), this.getHeight());
@@ -302,7 +301,8 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                     System.out.println("point " + p);
                     // this.invalidate();
                     // BalloonDialog.this.ballonPanel.invalidate();
-
+                    this.setSize(BalloonDialog.this.ballonPanel.getSize());
+                    super.setLocation(p);
                     BalloonDialog.this.ballonPanel.revalidate();
                     BalloonDialog.this.ballonPanel.repaint();
                     this.setVisible(v);
