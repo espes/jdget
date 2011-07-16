@@ -13,6 +13,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
@@ -161,6 +162,14 @@ public class BallonPanel extends MigPanel {
 
         g2.fill(areaOne);
         g2.setColor(Color.WHITE);
+        // final int w = this.getWidth();
+        // final int h = this.getHeight();
+
+        // Paint a gradient from top to bottom
+        final GradientPaint gp = new GradientPaint(0, 0, Color.WHITE, this.getWidth(), this.getHeight(), new Color(255, 255, 255, 180));
+
+        g2.setPaint(gp);
+
         g2.fill(areaOne);
         g2.setColor(Color.DARK_GRAY);
 

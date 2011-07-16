@@ -28,6 +28,7 @@ public class BallonTest {
         final JTextArea tx = new JTextArea();
         tx.setEditable(false);
         tx.setText("Hallo Nase das \r\nist meine Message\r\nZweite Zeile\r\nDritte  fsd fbdsjhfgsadjfdsajhkdsfaf a fds fadsfsadfds zeishafkjsdgfja hkdgsdakfdsafdsf  dsf dsfnd ko\r\nIch bin eine ziemlich lange zeile");
+        tx.setOpaque(false);
         // tx.setText("Schau dir das an! Das ist doch toll");
         try {
             final BalloonDialog d = new BalloonDialog(0, tx, new Point(1610, 390));
