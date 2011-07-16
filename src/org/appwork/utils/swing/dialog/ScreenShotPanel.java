@@ -9,39 +9,27 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import java.awt.AWTException;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Point;
 
-import javax.swing.JPanel;
-
-import org.appwork.screenshot.ScreensShotHelper;
+import org.appwork.app.gui.MigPanel;
 
 /**
  * @author thomas
  * 
  */
-public class ScreenShotPanel extends JPanel {
+public class ScreenShotPanel extends MigPanel {
 
-    private Image fullShot;
+    private Image screenshot;
 
     /**
      * @param constraints
      * @param columns
      * @param rows
      */
-    public ScreenShotPanel() {
-        super();
-
-        try {
-            this.fullShot = ScreensShotHelper.getFullScreenShot();
-        } catch (final AWTException e2) {
-            // TODO Auto-generated catch block
-            e2.printStackTrace();
-        }
-
+    public ScreenShotPanel(final String constraints, final String columns, final String rows) {
+        super(constraints, columns, rows);
         this.setOpaque(true);
     }
 
@@ -54,10 +42,9 @@ public class ScreenShotPanel extends JPanel {
             try {
                 // ui.update(scratchGraphics, this);
 
-                final Point loc = this.getLocationOnScreen();
-
-                g.drawImage(this.fullShot, 0, 0, this.getWidth(), this.getHeight(), loc.x, loc.y, loc.x + this.getWidth(), loc.y + this.getHeight(), null);
-
+                if (this.screenshot != null) {
+                    g.drawImage(this.screenshot, 0, 0, null);
+                }
                 // g.setColor(Color.ORANGE);
                 // g.fillRect(0, 0, this.getWidth(), this.getHeight());
                 this.ui.paint(g, this);
@@ -66,6 +53,14 @@ public class ScreenShotPanel extends JPanel {
                 scratchGraphics.dispose();
             }
         }
+
+    }
+
+    /**
+     * @param screenshot
+     */
+    public void setScreenShot(final Image screenshot) {
+        this.screenshot = screenshot;
 
     }
 
