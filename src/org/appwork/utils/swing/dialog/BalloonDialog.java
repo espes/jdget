@@ -12,7 +12,6 @@ package org.appwork.utils.swing.dialog;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Image;
-import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -37,7 +36,6 @@ import org.appwork.utils.formatter.TimeFormatter;
 import org.appwork.utils.locale.APPWORKUTILS;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
-import org.appwork.utils.swing.EDTRunner;
 
 public class BalloonDialog extends AbstractDialog<Integer> {
 
@@ -159,6 +157,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             this.getDialog().setLayout(new MigLayout("ins 0,", "0[]0", "0[]0"));
             this.getDialog().getContentPane().add(this.ballonPanel);
             // this.getDialog().setContentPane(this.ballonPanel);
+
             // AWTUtilities.setWindowOpaque(BalloonDialog.this.getDialog(),
             // false);
 
@@ -215,37 +214,37 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                 ((Window) this.getDialog().getParent()).setAlwaysOnTop(true);
                 ((Window) this.getDialog().getParent()).setAlwaysOnTop(false);
             }
-            new Thread() {
-                @Override
-                public void run() {
-                    while (true) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (final InterruptedException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-                        if (!BalloonDialog.this.isVisible()) {
-
-                            System.exit(0);
-                            return;
-                        }
-                        final Point mouse = MouseInfo.getPointerInfo().getLocation();
-                        // mouse.x /= 2;
-                        // mouse.y /= 2;
-                        new EDTRunner() {
-
-                            @Override
-                            protected void runInEDT() {
-
-                                BalloonDialog.this.getDialog().setLocation(mouse);
-
-                            }
-                        };
-
-                    }
-                }
-            }.start();
+            // new Thread() {
+            // @Override
+            // public void run() {
+            // while (true) {
+            // try {
+            // Thread.sleep(1000);
+            // } catch (final InterruptedException e) {
+            // // TODO Auto-generated catch block
+            // e.printStackTrace();
+            // }
+            // if (!BalloonDialog.this.isVisible()) {
+            //
+            // System.exit(0);
+            // return;
+            // }
+            // final Point mouse = MouseInfo.getPointerInfo().getLocation();
+            // // mouse.x /= 2;
+            // // mouse.y /= 2;
+            // new EDTRunner() {
+            //
+            // @Override
+            // protected void runInEDT() {
+            //
+            // BalloonDialog.this.getDialog().setLocation(mouse);
+            //
+            // }
+            // };
+            //
+            // }
+            // }
+            // }.start();
             this.setVisible(true);
         } finally {
             // System.out.println("SET OLD");
