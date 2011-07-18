@@ -28,20 +28,30 @@ public class SizeFormatter {
      * @return
      */
     public static String formatBytes(long fileSize) {
-        if (fileSize < 0) fileSize = 0;
-        DecimalFormat c = new DecimalFormat("0.00");
-        if (fileSize >= (1024 * 1024 * 1024 * 1024l)) return c.format(fileSize / (1024 * 1024 * 1024 * 1024.0)) + " TiB";
-        if (fileSize >= (1024 * 1024 * 1024l)) return c.format(fileSize / (1024 * 1024 * 1024.0)) + " GiB";
-        if (fileSize >= (1024 * 1024l)) return c.format(fileSize / (1024 * 1024.0)) + " MiB";
-        if (fileSize >= 1024l) return c.format(fileSize / 1024.0) + " KiB";
+        if (fileSize < 0) {
+            fileSize = 0;
+        }
+        final DecimalFormat c = new DecimalFormat("0.00");
+        if (fileSize >= 1024 * 1024 * 1024 * 1024l) { return c.format(fileSize / (1024 * 1024 * 1024 * 1024.0)) + " TiB"; }
+        if (fileSize >= 1024 * 1024 * 1024l) { return c.format(fileSize / (1024 * 1024 * 1024.0)) + " GiB"; }
+        if (fileSize >= 1024 * 1024l) { return c.format(fileSize / (1024 * 1024.0)) + " MiB"; }
+        if (fileSize >= 1024l) { return c.format(fileSize / 1024.0) + " KiB"; }
         return fileSize + " B";
     }
 
     public static long getSize(final String string) {
+        return SizeFormatter.getSize(string, true);
+    }
+
+    public static long getSize(final String string, final boolean kibi) {
+        int unit = 1000;
+        if (kibi) {
+            unit = 1024;
+        }
         String[][] matches = new Regex(string, Pattern.compile("([\\d]+)[\\.|\\,|\\:]([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
 
         if (matches == null || matches.length == 0) {
-            matches = new Regex(string, Pattern.compile("([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches(); 
+            matches = new Regex(string, Pattern.compile("([\\d]+)", Pattern.CASE_INSENSITIVE)).getMatches();
         }
         if (matches == null || matches.length == 0) { return -1; }
 
@@ -53,11 +63,11 @@ public class SizeFormatter {
             res = Double.parseDouble(matches[0][0] + "." + matches[0][1]);
         }
         if (Regex.matches(string, Pattern.compile("(gb|gbyte|gig|gib)", Pattern.CASE_INSENSITIVE))) {
-            res *= 1024 * 1024 * 1024;
+            res *= unit * unit * unit;
         } else if (Regex.matches(string, Pattern.compile("(mb|mbyte|megabyte|mib)", Pattern.CASE_INSENSITIVE))) {
-            res *= 1024 * 1024;
+            res *= unit * unit;
         } else if (Regex.matches(string, Pattern.compile("(kb|kbyte|kilobyte|kib)", Pattern.CASE_INSENSITIVE))) {
-            res *= 1024;
+            res *= unit;
         }
 
         return Math.round(res);

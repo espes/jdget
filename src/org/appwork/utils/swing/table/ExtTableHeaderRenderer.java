@@ -134,16 +134,15 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
     public void paintComponent(final Graphics g) {
         super.paintComponent(g);
         if (this.paintIcon) {
-
             final int left = 2;
-
-            final Graphics2D g2 = (Graphics2D) g;
-            final Composite comp = g2.getComposite();
             final Icon icon = this.column.getModel().getSortColumn().getSortIcon();
-
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-            icon.paintIcon(this, g2, left, (this.getHeight() - icon.getIconHeight()) / 2);
-            g2.setComposite(comp);
+            if (icon != null) {
+                final Graphics2D g2 = (Graphics2D) g;
+                final Composite comp = g2.getComposite();
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+                icon.paintIcon(this, g2, left, (this.getHeight() - icon.getIconHeight()) / 2);
+                g2.setComposite(comp);
+            }
         }
 
     }
