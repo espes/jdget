@@ -18,7 +18,6 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
@@ -42,10 +41,10 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import org.appwork.app.gui.MigPanel;
+import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.Application;
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.images.IconIO;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 
@@ -393,13 +392,11 @@ public class ExtTable<E> extends JTable {
 
     private JComponent createDefaultColumnButton() {
         final MigPanel p = new MigPanel("ins 0 2 0 0", "[grow,fill]", "[grow,fill]");
-        final URL iconPath = ExtTable.class.getResource("columnButton.png");
+
         final JButton button;
-        if (iconPath != null) {
-            button = new JButton(IconIO.getImageIcon(iconPath, 12));
-        } else {
-            button = new JButton("*");
-        }
+
+        button = new JButton(AWUTheme.I().getIcon("columnButton", -1));
+
         button.setBorderPainted(false);
 
         button.setContentAreaFilled(false);
