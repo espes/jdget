@@ -423,7 +423,9 @@ public class ExtTable<E> extends JTable {
 
     @Override
     public JToolTip createToolTip() {
-
+        if (this.tooltip == null) {
+            System.out.println("NULLTIP");
+        }
         return this.tooltip;
     }
 
