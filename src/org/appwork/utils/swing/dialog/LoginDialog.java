@@ -64,7 +64,13 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
 
     public static void main(final String[] args) {
         try {
-            Dialog.getInstance().showDialog(new LoginDialog(0));
+
+            final LoginDialog d = new LoginDialog(0);
+            final LoginData response = Dialog.getInstance().showDialog(d);
+            System.out.println("Remember logins: " + response.isSave());
+            System.out.println("Username: " + response.getUsername());
+            System.out.println("Password: " + response.getPassword());
+
         } catch (final DialogClosedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
