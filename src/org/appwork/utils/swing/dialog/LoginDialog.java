@@ -119,7 +119,7 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
     public JComponent layoutDialogContent() {
 
         final JPanel contentpane = new JPanel();
-        this.titleColor = this.getBackground().darker().darker();
+        this.titleColor = Color.DARK_GRAY;
         this.accid = new JTextField(10);
         this.accid.addCaretListener(this);
         this.pass = new JPasswordField(10);
