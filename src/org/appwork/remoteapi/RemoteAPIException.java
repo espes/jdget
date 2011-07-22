@@ -9,7 +9,10 @@
  */
 package org.appwork.remoteapi;
 
+import java.util.HashMap;
+
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
+import org.appwork.utils.Exceptions;
 
 /**
  * @author daniel
@@ -17,8 +20,13 @@ import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
  */
 public class RemoteAPIException extends RuntimeException {
 
+    /**
+     * 
+     */
+    private static final long  serialVersionUID = -7322929296778054140L;
     private final ResponseCode code;
     private final String       message;
+    private final Throwable    e;
 
     public RemoteAPIException(final ResponseCode code) {
         this(code, null);
@@ -27,11 +35,31 @@ public class RemoteAPIException extends RuntimeException {
     public RemoteAPIException(final ResponseCode code, final String message) {
         this.code = code;
         this.message = message;
+        this.e = null;
+    }
+
+    public RemoteAPIException(final Throwable e) {
+        super(e);
+        this.e = e;
+        this.message = e.getMessage();
+        this.code = ResponseCode.SERVERERROR_INTERNAL;
     }
 
     @Override
     public String getMessage() {
         return this.message;
+    }
+
+    public HashMap<String, Object> getRemoteAPIExceptionResponse() {
+        if (this.e == null) { return null; }
+        final HashMap<String, Object> ret = new HashMap<String, Object>();
+        ret.put("type", "system");
+        ret.put("message", "error");
+        final HashMap<String, Object> content = new HashMap<String, Object>();
+        content.put("type", "exception");
+        content.put("data", Exceptions.getStackTrace(this.e));
+        ret.put("data", content);
+        return ret;
     }
 
     public ResponseCode getResponseCode() {

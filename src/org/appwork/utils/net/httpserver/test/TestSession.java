@@ -14,12 +14,18 @@ import org.appwork.utils.net.httpserver.session.HttpSessionController;
 
 /**
  * @author daniel
- *
+ * 
  */
 public class TestSession implements HttpSession {
 
-    /* (non-Javadoc)
-     * @see org.appwork.utils.net.httpserver.session.HttpSession#getSessionController()
+    private boolean alive = true;
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.utils.net.httpserver.session.HttpSession#getSessionController
+     * ()
      */
     @Override
     public HttpSessionController<? extends HttpSession> getSessionController() {
@@ -27,13 +33,29 @@ public class TestSession implements HttpSession {
         return null;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.utils.net.httpserver.session.HttpSession#getSessionID()
      */
     @Override
     public String getSessionID() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.net.httpserver.session.HttpSession#isAlive()
+     */
+    @Override
+    public boolean isAlive() {
+        return this.alive;
+    }
+
+    protected void kill() {
+        this.alive = false;
     }
 
 }

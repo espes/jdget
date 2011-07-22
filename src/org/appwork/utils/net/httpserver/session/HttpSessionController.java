@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.appwork.remoteapi.RemoteAPIRequest;
+import org.appwork.remoteapi.RemoteAPIUnauthorizedException;
 import org.appwork.remoteapi.SessionRemoteAPIRequest;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.handler.HttpSessionRequestHandler;
@@ -67,7 +68,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
     @Override
     public String handshake(final String user, final String password) {
         final T session = this.newSession(user, password);
-        if (session == null) { return "error"; }
+        if (session == null) { throw new RemoteAPIUnauthorizedException(); }
         return session.getSessionID();
     }
 

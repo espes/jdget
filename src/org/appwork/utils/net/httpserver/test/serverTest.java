@@ -26,21 +26,23 @@ public class serverTest {
      * @param args
      * @throws IOException
      */
-    public static SessionRemoteAPI<TestSession> rapi = new SessionRemoteAPI<TestSession>();
+    public static SessionRemoteAPI<TestSession> rapi   = new SessionRemoteAPI<TestSession>();
+    public static EventsAPIImpl                 events = new EventsAPIImpl();
 
     public static void main(final String[] args) throws IOException {
         final HttpServer server = new HttpServer(3128);
         HttpSessionControllerImp ll;
         server.registerRequestHandler(ll = new HttpSessionControllerImp());
+
         ll.registerSessionRequestHandler(serverTest.rapi);
         try {
             serverTest.rapi.register(ll);
             serverTest.rapi.register(new TESTAPIImpl());
+            serverTest.rapi.register(serverTest.events);
         } catch (final ParseException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
         server.start();
     }
-
 }

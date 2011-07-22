@@ -75,6 +75,7 @@ public class HttpConnection implements Runnable {
     public HttpConnection(final HttpServer server, final Socket clientSocket) throws SocketException {
         this.server = server;
         this.clientSocket = clientSocket;
+        this.clientSocket.setSoTimeout(60 * 1000);
         this.thread = new Thread(server.getThreadGroup(), this) {
             @Override
             public void interrupt() {
@@ -219,7 +220,7 @@ public class HttpConnection implements Runnable {
             /* send response headers if they have not been sent yet send yet */
             this.response.getOutputStream();
         } catch (final Throwable e) {
-            Log.exception(e);
+            Log.L.severe(e.getMessage());
             try {
                 this.response = new HttpResponse(this);
                 this.response.setResponseCode(ResponseCode.SERVERERROR_INTERNAL);
@@ -229,7 +230,6 @@ public class HttpConnection implements Runnable {
                 this.response.getOutputStream().write(bytes);
                 this.response.getOutputStream().flush();
             } catch (final Throwable nothing) {
-                Log.exception(nothing);
             }
         } finally {
             this.finishThis();

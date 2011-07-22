@@ -9,7 +9,10 @@
  */
 package org.appwork.remoteapi.test;
 
+import org.appwork.remoteapi.EventsAPIEvent;
 import org.appwork.remoteapi.RemoteAPIProcess;
+import org.appwork.utils.net.httpserver.session.HttpSession;
+import org.appwork.utils.net.httpserver.test.serverTest;
 
 /**
  * @author daniel
@@ -17,8 +20,9 @@ import org.appwork.remoteapi.RemoteAPIProcess;
  */
 public class CounterProcess extends RemoteAPIProcess<Boolean> implements CounterProcessInterface {
 
-    private int     counter = 0;
-    private boolean stopped = false;
+    private int         counter = 0;
+    private boolean     stopped = false;
+    private HttpSession session;
 
     public int getCounterValue() {
         return this.counter;
@@ -48,16 +52,24 @@ public class CounterProcess extends RemoteAPIProcess<Boolean> implements Counter
     public void process() {
         while (!this.stopped) {
             try {
-                Thread.sleep(250);
+                Thread.sleep(1000);
             } catch (final InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
+            final EventsAPIEvent event = new EventsAPIEvent();
+            event.setProcessID(this.getPID());
+            event.setData(this.counter);
+            serverTest.events.publishEvent(event, this.session);
             this.counter++;
             if (this.counter > 400) {
                 break;
             }
         }
+    }
+
+    public void setSession(final HttpSession session) {
+        this.session = session;
     }
 
     public boolean stopCounter() {

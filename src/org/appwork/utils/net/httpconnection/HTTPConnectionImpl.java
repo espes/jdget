@@ -187,11 +187,17 @@ public class HTTPConnectionImpl implements HTTPConnection {
             this.httpHeader = "unknown HTTP response";
             this.httpResponseCode = 200;
             this.httpResponseMessage = "unknown HTTP response";
-            this.inputStream = new PushbackInputStream(this.httpSocket.getInputStream(), bytes.length);
-            /*
-             * push back the data that got read because no http header exists
-             */
-            ((PushbackInputStream) this.inputStream).unread(bytes);
+            if (bytes.length > 0) {
+                this.inputStream = new PushbackInputStream(this.httpSocket.getInputStream(), bytes.length);
+                /*
+                 * push back the data that got read because no http header
+                 * exists
+                 */
+                ((PushbackInputStream) this.inputStream).unread(bytes);
+            } else {
+                /* nothing to push back */
+                this.inputStream = this.httpSocket.getInputStream();
+            }
             return;
         }
         /* read rest of http headers */

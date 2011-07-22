@@ -9,14 +9,16 @@
  */
 package org.appwork.remoteapi;
 
-import java.util.HashMap;
-
 /**
  * @author daniel
  * 
  */
+@ApiNamespace("events")
 public interface EventsAPIInterface extends RemoteAPIInterface {
 
     @ApiDoc("establish a connection to event stream")
-    public HashMap<String, Object> listen(final RemoteAPIRequest request);
+    public void listen(final RemoteAPIRequest request, final RemoteAPIResponse response);
+
+    @ApiDoc("establish a connection to event stream with given lastEvendID")
+    public void listen(final RemoteAPIRequest request, final RemoteAPIResponse response, Long lastEventID);
 }

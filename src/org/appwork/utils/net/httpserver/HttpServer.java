@@ -15,6 +15,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
@@ -110,10 +112,24 @@ public class HttpServer implements Runnable {
         final Thread current = this.controlThread;
         final ServerSocket socket = this.controlSocket;
         try {
+            socket.setSoTimeout(5 * 60 * 1000);
+        } catch (final SocketException e1) {
+            e1.printStackTrace();
+        }
+        try {
             while (true) {
                 try {
                     final Socket clientSocket = socket.accept();
-                    new HttpConnection(this, clientSocket);
+                    try {
+                        new HttpConnection(this, clientSocket);
+                    } catch (final IOException e) {
+                        e.printStackTrace();
+                    }
+                } catch (final SocketTimeoutException e) {
+                    /*
+                     * nothing, our 5 mins connect timeout for the http server
+                     * socket
+                     */
                 } catch (final IOException e) {
                     break;
                 }

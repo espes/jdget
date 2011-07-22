@@ -114,7 +114,49 @@ public class Hash {
         }
         final byte[] digest = md.digest();
         return HexFormatter.byteArrayToHex(digest);
+    }
 
+    public static String getFileHash(final File arg, final String type, final long maxHash) {
+        if (arg == null || !arg.exists() || arg.isDirectory()) { return null; }
+        FileInputStream fis = null;
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance(type);
+            // if (true) { throw new IOException("Any IOEXCeption"); }
+            int bufferSize = 32767;
+            if (maxHash < bufferSize) {
+                bufferSize = (int) maxHash;
+            }
+            final byte[] b = new byte[bufferSize];
+            fis = new FileInputStream(arg);
+            int n = 0;
+            long todo = maxHash;
+            while ((n = fis.read(b, 0, bufferSize)) >= 0) {
+                if (n > 0) {
+                    md.update(b, 0, n);
+                }
+                if (maxHash > 0 && n > 0) {
+                    todo -= n;
+                    if (todo == 0) {
+                        break;
+                    }
+                    if (todo < bufferSize) {
+                        bufferSize = (int) todo;
+                    }
+                }
+
+            }
+        } catch (final Throwable e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                fis.close();
+            } catch (final Throwable e) {
+            }
+        }
+        final byte[] digest = md.digest();
+        return HexFormatter.byteArrayToHex(digest);
     }
 
     public static String getMD5(final File arg) {

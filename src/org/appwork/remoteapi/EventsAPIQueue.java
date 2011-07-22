@@ -9,31 +9,37 @@
  */
 package org.appwork.remoteapi;
 
-import java.util.ArrayList;
-
-import org.appwork.utils.net.httpserver.session.HttpSession;
+import java.util.LinkedList;
 
 /**
  * @author daniel
  * 
  */
-public class EventsAPIQueue<T extends HttpSession> {
+public class EventsAPIQueue {
 
-    private T                       session           = null;
-    private final long              lastPushTimestamp = 0;
-    private final long              lastPushID        = 0;
+    private long                             lastPushTimestamp = 0;
+    private long                             lastPushID        = 0;
+    private final long                       messageID         = 0;
+    private final LinkedList<EventsAPIEvent> events            = new LinkedList<EventsAPIEvent>();
+    private long                             lastPullTimeStamp = 0;
+    private long                             lastPullID        = 0;
 
-    private final ArrayList<Object> events            = new ArrayList<Object>();
-
-    public EventsAPIQueue(final T session) {
-        this.session = session;
+    public EventsAPIQueue() {
     }
 
-    /**
-     * @return the session
-     */
-    public T getSession() {
-        return this.session;
+    public synchronized EventsAPIEvent pullEvent() {
+        if (this.events.isEmpty()) { return null; }
+        final EventsAPIEvent ret = this.events.removeFirst();
+        this.lastPullTimeStamp = System.currentTimeMillis();
+        this.lastPullID = ret.getMessageID();
+        return ret;
+    }
+
+    public synchronized void pushEvent(final EventsAPIEvent event) {
+        if (event == null) { return; }
+        this.events.add(event);
+        event.setMessageID(++this.lastPushID);
+        this.lastPushTimestamp = System.currentTimeMillis();
     }
 
 }

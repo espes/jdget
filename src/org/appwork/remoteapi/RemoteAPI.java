@@ -22,7 +22,6 @@ import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
-import org.appwork.utils.Exceptions;
 import org.appwork.utils.Regex;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
@@ -80,7 +79,8 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
     }
 
     protected void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws IOException {
-        Object ret = null;
+        Object responseData = null;
+        Object responseException = null;
         final Method method = request.getMethod();
         try {
             if (method == null) { throw new ApiCommandNotAvailable(); }
@@ -107,59 +107,64 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                     count++;
                 }
             }
-            ret = request.getIface().invoke(method, parameters);
+            responseData = request.getIface().invoke(method, parameters);
             if (responseIsParameter) { return; }
         } catch (final Throwable e) {
             final Throwable cause = e.getCause();
             if (cause instanceof RemoteAPIException) {
                 final RemoteAPIException ex = (RemoteAPIException) cause;
-                response.setResponseCode(ex.getResponseCode());
-                String message = "";
-                if (ex.getMessage() != null) {
-                    message = ex.getMessage();
+                /* check if this Exception contains an API response */
+                responseException = ex.getRemoteAPIExceptionResponse();
+                if (responseException == null) {
+                    /* we dont have an API response, use normal http stuff */
+                    response.setResponseCode(ex.getResponseCode());
+                    String message = "";
+                    if (ex.getMessage() != null) {
+                        message = ex.getMessage();
+                    }
+                    if (message.length() == 0) {
+                        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
+                    } else {
+                        final int length = message.getBytes("UTF-8").length;
+                        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
+                        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
+                        response.getOutputStream().write(message.getBytes("UTF-8"));
+                    }
+                    return;
                 }
-                if (message.length() == 0) {
-                    response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
-                } else {
-                    final int length = message.getBytes("UTF-8").length;
-                    response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
-                    response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
-                    response.getOutputStream().write(message.getBytes("UTF-8"));
-                }
-                return;
+            } else {
+                /* wrap exceptions into API response */
+                responseException = new RemoteAPIException(e).getRemoteAPIExceptionResponse();
             }
-            ret = this.exception2APIResponse(e);
         }
-        String text = null;
+        String text = "";
         response.setResponseCode(ResponseCode.SUCCESS_OK);
-        if (method != null && ret != null) {
+        if (method != null && responseData != null) {
             /* no exception thrown and method available */
             if (Clazz.isVoid(method.getReturnType())) {
                 /* no content */
-                text = "";
                 response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
             } else {
                 /* we wrap response object in data:object,pid:pid(optional) */
-                final HashMap<String, Object> resp = new HashMap<String, Object>();
+                final HashMap<String, Object> responseJSON = new HashMap<String, Object>();
                 if (RemoteAPIProcess.class.isAssignableFrom(method.getReturnType())) {
-                    /* data and pid */
-                    final RemoteAPIProcess<?> pidResp = (RemoteAPIProcess<?>) ret;
-                    resp.put("data", pidResp.getResponse());
-                    resp.put("pid", pidResp.getPID());
+                    final RemoteAPIProcess<?> process = (RemoteAPIProcess<?>) responseData;
+                    responseJSON.putAll(this.remoteAPIProcessResponse(process));
                     try {
-                        this.registerProcess(pidResp);
-                    } catch (final ParseException e) {
-                        System.out.println("could not register process " + pidResp.getPID());
+                        this.registerProcess(process);
+                    } catch (final Throwable e) {
+                        System.out.println("could not register process " + process.getPID());
+                        responseJSON.put("error", "registererror");
                     }
                 } else {
                     /* only data */
-                    resp.put("data", ret);
+                    responseJSON.put("data", responseData);
                 }
-                text = JSonStorage.toString(resp);
+                text = JSonStorage.toString(responseJSON);
             }
         } else {
             /* caught an exception */
-            text = JSonStorage.toString(ret);
+            text = JSonStorage.toString(responseException);
         }
         if (request.getJqueryCallback() != null) {
             /* wrap response into a valid jquery callback response format */
@@ -172,7 +177,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         }
         final int length = text.getBytes("UTF-8").length;
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text/javascript"));
         response.getOutputStream().write(text.getBytes("UTF-8"));
 
     }
@@ -194,15 +199,6 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         } else {
             return v;
         }
-    }
-
-    /* wrap an throwable into an APIResponse */
-    protected HashMap<String, Object> exception2APIResponse(final Throwable e) {
-        final HashMap<String, Object> ret = new HashMap<String, Object>();
-        ret.put("type", "system");
-        ret.put("message", "exception");
-        ret.put("data", Exceptions.getStackTrace(e));
-        return ret;
     }
 
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
@@ -403,6 +399,13 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                 clazz = clazz.getSuperclass();
             }
         }
+    }
+
+    protected HashMap<String, Object> remoteAPIProcessResponse(final RemoteAPIProcess<?> process) {
+        final HashMap<String, Object> ret = new HashMap<String, Object>();
+        ret.put("data", process.getResponse());
+        ret.put("pid", process.getPID());
+        return ret;
     }
 
     public void unregister(final RemoteAPIInterface x) {

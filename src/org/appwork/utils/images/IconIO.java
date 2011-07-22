@@ -17,6 +17,10 @@ import org.appwork.utils.logging.Log;
 
 public class IconIO {
 
+    static {
+        ImageIO.setUseCache(false);
+    }
+
     /**
      * @param resource
      * @return

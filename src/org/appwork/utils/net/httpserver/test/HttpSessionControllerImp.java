@@ -9,6 +9,8 @@
  */
 package org.appwork.utils.net.httpserver.test;
 
+import java.util.HashMap;
+
 import org.appwork.utils.net.httpserver.session.HttpSessionController;
 
 /**
@@ -16,6 +18,8 @@ import org.appwork.utils.net.httpserver.session.HttpSessionController;
  * 
  */
 public class HttpSessionControllerImp extends HttpSessionController<TestSession> {
+
+    private final HashMap<String, TestSession> sessions = new HashMap<String, TestSession>();
 
     /*
      * (non-Javadoc)
@@ -26,12 +30,10 @@ public class HttpSessionControllerImp extends HttpSessionController<TestSession>
      */
     @Override
     public TestSession getSession(final String id) {
-        return new TestSession() {
-            @Override
-            public String getSessionID() {
-                return id;
-            }
-        };
+        synchronized (this.sessions) {
+            final TestSession ret = this.sessions.get(id);
+            return ret;
+        }
     }
 
     /*
@@ -44,12 +46,17 @@ public class HttpSessionControllerImp extends HttpSessionController<TestSession>
     @Override
     protected TestSession newSession(final String username, final String password) {
         if (!"wron".equals(password)) {
-            return new TestSession() {
+            final TestSession session = new TestSession() {
                 @Override
                 public String getSessionID() {
                     return System.currentTimeMillis() + "";
                 }
+
             };
+            synchronized (this.sessions) {
+                this.sessions.put(session.getSessionID(), session);
+            }
+            return session;
         } else {
             return null;
         }
@@ -64,8 +71,14 @@ public class HttpSessionControllerImp extends HttpSessionController<TestSession>
      */
     @Override
     protected boolean removeSession(final TestSession session) {
-        System.out.println("remove " + session.getSessionID());
-        return true;
+        if (session == null) { return false; }
+        synchronized (this.sessions) {
+            final TestSession ret = this.sessions.remove(session.getSessionID());
+            if (ret == null) { return false; }
+            ret.kill();
+            return true;
+        }
+
     }
 
 }

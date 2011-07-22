@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.net.httpserver.session;
 
-
 /**
  * @author daniel
  * 
@@ -19,5 +18,7 @@ public interface HttpSession {
     public HttpSessionController<? extends HttpSession> getSessionController();
 
     public String getSessionID();
+
+    public boolean isAlive();
 
 }
