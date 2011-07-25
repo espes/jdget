@@ -67,6 +67,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     protected ExtColumn<E>                                 sortColumn;
 
     private final ArrayList<ExtComponentRowHighlighter<E>> extComponentRowHighlighters;
+
     private final ImageIcon                                iconAsc;
     private final ImageIcon                                iconDesc;
 
@@ -288,6 +289,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
          * happens but this workaround seems to do its job
          */
         return this.columns.get(Math.max(0, column)).getName();
+    }
+
+    public ArrayList<ExtColumn<E>> getColumns() {
+        return this.columns;
     }
 
     /**
