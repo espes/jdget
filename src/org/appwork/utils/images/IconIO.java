@@ -2,8 +2,12 @@ package org.appwork.utils.images;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -135,6 +139,68 @@ public class IconIO {
         } while (w != width || h != height);
 
         return (BufferedImage) ret;
+    }
+
+    /**
+     * @param drop
+     * @param i
+     * @return
+     */
+    public static BufferedImage rotate(final BufferedImage src, final int degree) {
+        final int w = src.getWidth(null);
+        final int h = src.getHeight(null);
+
+        // final Graphics2D g = image.createGraphics();
+        // g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+        // RenderingHints.VALUE_ANTIALIAS_ON);
+
+        final AffineTransform at = new AffineTransform();
+        at.rotate(degree * Math.PI / 180.0);
+        Point2D p2din, p2dout;
+
+        p2din = new Point2D.Double(0.0, 0.0);
+        p2dout = at.transform(p2din, null);
+        double ytrans = p2dout.getY();
+        double xtrans = p2dout.getX();
+        p2din = new Point2D.Double(0, h);
+        p2dout = at.transform(p2din, null);
+        ytrans = Math.min(ytrans, p2dout.getY());
+        xtrans = Math.min(xtrans, p2dout.getX());
+        p2din = new Point2D.Double(w, h);
+        p2dout = at.transform(p2din, null);
+        ytrans = Math.min(ytrans, p2dout.getY());
+        xtrans = Math.min(xtrans, p2dout.getX());
+        p2din = new Point2D.Double(w, 0);
+        p2dout = at.transform(p2din, null);
+        ytrans = Math.min(ytrans, p2dout.getY());
+        xtrans = Math.min(xtrans, p2dout.getX());
+
+        final AffineTransform tat = new AffineTransform();
+        tat.translate(-xtrans, -ytrans);
+
+        at.preConcatenate(tat);
+        final AffineTransformOp bio = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+
+        final Rectangle r = bio.getBounds2D(src).getBounds();
+
+        BufferedImage image = new BufferedImage(r.width, r.height, BufferedImage.TYPE_INT_ARGB);
+
+        image = bio.filter(src, image);
+        // final Graphics g = image.getGraphics();
+        // g.setColor(Color.RED);
+        // g.drawRect(0, 0, image.getWidth() - 1, image.getHeight() - 1);
+        // g.dispose();
+        // try {
+        // Dialog.getInstance().showConfirmDialog(0, "", "", new
+        // ImageIcon(image), null, null);
+        // } catch (final DialogClosedException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // } catch (final DialogCanceledException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // }
+        return image;
     }
 
     /**

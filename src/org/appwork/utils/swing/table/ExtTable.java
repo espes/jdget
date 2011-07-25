@@ -289,10 +289,7 @@ public class ExtTable<E> extends JTable {
                 mi.addActionListener(new ActionListener() {
 
                     public void actionPerformed(final ActionEvent e) {
-                        ExtTable.this.getExtTableModel().setVisible(j, mi.isSelected());
-                        ExtTable.this.createColumns();
-                        ExtTable.this.revalidate();
-                        ExtTable.this.repaint();
+                        ExtTable.this.getExtTableModel().setColumnVisible(j, mi.isSelected());
                     }
 
                 });
@@ -311,7 +308,7 @@ public class ExtTable<E> extends JTable {
     /**
      * Creates the columns based on the model
      */
-    private void createColumns() {
+    void createColumns() {
         final TableColumnModel tcm = this.getColumnModel();
 
         while (tcm.getColumnCount() > 0) {

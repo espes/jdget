@@ -612,6 +612,43 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
+     * @param column
+     * @param b
+     */
+    public void setColumnVisible(final ExtColumn<E> column, final boolean visible) {
+
+        try {
+            JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("VISABLE_COL_" + column.getName(), visible);
+        } catch (final Exception e) {
+            Log.exception(e);
+        }
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                ExtTableModel.this.getTable().createColumns();
+                ExtTableModel.this.getTable().revalidate();
+                ExtTableModel.this.getTable().repaint();
+            }
+        };
+
+    }
+
+    /**
+     * Sets the column visible or invisible. This information is stored in
+     * database interface for cross session use.
+     * 
+     * 
+     * @param column
+     * @param visible
+     */
+    public void setColumnVisible(final int column, final boolean visible) {
+
+        this.setColumnVisible(this.getExtColumn(column), visible);
+
+    }
+
+    /**
      * @param latest
      */
     public void setSelectedObject(final E latest) {
@@ -679,24 +716,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     @Override
     public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
         this.columns.get(columnIndex).setValueAt(value, rowIndex, columnIndex);
-    }
-
-    /**
-     * Sets the column visible or invisible. This information is stored in
-     * database interface for cross session use.
-     * 
-     * 
-     * @param column
-     * @param visible
-     */
-    public void setVisible(final int column, final boolean visible) {
-        final ExtColumn<E> col = this.getExtColumn(column);
-        try {
-            JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("VISABLE_COL_" + col.getName(), visible);
-        } catch (final Exception e) {
-            Log.exception(e);
-        }
-
     }
 
     /**

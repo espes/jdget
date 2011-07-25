@@ -138,7 +138,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return this.tip;
     }
 
-    protected void doSort() {
+    public void doSort() {
         final String newID = ExtColumn.this.getNextSortIdentifier();
 
         System.out.println("Sort: " + newID);
