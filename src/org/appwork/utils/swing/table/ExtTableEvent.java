@@ -1,4 +1,5 @@
 /**
+
  * Copyright (c) 2009 - 2010 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
  * 
  * This file is part of org.appwork.utils.swing.table
@@ -28,7 +29,11 @@ public class ExtTableEvent<P> extends SimpleEvent<ExtTable<?>, P, ExtTableEvent.
         SHORTCUT_CUT,
         SHORTCUT_PASTE,
         SHORTCUT_DELETE,
-        SHORTCUT_SEARCH
+        SHORTCUT_SEARCH,
+        /**
+         * MouseEvent
+         */
+        SORT_HEADER_CLICK
 
     }
 

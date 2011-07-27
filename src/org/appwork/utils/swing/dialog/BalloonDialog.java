@@ -10,13 +10,17 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.GradientPaint;
 import java.awt.Image;
+import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.lang.reflect.Method;
 
 import javax.swing.AbstractAction;
 import javax.swing.JCheckBox;
@@ -40,12 +44,13 @@ import org.appwork.utils.os.CrossSystem;
 public class BalloonDialog extends AbstractDialog<Integer> {
 
     private static final long serialVersionUID = -7647771640756844691L;
-    private final JComponent  component;
-    private final Point       desiredLocation;
+    private JComponent        component;
+    private Point             desiredLocation;
 
     private BallonPanel       ballonPanel;
 
     private ScreenShotPanel   screenshotPanel;
+    private boolean           opaqueWorkaround = false;
 
     public BalloonDialog(final int flag, final JComponent comp, final Point point) throws OffScreenException {
         super(flag | Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK | Dialog.STYLE_HIDE_ICON, "Balloon", null, null, null);
@@ -148,7 +153,8 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             }
 
             try {
-                this.ballonPanel = new BallonPanel(this.component, this.timerLbl, this.dontshowagain, this.desiredLocation);
+                this.ballonPanel = new BallonPanel(this, this.component, this.timerLbl, this.dontshowagain, this.desiredLocation);
+
             } catch (final OffScreenException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
@@ -157,9 +163,18 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             this.getDialog().setLayout(new MigLayout("ins 0,", "0[]0", "0[]0"));
             this.getDialog().getContentPane().add(this.ballonPanel);
             // this.getDialog().setContentPane(this.ballonPanel);
-
-            // AWTUtilities.setWindowOpaque(BalloonDialog.this.getDialog(),
-            // false);
+            // if()
+            //
+            Class<?> clazz;
+            try {
+                clazz = Class.forName("com.sun.awt.AWTUtilities");
+                // com.sun.awt.AWTUtilities.setWindowOpaque(window, flag)
+                final Method method = clazz.getMethod("setWindowOpaque", new Class[] { Window.class, boolean.class });
+                method.invoke(null, new Object[] { BalloonDialog.this.getDialog(), false });
+            } catch (final Throwable e1) {
+                e1.printStackTrace();
+                this.opaqueWorkaround = true;
+            }
 
             if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_COUNTDOWN)) {
                 // show timer
@@ -245,6 +260,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             // }
             // }
             // }.start();
+            // this.getDialog().setModal(false);
             this.setVisible(true);
         } finally {
             // System.out.println("SET OLD");
@@ -273,13 +289,48 @@ public class BalloonDialog extends AbstractDialog<Integer> {
         return this.getReturnmask();
     }
 
+    /**
+     * @return
+     */
+    public Color getBorderColor() {
+        // TODO Auto-generated method stub
+        return Color.DARK_GRAY;
+    }
+
+    /**
+     * @return
+     */
+    public int[] getContentInsets() {
+        // TODO Auto-generated method stub
+        return new int[] { 5, 5, 5, 5 };
+    }
+
+    /**
+     * @param ballonPanel2
+     * @return
+     */
+    public Paint getPaint(final BallonPanel panel) {
+        // TODO Auto-generated method stub
+        return new GradientPaint(0, 0, Color.WHITE, panel.getWidth(), panel.getHeight(), new Color(255, 255, 255, 180));
+    }
+
+    /**
+     * @return
+     */
+    public Color getShadowColor() {
+        // TODO Auto-generated method stub
+        return new Color(0, 0, 0, 50);
+    }
+
     @Override
     protected void layoutDialog() {
         this.dialog = new InternDialog() {
 
             {
                 BalloonDialog.this.screenshotPanel = new ScreenShotPanel("ins 10,debug", "[]", "[]");
-
+                if (!BalloonDialog.this.opaqueWorkaround) {
+                    BalloonDialog.this.screenshotPanel.setOpaque(false);
+                }
                 this.setContentPane(BalloonDialog.this.screenshotPanel);
 
             }
@@ -297,11 +348,11 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                     final boolean v = this.isVisible();
                     this.setVisible(false);
                     super.setLocation(p);
-                    System.out.println(BalloonDialog.this.ballonPanel.getSize() + " . " + this.getSize());
-                    final Image screenshot = ScreensShotHelper.getScreenShot(p.x, p.y, this.getWidth(), this.getHeight());
+                    if (BalloonDialog.this.opaqueWorkaround) {
+                        final Image screenshot = ScreensShotHelper.getScreenShot(p.x, p.y, this.getWidth(), this.getHeight());
 
-                    BalloonDialog.this.screenshotPanel.setScreenShot(screenshot);
-
+                        BalloonDialog.this.screenshotPanel.setScreenShot(screenshot);
+                    }
                     // this.invalidate();
                     // BalloonDialog.this.ballonPanel.invalidate();
                     // this.setSize(BalloonDialog.this.ballonPanel.getSize());
@@ -330,6 +381,14 @@ public class BalloonDialog extends AbstractDialog<Integer> {
     public JComponent layoutDialogContent() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public void setComponent(final JComponent component) {
+        this.component = component;
+    }
+
+    public void setDesiredLocation(final Point desiredLocation) {
+        this.desiredLocation = desiredLocation;
     }
 
     @Override

@@ -158,6 +158,7 @@ public class ExtTable<E> extends JTable {
                 }
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public void mouseReleased(final MouseEvent e) {
                 if (ExtTable.this.getTableHeader().getCursor().getType() == Cursor.getDefaultCursor().getType()) {
@@ -167,7 +168,8 @@ public class ExtTable<E> extends JTable {
                         if (col == -1) { return; }
                         if (ExtTable.this.getExtTableModel().getExtColumn(col).isSortable(null)) {
                             ExtTable.this.getExtTableModel().getExtColumn(col).doSort();
-
+                            ExtTable.this.eventSender.fireEvent(new ExtTableEvent<MouseEvent>(ExtTable.this, ExtTableEvent.Types.SORT_HEADER_CLICK, e));
+                            ExtTable.this.onHeaderSortClick(e);
                         }
                     }
                 }
@@ -570,12 +572,6 @@ public class ExtTable<E> extends JTable {
         return this.tableID;
     }
 
-    // @Override
-    // public Point getToolTipLocation(final MouseEvent event) {
-    // // this.toolTipPosition = event.getPoint();
-    // return super.getToolTipLocation(event);
-    // }
-
     @Override
     public String getToolTipText(final MouseEvent event) {
         /*
@@ -594,6 +590,12 @@ public class ExtTable<E> extends JTable {
         }
         return this.tooltip != null ? "" + col.hashCode() + "_" + row : null;
     }
+
+    // @Override
+    // public Point getToolTipLocation(final MouseEvent event) {
+    // // this.toolTipPosition = event.getPoint();
+    // return super.getToolTipLocation(event);
+    // }
 
     public boolean isColumnButtonVisible() {
         return this.columnButtonVisible;
@@ -617,6 +619,16 @@ public class ExtTable<E> extends JTable {
      * @param obj
      */
     protected void onDoubleClick(final MouseEvent e, final E obj) {
+    }
+
+    /**
+     * Override this to handle header sort clicks
+     * 
+     * @param e
+     */
+    protected void onHeaderSortClick(final MouseEvent e) {
+        // TODO Auto-generated method stub
+
     }
 
     protected void onSelectionChanged(final ArrayList<E> selected) {
