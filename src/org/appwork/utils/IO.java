@@ -206,9 +206,16 @@ public class IO {
      * @throws IOException
      */
     public static byte[] readURL(final URL url, final int maxSize) throws IOException {
-
-        final InputStream input = url.openStream();
-        return IO.readStream(maxSize, input);
+        InputStream input = null;
+        try {
+            input = url.openStream();
+            return IO.readStream(maxSize, input);
+        } finally {
+            try {
+                input.close();
+            } catch (final Throwable e) {
+            }
+        }
     }
 
     /**
@@ -224,7 +231,6 @@ public class IO {
             fis = ressourceURL.openStream();
             return IO.readInputStreamToString(fis);
         } finally {
-
             try {
                 fis.close();
             } catch (final Throwable e) {
