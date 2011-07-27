@@ -9,6 +9,7 @@
  */
 package org.appwork.remoteapi.test;
 
+import org.appwork.remoteapi.ApiMethodName;
 import org.appwork.remoteapi.ApiNamespace;
 import org.appwork.remoteapi.RemoteAPIInterface;
 import org.appwork.remoteapi.RemoteAPIRequest;
@@ -20,6 +21,7 @@ import org.appwork.remoteapi.RemoteAPIRequest;
 @ApiNamespace("")
 public interface Ping extends RemoteAPIInterface {
 
+    @ApiMethodName("jdcheck.js")
     public String ping();
 
     public String ping(String in);

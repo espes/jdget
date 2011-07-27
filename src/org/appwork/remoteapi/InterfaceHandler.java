@@ -100,7 +100,6 @@ public class InterfaceHandler<T> {
      */
     public Method getMethod(final String methodName, final int length) {
         if (methodName.equals(InterfaceHandler.HELP.getName())) { return InterfaceHandler.HELP; }
-
         final TreeMap<Integer, Method> methodsByName = this.methods.get(methodName);
         if (methodsByName == null) { return null; }
 
@@ -131,17 +130,21 @@ public class InterfaceHandler<T> {
                     continue;
 
                 }
-                sb.append("\r\n====- " + m.getName() + " -====");
+                String name = m.getName();
+                final ApiMethodName methodname = m.getAnnotation(ApiMethodName.class);
+                if (methodname != null) {
+                    name = methodname.value();
+                }
+                sb.append("\r\n====- " + name + " -====");
                 final ApiDoc an = m.getAnnotation(ApiDoc.class);
                 if (an != null) {
-
                     sb.append("\r\n    Description: ");
                     sb.append(an.value() + "");
                 }
                 // sb.append("\r\n    Description: ");
 
                 final HashMap<Type, Integer> map = new HashMap<Type, Integer>();
-                String call = "/" + m.getName();
+                String call = "/" + name;
                 int count = 0;
                 for (int i = 0; i < m.getGenericParameterTypes().length; i++) {
                     if (m.getParameterTypes()[i] == RemoteAPIRequest.class || m.getParameterTypes()[i] == RemoteAPIResponse.class) {
@@ -207,10 +210,15 @@ public class InterfaceHandler<T> {
                 continue;
             }
             this.validateMethod(m);
-            TreeMap<Integer, Method> methodsByName = this.methods.get(m.getName());
+            String name = m.getName();
+            final ApiMethodName methodname = m.getAnnotation(ApiMethodName.class);
+            if (methodname != null) {
+                name = methodname.value();
+            }
+            TreeMap<Integer, Method> methodsByName = this.methods.get(name);
             if (methodsByName == null) {
                 methodsByName = new TreeMap<Integer, Method>();
-                this.methods.put(m.getName(), methodsByName);
+                this.methods.put(name, methodsByName);
             }
             int l = 0;
             for (final Class<?> c : m.getParameterTypes()) {
@@ -242,7 +250,6 @@ public class InterfaceHandler<T> {
                 responseIsParamater = true;
                 continue;
             } else {
-
                 try {
                     JSonStorage.canStore(t);
                 } catch (final InvalidTypeException e) {
