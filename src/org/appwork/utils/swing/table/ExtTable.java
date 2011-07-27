@@ -547,15 +547,6 @@ public class ExtTable<E> extends JTable {
         return super.getCellRenderer(row, column);
     }
 
-    public Point getPointinCell(final Point x) {
-        final int row = this.rowAtPoint(x);
-        if (row == -1) { return null; }
-        final Rectangle cellPosition = this.getCellRect(row, this.columnAtPoint(x), true);
-        final Point p = new Point();
-        p.setLocation(x.getX() - cellPosition.getX(), x.getY() - cellPosition.getY());
-        return p;
-    }
-
     /**
      * @return the rowHighlighters
      */
