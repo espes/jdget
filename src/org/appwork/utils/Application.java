@@ -52,6 +52,7 @@ public class Application {
     private static String ROOT;
 
     private static long   javaVersion = 0;
+    public static long    JAVA16      = 16000000;
 
     /**
      * Adds a folder to the System classloader classpath this might fail if
