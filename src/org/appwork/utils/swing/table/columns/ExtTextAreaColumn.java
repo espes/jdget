@@ -30,7 +30,7 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
     private Color             editorForeground;
     private Font              rendererFont;
     private Font              editorFont;
-    private JTextArea         txt;
+    protected JTextArea       txt;
     private int               oldRowHeight;
     private int               oldRowNum;
 
@@ -204,10 +204,14 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
 
     @Override
     public void resetEditor() {
-        this.editor.setFont(this.editorFont);
-        this.editor.setForeground(this.editorForeground);
+        this.txt.setFont(this.editorFont);
+        this.txt.setForeground(this.editorForeground);
         this.editor.setOpaque(false);
         this.editor.setBackground(null);
+        this.editor.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        this.txt.setOpaque(false);
+        this.txt.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        this.txt.setBackground(null);
     }
 
     @Override
