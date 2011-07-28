@@ -18,6 +18,7 @@ import javax.swing.JTextArea;
 
 import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
+import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.SwingUtils;
 
@@ -49,6 +50,9 @@ public class SimpleTextBallon extends BalloonDialog {
         this.dText = text;
         this.dIcon = icon;
         this.setComponent(this.createContent());
+        if (BinaryLogic.containsAll(flag, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
+            this.setDoNotShowAgainSelected(true);
+        }
 
     }
 

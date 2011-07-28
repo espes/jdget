@@ -83,7 +83,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private ImageIcon        icon;
 
-    private boolean          initialized   = false;
+    private boolean          initialized            = false;
 
     protected JButton        okButton;
 
@@ -91,13 +91,15 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     protected JComponent     panel;
 
-    protected int            returnBitMask = 0;
+    protected int            returnBitMask          = 0;
 
-    private AbstractAction[] actions       = null;
+    private AbstractAction[] actions                = null;
 
     private final String     title;
 
     private JLabel           iconLabel;
+
+    protected boolean        doNotShowAgainSelected = false;
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
@@ -209,7 +211,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 this.dontshowagain = new JCheckBox(APPWORKUTILS.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
                 this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
                 this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
-
+                this.dontshowagain.setSelected(this.doNotShowAgainSelected);
                 this.getDialog().add(this.dontshowagain, "growx,pushx,alignx right,gapleft 20");
             } else {
                 this.getDialog().add(Box.createHorizontalGlue(), "growx,pushx,alignx right,gapleft 20");
@@ -421,6 +423,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         return this.returnBitMask;
     }
 
+    public T getReturnValue() {
+        if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
+
+        return this.createReturnValue();
+    }
+
     // /**
     // * should be overwritten and return a Dimension of the dialog should have
     // a
@@ -432,12 +440,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     //
     // return null;
     // }
-
-    public T getReturnValue() {
-        if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
-
-        return this.createReturnValue();
-    }
 
     /**
      * @return
@@ -474,6 +476,17 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * may be overwritten to set focus to special components etc.
      */
     protected void packed() {
+    }
+
+    /**
+     * @param b
+     */
+    public void setDoNotShowAgainSelected(final boolean b) {
+        if (!BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) { throw new IllegalStateException("You have to set the Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN flag to use this method");
+
+        }
+        this.doNotShowAgainSelected = b;
+
     }
 
     public void setIcon(final ImageIcon icon) {

@@ -163,13 +163,18 @@ public class ExtTable<E> extends JTable {
             public void mouseReleased(final MouseEvent e) {
                 if (ExtTable.this.getTableHeader().getCursor().getType() == Cursor.getDefaultCursor().getType()) {
                     if (e.getButton() == MouseEvent.BUTTON1) {
+
                         if (this.columnPressed != ExtTable.this.columnAtPoint(e.getPoint())) { return; }
                         final int col = ExtTable.this.getExtColumnIndexByPoint(e.getPoint());
                         if (col == -1) { return; }
+
                         if (ExtTable.this.getExtTableModel().getExtColumn(col).isSortable(null)) {
+                            final ExtColumn<E> oldColumn = ExtTable.this.getExtTableModel().getSortColumn();
+                            final String oldIdentifier = oldColumn.getSortOrderIdentifier();
+
                             ExtTable.this.getExtTableModel().getExtColumn(col).doSort();
                             ExtTable.this.eventSender.fireEvent(new ExtTableEvent<MouseEvent>(ExtTable.this, ExtTableEvent.Types.SORT_HEADER_CLICK, e));
-                            ExtTable.this.onHeaderSortClick(e);
+                            ExtTable.this.onHeaderSortClick(e, oldColumn, oldIdentifier);
                         }
                     }
                 }
@@ -625,8 +630,10 @@ public class ExtTable<E> extends JTable {
      * Override this to handle header sort clicks
      * 
      * @param e
+     * @param oldIdentifier
+     * @param oldColumn
      */
-    protected void onHeaderSortClick(final MouseEvent e) {
+    protected void onHeaderSortClick(final MouseEvent e, final ExtColumn<E> oldColumn, final String oldIdentifier) {
         // TODO Auto-generated method stub
 
     }

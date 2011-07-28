@@ -14,6 +14,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.GradientPaint;
 import java.awt.Image;
+import java.awt.MouseInfo;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Window;
@@ -55,7 +56,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
     public BalloonDialog(final int flag, final JComponent comp, final Point point) throws OffScreenException {
         super(flag | Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK | Dialog.STYLE_HIDE_ICON, "Balloon", null, null, null);
         this.component = comp;
-        this.desiredLocation = point;
+        this.desiredLocation = point == null ? MouseInfo.getPointerInfo().getLocation() : point;
 
     }
 
@@ -144,7 +145,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                 this.dontshowagain = new JCheckBox(APPWORKUTILS.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
                 this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
                 this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
-
+                this.dontshowagain.setSelected(this.doNotShowAgainSelected);
                 // this.getDialog().add(this.dontshowagain,
                 // "growx,pushx,alignx right,gapleft 20");
             } else {
@@ -261,6 +262,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             // }
             // }.start();
             // this.getDialog().setModal(false);
+
             this.setVisible(true);
         } finally {
             // System.out.println("SET OLD");
@@ -324,6 +326,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
 
     @Override
     protected void layoutDialog() {
+
         this.dialog = new InternDialog() {
 
             {

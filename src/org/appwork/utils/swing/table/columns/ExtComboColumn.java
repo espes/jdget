@@ -179,7 +179,7 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
     public void resetRenderer() {
         super.resetRenderer();
         this.renderer.setBorder(ExtColumn.DEFAULT_BORDER);
-        super.renderer.setBorder(ExtColumn.DEFAULT_BORDER);
+        super.rendererField.setBorder(ExtColumn.DEFAULT_BORDER);
         this.renderer.setOpaque(true);
         this.renderer.setBackground(null);
 

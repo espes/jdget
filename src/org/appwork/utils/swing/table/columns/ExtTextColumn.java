@@ -14,6 +14,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
+import org.appwork.app.gui.MigPanel;
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
@@ -22,13 +23,17 @@ import org.appwork.utils.swing.table.ExtTableModel;
 public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionListener, FocusListener {
 
     private static final long serialVersionUID = 2114805529462086691L;
-    protected RenderLabel     renderer;
-    protected JTextField      editor;
+    protected RenderLabel     rendererField;
+    protected JTextField      editorField;
     private final Border      defaultBorder    = BorderFactory.createEmptyBorder(0, 5, 0, 5);
     private Color             rendererForeground;
     private Color             editorForeground;
     private Font              rendererFont;
     private Font              editorFont;
+    protected MigPanel        editor;
+    private RenderLabel       rendererIcon;
+    protected MigPanel        renderer;
+    private RenderLabel       editorIconLabel;
 
     /**
      * @param string
@@ -40,13 +45,48 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     public ExtTextColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
-        this.editor = new JTextField();
-        this.editor.addFocusListener(this);
-        this.renderer = new RenderLabel();
-        this.rendererForeground = this.renderer.getForeground();
-        this.editorForeground = this.editor.getForeground();
-        this.rendererFont = this.renderer.getFont();
-        this.editorFont = this.editor.getFont();
+        this.editorField = new JTextField();
+        this.editorField.addFocusListener(this);
+        this.editorField.setBorder(null);
+        this.rendererIcon = new RenderLabel() {
+            @Override
+            public void setIcon(final Icon icon) {
+
+                this.setVisible(icon != null);
+                super.setIcon(icon);
+            }
+        };
+
+        this.rendererIcon.setOpaque(false);
+        this.editorIconLabel = new RenderLabel() {
+            @Override
+            public void setIcon(final Icon icon) {
+
+                this.setVisible(icon != null);
+                super.setIcon(icon);
+            }
+        };
+        this.editorIconLabel.setOpaque(false);
+        this.rendererField = new RenderLabel() {
+
+            @Override
+            public void setIcon(final Icon icon) {
+
+                ExtTextColumn.this.rendererIcon.setIcon(icon);
+            }
+
+        };
+        this.rendererForeground = this.rendererField.getForeground();
+        this.editorForeground = this.editorField.getForeground();
+        this.rendererFont = this.rendererField.getFont();
+        this.editorFont = this.editorField.getFont();
+        this.editor = new MigPanel("ins 0", "[]5[grow,fill]", "[]");
+
+        this.renderer = new MigPanel("ins 0", "[]0[grow,fill]", "[]");
+        this.editor.add(this.editorIconLabel, "hidemode 3");
+        this.editor.add(this.editorField);
+        this.renderer.add(this.rendererIcon, "hidemode 3");
+        this.renderer.add(this.rendererField);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
@@ -72,13 +112,13 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     }
 
     public void actionPerformed(final ActionEvent e) {
-        this.editor.removeActionListener(this);
+        this.editorField.removeActionListener(this);
         this.fireEditingStopped();
     }
 
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
-        this.editor.removeActionListener(this);
+        this.editorField.removeActionListener(this);
 
         String str = this.getStringValue(value);
         if (str == null) {
@@ -86,8 +126,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             // opaque.
             str = "";
         }
-        this.editor.setText(str);
-        this.editor.addActionListener(this);
+        this.editorField.setText(str);
+        this.editorIconLabel.setIcon(this.getIcon(value));
+        this.editorField.addActionListener(this);
 
     }
 
@@ -101,14 +142,14 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             str = "";
         }
 
-        this.renderer.setText(str);
-        this.renderer.setIcon(this.getIcon(value));
+        this.rendererField.setText(str);
+        this.rendererIcon.setIcon(this.getIcon(value));
 
     }
 
     @Override
     public void focusGained(final FocusEvent e) {
-        this.editor.selectAll();
+        this.editorField.selectAll();
     }
 
     @Override
@@ -119,7 +160,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public Object getCellEditorValue() {
-        return this.editor.getText();
+        return this.editorField.getText();
     }
 
     /**
@@ -181,19 +222,23 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void resetEditor() {
-        this.editor.setFont(this.editorFont);
-        this.editor.setForeground(this.editorForeground);
+        this.editorField.setFont(this.editorFont);
+        this.editorField.setForeground(this.editorForeground);
+        this.editorField.setOpaque(false);
+        this.editorField.setBackground(null);
         this.editor.setOpaque(false);
-        this.editor.setBackground(null);
+        this.editorIconLabel.setIcon(null);
     }
 
     @Override
     public void resetRenderer() {
-        this.renderer.setBorder(this.defaultBorder);
+        this.rendererField.setBorder(this.defaultBorder);
+        this.rendererField.setOpaque(false);
+        this.rendererField.setBackground(null);
+        this.rendererField.setFont(this.rendererFont);
+        this.rendererField.setForeground(this.rendererForeground);
         this.renderer.setOpaque(false);
-        this.renderer.setBackground(null);
-        this.renderer.setFont(this.rendererFont);
-        this.renderer.setForeground(this.rendererForeground);
+        this.rendererIcon.setIcon(null);
 
     }
 

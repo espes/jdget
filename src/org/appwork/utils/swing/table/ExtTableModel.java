@@ -87,7 +87,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.initColumns();
         this.iconAsc = AWUTheme.I().getIcon("sortAsc", -1);
         this.iconDesc = AWUTheme.I().getIcon("sortDesc", -1);
-        final String columnId = this.getStorage().get(ExtTableModel.SORTCOLUMN_KEY, this.getDefaultSortColumn().getID());
+        String columnId = this.getDefaultSortColumn().getID();
+        if (this.isSortStateSaverEnabled()) {
+            columnId = this.getStorage().get(ExtTableModel.SORTCOLUMN_KEY, columnId);
+        }
         if (columnId != null) {
             for (final ExtColumn<E> col : this.columns) {
                 if (col.getID().equals(columnId)) {
@@ -97,7 +100,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             }
         }
         if (this.sortColumn != null) {
-            this.sortColumn.setSortOrderIdentifier(this.getStorage().get(ExtTableModel.SORT_ORDER_ID_KEY, ExtColumn.SORT_DESC));
             this.refreshSort();
         }
     }
@@ -296,7 +298,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
-     * @return
+     * @return the default sort column. override
+     *         {@link #isSortStateSaverEnabled()} to return to default sort on
+     *         each session
      */
     protected ExtColumn<E> getDefaultSortColumn() {
         for (final ExtColumn<E> c : this.columns) {
@@ -514,6 +518,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             Log.exception(e);
             return true;
         }
+    }
+
+    protected boolean isSortStateSaverEnabled() {
+        return true;
     }
 
     /**

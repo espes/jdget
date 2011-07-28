@@ -35,11 +35,11 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
 
     public ExtPasswordEditorColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
-        this.editor.addFocusListener(new FocusListener() {
+        this.editorField.addFocusListener(new FocusListener() {
 
             @Override
             public void focusGained(final FocusEvent e) {
-                ExtPasswordEditorColumn.this.editor.selectAll();
+                ExtPasswordEditorColumn.this.editorField.selectAll();
 
             }
 
@@ -57,7 +57,7 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
      */
     @Override
     public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
-        return this.editor;
+        return this.editorField;
     }
 
     protected abstract String getPlainStringValue(E value);

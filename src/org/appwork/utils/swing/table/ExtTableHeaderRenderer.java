@@ -120,8 +120,10 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
         // sort column is no current column
         if (this.column.getModel().getSortColumn() != this.column) {
             this.paintIcon = false;
+
         } else {
             this.paintIcon = true;
+
         }
 
         this.setText(value == null ? "" : value.toString());

@@ -229,7 +229,7 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
      */
     @Override
     public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        return this.renderer;
+        return this.rendererField;
     }
 
     public NumberEditor getShortEditor() {
@@ -282,7 +282,7 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
     public void resetRenderer() {
 
         super.resetRenderer();
-        this.renderer.setHorizontalAlignment(SwingConstants.RIGHT);
+        this.rendererField.setHorizontalAlignment(SwingConstants.RIGHT);
     }
 
     public void setByteEditor(final NumberEditor byteEditor) {
