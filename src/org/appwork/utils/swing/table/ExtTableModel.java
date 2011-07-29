@@ -87,7 +87,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.initColumns();
         this.iconAsc = AWUTheme.I().getIcon("sortAsc", -1);
         this.iconDesc = AWUTheme.I().getIcon("sortDesc", -1);
-        String columnId = this.getDefaultSortColumn().getID();
+        final ExtColumn<E> defSortColumn = this.getDefaultSortColumn();
+        String columnId = defSortColumn == null ? null : defSortColumn.getID();
         if (this.isSortStateSaverEnabled()) {
             columnId = this.getStorage().get(ExtTableModel.SORTCOLUMN_KEY, columnId);
         }
@@ -99,9 +100,15 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 }
             }
         }
-        if (this.sortColumn != null) {
+
+        try {
             this.refreshSort();
+        } catch (final NullPointerException e) {
+            // sortcolumn can be null now.
+
+            Log.exception(e);
         }
+
     }
 
     public void _fireTableStructureChanged(ArrayList<E> newtableData, final boolean refreshSort) {
@@ -554,7 +561,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     public ArrayList<E> refreshSort(final ArrayList<E> data) {
-        return this.sort(data, this.sortColumn == null ? this.getExtColumn(0) : this.sortColumn);
+        return this.sort(data, this.sortColumn);
     }
 
     /**

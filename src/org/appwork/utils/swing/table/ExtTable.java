@@ -170,7 +170,7 @@ public class ExtTable<E> extends JTable {
 
                         if (ExtTable.this.getExtTableModel().getExtColumn(col).isSortable(null)) {
                             final ExtColumn<E> oldColumn = ExtTable.this.getExtTableModel().getSortColumn();
-                            final String oldIdentifier = oldColumn.getSortOrderIdentifier();
+                            final String oldIdentifier = oldColumn == null ? null : oldColumn.getSortOrderIdentifier();
 
                             ExtTable.this.getExtTableModel().getExtColumn(col).doSort();
                             ExtTable.this.eventSender.fireEvent(new ExtTableEvent<MouseEvent>(ExtTable.this, ExtTableEvent.Types.SORT_HEADER_CLICK, e));
