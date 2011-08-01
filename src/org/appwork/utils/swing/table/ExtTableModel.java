@@ -116,17 +116,29 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             newtableData = this.refreshSort(newtableData);
         }
         final ArrayList<E> newdata = newtableData;
+        final ArrayList<E> selection = new EDTHelper<ArrayList<E>>() {
+
+            @Override
+            public ArrayList<E> edtRun() {
+                return ExtTableModel.this.getSelectedObjects();
+            }
+
+        }.getReturnValue();
+        if (selection != null) {
+            selection.retainAll(newdata);
+        }
         new EDTRunner() {
             @Override
             protected void runInEDT() {
-                final ArrayList<E> selected = ExtTableModel.this.getSelectedObjects();
                 final int anchor = ExtTableModel.this.getTable().getSelectionModel().getAnchorSelectionIndex();
                 final int lead = ExtTableModel.this.getTable().getSelectionModel().getLeadSelectionIndex();
                 ExtTableModel.this.tableData = newdata;
                 ExtTableModel.this.fireTableStructureChanged();
-                ExtTableModel.this.setSelectedObjects(selected);
-                ExtTableModel.this.getTable().getSelectionModel().setAnchorSelectionIndex(anchor);
-                ExtTableModel.this.getTable().getSelectionModel().setLeadSelectionIndex(lead);
+                if (ExtTableModel.this.tableData.size() > 0) {
+                    ExtTableModel.this.setSelectedObjects(selection);
+                    ExtTableModel.this.getTable().getSelectionModel().setAnchorSelectionIndex(anchor);
+                    ExtTableModel.this.getTable().getSelectionModel().setLeadSelectionIndex(lead);
+                }
             }
         };
     }
@@ -186,7 +198,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 ExtTableModel.this.tableData.add(at);
                 ExtTableModel.this.refreshSort();
                 ExtTableModel.this.fireTableStructureChanged();
-
                 ExtTableModel.this.setSelectedObjects(selection);
                 return null;
             }
@@ -205,7 +216,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
-                ExtTableModel.this.tableData.clear();
+                ExtTableModel.this.tableData = new ArrayList<E>();
                 ExtTableModel.this.fireTableStructureChanged();
                 return null;
             }
@@ -409,11 +420,15 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public ArrayList<E> getSelectedObjects() {
-        final ArrayList<E> ret = new ArrayList<E>();
-        if (this.table == null) { return ret; }
+        if (this.table == null) { return new ArrayList<E>(0); }
         final int[] rows = this.table.getSelectedRows();
+        final ArrayList<E> ret = new ArrayList<E>(rows.length);
+        final ArrayList<E> data = this.tableData;
         for (final int row : rows) {
-            final E elem = this.getValueAt(row, 0);
+            if (row >= data.size() || row < 0) {
+                continue;
+            }
+            final E elem = data.get(row);
             if (elem != null) {
                 ret.add(elem);
             }
@@ -472,8 +487,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public ArrayList<E> getTableObjects() {
-        final ArrayList<E> ret = new ArrayList<E>();
-        ret.addAll(this.tableData);
+        final ArrayList<E> ret = new ArrayList<E>(this.tableData);
         return ret;
     }
 
@@ -484,7 +498,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public E getValueAt(final int rowIndex, final int columnIndex) {
         try {
-
             return this.tableData.get(rowIndex);
         } catch (final IndexOutOfBoundsException e) {
             return null;
@@ -570,16 +583,26 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public void removeAll(final ArrayList<E> selectedObjects) {
         final ArrayList<E> tmp = new ArrayList<E>(this.tableData);
         tmp.removeAll(selectedObjects);
+        final ArrayList<E> selection = new EDTHelper<ArrayList<E>>() {
 
+            @Override
+            public ArrayList<E> edtRun() {
+                return ExtTableModel.this.getSelectedObjects();
+            }
+
+        }.getReturnValue();
+        if (selection != null) {
+            selection.removeAll(selectedObjects);
+        }
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
-                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
                 ExtTableModel.this.tableData = tmp;
                 ExtTableModel.this.refreshSort();
                 ExtTableModel.this.fireTableStructureChanged();
-
-                ExtTableModel.this.setSelectedObjects(selection);
+                if (ExtTableModel.this.tableData.size() > 0) {
+                    ExtTableModel.this.setSelectedObjects(selection);
+                }
                 return null;
             }
         }.start();
@@ -672,13 +695,12 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             @Override
             public Object edtRun() {
                 if (ExtTableModel.this.table == null) { return null; }
-                if (latest == null) {
-                    ExtTableModel.this.clearSelection();
-                    return null;
-                }
                 ExtTableModel.this.clearSelection();
+                if (latest == null) { return null; }
                 final int row = ExtTableModel.this.getRowforObject(latest);
-                ExtTableModel.this.table.addRowSelectionInterval(row, row);
+                if (row >= 0) {
+                    ExtTableModel.this.table.addRowSelectionInterval(row, row);
+                }
                 return null;
             }
         }.start();
@@ -691,6 +713,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public void setSelectedObjects(final ArrayList<E> selections) {
         if (this.table == null) { return; }
+        if (selections == null || selections.size() == 0) { return; }
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
