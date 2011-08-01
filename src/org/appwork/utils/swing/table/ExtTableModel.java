@@ -769,15 +769,18 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      **/
     public ArrayList<E> sort(final ArrayList<E> data, final ExtColumn<E> column) {
         this.sortColumn = column;
-        final String id = column.getSortOrderIdentifier();
 
-        try {
-            this.getStorage().put(ExtTableModel.SORT_ORDER_ID_KEY, id);
-            this.getStorage().put(ExtTableModel.SORTCOLUMN_KEY, column.getID());
-        } catch (final Exception e) {
-            Log.exception(e);
+        if (column != null) {
+            final String id = column.getSortOrderIdentifier();
+
+            try {
+                this.getStorage().put(ExtTableModel.SORT_ORDER_ID_KEY, id);
+                this.getStorage().put(ExtTableModel.SORTCOLUMN_KEY, column.getID());
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+            Collections.sort(data, column.getRowSorter());
         }
-        Collections.sort(data, column.getRowSorter());
         return data;
     }
 }
