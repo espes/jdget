@@ -49,6 +49,11 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorField.addFocusListener(this);
         this.editorField.setBorder(null);
         this.rendererIcon = new RenderLabel() {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void setIcon(final Icon icon) {
 
@@ -59,6 +64,11 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
         this.rendererIcon.setOpaque(false);
         this.editorIconLabel = new RenderLabel() {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void setIcon(final Icon icon) {
 
@@ -69,6 +79,11 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorIconLabel.setOpaque(false);
         this.rendererField = new RenderLabel() {
 
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void setIcon(final Icon icon) {
 
@@ -76,16 +91,18 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             }
 
         };
+        this.editorField.setOpaque(false);
+        this.editorField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
         this.rendererForeground = this.rendererField.getForeground();
         this.editorForeground = this.editorField.getForeground();
         this.rendererFont = this.rendererField.getFont();
         this.editorFont = this.editorField.getFont();
-        this.editor = new MigPanel("ins 0", "[]5[grow,fill]", "[]");
+        this.editor = new MigPanel("ins 0", "[]5[grow,fill]", "[grow,fill]");
 
-        this.renderer = new MigPanel("ins 0", "[]0[grow,fill]", "[]");
-        this.editor.add(this.editorIconLabel, "hidemode 3");
+        this.renderer = new MigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
+        this.editor.add(this.editorIconLabel, "hidemode 2");
         this.editor.add(this.editorField);
-        this.renderer.add(this.rendererIcon, "hidemode 3");
+        this.renderer.add(this.rendererIcon, "hidemode 2");
         this.renderer.add(this.rendererField);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
