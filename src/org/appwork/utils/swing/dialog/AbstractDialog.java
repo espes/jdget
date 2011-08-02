@@ -259,7 +259,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // this.setMinimumSize(this.getPreferredSize());
             this.getDialog().setMinimumSize(new Dimension(300, 80));
             this.pack();
-            this.getDialog().setResizable(false);
+            this.getDialog().setResizable(this.isResizable());
 
             // minimum size foir a dialog
 
@@ -429,6 +429,19 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         return this.createReturnValue();
     }
 
+    /**
+     * @return
+     */
+    public String getTitle() {
+        try {
+            return this.getDialog().getTitle();
+        } catch (final NullPointerException e) {
+            // not initialized yet
+            return this.title;
+        }
+
+    }
+
     // /**
     // * should be overwritten and return a Dimension of the dialog should have
     // a
@@ -442,16 +455,13 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     // }
 
     /**
+     * override to change default resizable flag
+     * 
      * @return
      */
-    public String getTitle() {
-        try {
-            return this.getDialog().getTitle();
-        } catch (final NullPointerException e) {
-            // not initialized yet
-            return this.title;
-        }
-
+    protected boolean isResizable() {
+        // TODO Auto-generated method stub
+        return false;
     }
 
     /**
