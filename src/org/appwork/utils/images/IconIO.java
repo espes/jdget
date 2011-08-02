@@ -87,8 +87,8 @@ public class IconIO {
      */
     public static BufferedImage getScaledInstance(final Image img, int width, int height, final Interpolation interpolation, final boolean higherQuality) {
         final double faktor = Math.max((double) img.getWidth(null) / width, (double) img.getHeight(null) / height);
-        width = (int) (img.getWidth(null) / faktor);
-        height = (int) (img.getHeight(null) / faktor);
+        width = Math.max((int) (img.getWidth(null) / faktor), 1);
+        height = Math.max((int) (img.getHeight(null) / faktor), 1);
         if (faktor == 1.0 && img instanceof BufferedImage) { return (BufferedImage) img; }
 
         Image ret = img;
@@ -128,6 +128,9 @@ public class IconIO {
                 if (type == 0) {
                     type = 6;
                 }
+            }
+            if (w == 0) {
+                int o = 2;
             }
             final BufferedImage tmp = new BufferedImage(w, h, type);
             final Graphics2D g2 = tmp.createGraphics();

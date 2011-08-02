@@ -96,7 +96,15 @@ public class HTTP {
             } catch (final Exception e) {
             }
             try {
+                output.flush();
+            } catch (final Exception e) {
+            }
+            try {
                 output.close();
+            } catch (final Exception e) {
+            }
+            try {
+                fos.flush();
             } catch (final Exception e) {
             }
             try {
