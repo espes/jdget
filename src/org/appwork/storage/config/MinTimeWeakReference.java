@@ -23,9 +23,16 @@ import org.appwork.scheduler.DelayedRunnable;
  */
 public class MinTimeWeakReference<T> extends WeakReference<T> {
 
-    private static final ScheduledExecutorService       EXECUTER = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService EXECUTER = Executors.newSingleThreadScheduledExecutor();
 
-    private static final ReferenceQueue<? super Object> QUEUE    = new ReferenceQueue<Object>();
+    /**
+     * @return the executer
+     */
+    public static ScheduledExecutorService getExecuter() {
+        return EXECUTER;
+    }
+
+    private static final ReferenceQueue<? super Object> QUEUE = new ReferenceQueue<Object>();
 
     static {
         new Thread() {
@@ -74,11 +81,11 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
 
     }
 
-    private T                     hard;
+    private T               hard;
 
-    private final String          id;
+    private final String    id;
 
-    private final DelayedRunnable delayer;
+    private DelayedRunnable delayer;
 
     /**
      * @param ret
@@ -94,10 +101,15 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
 
             @Override
             public void delayedrun() {
-                MinTimeWeakReference.this.hard = null;
+                //System.out.println("remove hardRef");
+                synchronized (MinTimeWeakReference.this) {
+                    MinTimeWeakReference.this.hard = null;
+                }
             }
 
         };
+        /* we get the item at least once to start the cleanup process here */
+        get();
         System.out.println("Created Week " + id);
     }
 
@@ -108,12 +120,23 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
     public T get() {
         final T ret = super.get();
         if (ret == null) {
-            this.delayer.stop();
+            synchronized (MinTimeWeakReference.this) {
+                /* T is gone so lets kill hardreference too */
+                if (this.delayer != null) this.delayer.stop();
+                this.delayer = null;
+                this.hard = null;
+                return null;
+            }
         } else {
-            this.hard = ret;
-            this.delayer.run();
+            /* T still exists, lets refresh hardreference */
+            synchronized (MinTimeWeakReference.this) {
+                if (this.delayer != null) {
+                    this.delayer.run();
+                    this.hard = ret;
+                }
+            }
         }
-        return this.hard;
+        return ret;
     }
 
     /**
@@ -121,6 +144,19 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
      */
     private T superget() {
         return super.get();
+    }
+
+    public boolean isGone() {
+        final T ret = super.get();
+        if (ret == null) {
+            synchronized (MinTimeWeakReference.this) {
+                if (this.delayer != null) this.delayer.stop();
+                this.delayer = null;
+                this.hard = null;
+            }
+            return true;
+        }
+        return false;
     }
 
     @Override

@@ -43,26 +43,29 @@ public abstract class DelayedRunnable implements Runnable {
     @Override
     public void run() {
         synchronized (this) {
+            /* lastRunRequest is updated every time */
             this.lastRunRequest = System.currentTimeMillis();
             if (this.delayer == null) {
-                this.firstRunRequest = System.currentTimeMillis();
+                if (this.firstRunRequest == 0) {
+                    /* firstRunRequest is updated only once */
+                    this.firstRunRequest = System.currentTimeMillis();
+                }
                 this.delayer = this.service.schedule(new Runnable() {
                     public void run() {
-                        boolean delayAgain = false;
                         synchronized (DelayedRunnable.this) {
-                            delayAgain = System.currentTimeMillis() - DelayedRunnable.this.lastRunRequest > DelayedRunnable.this.delayInMS;
+                            boolean runNow = false;
+                            runNow = System.currentTimeMillis() - DelayedRunnable.this.lastRunRequest >= DelayedRunnable.this.delayInMS;
                             if (DelayedRunnable.this.maxInMS > 0 && System.currentTimeMillis() - DelayedRunnable.this.firstRunRequest > DelayedRunnable.this.maxInMS) {
-                                delayAgain = false;
+                                runNow = false;
                             }
-                        }
-                        if (!delayAgain) {
-                            synchronized (DelayedRunnable.this) {
-                                DelayedRunnable.this.delayer = null;
-                            }
-                            DelayedRunnable.this.delayedrun();
-                        } else {
-                            synchronized (DelayedRunnable.this) {
-                                DelayedRunnable.this.delayer = null;
+                            DelayedRunnable.this.delayer = null;
+                            if (runNow) {
+                                /* we no longer delay the run */
+                                // System.out.println("delayed run");
+                                DelayedRunnable.this.delayedrun();
+                            } else {
+                                /* lets delay it again */
+                                // System.out.println("delay again");
                                 DelayedRunnable.this.run();
                             }
                         }
