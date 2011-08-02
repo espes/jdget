@@ -32,6 +32,10 @@ import org.appwork.utils.swing.dialog.ProgressDialog.ProgressGetter;
  */
 public class HTTP {
 
+    public static void download(final URL url, final File file, final DownloadProgress progress) throws IOException {
+        HTTP.download(url, file, progress, false);
+    }
+
     /**
      * Downloads a file and stores data to a file
      * 
@@ -39,7 +43,7 @@ public class HTTP {
      * @param cache
      * @throws IOException
      */
-    public static void download(final URL url, final File file, final DownloadProgress progress) throws IOException {
+    public static void download(final URL url, final File file, final DownloadProgress progress, final boolean keepAlive) throws IOException {
         final File parentFile = file.getParentFile();
         if (parentFile != null && !parentFile.exists()) {
             parentFile.mkdirs();
@@ -57,6 +61,12 @@ public class HTTP {
             con.setInstanceFollowRedirects(true);
             con.setConnectTimeout(15000);
             con.setReadTimeout(30000);
+            con.setUseCaches(false);
+            if (keepAlive) {
+                con.setRequestProperty("Connection", "keep-alive");
+            } else {
+                con.setRequestProperty("Connection", "close");
+            }
             if (url.openConnection().getHeaderField("Content-Encoding") != null && con.getHeaderField("Content-Encoding").equalsIgnoreCase("gzip")) {
                 input = new BufferedInputStream(gzi = new GZIPInputStream(con.getInputStream()));
             } else {
@@ -94,7 +104,9 @@ public class HTTP {
             } catch (final Exception e) {
             }
             try {
-                con.disconnect();
+                if (!keepAlive) {
+                    con.disconnect();
+                }
             } catch (final Throwable e) {
             }
             if (deleteInterrupted) {
