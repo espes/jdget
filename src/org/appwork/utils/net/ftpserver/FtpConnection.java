@@ -141,6 +141,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
         this.connectionState = ftpServer.getFtpCommandHandler().createNewConnectionState();
         this.ftpServer = ftpServer;
         this.controlSocket = clientSocket;
+        this.controlSocket.setSoTimeout(20 * 1000);
         try {
             this.reader = new BufferedReader(new InputStreamReader(this.controlSocket.getInputStream()));
             this.writer = new BufferedWriter(new OutputStreamWriter(this.controlSocket.getOutputStream()));
@@ -832,6 +833,15 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                 this.handleCommand(command);
             }
         } catch (final IOException e) {
+            try {
+                this.onQUIT();
+            } catch (final IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (final FtpException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
         } finally {
             this.closeDataConnection();
             try {
