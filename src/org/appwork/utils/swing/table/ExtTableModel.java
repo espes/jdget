@@ -574,7 +574,12 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     public ArrayList<E> refreshSort(final ArrayList<E> data) {
-        return this.sort(data, this.sortColumn);
+        try {
+            return this.sort(data, this.sortColumn);
+        } catch (final NullPointerException e) {
+            Log.exception(e);
+            return data;
+        }
     }
 
     /**
@@ -780,6 +785,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 Log.exception(e);
             }
             Collections.sort(data, column.getRowSorter());
+        } else {
+            try {
+                this.getStorage().put(ExtTableModel.SORT_ORDER_ID_KEY, (String) null);
+                this.getStorage().put(ExtTableModel.SORTCOLUMN_KEY, (String) null);
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
         }
         return data;
     }
