@@ -103,7 +103,8 @@ public abstract class J7FileObserver implements Runnable {
                     final WatchEvent<Path> ev = (WatchEvent<Path>) event;
                     final Path filename = ev.context();
                     final Path abp = ((Path) key.watchable()).resolve(filename);
-                    System.out.println(this.filename + " Created abp " + abp);
+                    // System.out.println(this.filename + " Created abp " +
+                    // abp);
                     if (abp.getFileName().toString().equals(this.filename)) {
                         for (int i = 0; i < 5; i++) {
 
