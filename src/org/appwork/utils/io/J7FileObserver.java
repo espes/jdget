@@ -103,11 +103,32 @@ public abstract class J7FileObserver implements Runnable {
                     final WatchEvent<Path> ev = (WatchEvent<Path>) event;
                     final Path filename = ev.context();
                     final Path abp = ((Path) key.watchable()).resolve(filename);
+                    System.out.println(this.filename + " Created abp " + abp);
                     if (abp.getFileName().toString().equals(this.filename)) {
-                        final String localHash = Hash.getMD5(abp.toFile());
-                        if (this.hash == null || localHash.equals(this.hash)) {
-                            this.onFound(abp.toFile());
-                            return;
+                        for (int i = 0; i < 5; i++) {
+
+                            // avoid java.io.FileNotFoundException:
+                            // C:\test\Bilder\1312445939619.tmp (Der Prozess
+                            // kann nicht auf die Datei zugreifen, da sie
+                            // von
+                            // einem anderen Prozess verwendet wird)
+
+                            final String localHash = Hash.getMD5(abp.toFile());
+                            if (localHash == null && this.hash != null) {
+                                try {
+                                    Thread.sleep(200);
+                                } catch (final InterruptedException e) {
+                                    // TODO Auto-generated catch block
+                                    e.printStackTrace();
+                                }
+                                continue;
+                            }
+                            System.out.println(this.hash + " - " + localHash);
+                            if (this.hash == null || this.hash.equals(localHash)) {
+                                this.onFound(abp.toFile());
+                                return;
+                            }
+
                         }
                     }
                     if (!key.reset()) {

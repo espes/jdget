@@ -72,9 +72,11 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     public ProgressDialog(final ProgressGetter progressGetter, final int flags, final String title, final String message, final ImageIcon icon, final String ok, final String cancel) {
         super(flags | Dialog.BUTTONS_HIDE_OK, title, icon, ok, cancel);
         this.message = message;
-
-        this.getter = progressGetter;
-
+        if (progressGetter == null && this instanceof ProgressGetter) {
+            this.getter = (ProgressGetter) this;
+        } else {
+            this.getter = progressGetter;
+        }
         this.setReturnmask(true);
 
     }
@@ -202,6 +204,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
                     ProgressDialog.this.getter.run();
                 } catch (final Throwable e) {
                     ProgressDialog.this.throwable = e;
+                    e.printStackTrace();
                     ProgressDialog.this.setReturnmask(false);
                 } finally {
                     new EDTHelper<Object>() {
