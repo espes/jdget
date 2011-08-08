@@ -23,8 +23,9 @@ import org.appwork.utils.ImageProvider.ImageProvider;
 import sun.awt.shell.ShellFolder;
 
 public class MimeWindows extends MimeDefault {
+
     @Override
-    public ImageIcon getFileIcon(String extension, int width, int height) throws IOException {
+    public ImageIcon getFileIcon(final String extension, final int width, final int height) throws IOException {
         final String iconKey = super.getIconKey(extension, width, height);
 
         ImageIcon ret = super.getCacheIcon(iconKey);
@@ -37,21 +38,23 @@ public class MimeWindows extends MimeDefault {
                     File file = null;
                     try {
                         file = File.createTempFile("icon", "." + extension);
-                        ShellFolder shellFolder = ShellFolder.getShellFolder(file);
+                        final ShellFolder shellFolder = ShellFolder.getShellFolder(file);
                         ret = new ImageIcon(shellFolder.getIcon(true));
                         path.mkdirs();
                         ImageIO.write((RenderedImage) ret.getImage(), "png", path);
-                    } catch (Throwable e) {
+                    } catch (final Throwable e) {
                         ret = ImageProvider.toImageIcon(FileSystemView.getFileSystemView().getSystemIcon(file));
 
                     } finally {
-                        if (file != null) file.delete();
+                        if (file != null) {
+                            file.delete();
+                        }
                     }
                     if (ret == null || ret.getIconWidth() < width || ret.getIconHeight() < height) {
                         ret = super.getFileIcon(extension, width, height);
                     }
                 }
-            } catch (Throwable e) {
+            } catch (final Throwable e) {
                 return null;
             }
         }
