@@ -30,14 +30,18 @@ public class FileIconExporter {
     private static final FileIconExporter INSTANCE = new FileIconExporter();
 
     public static BufferedImage getIcon(final String path, final int num, final int width, final int height) throws FileNotFoundException {
-        final HMODULE hinst = org.appwork.jna.winapi.kernel32.Kernel32.I.LoadLibraryExA(path, null, 0x00000020 | org.appwork.jna.winapi.kernel32.Kernel32.LOAD_LIBRARY_AS_DATAFILE);
+        final HMODULE hinst = org.appwork.jna.winapi.kernel32.Kernel.I.LoadLibraryExA(path, null, org.appwork.jna.winapi.kernel32.Kernel.LOAD_LIBRARY_AS_DATAFILE);
         // Kernel32.INSTANCE.e
         // final HMODULE hinst =
-        // com.sun.jna.platform.win32.Kernel32.INSTANCE.GetModuleHandle("C:\\Windows\\system32\\zipfldr.dll");
         // final int err = Kernel32.INSTANCE.GetLastError();
         if (hinst == null) { throw new FileNotFoundException(path + " could not be loaded"); }
-        final HANDLE hicon = com.sun.jna.platform.win32.User32.INSTANCE.LoadImage(hinst, "1", 1, width, height, 0);
+        final HANDLE hicon = com.sun.jna.platform.win32.User32.INSTANCE.LoadImage(hinst, "IDR_MAINFRAME", 1, width, height, 0);
         if (hicon == null) { throw new FileNotFoundException(path + ": No icon #" + num); }
+        return getImageByHICON(width, height, hicon);
+
+    }
+
+    public static BufferedImage getImageByHICON(final int width, final int height, final HANDLE hicon) {
         final IconInfo iconinfo = new org.appwork.jna.winapi.structs.IconInfo();
 
         try {
@@ -45,7 +49,7 @@ public class FileIconExporter {
 
             // get icon information
 
-            if (!org.appwork.jna.winapi.user32.User32.I.GetIconInfo(new HICON(hicon.getPointer()), iconinfo)) { return null; }
+            if (!org.appwork.jna.winapi.user32.User.I.GetIconInfo(new HICON(hicon.getPointer()), iconinfo)) { return null; }
             final HWND hwdn = new HWND();
             final HDC dc = User32.INSTANCE.GetDC(hwdn);
 
@@ -104,7 +108,6 @@ public class FileIconExporter {
             GDI32.INSTANCE.DeleteObject(iconinfo.hbmColor);
             GDI32.INSTANCE.DeleteObject(iconinfo.hbmMask);
         }
-
     }
 
     public static FileIconExporter getInstance() {
