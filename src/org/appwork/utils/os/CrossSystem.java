@@ -249,6 +249,7 @@ public class CrossSystem {
         case OS_WINDOWS_NT:
         case OS_WINDOWS_OTHER:
         case OS_WINDOWS_7:
+        case OS_WINDOWS_SERVER_2008:
             return true;
         }
         return false;

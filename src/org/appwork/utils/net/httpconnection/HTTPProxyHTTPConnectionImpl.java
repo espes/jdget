@@ -15,7 +15,6 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.appwork.utils.Regex;
 import org.appwork.utils.encoding.Base64;
-import org.appwork.utils.net.CountingOutputStream;
 
 public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
     private int           httpPort;
@@ -148,27 +147,11 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
              * httpPath needs to include complete path here, eg
              * http://google.de/
              */
+            this.proxyRequest = new StringBuilder("DIRECT");
             this.httpPath = this.httpURL.toString();
         }
         /* now send Request */
-        final StringBuilder sb = new StringBuilder();
-        sb.append(this.httpMethod.name()).append(' ').append(this.httpPath).append(" HTTP/1.1\r\n");
-        for (final String key : this.requestProperties.keySet()) {
-            if (this.requestProperties.get(key) == null) {
-                continue;
-            }
-            sb.append(key).append(": ").append(this.requestProperties.get(key)).append("\r\n");
-        }
-        sb.append("\r\n");
-        this.httpSocket.getOutputStream().write(sb.toString().getBytes("UTF-8"));
-        this.httpSocket.getOutputStream().flush();
-        if (this.httpMethod != RequestMethod.POST) {
-            this.outputStream = this.httpSocket.getOutputStream();
-            this.outputClosed = true;
-            this.connectInputStream();
-        } else {
-            this.outputStream = new CountingOutputStream(this.httpSocket.getOutputStream());
-        }
+        this.sendRequest();
     }
 
     @Override

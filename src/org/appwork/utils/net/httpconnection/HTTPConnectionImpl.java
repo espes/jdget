@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -134,27 +135,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
             this.httpPath = "/";
         }
         /* now send Request */
-        final StringBuilder sb = new StringBuilder();
-        sb.append(this.httpMethod.name()).append(' ').append(this.httpPath).append(" HTTP/1.1\r\n");
-        for (final String key : this.requestProperties.keySet()) {
-            if (this.requestProperties.get(key) == null) {
-                continue;
-            }
-            if ("Content-Length".equalsIgnoreCase(key)) {
-                this.postTodoLength = Long.parseLong(this.requestProperties.get(key));
-            }
-            sb.append(key).append(": ").append(this.requestProperties.get(key)).append("\r\n");
-        }
-        sb.append("\r\n");
-        this.httpSocket.getOutputStream().write(sb.toString().getBytes("UTF-8"));
-        this.httpSocket.getOutputStream().flush();
-        if (this.httpMethod != RequestMethod.POST) {
-            this.outputStream = this.httpSocket.getOutputStream();
-            this.outputClosed = true;
-            this.connectInputStream();
-        } else {
-            this.outputStream = new CountingOutputStream(this.httpSocket.getOutputStream());
-        }
+        this.sendRequest();
     }
 
     protected synchronized void connectInputStream() throws IOException {
@@ -439,6 +420,32 @@ public class HTTPConnectionImpl implements HTTPConnection {
     public boolean isOK() {
         if (this.getResponseCode() > -2 && this.getResponseCode() < 400) { return true; }
         return false;
+    }
+
+    protected void sendRequest() throws UnsupportedEncodingException, IOException {
+        /* now send Request */
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.httpMethod.name()).append(' ').append(this.httpPath).append(" HTTP/1.1\r\n");
+        for (final String key : this.requestProperties.keySet()) {
+            if (this.requestProperties.get(key) == null) {
+                continue;
+            }
+            if ("Content-Length".equalsIgnoreCase(key)) {
+                /* content length to check if we send out all data */
+                this.postTodoLength = Long.parseLong(this.requestProperties.get(key));
+            }
+            sb.append(key).append(": ").append(this.requestProperties.get(key)).append("\r\n");
+        }
+        sb.append("\r\n");
+        this.httpSocket.getOutputStream().write(sb.toString().getBytes("UTF-8"));
+        this.httpSocket.getOutputStream().flush();
+        if (this.httpMethod != RequestMethod.POST) {
+            this.outputStream = this.httpSocket.getOutputStream();
+            this.outputClosed = true;
+            this.connectInputStream();
+        } else {
+            this.outputStream = new CountingOutputStream(this.httpSocket.getOutputStream());
+        }
     }
 
     public void setCharset(final String Charset) {
