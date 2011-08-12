@@ -168,12 +168,15 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             //
             Class<?> clazz;
             try {
-                clazz = Class.forName("com.sun.awt.AWTUtilities");
-                // com.sun.awt.AWTUtilities.setWindowOpaque(window, flag)
-                final Method method = clazz.getMethod("setWindowOpaque", new Class[] { Window.class, boolean.class });
-                method.invoke(null, new Object[] { BalloonDialog.this.getDialog(), false });
+                if (CrossSystem.isWindows()) {
+                    clazz = Class.forName("com.sun.awt.AWTUtilities");
+                    // com.sun.awt.AWTUtilities.setWindowOpaque(window, flag)
+                    final Method method = clazz.getMethod("setWindowOpaque", new Class[] { Window.class, boolean.class });
+                    method.invoke(null, new Object[] { BalloonDialog.this.getDialog(), false });
+                } else {
+                    this.opaqueWorkaround = true;
+                }
             } catch (final Throwable e1) {
-                e1.printStackTrace();
                 this.opaqueWorkaround = true;
             }
 

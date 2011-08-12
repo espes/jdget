@@ -174,6 +174,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             sb.append("-->HTTPProxy:").append(this.proxy.getHost() + ":" + this.proxy.getPort()).append("\r\n");
             sb.append("----------------CONNECTRequest------------------\r\n");
             sb.append(this.proxyRequest.toString());
+            sb.append("------------------------------------------------\r\n");
             sb.append(super.getRequestInfo());
             return sb.toString();
         }

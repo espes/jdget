@@ -20,6 +20,7 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
     protected OutputStream socks5outputstream = null;
     private int            httpPort;
     private String         httpHost;
+    private StringBuilder  proxyRequest;
 
     public Socks5HTTPConnectionImpl(final URL url, final HTTPProxy proxy) {
         super(url, proxy);
@@ -29,6 +30,7 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
         try {
             final String user = this.proxy.getUser() == null ? "" : this.proxy.getUser();
             final String pass = this.proxy.getPass() == null ? "" : this.proxy.getPass();
+            this.proxyRequest = new StringBuilder("AUTH user:pass\r\n");
             final byte[] username = user.getBytes("UTF-8");
             final byte[] password = pass.getBytes("UTF-8");
             /* must be 1 */
@@ -77,6 +79,8 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
         if (method == 2) {
             /* username/password authentication */
             this.authenticateProxy();
+        } else {
+            this.proxyRequest = new StringBuilder("NONE AUTH\r\n");
         }
         /* establish to destination through socks5 */
         this.httpPort = this.httpURL.getPort();
@@ -185,6 +189,20 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
             }
             throw e;
         }
+    }
+
+    @Override
+    protected String getRequestInfo() {
+        if (this.proxyRequest != null) {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("-->Socks5Proxy:").append(this.proxy.getHost() + ":" + this.proxy.getPort()).append("\r\n");
+            sb.append("----------------CONNECTRequest------------------\r\n");
+            sb.append(this.proxyRequest.toString());
+            sb.append("------------------------------------------------\r\n");
+            sb.append(super.getRequestInfo());
+            return sb.toString();
+        }
+        return super.getRequestInfo();
     }
 
     /* reads response with expLength bytes */
