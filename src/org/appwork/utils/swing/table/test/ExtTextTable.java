@@ -35,7 +35,7 @@ public class ExtTextTable extends ExtTable<TextObject> {
      */
     public ExtTextTable() {
         super(new ExtTestModel());
-        // this.setSearchEnabled(true);#
+        this.setSearchEnabled(true);
         System.out.println("Compiled");
         this.setDragEnabled(true);
         this.setDropMode(DropMode.ON);

@@ -203,6 +203,12 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "s1:%s2 (Socks5 Proxy)", "%s1:%s2 (Socks5 Proxy)" })
     String proxy_socks(String host, int port);
 
+    @Default(lngs = { "en", "de" }, values = { "Reset Columns", "Spalten zurücksetzen" })
+    String ResetColumnsAction();
+
+    @Default(lngs = { "en", "de" }, values = { "Search Table", "Tabelle durchsuchen" })
+    String SearchContextAction();
+
     @Default(lngs = { "en", "de" }, values = { "Find", "Suchen" })
     String SEARCHDIALOG_BUTTON_FIND();
 

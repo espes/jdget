@@ -23,8 +23,10 @@ import java.util.LinkedHashMap;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JToolTip;
 import javax.swing.JViewport;
@@ -42,11 +44,14 @@ import javax.swing.table.TableColumnModel;
 
 import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
-import org.appwork.storage.JSonStorage;
+import org.appwork.storage.Storage;
 import org.appwork.utils.Application;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
+import org.appwork.utils.swing.EDTRunner;
+import org.appwork.utils.swing.table.columnmenu.ResetColumns;
+import org.appwork.utils.swing.table.columnmenu.SearchContextAction;
 
 /**
  * The ExtTable package is a tableframework that follows two main tasks:<br>
@@ -80,10 +85,6 @@ public class ExtTable<E> extends JTable {
      * The underlaying datamodel
      */
     private final ExtTableModel<E>             model;
-    /**
-     * TableID. Used to generate a key for saving internal data to database
-     */
-    private final String                       tableID;
 
     final private ArrayList<ExtRowHighlighter> rowHighlighters;
     /**
@@ -100,13 +101,6 @@ public class ExtTable<E> extends JTable {
     private JToolTip                           tooltip;
 
     /**
-     * @param downloadTableModel
-     */
-    public ExtTable(final ExtTableModel<E> tableModel) {
-        this(tableModel, tableModel.getModelID() + "-Table");
-    }
-
-    /**
      * Create an Extended Table instance
      * 
      * @param model
@@ -116,10 +110,10 @@ public class ExtTable<E> extends JTable {
      * @param id
      *            Tableid used for storage
      */
-    public ExtTable(final ExtTableModel<E> model, final String id) {
+    public ExtTable(final ExtTableModel<E> model) {
         super(model);
         this.eventSender = new ExtTableEventSender();
-        this.tableID = id;
+
         this.rowHighlighters = new ArrayList<ExtRowHighlighter>();
         this.model = model;
         // workaround
@@ -234,7 +228,7 @@ public class ExtTable<E> extends JTable {
                 final TableColumnModel tcm = ExtTable.this.getColumnModel();
                 for (int i = 0; i < tcm.getColumnCount(); i++) {
                     try {
-                        JSonStorage.getStorage("ExtTable_" + ExtTable.this.tableID).put("POS_COL_" + i, ExtTable.this.getExtTableModel().getExtColumn(tcm.getColumn(i).getModelIndex()).getID());
+                        ExtTable.this.getStorage().put("POS_COL_" + i, ExtTable.this.getExtTableModel().getExtColumn(tcm.getColumn(i).getModelIndex()).getID());
                     } catch (final Exception e1) {
                         Log.exception(e1);
                     }
@@ -303,6 +297,11 @@ public class ExtTable<E> extends JTable {
                 popup.add(mi);
             }
         }
+        popup.add(new JSeparator());
+        if (this.isSearchEnabled()) {
+            popup.add(new JMenuItem(new SearchContextAction(this)));
+        }
+        popup.add(new JMenuItem(new ResetColumns(this)));
         return popup;
     }
 
@@ -333,7 +332,7 @@ public class ExtTable<E> extends JTable {
                 public void propertyChange(final PropertyChangeEvent evt) {
                     if (evt.getPropertyName().equals("width")) {
                         try {
-                            JSonStorage.getStorage("ExtTable_" + ExtTable.this.tableID).put("WIDTH_COL_" + ExtTable.this.model.getExtColumn(j).getID(), (Integer) evt.getNewValue());
+                            ExtTable.this.getStorage().put("WIDTH_COL_" + ExtTable.this.model.getExtColumn(j).getID(), (Integer) evt.getNewValue());
                         } catch (final Exception e) {
                             Log.exception(e);
                         }
@@ -350,7 +349,7 @@ public class ExtTable<E> extends JTable {
             // Set stored columnwidth
             int w = this.model.getExtColumn(j).getDefaultWidth();
             try {
-                w = JSonStorage.getStorage("ExtTable_" + this.tableID).get("WIDTH_COL_" + this.model.getExtColumn(j).getID(), w);
+                w = this.getStorage().get("WIDTH_COL_" + this.model.getExtColumn(j).getID(), w);
             } catch (final Exception e) {
                 Log.exception(e);
             } finally {
@@ -371,7 +370,7 @@ public class ExtTable<E> extends JTable {
             if (index < this.getModel().getColumnCount()) {
                 String id;
                 try {
-                    id = JSonStorage.getStorage("ExtTable_" + this.tableID).get("POS_COL_" + index, "");
+                    id = this.getStorage().get("POS_COL_" + index, "");
 
                     index++;
                     if (id != null) {
@@ -571,11 +570,20 @@ public class ExtTable<E> extends JTable {
     }
 
     /**
-     * @return the tableID
+     * @return
      */
-    public String getTableID() {
-        return this.tableID;
+    public Storage getStorage() {
+        if (this.getExtTableModel() == null) {
+            new RuntimeException("TableID has to be initialized here");
+        }
+        return this.getExtTableModel().getStorage();
     }
+
+    // @Override
+    // public Point getToolTipLocation(final MouseEvent event) {
+    // // this.toolTipPosition = event.getPoint();
+    // return super.getToolTipLocation(event);
+    // }
 
     @Override
     public String getToolTipText(final MouseEvent event) {
@@ -595,12 +603,6 @@ public class ExtTable<E> extends JTable {
         }
         return this.tooltip != null ? "" + col.hashCode() + "_" + row : null;
     }
-
-    // @Override
-    // public Point getToolTipLocation(final MouseEvent event) {
-    // // this.toolTipPosition = event.getPoint();
-    // return super.getToolTipLocation(event);
-    // }
 
     public boolean isColumnButtonVisible() {
         return this.columnButtonVisible;
@@ -949,8 +951,59 @@ public class ExtTable<E> extends JTable {
         this.rowHighlighters.remove(highlighter);
     }
 
+    /**
+     * Resets the columnwidth to their default value. If their is empty space
+     * afterwards, the table will distrbute the DELTA to all columns PLease make
+     * sure to call {@link #updateColumns()} afterwards
+     */
+    public void resetColumnDimensions() {
+
+        for (final ExtColumn<E> col : this.getExtTableModel().getColumns()) {
+            // col.getTableColumn().setPreferredWidth(col.getDefaultWidth());
+            try {
+                this.getStorage().put("WIDTH_COL_" + col.getID(), col.getDefaultWidth());
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
+
+    }
+
+    /**
+     * Resets the Order of the columns to their default PLease make sure to call
+     * {@link #updateColumns()} afterwards
+     */
+    public void resetColumnOrder() {
+        for (int i = 0; i < this.getExtTableModel().getColumns().size(); i++) {
+            // col.getTableColumn().setPreferredWidth(col.getDefaultWidth());
+            final ExtColumn<E> col = this.getExtTableModel().getColumns().get(i);
+            try {
+                this.getStorage().put("POS_COL_" + i, col.getID());
+            } catch (final Exception e1) {
+                Log.exception(e1);
+            }
+        }
+
+    }
+
+    /**
+     * Resets the Visibility of all columns to their Default value. PLease make
+     * sure to call {@link #updateColumns()} afterwards
+     */
+    public void resetColumnVisibility() {
+        for (final ExtColumn<E> col : this.getExtTableModel().getColumns()) {
+            // col.getTableColumn().setPreferredWidth(col.getDefaultWidth());
+            try {
+                this.getStorage().put("VISABLE_COL_" + col.getID(), col.isDefaultVisible());
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+        }
+
+    }
+
     public void scrollToRow(final int row) {
-        System.out.println("Scrol " + row);
+
         if (row < 0) { return; }
         new EDTHelper<Object>() {
 
@@ -1012,9 +1065,9 @@ public class ExtTable<E> extends JTable {
     }
 
     /**
-     * 
+     * Starts a Search Prozess. Usualy opens a Search Dialog
      */
-    private synchronized void startSearch() {
+    public synchronized void startSearch() {
         try {
             if (this.searchDialog != null && this.searchDialog.isShowing()) {
                 this.searchDialog.requestFocus();
@@ -1043,6 +1096,18 @@ public class ExtTable<E> extends JTable {
         } catch (final IOException e) {
             Log.exception(e);
         }
+    }
+
+    public void updateColumns() {
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                ExtTable.this.createColumns();
+                ExtTable.this.revalidate();
+                ExtTable.this.repaint();
+            }
+        };
     }
 
 }

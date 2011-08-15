@@ -462,7 +462,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     protected Storage getStorage() {
-        return JSonStorage.getStorage("ExtTableModel_" + this.modelID);
+        return JSonStorage.getStorage("ExtTable_" + this.getModelID());
     }
 
     /**
@@ -554,7 +554,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public boolean isVisible(final int column) {
         final ExtColumn<E> col = this.getExtColumn(column);
         try {
-            return JSonStorage.getStorage("ExtTableModel_" + this.modelID).get("VISABLE_COL_" + col.getName(), col.isDefaultVisible());
+            return this.getStorage().get("VISABLE_COL_" + col.getID(), col.isDefaultVisible());
         } catch (final Exception e) {
             Log.exception(e);
             return true;
@@ -661,7 +661,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public void setColumnVisible(final ExtColumn<E> column, final boolean visible) {
 
         try {
-            JSonStorage.getStorage("ExtTableModel_" + this.modelID).put("VISABLE_COL_" + column.getName(), visible);
+            JSonStorage.getPlainStorage("ExtTableModel_" + this.modelID).put("VISABLE_COL_" + column.getID(), visible);
         } catch (final Exception e) {
             Log.exception(e);
         }

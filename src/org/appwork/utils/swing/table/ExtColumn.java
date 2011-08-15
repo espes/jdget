@@ -67,6 +67,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     protected ExtToolTip           tip;
 
     private String                 sortOrderIdentifier;
+
     public static final String     SORT_DESC          = "DESC";
     public static final String     SORT_ASC           = "ASC";
 
@@ -367,6 +368,15 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         ret.setEnabled(this.isEnabled((E) value));
 
         return ret;
+    }
+
+    /**
+     * Returns the intern TableColumn
+     * 
+     * @return
+     */
+    public TableColumn getTableColumn() {
+        return this.tableColumn;
     }
 
     /**
