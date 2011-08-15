@@ -16,6 +16,7 @@ import javax.swing.border.Border;
 
 import org.appwork.app.gui.MigPanel;
 import org.appwork.utils.swing.renderer.RenderLabel;
+import org.appwork.utils.swing.renderer.RendererMigPanel;
 import org.appwork.utils.swing.table.ExtColumn;
 import org.appwork.utils.swing.table.ExtDefaultRowSorter;
 import org.appwork.utils.swing.table.ExtTableModel;
@@ -97,9 +98,10 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorForeground = this.editorField.getForeground();
         this.rendererFont = this.rendererField.getFont();
         this.editorFont = this.editorField.getFont();
-        this.editor = new MigPanel("ins 0", "[]5[grow,fill]", "[grow,fill]");
+        this.editor = new RendererMigPanel("ins 0", "[]5[grow,fill]", "[grow,fill]");
 
-        this.renderer = new MigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
+        this.renderer = new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
+
         this.editor.add(this.editorIconLabel, "hidemode 2");
         this.editor.add(this.editorField);
         this.renderer.add(this.rendererIcon, "hidemode 2");
