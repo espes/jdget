@@ -1,11 +1,14 @@
 package org.appwork.utils.swing.table.test;
 
+import java.awt.Color;
 import java.awt.Dimension;
 
+import javax.swing.DropMode;
 import javax.swing.JScrollPane;
 
 import org.appwork.app.gui.BasicGui;
 import org.appwork.utils.swing.table.ExtTable;
+import org.appwork.utils.swing.table.SelectionHighlighter;
 
 public class ExtTextTable extends ExtTable<TextObject> {
 
@@ -32,7 +35,15 @@ public class ExtTextTable extends ExtTable<TextObject> {
      */
     public ExtTextTable() {
         super(new ExtTestModel());
-        this.setSearchEnabled(true);
+        // this.setSearchEnabled(true);#
+        System.out.println("Compiled");
+        this.setDragEnabled(true);
+        this.setDropMode(DropMode.ON);
+
+        final DragDropHelper ddh = new DragDropHelper();
+        this.setTransferHandler(ddh);
+        this.addRowHighlighter(new SelectionHighlighter(null, new Color(10, 10, 10, 40)));
+
     }
 
     @Override
