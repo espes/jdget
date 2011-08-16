@@ -9,6 +9,9 @@
  */
 package org.appwork.utils.swing.table.test;
 
+import javax.swing.Icon;
+
+import org.appwork.resources.AWUTheme;
 import org.appwork.utils.swing.table.ExtTableModel;
 import org.appwork.utils.swing.table.columns.ExtTextColumn;
 
@@ -43,6 +46,12 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
         this.addColumn(new ExtTextColumn<TextObject>("col 1") {
 
             private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Icon getIcon(final TextObject value) {
+                // TODO Auto-generated method stub
+                return AWUTheme.getInstance().getIcon("help", 14);
+            }
 
             @Override
             public String getStringValue(final TextObject value) {

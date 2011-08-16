@@ -43,7 +43,8 @@ public class ExtTextTable extends ExtTable<TextObject> {
         final DragDropHelper ddh = new DragDropHelper();
         this.setTransferHandler(ddh);
         this.addRowHighlighter(new SelectionHighlighter(null, new Color(10, 10, 10, 40)));
-
+        // this.setShowHorizontalLines(false);
+        this.setRowHeight(22);
     }
 
     @Override

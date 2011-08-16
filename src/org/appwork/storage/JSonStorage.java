@@ -313,7 +313,7 @@ public class JSonStorage {
 
     @SuppressWarnings("unchecked")
     public static <E> E restoreFromString(final String string, final TypeRef<E> type, final E def) {
-        if (string == null) { return def; }
+        if (string == null || "".equals(string)) { return def; }
         try {
 
             synchronized (JSonStorage.LOCK) {

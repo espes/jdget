@@ -31,7 +31,12 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
 
     public ExtFileSizeColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
-        this.renderer = new RenderLabel();
+        this.renderer = new RenderLabel() {
+            @Override
+            public boolean isVisible() {
+                return false;
+            }
+        };
         this.renderer.setHorizontalAlignment(SwingConstants.RIGHT);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             /**

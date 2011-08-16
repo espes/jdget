@@ -50,9 +50,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorField.addFocusListener(this);
         this.editorField.setBorder(null);
         this.rendererIcon = new RenderLabel() {
-            /**
-             * 
-             */
             private static final long serialVersionUID = 1L;
 
             @Override

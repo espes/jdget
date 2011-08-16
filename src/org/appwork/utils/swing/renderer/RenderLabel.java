@@ -51,6 +51,11 @@ public class RenderLabel extends JLabel {
     public void repaint() {
     }
 
+    // @Override
+    // public boolean isVisible() {
+    // return true;
+    // }
+
     /**
      * * Overridden for performance reasons.
      */
@@ -104,6 +109,15 @@ public class RenderLabel extends JLabel {
             this.setDisabledIcon(ImageProvider.getDisabledIcon(icon));
         }
         super.setIcon(icon);
+    }
+
+    @Override
+    public void show(final boolean b) {
+        // if (b) {
+        // show();
+        // } else {
+        // hide();
+        // }
     }
 
     /**

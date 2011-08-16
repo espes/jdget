@@ -33,7 +33,12 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
     public ExtProgressColumn(final String name, final ExtTableModel<E> extModel) {
         super(name, extModel);
-        this.determinatedRenderer = new JProgressBar();
+        this.determinatedRenderer = new JProgressBar() {
+            @Override
+            public boolean isVisible() {
+                return false;
+            }
+        };
 
         this.indeterminatedRenderer = new JProgressBar() {
             /**
@@ -46,6 +51,11 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
             @Override
             public boolean isDisplayable() {
                 return true;
+            }
+
+            @Override
+            public boolean isVisible() {
+                return false;
             }
 
             @Override

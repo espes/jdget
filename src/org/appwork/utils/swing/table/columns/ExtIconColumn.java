@@ -25,7 +25,12 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
     public ExtIconColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
 
-        this.renderer = new RenderLabel();
+        this.renderer = new RenderLabel() {
+            @Override
+            public boolean isVisible() {
+                return false;
+            }
+        };
 
         this.initIcons();
 

@@ -9,6 +9,8 @@
  */
 package org.appwork.utils.swing.renderer;
 
+import java.awt.Rectangle;
+
 import org.appwork.app.gui.MigPanel;
 
 /**
@@ -32,12 +34,58 @@ public class RendererMigPanel extends MigPanel {
         // TODO Auto-generated constructor stub
     }
 
+    // /**
+    // * * Overridden for performance reasons.
+    // */
+    // @Override
+    // public void firePropertyChange(final String propertyName, final boolean
+    // oldValue, final boolean newValue) {
+    // /* we dont need propertychange events */
+    // }
+
     /**
-     * Has to return false to avoid a drag&Drop cursor flicker bug
+     * * Overridden for performance reasons.
+     */
+    @Override
+    public void invalidate() {
+        super.invalidate();
+    }
+
+    /**
+     * Has to return false to avoid a drag&Drop cursor flicker bug <vr>
+     * http://bugs.sun.com/view_bug.do?bug_id=6700748
      */
     @Override
     public boolean isVisible() {
         return false;
+    }
+
+    /**
+     * * Overridden for performance reasons.
+     */
+    @Override
+    public void repaint() {
+    }
+
+    /**
+     * * Overridden for performance reasons.
+     */
+    @Override
+    public void repaint(final long tm, final int x, final int y, final int width, final int height) {
+    }
+
+    /**
+     * * Overridden for performance reasons.
+     */
+    @Override
+    public void repaint(final Rectangle r) {
+    }
+
+    /**
+     * * Overridden for performance reasons.
+     */
+    @Override
+    public void revalidate() {
     }
 
 }

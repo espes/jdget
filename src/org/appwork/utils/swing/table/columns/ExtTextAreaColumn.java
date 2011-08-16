@@ -48,7 +48,12 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
         this.editor = new JScrollPane(this.txt);
 
         this.txt.addFocusListener(this);
-        this.renderer = new RenderLabel();
+        this.renderer = new RenderLabel() {
+            @Override
+            public boolean isVisible() {
+                return false;
+            }
+        };
         this.rendererForeground = this.txt.getForeground();
         this.editorForeground = this.txt.getForeground();
         this.rendererFont = this.renderer.getFont();
