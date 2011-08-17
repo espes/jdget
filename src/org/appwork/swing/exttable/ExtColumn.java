@@ -426,6 +426,14 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return this.isEditable(obj, this.isEnabled(obj));
     }
 
+    /**
+     * @return
+     */
+    protected boolean isDefaultResizable() {
+
+        return true;
+    }
+
     public boolean isDefaultVisible() {
         return true;
     }
@@ -481,7 +489,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     public boolean isResizable() {
-        return !this.getModel().getStorage().get("ColumnWidthLocked_" + this.getID(), false);
+        return !this.getModel().getStorage().get("ColumnWidthLocked_" + this.getID(), !this.isDefaultResizable());
     }
 
     /**
@@ -532,6 +540,23 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
         this.getModel().getStorage().put("ColumnWidthLocked_" + this.getID(), !resizeAllowed);
         this.updateColumnGui();
+        // if
+        // (!this.getModel().getExtColumnByViewIndex(this.getModel().getExtViewColumnCount()
+        // - 1).isResizable()) {
+        // this.getModel().getTable().setAutoResizeFallbackEnabled(true);
+        //
+        // } else {
+        // this.getModel().getTable().setAutoResizeFallbackEnabled(false);
+        //
+        // }
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                ExtColumn.this.getModel().getTable().getTableHeader().repaint();
+                ExtColumn.this.getModel().getTable().revalidate();
+            }
+        };
     }
 
     /**
@@ -614,11 +639,10 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                     ExtColumn.this.tableColumn.setMaxWidth(ExtColumn.this.tableColumn.getPreferredWidth());
                     ExtColumn.this.tableColumn.setMinWidth(ExtColumn.this.tableColumn.getPreferredWidth());
                 }
-                ExtColumn.this.getModel().getTable().getTableHeader().repaint();
-                ExtColumn.this.getModel().getTable().revalidate();
 
             }
         };
+
     }
 
 }

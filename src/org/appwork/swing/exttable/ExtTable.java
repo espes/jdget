@@ -99,6 +99,8 @@ public class ExtTable<E> extends JTable {
 
     private E                                  toolTipObject;
     private JToolTip                           tooltip;
+    private boolean                            autoResizeFallback;
+    private final int                          orgAutoResizeMode   = -1;
 
     /**
      * Create an Extended Table instance
@@ -159,14 +161,14 @@ public class ExtTable<E> extends JTable {
                     if (e.getButton() == MouseEvent.BUTTON1) {
 
                         if (this.columnPressed != ExtTable.this.columnAtPoint(e.getPoint())) { return; }
-                        final int col = ExtTable.this.getExtColumnIndexByPoint(e.getPoint());
+                        final int col = ExtTable.this.getExtColumnModelIndexByPoint(e.getPoint());
                         if (col == -1) { return; }
 
-                        if (ExtTable.this.getExtTableModel().getExtColumn(col).isSortable(null)) {
+                        if (ExtTable.this.getExtTableModel().getExtColumnByModelIndex(col).isSortable(null)) {
                             final ExtColumn<E> oldColumn = ExtTable.this.getExtTableModel().getSortColumn();
                             final String oldIdentifier = oldColumn == null ? null : oldColumn.getSortOrderIdentifier();
 
-                            ExtTable.this.getExtTableModel().getExtColumn(col).doSort();
+                            ExtTable.this.getExtTableModel().getExtColumnByModelIndex(col).doSort();
                             ExtTable.this.eventSender.fireEvent(new ExtTableEvent<MouseEvent>(ExtTable.this, ExtTableEvent.Types.SORT_HEADER_CLICK, e));
                             ExtTable.this.onHeaderSortClick(e, oldColumn, oldIdentifier);
                         }
@@ -180,9 +182,9 @@ public class ExtTable<E> extends JTable {
 
             @Override
             public void mouseMoved(final MouseEvent e) {
-                final int col = ExtTable.this.getExtColumnIndexByPoint(e.getPoint());
+                final int col = ExtTable.this.getExtColumnModelIndexByPoint(e.getPoint());
                 if (col >= 0) {
-                    ExtTable.this.getTableHeader().setToolTipText(ExtTable.this.getExtTableModel().getExtColumn(col).getName());
+                    ExtTable.this.getTableHeader().setToolTipText(ExtTable.this.getExtTableModel().getExtColumnByModelIndex(col).getName());
                 }
 
             }
@@ -228,7 +230,7 @@ public class ExtTable<E> extends JTable {
                 final TableColumnModel tcm = ExtTable.this.getColumnModel();
                 for (int i = 0; i < tcm.getColumnCount(); i++) {
                     try {
-                        ExtTable.this.getStorage().put("POS_COL_" + i, ExtTable.this.getExtTableModel().getExtColumn(tcm.getColumn(i).getModelIndex()).getID());
+                        ExtTable.this.getStorage().put("POS_COL_" + i, ExtTable.this.getExtTableModel().getExtColumnByModelIndex(tcm.getColumn(i).getModelIndex()).getID());
                     } catch (final Exception e1) {
                         Log.exception(e1);
                     }
@@ -244,6 +246,10 @@ public class ExtTable<E> extends JTable {
 
         });
 
+    }
+
+    protected void accommodateColumnDelta(final int index, final int delta) {
+        System.out.println(delta);
     }
 
     /**
@@ -270,7 +276,7 @@ public class ExtTable<E> extends JTable {
             // controlbutton
             popup = new JPopupMenu();
             for (int i = 0; i < this.getExtTableModel().getColumnCount(); i++) {
-                this.getExtTableModel().getExtColumn(i).extendControlButtonMenu(popup);
+                this.getExtTableModel().getExtColumnByModelIndex(i).extendControlButtonMenu(popup);
             }
         } else {
             popup = extColumn.createHeaderPopup();
@@ -327,15 +333,15 @@ public class ExtTable<E> extends JTable {
 
             final TableColumn tableColumn = new TableColumn(i);
 
-            this.model.getExtColumn(j).setTableColumn(tableColumn);
+            this.model.getExtColumnByModelIndex(j).setTableColumn(tableColumn);
 
-            tableColumn.setHeaderRenderer(this.model.getExtColumn(j).getHeaderRenderer(this.getTableHeader()) != null ? this.model.getExtColumn(j).getHeaderRenderer(this.getTableHeader()) : new ExtTableHeaderRenderer(this.model.getExtColumn(j), this.getTableHeader()));
+            tableColumn.setHeaderRenderer(this.model.getExtColumnByModelIndex(j).getHeaderRenderer(this.getTableHeader()) != null ? this.model.getExtColumnByModelIndex(j).getHeaderRenderer(this.getTableHeader()) : new ExtTableHeaderRenderer(this.model.getExtColumnByModelIndex(j), this.getTableHeader()));
             // Save column width
             tableColumn.addPropertyChangeListener(new PropertyChangeListener() {
                 public void propertyChange(final PropertyChangeEvent evt) {
                     if (evt.getPropertyName().equals("width")) {
                         try {
-                            ExtTable.this.getStorage().put("WIDTH_COL_" + ExtTable.this.model.getExtColumn(j).getID(), (Integer) evt.getNewValue());
+                            ExtTable.this.getStorage().put("WIDTH_COL_" + ExtTable.this.model.getExtColumnByModelIndex(j).getID(), (Integer) evt.getNewValue());
                         } catch (final Exception e) {
                             Log.exception(e);
                         }
@@ -346,7 +352,7 @@ public class ExtTable<E> extends JTable {
             if (!this.model.isVisible(i)) {
                 continue;
             }
-            columns.put(this.model.getExtColumn(j).getID(), tableColumn);
+            columns.put(this.model.getExtColumnByModelIndex(j).getID(), tableColumn);
             // addColumn(tableColumn);
         }
         // restore column position
@@ -420,6 +426,44 @@ public class ExtTable<E> extends JTable {
         return this.tooltip;
     }
 
+    /**
+     * By using {@link ExtColumn#setResizable(boolean)} you can lock the widths
+     * of a column. Locked Columns can fu%& up resizing.( Imagine, you have
+     * resizemode to LAST_column, and last_column is locked..) this doLayout
+     * method checks if resizing of the resize column worked. If not, we
+     * temporarily switch resizemode to AUTO_RESIZE_SUBSEQUENT_COLUMNS and
+     * finally AUTO_RESIZE_ALL_COLUMNS. <br>
+     * All in all, this helps to get a much better resizing
+     */
+    @Override
+    public void doLayout() {
+        final TableColumn resizeColumn = this.getTableHeader().getResizingColumn();
+        if (resizeColumn == null) {
+            super.doLayout();
+            return;
+        } else {
+            final int orgResizeMode = this.getAutoResizeMode();
+            final int beforeWidth = resizeColumn.getWidth();
+            super.doLayout();
+
+            if (resizeColumn.getWidth() - beforeWidth != 0) {
+                this.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+
+                resizeColumn.setWidth(beforeWidth);
+                super.doLayout();
+
+                if (resizeColumn.getWidth() - beforeWidth != 0) {
+                    this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+
+                    resizeColumn.setWidth(beforeWidth);
+                    super.doLayout();
+                }
+            }
+
+            this.setAutoResizeMode(orgResizeMode);
+        }
+    }
+
     /* we do always create columsn ourself */
     @Override
     public boolean getAutoCreateColumnsFromModel() {
@@ -430,8 +474,8 @@ public class ExtTable<E> extends JTable {
      * converts the colum index to model and returns the column's cell editor
      */
     @Override
-    public TableCellEditor getCellEditor(final int row, final int column) {
-        return this.model.getCelleditorByColumn(this.convertColumnIndexToModel(column));
+    public TableCellEditor getCellEditor(final int row, final int columnIndex) {
+        return this.model.getCelleditorByColumn(this.convertColumnIndexToModel(columnIndex));
     }
 
     /**
@@ -483,6 +527,19 @@ public class ExtTable<E> extends JTable {
     }
 
     /**
+     * @return
+     */
+    private int getColumnWidth() {
+        int ret = 0;
+        for (int i = 0; i < this.getColumnCount(); i++) {
+            final int w = this.getColumnModel().getColumn(i).getWidth();
+            System.out.println(i + " : " + w);
+            ret += w;
+        }
+        return ret;
+    }
+
+    /**
      * @return the size of the contextmenu icons
      */
     public int getContextIconSize() {
@@ -503,18 +560,18 @@ public class ExtTable<E> extends JTable {
      * @param point
      */
     public ExtColumn<E> getExtColumnAtPoint(final Point point) {
-        final int x = this.getExtColumnIndexByPoint(point);
-        return this.getExtTableModel().getExtColumn(x);
+        final int x = this.getExtColumnModelIndexByPoint(point);
+        return this.getExtTableModel().getExtColumnByModelIndex(x);
     }
 
     /**
-     * returns the real column at the given point. Method converts the column to
-     * the moduels colum
      * 
      * @param point
-     * @return
+     * @return columnModel Index. use
+     *         {@link ExtTableModel#getExtColumnByModelIndex(int)} to get the
+     *         columninstance
      */
-    public int getExtColumnIndexByPoint(final Point point) {
+    public int getExtColumnModelIndexByPoint(final Point point) {
         final int x = this.columnAtPoint(point);
         // this.getColumnModel().get
         return this.convertColumnIndexToModel(x);
@@ -549,6 +606,12 @@ public class ExtTable<E> extends JTable {
         return super.getCellRenderer(row, column);
     }
 
+    // @Override
+    // public Point getToolTipLocation(final MouseEvent event) {
+    // // this.toolTipPosition = event.getPoint();
+    // return super.getToolTipLocation(event);
+    // }
+
     /**
      * @return the rowHighlighters
      */
@@ -564,12 +627,6 @@ public class ExtTable<E> extends JTable {
         return this.rowAtPoint(point);
 
     }
-
-    // @Override
-    // public Point getToolTipLocation(final MouseEvent event) {
-    // // this.toolTipPosition = event.getPoint();
-    // return super.getToolTipLocation(event);
-    // }
 
     /**
      * @return
@@ -1042,6 +1099,41 @@ public class ExtTable<E> extends JTable {
         }.start();
     }
 
+    // /**
+    // * @param b
+    // */
+    // public synchronized void setAutoResizeFallbackEnabled(final boolean b) {
+    //
+    // if (b == this.autoResizeFallback) { return; }
+    //
+    // if (b) {
+    // this.orgAutoResizeMode = this.getAutoResizeMode();
+    // this.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+    // this.autoResizeFallback = b;
+    // } else {
+    // this.autoResizeFallback = b;
+    // if (this.orgAutoResizeMode >= 0) {
+    // this.setAutoResizeMode(this.orgAutoResizeMode);
+    // }
+    // this.orgAutoResizeMode = -1;
+    //
+    // }
+    //
+    // }
+
+    // @Override
+    // public void setAutoResizeMode(final int mode) {
+    //
+    // if (this.autoResizeFallback) {
+    // System.out.println("Keep mode: " + mode);
+    // this.orgAutoResizeMode = mode;
+    // } else {
+    // System.out.println("Mode: " + mode);
+    // super.setAutoResizeMode(mode);
+    // }
+    //
+    // }
+
     public void setColumnBottonVisibility(final boolean visible) {
         this.columnButtonVisible = visible;
         this.reconfigureColumnButton();
@@ -1104,6 +1196,14 @@ public class ExtTable<E> extends JTable {
                 ExtTable.this.repaint();
             }
         };
+    }
+
+    private int viewIndexForColumn(final TableColumn aColumn) {
+        final TableColumnModel cm = this.getColumnModel();
+        for (int column = 0; column < cm.getColumnCount(); column++) {
+            if (cm.getColumn(column) == aColumn) { return column; }
+        }
+        return -1;
     }
 
 }

@@ -30,7 +30,7 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
      * @param id
      */
     public ExtTestModel() {
-        super(ExtTestModel.class.getName());
+        super(ExtTestModel.class.getName() + "_" + 1);
         for (int i = 0; i < 100; i++) {
             this.addElement(new TextObject("a" + i, "b" + i, i + "c"));
         }
@@ -48,8 +48,12 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             private static final long serialVersionUID = 1L;
 
             @Override
+            public int getDefaultWidth() {
+                return 40;
+            }
+
+            @Override
             protected Icon getIcon(final TextObject value) {
-                // TODO Auto-generated method stub
                 return AWUTheme.getInstance().getIcon("dialog/help", 14);
             }
 
@@ -64,6 +68,12 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             private static final long serialVersionUID = 1L;
 
             @Override
+            public int getDefaultWidth() {
+                // TODO Auto-generated method stub
+                return 80;
+            }
+
+            @Override
             public String getStringValue(final TextObject value) {
                 return value.getB();
             }
@@ -73,8 +83,41 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             private static final long serialVersionUID = 1L;
 
             @Override
+            public int getDefaultWidth() {
+                // TODO Auto-generated method stub
+                return 120;
+            }
+
+            @Override
             public String getStringValue(final TextObject value) {
                 return value.getC();
+            }
+
+            @Override
+            protected boolean isDefaultResizable() {
+                // TODO Auto-generated method stub
+                return false;
+            }
+        });
+        this.addColumn(new ExtTextColumn<TextObject>("col 4") {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public int getDefaultWidth() {
+                // TODO Auto-generated method stub
+                return 200;
+            }
+
+            @Override
+            public String getStringValue(final TextObject value) {
+                return value.getC() + value.getA();
+            }
+
+            @Override
+            public boolean isDefaultVisible() {
+
+                return false;
             }
         });
     }

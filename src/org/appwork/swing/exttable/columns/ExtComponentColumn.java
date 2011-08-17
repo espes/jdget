@@ -38,7 +38,7 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
 
                 final int modelIndex = table.getColumnModel().getColumn(col).getModelIndex();
                 if (col != this.col || row != this.row) {
-                    if (ExtComponentColumn.this.getModel().getExtColumn(modelIndex) == ExtComponentColumn.this) {
+                    if (ExtComponentColumn.this.getModel().getExtColumnByModelIndex(modelIndex) == ExtComponentColumn.this) {
                         ExtComponentColumn.this.onCellUpdate(col, row);
                     } else {
                         if (table.getEditingColumn() == col && table.getEditingRow() == row) {

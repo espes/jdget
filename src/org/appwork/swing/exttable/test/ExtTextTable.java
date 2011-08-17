@@ -4,6 +4,7 @@ import java.awt.Color;
 
 import javax.swing.DropMode;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
 import org.appwork.app.gui.BasicGui;
 import org.appwork.swing.exttable.ExtTable;
@@ -43,6 +44,7 @@ public class ExtTextTable extends ExtTable<TextObject> {
         this.setTransferHandler(ddh);
         this.addRowHighlighter(new SelectionHighlighter(null, new Color(10, 10, 10, 40)));
         // this.setShowHorizontalLines(false);
+        this.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         this.setRowHeight(22);
     }
 
