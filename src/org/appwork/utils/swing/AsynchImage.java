@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
+import org.appwork.resources.AWUTheme;
 import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.Hash;
@@ -35,8 +36,8 @@ public class AsynchImage extends JLabel {
          * @param url
          */
         public Updater(final AsynchImage asynchImage, final int prefX, final int prefY, final File cache, final URL url) {
-            x = prefX;
-            y = prefY;
+            this.x = prefX;
+            this.y = prefY;
             this.cache = cache;
             this.url = url;
             this.asynchImage = asynchImage;
@@ -52,13 +53,13 @@ public class AsynchImage extends JLabel {
             try {
                 synchronized (AsynchImage.LOCK) {
                     // check again.
-                    final long age = System.currentTimeMillis() - cache.lastModified();
-                    if (cache.exists() && age < Updater.EXPIRETIME) {
+                    final long age = System.currentTimeMillis() - this.cache.lastModified();
+                    if (this.cache.exists() && age < Updater.EXPIRETIME) {
                         // seems like another thread updated the image in the
                         // meantime
-                        final BufferedImage image = ImageIO.read(cache);
-                        if (asynchImage != null) {
-                            asynchImage.setDirectIcon(new ImageIcon(image));
+                        final BufferedImage image = ImageIO.read(this.cache);
+                        if (this.asynchImage != null) {
+                            this.asynchImage.setDirectIcon(new ImageIcon(image));
                         }
                         return;
                     }
@@ -66,27 +67,27 @@ public class AsynchImage extends JLabel {
                 BufferedImage image = null;
                 synchronized (AsynchImage.LOCK2) {
                     synchronized (AsynchImage.LOCK) {
-                        final long age = System.currentTimeMillis() - cache.lastModified();
-                        if (cache.exists() && age < Updater.EXPIRETIME) {
+                        final long age = System.currentTimeMillis() - this.cache.lastModified();
+                        if (this.cache.exists() && age < Updater.EXPIRETIME) {
                             // seems like another thread updated the image in
                             // the
                             // meantime
-                            image = ImageIO.read(cache);
-                            if (asynchImage != null) {
-                                asynchImage.setDirectIcon(new ImageIcon(image));
+                            image = ImageIO.read(this.cache);
+                            if (this.asynchImage != null) {
+                                this.asynchImage.setDirectIcon(new ImageIcon(image));
                             }
                             return;
                         }
                     }
-                    System.out.println("Update image " + cache);
-                    if (url == null) {
+                    System.out.println("Update image " + this.cache);
+                    if (this.url == null) {
                         System.out.println("no url given");
                         return;
                     }
-                    SimpleHTTP simple = new SimpleHTTP();
+                    final SimpleHTTP simple = new SimpleHTTP();
                     HttpURLConnection ret = null;
                     try {
-                        ret = simple.openGetConnection(url, 30 * 1000);
+                        ret = simple.openGetConnection(this.url, 30 * 1000);
                         image = ImageIO.read(ret.getInputStream());
                     } finally {
                         try {
@@ -94,26 +95,26 @@ public class AsynchImage extends JLabel {
                         } catch (final Throwable e) {
                         }
                     }
-                    System.out.println("Scale image " + cache);
-                    image = ImageProvider.getScaledInstance(image, x, y, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
+                    System.out.println("Scale image " + this.cache);
+                    image = ImageProvider.getScaledInstance(image, this.x, this.y, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
                 }
                 synchronized (AsynchImage.LOCK) {
-                    final long age = System.currentTimeMillis() - cache.lastModified();
-                    if (cache.exists() && age < Updater.EXPIRETIME) {
+                    final long age = System.currentTimeMillis() - this.cache.lastModified();
+                    if (this.cache.exists() && age < Updater.EXPIRETIME) {
                         // seems like another thread updated the image in
                         // the
                         // meantime
-                        image = ImageIO.read(cache);
-                        if (asynchImage != null) {
-                            asynchImage.setDirectIcon(new ImageIcon(image));
+                        image = ImageIO.read(this.cache);
+                        if (this.asynchImage != null) {
+                            this.asynchImage.setDirectIcon(new ImageIcon(image));
                         }
                         return;
                     }
-                    System.out.println("Cachewrite image " + cache + " " + x + " - " + image.getWidth());
-                    cache.getParentFile().mkdirs();
-                    ImageIO.write(image, Files.getExtension(cache.getName()), cache);
-                    if (asynchImage != null) {
-                        asynchImage.setDirectIcon(new ImageIcon(image));
+                    System.out.println("Cachewrite image " + this.cache + " " + this.x + " - " + image.getWidth());
+                    this.cache.getParentFile().mkdirs();
+                    ImageIO.write(image, Files.getExtension(this.cache.getName()), this.cache);
+                    if (this.asynchImage != null) {
+                        this.asynchImage.setDirectIcon(new ImageIcon(image));
                     }
                 }
             } catch (final Throwable e) {
@@ -132,7 +133,7 @@ public class AsynchImage extends JLabel {
     private final int         prefY;
     private boolean           setIconAfterLoading = true;
 
-    public static Object     LOCK                = new Object();
+    public static Object      LOCK                = new Object();
     private static Object     LOCK2               = new Object();
 
     /**
@@ -140,8 +141,8 @@ public class AsynchImage extends JLabel {
      * @param j
      */
     public AsynchImage(final int x, final int y) {
-        prefX = x;
-        prefY = y;
+        this.prefX = x;
+        this.prefY = y;
     }
 
     /**
@@ -151,9 +152,9 @@ public class AsynchImage extends JLabel {
      */
     public AsynchImage(final String thumbURL, final String extension, final int x, final int y) {
         super();
-        setBorder(new ShadowBorder(2));
-        prefX = x;
-        prefY = y;
+        this.setBorder(new ShadowBorder(2));
+        this.prefX = x;
+        this.prefY = y;
         this.setIcon(thumbURL, extension);
 
     }
@@ -162,19 +163,19 @@ public class AsynchImage extends JLabel {
      * @return the setIconAfterLoading
      */
     public boolean isSetIconAfterLoading() {
-        return setIconAfterLoading;
+        return this.setIconAfterLoading;
     }
 
     /**
      * @param imageIcon
      */
     protected void setDirectIcon(final ImageIcon imageIcon) {
-        if (setIconAfterLoading) {
+        if (this.setIconAfterLoading) {
 
             new EDTRunner() {
                 @Override
                 protected void runInEDT() {
-                    System.out.println("Set image " + cache);
+                    System.out.println("Set image " + AsynchImage.this.cache);
                     AsynchImage.this.setIcon(imageIcon);
                     AsynchImage.this.repaint();
                 }
@@ -190,37 +191,37 @@ public class AsynchImage extends JLabel {
      */
     public void setIcon(final String thumbURL, final String extension) {
         /* cacheFile for resized image */
-        cache = Application.getResource("tmp/asynchimage/" + Hash.getMD5(thumbURL) + "_" + prefX + "x" + prefY + "." + extension);
+        this.cache = Application.getResource("tmp/asynchimage/" + Hash.getMD5(thumbURL) + "_" + this.prefX + "x" + this.prefY + "." + extension);
         // if cache is older than 7 days. delete
         boolean refresh = true;
         try {
             synchronized (AsynchImage.LOCK) {
-                final long age = System.currentTimeMillis() - cache.lastModified();
-                if (cache.exists() && age < Updater.EXPIRETIME) {
+                final long age = System.currentTimeMillis() - this.cache.lastModified();
+                if (this.cache.exists() && age < Updater.EXPIRETIME) {
                     refresh = false;
                     BufferedImage image;
-                    image = ImageIO.read(cache);
+                    image = ImageIO.read(this.cache);
                     this.setIcon(new ImageIcon(image));
-                    if (!isSetIconAfterLoading()) {
+                    if (!this.isSetIconAfterLoading()) {
                         if (image.getWidth() > 32) {
                             // System.out.println(this.cache);
                         }
                     }
                     return;
-                } else if (cache.exists()) {
+                } else if (this.cache.exists()) {
                     BufferedImage image;
-                    image = ImageIO.read(cache);
+                    image = ImageIO.read(this.cache);
                     this.setIcon(new ImageIcon(image));
                     return;
                 }
             }
-            this.setIcon(ImageProvider.getImageIcon("imageLoader", prefX, prefY));
+            this.setIcon(AWUTheme.getInstance().getIcon("imageLoader", this.prefX));
         } catch (final Throwable e) {
-            this.setIcon(ImageProvider.getImageIcon("imageLoader", prefX, prefY));
+            this.setIcon(AWUTheme.getInstance().getIcon("imageLoader", this.prefX));
         } finally {
             if (refresh) {
                 try {
-                    new Updater(this, prefX, prefY, cache, new URL(thumbURL)).start();
+                    new Updater(this, this.prefX, this.prefY, this.cache, new URL(thumbURL)).start();
                 } catch (final Throwable e) {
                 }
             }

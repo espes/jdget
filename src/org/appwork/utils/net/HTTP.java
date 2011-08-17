@@ -164,7 +164,7 @@ public class HTTP {
                         }
 
                     };
-                    final ProgressDialog dialog = new ProgressDialog(pg, Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK, APPWORKUTILS.T.download_title(), APPWORKUTILS.T.download_msg(), AWUTheme.I().getIcon("payput", 32)) {
+                    final ProgressDialog dialog = new ProgressDialog(pg, Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK, APPWORKUTILS.T.download_title(), APPWORKUTILS.T.download_msg(), AWUTheme.I().getIcon("download", 32)) {
                         /**
                          * 
                          */

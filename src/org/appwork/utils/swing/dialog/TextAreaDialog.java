@@ -30,7 +30,7 @@ public class TextAreaDialog extends AbstractDialog<String> {
     private JTextArea         txtArea;
 
     public TextAreaDialog(final String title, final String message, final String def) {
-        super(0, title, AWUTheme.I().getIcon("info", 32), null, null);
+        super(0, title, AWUTheme.I().getIcon("dialog/info", 32), null, null);
 
         Log.L.fine("Dialog \r\ntitle: " + title + "\r\nmsg:   \r\n" + message + "\r\ndef:   \r\n" + def);
 

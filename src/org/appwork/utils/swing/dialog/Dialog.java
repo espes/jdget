@@ -115,28 +115,28 @@ public class Dialog implements WindowFocusListener {
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String  ICON_ERROR                           = "error";
+    public static final String  ICON_ERROR                           = "dialog/error";
     /**
      * Icon Key for Information Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String  ICON_INFO                            = "info";
+    public static final String  ICON_INFO                            = "dialog/info";
     /**
      * Icon Key for Question Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String  ICON_QUESTION                        = "help";
+    public static final String  ICON_QUESTION                        = "dialog/help";
     /**
      * Icon Key for Warning Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String  ICON_WARNING                         = "warning";
+    public static final String  ICON_WARNING                         = "dialog/warning";
     /**
      * internal singleton instance to access the instance of this class
      */

@@ -131,7 +131,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             });
             this.timerLbl.setToolTipText(APPWORKUTILS.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
 
-            this.timerLbl.setIcon(AWUTheme.I().getIcon("cancel", 16));
+            this.timerLbl.setIcon(AWUTheme.I().getIcon("dialog/cancel", 16));
         }
         /**
          * this is very important so the new shown dialog will become root for

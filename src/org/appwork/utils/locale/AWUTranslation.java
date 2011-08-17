@@ -155,6 +155,9 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "(px)W:%s1; H:%s2", "(px)B:%s1; H:%s2" })
     String Layover_size(int width, int height);
 
+    @Default(lngs = { "en", "de" }, values = { "Lock Columnwidth", "Spaltenbreite festsetzen" })
+    String LockColumnWidthAction();
+
     @Default(lngs = { "en", "de" }, values = { "Login", "Anmelden" })
     String LOGINDIALOG_BUTTON_LOGIN();
 

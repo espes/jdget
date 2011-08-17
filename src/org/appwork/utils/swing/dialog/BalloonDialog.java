@@ -86,7 +86,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             });
             this.timerLbl.setToolTipText(APPWORKUTILS.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
 
-            this.timerLbl.setIcon(AWUTheme.I().getIcon("cancel", 16));
+            this.timerLbl.setIcon(AWUTheme.I().getIcon("dialog/cancel", 16));
 
         }
         /**
