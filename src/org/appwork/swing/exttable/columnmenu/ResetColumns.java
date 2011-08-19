@@ -31,7 +31,7 @@ public class ResetColumns extends AbstractAction {
      */
     public ResetColumns(final ExtTable<?> extTable) {
         super(APPWORKUTILS.T.ResetColumnsAction());
-        this.putValue(Action.SMALL_ICON, AWUTheme.getInstance().getIcon("extTable/resetColumns", extTable.getContextIconSize()));
+        this.putValue(Action.SMALL_ICON, AWUTheme.getInstance().getIcon("exttable/resetColumns", extTable.getContextIconSize()));
         this.table = extTable;
     }
 

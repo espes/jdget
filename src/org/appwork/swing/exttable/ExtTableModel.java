@@ -85,8 +85,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.extComponentRowHighlighters = new ArrayList<ExtComponentRowHighlighter<E>>();
         this.modelID = id;
         this.initColumns();
-        this.iconAsc = AWUTheme.I().getIcon("extTable/sortAsc", -1);
-        this.iconDesc = AWUTheme.I().getIcon("extTable/sortDesc", -1);
+        this.iconAsc = AWUTheme.I().getIcon("exttable/sortAsc", -1);
+        this.iconDesc = AWUTheme.I().getIcon("exttable/sortDesc", -1);
         final ExtColumn<E> defSortColumn = this.getDefaultSortColumn();
         String columnId = defSortColumn == null ? null : defSortColumn.getID();
         if (this.isSortStateSaverEnabled()) {
