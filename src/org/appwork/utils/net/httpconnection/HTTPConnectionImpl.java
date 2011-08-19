@@ -60,7 +60,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
         this.httpURL = url;
         this.proxy = p;
         this.requestProperties = new LinkedHashMap<String, String>();
-        this.addHostHeader();
         this.headers = new LowerCaseHashMap<List<String>>();
     }
 
@@ -426,6 +425,18 @@ public class HTTPConnectionImpl implements HTTPConnection {
         /* now send Request */
         final StringBuilder sb = new StringBuilder();
         sb.append(this.httpMethod.name()).append(' ').append(this.httpPath).append(" HTTP/1.1\r\n");
+        boolean hostSet = false;
+        /* check if host entry does exist */
+        for (final String key : this.requestProperties.keySet()) {
+            if ("Host".equalsIgnoreCase(key)) {
+                hostSet = true;
+                break;
+            }
+        }
+        if (hostSet == false) {
+            /* host entry does not exist, lets add it as first entry */
+            this.addHostHeader();
+        }
         for (final String key : this.requestProperties.keySet()) {
             if (this.requestProperties.get(key) == null) {
                 continue;
