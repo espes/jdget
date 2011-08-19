@@ -18,7 +18,7 @@ import org.appwork.swing.exttable.ExtTableModel;
 abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     private static final long serialVersionUID = -2473320164484034664L;
     protected JProgressBar    determinatedRenderer;
-    private CompoundBorder    defaultBorder;
+    protected CompoundBorder  defaultBorder;
     private JProgressBar      indeterminatedRenderer;
     private JProgressBar      renderer;
     private HashMap<E, Long>  map;
@@ -34,6 +34,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     public ExtProgressColumn(final String name, final ExtTableModel<E> extModel) {
         super(name, extModel);
         this.determinatedRenderer = new JProgressBar() {
+
             @Override
             public boolean isVisible() {
                 return false;

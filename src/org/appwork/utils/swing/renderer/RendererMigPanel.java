@@ -44,14 +44,6 @@ public class RendererMigPanel extends MigPanel {
     // }
 
     /**
-     * * Overridden for performance reasons.
-     */
-    @Override
-    public void invalidate() {
-        super.invalidate();
-    }
-
-    /**
      * Has to return false to avoid a drag&Drop cursor flicker bug <vr>
      * http://bugs.sun.com/view_bug.do?bug_id=6700748
      */
