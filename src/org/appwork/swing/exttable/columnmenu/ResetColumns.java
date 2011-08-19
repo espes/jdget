@@ -43,6 +43,7 @@ public class ResetColumns extends AbstractAction {
      */
     @Override
     public void actionPerformed(final ActionEvent e) {
+        this.table.resetColumnLocks();
         this.table.resetColumnDimensions();
         this.table.resetColumnOrder();
         this.table.resetColumnVisibility();

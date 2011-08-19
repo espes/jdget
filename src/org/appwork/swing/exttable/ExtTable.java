@@ -483,22 +483,8 @@ public class ExtTable<E> extends JTable {
             } else {
 
             }
-            saveWidthsRatio();
+            this.saveWidthsRatio();
             this.setAutoResizeMode(orgResizeMode);
-        }
-    }
-
-    public void saveWidthsRatio() {
-        for (int i = 0; i < this.getColumnCount(); i++) {
-            final ExtColumn<E> col = this.getExtTableModel().getExtColumnByModelIndex(this.convertColumnIndexToModel(i));
-
-            try {
-                col.getTableColumn().setPreferredWidth(col.getTableColumn().getWidth());
-                ExtTable.this.getStorage().put("WIDTH_COL_" + col.getID(), col.getTableColumn().getWidth());
-            } catch (final Exception e) {
-                Log.exception(e);
-            }
-
         }
     }
 
@@ -644,18 +630,18 @@ public class ExtTable<E> extends JTable {
         return super.getCellRenderer(row, column);
     }
 
-    // @Override
-    // public Point getToolTipLocation(final MouseEvent event) {
-    // // this.toolTipPosition = event.getPoint();
-    // return super.getToolTipLocation(event);
-    // }
-
     /**
      * @return the rowHighlighters
      */
     public ArrayList<ExtRowHighlighter> getRowHighlighters() {
         return this.rowHighlighters;
     }
+
+    // @Override
+    // public Point getToolTipLocation(final MouseEvent event) {
+    // // this.toolTipPosition = event.getPoint();
+    // return super.getToolTipLocation(event);
+    // }
 
     /**
      * @param point
@@ -1044,8 +1030,8 @@ public class ExtTable<E> extends JTable {
 
     /**
      * Resets the columnwidth to their default value. If their is empty space
-     * afterwards, the table will distrbute the DELTA to all columns PLease make
-     * sure to call {@link #updateColumns()} afterwards
+     * afterwards, the table will distribute the DELTA to all columns PLease
+     * make sure to call {@link #updateColumns()} afterwards
      */
     public void resetColumnDimensions() {
 
@@ -1058,6 +1044,19 @@ public class ExtTable<E> extends JTable {
             }
         }
 
+    }
+
+    /**
+     * Resets the column locks to their default value. If their is empty space
+     * afterwards, the table will distribute the DELTA to all columns PLease
+     * make sure to call {@link #updateColumns()} afterwards
+     */
+    public void resetColumnLocks() {
+        for (final ExtColumn<E> col : this.getExtTableModel().getColumns()) {
+            // col.getTableColumn().setPreferredWidth(col.getDefaultWidth());
+            this.getStorage().put("ColumnWidthLocked_" + col.getID(), !col.isDefaultResizable());
+
+        }
     }
 
     /**
@@ -1093,6 +1092,20 @@ public class ExtTable<E> extends JTable {
 
     }
 
+    public void saveWidthsRatio() {
+        for (int i = 0; i < this.getColumnCount(); i++) {
+            final ExtColumn<E> col = this.getExtTableModel().getExtColumnByModelIndex(this.convertColumnIndexToModel(i));
+
+            try {
+                col.getTableColumn().setPreferredWidth(col.getTableColumn().getWidth());
+                ExtTable.this.getStorage().put("WIDTH_COL_" + col.getID(), col.getTableColumn().getWidth());
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+
+        }
+    }
+
     public void scrollToRow(final int row) {
 
         if (row < 0) { return; }
@@ -1113,28 +1126,6 @@ public class ExtTable<E> extends JTable {
 
         }.start();
 
-    }
-
-    protected void scrollToSelection() {
-
-        new EDTHelper<Object>() {
-
-            @Override
-            public Object edtRun() {
-                final JViewport viewport = (JViewport) ExtTable.this.getParent();
-                if (viewport == null) { return null; }
-                final int[] sel = ExtTable.this.getSelectedRows();
-                if (sel == null || sel.length == 0) { return null; }
-                final Rectangle rect = ExtTable.this.getCellRect(sel[0], 0, true);
-                final Rectangle rect2 = ExtTable.this.getCellRect(sel[sel.length - 1], 0, true);
-                rect.height += rect2.y - rect.y;
-                final Point pt = viewport.getViewPosition();
-                rect.setLocation(rect.x - pt.x, rect.y - pt.y);
-                viewport.scrollRectToVisible(rect);
-                return null;
-            }
-
-        }.start();
     }
 
     // /**
@@ -1171,6 +1162,28 @@ public class ExtTable<E> extends JTable {
     // }
     //
     // }
+
+    protected void scrollToSelection() {
+
+        new EDTHelper<Object>() {
+
+            @Override
+            public Object edtRun() {
+                final JViewport viewport = (JViewport) ExtTable.this.getParent();
+                if (viewport == null) { return null; }
+                final int[] sel = ExtTable.this.getSelectedRows();
+                if (sel == null || sel.length == 0) { return null; }
+                final Rectangle rect = ExtTable.this.getCellRect(sel[0], 0, true);
+                final Rectangle rect2 = ExtTable.this.getCellRect(sel[sel.length - 1], 0, true);
+                rect.height += rect2.y - rect.y;
+                final Point pt = viewport.getViewPosition();
+                rect.setLocation(rect.x - pt.x, rect.y - pt.y);
+                viewport.scrollRectToVisible(rect);
+                return null;
+            }
+
+        }.start();
+    }
 
     public void setColumnBottonVisibility(final boolean visible) {
         this.columnButtonVisible = visible;
