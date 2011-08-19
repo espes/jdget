@@ -99,8 +99,6 @@ public class ExtTable<E> extends JTable {
 
     private E                                  toolTipObject;
     private JToolTip                           tooltip;
-    private boolean                            autoResizeFallback;
-    private final int                          orgAutoResizeMode   = -1;
 
     /**
      * Create an Extended Table instance
@@ -134,16 +132,32 @@ public class ExtTable<E> extends JTable {
 
         // Mouselistener for columnselection Menu and sort on click
         this.getTableHeader().addMouseListener(new MouseAdapter() {
-            int columnPressed = 0;
+
+            @Override
+            public void mouseClicked(final MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+
+                    final int col = ExtTable.this.getExtColumnModelIndexByPoint(e.getPoint());
+                    if (col == -1) { return; }
+
+                    if (ExtTable.this.getExtTableModel().getExtColumnByModelIndex(col).isSortable(null)) {
+                        final ExtColumn<E> oldColumn = ExtTable.this.getExtTableModel().getSortColumn();
+                        final String oldIdentifier = oldColumn == null ? null : oldColumn.getSortOrderIdentifier();
+
+                        ExtTable.this.getExtTableModel().getExtColumnByModelIndex(col).doSort();
+                        ExtTable.this.eventSender.fireEvent(new ExtTableEvent<MouseEvent>(ExtTable.this, ExtTableEvent.Types.SORT_HEADER_CLICK, e));
+                        ExtTable.this.onHeaderSortClick(e, oldColumn, oldIdentifier);
+                    }
+
+                }
+            }
 
             @Override
             public void mousePressed(final MouseEvent e) {
 
                 // only if we are not in resize mode
                 if (ExtTable.this.getTableHeader().getCursor().getType() == Cursor.getDefaultCursor().getType()) {
-                    if (e.getButton() == MouseEvent.BUTTON1) {
-                        this.columnPressed = ExtTable.this.columnAtPoint(e.getPoint());
-                    } else if (e.getButton() == MouseEvent.BUTTON3) {
+                    if (e.getButton() == MouseEvent.BUTTON3) {
                         final JPopupMenu ccm = ExtTable.this.columnControlMenu(ExtTable.this.getExtColumnAtPoint(e.getPoint()));
                         ccm.show(ExtTable.this.getTableHeader(), e.getX(), e.getY());
 
@@ -151,29 +165,14 @@ public class ExtTable<E> extends JTable {
                             Toolkit.getDefaultToolkit().beep();
                         }
                     }
+
                 }
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public void mouseReleased(final MouseEvent e) {
-                if (ExtTable.this.getTableHeader().getCursor().getType() == Cursor.getDefaultCursor().getType()) {
-                    if (e.getButton() == MouseEvent.BUTTON1) {
-
-                        if (this.columnPressed != ExtTable.this.columnAtPoint(e.getPoint())) { return; }
-                        final int col = ExtTable.this.getExtColumnModelIndexByPoint(e.getPoint());
-                        if (col == -1) { return; }
-
-                        if (ExtTable.this.getExtTableModel().getExtColumnByModelIndex(col).isSortable(null)) {
-                            final ExtColumn<E> oldColumn = ExtTable.this.getExtTableModel().getSortColumn();
-                            final String oldIdentifier = oldColumn == null ? null : oldColumn.getSortOrderIdentifier();
-
-                            ExtTable.this.getExtTableModel().getExtColumnByModelIndex(col).doSort();
-                            ExtTable.this.eventSender.fireEvent(new ExtTableEvent<MouseEvent>(ExtTable.this, ExtTableEvent.Types.SORT_HEADER_CLICK, e));
-                            ExtTable.this.onHeaderSortClick(e, oldColumn, oldIdentifier);
-                        }
-                    }
-                }
+                System.out.println("rlss");
             }
 
         });
@@ -440,6 +439,7 @@ public class ExtTable<E> extends JTable {
         final TableColumn resizeColumn = this.getTableHeader().getResizingColumn();
         if (resizeColumn == null) {
             super.doLayout();
+
             return;
         } else {
             final int orgResizeMode = this.getAutoResizeMode();
@@ -457,7 +457,19 @@ public class ExtTable<E> extends JTable {
 
                     resizeColumn.setWidth(beforeWidth);
                     super.doLayout();
+                    if (resizeColumn.getWidth() - beforeWidth != 0) {
+
+                        Toolkit.getDefaultToolkit().beep();
+
+                        this.getTableHeader().setCursor(null);
+
+                        System.out.println("Test");
+                    }
+
                 }
+
+            } else {
+
             }
 
             this.setAutoResizeMode(orgResizeMode);

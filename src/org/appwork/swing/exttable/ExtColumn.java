@@ -583,7 +583,14 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public void setTableColumn(final TableColumn tableColumn) {
         this.tableColumn = tableColumn;
         // Set stored columnwidth
-
+        int w = ExtColumn.this.getDefaultWidth();
+        try {
+            w = ExtColumn.this.getModel().getStorage().get("WIDTH_COL_" + ExtColumn.this.getID(), w);
+        } catch (final Exception e) {
+            Log.exception(e);
+        } finally {
+            ExtColumn.this.tableColumn.setPreferredWidth(w);
+        }
         this.updateColumnGui();
 
     }
@@ -621,14 +628,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
             @Override
             protected void runInEDT() {
-                int w = ExtColumn.this.getDefaultWidth();
-                try {
-                    w = ExtColumn.this.getModel().getStorage().get("WIDTH_COL_" + ExtColumn.this.getID(), w);
-                } catch (final Exception e) {
-                    Log.exception(e);
-                } finally {
-                    ExtColumn.this.tableColumn.setPreferredWidth(w);
-                }
 
                 if (ExtColumn.this.isResizable()) {
                     ExtColumn.this.tableColumn.setMaxWidth(ExtColumn.this.getMaxWidth() < 0 ? Integer.MAX_VALUE : ExtColumn.this.getMaxWidth());
@@ -636,6 +635,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                     ExtColumn.this.tableColumn.setResizable(true);
                 } else {
                     ExtColumn.this.tableColumn.setResizable(false);
+                    System.out.println("Lock " + ExtColumn.this.getName() + " " + ExtColumn.this.tableColumn.getPreferredWidth());
                     ExtColumn.this.tableColumn.setMaxWidth(ExtColumn.this.tableColumn.getPreferredWidth());
                     ExtColumn.this.tableColumn.setMinWidth(ExtColumn.this.tableColumn.getPreferredWidth());
                 }
