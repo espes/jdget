@@ -15,9 +15,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
@@ -99,6 +99,7 @@ public class ExtTable<E> extends JTable {
 
     private E                                  toolTipObject;
     private JToolTip                           tooltip;
+    protected boolean                          headerDragging;
 
     /**
      * Create an Extended Table instance
@@ -154,7 +155,7 @@ public class ExtTable<E> extends JTable {
 
             @Override
             public void mousePressed(final MouseEvent e) {
-
+                ExtTable.this.headerDragging = true;
                 // only if we are not in resize mode
                 if (ExtTable.this.getTableHeader().getCursor().getType() == Cursor.getDefaultCursor().getType()) {
                     if (e.getButton() == MouseEvent.BUTTON3) {
@@ -172,7 +173,29 @@ public class ExtTable<E> extends JTable {
             @SuppressWarnings("unchecked")
             @Override
             public void mouseReleased(final MouseEvent e) {
-                System.out.println("rlss");
+                ExtTable.this.headerDragging = false;
+                try {
+
+                    // this is a workaround. we dis
+                    if (ExtTable.this.getTableHeader().getCursor().getType() == Cursor.getDefaultCursor().getType()) {
+                        for (final MouseListener ms : ExtTable.this.getTableHeader().getMouseListeners()) {
+                            if (ms instanceof javax.swing.plaf.basic.BasicTableHeaderUI.MouseInputHandler) {
+                                // ((javax.swing.plaf.basic.BasicTableHeaderUI.MouseInputHandler)ms).
+                                Field field;
+
+                                field = javax.swing.plaf.basic.BasicTableHeaderUI.MouseInputHandler.class.getDeclaredField("otherCursor");
+                                field.setAccessible(true);
+                                field.set(ms, Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+
+                            }
+                        }
+                    }
+                } catch (final Throwable e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+                // BasicTableHeaderUI.class.getField(name)
+                // ((BasicTableHeaderUI) getTableHeader())
             }
 
         });
@@ -336,17 +359,6 @@ public class ExtTable<E> extends JTable {
 
             tableColumn.setHeaderRenderer(this.model.getExtColumnByModelIndex(j).getHeaderRenderer(this.getTableHeader()) != null ? this.model.getExtColumnByModelIndex(j).getHeaderRenderer(this.getTableHeader()) : new ExtTableHeaderRenderer(this.model.getExtColumnByModelIndex(j), this.getTableHeader()));
             // Save column width
-            tableColumn.addPropertyChangeListener(new PropertyChangeListener() {
-                public void propertyChange(final PropertyChangeEvent evt) {
-                    if (evt.getPropertyName().equals("width")) {
-                        try {
-                            ExtTable.this.getStorage().put("WIDTH_COL_" + ExtTable.this.model.getExtColumnByModelIndex(j).getID(), (Integer) evt.getNewValue());
-                        } catch (final Exception e) {
-                            Log.exception(e);
-                        }
-                    }
-                }
-            });
 
             if (!this.model.isVisible(i)) {
                 continue;
@@ -457,13 +469,13 @@ public class ExtTable<E> extends JTable {
 
                     resizeColumn.setWidth(beforeWidth);
                     super.doLayout();
-                    if (resizeColumn.getWidth() - beforeWidth != 0) {
+
+                    if (this.headerDragging && resizeColumn.getWidth() - beforeWidth != 0) {
 
                         Toolkit.getDefaultToolkit().beep();
-
                         this.getTableHeader().setCursor(null);
+                        this.headerDragging = false;
 
-                        System.out.println("Test");
                     }
 
                 }
@@ -471,8 +483,22 @@ public class ExtTable<E> extends JTable {
             } else {
 
             }
-
+            saveWidthsRatio();
             this.setAutoResizeMode(orgResizeMode);
+        }
+    }
+
+    public void saveWidthsRatio() {
+        for (int i = 0; i < this.getColumnCount(); i++) {
+            final ExtColumn<E> col = this.getExtTableModel().getExtColumnByModelIndex(this.convertColumnIndexToModel(i));
+
+            try {
+                col.getTableColumn().setPreferredWidth(col.getTableColumn().getWidth());
+                ExtTable.this.getStorage().put("WIDTH_COL_" + col.getID(), col.getTableColumn().getWidth());
+            } catch (final Exception e) {
+                Log.exception(e);
+            }
+
         }
     }
 
