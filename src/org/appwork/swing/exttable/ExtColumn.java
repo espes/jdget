@@ -488,6 +488,13 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return true;
     }
 
+    /**
+     * @return if the column header paints the locked icon
+     */
+    public boolean isPaintWidthLockIcon() {
+        return true;
+    }
+
     public boolean isResizable() {
         return !this.getModel().getStorage().get("ColumnWidthLocked_" + this.getID(), !this.isDefaultResizable());
     }

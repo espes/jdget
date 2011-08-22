@@ -148,7 +148,7 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
                 // g2.setComposite(comp);
             }
         }
-        if (!this.column.isResizable()) {
+        if (!this.column.isResizable() && this.column.isPaintWidthLockIcon()) {
 
             // lockedWidth
 
