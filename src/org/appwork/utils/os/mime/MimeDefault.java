@@ -17,15 +17,11 @@ import javax.swing.ImageIcon;
 import org.appwork.resources.AWUTheme;
 
 public class MimeDefault implements Mime {
-    /**
-     * Cachemap for fileicons
-     */
-    private static HashMap<String, ImageIcon> IMAGE_ICON_CACHE  = new HashMap<String, ImageIcon>();
 
     /**
      * Cache for the MIME descriptions
      */
-    private static HashMap<String, String>    DESCRIPTION_CACHE = new HashMap<String, String>();
+    private static HashMap<String, String> DESCRIPTION_CACHE = new HashMap<String, String>();
 
     /**
      * Returns a icon from the cache.
@@ -34,7 +30,7 @@ public class MimeDefault implements Mime {
      * @return
      */
     protected ImageIcon getCacheIcon(final String iconKey) {
-        return MimeDefault.IMAGE_ICON_CACHE.get(iconKey);
+        return AWUTheme.I().getCached(iconKey);
     }
 
     public ImageIcon getFileIcon(final String extension, final int width, final int height) throws IOException {
@@ -81,7 +77,7 @@ public class MimeDefault implements Mime {
      * @param icon
      */
     protected void saveIconCache(final String iconKey, final ImageIcon icon) {
-        MimeDefault.IMAGE_ICON_CACHE.put(iconKey, icon);
+        AWUTheme.I().cache(icon, iconKey);
     }
 
     /**

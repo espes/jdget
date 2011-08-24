@@ -24,10 +24,11 @@ import org.appwork.utils.ImageProvider.ImageProvider;
  */
 public class RenderLabel extends JLabel {
 
+    boolean                   workaroundNotVisible = false;
     /**
      * 
      */
-    private static final long serialVersionUID = 1204940612879959884L;
+    private static final long serialVersionUID     = 1204940612879959884L;
 
     /**
      * * Overridden for performance reasons.
@@ -44,17 +45,23 @@ public class RenderLabel extends JLabel {
     public void invalidate() {
     }
 
-    /**
-     * * Overridden for performance reasons.
-     */
     @Override
-    public void repaint() {
+    public boolean isVisible() {
+        if (this.workaroundNotVisible) { return false; }
+        return super.isVisible();
     }
 
     // @Override
     // public boolean isVisible() {
     // return true;
     // }
+
+    /**
+     * * Overridden for performance reasons.
+     */
+    @Override
+    public void repaint() {
+    }
 
     /**
      * * Overridden for performance reasons.
@@ -109,6 +116,14 @@ public class RenderLabel extends JLabel {
             this.setDisabledIcon(ImageProvider.getDisabledIcon(icon));
         }
         super.setIcon(icon);
+    }
+
+    /*
+     * Workaround to set invisible because of
+     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6700748
+     */
+    public void setWorkaroundNotVisible(final boolean b) {
+        this.workaroundNotVisible = b;
     }
 
     @Override

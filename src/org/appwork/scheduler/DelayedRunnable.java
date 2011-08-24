@@ -21,6 +21,7 @@ public abstract class DelayedRunnable implements Runnable {
 
     private final ScheduledExecutorService service;
     private final long                     delayInMS;
+    private long                           nextDelay;
     private volatile long                  lastRunRequest  = 0;
     private volatile long                  firstRunRequest = 0;
     private ScheduledFuture<?>             delayer;
@@ -32,7 +33,7 @@ public abstract class DelayedRunnable implements Runnable {
 
     public DelayedRunnable(final ScheduledExecutorService service, final long minDelayInMS, final long maxDelayInMS) {
         this.service = service;
-        this.delayInMS = minDelayInMS;
+        this.nextDelay = this.delayInMS = minDelayInMS;
         this.maxInMS = maxDelayInMS;
         if (this.delayInMS <= 0) { throw new IllegalArgumentException("minDelay must be >=0"); }
         if (this.maxInMS == 0) { throw new IllegalArgumentException("maxDelay must be !=0"); }
@@ -53,25 +54,36 @@ public abstract class DelayedRunnable implements Runnable {
                 this.delayer = this.service.schedule(new Runnable() {
                     public void run() {
                         synchronized (DelayedRunnable.this) {
-                            boolean runNow = false;
-                            runNow = System.currentTimeMillis() - DelayedRunnable.this.lastRunRequest >= DelayedRunnable.this.delayInMS;
-                            if (DelayedRunnable.this.maxInMS > 0 && System.currentTimeMillis() - DelayedRunnable.this.firstRunRequest > DelayedRunnable.this.maxInMS) {
-                                runNow = false;
+                            /* do we have to run now? */
+                            boolean runNow = System.currentTimeMillis() - DelayedRunnable.this.lastRunRequest >= DelayedRunnable.this.delayInMS;
+                            if (DelayedRunnable.this.maxInMS > 0) {
+                                /* is a maxDelay set? */
+                                if (System.currentTimeMillis() - DelayedRunnable.this.firstRunRequest > DelayedRunnable.this.maxInMS) {
+                                    /* we have to run now! */
+                                    runNow = true;
+                                } else {
+                                    /*
+                                     * calc new nextDelay so we can reach
+                                     * maxDelay better
+                                     */
+                                    DelayedRunnable.this.nextDelay = Math.max(DelayedRunnable.this.maxInMS - (System.currentTimeMillis() - DelayedRunnable.this.firstRunRequest), 10);
+                                }
                             }
                             DelayedRunnable.this.delayer = null;
                             if (runNow) {
                                 /* we no longer delay the run */
-                                // System.out.println("delayed run");
                                 DelayedRunnable.this.delayedrun();
+                                /* reset nextDelay and firstRunRequest */
+                                DelayedRunnable.this.firstRunRequest = System.currentTimeMillis();
+                                DelayedRunnable.this.nextDelay = DelayedRunnable.this.delayInMS;
                             } else {
                                 /* lets delay it again */
-                                // System.out.println("delay again");
                                 DelayedRunnable.this.run();
                             }
                         }
                     }
 
-                }, DelayedRunnable.this.delayInMS, TimeUnit.MILLISECONDS);
+                }, DelayedRunnable.this.nextDelay, TimeUnit.MILLISECONDS);
             }
         }
     }

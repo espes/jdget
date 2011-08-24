@@ -54,7 +54,7 @@ public class Theme {
         this.setTheme("standard");
     }
 
-    protected void cache(final ImageIcon ret, final String key) {
+    public void cache(final ImageIcon ret, final String key) {
         this.imageIconCache.put(key, new MinTimeWeakReference<ImageIcon>(ret, this.getCacheLifetime(), key));
     }
 
@@ -65,7 +65,7 @@ public class Theme {
         this.imageIconCache.clear();
     }
 
-    protected ImageIcon getCached(final String key) {
+    public ImageIcon getCached(final String key) {
         final MinTimeWeakReference<ImageIcon> cache = this.imageIconCache.get(key);
         if (cache != null) { return cache.get(); }
         return null;
