@@ -165,61 +165,61 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     /**
-     * @param getter
+     * @param keyHandler
      * @return
      */
-    public Object getPrimitive(final MethodHandler getter) {
+    public Object getPrimitive(final KeyHandler keyHandler) {
         // only evaluate defaults of required
-        if (this.primitiveStorage.hasProperty(getter.getKey())) {
-            if (getter.getRawClass() == Boolean.class || getter.getRawClass() == boolean.class) {
+        if (this.primitiveStorage.hasProperty(keyHandler.getKey())) {
+            if (keyHandler.getRawClass() == Boolean.class || keyHandler.getRawClass() == boolean.class) {
 
-                return this.getPrimitive(getter.getKey(), false);
+                return this.getPrimitive(keyHandler.getKey(), false);
 
-            } else if (getter.getRawClass() == Long.class || getter.getRawClass() == long.class) {
-                return this.getPrimitive(getter.getKey(), 0l);
-            } else if (getter.getRawClass() == Integer.class || getter.getRawClass() == int.class) {
-                return this.getPrimitive(getter.getKey(), 0);
-            } else if (getter.getRawClass() == Float.class || getter.getRawClass() == float.class) {
-                return this.getPrimitive(getter.getKey(), 0.0f);
-            } else if (getter.getRawClass() == Byte.class || getter.getRawClass() == byte.class) {
-                return this.getPrimitive(getter.getKey(), (byte) 0);
-            } else if (getter.getRawClass() == String.class) {
-                return this.getPrimitive(getter.getKey(), (String) null);
+            } else if (keyHandler.getRawClass() == Long.class || keyHandler.getRawClass() == long.class) {
+                return this.getPrimitive(keyHandler.getKey(), 0l);
+            } else if (keyHandler.getRawClass() == Integer.class || keyHandler.getRawClass() == int.class) {
+                return this.getPrimitive(keyHandler.getKey(), 0);
+            } else if (keyHandler.getRawClass() == Float.class || keyHandler.getRawClass() == float.class) {
+                return this.getPrimitive(keyHandler.getKey(), 0.0f);
+            } else if (keyHandler.getRawClass() == Byte.class || keyHandler.getRawClass() == byte.class) {
+                return this.getPrimitive(keyHandler.getKey(), (byte) 0);
+            } else if (keyHandler.getRawClass() == String.class) {
+                return this.getPrimitive(keyHandler.getKey(), (String) null);
                 // } else if (getter.getRawClass() == String[].class) {
                 // return this.get(getter.getKey(),
                 // getter.getDefaultStringArray());
-            } else if (getter.getRawClass().isEnum()) {
+            } else if (keyHandler.getRawClass().isEnum()) {
 
-                return this.getPrimitive(getter.getKey(), getter.getDefaultEnum());
-            } else if (getter.getRawClass() == Double.class | getter.getRawClass() == double.class) {
-                return this.getPrimitive(getter.getKey(), 0.0d);
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultEnum());
+            } else if (keyHandler.getRawClass() == Double.class | keyHandler.getRawClass() == double.class) {
+                return this.getPrimitive(keyHandler.getKey(), 0.0d);
             } else {
-                throw new StorageException("Invalid datatype: " + getter.getRawClass());
+                throw new StorageException("Invalid datatype: " + keyHandler.getRawClass());
             }
         } else {
-            if (getter.getRawClass() == Boolean.class || getter.getRawClass() == boolean.class) {
+            if (keyHandler.getRawClass() == Boolean.class || keyHandler.getRawClass() == boolean.class) {
 
-                return this.getPrimitive(getter.getKey(), getter.getDefaultBoolean());
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultBoolean());
 
-            } else if (getter.getRawClass() == Long.class || getter.getRawClass() == long.class) {
-                return this.getPrimitive(getter.getKey(), getter.getDefaultLong());
-            } else if (getter.getRawClass() == Integer.class || getter.getRawClass() == int.class) {
-                return this.getPrimitive(getter.getKey(), getter.getDefaultInteger());
-            } else if (getter.getRawClass() == Float.class || getter.getRawClass() == float.class) {
-                return this.getPrimitive(getter.getKey(), getter.getDefaultFloat());
-            } else if (getter.getRawClass() == Byte.class || getter.getRawClass() == byte.class) {
-                return this.getPrimitive(getter.getKey(), getter.getDefaultByte());
-            } else if (getter.getRawClass() == String.class) {
-                return this.getPrimitive(getter.getKey(), getter.getDefaultString());
+            } else if (keyHandler.getRawClass() == Long.class || keyHandler.getRawClass() == long.class) {
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultLong());
+            } else if (keyHandler.getRawClass() == Integer.class || keyHandler.getRawClass() == int.class) {
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultInteger());
+            } else if (keyHandler.getRawClass() == Float.class || keyHandler.getRawClass() == float.class) {
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultFloat());
+            } else if (keyHandler.getRawClass() == Byte.class || keyHandler.getRawClass() == byte.class) {
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultByte());
+            } else if (keyHandler.getRawClass() == String.class) {
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultString());
                 // } else if (getter.getRawClass() == String[].class) {
                 // return this.get(getter.getKey(),
                 // getter.getDefaultStringArray());
-            } else if (getter.getRawClass().isEnum()) {
-                return this.getPrimitive(getter.getKey(), getter.getDefaultEnum());
-            } else if (getter.getRawClass() == Double.class | getter.getRawClass() == double.class) {
-                return this.getPrimitive(getter.getKey(), getter.getDefaultDouble());
+            } else if (keyHandler.getRawClass().isEnum()) {
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultEnum());
+            } else if (keyHandler.getRawClass() == Double.class | keyHandler.getRawClass() == double.class) {
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultDouble());
             } else {
-                throw new StorageException("Invalid datatype: " + getter.getRawClass());
+                throw new StorageException("Invalid datatype: " + keyHandler.getRawClass());
             }
         }
     }
@@ -329,7 +329,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         kh = new KeyHandler(this, key);
                         parseMap.put(key, kh);
                     }
-                    final MethodHandler h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType()));
+                    // JSonStorage.canStorePrimitive(m.getReturnType())
+                    final MethodHandler h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m);
                     kh.setGetter(h);
 
                     this.methodMap.put(m, kh);
@@ -354,7 +355,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         kh = new KeyHandler(this, key);
                         parseMap.put(key, kh);
                     }
-                    final MethodHandler h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m, JSonStorage.canStorePrimitive(m.getReturnType()));
+                    final MethodHandler h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m);
                     kh.setGetter(h);
 
                     this.methodMap.put(m, kh);
@@ -384,7 +385,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         kh = new KeyHandler(this, key);
                         parseMap.put(key, kh);
                     }
-                    final MethodHandler h = new MethodHandler(this, MethodHandler.Type.SETTER, key, m, JSonStorage.canStorePrimitive(m.getParameterTypes()[0]));
+                    final MethodHandler h = new MethodHandler(this, MethodHandler.Type.SETTER, key, m);
                     kh.setSetter(h);
 
                     this.methodMap.put(m, kh);
@@ -399,6 +400,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             final Class<?>[] interfaces = clazz.getInterfaces();
             clazz = interfaces[0];
 
+        }
+
+        for (final KeyHandler kh : this.methodMap.values()) {
+            kh.init();
         }
     }
 

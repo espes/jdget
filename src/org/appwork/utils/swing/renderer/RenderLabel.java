@@ -118,16 +118,9 @@ public class RenderLabel extends JLabel {
         super.setIcon(icon);
     }
 
-    /*
-     * Workaround to set invisible because of
-     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6700748
-     */
-    public void setWorkaroundNotVisible(final boolean b) {
-        this.workaroundNotVisible = b;
-    }
-
     @Override
     public void show(final boolean b) {
+
         // if (b) {
         // show();
         // } else {

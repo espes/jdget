@@ -66,6 +66,18 @@ public class SwingUtils {
     }
 
     /**
+     * Sets a component's opaque status
+     * 
+     * @param descriptionField
+     * @param b
+     */
+    public static void setOpaque(final JComponent descriptionField, final boolean b) {
+        descriptionField.setOpaque(b);
+        descriptionField.putClientProperty("Synthetica.opaque", b ? Boolean.TRUE : Boolean.FALSE);
+
+    }
+
+    /**
      * @param btnDetails
      */
     public static <T extends AbstractButton> T toBold(final T button) {

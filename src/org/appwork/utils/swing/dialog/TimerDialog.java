@@ -17,6 +17,8 @@ import java.awt.Toolkit;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.appwork.utils.formatter.TimeFormatter;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.SwingUtils;
@@ -32,6 +34,8 @@ public abstract class TimerDialog {
 
         public InternDialog() {
             super(SwingUtils.getWindowForComponent(Dialog.getInstance().getParentOwner()), ModalityType.TOOLKIT_MODAL);
+
+            this.setLayout(new MigLayout("ins 5,debug", "[]", "[fill,grow][]"));
             System.out.println("Dialog parent: " + this.getParent());
             if (Dialog.getInstance().getIconList() != null) {
                 this.setIconImages(Dialog.getInstance().getIconList());
@@ -63,6 +67,11 @@ public abstract class TimerDialog {
             super.dispose();
 
         }
+
+        // @Override
+        // public void setLayout(final LayoutManager manager) {
+        // super.setLayout(manager);
+        // }
     }
 
     private static final long serialVersionUID = -7551772010164684078L;
@@ -270,6 +279,7 @@ public abstract class TimerDialog {
 
     protected void layoutDialog() {
         this.dialog = new InternDialog();
+
         if (this.preferredSize != null) {
             this.dialog.setPreferredSize(this.preferredSize);
         }
@@ -282,7 +292,7 @@ public abstract class TimerDialog {
 
     public void pack() {
         this.getDialog().pack();
-        System.out.println(this.getDialog().getPreferredSize());
+
         this.getDialog().setMinimumSize(this.getDialog().getPreferredSize());
 
     }

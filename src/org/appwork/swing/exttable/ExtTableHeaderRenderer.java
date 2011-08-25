@@ -129,7 +129,9 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
 
         this.setText(value == null ? "" : value.toString());
         this.setBorder(hasFocus ? this.focusBorder : this.cellBorder);
-
+        // this.setBackground(Color.RED);
+        // this.setOpaque(true);
+        // System.out.println(this.getPreferredSize());
         return this;
     }
 

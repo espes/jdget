@@ -179,7 +179,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // The Dialog Modal
             this.getDialog().setModal(true);
             // Layout manager
-            this.getDialog().setLayout(new MigLayout("ins 5", "[]", "[fill,grow][]"));
+
             // Dispose dialog on close
             this.getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
             this.getDialog().addWindowListener(this);
@@ -258,7 +258,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             this.getDialog().invalidate();
             // this.setMinimumSize(this.getPreferredSize());
             this.getDialog().setMinimumSize(new Dimension(300, 80));
+            System.out.println(this.panel.getSize());
             this.pack();
+            System.out.println(this.panel.getSize());
             this.getDialog().setResizable(this.isResizable());
 
             // minimum size foir a dialog

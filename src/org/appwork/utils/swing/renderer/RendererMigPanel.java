@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing.renderer;
 
+import java.awt.Component;
 import java.awt.Rectangle;
 
 import org.appwork.app.gui.MigPanel;
@@ -31,7 +32,16 @@ public class RendererMigPanel extends MigPanel {
      */
     public RendererMigPanel(final String constraints, final String columns, final String rows) {
         super(constraints, columns, rows);
-        // TODO Auto-generated constructor stub
+
+    }
+
+    /**
+     * Has to return false to avoid a drag&Drop cursor flicker bug <vr>
+     * http://bugs.sun.com/view_bug.do?bug_id=6700748
+     */
+    @Override
+    public boolean isVisible() {
+        return false;
     }
 
     // /**
@@ -42,15 +52,6 @@ public class RendererMigPanel extends MigPanel {
     // oldValue, final boolean newValue) {
     // /* we dont need propertychange events */
     // }
-
-    /**
-     * Has to return false to avoid a drag&Drop cursor flicker bug <vr>
-     * http://bugs.sun.com/view_bug.do?bug_id=6700748
-     */
-    @Override
-    public boolean isVisible() {
-        return false;
-    }
 
     /**
      * * Overridden for performance reasons.
@@ -78,6 +79,14 @@ public class RendererMigPanel extends MigPanel {
      */
     @Override
     public void revalidate() {
+    }
+
+    @Override
+    public void setEnabled(final boolean enabled) {
+        super.setEnabled(enabled);
+        for (final Component c : this.getComponents()) {
+            c.setEnabled(enabled);
+        }
     }
 
 }
