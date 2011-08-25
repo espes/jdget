@@ -16,8 +16,16 @@ public class ReusableByteArrayOutputStreamPool {
             return this.buf.length;
         }
 
+        public synchronized int free() {
+            return this.buf.length - this.count;
+        }
+
         public byte[] getInternalBuffer() {
             return this.buf;
+        }
+
+        public synchronized void setUsed(final int used) {
+            this.count = used;
         }
     }
 
@@ -28,6 +36,10 @@ public class ReusableByteArrayOutputStreamPool {
     }
 
     public static ReusableByteArrayOutputStream getReusableByteArrayOutputStream(final int wishedMinimumSize) {
+        return ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(wishedMinimumSize, true);
+    }
+
+    public static ReusableByteArrayOutputStream getReusableByteArrayOutputStream(final int wishedMinimumSize, final boolean allowSmaller) {
         final int wished = Math.max(32, wishedMinimumSize);
         synchronized (ReusableByteArrayOutputStreamPool.pool) {
             ReusableByteArrayOutputStream ret = null;
@@ -57,7 +69,7 @@ public class ReusableByteArrayOutputStreamPool {
                         }
                     }
                 }
-                if (best != null) {
+                if (best != null && allowSmaller) {
                     /* return best hit from previous search */
                     it = ReusableByteArrayOutputStreamPool.pool.iterator();
                     while (it.hasNext()) {
@@ -83,6 +95,7 @@ public class ReusableByteArrayOutputStreamPool {
     public static void reuseReusableByteArrayOutputStream(final ReusableByteArrayOutputStream buf) {
         if (buf == null) { return; }
         synchronized (ReusableByteArrayOutputStreamPool.pool) {
+            if (ReusableByteArrayOutputStreamPool.pool.contains(buf)) { return; }
             ReusableByteArrayOutputStreamPool.pool.add(new SoftReference<ReusableByteArrayOutputStream>(buf));
             buf.reset();
         }

@@ -24,11 +24,10 @@ import org.appwork.utils.ImageProvider.ImageProvider;
  */
 public class RenderLabel extends JLabel {
 
-    boolean                   workaroundNotVisible = false;
     /**
      * 
      */
-    private static final long serialVersionUID     = 1204940612879959884L;
+    private static final long serialVersionUID = 1204940612879959884L;
 
     /**
      * * Overridden for performance reasons.
@@ -43,12 +42,6 @@ public class RenderLabel extends JLabel {
      */
     @Override
     public void invalidate() {
-    }
-
-    @Override
-    public boolean isVisible() {
-        if (this.workaroundNotVisible) { return false; }
-        return super.isVisible();
     }
 
     // @Override
