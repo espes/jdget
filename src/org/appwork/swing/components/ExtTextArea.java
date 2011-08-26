@@ -16,8 +16,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 public class ExtTextArea extends JTextArea implements FocusListener, DocumentListener, Badgeable {
-    private Color     defaultColor;
-    private Color     helpColor;
+    private Color       defaultColor;
+    private Color       helpColor;
 
     {
 
@@ -29,8 +29,8 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
             this.helpColor = Color.LIGHT_GRAY;
         }
     }
-    private String    helpText = null;
-    private ImageIcon badgeIcon;
+    private String      helpText = null;
+    protected ImageIcon badgeIcon;
 
     /*
      * (non-Javadoc)

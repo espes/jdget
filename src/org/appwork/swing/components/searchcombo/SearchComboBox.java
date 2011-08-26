@@ -479,7 +479,7 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
     private boolean          unkownTextInputAllowed = false;
 
-    private ImageIcon        badgeIcon;
+    protected ImageIcon      badgeIcon;
 
     private ColorState       currentColorSet;
 
