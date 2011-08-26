@@ -186,6 +186,14 @@ public class Theme {
         return this.nameSpace;
     }
 
+    /**
+     * @return
+     */
+    public String getPath() {
+
+        return this.path;
+    }
+
     private String getPath(final String pre, final String path, final String ext) {
         final StringBuilder sb = new StringBuilder();
         sb.append(this.path);

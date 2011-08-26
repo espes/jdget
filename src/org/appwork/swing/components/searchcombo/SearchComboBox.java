@@ -5,14 +5,18 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.File;
+import java.io.FilenameFilter;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
+import javax.swing.BorderFactory;
 import javax.swing.ComboBoxEditor;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -24,7 +28,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.DocumentEvent;
@@ -34,8 +40,9 @@ import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 import javax.swing.plaf.basic.ComboPopup;
 
+import org.appwork.app.gui.BasicGui;
 import org.appwork.app.gui.MigPanel;
-import org.appwork.scheduler.DelayedRunnable;
+import org.appwork.resources.AWUTheme;
 import org.appwork.swing.components.BadgePainter;
 import org.appwork.swing.components.Badgeable;
 import org.appwork.utils.logging.Log;
@@ -53,48 +60,41 @@ import org.appwork.utils.swing.SwingUtils;
 public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
     class Editor implements ComboBoxEditor, FocusListener, DocumentListener {
-        private final JTextField      tf;
-        private final MigPanel        panel;
+        private final JTextField tf;
+        private final MigPanel   panel;
 
-        private final JLabel          icon;
-        private T                     value;
-        private final DelayedRunnable sheduler;
-        private final Color           defaultForeground;
-        private boolean               setting;
+        private final JLabel     icon;
+        private T                value;
 
-        public Editor(final ScheduledExecutorService scheduler) {
+        private boolean          setting;
+
+        public Editor() {
             this.tf = new JTextField() {
-                @Override
-                public void setForeground(Color fg) {
-                    if (SearchComboBox.this.helptext != null) {
-                        if (SearchComboBox.this.helptext.equals(this.getText())) {
-                            fg = SearchComboBox.this.helpColor;
-                        }
-                    }
-                    super.setForeground(fg);
 
-                }
+                // @Override
+                // public void setText(String t) {
+                // if (!this.hasFocus() && SearchComboBox.this.helptext != null
+                // && (t == null || t.length() == 0)) {
+                // t = SearchComboBox.this.helptext;
+                // }
+                //
+                // super.setText(t);
+                // if (SearchComboBox.this.helptext != null) {
+                // if (SearchComboBox.this.helptext.equals(t)) {
+                // SearchComboBox.this.setColorState(SearchComboBox.this.helpColorSet);
+                //
+                // } else {
+                // // if (!Editor.this.autoComplete(false)) {
+                // // this.setForeground(SearchComboBox.this.foregroundBad);
+                // // } else {
+                // // this.setForeground(Editor.this.defaultForeground);
+                // // }
+                //
+                // this.setForeground(SearchComboBox.this.getForeground());
+                // }
+                // }
+                // }
 
-                @Override
-                public void setText(String t) {
-                    if (!this.hasFocus() && SearchComboBox.this.helptext != null && (t == null || t.length() == 0)) {
-                        t = SearchComboBox.this.helptext;
-                    }
-
-                    super.setText(t);
-                    if (SearchComboBox.this.helptext != null) {
-                        if (SearchComboBox.this.helptext.equals(t)) {
-                            this.setForeground(SearchComboBox.this.helpColor);
-                        } else {
-                            // if (!Editor.this.autoComplete(false)) {
-                            // this.setForeground(SearchComboBox.this.foregroundBad);
-                            // } else {
-                            // this.setForeground(Editor.this.defaultForeground);
-                            // }
-                            this.setForeground(Editor.this.defaultForeground);
-                        }
-                    }
-                }
             };
             this.tf.getDocument().addDocumentListener(this);
             this.icon = new JLabel();
@@ -115,17 +115,10 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
             this.tf.setBackground(null);
             SwingUtils.setOpaque(this.tf, false);
-            this.defaultForeground = this.tf.getForeground();
+
             this.panel.add(this.tf);
             SwingUtils.setOpaque(this.panel, false);
-            this.sheduler = new DelayedRunnable(scheduler, 150l) {
 
-                @Override
-                public void delayedrun() {
-                    Editor.this.autoComplete(true);
-                }
-
-            };
             // this.panel.setBorder(this.tf.getBorder());
             this.tf.setBorder(null);
 
@@ -144,8 +137,16 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
         private void auto() {
             if (this.setting) { return; }
+            System.out.println("auto");
             // scheduler executes at least 50 ms after this submit.
-            this.sheduler.run();
+            // this.sheduler.run();
+            SwingUtilities.invokeLater(new Runnable() {
+
+                @Override
+                public void run() {
+                    Editor.this.autoComplete(true);
+                }
+            });
 
         }
 
@@ -175,11 +176,18 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
                     final int pos = Editor.this.tf.getCaretPosition();
 
                     if (found.size() == 0) {
-                        Editor.this.tf.setForeground(SearchComboBox.this.getForegroundBad());
+
                         SearchComboBox.this.hidePopup();
+
+                        if (SearchComboBox.this.getSelectedIndex() != -1) {
+                            SearchComboBox.this.setSelectedIndex(-1);
+                            Editor.this.tf.setText(txt);
+                        }
+
                         // javax.swing.plaf.synth.SynthComboPopup
                     } else {
-                        Editor.this.tf.setForeground(Editor.this.defaultForeground);
+                        Editor.this.tf.setForeground(SearchComboBox.this.getForeground());
+
                         // Editor.this.setItem(found.get(0));
                         SearchComboBox.this.setSelectedItem(found.get(0));
                         Editor.this.setItem(found.get(0));
@@ -218,6 +226,7 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
                         }
 
                     }
+                    SearchComboBox.this.updateColorByContent();
 
                 }
             };
@@ -245,7 +254,7 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
             if (this.tf.getText().equals(SearchComboBox.this.helptext)) {
                 this.tf.setText("");
-                this.tf.setForeground(SearchComboBox.this.defaultColor);
+                SearchComboBox.this.updateColorByContent();
             } else {
                 Editor.this.tf.selectAll();
             }
@@ -254,18 +263,17 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
         public void focusLost(final FocusEvent arg0) {
 
-            if (this.tf.getDocument().getLength() == 0 || this.tf.getText().equals(SearchComboBox.this.helptext)) {
-                this.tf.setText(SearchComboBox.this.helptext);
-                this.tf.setForeground(SearchComboBox.this.helpColor);
-            } else if (!SearchComboBox.this.isUnkownTextInputAllowed() && !Editor.this.autoComplete(false)) {
+            if (!SearchComboBox.this.isUnkownTextInputAllowed() && !Editor.this.autoComplete(false)) {
                 // reset text after modifications to a valid value
-                try {
-                    Editor.this.tf.setText(SearchComboBox.this.helptext != null ? SearchComboBox.this.helptext : SearchComboBox.this.getTextForValue(Editor.this.value));
-                } catch (final NullPointerException e2) {
-                    Editor.this.tf.setText("");
-                }
-                Editor.this.autoComplete(false);
+
+                Editor.this.tf.setText(SearchComboBox.this.getTextForValue(Editor.this.value));
+
+                // Editor.this.autoComplete(false);
+            } else {
+                SearchComboBox.this.updateHelpText();
             }
+
+            SearchComboBox.this.updateColorByContent();
 
         }
 
@@ -330,7 +338,9 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
          */
         @Override
         public void removeUpdate(final DocumentEvent e) {
-            // auto();
+            if (this.tf.getSelectionEnd() - this.tf.getSelectionStart() == 0) {
+                this.auto();
+            }
             SearchComboBox.this.onChanged();
         }
 
@@ -363,33 +373,124 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
     }
 
-    private Color     defaultColor;
+    public static void main(final String[] args) {
+        final BasicGui gui = new BasicGui(SearchComboBox.class.getSimpleName()) {
 
-    private Color     helpColor;
-    {
+            @Override
+            protected void layoutPanel() {
+                try {
+                    final SearchComboBox<String> box1 = new SearchComboBox<String>() {
 
-        this.defaultColor = this.getForeground();
-        this.helpColor = (Color) UIManager.get("TextField.disabledForeground");
-        if (this.helpColor == null) {
-            this.helpColor = Color.LIGHT_GRAY;
-        }
+                        @Override
+                        protected Icon getIconForValue(final String value) {
+                            return value == null ? AWUTheme.getInstance().getIcon("close", 28) : AWUTheme.getInstance().getIcon(value, 28);
+                        }
+
+                        @Override
+                        protected String getTextForValue(final String value) {
+
+                            return value + "-icon";
+                        }
+                    };
+                    final String p = AWUTheme.I().getPath();
+                    final ArrayList<String> list = new ArrayList<String>();
+
+                    final URL images = AWUTheme.class.getResource(p + "images");
+                    for (final String s : new File(images.toURI()).list(new FilenameFilter() {
+
+                        @Override
+                        public boolean accept(final File dir, final String name) {
+
+                            return name.endsWith(".png");
+                        }
+                    })) {
+                        list.add(s.replace(".png", ""));
+                    }
+
+                    final MigPanel contentPane = new MigPanel("ins 10,wrap 1", "[grow,fill]", "[]");
+                    this.getFrame().setContentPane(contentPane);
+                    contentPane.setBadgesEnabled(true);
+                    box1.setList(list);
+                    box1.setBorder(BorderFactory.createEtchedBorder());
+
+                    this.getFrame().getContentPane().add(box1);
+                    final JToggleButton toggle = new JToggleButton("Toggle Allow unknown");
+                    this.getFrame().getContentPane().add(toggle);
+                    toggle.addActionListener(new ActionListener() {
+
+                        @Override
+                        public void actionPerformed(final ActionEvent e) {
+                            box1.setUnkownTextInputAllowed(toggle.isSelected());
+                        }
+                    });
+
+                    final JToggleButton toggle2 = new JToggleButton("Toggle HelpText");
+                    this.getFrame().getContentPane().add(toggle2);
+                    toggle2.addActionListener(new ActionListener() {
+
+                        @Override
+                        public void actionPerformed(final ActionEvent e) {
+                            box1.setHelpText(toggle2.isSelected() ? "I'm Help Text" : null);
+                        }
+                    });
+
+                    final JToggleButton toggle3 = new JToggleButton("Toggle Badge");
+                    this.getFrame().getContentPane().add(toggle3);
+                    toggle3.addActionListener(new ActionListener() {
+
+                        @Override
+                        public void actionPerformed(final ActionEvent e) {
+                            box1.setBadgeIcon(toggle3.isSelected() ? AWUTheme.I().getIcon("close", 20) : null);
+                        }
+                    });
+
+                } catch (final URISyntaxException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            protected void requestExit() {
+                System.exit(1);
+            }
+        };
+
     }
 
-    private Color     foregroundBad          = Color.red;
-    private String    helptext;
+    private final ColorState helpColorSet           = new ColorState(Color.LIGHT_GRAY);
 
-    private boolean   unkownTextInputAllowed = false;
+    private final ColorState badColorSet            = new ColorState(Color.RED);
 
-    private ImageIcon badgeIcon;
+    private final ColorState normalColorSet         = new ColorState(Color.BLACK);
+
+    {
+
+        this.normalColorSet.setForeground(this.getForeground());
+        final Color disabled = (Color) UIManager.get("TextField.disabledForeground");
+        if (disabled != null) {
+            this.helpColorSet.setForeground(disabled);
+        }
+
+    }
+
+    private String           helptext;
+
+    private boolean          unkownTextInputAllowed = false;
+
+    private ImageIcon        badgeIcon;
+
+    private ColorState       currentColorSet;
 
     /**
      * @param plugins
      */
     public SearchComboBox() {
-        this(null, Executors.newSingleThreadScheduledExecutor());
+        this(null);
     }
 
-    public SearchComboBox(final ArrayList<T> plugins, final ScheduledExecutorService scheduler) {
+    public SearchComboBox(final ArrayList<T> plugins) {
         super((ComboBoxModel) null);
         this.addFocusListener(new FocusListener() {
 
@@ -408,7 +509,7 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
             this.setList(plugins);
         }
 
-        this.setEditor(new Editor(scheduler));
+        this.setEditor(new Editor());
         this.setEditable(true);
 
         // we extends the existing renderer. this avoids LAF incompatibilities
@@ -452,6 +553,7 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
                 }
             }
         });
+        this.setColorState(this.normalColorSet);
     }
 
     /**
@@ -460,10 +562,6 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
     public String getEditorText() {
 
         return this.getTextField().getText();
-    }
-
-    public Color getForegroundBad() {
-        return this.foregroundBad;
     }
 
     /**
@@ -476,7 +574,9 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
         return this.getTextField().getText();
     }
 
+    @SuppressWarnings("unchecked")
     public JTextField getTextField() {
+        if ((Editor) this.getEditor() == null) { return null; }
         return ((Editor) this.getEditor()).getTf();
     }
 
@@ -511,16 +611,20 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
     public void paintBadge(final BadgePainter migPanel, final Graphics g) {
         if (this.badgeIcon != null) {
-
             g.drawImage(this.badgeIcon.getImage(), (int) (this.getWidth() - this.badgeIcon.getIconWidth() / 1.5), (int) (this.getHeight() - this.badgeIcon.getIconHeight() / 1.5), null);
 
         }
     }
 
-    @Override
-    protected void paintComponent(final Graphics g) {
-
-        super.paintComponent(g);
+    /**
+     * @param object
+     */
+    public void setBadColor(final Color color) {
+        this.badColorSet.setForeground(color);
+        final JTextField tf = this.getTextField();
+        if (tf != null) {
+            tf.setForeground(this.currentColorSet.getForeground());
+        }
 
     }
 
@@ -542,9 +646,19 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
     }
 
-    public void setForegroundBad(final Color fg) {
-        this.foregroundBad = fg == null ? ((Editor) this.getEditor()).defaultForeground : fg;
+    private void setColorState(final ColorState cs) {
+        this.currentColorSet = cs;
+        final JTextField tf = this.getTextField();
+        if (tf != null) {
+            tf.setForeground(this.currentColorSet.getForeground());
+        }
 
+    }
+
+    @Override
+    public void setForeground(final Color fg) {
+        super.setForeground(fg);
+        this.setNormalColor(fg);
     }
 
     /**
@@ -552,7 +666,7 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
      */
     public void setHelpText(final String helptext) {
         this.helptext = helptext;
-        this.getTextField().setText(this.getText());
+        this.updateHelpText();
 
     }
 
@@ -619,10 +733,20 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
         throw new RuntimeException("Use setList()");
     }
 
+    /**
+     * @param fg
+     */
+    public void setNormalColor(final Color fg) {
+        final JTextField tf = this.getTextField();
+        if (tf != null) {
+            tf.setForeground(this.currentColorSet.getForeground());
+        }
+
+    }
+
     @Override
     public void setRenderer(final ListCellRenderer aRenderer) {
-        // TODO Auto-generated method stub
-        System.out.println("SET " + aRenderer);
+
         super.setRenderer(aRenderer);
     }
 
@@ -642,6 +766,51 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
      */
     public void setUnkownTextInputAllowed(final boolean allowUnknownValuesEnabled) {
         this.unkownTextInputAllowed = allowUnknownValuesEnabled;
+    }
+
+    /**
+     * @param txt
+     * @return
+     */
+    private boolean textMatchesEntry(final String txt) {
+        if (txt == null) { return false; }
+
+        String text;
+
+        for (int i = 0; i < SearchComboBox.this.getModel().getSize(); i++) {
+            text = SearchComboBox.this.getTextForValue((T) SearchComboBox.this.getModel().getElementAt(i));
+            if (text != null && text.startsWith(txt)) { return true; }
+        }
+        return false;
+    }
+
+    /**
+     * 
+     */
+    public void updateColorByContent() {
+        final String txt = this.getText();
+        if (this.helptext != null && this.helptext.equals(txt)) {
+            this.setColorState(this.helpColorSet);
+        } else {
+            if (this.textMatchesEntry(txt)) {
+                this.setColorState(this.normalColorSet);
+
+            } else {
+                this.setColorState(this.badColorSet);
+            }
+
+        }
+    }
+
+    /**
+     * 
+     */
+    private void updateHelpText() {
+        if (this.getEditor() == null || this.helptext == null) { return; }
+        if (this.getTextField().getDocument().getLength() == 0) {
+            this.setText(this.helptext);
+            this.updateColorByContent();
+        }
     }
 
 }

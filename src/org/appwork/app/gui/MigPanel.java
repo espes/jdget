@@ -35,8 +35,8 @@ public class MigPanel extends JPanel implements BadgePainter {
     }
 
     @Override
-    public void add(final Component comp, final Object constraints) {
-        super.add(comp, constraints);
+    protected void addImpl(final Component comp, final Object constraints, final int index) {
+        super.addImpl(comp, constraints, index);
         if (this.isBadgesEnabled()) {
             if (comp instanceof JComponent) {
                 this.lookupBadges((JComponent) comp);
