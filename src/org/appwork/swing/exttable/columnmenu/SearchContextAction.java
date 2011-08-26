@@ -16,7 +16,7 @@ import javax.swing.Action;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.swing.exttable.ExtTable;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author thomas
@@ -26,7 +26,7 @@ public class SearchContextAction extends AbstractAction {
     private final ExtTable<?> table;
 
     public SearchContextAction(final ExtTable<?> extTable) {
-        super(APPWORKUTILS.T.SearchContextAction());
+        super(_AWU.T.SearchContextAction());
         this.putValue(Action.SMALL_ICON, AWUTheme.getInstance().getIcon("exttable/findmenu", extTable.getContextIconSize()));
         this.table = extTable;
     }

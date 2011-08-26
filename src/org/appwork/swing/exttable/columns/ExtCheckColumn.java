@@ -20,7 +20,7 @@ import javax.swing.SwingConstants;
 import org.appwork.swing.exttable.ExtColumn;
 import org.appwork.swing.exttable.ExtDefaultRowSorter;
 import org.appwork.swing.exttable.ExtTableModel;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.renderer.RendererCheckBox;
 
@@ -106,7 +106,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         final JPopupMenu menu = ret;
         if (allenabled) {
 
-            final JCheckBox cb = new JCheckBox(APPWORKUTILS.T.extttable_disable_all());
+            final JCheckBox cb = new JCheckBox(_AWU.T.extttable_disable_all());
             cb.setSelected(true);
             cb.addActionListener(new ActionListener() {
 
@@ -120,7 +120,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
             ret.add(cb);
 
         } else {
-            final JCheckBox cb = new JCheckBox(APPWORKUTILS.T.extttable_enabled_all());
+            final JCheckBox cb = new JCheckBox(_AWU.T.extttable_enabled_all());
             cb.setSelected(false);
             cb.addActionListener(new ActionListener() {
 
@@ -180,7 +180,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
     @Override
     protected String getTooltipText(final E obj) {
 
-        return this.getBooleanValue(obj) ? APPWORKUTILS.T.active() : APPWORKUTILS.T.inactive();
+        return this.getBooleanValue(obj) ? _AWU.T.active() : _AWU.T.inactive();
     }
 
     @Override

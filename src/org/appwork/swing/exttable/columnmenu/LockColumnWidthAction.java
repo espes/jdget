@@ -16,7 +16,7 @@ import javax.swing.Action;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.swing.exttable.ExtColumn;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author thomas
@@ -30,7 +30,7 @@ public class LockColumnWidthAction extends AbstractAction {
      * @param extColumn
      */
     public LockColumnWidthAction(final ExtColumn<?> extColumn) {
-        super(APPWORKUTILS.T.LockColumnWidthAction());
+        super(_AWU.T.LockColumnWidthAction());
         this.putValue(Action.SMALL_ICON, AWUTheme.getInstance().getIcon("exttable/lockColumn", extColumn.getModel().getTable().getContextIconSize()));
         this.extColumn = extColumn;
         this.putValue(Action.SELECTED_KEY, !extColumn.isResizable());

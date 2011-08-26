@@ -44,7 +44,7 @@ import net.miginfocom.swing.MigLayout;
 import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
@@ -108,8 +108,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.flagMask = flag;
 
         this.icon = BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON) ? null : icon;
-        this.okOption = okOption == null ? APPWORKUTILS.T.ABSTRACTDIALOG_BUTTON_OK() : okOption;
-        this.cancelOption = cancelOption == null ? APPWORKUTILS.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
+        this.okOption = okOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_OK() : okOption;
+        this.cancelOption = cancelOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
     }
 
     /**
@@ -129,7 +129,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 }
 
             });
-            this.timerLbl.setToolTipText(APPWORKUTILS.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
+            this.timerLbl.setToolTipText(_AWU.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
 
             this.timerLbl.setIcon(AWUTheme.I().getIcon("dialog/cancel", 16));
         }
@@ -184,16 +184,16 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             this.getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
             this.getDialog().addWindowListener(this);
             // create panel for the dialog's buttons
+            this.okButton = new JButton(this.okOption);
+            this.cancelButton = new JButton(this.cancelOption);
             this.defaultButtons = this.getDefaultButtonPanel();
 
-            this.okButton = new JButton(this.okOption);
             /*
              * We set the focus on the ok button. if no ok button is shown, we
              * set the focus on cancel button
              */
             JButton focus = this.okButton;
 
-            this.cancelButton = new JButton(this.cancelOption);
             // add listeners here
             this.okButton.addActionListener(this);
             this.cancelButton.addActionListener(this);
@@ -208,7 +208,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // add the countdown timer
             this.getDialog().add(this.timerLbl, "split 3,growx,hidemode 2");
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-                this.dontshowagain = new JCheckBox(APPWORKUTILS.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
+                this.dontshowagain = new JCheckBox(_AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
                 this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
                 this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
                 this.dontshowagain.setSelected(this.doNotShowAgainSelected);
@@ -234,6 +234,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 });
                 focus = this.okButton;
                 this.defaultButtons.add(this.okButton, "alignx right,tag ok,sizegroup confirms,growx,pushx");
+
             }
             if (!BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_CANCEL)) {
 

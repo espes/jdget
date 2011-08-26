@@ -70,9 +70,6 @@ public class JSonFactory {
                         case '"':
                             this.sb.append('"');
                             continue;
-                        case '\\':
-                            this.sb.append('\\');
-                            continue;
                         case 'r':
                             this.sb.append('\r');
                             continue;
@@ -105,6 +102,8 @@ public class JSonFactory {
                         default:
                             throw this.bam("illegal escape char");
                         }
+                    } else {
+                        this.global--;
                     }
                     break;
                 default:

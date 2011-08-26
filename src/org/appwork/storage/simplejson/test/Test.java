@@ -15,6 +15,9 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
+ * 
+ * This tests compare Jackson parser with our own simpleparser code.
+ * 
  * @author thomas
  * 
  */
@@ -26,6 +29,9 @@ public class Test {
         Test.parseValid("[1,2,\"23\",4,5,[true,false]]");
         Test.parseValid("23.432e-4");
         Test.parseValid("[23.432e-4]");
+        Test.parseValid("{\"defaultdownloadfolder\":\"C:\\\\Users\\\\thomas\\\\down\\rloads\"}");
+
+        Test.parseValid("[\"Z:\\\\\"]");
     }
 
     /**
@@ -38,12 +44,10 @@ public class Test {
         // can either use mapper.readTree(JsonParser), or bind to JsonNode
 
         final JsonNode rootNode = m.readValue(string, JsonNode.class);
-
         final JSonNode json = new JSonFactory(string).parse();
 
-        System.err.println("Result : " + json);
-
         if (rootNode.toString().length() != json.toString().length()) { throw new Exception("Jackson mismatch"); }
+        System.err.println("SUCCESS");
 
     }
 }

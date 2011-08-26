@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import javax.swing.JComponent;
 
 import org.appwork.swing.exttable.ExtTableModel;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author daniel
@@ -70,7 +70,7 @@ public abstract class ExtPasswordEditorColumn<E> extends ExtTextColumn<E> implem
     @Override
     protected String getTooltipText(final E obj) {
 
-        return APPWORKUTILS.T.extpasswordeditorcolumn_tooltip();
+        return _AWU.T.extpasswordeditorcolumn_tooltip();
     }
 
     /**

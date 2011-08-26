@@ -43,7 +43,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JWindow;
 
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
@@ -571,7 +571,7 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
             gb.fillRect(pos.x + 1, pos.y + ScreenShooter.SIZE - gb.getFontMetrics().getHeight(), ScreenShooter.SIZE - 1, gb.getFontMetrics().getHeight());
             gb.setColor(Color.GRAY);
             gb.drawLine(pos.x, pos.y + ScreenShooter.SIZE - gb.getFontMetrics().getHeight(), pos.x + ScreenShooter.SIZE, pos.y + ScreenShooter.SIZE - gb.getFontMetrics().getHeight());
-            final String dimension = APPWORKUTILS.T.Layover_size(Math.abs(this.mouse.x - this.dragStart.x) + 1, Math.abs(this.mouse.y - this.dragStart.y) + 1);
+            final String dimension = _AWU.T.Layover_size(Math.abs(this.mouse.x - this.dragStart.x) + 1, Math.abs(this.mouse.y - this.dragStart.y) + 1);
             gb.getFontMetrics().stringWidth(dimension);
             gb.drawString(dimension, pos.x + 5, pos.y + ScreenShooter.SIZE - 3);
 

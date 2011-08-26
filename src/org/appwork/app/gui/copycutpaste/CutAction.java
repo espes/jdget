@@ -14,7 +14,7 @@ import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
 
 import org.appwork.resources.AWUTheme;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author $Author: unknown$
@@ -28,7 +28,7 @@ public class CutAction extends AbstractAction {
     private final JTextComponent text;
 
     public CutAction(final JTextComponent c) {
-        super(APPWORKUTILS.T.COPYCUTPASTE_CUT());
+        super(_AWU.T.COPYCUTPASTE_CUT());
         this.text = c;
 
         this.putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("cut", 16));

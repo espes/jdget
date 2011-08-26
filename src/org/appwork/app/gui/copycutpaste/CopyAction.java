@@ -14,7 +14,7 @@ import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
 
 import org.appwork.resources.AWUTheme;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author $Author: unknown$
@@ -28,7 +28,7 @@ public class CopyAction extends AbstractAction {
     private final JTextComponent text;
 
     public CopyAction(final JTextComponent c) {
-        super(APPWORKUTILS.T.COPYCUTPASTE_COPY());
+        super(_AWU.T.COPYCUTPASTE_COPY());
         this.text = c;
 
         this.putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("copy", 16));

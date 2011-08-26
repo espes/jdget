@@ -27,7 +27,7 @@ import javax.swing.text.JTextComponent;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 public class PasswordDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
@@ -55,7 +55,7 @@ public class PasswordDialog extends AbstractDialog<String> implements KeyListene
         messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
         contentpane.add("span 2", messageArea);
-        contentpane.add(new JLabel(APPWORKUTILS.T.PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD()));
+        contentpane.add(new JLabel(_AWU.T.PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD()));
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
             input1 = new JPasswordField();
             input1.addKeyListener(this);
@@ -68,7 +68,7 @@ public class PasswordDialog extends AbstractDialog<String> implements KeyListene
             input1.addMouseListener(this);
             contentpane.add(input1, "pushy,growy,w 250");
         }
-        contentpane.add(new JLabel(APPWORKUTILS.T.PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD()));
+        contentpane.add(new JLabel(_AWU.T.PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD()));
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
             input2 = new JPasswordField();
             input2.addKeyListener(this);
@@ -81,7 +81,7 @@ public class PasswordDialog extends AbstractDialog<String> implements KeyListene
             input2.addMouseListener(this);
             contentpane.add(input2, "pushy,growy,w 250");
         }
-        contentpane.add(new JLabel(APPWORKUTILS.T.PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD_REPEAT()));
+        contentpane.add(new JLabel(_AWU.T.PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD_REPEAT()));
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
             input3 = new JPasswordField();
             input3.addKeyListener(this);

@@ -209,6 +209,9 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Reset Columns", "Spalten zurücksetzen" })
     String ResetColumnsAction();
 
+    @Default(lngs = { "en", "de" }, values = { "No options available", "Keine Auswahl verfügbar" })
+    String searchbox_model_empty();
+
     @Default(lngs = { "en", "de" }, values = { "Search Table", "Tabelle durchsuchen" })
     String SearchContextAction();
 

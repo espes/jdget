@@ -57,7 +57,9 @@ public class BallonPanel extends MigPanel {
 
     private final BalloonDialog balloonDialog;
 
-    private boolean             right;
+    private boolean             expandToRight;
+
+    private boolean             expandToBottom;
 
     private static final int    GAP        = 15;
 
@@ -121,6 +123,14 @@ public class BallonPanel extends MigPanel {
         return this.yposition;
     }
 
+    public boolean isExpandToBottom() {
+        return this.expandToBottom;
+    }
+
+    public boolean isExpandToRight() {
+        return this.expandToRight;
+    }
+
     @Override
     protected void paintComponent(final Graphics g) {
 
@@ -146,7 +156,7 @@ public class BallonPanel extends MigPanel {
         // dart.addPoint(this.leftInset + w - 25, this.topInset + h);
         //
         // }
-        if (this.right) {
+        if (this.expandToRight) {
             if (this.bottomInset > this.topInset) {
                 // dialog bottom left screen
                 // [ ][ ]
@@ -244,15 +254,15 @@ public class BallonPanel extends MigPanel {
         final int x = this.desiredLocation.x - bounds.x;
         final int y = this.desiredLocation.y - bounds.y;
 
-        final boolean bottom = bounds.height - y > bounds.height / 2;
-        this.right = bounds.width - x > bounds.width / 2;
+        this.expandToBottom = this.balloonDialog.doExpandToBottom(bounds.height - y > bounds.height / 2);
+        this.expandToRight = this.balloonDialog.doExpandToRight(bounds.width - x > bounds.width / 2);
         this.topInset = BallonPanel.GAP;
         this.leftInset = BallonPanel.GAP;
         this.bottomInset = BallonPanel.GAP;
         this.rightInset = BallonPanel.GAP;
         final int half;
         final int width = this.contentSize.width + (BallonPanel.GAP + this.rounded / 2) * 2;
-        if (!this.right) {
+        if (!this.expandToRight) {
 
             half = (int) (0.85 * width);
         } else {
@@ -260,7 +270,7 @@ public class BallonPanel extends MigPanel {
         }
         System.out.println(half);
         final int dartHeight = this.contentSize.height / 3;
-        if (bottom) {
+        if (this.expandToBottom) {
             this.xPosition = -half;
             this.topInset = dartHeight;
             this.yposition = 0;

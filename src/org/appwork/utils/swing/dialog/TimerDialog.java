@@ -165,23 +165,11 @@ public abstract class TimerDialog {
         if (h <= 0) {
             h = pref.height;
         }
-        // w = Math.min(max.width, w);
-        // w = Math.max(min.width, w);
-        // h = Math.min(max.height, h);
-        // h = Math.max(min.height, h);
 
         try {
-            if (this.isIgnoreSizeLimitations()) {
-                return new Dimension(Math.min(Toolkit.getDefaultToolkit().getScreenSize().width, w), Math.min(Toolkit.getDefaultToolkit().getScreenSize().height, h));
 
-            } else {
-                if (this.getDialog().getParent().isVisible()) {
-                    return new Dimension(Math.min(this.getRoot().getWidth(), w), Math.min(this.getRoot().getHeight(), h));
-                } else {
-                    return new Dimension(Math.min((int) (Toolkit.getDefaultToolkit().getScreenSize().width * 0.75), w), Math.min((int) (Toolkit.getDefaultToolkit().getScreenSize().height * 0.75), h));
+            return new Dimension(Math.min(Toolkit.getDefaultToolkit().getScreenSize().width, w), Math.min(Toolkit.getDefaultToolkit().getScreenSize().height, h));
 
-                }
-            }
         } catch (final Throwable e) {
             return pref;
         }
@@ -261,15 +249,6 @@ public abstract class TimerDialog {
     }
 
     /**
-     * Override this method to allow dialogs beeing larger than their parents
-     * 
-     * @return
-     */
-    protected boolean isIgnoreSizeLimitations() {
-        return false;
-    }
-
-    /**
      * @return
      */
     protected boolean isVisible() {
@@ -291,6 +270,7 @@ public abstract class TimerDialog {
     protected abstract void onTimeout();
 
     public void pack() {
+
         this.getDialog().pack();
 
         this.getDialog().setMinimumSize(this.getDialog().getPreferredSize());

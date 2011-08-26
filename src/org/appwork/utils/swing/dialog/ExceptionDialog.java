@@ -30,7 +30,7 @@ import net.miginfocom.swing.MigLayout;
 import org.appwork.resources.AWUTheme;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.Exceptions;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
@@ -64,7 +64,7 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
     @Override
     protected void addButtons(final JPanel buttonBar) {
 
-        final JButton more = new JButton(APPWORKUTILS.T.ExceptionDialog_layoutDialogContent_more_button());
+        final JButton more = new JButton(_AWU.T.ExceptionDialog_layoutDialogContent_more_button());
 
         more.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
@@ -152,7 +152,7 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
         this.logField.setEditable(true);
         this.logField.setAutoscrolls(true);
         this.logField.setForeground(Color.RED);
-        this.logLabel = new JLabel(APPWORKUTILS.T.ExceptionDialog_layoutDialogContent_logLabel());
+        this.logLabel = new JLabel(_AWU.T.ExceptionDialog_layoutDialogContent_logLabel());
         this.logLabel.setVisible(false);
         cp.add(this.logLabel, "hidemode 3,gaptop 5");
 

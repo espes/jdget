@@ -26,7 +26,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 public class SearchDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
@@ -41,10 +41,10 @@ public class SearchDialog extends AbstractDialog<String> implements KeyListener,
     private final JCheckBox   regularExpression;
 
     public SearchDialog(final int flag, final String title, final String message) {
-        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, AWUTheme.I().getIcon("dialog/find", 32), APPWORKUTILS.T.SEARCHDIALOG_BUTTON_FIND(), null);
+        super(flag | Dialog.BUTTONS_HIDE_CANCEL, title, AWUTheme.I().getIcon("dialog/find", 32), _AWU.T.SEARCHDIALOG_BUTTON_FIND(), null);
 
-        this.caseSensitive = new JCheckBox(APPWORKUTILS.T.SEARCHDIALOG_CHECKBOX_CASESENSITIVE());
-        this.regularExpression = new JCheckBox(APPWORKUTILS.T.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION());
+        this.caseSensitive = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_CASESENSITIVE());
+        this.regularExpression = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION());
 
         this.caseSensitive.setSelected(JSonStorage.getStorage("SearchDialog").get("caseSensitive", false));
 

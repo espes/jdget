@@ -3,7 +3,7 @@ package org.appwork.utils.net.httpconnection;
 import java.net.InetAddress;
 
 import org.appwork.utils.Regex;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 
 public class HTTPProxy {
@@ -176,10 +176,10 @@ public class HTTPProxy {
 
     @Override
     public String toString() {
-        if (this.type == TYPE.NONE) { return APPWORKUTILS.T.proxy_none(); }
-        if (this.type == TYPE.DIRECT) { return APPWORKUTILS.T.proxy_direct(); }
-        if (this.type == TYPE.HTTP) { return APPWORKUTILS.T.proxy_http(this.getHost(), this.getPort()); }
-        if (this.type == TYPE.SOCKS5) { return APPWORKUTILS.T.proxy_socks(this.getHost(), this.getPort()); }
+        if (this.type == TYPE.NONE) { return _AWU.T.proxy_none(); }
+        if (this.type == TYPE.DIRECT) { return _AWU.T.proxy_direct(); }
+        if (this.type == TYPE.HTTP) { return _AWU.T.proxy_http(this.getHost(), this.getPort()); }
+        if (this.type == TYPE.SOCKS5) { return _AWU.T.proxy_socks(this.getHost(), this.getPort()); }
         return "UNKNOWN";
     }
 }

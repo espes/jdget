@@ -23,7 +23,7 @@ import javax.swing.ToolTipManager;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.resources.AWUTheme;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
 
@@ -80,7 +80,7 @@ public class Statusbar extends JMenuBar {
 
         this.help = new JLabel(AWUTheme.I().getIcon("info", 16));
 
-        this.help.setToolTipText(APPWORKUTILS.T.Statusbar_Statusbar_visiturl_tooltip());
+        this.help.setToolTipText(_AWU.T.Statusbar_Statusbar_visiturl_tooltip());
         this.add(this.help);
 
         this.tip = new JLabel("");
@@ -112,7 +112,7 @@ public class Statusbar extends JMenuBar {
         });
         this.urlLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         this.urlLabel.setForeground(Color.GRAY);
-        this.urlLabel.setToolTipText(APPWORKUTILS.T.Statusbar_Statusbar_visiturl_tooltip());
+        this.urlLabel.setToolTipText(_AWU.T.Statusbar_Statusbar_visiturl_tooltip());
         this.urlLabel.setIcon(AWUTheme.I().getIcon("appicon", 16));
         this.urlLabel.setHorizontalTextPosition(SwingConstants.LEFT);
         this.urlLabel.addMouseListener(new MouseAdapter() {

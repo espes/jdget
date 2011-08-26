@@ -16,7 +16,7 @@ import javax.swing.Action;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.swing.exttable.ExtTable;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author thomas
@@ -30,7 +30,7 @@ public class ResetColumns extends AbstractAction {
      * @param extTable
      */
     public ResetColumns(final ExtTable<?> extTable) {
-        super(APPWORKUTILS.T.ResetColumnsAction());
+        super(_AWU.T.ResetColumnsAction());
         this.putValue(Action.SMALL_ICON, AWUTheme.getInstance().getIcon("exttable/resetColumns", extTable.getContextIconSize()));
         this.table = extTable;
     }

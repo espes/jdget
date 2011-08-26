@@ -19,7 +19,7 @@ import org.appwork.txtresource.TranslationUtils;
  * @author thomas
  * 
  */
-public class APPWORKUTILS {
+public class _AWU {
     public static final AWUTranslation T = TranslationFactory.create(AWUTranslation.class);
 
     public static void main(final String[] args) throws URISyntaxException, IOException {

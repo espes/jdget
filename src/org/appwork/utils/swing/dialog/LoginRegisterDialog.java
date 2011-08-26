@@ -30,7 +30,7 @@ import javax.swing.SwingConstants;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 public class LoginRegisterDialog extends AbstractDialog<String[]> implements KeyListener, MouseListener {
 
@@ -129,7 +129,7 @@ public class LoginRegisterDialog extends AbstractDialog<String[]> implements Key
         messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
         cp.add(messageArea, "spanx");
-        cp.add(new JLabel(APPWORKUTILS.T.LOGINDIALOG_LABEL_USERNAME()), "alignx right");
+        cp.add(new JLabel(_AWU.T.LOGINDIALOG_LABEL_USERNAME()), "alignx right");
 
         login = new JTextField();
         login.setBorder(BorderFactory.createEtchedBorder());
@@ -139,7 +139,7 @@ public class LoginRegisterDialog extends AbstractDialog<String[]> implements Key
         cp.add(login, "pushy,growy");
         // password
 
-        cp.add(new JLabel(APPWORKUTILS.T.LOGINDIALOG_LABEL_PASSWORD()), "alignx right");
+        cp.add(new JLabel(_AWU.T.LOGINDIALOG_LABEL_PASSWORD()), "alignx right");
 
         password = new JPasswordField();
         password.setBorder(BorderFactory.createEtchedBorder());
@@ -149,7 +149,7 @@ public class LoginRegisterDialog extends AbstractDialog<String[]> implements Key
 
         // register
 
-        cp.add(rpasswordLabel = new JLabel(APPWORKUTILS.T.LOGINDIALOG_LABEL_PASSWORD_REPEAT()), "alignx right,hidemode 3");
+        cp.add(rpasswordLabel = new JLabel(_AWU.T.LOGINDIALOG_LABEL_PASSWORD_REPEAT()), "alignx right,hidemode 3");
 
         rpassword = new JPasswordField();
         rpassword.setBorder(BorderFactory.createEtchedBorder());
@@ -159,7 +159,7 @@ public class LoginRegisterDialog extends AbstractDialog<String[]> implements Key
         rpassword.setVisible(BinaryLogic.containsAll(flagMask, LoginRegisterDialog.FORCE_REGISTER));
         rpasswordLabel.setVisible(BinaryLogic.containsAll(flagMask, LoginRegisterDialog.FORCE_REGISTER));
         if (register) {
-            registerBtn = new JLabel(APPWORKUTILS.T.LOGINDIALOG_BUTTON_REGISTER());
+            registerBtn = new JLabel(_AWU.T.LOGINDIALOG_BUTTON_REGISTER());
             registerBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, cp.getBackground().darker().darker()));
             registerBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             registerBtn.addMouseListener(this);
@@ -169,7 +169,7 @@ public class LoginRegisterDialog extends AbstractDialog<String[]> implements Key
         }
 
         if (remember) {
-            rem = new JCheckBox(APPWORKUTILS.T.LOGINDIALOG_CHECKBOX_REMEMBER());
+            rem = new JCheckBox(_AWU.T.LOGINDIALOG_CHECKBOX_REMEMBER());
             rem.setHorizontalTextPosition(SwingConstants.LEFT);
             rem.setHorizontalAlignment(SwingConstants.RIGHT);
             cp.add(rem, "pushx,growx,alignx right");
@@ -183,11 +183,11 @@ public class LoginRegisterDialog extends AbstractDialog<String[]> implements Key
             if (rpassword.isVisible()) {
                 rpassword.setVisible(false);
                 rpasswordLabel.setVisible(false);
-                registerBtn.setText(APPWORKUTILS.T.LOGINDIALOG_BUTTON_REGISTER());
+                registerBtn.setText(_AWU.T.LOGINDIALOG_BUTTON_REGISTER());
             } else {
                 rpassword.setVisible(true);
                 rpasswordLabel.setVisible(true);
-                registerBtn.setText(APPWORKUTILS.T.LOGINDIALOG_BUTTON_LOGIN());
+                registerBtn.setText(_AWU.T.LOGINDIALOG_BUTTON_LOGIN());
             }
 
             pack();

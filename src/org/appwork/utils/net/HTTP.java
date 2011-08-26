@@ -20,7 +20,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.utils.formatter.SizeFormatter;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.ProgressDialog;
@@ -154,8 +154,8 @@ public class HTTP {
                         public String getString() {
                             this.total = progress.getTotal();
                             this.loaded = progress.getLoaded();
-                            if (this.total <= 0) { return APPWORKUTILS.T.connecting(); }
-                            return APPWORKUTILS.T.progress(SizeFormatter.formatBytes(this.loaded), SizeFormatter.formatBytes(this.total), this.loaded * 10000f / this.total / 100.0);
+                            if (this.total <= 0) { return _AWU.T.connecting(); }
+                            return _AWU.T.progress(SizeFormatter.formatBytes(this.loaded), SizeFormatter.formatBytes(this.total), this.loaded * 10000f / this.total / 100.0);
                         }
 
                         @Override
@@ -164,7 +164,7 @@ public class HTTP {
                         }
 
                     };
-                    final ProgressDialog dialog = new ProgressDialog(pg, Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK, APPWORKUTILS.T.download_title(), APPWORKUTILS.T.download_msg(), AWUTheme.I().getIcon("download", 32)) {
+                    final ProgressDialog dialog = new ProgressDialog(pg, Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK, _AWU.T.download_title(), _AWU.T.download_msg(), AWUTheme.I().getIcon("download", 32)) {
                         /**
                          * 
                          */
@@ -173,7 +173,7 @@ public class HTTP {
                         @Override
                         public boolean closeAllowed() {
 
-                            Dialog.getInstance().showMessageDialog(APPWORKUTILS.T.please_wait());
+                            Dialog.getInstance().showMessageDialog(_AWU.T.please_wait());
 
                             return false;
                         }

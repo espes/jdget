@@ -37,7 +37,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.SwingUtils;
 import org.appwork.utils.swing.dialog.AbstractDialog;
@@ -62,13 +62,13 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
     private final JButton        okButton;
 
     public SearchDialog(final int flag, final ExtTable<?> owner) throws IOException {
-        super(SwingUtils.getWindowForComponent(owner), APPWORKUTILS.T.EXTTABLE_SEARCH_DIALOG_TITLE());
+        super(SwingUtils.getWindowForComponent(owner), _AWU.T.EXTTABLE_SEARCH_DIALOG_TITLE());
 
         this.owner = owner;
         this.owner.addFocusListener(this);
 
-        this.caseSensitive = new JCheckBox(APPWORKUTILS.T.SEARCHDIALOG_CHECKBOX_CASESENSITIVE());
-        this.regularExpression = new JCheckBox(APPWORKUTILS.T.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION());
+        this.caseSensitive = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_CASESENSITIVE());
+        this.regularExpression = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION());
         try {
             this.caseSensitive.setSelected(owner.getStorage().get("caseSensitive", false));
             this.regularExpression.setSelected(owner.getStorage().get("regularExpression", false));
@@ -94,7 +94,7 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
         this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         this.addWindowListener(this);
-        this.okButton = new JButton(APPWORKUTILS.T.SEARCHDIALOG_BUTTON_FIND());
+        this.okButton = new JButton(_AWU.T.SEARCHDIALOG_BUTTON_FIND());
         this.okButton.addActionListener(this);
 
         this.add(new JLabel(AWUTheme.I().getIcon("dialog/find", 32)), "alignx left,aligny center,shrinkx,gapright 10,spany");

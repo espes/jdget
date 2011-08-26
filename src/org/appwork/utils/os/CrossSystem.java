@@ -21,7 +21,7 @@ import javax.swing.filechooser.FileFilter;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.mime.Mime;
 import org.appwork.utils.os.mime.MimeDefault;
@@ -133,7 +133,7 @@ public class CrossSystem {
     }
 
     public static String[] getEditor(final String extension) throws DialogCanceledException, DialogClosedException, StorageException {
-        final File[] ret = Dialog.getInstance().showFileChooser("FILE_EDIT_CONTROLLER_" + extension, APPWORKUTILS.T.fileditcontroller_geteditor_for(extension), Dialog.FileChooserSelectionMode.FILES_ONLY, new FileFilter() {
+        final File[] ret = Dialog.getInstance().showFileChooser("FILE_EDIT_CONTROLLER_" + extension, _AWU.T.fileditcontroller_geteditor_for(extension), Dialog.FileChooserSelectionMode.FILES_ONLY, new FileFilter() {
 
             @Override
             public boolean accept(final File f) {
@@ -149,7 +149,7 @@ public class CrossSystem {
             @Override
             public String getDescription() {
 
-                return APPWORKUTILS.T.fileeditcontroller_exechooser_description(extension);
+                return _AWU.T.fileeditcontroller_exechooser_description(extension);
 
             }
 
@@ -295,7 +295,7 @@ public class CrossSystem {
         } catch (final Throwable e) {
             Log.exception(Level.WARNING, e);
             try {
-                Dialog.getInstance().showInputDialog(Dialog.BUTTONS_HIDE_CANCEL, APPWORKUTILS.T.crossSystem_open_url_failed_msg(), urlString);
+                Dialog.getInstance().showInputDialog(Dialog.BUTTONS_HIDE_CANCEL, _AWU.T.crossSystem_open_url_failed_msg(), urlString);
             } catch (final DialogNoAnswerException donothing) {
             }
         }

@@ -31,14 +31,12 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.appwork.resources.AWUTheme;
 import org.appwork.screenshot.ScreensShotHelper;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.formatter.TimeFormatter;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
@@ -84,7 +82,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                 }
 
             });
-            this.timerLbl.setToolTipText(APPWORKUTILS.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
+            this.timerLbl.setToolTipText(_AWU.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
 
             this.timerLbl.setIcon(AWUTheme.I().getIcon("dialog/cancel", 16));
 
@@ -142,7 +140,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             // add the countdown timer
             // this.getDialog().add(this.timerLbl, "split 3,growx,hidemode 2");
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-                this.dontshowagain = new JCheckBox(APPWORKUTILS.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
+                this.dontshowagain = new JCheckBox(_AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
                 this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
                 this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
                 this.dontshowagain.setSelected(this.doNotShowAgainSelected);
@@ -161,7 +159,8 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                 e1.printStackTrace();
                 throw new RuntimeException(e1);
             }
-            this.getDialog().setLayout(new MigLayout("ins 0,", "0[]0", "0[]0"));
+            // this.getDialog().setLayout(new MigLayout("ins 0,", "0[]0",
+            // "0[]0"));
             this.getDialog().getContentPane().add(this.ballonPanel);
             // this.getDialog().setContentPane(this.ballonPanel);
             // if()
@@ -177,6 +176,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
                     this.opaqueWorkaround = true;
                 }
             } catch (final Throwable e1) {
+                e1.printStackTrace();
                 this.opaqueWorkaround = true;
             }
 
@@ -189,11 +189,8 @@ public class BalloonDialog extends AbstractDialog<Integer> {
 
             // pack dialog
             this.getDialog().invalidate();
-            // this.setMinimumSize(this.getPreferredSize());
-            // this.getDialog().setMinimumSize(new Dimension(300, 80));
 
             this.pack();
-
             // minimum size foir a dialog
 
             // // Dimension screenDim =
@@ -205,7 +202,17 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             // if (this.getDesiredSize() != null) {
             // this.setSize(this.getDesiredSize());
             // }
-            this.getDialog().setLocation(this.desiredLocation);
+
+            // TODO: Find the error, and make this ugly workaround useless
+            // this workaround ajusts locations to the dart
+            if (this.ballonPanel.isExpandToBottom()) {
+
+                this.getDialog().setLocation(new Point(this.desiredLocation.x - 11, this.desiredLocation.y - 13));
+            } else {
+
+                this.getDialog().setLocation(new Point(this.desiredLocation.x - 11, this.desiredLocation.y + 27));
+            }
+
             // register an escape listener to cancel the dialog
             final KeyStroke ks = KeyStroke.getKeyStroke("ESCAPE");
             this.ballonPanel.getInputMap().put(ks, "ESCAPE");
@@ -295,10 +302,32 @@ public class BalloonDialog extends AbstractDialog<Integer> {
     }
 
     /**
+     * Override this to force expanding to top or bottom
+     * 
+     * @param b
+     * @return true of the dart should point to top, and the balloon expands to
+     *         bottom
+     */
+    protected boolean doExpandToBottom(final boolean b) {
+
+        return b;
+    }
+
+    /**
+     * override this method to force expanding to left or right
+     * 
+     * @param b
+     * @return true if the ballon expands to the right. Dart points to left in
+     *         this case
+     */
+    protected boolean doExpandToRight(final boolean b) {
+        return b;
+    }
+
+    /**
      * @return
      */
     public Color getBorderColor() {
-        // TODO Auto-generated method stub
         return Color.DARK_GRAY;
     }
 
@@ -333,7 +362,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
         this.dialog = new InternDialog() {
 
             {
-                BalloonDialog.this.screenshotPanel = new ScreenShotPanel("ins 10,debug", "[]", "[]");
+                BalloonDialog.this.screenshotPanel = new ScreenShotPanel("ins 10", "[]", "[]");
                 if (!BalloonDialog.this.opaqueWorkaround) {
                     BalloonDialog.this.screenshotPanel.setOpaque(false);
                 }

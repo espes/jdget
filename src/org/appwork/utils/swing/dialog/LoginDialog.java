@@ -26,7 +26,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.utils.BinaryLogic;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.swing.dialog.LoginDialog.LoginData;
 
 /**
@@ -91,7 +91,7 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
     private final String   message;
 
     public LoginDialog(final int flag) {
-        this(flag, APPWORKUTILS.T.AccountNew_AccountNew_title(), APPWORKUTILS.T.AccountNew_AccountNew_message(), AWUTheme.I().getIcon("dialog/login", 32));
+        this(flag, _AWU.T.AccountNew_AccountNew_title(), _AWU.T.AccountNew_AccountNew_message(), AWUTheme.I().getIcon("dialog/login", 32));
     }
 
     public LoginDialog(final int flag, final String title, final String message, final ImageIcon icon) {
@@ -136,11 +136,11 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
 
         contentpane.setLayout(new MigLayout("ins 5, wrap 2", "[]10[grow,fill]", "[][]"));
         contentpane.add(new JLabel(this.message), "spanx");
-        contentpane.add(this.addSettingName(APPWORKUTILS.T.AccountNew_layoutDialogContent_accountname()));
+        contentpane.add(this.addSettingName(_AWU.T.AccountNew_layoutDialogContent_accountname()));
         contentpane.add(this.accid, "sizegroup g1,width 100:250:n");
-        contentpane.add(this.addSettingName(APPWORKUTILS.T.AccountNew_layoutDialogContent_password()));
+        contentpane.add(this.addSettingName(_AWU.T.AccountNew_layoutDialogContent_password()));
         contentpane.add(this.pass, "sizegroup g1");
-        contentpane.add(this.addSettingName(APPWORKUTILS.T.AccountNew_layoutDialogContent_save()));
+        contentpane.add(this.addSettingName(_AWU.T.AccountNew_layoutDialogContent_save()));
         contentpane.add(this.save, "sizegroup g1");
         this.accid.setText(this.preUser);
         this.pass.setText(this.prePass);

@@ -13,7 +13,7 @@ import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
 
 import org.appwork.resources.AWUTheme;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author $Author: unknown$
@@ -28,7 +28,7 @@ public class SelectAction extends AbstractAction {
     private final JTextComponent text;
 
     public SelectAction(final JTextComponent c) {
-        super(APPWORKUTILS.T.COPYCUTPASTE_SELECT());
+        super(_AWU.T.COPYCUTPASTE_SELECT());
         this.text = c;
 
         this.putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("select", 16));

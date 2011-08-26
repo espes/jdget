@@ -15,7 +15,7 @@ import javax.swing.text.JTextComponent;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.utils.ClipboardUtils;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author $Author: unknown$
@@ -29,7 +29,7 @@ public class PasteAction extends AbstractAction {
     private final JTextComponent text;
 
     public PasteAction(final JTextComponent c) {
-        super(APPWORKUTILS.T.COPYCUTPASTE_PASTE());
+        super(_AWU.T.COPYCUTPASTE_PASTE());
         this.text = c;
 
         this.putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("paste", 16));

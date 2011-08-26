@@ -25,7 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import org.appwork.utils.formatter.SizeFormatter;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.swing.graph.Limiter;
 
 /**
@@ -93,7 +93,7 @@ abstract public class Graph extends JPanel {
     public String getAverageSpeedString() {
         // TODO Auto-generated method stub
         if (this.all <= 0) { return null; }
-        return APPWORKUTILS.T.AppWorkUtils_Graph_getAverageSpeedString(SizeFormatter.formatBytes(this.average / this.all));
+        return _AWU.T.AppWorkUtils_Graph_getAverageSpeedString(SizeFormatter.formatBytes(this.average / this.all));
     }
 
     /**
@@ -134,7 +134,7 @@ abstract public class Graph extends JPanel {
     public String getSpeedString() {
         // TODO Auto-generated method stub
         if (this.all <= 0) { return null; }
-        return APPWORKUTILS.T.AppWorkUtils_Graph_getSpeedString(SizeFormatter.formatBytes(this.value));
+        return _AWU.T.AppWorkUtils_Graph_getSpeedString(SizeFormatter.formatBytes(this.value));
     }
 
     /**

@@ -2,7 +2,7 @@ package org.appwork.app.launcher.parameterparser;
 
 import java.util.ArrayList;
 
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author $Author: unknown$
@@ -85,7 +85,7 @@ public abstract class CommandLineApp {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append(APPWORKUTILS.T.COMMANDLINEAPP_COMMAND());
+        sb.append(_AWU.T.COMMANDLINEAPP_COMMAND());
         for (int i = 0; i < commands.length; i++) {
             sb.append(commands[i]);
             if (i < commands.length - 1) {

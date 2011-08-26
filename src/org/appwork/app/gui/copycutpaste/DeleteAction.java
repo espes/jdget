@@ -11,7 +11,7 @@ import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
 
 import org.appwork.resources.AWUTheme;
-import org.appwork.utils.locale.APPWORKUTILS;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author $Author: unknown$
@@ -25,7 +25,7 @@ public class DeleteAction extends AbstractAction {
     private final JTextComponent text;
 
     public DeleteAction(final JTextComponent c) {
-        super(APPWORKUTILS.T.COPYCUTPASTE_DELETE());
+        super(_AWU.T.COPYCUTPASTE_DELETE());
         this.text = c;
 
         this.putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("delete", 16));
