@@ -71,12 +71,10 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
         public Editor() {
             this.tf = new JTextField() {
 
-                // @Override
-                // public void setText(String t) {
-                // if (!this.hasFocus() && SearchComboBox.this.helptext != null
-                // && (t == null || t.length() == 0)) {
-                // t = SearchComboBox.this.helptext;
-                // }
+                @Override
+                public void setText(final String t) {
+                    super.setText(t);
+                }
                 //
                 // super.setText(t);
                 // if (SearchComboBox.this.helptext != null) {
@@ -367,6 +365,7 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
             this.tf.setText(SearchComboBox.this.getTextForValue((T) anObject));
             this.icon.setIcon(SearchComboBox.this.getIconForValue((T) anObject));
             this.value = (T) anObject;
+            SearchComboBox.this.updateHelpText();
             this.setting = false;
 
         }
@@ -571,7 +570,12 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
     abstract protected Icon getIconForValue(T value);
 
     public String getText() {
-        return this.getTextField().getText();
+
+        String ret = this.getTextField().getText();
+        if (ret.equals(this.helptext)) {
+            ret = "";
+        }
+        return ret;
     }
 
     @SuppressWarnings("unchecked")
@@ -758,6 +762,15 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
     }
 
+    @Override
+    public void setToolTipText(final String text) {
+        super.setToolTipText(text);
+        final JTextField tf = this.getTextField();
+        if (tf != null) {
+            tf.setToolTipText(text);
+        }
+    }
+
     /**
      * if unknown values are allowed, the component will not try to find a valid
      * entry on fopcus lost
@@ -788,7 +801,7 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
      * 
      */
     public void updateColorByContent() {
-        final String txt = this.getText();
+        final String txt = this.getTextField().getText();
         if (this.helptext != null && this.helptext.equals(txt)) {
             this.setColorState(this.helpColorSet);
         } else {

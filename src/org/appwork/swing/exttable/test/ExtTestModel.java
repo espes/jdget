@@ -13,6 +13,8 @@ import javax.swing.Icon;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.swing.exttable.ExtTableModel;
+import org.appwork.swing.exttable.columns.ExtCircleProgressColumn;
+import org.appwork.swing.exttable.columns.ExtProgressColumn;
 import org.appwork.swing.exttable.columns.ExtTextColumn;
 
 /**
@@ -43,6 +45,48 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
      */
     @Override
     protected void initColumns() {
+
+        this.addColumn(new ExtProgressColumn<TextObject>("BAR") {
+
+            @Override
+            protected String getString(final TextObject value) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            protected long getValue(final TextObject value) {
+                // TODO Auto-generated method stub
+                return value.getRand();
+            }
+
+            @Override
+            protected boolean isIndeterminated(final TextObject value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+                // TODO Auto-generated method stub
+                return isSelected;
+            }
+        });
+        this.addColumn(new ExtCircleProgressColumn<TextObject>("PIE") {
+
+            @Override
+            protected String getString(final TextObject value) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            protected long getValue(final TextObject value) {
+                // TODO Auto-generated method stub
+                return value.getRand();
+            }
+
+            @Override
+            protected boolean isIndeterminated(final TextObject value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+                // TODO Auto-generated method stub
+                return isSelected;
+            }
+        });
+
         this.addColumn(new ExtTextColumn<TextObject>("col 1") {
 
             private static final long serialVersionUID = 1L;

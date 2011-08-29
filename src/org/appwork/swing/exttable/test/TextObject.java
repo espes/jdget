@@ -14,9 +14,10 @@ package org.appwork.swing.exttable.test;
  * 
  */
 public class TextObject {
-    private String a;
-    private String b;
-    private String c;
+    private String     a;
+    private String     b;
+    private String     c;
+    private final long rand = (long) (Math.random() * 100);
 
     public TextObject(final String a, final String b, final String c) {
         super();
@@ -35,6 +36,14 @@ public class TextObject {
 
     public String getC() {
         return this.c;
+    }
+
+    /**
+     * @return
+     */
+    public long getRand() {
+        // TODO Auto-generated method stub
+        return this.rand;
     }
 
     public void setA(final String a) {
