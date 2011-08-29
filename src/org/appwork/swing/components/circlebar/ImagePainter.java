@@ -28,8 +28,6 @@ public class ImagePainter implements IconPainter {
 
     private final Image          image;
     private final AlphaComposite composite;
-    private int                  xOffset = 0;
-    private int                  yOffset = 0;
 
     private Color                foreground;
 
@@ -75,14 +73,6 @@ public class ImagePainter implements IconPainter {
         return this.image;
     }
 
-    public int getxOffset() {
-        return this.xOffset;
-    }
-
-    public int getyOffset() {
-        return this.yOffset;
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -107,7 +97,7 @@ public class ImagePainter implements IconPainter {
         }
         g2.setClip(shape);
 
-        g2.drawImage(this.image, this.xOffset, this.yOffset, bar.getWidth(), bar.getHeight(), 0, 0, this.image.getWidth(null), this.image.getHeight(null), null);
+        g2.drawImage(this.image, (diameter - this.image.getWidth(null)) / 2, (diameter - this.image.getHeight(null)) / 2, this.image.getWidth(null), this.image.getHeight(null), null);
         g2.setClip(null);
         if (this.getForeground() != null) {
             // g2.draw(shape);
@@ -126,14 +116,6 @@ public class ImagePainter implements IconPainter {
 
     public void setForeground(final Color foreground) {
         this.foreground = foreground;
-    }
-
-    public void setxOffset(final int xOffset) {
-        this.xOffset = xOffset;
-    }
-
-    public void setyOffset(final int yOffset) {
-        this.yOffset = yOffset;
     }
 
 }

@@ -182,6 +182,10 @@ public class Theme {
         return this.getIcon(key, size, useCache).getImage();
     }
 
+    public URL getImageUrl(final String relativePath) {
+        return this.getURL("images/", relativePath, ".png");
+    }
+
     public String getNameSpace() {
         return this.nameSpace;
     }

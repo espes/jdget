@@ -72,7 +72,7 @@ public class CircledProgressBar extends JComponent {
      * @return
      */
     public int getAnimationFPS() {
-        return 10;
+        return 25;
     }
 
     /**
@@ -80,7 +80,7 @@ public class CircledProgressBar extends JComponent {
      */
     public float getCyclesPerSecond() {
 
-        return 1f;
+        return 0.5f;
     }
 
     public ChangeEventSender getEventSender() {
