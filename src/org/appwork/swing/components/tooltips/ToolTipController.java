@@ -122,6 +122,10 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
     public void mouseEntered(final MouseEvent e) {
         if (e.getSource() instanceof ToolTipHandler) {
             if (e.getSource() == this.activeComponent) { return; }
+            // just to be sure
+            if (this.activeComponent instanceof JComponent) {
+                ToolTipManager.sharedInstance().unregisterComponent((JComponent) this.activeComponent);
+            }
             this.hideTooltip();
             this.activeComponent = (ToolTipHandler) e.getSource();
             if (System.currentTimeMillis() - this.lastHidden < this.getChangeDelay()) {

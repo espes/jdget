@@ -22,6 +22,10 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.app.gui.BasicGui;
 import org.appwork.resources.AWUTheme;
+import org.appwork.swing.components.tooltips.ExtTooltip;
+import org.appwork.swing.components.tooltips.TooltipFactory;
+import org.appwork.swing.components.tooltips.TooltipPanel;
+import org.appwork.utils.swing.dialog.Dialog;
 
 /**
  * @author thomas
@@ -41,7 +45,33 @@ public class TEst {
                 final BoundedRangeModel model = bar.getModel();
 
                 final CircledProgressBar cbar = new CircledProgressBar(model);
+                cbar.setTooltipFactory(new TooltipFactory() {
 
+                    @Override
+                    public ExtTooltip createTooltip() {
+                        final ExtTooltip tt = new ExtTooltip() {
+
+                            @Override
+                            public TooltipPanel createContent() {
+                                final TooltipPanel p = new TooltipPanel("ins 5,wrap 1", "[]", "[]");
+                                p.add(new JButton(new AbstractAction() {
+                                    {
+                                        this.putValue(Action.NAME, "Drück mich alder!");
+                                    }
+
+                                    @Override
+                                    public void actionPerformed(final ActionEvent e) {
+                                        Dialog.getInstance().showMessageDialog("Wow. you pressed a tooltip. cool eh?");
+                                    }
+                                }));
+
+                                return p;
+                            }
+                        };
+
+                        return tt;
+                    }
+                });
                 cbar.setOpaque(false);
                 final CircledProgressBar iconBar = new CircledProgressBar(model);
                 final ImagePainter painter = new ImagePainter(AWUTheme.I().getIcon("close", 32).getImage(), 1.0f);

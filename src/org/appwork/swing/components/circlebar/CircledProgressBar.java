@@ -235,6 +235,7 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
 
     public void setTooltipFactory(final TooltipFactory tooltipFactory) {
         this.tooltipFactory = tooltipFactory;
+        ToolTipController.getInstance().register(this);
     }
 
     @Override
