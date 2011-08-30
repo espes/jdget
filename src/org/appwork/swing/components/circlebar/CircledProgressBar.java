@@ -13,9 +13,14 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 
+import org.appwork.swing.components.tooltips.ExtTooltip;
+import org.appwork.swing.components.tooltips.ToolTipController;
+import org.appwork.swing.components.tooltips.ToolTipHandler;
+import org.appwork.swing.components.tooltips.TooltipFactory;
+import org.appwork.swing.components.tooltips.TooltipTextDelegateFactory;
 import org.appwork.utils.event.predefined.changeevent.ChangeEventSender;
 
-public class CircledProgressBar extends JComponent {
+public class CircledProgressBar extends JComponent implements ToolTipHandler {
 
     private BoundedRangeModel       model;
 
@@ -30,11 +35,20 @@ public class CircledProgressBar extends JComponent {
      */
     private static final String     UI_CLASS_ID = "CircleProgressBarUI";
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.swing.components.tooltips.ToolTipHandler#createExtTooltip()
+     */
+    private TooltipFactory          tooltipFactory;
+
     /**
      * 
      */
     public CircledProgressBar() {
         this(new DefaultBoundedRangeModel());
+
     }
 
     /**
@@ -42,6 +56,7 @@ public class CircledProgressBar extends JComponent {
      */
     public CircledProgressBar(final BoundedRangeModel model) {
         this.eventSender = new ChangeEventSender();
+        this.tooltipFactory = new TooltipTextDelegateFactory(this);
         this.installPainer();
         this.setModel(model);
         BasicProgressBarUI.class.getAnnotations();
@@ -66,6 +81,13 @@ public class CircledProgressBar extends JComponent {
             }
 
         };
+    }
+
+    @Override
+    public ExtTooltip createExtTooltip() {
+
+        return this.tooltipFactory.createTooltip();
+
     }
 
     /**
@@ -101,6 +123,10 @@ public class CircledProgressBar extends JComponent {
 
     public IconPainter getNonvalueClipPainter() {
         return this.nonvalueClipPainter;
+    }
+
+    public TooltipFactory getTooltipFactory() {
+        return this.tooltipFactory;
     }
 
     @Override
@@ -207,8 +233,25 @@ public class CircledProgressBar extends JComponent {
 
     }
 
+    public void setTooltipFactory(final TooltipFactory tooltipFactory) {
+        this.tooltipFactory = tooltipFactory;
+    }
+
+    @Override
+    public void setToolTipText(final String text) {
+
+        this.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, text);
+
+        if (text == null || text.length() == 0) {
+            ToolTipController.getInstance().unregister(this);
+        } else {
+            ToolTipController.getInstance().register(this);
+        }
+    }
+
     public void setUI(final CircleProgressBarUI ui) {
         super.setUI(ui);
+
     }
 
     public void setValue(final int n) {
@@ -237,4 +280,5 @@ public class CircledProgressBar extends JComponent {
         // UIManager.getUI(this);
         this.setUI(new BasicCircleProgressBarUI());
     }
+
 }

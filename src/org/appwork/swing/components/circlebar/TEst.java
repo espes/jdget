@@ -37,7 +37,7 @@ public class TEst {
             protected void layoutPanel() {
 
                 final JProgressBar bar = new JProgressBar(0, 100);
-
+                bar.setToolTipText("BLA");
                 final BoundedRangeModel model = bar.getModel();
 
                 final CircledProgressBar cbar = new CircledProgressBar(model);
@@ -49,7 +49,7 @@ public class TEst {
                 painter.setBackground(Color.GREEN);
                 iconBar.setNonvalueClipPainter(new ImagePainter(AWUTheme.I().getIcon("close", 32).getImage(), 0.3f));
 
-                this.getFrame().getContentPane().setLayout(new MigLayout("ins 4, wrap 3", "[][][grow,fill]", "[32!]"));
+                this.getFrame().getContentPane().setLayout(new MigLayout("ins 4, wrap 3", "[][][grow,fill]", "[grow,fill,32!]"));
                 this.getFrame().getContentPane().add(cbar, "height 32!,width 32!");
                 this.getFrame().getContentPane().add(iconBar);
                 painter.setForeground(Color.RED);
@@ -62,7 +62,7 @@ public class TEst {
                 test.setValueClipPainter(valuePainter);
                 test.setNonvalueClipPainter(nonvaluePainter);
                 test.setMaximum(360);
-
+                test.setToolTipText("Blabla Leberkäs");
                 test.setValue(90);
                 this.getFrame().getContentPane().add(test, "height 64!,width 64!");
 
@@ -80,7 +80,8 @@ public class TEst {
                     }
                 }));
 
-                this.getFrame().getContentPane().add(new JButton(new AbstractAction() {
+                JButton bt;
+                this.getFrame().getContentPane().add(bt = new JButton(new AbstractAction() {
                     {
                         this.putValue(Action.NAME, "Toggle RUN");
                     }
@@ -90,6 +91,7 @@ public class TEst {
                         TEst.RUNNING = !TEst.RUNNING;
                     }
                 }));
+                bt.setToolTipText("BLA2");
                 new Thread(new Runnable() {
 
                     @Override
@@ -100,6 +102,7 @@ public class TEst {
                                 Thread.sleep(30);
                                 if (TEst.RUNNING) {
                                     model.setValue(model.getValue() + direction);
+                                    iconBar.setToolTipText(model.getValue() + " %");
                                     if (model.getValue() == model.getMaximum() || model.getValue() == model.getMinimum()) {
                                         model.setValue(0);
 
