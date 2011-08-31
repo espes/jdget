@@ -208,12 +208,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     protected String getTooltipText(final E obj) {
-        final String v = this.getStringValue(obj);
-        if (v != null && v.length() > 0) {
-            return "<html>" + v.replaceAll("\r\n", "<br>") + "</html>";
-        } else {
-            return null;
-        }
+        return this.getStringValue(obj);
+
     }
 
     @Override

@@ -32,7 +32,7 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
 
     private final ExtTooltipSettings config;
 
-    private final MigPanel           panel;
+    protected MigPanel               panel;
 
     private int                      w = 0;
 
@@ -51,7 +51,7 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
         this.config = JsonConfig.create(Application.getResource("cfg/ExtTooltipSettings_" + this.getID() + ".json"), ExtTooltipSettings.class);
 
         this.panel = this.createContent();
-        this.panel.setOpaque(false);
+
         // this.add(con);
         this.setTipText("");
 
@@ -60,7 +60,9 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
         this.setOpaque(false);
         this.setBackground(null);
 
-        this.add(this.panel);
+        if (this.panel != null) {
+            this.add(this.panel);
+        }
         this.addAncestorListener(this);
     }
 

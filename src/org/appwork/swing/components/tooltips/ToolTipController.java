@@ -303,7 +303,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
             final GraphicsConfiguration gc = this.activeComponent.getGraphicsConfiguration();
             final Rectangle screenBounds = gc.getBounds();
             final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
-            final Point ttPosition = new Point();
+            final Point ttPosition = this.mousePosition;
 
             // if screen has insets, we have to deacrease the available space
             screenBounds.x += screenInsets.left;
@@ -311,17 +311,17 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
             screenBounds.width -= screenInsets.left + screenInsets.right;
             screenBounds.height -= screenInsets.top + screenInsets.bottom;
 
-            if (ttPosition.x > screenBounds.width / 2) {
+            if (ttPosition.x > screenBounds.x + screenBounds.width / 2) {
                 // move to left on right screen size
-                ttPosition.x = this.mousePosition.x - tt.getPreferredSize().width - 15;
+                ttPosition.x = this.mousePosition.x - tt.getPreferredSize().width;
 
             } else {
                 ttPosition.x = this.mousePosition.x + 15;
             }
 
-            if (ttPosition.y > screenBounds.height / 2) {
+            if (ttPosition.y > screenBounds.y + screenBounds.height / 2) {
                 // move tt to top if we are in bottom part of screen
-                ttPosition.y = this.mousePosition.y - 15 - tt.getPreferredSize().height;
+                ttPosition.y = this.mousePosition.y - tt.getPreferredSize().height;
             } else {
                 ttPosition.y = this.mousePosition.y + 15;
             }
