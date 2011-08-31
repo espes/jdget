@@ -76,7 +76,10 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
     @Override
     public void ancestorAdded(final AncestorEvent event) {
 
-        System.out.println(event);
+        this.h = 0;
+        this.w = 0;
+        this.lastResize = 0;
+        this.lastResizeH = 0;
     }
 
     @Override
