@@ -10,21 +10,27 @@
 package org.appwork.swing.components.tooltips;
 
 import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.Insets;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.lang.reflect.Method;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import javax.swing.JComponent;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 
 import org.appwork.scheduler.DelayedRunnable;
-import org.appwork.utils.swing.EDTHelper;
+import org.appwork.utils.swing.EDTRunner;
 
 /**
  * @author thomas
@@ -32,9 +38,10 @@ import org.appwork.utils.swing.EDTHelper;
  */
 public class ToolTipController implements MouseListener, MouseMotionListener {
 
-    private static final ScheduledExecutorService EXECUTER = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService EXECUTER            = Executors.newSingleThreadScheduledExecutor();
     // order is important. EXECUTER has to be available
-    private static final ToolTipController        INSTANCE = new ToolTipController();
+    private static final ToolTipController        INSTANCE            = new ToolTipController();
+    private static final int                      MEDIUM_WEIGHT_POPUP = 1;
 
     /**
      * get the only existing instance of ToolTipManager. This is a singleton
@@ -47,9 +54,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
 
     private DelayedRunnable delayer;
 
-    private ToolTipHandler  activeComponent;
-
-    private ExtTooltip      activeToolTip;
+    private JComponent      activeComponent;
 
     private Point           mousePosition;
     private long            lastHidden  = 0;
@@ -60,6 +65,10 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
      * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
      */
     private int             changeDelay = 500;
+    private Popup           activePopup;
+    private ExtTooltip      activeToolTipPanel;
+
+    // private Window parentWindow;
 
     /**
      * Create a new instance of ToolTipManager. This is a singleton class.
@@ -76,14 +85,19 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
     /**
      * 
      */
-    private synchronized void hideTooltip() {
-        if (this.activeToolTip != null) {
+    public void hideTooltip() {
+        if (this.activePopup != null) {
             System.out.println("hide");
-            this.activeToolTip.dispose();
-            this.activeToolTip.removeMouseListener(this);
-            this.activeToolTip = null;
+            this.activePopup.hide();
+            // this.activePopup.removeMouseListener(this);
+            this.activePopup = null;
             this.lastHidden = System.currentTimeMillis();
-            this.activeComponent = null;
+            if (this.activeComponent != null) {
+                if (((ToolTipHandler) this.activeComponent).isTooltipDisabledUntilNextRefocus()) {
+                    this.activeComponent = null;
+                }
+            }
+
         }
     }
 
@@ -91,7 +105,8 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
      * @return
      */
     private boolean isTooltipVisible() {
-        return this.activeToolTip != null;
+
+        return this.activePopup != null;
     }
 
     /*
@@ -114,7 +129,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
      */
     @Override
     public void mouseDragged(final MouseEvent e) {
-        // TODO Auto-generated method stub
+        this.hideTooltip();
 
     }
 
@@ -124,15 +139,23 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
             if (e.getSource() == this.activeComponent) { return; }
             // just to be sure
             if (this.activeComponent instanceof JComponent) {
-                ToolTipManager.sharedInstance().unregisterComponent((JComponent) this.activeComponent);
+                ToolTipManager.sharedInstance().unregisterComponent(this.activeComponent);
             }
-            this.hideTooltip();
-            this.activeComponent = (ToolTipHandler) e.getSource();
+
+            this.activeComponent = (JComponent) e.getSource();
             if (System.currentTimeMillis() - this.lastHidden < this.getChangeDelay()) {
                 this.mousePosition = e.getLocationOnScreen();
                 this.showTooltip();
+                return;
+            }
+            this.hideTooltip();
+        } else {
+            if (!this.mouseOverComponent(e.getLocationOnScreen()) && !this.mouseOverTooltip(e.getLocationOnScreen())) {
+
+                this.hideTooltip();
             }
         }
+
     }
 
     /*
@@ -144,6 +167,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
     public void mouseExited(final MouseEvent e) {
         if (!this.mouseOverComponent(e.getLocationOnScreen()) && !this.mouseOverTooltip(e.getLocationOnScreen())) {
             // do not hide if we exit component and enter tooltip
+            System.out.println(this.mouseOverTooltip(e.getLocationOnScreen()));
             this.hideTooltip();
         }
     }
@@ -158,7 +182,18 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
     public void mouseMoved(final MouseEvent e) {
         if (!this.isTooltipVisible() && this.activeComponent != null) {
             this.mousePosition = e.getLocationOnScreen();
-            this.delayer.resetAndStart();
+            if (System.currentTimeMillis() - this.lastHidden < this.getChangeDelay()) {
+                this.showTooltip();
+            } else {
+                this.delayer.resetAndStart();
+            }
+        } else if (this.activeComponent != null) {
+
+            if (((ToolTipHandler) this.activeComponent).updateTooltip(this.activeToolTipPanel, e)) {
+                this.mousePosition = e.getLocationOnScreen();
+                this.showTooltip();
+
+            }
         }
     }
 
@@ -169,9 +204,9 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
     private boolean mouseOverComponent(final Point point) {
         if (this.activeComponent != null && this.activeComponent instanceof JComponent) {
 
-            final Rectangle bounds = ((JComponent) this.activeComponent).getBounds();
+            final Rectangle bounds = this.activeComponent.getBounds();
 
-            SwingUtilities.convertPointFromScreen(point, ((JComponent) this.activeComponent).getParent());
+            SwingUtilities.convertPointFromScreen(point, this.activeComponent.getParent());
             return bounds.contains(point);
 
         }
@@ -183,9 +218,10 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
      * @return
      */
     private boolean mouseOverTooltip(final Point locationOnScreen) {
-        if (this.activeToolTip != null) {
-            final Dimension d = this.activeToolTip.getSize();
-            final Point loc = this.activeToolTip.getLocationOnScreen();
+        if (this.activeToolTipPanel != null && this.activeToolTipPanel.isShowing()) {
+
+            final Dimension d = this.activeToolTipPanel.getSize();
+            final Point loc = this.activeToolTipPanel.getLocationOnScreen();
             final Rectangle bounds = new Rectangle(loc.x, loc.y, d.width, d.height);
             return bounds.contains(locationOnScreen);
         }
@@ -243,7 +279,14 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
 
             @Override
             public void delayedrun() {
-                ToolTipController.this.showTooltip();
+                new EDTRunner() {
+
+                    @Override
+                    protected void runInEDT() {
+                        ToolTipController.this.showTooltip();
+
+                    }
+                };
 
             }
 
@@ -251,28 +294,74 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
     }
 
     /**
+     * @param createExtTooltip
+     */
+    private void show(final ExtTooltip tt) {
+        this.hideTooltip();
+        if (tt != null) {
+            final PopupFactory popupFactory = PopupFactory.getSharedInstance();
+            final GraphicsConfiguration gc = this.activeComponent.getGraphicsConfiguration();
+            final Rectangle screenBounds = gc.getBounds();
+            final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+            final Point ttPosition = new Point();
+
+            // if screen has insets, we have to deacrease the available space
+            screenBounds.x += screenInsets.left;
+            screenBounds.y += screenInsets.top;
+            screenBounds.width -= screenInsets.left + screenInsets.right;
+            screenBounds.height -= screenInsets.top + screenInsets.bottom;
+
+            if (ttPosition.x > screenBounds.width / 2) {
+                // move to left on right screen size
+                ttPosition.x = this.mousePosition.x - tt.getPreferredSize().width - 15;
+
+            } else {
+                ttPosition.x = this.mousePosition.x + 15;
+            }
+
+            if (ttPosition.y > screenBounds.height / 2) {
+                // move tt to top if we are in bottom part of screen
+                ttPosition.y = this.mousePosition.y - 15 - tt.getPreferredSize().height;
+            } else {
+                ttPosition.y = this.mousePosition.y + 15;
+            }
+
+            // wtf...fu%&inaccessable methods!
+            try {
+                final Method method = javax.swing.PopupFactory.class.getDeclaredMethod("setPopupType", new Class[] { Integer.TYPE });
+                method.setAccessible(true);
+                method.invoke(this, new Object[] { ToolTipController.MEDIUM_WEIGHT_POPUP });
+            } catch (final Exception exception) {
+                new RuntimeException(exception);
+            }
+
+            ToolTipController.this.activeToolTipPanel = tt;
+            tt.addMouseListener(ToolTipController.this);
+
+            this.activePopup = popupFactory.getPopup(this.activeComponent, this.activeToolTipPanel, ttPosition.x, ttPosition.y);
+
+            this.activePopup.show();
+            // parentWindow =
+            // SwingUtilities.windowForComponent(this.activeToolTipPanel);
+            //
+            // parentWindow.addMouseListener(ToolTipController.this);
+
+        }
+    }
+
+    /**
      * 
      */
-    protected synchronized void showTooltip() {
+    protected void showTooltip() {
 
-        new EDTHelper<Object>() {
+        ToolTipController.this.hideTooltip();
+        if (ToolTipController.this.activeComponent != null && !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
 
-            @Override
-            public Object edtRun() {
-                synchronized (ToolTipController.this) {
-                    if (ToolTipController.this.activeComponent != null && !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
-                        final ExtTooltip tt = ToolTipController.this.activeComponent.createExtTooltip();
-                        tt.addMouseListener(ToolTipController.this);
-                        if (tt != null) {
-                            tt.show(ToolTipController.this.mousePosition);
+            final Point p = new Point(ToolTipController.this.mousePosition);
+            SwingUtilities.convertPointFromScreen(p, ToolTipController.this.activeComponent);
+            this.show(((ToolTipHandler) ToolTipController.this.activeComponent).createExtTooltip(p));
 
-                            ToolTipController.this.activeToolTip = tt;
-                        }
-                    }
-                }
-                return null;
-            }
-        }.start();
+        }
 
     }
 

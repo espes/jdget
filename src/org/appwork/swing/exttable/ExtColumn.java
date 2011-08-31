@@ -2,6 +2,7 @@ package org.appwork.swing.exttable;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -16,13 +17,13 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
-import javax.swing.JToolTip;
 import javax.swing.border.Border;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
+import org.appwork.swing.components.tooltips.ExtTooltip;
 import org.appwork.swing.exttable.columnmenu.LockColumnWidthAction;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
@@ -68,9 +69,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     private ExtDefaultRowSorter<E> rowSorter;
     private String                 id;
     private TableColumn            tableColumn;
-    protected ExtToolTip           tip;
 
     private String                 sortOrderIdentifier;
+    private final ToolTip          tooltip;
 
     public static final String     SORT_DESC          = "DESC";
     public static final String     SORT_ASC           = "ASC";
@@ -86,13 +87,13 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.name = name;
         this.model = table;
         this.sortOrderIdentifier = null;
-        this.tip = new ExtToolTip();
+
         if (this.model != null) {
             this.id = this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName() + "." + (this.model.getColumnCount() + 1);
         }
         // sort function
         this.rowSorter = new ExtDefaultRowSorter<E>();
-
+        this.tooltip = new ToolTip();
     }
 
     /**
@@ -145,12 +146,12 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     }
 
-    public JToolTip createToolTip(final E obj) {
+    public ExtTooltip createToolTip(final Point position, final E obj) {
         final String txt = this.getTooltipText(obj);
         if (txt == null || txt.length() == 0) { return null; }
 
-        this.tip.setExtText(txt);
-        return this.tip;
+        this.tooltip.setTipText(txt);
+        return this.tooltip;
     }
 
     public void doSort() {
@@ -601,10 +602,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         }
         this.updateColumnGui();
 
-    }
-
-    public void setTip(final ExtToolTip tip) {
-        this.tip = tip;
     }
 
     /**

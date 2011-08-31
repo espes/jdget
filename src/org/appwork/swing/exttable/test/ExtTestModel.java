@@ -51,7 +51,7 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             @Override
             protected String getString(final TextObject value) {
                 // TODO Auto-generated method stub
-                return null;
+                return value.getRand() + " Tooltip";
             }
 
             @Override

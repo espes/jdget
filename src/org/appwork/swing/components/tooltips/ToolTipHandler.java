@@ -9,6 +9,8 @@
  */
 package org.appwork.swing.components.tooltips;
 
+import java.awt.Point;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
@@ -26,9 +28,18 @@ public interface ToolTipHandler {
     void addMouseMotionListener(MouseMotionListener component);
 
     /**
+     * @param mousePosition
      * @return
      */
-    ExtTooltip createExtTooltip();
+    ExtTooltip createExtTooltip(Point mousePosition);
+
+    /**
+     * @return true if a component'S tooltip should not be shown again after
+     *         hide until the user moves mouse away and then over component
+     *         again.
+     * 
+     */
+    boolean isTooltipDisabledUntilNextRefocus();
 
     /**
      * @param toolTipController
@@ -39,5 +50,13 @@ public interface ToolTipHandler {
      * @param toolTipController
      */
     void removeMouseMotionListener(MouseMotionListener toolTipController);
+
+    /**
+     * 
+     * 
+     * 
+     * @return true if the tooltip should be updated
+     */
+    boolean updateTooltip(ExtTooltip activeToolTip, MouseEvent e);
 
 }

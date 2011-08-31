@@ -25,7 +25,7 @@ import org.appwork.resources.AWUTheme;
 import org.appwork.swing.components.tooltips.ExtTooltip;
 import org.appwork.swing.components.tooltips.TooltipFactory;
 import org.appwork.swing.components.tooltips.TooltipPanel;
-import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.EDTRunner;
 
 /**
  * @author thomas
@@ -61,7 +61,7 @@ public class TEst {
 
                                     @Override
                                     public void actionPerformed(final ActionEvent e) {
-                                        Dialog.getInstance().showMessageDialog("Wow. you pressed a tooltip. cool eh?");
+
                                     }
                                 }));
 
@@ -122,6 +122,7 @@ public class TEst {
                     }
                 }));
                 bt.setToolTipText("BLA2");
+
                 new Thread(new Runnable() {
 
                     @Override
@@ -129,14 +130,27 @@ public class TEst {
                         final int direction = 1;
                         while (true) {
                             try {
-                                Thread.sleep(30);
+                                Thread.sleep(200);
                                 if (TEst.RUNNING) {
-                                    model.setValue(model.getValue() + direction);
-                                    iconBar.setToolTipText(model.getValue() + " %");
-                                    if (model.getValue() == model.getMaximum() || model.getValue() == model.getMinimum()) {
-                                        model.setValue(0);
+                                    new EDTRunner() {
 
-                                    }
+                                        @Override
+                                        protected void runInEDT() {
+                                            model.setValue(model.getValue() + direction);
+                                            iconBar.setToolTipText((int) (Math.random() * 100) + " %");
+                                            if (Math.random() < 0.1) {
+                                                iconBar.setToolTipText("lfdsifgsdkbfd sdkf jhdsafjhsafgj sdafsjdhfga jsdfgahjd gkj");
+                                            }
+                                            if (Math.random() < 0.1) {
+                                                iconBar.setToolTipText("lfd\r\nsifgs\r\ndkb\r\nfd sdkf\r\n jhdsafj\r\nhsafgj\r\n sdafsjd\r\nhfga \r\njsdfgahj\r\nd gkj");
+                                            }
+                                            if (model.getValue() == model.getMaximum() || model.getValue() == model.getMinimum()) {
+                                                model.setValue(0);
+
+                                            }
+                                        }
+                                    };
+
                                 }
 
                             } catch (final InterruptedException e) {

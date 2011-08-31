@@ -46,6 +46,6 @@ public class ExtTextTable extends ExtTable<TextObject> {
         // this.setShowHorizontalLines(false);
         this.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         this.setRowHeight(22);
-    }
 
+    }
 }

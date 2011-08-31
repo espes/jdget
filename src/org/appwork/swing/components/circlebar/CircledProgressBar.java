@@ -1,8 +1,10 @@
 package org.appwork.swing.components.circlebar;
 
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 
@@ -83,11 +85,16 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
         };
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.swing.components.tooltips.ToolTipHandler#createExtTooltip
+     * (java.awt.Point)
+     */
     @Override
-    public ExtTooltip createExtTooltip() {
-
+    public ExtTooltip createExtTooltip(final Point mousePosition) {
         return this.tooltipFactory.createTooltip();
-
     }
 
     /**
@@ -179,6 +186,18 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
         return this.indeterminate;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.swing.components.tooltips.ToolTipHandler#
+     * isTooltipDisabledUntilNextRefocus()
+     */
+    @Override
+    public boolean isTooltipDisabledUntilNextRefocus() {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
     /**
      * @param b
      */
@@ -268,6 +287,19 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
     public void setValueClipPainter(final IconPainter iconPainter) {
         this.valueClipPainter = iconPainter;
 
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.swing.components.tooltips.ToolTipHandler#updateTooltip(org
+     * .appwork.swing.components.tooltips.ExtTooltip, java.awt.event.MouseEvent)
+     */
+    @Override
+    public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
+
+        return false;
     }
 
     /**
