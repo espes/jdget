@@ -446,6 +446,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler {
         final ExtColumn<E> col = this.getExtColumnAtPoint(position);
         this.lastTooltipCol = col;
         this.lastTooltipRow = row;
+        if (row < 0) { return null; }
         return col.createToolTip(position, this.getExtTableModel().getElementAt(row));
     }
 
