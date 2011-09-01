@@ -82,11 +82,11 @@ public class MigPanel extends JPanel implements BadgePainter {
     @Override
     protected void paintComponent(final Graphics g) {
         super.paintComponent(g);
-
     }
 
     @Override
     public void paintComponents(final Graphics g) {
+
         super.paintComponents(g);
         // if (this.isShowing()) {
 

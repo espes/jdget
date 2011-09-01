@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 
 import org.appwork.scheduler.DelayedRunnable;
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTRunner;
 
 /**
@@ -87,7 +88,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
      */
     public void hideTooltip() {
         if (this.activePopup != null) {
-            System.out.println("hide");
+
             this.activePopup.hide();
             // this.activePopup.removeMouseListener(this);
             this.activePopup = null;
@@ -167,7 +168,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
     public void mouseExited(final MouseEvent e) {
         if (!this.mouseOverComponent(e.getLocationOnScreen()) && !this.mouseOverTooltip(e.getLocationOnScreen())) {
             // do not hide if we exit component and enter tooltip
-            System.out.println(this.mouseOverTooltip(e.getLocationOnScreen()));
+
             this.hideTooltip();
         }
     }
@@ -202,13 +203,17 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
      * @return
      */
     private boolean mouseOverComponent(final Point point) {
-        if (this.activeComponent != null && this.activeComponent instanceof JComponent) {
+        try {
+            if (point != null && this.activeComponent != null && this.activeComponent instanceof JComponent && this.activeComponent.getParent() != null) {
 
-            final Rectangle bounds = this.activeComponent.getBounds();
+                final Rectangle bounds = this.activeComponent.getBounds();
 
-            SwingUtilities.convertPointFromScreen(point, this.activeComponent.getParent());
-            return bounds.contains(point);
+                SwingUtilities.convertPointFromScreen(point, this.activeComponent.getParent());
+                return bounds.contains(point);
 
+            }
+        } catch (final Exception e) {
+            Log.exception(e);
         }
         return false;
     }
@@ -218,12 +223,16 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
      * @return
      */
     private boolean mouseOverTooltip(final Point locationOnScreen) {
-        if (this.activeToolTipPanel != null && this.activeToolTipPanel.isShowing()) {
+        try {
+            if (locationOnScreen != null && this.activeToolTipPanel != null && this.activeToolTipPanel.isShowing()) {
 
-            final Dimension d = this.activeToolTipPanel.getSize();
-            final Point loc = this.activeToolTipPanel.getLocationOnScreen();
-            final Rectangle bounds = new Rectangle(loc.x, loc.y, d.width, d.height);
-            return bounds.contains(locationOnScreen);
+                final Dimension d = this.activeToolTipPanel.getSize();
+                final Point loc = this.activeToolTipPanel.getLocationOnScreen();
+                final Rectangle bounds = new Rectangle(loc.x, loc.y, d.width, d.height);
+                return bounds.contains(locationOnScreen);
+            }
+        } catch (final Exception e) {
+            Log.exception(e);
         }
         return false;
     }

@@ -19,6 +19,8 @@ import javax.swing.JToolTip;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.appwork.app.gui.MigPanel;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.swing.components.tooltips.config.ExtTooltipSettings;
@@ -30,25 +32,41 @@ import org.appwork.utils.Application;
  */
 public abstract class ExtTooltip extends JToolTip implements AncestorListener {
 
+    /**
+     * 
+     */
+    public static final String DEFAULT = "default";
+
+    /**
+     * @param id
+     * @return
+     */
+    public static ExtTooltipSettings createConfig(final String id) {
+
+        return JsonConfig.create(Application.getResource("cfg/ExtTooltipSettings_" + id + ".json"), ExtTooltipSettings.class);
+    }
+
     private final ExtTooltipSettings config;
 
     protected MigPanel               panel;
 
-    private int                      w = 0;
+    private int                      w    = 0;
 
-    private int                      h = 0;
+    private int                      h    = 0;
 
     private long                     lastResize;
 
     private long                     lastResizeH;
 
+    private final int                test = 0;
+
     /**
      * @param title
      */
     public ExtTooltip() {
-        // super("ins 0", "[grow,fill]", "[grow,fill]");
-        // this.setContentPane();
-        this.config = JsonConfig.create(Application.getResource("cfg/ExtTooltipSettings_" + this.getID() + ".json"), ExtTooltipSettings.class);
+        super();
+        this.setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
+        this.config = ExtTooltip.createConfig(this.getID());
 
         this.panel = this.createContent();
 
@@ -125,8 +143,6 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
             final Rectangle b = this.getParent().getBounds();
             this.getParent().setBounds(b.x, b.y, this.w, this.h);
 
-            this.lastResizeH = System.currentTimeMillis();
-
         } else if (th < this.h) {
             if (System.currentTimeMillis() - this.lastResizeH > 1000) {
                 this.h -= (this.h - th) * (System.currentTimeMillis() - this.lastResizeH - 1000) / 10000;
@@ -143,7 +159,7 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
      */
     protected String getID() {
 
-        return "default";
+        return ExtTooltip.DEFAULT;
     }
 
     @Override
@@ -181,7 +197,10 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
 
     @Override
     public void paint(final Graphics g) {
-
+        // this.getLayout().layoutContainer(this);
+        this.panel.setSize(this.panel.getPreferredSize());
+        final Insets insets = this.getInsets();
+        this.panel.setLocation(insets.left, insets.top);
         super.paint(g);
 
     }
@@ -197,9 +216,20 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
 
         super.paintComponent(g);
 
-        final Insets insets = this.getInsets();
-        g.translate(insets.left, insets.top);
-        this.panel.paintComponents(g);
+        // final Insets insets = this.getInsets();
+        // g.translate(insets.left, insets.top);
+        // this.panel.setSize(this.panel.getPreferredSize());
+        // this.panel.repaint();
+        // if (this.test++ < 5) {
+        // this.panel.paintComponents(g);
+
+        // }
+
+    }
+
+    @Override
+    public void paintComponents(final Graphics g) {
+        super.paintComponents(g);
 
     }
 }

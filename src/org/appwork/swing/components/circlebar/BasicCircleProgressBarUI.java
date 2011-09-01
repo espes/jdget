@@ -49,10 +49,15 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
          */
         @Override
         public void actionPerformed(final ActionEvent e) {
+            if (!BasicCircleProgressBarUI.this.circleBar.isDisplayable()) {
+                BasicCircleProgressBarUI.this.cleanUpIndeterminateValues();
+            }
+            if (BasicCircleProgressBarUI.this.circleBar.isShowing()) {
+                BasicCircleProgressBarUI.this.animatedProgress += BasicCircleProgressBarUI.this.animationStepSize;
+                BasicCircleProgressBarUI.this.animatedProgress %= 2.f;
+                BasicCircleProgressBarUI.this.circleBar.repaint();
+            }
 
-            BasicCircleProgressBarUI.this.animatedProgress += BasicCircleProgressBarUI.this.animationStepSize;
-            BasicCircleProgressBarUI.this.animatedProgress %= 2.f;
-            BasicCircleProgressBarUI.this.circleBar.repaint();
         }
     }
 
@@ -120,6 +125,7 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
     public void cleanUpIndeterminateValues() {
         this.timer.stop();
         this.timer = null;
+        this.animatedProgress = 0.0f;
     }
 
     /**
@@ -128,7 +134,14 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
      * @return
      */
     private Shape createClip(final int diameter, final double progress) {
-        final Area a = new Area(new Arc2D.Float(-diameter / 2 + 1, -diameter / 2 + 1, diameter * 2, diameter * 2, 90, (float) (-progress * 360), Arc2D.PIE));
+        if (progress == 0.0f) { return null; }
+        Area a = null;
+        if (progress == 1.0f) {
+            return a = new Area(new Ellipse2D.Float(-diameter / 2 + 1, -diameter / 2 + 1, diameter * 2, diameter * 2));
+        } else {
+            a = new Area(new Arc2D.Float(-diameter / 2 + 1, -diameter / 2 + 1, diameter * 2, diameter * 2, 90, (float) (-progress * 360), Arc2D.PIE));
+
+        }
         a.intersect(new Area(new Rectangle2D.Float(0, 0, diameter, diameter)));
         return a;
     }
@@ -196,6 +209,10 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
     public void installUI(final JComponent c) {
         this.circleBar = (CircledProgressBar) c;
         this.installListeners();
+        if (this.circleBar.isIndeterminate()) {
+
+            BasicCircleProgressBarUI.this.initIndeterminate();
+        }
     }
 
     public void paint(final Graphics g, final double progress, final IconPainter bgi, final IconPainter clipIcon) {
@@ -212,7 +229,9 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
         final Shape clip = this.createClip(diameter, progress);
         if (bgi != null) {
             final Area a = new Area(new Rectangle2D.Double(0, 0, diameter, diameter));
-            a.subtract(new Area(clip));
+            if (clip != null) {
+                a.subtract(new Area(clip));
+            }
             // g2.setClip(a);
             bgi.paint(this.circleBar, g2, a, diameter, progress);
         }
@@ -221,7 +240,7 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
 
         // g2.setClip(clip);
 
-        if (clipIcon != null) {
+        if (clipIcon != null && clip != null) {
             clipIcon.paint(this.circleBar, g2, clip, diameter, progress);
         }
 
