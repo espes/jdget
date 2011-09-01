@@ -31,4 +31,9 @@ public class ColorState {
         this.foreground = foreground;
     }
 
+    @Override
+    public String toString() {
+        return this.foreground + "";
+    }
+
 }

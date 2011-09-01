@@ -3,7 +3,6 @@ package org.appwork.swing.components.searchcombo;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -43,8 +42,6 @@ import javax.swing.plaf.basic.ComboPopup;
 import org.appwork.app.gui.BasicGui;
 import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
-import org.appwork.swing.components.BadgePainter;
-import org.appwork.swing.components.Badgeable;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.SwingUtils;
@@ -57,7 +54,7 @@ import org.appwork.utils.swing.SwingUtils;
  * 
  * @param <T>
  */
-public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
+public abstract class SearchComboBox<T> extends JComboBox {
 
     class Editor implements ComboBoxEditor, FocusListener, DocumentListener {
         private final JTextField tf;
@@ -366,6 +363,7 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
             this.icon.setIcon(SearchComboBox.this.getIconForValue((T) anObject));
             this.value = (T) anObject;
             SearchComboBox.this.updateHelpText();
+            SearchComboBox.this.updateColorByContent();
             this.setting = false;
 
         }
@@ -408,7 +406,7 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
                     final MigPanel contentPane = new MigPanel("ins 10,wrap 1", "[grow,fill]", "[]");
                     this.getFrame().setContentPane(contentPane);
-                    contentPane.setBadgesEnabled(true);
+
                     box1.setList(list);
                     box1.setBorder(BorderFactory.createEtchedBorder());
 
@@ -430,16 +428,6 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
                         @Override
                         public void actionPerformed(final ActionEvent e) {
                             box1.setHelpText(toggle2.isSelected() ? "I'm Help Text" : null);
-                        }
-                    });
-
-                    final JToggleButton toggle3 = new JToggleButton("Toggle Badge");
-                    this.getFrame().getContentPane().add(toggle3);
-                    toggle3.addActionListener(new ActionListener() {
-
-                        @Override
-                        public void actionPerformed(final ActionEvent e) {
-                            box1.setBadgeIcon(toggle3.isSelected() ? AWUTheme.I().getIcon("close", 20) : null);
                         }
                     });
 
@@ -613,13 +601,6 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
     }
 
-    public void paintBadge(final BadgePainter migPanel, final Graphics g) {
-        if (this.badgeIcon != null) {
-            g.drawImage(this.badgeIcon.getImage(), (int) (this.getWidth() - this.badgeIcon.getIconWidth() / 1.5), (int) (this.getHeight() - this.badgeIcon.getIconHeight() / 1.5), null);
-
-        }
-    }
-
     /**
      * @param object
      */
@@ -632,26 +613,9 @@ public abstract class SearchComboBox<T> extends JComboBox implements Badgeable {
 
     }
 
-    /**
-     * @param icon
-     */
-    public void setBadgeIcon(final ImageIcon icon) {
-        this.badgeIcon = icon;
-        Container parent = this;
-        BadgePainter painter = null;
-        while ((parent = parent.getParent()) != null) {
-            if (parent instanceof BadgePainter && ((BadgePainter) parent).isBadgesEnabled()) {
-                painter = (BadgePainter) parent;
-            }
-        }
-        if (painter != null) {
-            painter.repaint();
-        }
-
-    }
-
     private void setColorState(final ColorState cs) {
         this.currentColorSet = cs;
+
         final JTextField tf = this.getTextField();
         if (tf != null) {
             tf.setForeground(this.currentColorSet.getForeground());

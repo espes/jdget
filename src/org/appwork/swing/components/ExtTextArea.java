@@ -1,9 +1,9 @@
 package org.appwork.swing.components;
 
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Shape;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
@@ -15,7 +15,7 @@ import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-public class ExtTextArea extends JTextArea implements FocusListener, DocumentListener, Badgeable {
+public class ExtTextArea extends JTextArea implements FocusListener, DocumentListener {
     private Color       defaultColor;
     private Color       helpColor;
 
@@ -101,15 +101,7 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.appwork.swing.components.Badgeable#paintBadge(org.appwork.app.gui
-     * .MigPanel, java.awt.Graphics)
-     */
-    @Override
-    public void paintBadge(final BadgePainter migPanel, final Graphics g) {
+    public void paintBadge(final Graphics g) {
         if (this.badgeIcon != null) {
             if (this.getParent().getParent() instanceof JScrollPane) {
                 final Point rec = SwingUtilities.convertPoint(this, new Point(0, 0), this.getParent().getParent());
@@ -121,6 +113,16 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
 
             }
         }
+    }
+
+    @Override
+    public void paintComponent(final Graphics g) {
+        super.paintComponent(g);
+        final Shape clp = g.getClip();
+        g.setClip(null);
+        this.paintBadge(g);
+        g.setClip(clp);
+
     }
 
     /*
@@ -139,16 +141,8 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
      */
     public void setBadgeIcon(final ImageIcon icon) {
         this.badgeIcon = icon;
-        Container parent = this;
-        BadgePainter painter = null;
-        while ((parent = parent.getParent()) != null) {
-            if (parent instanceof BadgePainter && ((BadgePainter) parent).isBadgesEnabled()) {
-                painter = (BadgePainter) parent;
-            }
-        }
-        if (painter != null) {
-            painter.repaint();
-        }
+        this.repaint();
+
     }
 
     public void setHelpColor(final Color helpColor) {
