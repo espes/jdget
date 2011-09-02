@@ -1,6 +1,6 @@
 package org.appwork.shutdown;
 
-public abstract class ShutdownEvent extends Thread {
+public abstract class ShutdownEvent implements Runnable {
     private int  hookPriority = 10000;
     private long maxDuration  = 30000l;
 

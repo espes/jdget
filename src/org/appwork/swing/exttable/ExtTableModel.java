@@ -101,14 +101,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             }
         }
 
-        try {
-            this.refreshSort();
-        } catch (final NullPointerException e) {
-            // sortcolumn can be null now.
-
-            Log.exception(e);
-        }
-
     }
 
     public void _fireTableStructureChanged(ArrayList<E> newtableData, final boolean refreshSort) {
@@ -130,14 +122,18 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         new EDTRunner() {
             @Override
             protected void runInEDT() {
+                final boolean adjusting = ExtTableModel.this.getTable().getSelectionModel().getValueIsAdjusting();
                 final int anchor = ExtTableModel.this.getTable().getSelectionModel().getAnchorSelectionIndex();
                 final int lead = ExtTableModel.this.getTable().getSelectionModel().getLeadSelectionIndex();
                 ExtTableModel.this.tableData = newdata;
                 ExtTableModel.this.fireTableStructureChanged();
                 if (ExtTableModel.this.tableData.size() > 0) {
                     ExtTableModel.this.setSelectedObjects(selection);
-                    ExtTableModel.this.getTable().getSelectionModel().setAnchorSelectionIndex(anchor);
-                    ExtTableModel.this.getTable().getSelectionModel().setLeadSelectionIndex(lead);
+                    if (adjusting) {
+                        ExtTableModel.this.getTable().getSelectionModel().setAnchorSelectionIndex(anchor);
+                        ExtTableModel.this.getTable().getSelectionModel().setLeadSelectionIndex(lead);
+                        ExtTableModel.this.getTable().getSelectionModel().setValueIsAdjusting(adjusting);
+                    }
                 }
             }
         };
