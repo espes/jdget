@@ -17,6 +17,7 @@ import org.appwork.remotecall.Utils;
 import org.appwork.remotecall.server.ExceptionWrapper;
 import org.appwork.remotecall.server.ServerInvokationException;
 import org.appwork.storage.JSonStorage;
+import org.appwork.storage.TypeRef;
 
 /**
  * @author thomas
@@ -40,11 +41,11 @@ public class InvocationHandlerImpl implements InvocationHandler {
      */
     public InvocationHandlerImpl(final RemoteCallClient client, final Class<?> class1) {
         this.client = client;
-        name = class1.getSimpleName();
-        methodMap = new HashMap<Method, String>();
+        this.name = class1.getSimpleName();
+        this.methodMap = new HashMap<Method, String>();
 
         for (final Method m : class1.getMethods()) {
-            methodMap.put(m, Utils.createMethodFingerPrint(m));
+            this.methodMap.put(m, Utils.createMethodFingerPrint(m));
 
         }
     }
@@ -55,13 +56,14 @@ public class InvocationHandlerImpl implements InvocationHandler {
         Object obj;
 
         try {
-            returnValue = client.call(name, methodMap.get(method), args);
-            obj = JSonStorage.restoreFromString(returnValue, method.getReturnType());
+            returnValue = this.client.call(this.name, this.methodMap.get(method), args);
+            obj = JSonStorage.restoreFromString(returnValue, new TypeRef(method.getGenericReturnType()) {
+            }, null);
             return Utils.convert(obj, method.getReturnType());
 
         } catch (final ServerInvokationException e) {
 
-            final ExceptionWrapper exception = (ExceptionWrapper) JSonStorage.restoreFromString(e.getMessage(), ExceptionWrapper.class);
+            final ExceptionWrapper exception = JSonStorage.restoreFromString(e.getMessage(), ExceptionWrapper.class);
             final Throwable ex = exception.deserialiseException();
             // search to add the local cause
             final StackTraceElement[] localStack = new Exception().getStackTrace();

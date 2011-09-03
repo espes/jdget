@@ -10,8 +10,8 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
 public class ExtTextField extends JTextField implements CaretListener, FocusListener {
-    private Color  defaultColor;
-    private Color  helpColor;
+    protected Color defaultColor;
+    private Color   helpColor;
 
     {
         this.addCaretListener(this);
@@ -22,7 +22,7 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
             this.helpColor = Color.LIGHT_GRAY;
         }
     }
-    private String helpText = null;
+    private String  helpText = null;
 
     public void caretUpdate(final CaretEvent arg0) {
 
@@ -44,6 +44,14 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
             this.setForeground(this.helpColor);
         }
 
+    }
+
+    /**
+     * @return
+     */
+    public Color getDefaultColor() {
+        // TODO Auto-generated method stub
+        return this.defaultColor;
     }
 
     public Color getHelpColor() {
@@ -77,5 +85,22 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
             this.setForeground(this.helpColor);
         }
 
+    }
+
+    @Override
+    public void setText(String t) {
+        if (!this.hasFocus() && this.helpText != null && (t == null || t.length() == 0)) {
+            t = this.helpText;
+        }
+
+        super.setText(t);
+        if (this.helpText != null) {
+            if (this.helpText.equals(t)) {
+                this.setForeground(this.helpColor);
+            } else {
+
+                this.setForeground(this.defaultColor);
+            }
+        }
     }
 }

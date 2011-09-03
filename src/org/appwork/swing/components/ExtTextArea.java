@@ -15,6 +15,8 @@ import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.appwork.utils.swing.SwingUtils;
+
 public class ExtTextArea extends JTextArea implements FocusListener, DocumentListener {
     private Color       defaultColor;
     private Color       helpColor;
@@ -159,6 +161,18 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
             this.setForeground(this.helpColor);
         }
 
+    }
+
+    /**
+     * if label mode is enabled, the textfield will act like a MUltiline jlabel
+     * 
+     * @param b
+     */
+    public void setLabelMode(final boolean b) {
+        this.setEditable(!b);
+        this.setFocusable(!b);
+        this.setBorder(b ? null : new JTextArea().getBorder());
+        SwingUtils.setOpaque(this, !b);
     }
 
     @Override

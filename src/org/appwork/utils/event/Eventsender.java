@@ -16,7 +16,15 @@ import java.util.EventListener;
  * The Eventsenderclass is the core of the Eventsystem. it can be used to design
  * new Eventbroadcaster Systems easily.
  * 
+ * Guidelines:<br>
+ * 1. CReate a new MyEventSender extends
+ * org.appwork.utils.event.Eventsender<ListenerType, EventType> <br>
+ * 2. Create MyListenerType extends java.util.EventListener<br>
+ * 3. CReate MyEvent extends org.appwork.utils.event.SimpleEvent<CallerType,
+ * ParameterType, TypeEnumType><br>
  * 
+ * <br>
+ * TypeEnumType is usually a intern enum which defines all available eventtypes
  * 
  * @author $Author: unknown$
  * 
@@ -30,8 +38,8 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
      */
     // TODO: DO we really need ArrayLists here?
     transient volatile protected ArrayList<ListenerType> listeners                = null;
-    private final Object                      LOCK                     = new Object();
-    private volatile long                     readR                    = 0;
+    private final Object                                 LOCK                     = new Object();
+    private volatile long                                readR                    = 0;
     /**
      * List of Listeners that are requested for removal
      * 
@@ -39,7 +47,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
     // We use a removeList to avoid threating problems
     transient protected ArrayList<ListenerType>          removeRequestedListeners = null;
 
-    private volatile long                     writeR                   = 0;
+    private volatile long                                writeR                   = 0;
 
     /**
      * Creates a new Eventsender Instance
@@ -81,6 +89,51 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
             if (!this.addRequestedListeners.contains(t) && !this.listeners.contains(t)) {
                 this.addRequestedListeners.add(t);
                 this.writeR++;
+            }
+        }
+    }
+
+    final public void fireEvent(final EventType event) {
+        if (event == null) { return; }
+        ArrayList<ListenerType> listeners;
+        synchronized (this.LOCK) {
+            if (this.writeR == this.readR) {
+                /* nothing changed, we can use old pointer to listeners */
+                if (this.listeners.size() == 0) { return; }
+                listeners = this.listeners;
+            } else {
+                /* create new list with copy of old one */
+                listeners = new ArrayList<ListenerType>(this.listeners);
+                /* remove and add wished items */
+                listeners.removeAll(this.removeRequestedListeners);
+                this.removeRequestedListeners.clear();
+                listeners.addAll(this.addRequestedListeners);
+                this.addRequestedListeners.clear();
+                /* update ReadCounter and pointer to listeners */
+                this.readR = this.writeR;
+                this.listeners = listeners;
+                if (this.listeners.size() == 0) { return; }
+            }
+        }
+        for (final ListenerType t : listeners) {
+            // final long tt = System.currentTimeMillis();
+
+            this.fireEvent(t, event);
+            // System.out.println(t + " " + (System.currentTimeMillis() - tt));
+        }
+        synchronized (this.LOCK) {
+            if (this.writeR != this.readR) {
+                /* something changed, lets update the list */
+                /* create new list with copy of old one */
+                listeners = new ArrayList<ListenerType>(this.listeners);
+                /* remove and add wished items */
+                listeners.removeAll(this.removeRequestedListeners);
+                this.removeRequestedListeners.clear();
+                listeners.addAll(this.addRequestedListeners);
+                this.addRequestedListeners.clear();
+                /* update ReadCounter and pointer to listeners */
+                this.readR = this.writeR;
+                this.listeners = listeners;
             }
         }
     }
@@ -134,6 +187,14 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
     }
 
     /**
+     * Abstract fire Event Method.
+     * 
+     * @param listener
+     * @param event
+     */
+    protected abstract void fireEvent(ListenerType listener, EventType event);
+
+    /**
      * 
      * @param t
      * @param id
@@ -144,59 +205,6 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
 
     }
 
-    /**
-     * Abstract fire Event Method.
-     * 
-     * @param listener
-     * @param event
-     */
-    protected abstract void fireEvent(ListenerType listener, EventType event);
-
-    final public void fireEvent(final EventType event) {
-        if (event == null) { return; }
-        ArrayList<ListenerType> listeners;
-        synchronized (this.LOCK) {
-            if (this.writeR == this.readR) {
-                /* nothing changed, we can use old pointer to listeners */
-                if (this.listeners.size() == 0) { return; }
-                listeners = this.listeners;
-            } else {
-                /* create new list with copy of old one */
-                listeners = new ArrayList<ListenerType>(this.listeners);
-                /* remove and add wished items */
-                listeners.removeAll(this.removeRequestedListeners);
-                this.removeRequestedListeners.clear();
-                listeners.addAll(this.addRequestedListeners);
-                this.addRequestedListeners.clear();
-                /* update ReadCounter and pointer to listeners */
-                this.readR = this.writeR;
-                this.listeners = listeners;
-                if (this.listeners.size() == 0) { return; }
-            }
-        }
-        for (final ListenerType t : listeners) {
-            // final long tt = System.currentTimeMillis();
-
-            this.fireEvent(t, event);
-            // System.out.println(t + " " + (System.currentTimeMillis() - tt));
-        }
-        synchronized (this.LOCK) {
-            if (this.writeR != this.readR) {
-                /* something changed, lets update the list */
-                /* create new list with copy of old one */
-                listeners = new ArrayList<ListenerType>(this.listeners);
-                /* remove and add wished items */
-                listeners.removeAll(this.removeRequestedListeners);
-                this.removeRequestedListeners.clear();
-                listeners.addAll(this.addRequestedListeners);
-                this.addRequestedListeners.clear();
-                /* update ReadCounter and pointer to listeners */
-                this.readR = this.writeR;
-                this.listeners = listeners;
-            }
-        }
-    }
-
     public ArrayList<ListenerType> getListener() {
         synchronized (this.LOCK) {
             return new ArrayList<ListenerType>(this.listeners);
@@ -205,7 +213,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
 
     public boolean hasListener() {
         synchronized (this.LOCK) {
-            return listeners.size() > 0;
+            return this.listeners.size() > 0;
         }
     }
 
