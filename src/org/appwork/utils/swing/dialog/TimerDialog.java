@@ -36,7 +36,7 @@ public abstract class TimerDialog {
             super(SwingUtils.getWindowForComponent(Dialog.getInstance().getParentOwner()), ModalityType.TOOLKIT_MODAL);
 
             this.setLayout(new MigLayout("ins 5", "[]", "[fill,grow][]"));
-            System.out.println("Dialog parent: " + this.getParent());
+            // System.out.println("Dialog parent: " + this.getParent());
             if (Dialog.getInstance().getIconList() != null) {
                 this.setIconImages(Dialog.getInstance().getIconList());
             }

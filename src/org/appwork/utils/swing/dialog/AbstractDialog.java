@@ -259,9 +259,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             this.getDialog().invalidate();
             // this.setMinimumSize(this.getPreferredSize());
             this.getDialog().setMinimumSize(new Dimension(300, 80));
-            System.out.println(this.panel.getSize());
+
             this.pack();
-            System.out.println(this.panel.getSize());
+
             this.getDialog().setResizable(this.isResizable());
 
             // minimum size foir a dialog

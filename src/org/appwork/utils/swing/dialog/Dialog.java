@@ -361,7 +361,7 @@ public class Dialog implements WindowFocusListener {
      */
     public void setParentOwner(final Component parent) {
         this.owner = parent;
-        Log.L.finer("Dialog Root: " + parent);
+
         if (parent == null) {
             Log.exception(new NullPointerException("parent == null"));
         }
