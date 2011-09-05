@@ -27,6 +27,8 @@ public interface HTTPConnection {
      */
     void disconnect();
 
+    void finalizeConnect() throws IOException;
+
     /**
      * returns Charset
      * 

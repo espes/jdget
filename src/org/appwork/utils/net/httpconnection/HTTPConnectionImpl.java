@@ -229,6 +229,18 @@ public class HTTPConnectionImpl implements HTTPConnection {
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.utils.net.httpconnection.HTTPConnection#finalizeConnect()
+     */
+    @Override
+    public void finalizeConnect() throws IOException {
+        this.connect();
+        this.connectInputStream();
+    }
+
     public String getCharset() {
         int i;
         if (this.customcharset != null) { return this.customcharset; }
