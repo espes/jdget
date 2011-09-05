@@ -1,18 +1,18 @@
 package org.appwork.utils.event;
 
+import javax.swing.ImageIcon;
+
 public interface ProcessCallBack {
-    public void setProgress(int percent);
+    public void setProgress(Object caller, int percent);
 
-    public void setStatusString(String string);
-
-    /**
-     * @param autodetection_success
-     */
-    public void showMessage(String autodetection_success);
+    public void setStatusString(Object caller, String string);
 
     /**
-     * @param autodetection_failed
+     * @param plugin
+     * @param literally_warning
+     * @param liveHeaderDetectionWizard_runOnlineScan_notalive
+     * @param icon
      */
-    public void showWarning(String autodetection_failed);
+    public void showDialog(Object caller, String title, String message, ImageIcon icon);
 
 }
