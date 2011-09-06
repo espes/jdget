@@ -204,7 +204,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
      */
     private boolean mouseOverComponent(final Point point) {
         try {
-            if (point != null && this.activeComponent != null && this.activeComponent instanceof JComponent && this.activeComponent.getParent() != null) {
+            if (point != null && this.activeComponent != null && this.activeComponent instanceof JComponent && this.activeComponent.isShowing() && this.activeComponent.getParent() != null) {
 
                 final Rectangle bounds = this.activeComponent.getBounds();
 
@@ -365,7 +365,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
 
         ToolTipController.this.hideTooltip();
         if (ToolTipController.this.activeComponent != null && !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
-
+            System.out.println("");
             final Point p = new Point(ToolTipController.this.mousePosition);
             SwingUtilities.convertPointFromScreen(p, ToolTipController.this.activeComponent);
             this.show(((ToolTipHandler) ToolTipController.this.activeComponent).createExtTooltip(p));
