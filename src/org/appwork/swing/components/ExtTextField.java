@@ -8,8 +8,10 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
-public class ExtTextField extends JTextField implements CaretListener, FocusListener {
+public class ExtTextField extends JTextField implements CaretListener, FocusListener, DocumentListener {
     protected Color defaultColor;
     private Color   helpColor;
 
@@ -21,8 +23,10 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
         if (this.helpColor == null) {
             this.helpColor = Color.LIGHT_GRAY;
         }
+        getDocument().addDocumentListener(this);
     }
     private String  helpText = null;
+    private boolean setting;
 
     public void caretUpdate(final CaretEvent arg0) {
 
@@ -89,6 +93,8 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
 
     @Override
     public void setText(String t) {
+        setting=true;
+       try {
         if (!this.hasFocus() && this.helpText != null && (t == null || t.length() == 0)) {
             t = this.helpText;
         }
@@ -102,5 +108,40 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
                 this.setForeground(this.defaultColor);
             }
         }
+        }finally{
+            setting=false;
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see javax.swing.event.DocumentListener#insertUpdate(javax.swing.event.DocumentEvent)
+     */
+    @Override
+    public void insertUpdate(DocumentEvent e) {
+        if(!setting)onChanged();
+    }
+
+    /* (non-Javadoc)
+     * @see javax.swing.event.DocumentListener#removeUpdate(javax.swing.event.DocumentEvent)
+     */
+    @Override
+    public void removeUpdate(DocumentEvent e) {
+       if(!setting) onChanged();
+    }
+
+    /**
+     * 
+     */
+    protected void onChanged() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /* (non-Javadoc)
+     * @see javax.swing.event.DocumentListener#changedUpdate(javax.swing.event.DocumentEvent)
+     */
+    @Override
+    public void changedUpdate(DocumentEvent e) {
+        if(!setting) onChanged();
     }
 }

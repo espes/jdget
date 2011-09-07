@@ -15,4 +15,10 @@ public interface ProcessCallBack {
      */
     public void showDialog(Object caller, String title, String message, ImageIcon icon);
 
+    /**
+     * @param liveHeaderDetectionWizard
+     * @param ret
+     */
+    public void setStatus(Object caller, Object statusObject);
+
 }
