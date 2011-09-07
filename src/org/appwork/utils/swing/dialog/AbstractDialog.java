@@ -375,12 +375,21 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     @Override
     public void dispose() {
+
         if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
-        super.dispose();
-        if (this.timer != null) {
-            this.timer.interrupt();
-            this.timer = null;
-        }
+
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                AbstractDialog.super.dispose();
+                if (AbstractDialog.this.timer != null) {
+                    AbstractDialog.this.timer.interrupt();
+                    AbstractDialog.this.timer = null;
+                }
+            }
+        };
+
     }
 
     /**
