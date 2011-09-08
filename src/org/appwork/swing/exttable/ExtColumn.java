@@ -37,44 +37,44 @@ import org.appwork.utils.swing.EDTRunner;
  */
 public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
 
-    protected static Color         background         = null;
-    protected static Color         backgroundselected = null;
+    protected static Color           background         = null;
+    protected static Color           backgroundselected = null;
 
-    protected static Color         foreground         = null;
-    protected static Color         foregroundselected = null;
+    protected static Color           foreground         = null;
+    protected static Color           foregroundselected = null;
 
-    private static final long      serialVersionUID   = -2662459732650363059L;
-    protected static final Border  DEFAULT_BORDER     = BorderFactory.createEmptyBorder(0, 5, 0, 5);
+    private static final long        serialVersionUID   = -2662459732650363059L;
+    protected static final Border    DEFAULT_BORDER     = BorderFactory.createEmptyBorder(0, 5, 0, 5);
     /**
      * If this colum is editable, this parameter says how many clicks are
      * required to start edit mode
      */
-    private int                    clickcount         = 2;
+    private int                      clickcount         = 2;
 
     /**
      * The model this column belongs to
      */
-    private ExtTableModel<E>       model;
+    private ExtTableModel<E>         model;
     /**
      * The columns Title.
      */
-    private final String           name;
+    private final String             name;
 
     /**
      * Sorting algorithms run in an own thread
      */
-    private static Thread          sortThread         = null;
-    private static Object          sortLOCK           = new Object();
+    private static Thread            sortThread         = null;
+    private static Object            sortLOCK           = new Object();
 
-    private ExtDefaultRowSorter<E> rowSorter;
-    private String                 id;
-    private TableColumn            tableColumn;
+    protected ExtDefaultRowSorter<E> rowSorter;
+    private String                   id;
+    private TableColumn              tableColumn;
 
-    private String                 sortOrderIdentifier;
-    private final ToolTip          tooltip;
+    private String                   sortOrderIdentifier;
+    private final ToolTip            tooltip;
 
-    public static final String     SORT_DESC          = "DESC";
-    public static final String     SORT_ASC           = "ASC";
+    public static final String       SORT_DESC          = "DESC";
+    public static final String       SORT_ASC           = "ASC";
 
     /**
      * Create a new ExtColum.

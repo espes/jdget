@@ -1073,6 +1073,7 @@ public class Dialog implements WindowFocusListener {
      */
     @Override
     public void windowGainedFocus(final WindowEvent e) {
+
         if (e.getSource() instanceof Window) {
 
             this.setParentOwner((Component) e.getSource());
