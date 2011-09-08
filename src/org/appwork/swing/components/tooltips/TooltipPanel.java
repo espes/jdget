@@ -60,7 +60,7 @@ public class TooltipPanel extends MigPanel {
     public TooltipPanel(final String constraints, final String columns, final String rows) {
         super(constraints, columns, rows);
 
-        this.setBackground(null);
+//        this.setBackground(null);
         this.setOpaque(false);
 
     }

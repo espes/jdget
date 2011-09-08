@@ -235,4 +235,30 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "Yes", "Ja" })
     String YES();
+
+
+    @Default(lngs = { "en" }, values = { "alt","Alt" })
+    String ShortCuts_key_alt();
+
+    @Default(lngs = { "en" }, values = { "alt Gr","Alt Gr" })
+    String ShortCuts_key_altGr();
+
+    @Default(lngs = { "en" }, values = { "button1" ,"button1" })
+    String ShortCuts_key_button1();
+
+    @Default(lngs = { "en" }, values = { "button2","button2" })
+    String ShortCuts_key_button2();
+
+    @Default(lngs = { "en" }, values = { "button3","button3" })
+    String ShortCuts_key_button3();
+
+    @Default(lngs = { "en" }, values = { "ctrl","Strg" })
+    String ShortCuts_key_ctrl();
+
+    @Default(lngs = { "en" }, values = { "meta" ,"meta"})
+    String ShortCuts_key_meta();
+
+    @Default(lngs = { "en" }, values = { "shift","Shift" })
+    String ShortCuts_key_shift();
+
 }

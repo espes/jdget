@@ -1,3 +1,12 @@
+/**
+ * Copyright (c) 2009 - 2011 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
+ * 
+ * This file is part of org.appwork.swing.components
+ * 
+ * This software is licensed under the Artistic License 2.0,
+ * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
+ * for details
+ */
 package org.appwork.swing.components;
 
 import java.awt.Color;
@@ -10,15 +19,19 @@ import java.awt.event.FocusListener;
 import javax.swing.ImageIcon;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.appwork.swing.components.tooltips.ToolTipHandler;
 import org.appwork.utils.swing.SwingUtils;
 
-public class ExtTextArea extends JTextArea implements FocusListener, DocumentListener  {
+/**
+ * @author thomas
+ * 
+ */
+public class ExtTextPane extends JTextPane implements DocumentListener, FocusListener {
     private Color       defaultColor;
     private Color       helpColor;
 
@@ -192,5 +205,4 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
             }
         }
     }
-
 }

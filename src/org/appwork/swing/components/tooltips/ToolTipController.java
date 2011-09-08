@@ -16,9 +16,12 @@ import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.lang.reflect.Method;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -37,7 +40,7 @@ import org.appwork.utils.swing.EDTRunner;
  * @author thomas
  * 
  */
-public class ToolTipController implements MouseListener, MouseMotionListener {
+public class ToolTipController implements MouseListener, MouseMotionListener, WindowFocusListener {
 
     private static final ScheduledExecutorService EXECUTER            = Executors.newSingleThreadScheduledExecutor();
     // order is important. EXECUTER has to be available
@@ -94,6 +97,10 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
             this.activePopup = null;
             this.lastHidden = System.currentTimeMillis();
             if (this.activeComponent != null) {
+                Window ownerWindow = SwingUtilities.getWindowAncestor(activeComponent);
+                if (ownerWindow != null) {
+                    ownerWindow.removeWindowFocusListener(this);
+                }
                 if (((ToolTipHandler) this.activeComponent).isTooltipDisabledUntilNextRefocus()) {
                     this.activeComponent = null;
                 }
@@ -348,8 +355,17 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
             tt.addMouseListener(ToolTipController.this);
 
             this.activePopup = popupFactory.getPopup(this.activeComponent, this.activeToolTipPanel, ttPosition.x, ttPosition.y);
+            Window ownerWindow = SwingUtilities.getWindowAncestor(activeComponent);
+            // if the components window is not the active any more, for exmaple
+            // because we opened a dialog, don't show tooltip
+
+            if (ownerWindow != null) {
+                ownerWindow.removeWindowFocusListener(this);
+                ownerWindow.addWindowFocusListener(this);
+            }
 
             this.activePopup.show();
+
             // parentWindow =
             // SwingUtilities.windowForComponent(this.activeToolTipPanel);
             //
@@ -365,10 +381,15 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
 
         ToolTipController.this.hideTooltip();
         if (ToolTipController.this.activeComponent != null && !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
-            System.out.println("");
-            final Point p = new Point(ToolTipController.this.mousePosition);
-            SwingUtilities.convertPointFromScreen(p, ToolTipController.this.activeComponent);
-            this.show(((ToolTipHandler) ToolTipController.this.activeComponent).createExtTooltip(p));
+            Window ownerWindow = SwingUtilities.getWindowAncestor(activeComponent);
+            // if the components window is not the active any more, for exmaple
+            // because we opened a dialog, don't show tooltip
+
+            if (ownerWindow.isActive()) {
+                final Point p = new Point(ToolTipController.this.mousePosition);
+                SwingUtilities.convertPointFromScreen(p, ToolTipController.this.activeComponent);
+                this.show(((ToolTipHandler) ToolTipController.this.activeComponent).createExtTooltip(p));
+            }
 
         }
 
@@ -380,6 +401,31 @@ public class ToolTipController implements MouseListener, MouseMotionListener {
     public void unregister(final ToolTipHandler circledProgressBar) {
         circledProgressBar.removeMouseListener(this);
         circledProgressBar.removeMouseMotionListener(this);
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.awt.event.WindowFocusListener#windowGainedFocus(java.awt.event.
+     * WindowEvent)
+     */
+    @Override
+    public void windowGainedFocus(WindowEvent e) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.WindowFocusListener#windowLostFocus(java.awt.event.WindowEvent
+     * )
+     */
+    @Override
+    public void windowLostFocus(WindowEvent e) {
+        hideTooltip();
 
     }
 }

@@ -282,4 +282,15 @@ public class Regex {
         return this;
     }
 
+    /**
+     * @param sslResponse
+     * @param string
+     * @param string2
+     * @return
+     */
+    public static String replace(String text, String regex, String replacement) {
+  
+        return Pattern.compile(regex,Pattern.DOTALL|Pattern.MULTILINE).matcher(text).replaceAll(replacement);
+    }
+
 }

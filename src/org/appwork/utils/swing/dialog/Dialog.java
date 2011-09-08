@@ -1093,4 +1093,13 @@ public class Dialog implements WindowFocusListener {
 
     }
 
+    /**
+     * @return 
+     * 
+     */
+    public static Dialog I() {
+      return INSTANCE;
+        
+    }
+
 }
