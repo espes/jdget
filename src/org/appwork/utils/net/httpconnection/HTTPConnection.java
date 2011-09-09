@@ -29,6 +29,8 @@ public interface HTTPConnection {
 
     void finalizeConnect() throws IOException;
 
+    int[] getAllowedResponseCodes();
+
     /**
      * returns Charset
      * 
@@ -88,6 +90,8 @@ public interface HTTPConnection {
     boolean isContentDisposition();
 
     boolean isOK();
+
+    void setAllowedResponseCodes(int[] codes);
 
     public void setCharset(String charset);
 

@@ -51,6 +51,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     protected boolean                        outputClosed         = false;
     private boolean                          contentDecoded       = true;
     protected long                           postTodoLength       = -1;
+    private int[]                            allowedResponseCodes = new int[0];
 
     public HTTPConnectionImpl(final URL url) {
         this(url, null);
@@ -241,6 +242,11 @@ public class HTTPConnectionImpl implements HTTPConnection {
         this.connectInputStream();
     }
 
+    @Override
+    public int[] getAllowedResponseCodes() {
+        return this.allowedResponseCodes;
+    }
+
     public String getCharset() {
         int i;
         if (this.customcharset != null) { return this.customcharset; }
@@ -287,7 +293,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         this.connect();
         this.connectInputStream();
         final int code = this.getResponseCode();
-        if (code >= 200 && code <= 400 || code == 404 || code == 403) {
+        if (code >= 200 && code <= 400 || code == 404 || code == 403 || this.isResponseCodeAllowed(code)) {
             if (this.convertedInputStream != null) { return this.convertedInputStream; }
             if (this.contentDecoded) {
                 /* we convert different content-encodings to normal inputstream */
@@ -433,6 +439,13 @@ public class HTTPConnectionImpl implements HTTPConnection {
         return false;
     }
 
+    protected boolean isResponseCodeAllowed(final int code) {
+        for (final int c : this.allowedResponseCodes) {
+            if (c == code) { return true; }
+        }
+        return false;
+    }
+
     protected void sendRequest() throws UnsupportedEncodingException, IOException {
         /* now send Request */
         final StringBuilder sb = new StringBuilder();
@@ -469,6 +482,12 @@ public class HTTPConnectionImpl implements HTTPConnection {
         } else {
             this.outputStream = new CountingOutputStream(this.httpSocket.getOutputStream());
         }
+    }
+
+    @Override
+    public void setAllowedResponseCodes(final int[] codes) {
+        if (codes == null) { throw new IllegalArgumentException("codes==null"); }
+        this.allowedResponseCodes = codes;
     }
 
     public void setCharset(final String Charset) {
