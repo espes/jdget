@@ -49,10 +49,7 @@ public class RemoteCallServiceWrapper {
     public Method getMethod(final String method) {
 
         final Method m = methodMap.get(method);
-        if (m == null) {
-            //
-            throw new IllegalArgumentException("No Routine " + method);
-        }
+    
 
         return m;
 

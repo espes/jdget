@@ -104,6 +104,7 @@ public class JSonMapper {
     @SuppressWarnings("unchecked")
     public JSonNode create(final Object obj) throws MapperException {
         try {
+            
             if (obj == null) { return new JSonValue(null); }
             final Class<? extends Object> clazz = obj.getClass();
             if (clazz.isPrimitive()) {
@@ -165,11 +166,13 @@ public class JSonMapper {
                     ret.add(this.create(Array.get(obj, i)));
                 }
                 return ret;
-
+            } else if (obj instanceof Class) {
+                return new JSonValue(((Class)obj).getName());
             } else/* if (obj instanceof Storable) */{
                 final ClassCache cc = ClassCache.getClassCache(clazz);
                 final JSonObject ret = new JSonObject();
                 for (final Getter g : cc.getGetter()) {
+                 
                     ret.put(g.getKey(), this.create(g.getValue(obj)));
                 }
                 return ret;

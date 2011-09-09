@@ -147,7 +147,7 @@ public class TranslationHandler implements InvocationHandler {
                 }
 
             }
-            throw new NullPointerException("Missing Translation: " + path);
+//            throw new NullPointerException("Missing Translation: " + path);
         }
         ret = new TranslateResource(url, string);
         this.resourceCache.put(string, ret);

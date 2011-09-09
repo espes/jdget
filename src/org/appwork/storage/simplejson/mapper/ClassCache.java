@@ -14,6 +14,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+
+import org.appwork.utils.logging.Log;
 
 /**
  * @author thomas
@@ -34,7 +37,10 @@ public class ClassCache {
         final ClassCache cc = new ClassCache(clazz);
         Getter g;
         Setter s;
-        for (final Method m : clazz.getDeclaredMethods()) {
+        
+        Class<? extends Object> cls = clazz;
+        do{
+        for (final Method m : cls.getDeclaredMethods()) {
             if (m.getName().startsWith("get") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
                 cc.getter.add(g = new Getter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
                 cc.getterMap.put(g.getKey(), g);
@@ -46,15 +52,29 @@ public class ClassCache {
                 cc.setterMap.put(s.getKey(), s);
             }
         }
-
+        }while((cls=cls.getSuperclass())!=null);
         for (final Constructor<?> c : clazz.getDeclaredConstructors()) {
             if (c.getParameterTypes().length == 0) {
-                cc.constructor = c;
+      
+                try{
                 c.setAccessible(true);
+                cc.constructor = c;
+                }catch(java.lang.SecurityException e){
+                    Log.exception(Level.WARNING, e);
+                }
                 break;
             }
         }
-        if (cc.constructor == null) { throw new NoSuchMethodException(" Class " + clazz + " requires a null constructor. please add private " + clazz.getSimpleName() + "(){}"); }
+        if (cc.constructor == null) { 
+            //
+            String pkg = clazz.getPackage().getName();
+            if(pkg.startsWith("java")||pkg.startsWith("sun.")){
+                
+                Log.L.warning("No Null Constructor in "+clazz+" found. De-Json-serial will fail");
+            }else{
+            throw new NoSuchMethodException(" Class " + clazz + " requires a null constructor. please add private " + clazz.getSimpleName() + "(){}");
+            }
+            }
         return cc;
     }
 
