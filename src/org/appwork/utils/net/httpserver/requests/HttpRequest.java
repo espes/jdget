@@ -17,7 +17,7 @@ import org.appwork.utils.net.HeaderCollection;
  * @author daniel
  * 
  */
-public abstract class HttpRequest {
+public abstract class HttpRequest implements HttpRequestInterface {
 
     protected String               requestedURL           = null;
 

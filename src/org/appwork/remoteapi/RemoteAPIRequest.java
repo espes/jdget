@@ -16,13 +16,14 @@ import java.util.LinkedList;
 
 import org.appwork.utils.net.HeaderCollection;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
+import org.appwork.utils.net.httpserver.requests.HttpRequestInterface;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 
 /**
  * @author daniel
  * 
  */
-public class RemoteAPIRequest {
+public class RemoteAPIRequest implements HttpRequestInterface {
 
     private final InterfaceHandler<?> iface;
 
@@ -88,6 +89,17 @@ public class RemoteAPIRequest {
 
     public String[] getParameters() {
         return this.parameters;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
+     * getPostParameter()
+     */
+    @Override
+    public LinkedList<String[]> getPostParameter() throws IOException {
+        return this.request.getPostParameter();
     }
 
     public String getRequestedPath() {

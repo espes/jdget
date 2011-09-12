@@ -9,6 +9,7 @@
  */
 package org.appwork.remoteapi;
 
+import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.utils.net.httpserver.handler.HttpSessionRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
@@ -34,6 +35,10 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
         RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return false; }
         apiRequest = new SessionRemoteAPIRequest<T>(request, apiRequest, session);
+        if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) {
+            response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
+            return true;
+        }
         try {
             this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
@@ -56,6 +61,10 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
         RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return false; }
         apiRequest = new SessionRemoteAPIRequest<T>(request, apiRequest, session);
+        if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) {
+            response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
+            return true;
+        }
         try {
             this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {

@@ -677,7 +677,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler {
 
     @Override
     public String getToolTipText(final MouseEvent event) {
-        System.out.println("BVLA");
         return "BLÖA";
     }
 

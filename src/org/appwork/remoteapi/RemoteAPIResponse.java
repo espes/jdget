@@ -15,12 +15,13 @@ import java.io.OutputStream;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.utils.net.HeaderCollection;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
+import org.appwork.utils.net.httpserver.responses.HttpResponseInterface;
 
 /**
  * @author daniel
  * 
  */
-public class RemoteAPIResponse {
+public class RemoteAPIResponse implements HttpResponseInterface {
 
     private final HttpResponse response;
 

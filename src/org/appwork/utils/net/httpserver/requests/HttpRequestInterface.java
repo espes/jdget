@@ -12,21 +12,24 @@ package org.appwork.utils.net.httpserver.requests;
 import java.io.IOException;
 import java.util.LinkedList;
 
+import org.appwork.utils.net.HeaderCollection;
+
 /**
  * @author daniel
  * 
  */
-public class GetRequest extends HttpRequest {
+public interface HttpRequestInterface {
+    public LinkedList<String[]> getPostParameter() throws IOException;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
-     * getPostParameter()
+    public String getRequestedPath();
+
+    public String getRequestedURL();
+
+    /**
+     * @return the requestedURLParameters
      */
-    @Override
-    public LinkedList<String[]> getPostParameter() throws IOException {
-        return null;
-    }
+    public LinkedList<String[]> getRequestedURLParameters();
+
+    public HeaderCollection getRequestHeaders();
 
 }

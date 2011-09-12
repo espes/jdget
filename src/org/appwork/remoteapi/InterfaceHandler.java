@@ -34,6 +34,17 @@ import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
  */
 public class InterfaceHandler<T> {
 
+    static {
+        try {
+            InterfaceHandler.HELP = InterfaceHandler.class.getMethod("help", new Class[] { RemoteAPIRequest.class, RemoteAPIResponse.class });
+        } catch (final SecurityException e) {
+            Log.exception(e);
+        } catch (final NoSuchMethodException e) {
+            Log.exception(e);
+        }
+
+    }
+
     /**
      * @param c
      * @param x
@@ -55,16 +66,7 @@ public class InterfaceHandler<T> {
     private final HashMap<Method, Integer>                  methodsAuthLevel;
     private final int                                       defaultAuthLevel;
     private static Method                                   HELP;
-    static {
-        try {
-            InterfaceHandler.HELP = InterfaceHandler.class.getMethod("help", new Class[] { RemoteAPIRequest.class, RemoteAPIResponse.class });
-        } catch (final SecurityException e) {
-            Log.exception(e);
-        } catch (final NoSuchMethodException e) {
-            Log.exception(e);
-        }
-
-    }
+    private boolean                                         sessionRequired = false;
 
     /**
      * @param <T>
@@ -200,6 +202,13 @@ public class InterfaceHandler<T> {
     }
 
     /**
+     * @return the sessionRequired
+     */
+    public boolean isSessionRequired() {
+        return this.sessionRequired;
+    }
+
+    /**
      * @throws ParseException
      * 
      */
@@ -234,6 +243,14 @@ public class InterfaceHandler<T> {
                 this.methodsAuthLevel.put(m, auth.value());
             }
         }
+    }
+
+    /**
+     * @param sessionRequired
+     *            the sessionRequired to set
+     */
+    protected void setSessionRequired(final boolean sessionRequired) {
+        this.sessionRequired = sessionRequired;
     }
 
     /**

@@ -22,7 +22,7 @@ import org.appwork.utils.net.httpserver.HttpConnection;
  * @author daniel
  * 
  */
-public class HttpResponse {
+public class HttpResponse implements HttpResponseInterface {
 
     private final HeaderCollection responseHeaders;
     public static final byte[]     NEWLINE      = "\r\n".getBytes();

@@ -348,7 +348,9 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                         if (this.interfaces.containsKey(namespace)) { throw new IllegalStateException("Interface " + c.getName() + " with namespace " + namespace + " already has been registered by " + this.interfaces.get(namespace)); }
                         System.out.println("Register:   " + c.getName() + "->" + namespace);
                         try {
-                            this.interfaces.put(namespace, InterfaceHandler.create((Class<RemoteAPIInterface>) c, x, defaultAuthLevel));
+                            final InterfaceHandler<RemoteAPIInterface> intf = InterfaceHandler.create((Class<RemoteAPIInterface>) c, x, defaultAuthLevel);
+                            intf.setSessionRequired(c.getAnnotation(ApiSessionRequired.class) != null);
+                            this.interfaces.put(namespace, intf);
                         } catch (final SecurityException e) {
                             throw new ParseException(e);
                         } catch (final NoSuchMethodException e) {
@@ -388,7 +390,9 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                         if (this.interfaces.containsKey(namespace)) { throw new IllegalStateException("Interface " + c.getName() + " with namespace " + namespace + " already has been registered by " + this.interfaces.get(namespace)); }
                         System.out.println("Register:   " + c.getName() + "->" + namespace);
                         try {
-                            this.interfaces.put(namespace, InterfaceHandler.create((Class<RemoteAPIInterface>) c, process, defaultAuthLevel));
+                            final InterfaceHandler<RemoteAPIInterface> intf = InterfaceHandler.create((Class<RemoteAPIInterface>) c, process, defaultAuthLevel);
+                            intf.setSessionRequired(c.getAnnotation(ApiSessionRequired.class) != null);
+                            this.interfaces.put(namespace, intf);
                         } catch (final SecurityException e) {
                             throw new ParseException(e);
                         } catch (final NoSuchMethodException e) {

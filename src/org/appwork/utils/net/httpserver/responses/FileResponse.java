@@ -26,7 +26,7 @@ import org.appwork.utils.ReusableByteArrayOutputStreamPool;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
-import org.appwork.utils.net.httpserver.requests.HttpRequest;
+import org.appwork.utils.net.httpserver.requests.HttpRequestInterface;
 
 /**
  * @author daniel
@@ -34,8 +34,8 @@ import org.appwork.utils.net.httpserver.requests.HttpRequest;
  */
 public class FileResponse {
 
-    private final HttpRequest              request;
-    private final HttpResponse             response;
+    private final HttpRequestInterface     request;
+    private final HttpResponseInterface    response;
     private File                           inputFile;
     private URL                            inputURL;
 
@@ -55,13 +55,13 @@ public class FileResponse {
         FileResponse.MIMES.put("ico", "image/x-icon");
     }
 
-    public FileResponse(final HttpRequest request, final HttpResponse response, final File inputFile) {
+    public FileResponse(final HttpRequestInterface request, final HttpResponseInterface response, final File inputFile) {
         this.request = request;
         this.response = response;
         this.inputFile = inputFile;
     }
 
-    public FileResponse(final HttpRequest request, final HttpResponse response, final URL inputURL) {
+    public FileResponse(final HttpRequestInterface request, final HttpResponseInterface response, final URL inputURL) {
         this.request = request;
         this.response = response;
         this.inputURL = inputURL;
@@ -123,10 +123,6 @@ public class FileResponse {
         }
         return mime;
 
-    }
-
-    protected boolean sendDispositon() {
-        return false;
     }
 
     public void sendFile() throws IOException {
