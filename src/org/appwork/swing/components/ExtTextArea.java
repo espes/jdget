@@ -15,10 +15,9 @@ import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.appwork.swing.components.tooltips.ToolTipHandler;
 import org.appwork.utils.swing.SwingUtils;
 
-public class ExtTextArea extends JTextArea implements FocusListener, DocumentListener  {
+public class ExtTextArea extends JTextArea implements FocusListener, DocumentListener {
     private Color       defaultColor;
     private Color       helpColor;
 

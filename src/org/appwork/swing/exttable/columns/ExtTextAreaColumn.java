@@ -134,7 +134,10 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
         // TODO Auto-generated method stub
         this.stopCellEditing();
     }
-
+    protected void firePropertyChange(String propertyName,
+            Object oldValue, Object newValue) {
+        
+    }
     @Override
     public Object getCellEditorValue() {
         return this.txt.getText();
@@ -181,7 +184,7 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
     protected String getTooltipText(final E obj) {
         final String v = this.getStringValue(obj);
         if (v != null && v.length() > 0) {
-            return "<html>" + v.replaceAll("\r\n", "<br>") + "</html>";
+            return v;
         } else {
             return null;
         }

@@ -9,6 +9,7 @@
  */
 package org.appwork.swing.components.tooltips;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -75,8 +76,8 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
 
         // this.setUI(null);
 
-        this.setOpaque(false);
-        this.setBackground(null);
+//        this.setOpaque(true);
+//        this.setBackground(null);
 
         if (this.panel != null) {
             this.add(this.panel);
@@ -231,5 +232,13 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
     public void paintComponents(final Graphics g) {
         super.paintComponents(g);
 
+    }
+
+    /**
+     * @param black
+     */
+    public static void setForgroundColor(Color black) {
+       createConfig(DEFAULT).setForegroundColor(black.getRGB());
+        
     }
 }
