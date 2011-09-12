@@ -62,7 +62,9 @@ public class SizeFormatter {
         if (matches[0].length == 2) {
             res = Double.parseDouble(matches[0][0] + "." + matches[0][1]);
         }
-        if (Regex.matches(string, Pattern.compile("(gb|gbyte|gig|gib)", Pattern.CASE_INSENSITIVE))) {
+        if (Regex.matches(string, Pattern.compile("(tb|tbyte|tig|tib)", Pattern.CASE_INSENSITIVE))) {
+            res *= unit * unit * unit * unit;
+        } else if (Regex.matches(string, Pattern.compile("(gb|gbyte|gig|gib)", Pattern.CASE_INSENSITIVE))) {
             res *= unit * unit * unit;
         } else if (Regex.matches(string, Pattern.compile("(mb|mbyte|megabyte|mib)", Pattern.CASE_INSENSITIVE))) {
             res *= unit * unit;

@@ -160,7 +160,7 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
     /**
      * @return
      */
-    private T superget() {
+    public T superget() {
         return super.get();
     }
 

@@ -14,6 +14,7 @@ package org.appwork.remoteapi;
  * 
  */
 @ApiNamespace("events")
+@ApiSessionRequired
 public interface EventsAPIInterface extends RemoteAPIInterface {
 
     @ApiDoc("establish a connection to event stream")

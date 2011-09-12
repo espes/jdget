@@ -454,6 +454,13 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     }
 
+    /**
+     * @return the initialized
+     */
+    public boolean isInitialized() {
+        return this.initialized;
+    }
+
     // /**
     // * should be overwritten and return a Dimension of the dialog should have
     // a

@@ -11,6 +11,10 @@ package org.appwork.remoteapi;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
@@ -113,6 +117,7 @@ public abstract class EventsAPI implements EventsAPIInterface {
             sb.append(");");
             text = sb.toString();
         }
+        System.out.println(text);
         int length;
         try {
             length = text.getBytes("UTF-8").length;
@@ -125,25 +130,51 @@ public abstract class EventsAPI implements EventsAPIInterface {
         }
     }
 
-    public void publishEvent(final EventsAPIEvent event, final HttpSession... receivers) {
-        if (receivers == null || receivers.length == 0) { return; }
-        for (final HttpSession receiver : receivers) {
-            EventsAPIQueue queue = null;
-            synchronized (this) {
-                if (!receiver.isAlive()) {
-                    /* session no longer alive, remove it */
-                    this.eventQueues.remove(receiver);
-                    continue;
+    public void publishEvent(final EventsAPIEvent event, final List<HttpSession> receivers) {
+        if (receivers != null) {
+            for (final HttpSession receiver : receivers) {
+                EventsAPIQueue queue = null;
+                synchronized (this) {
+                    if (!receiver.isAlive()) {
+                        /* session no longer alive, remove it */
+                        this.eventQueues.remove(receiver);
+                        continue;
+                    }
+                    final MinTimeWeakReference<EventsAPIQueue> mqueue = this.eventQueues.get(receiver);
+                    if (mqueue == null || (queue = mqueue.superget()) == null) {
+                        /* we dont want to refresh mintimeweakreference */
+                        this.eventQueues.remove(receiver);
+                        continue;
+                    }
                 }
-                final MinTimeWeakReference<EventsAPIQueue> mqueue = this.eventQueues.get(receiver);
-                if (mqueue == null || (queue = mqueue.get()) == null) {
-                    queue = new EventsAPIQueue();
-                    this.eventQueues.put(receiver, new MinTimeWeakReference<EventsAPIQueue>(queue, 5 * 60 * 1000, "EventQueue for" + receiver.getSessionID()));
+                queue.pushEvent(event);
+                synchronized (queue) {
+                    queue.notify();
                 }
             }
-            queue.pushEvent(event);
-            synchronized (queue) {
-                queue.notify();
+        } else {
+            synchronized (this) {
+                final Set<Entry<HttpSession, MinTimeWeakReference<EventsAPIQueue>>> es = this.eventQueues.entrySet();
+                final Iterator<Entry<HttpSession, MinTimeWeakReference<EventsAPIQueue>>> esi = es.iterator();
+                while (esi.hasNext()) {
+                    final Entry<HttpSession, MinTimeWeakReference<EventsAPIQueue>> next = esi.next();
+                    if (!next.getKey().isAlive()) {
+                        esi.remove();
+                        continue;
+                    } else {
+                        EventsAPIQueue queue = null;
+                        final MinTimeWeakReference<EventsAPIQueue> mqueue = next.getValue();
+                        if (mqueue == null || (queue = mqueue.superget()) == null) {
+                            /* we dont want to refresh mintimeweakreference */
+                            esi.remove();
+                            continue;
+                        }
+                        queue.pushEvent(event);
+                        synchronized (queue) {
+                            queue.notify();
+                        }
+                    }
+                }
             }
         }
     }

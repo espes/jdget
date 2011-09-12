@@ -9,6 +9,8 @@
  */
 package org.appwork.remoteapi.test;
 
+import java.util.ArrayList;
+
 import org.appwork.remoteapi.EventsAPIEvent;
 import org.appwork.remoteapi.RemoteAPIProcess;
 import org.appwork.utils.net.httpserver.session.HttpSession;
@@ -60,7 +62,9 @@ public class CounterProcess extends RemoteAPIProcess<Boolean> implements Counter
             final EventsAPIEvent event = new EventsAPIEvent();
             event.setProcessID(this.getPID());
             event.setData(this.counter);
-            serverTest.events.publishEvent(event, this.session);
+            final ArrayList<HttpSession> sessions = new ArrayList<HttpSession>();
+            sessions.add(this.session);
+            serverTest.events.publishEvent(event, sessions);
             this.counter++;
             if (this.counter > 400) {
                 break;
