@@ -33,7 +33,7 @@ import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
  * 
  */
 public class InterfaceHandler<T> {
-
+    private static Method HELP;
     static {
         try {
             InterfaceHandler.HELP = InterfaceHandler.class.getMethod("help", new Class[] { RemoteAPIRequest.class, RemoteAPIResponse.class });
@@ -65,7 +65,7 @@ public class InterfaceHandler<T> {
     private final HashMap<Method, Integer>                  parameterCountMap;
     private final HashMap<Method, Integer>                  methodsAuthLevel;
     private final int                                       defaultAuthLevel;
-    private static Method                                   HELP;
+
     private boolean                                         sessionRequired = false;
 
     /**
