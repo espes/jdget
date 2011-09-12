@@ -22,6 +22,15 @@ public class EventsAPIEvent {
     public EventsAPIEvent() {
     }
 
+    @Override
+    public EventsAPIEvent clone() {
+        final EventsAPIEvent ret = new EventsAPIEvent();
+        ret.data = this.data;
+        ret.messageID = this.messageID;
+        ret.processID = this.processID;
+        return ret;
+    }
+
     /**
      * @return the data
      */

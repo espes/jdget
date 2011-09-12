@@ -117,7 +117,6 @@ public abstract class EventsAPI implements EventsAPIInterface {
             sb.append(");");
             text = sb.toString();
         }
-        System.out.println(text);
         int length;
         try {
             length = text.getBytes("UTF-8").length;
