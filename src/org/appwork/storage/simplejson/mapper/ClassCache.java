@@ -14,8 +14,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.logging.Level;
 
+import org.appwork.storage.simplejson.Ignore;
+import org.appwork.storage.simplejson.Ignores;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -33,48 +36,67 @@ public class ClassCache {
      * @throws NoSuchMethodException
      * @throws SecurityException
      */
-    private static ClassCache create(final Class<? extends Object> clazz) throws SecurityException, NoSuchMethodException {
+    protected static ClassCache create(final Class<? extends Object> clazz) throws SecurityException, NoSuchMethodException {
         final ClassCache cc = new ClassCache(clazz);
         Getter g;
         Setter s;
-        
+
         Class<? extends Object> cls = clazz;
-        do{
-        for (final Method m : cls.getDeclaredMethods()) {
-            if (m.getName().startsWith("get") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
-                cc.getter.add(g = new Getter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
-                cc.getterMap.put(g.getKey(), g);
-            } else if (m.getName().startsWith("is") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
-                cc.getter.add(g = new Getter(m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3), m));
-                cc.getterMap.put(g.getKey(), g);
-            } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
-                cc.setter.add(s = new Setter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
-                cc.setterMap.put(s.getKey(), s);
+
+        HashSet<String> ignores = new HashSet<String>();
+        do {
+            Ignores ig = cls.getAnnotation(Ignores.class);
+            if (ig != null) {
+                for (String i : ig.value()) {
+                    ignores.add(i);
+                }
             }
-        }
-        }while((cls=cls.getSuperclass())!=null);
+            for (final Method m : cls.getDeclaredMethods()) {
+
+                if (m.getAnnotation(Ignore.class) != null || ignores.contains(m.toString())) {
+                    continue;
+                }
+            
+                if (m.getName().startsWith("get") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
+                    cc.getter.add(g = new Getter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
+                    cc.getterMap.put(g.getKey(), g);
+                    Log.L.finer(m.toString());
+            
+                } else if (m.getName().startsWith("is") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
+                    cc.getter.add(g = new Getter(m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3), m));
+                    cc.getterMap.put(g.getKey(), g);
+                    Log.L.finer(m.toString());
+                } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
+                    cc.setter.add(s = new Setter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
+                    cc.setterMap.put(s.getKey(), s);
+                    Log.L.finer(m.toString());
+                }
+
+            }
+        } while ((cls = cls.getSuperclass()) != null&&cls!=Object.class);
+        //we do not want to serialize object's getter
         for (final Constructor<?> c : clazz.getDeclaredConstructors()) {
             if (c.getParameterTypes().length == 0) {
-      
-                try{
-                c.setAccessible(true);
-                cc.constructor = c;
-                }catch(java.lang.SecurityException e){
+
+                try {
+                    c.setAccessible(true);
+                    cc.constructor = c;
+                } catch (java.lang.SecurityException e) {
                     Log.exception(Level.WARNING, e);
                 }
                 break;
             }
         }
-        if (cc.constructor == null) { 
+        if (cc.constructor == null) {
             //
             String pkg = clazz.getPackage().getName();
-            if(pkg.startsWith("java")||pkg.startsWith("sun.")){
-                
-                Log.L.warning("No Null Constructor in "+clazz+" found. De-Json-serial will fail");
-            }else{
-            throw new NoSuchMethodException(" Class " + clazz + " requires a null constructor. please add private " + clazz.getSimpleName() + "(){}");
+            if (pkg.startsWith("java") || pkg.startsWith("sun.")) {
+
+                Log.L.warning("No Null Constructor in " + clazz + " found. De-Json-serial will fail");
+            } else {
+                throw new NoSuchMethodException(" Class " + clazz + " requires a null constructor. please add private " + clazz.getSimpleName() + "(){}");
             }
-            }
+        }
         return cc;
     }
 
@@ -93,18 +115,18 @@ public class ClassCache {
         return cc;
     }
 
-    private Constructor<? extends Object> constructor;
+    protected Constructor<? extends Object> constructor;
 
-    private final Class<? extends Object> clazz;
-    private final ArrayList<Getter>       getter;
-    private final ArrayList<Setter>       setter;
-    private final HashMap<String, Getter> getterMap;
-    private final HashMap<String, Setter> setterMap;
+    protected final Class<? extends Object> clazz;
+    protected final ArrayList<Getter>       getter;
+    protected final ArrayList<Setter>       setter;
+    protected final HashMap<String, Getter> getterMap;
+    protected final HashMap<String, Setter> setterMap;
 
     /**
      * @param clazz
      */
-    private ClassCache(final Class<? extends Object> clazz) {
+    protected ClassCache(final Class<? extends Object> clazz) {
         this.clazz = clazz;
         this.getter = new ArrayList<Getter>();
         this.setter = new ArrayList<Setter>();
@@ -138,6 +160,15 @@ public class ClassCache {
 
     public Setter getSetter(final String key) {
         return this.setterMap.get(key);
+    }
+
+    /**
+     * @param class1
+     * @param stackTraceElementClassCache
+     */
+    public static void put(Class<?> class1, ClassCache stackTraceElementClassCache) {
+        CACHE.put(class1, stackTraceElementClassCache);
+
     }
 
 }

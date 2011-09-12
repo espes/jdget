@@ -9,10 +9,14 @@
  */
 package org.appwork.storage.simplejson.mapper;
 
+import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -81,18 +85,35 @@ public class JSonMapper {
         return v;
     }
 
-    private boolean ignorePrimitiveNullMapping    = false;
+    private boolean                          ignorePrimitiveNullMapping    = false;
 
-    private boolean ignoreIllegalArgumentMappings = false;
+    private boolean                          ignoreIllegalArgumentMappings = false;
 
     /**
      * @param value
      * @param type
      * @return
      */
-    private boolean ignoreIllegalEnumMappings     = false;
+    private boolean                          ignoreIllegalEnumMappings     = false;
+
+    private HashMap<Class<?>, TypeMapper<?>> typeMapper;
 
     public JSonMapper() {
+
+        typeMapper = new HashMap<Class<?>, TypeMapper<?>>();
+        addMapper(File.class, new FileMapper());
+        addMapper(Class.class, new ClassMapper());
+        addMapper(URL.class, new URLMapper());
+        addMapper(Date.class, new DateMapper());
+    }
+
+    /**
+     * @param <T>
+     * @param class1
+     * @param fileMapper
+     */
+    public <T> void addMapper(Class<T> class1, TypeMapper<T> fileMapper) {
+        typeMapper.put(class1, fileMapper);
 
     }
 
@@ -104,9 +125,10 @@ public class JSonMapper {
     @SuppressWarnings("unchecked")
     public JSonNode create(final Object obj) throws MapperException {
         try {
-            
+
             if (obj == null) { return new JSonValue(null); }
             final Class<? extends Object> clazz = obj.getClass();
+            TypeMapper<?> mapper;
             if (clazz.isPrimitive()) {
                 if (clazz == boolean.class) {
                     return new JSonValue((Boolean) obj);
@@ -167,12 +189,14 @@ public class JSonMapper {
                 }
                 return ret;
             } else if (obj instanceof Class) {
-                return new JSonValue(((Class)obj).getName());
+                return new JSonValue(((Class) obj).getName());
+            } else if ((mapper = typeMapper.get(clazz)) != null) {
+                return mapper.map(obj);
             } else/* if (obj instanceof Storable) */{
                 final ClassCache cc = ClassCache.getClassCache(clazz);
                 final JSonObject ret = new JSonObject();
                 for (final Getter g : cc.getGetter()) {
-                 
+
                     ret.put(g.getKey(), this.create(g.getValue(obj)));
                 }
                 return ret;
@@ -216,6 +240,19 @@ public class JSonMapper {
     public Object jsonToObject(final JSonNode json, final Type type) {
         final ClassCache cc;
         try {
+            Class<?> clazz = null;
+            if (type instanceof ParameterizedTypeImpl) {
+                clazz = ((ParameterizedTypeImpl) type).getRawType();
+            } else if (type instanceof Class) {
+                clazz = (Class) type;
+            }
+
+            TypeMapper<?> tm = typeMapper.get(clazz);
+            if (tm != null) {
+              
+                return tm.reverseMap(json); 
+              
+                }
             if (json instanceof JSonValue) {
                 switch (((JSonValue) json).getType()) {
                 case BOOLEAN:
@@ -243,10 +280,12 @@ public class JSonMapper {
 
                 case NULL:
                     return null;
+
                 }
             }
+
             if (type instanceof Class) {
-                final Class<?> clazz = (Class<?>) type;
+                clazz = (Class<?>) type;
                 if (List.class.isAssignableFrom(clazz)) {
                     final List<Object> inst = (List<Object>) clazz.newInstance();
                     final JSonArray obj = (JSonArray) json;

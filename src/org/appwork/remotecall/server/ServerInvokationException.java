@@ -17,15 +17,25 @@ import org.appwork.storage.Storable;
 public class ServerInvokationException extends Exception implements Storable {
 
     private static final long serialVersionUID = -3140111161245241758L;
-    private final String      remoteID;
+    private final Requestor      remoteID;
 
-    public ServerInvokationException(final String handleRequestError, final String remoteID) {
+    public ServerInvokationException(final String handleRequestError, final Requestor remoteID) {
         super(handleRequestError);
         this.remoteID = remoteID;
 
     }
 
-    public String getRemoteID() {
+
+    /**
+     * @param red
+     */
+    public ServerInvokationException(String handleRequestError) {
+        super(handleRequestError);
+        remoteID=null;
+    }
+
+
+    public Requestor getRemoteID() {
         return this.remoteID;
     }
 

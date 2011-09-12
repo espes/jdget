@@ -15,6 +15,8 @@ import java.util.HashMap;
 
 import org.appwork.remotecall.Utils;
 import org.appwork.remotecall.server.ExceptionWrapper;
+import org.appwork.remotecall.server.ParsingException;
+import org.appwork.remotecall.server.RemoteCallException;
 import org.appwork.remotecall.server.ServerInvokationException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
@@ -38,14 +40,24 @@ public class InvocationHandlerImpl implements InvocationHandler {
     /**
      * @param client
      * @param class1
+     * @throws ParsingException 
      */
-    public InvocationHandlerImpl(final RemoteCallClient client, final Class<?> class1) {
+    public InvocationHandlerImpl(final RemoteCallClient client, final Class<?> class1) throws ParsingException {
         this.client = client;
         this.name = class1.getSimpleName();
         this.methodMap = new HashMap<Method, String>();
 
         for (final Method m : class1.getMethods()) {
             this.methodMap.put(m, Utils.createMethodFingerPrint(m));
+            for (Class<?> e : m.getExceptionTypes()) {
+                if (e.isAssignableFrom(RemoteCallException.class)) { throw new ParsingException(m + " exceptions do not extend RemoteCallException"); }
+                try {
+                    e.getConstructors();
+             
+                } catch (Throwable e1) {
+                    throw new ParsingException(e + " no accessable null constructor available");
+                }
+            }
 
         }
     }
@@ -67,10 +79,9 @@ public class InvocationHandlerImpl implements InvocationHandler {
             final Throwable ex = exception.deserialiseException();
             // search to add the local cause
             final StackTraceElement[] localStack = new Exception().getStackTrace();
-            final StackTraceElement[] newStack = new StackTraceElement[ex.getStackTrace().length + localStack.length - 1];
-            System.arraycopy(ex.getStackTrace(), 0, newStack, 0, ex.getStackTrace().length);
-            newStack[ex.getStackTrace().length] = new StackTraceElement("RemoteCallClient via", e.getRemoteID(), null, 0);
-            System.arraycopy(localStack, 2, newStack, ex.getStackTrace().length + 1, localStack.length - 2);
+            final StackTraceElement[] newStack = new StackTraceElement[localStack.length -1];
+            System.arraycopy(localStack, 2, newStack, 0, localStack.length-2);
+            newStack[newStack.length-1] = new StackTraceElement("RemoteCallClient via", e.getRemoteID()+"", null, 0);
             ex.setStackTrace(newStack);
 
             throw ex;

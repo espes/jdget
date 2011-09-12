@@ -13,6 +13,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
+import org.appwork.utils.logging.Log;
+
 /**
  * @author thomas
  * 
@@ -75,8 +77,12 @@ public class Setter {
             parameter = Enum.valueOf((Class<Enum>) this.type, parameter + "");
         }
         // System.out.println(this.key + " = " + parameter + " " + this.type);
-
-        this.method.invoke(inst, parameter);
+        try {
+            this.method.invoke(inst, parameter);
+        } catch (IllegalArgumentException e) {
+            Log.L.severe(method + " " + parameter);
+            throw e;
+        }
 
     }
 }
