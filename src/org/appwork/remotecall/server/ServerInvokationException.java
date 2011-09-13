@@ -20,18 +20,17 @@ public class ServerInvokationException extends Exception implements Storable {
     private final Requestor      remoteID;
 
     public ServerInvokationException(final String handleRequestError, final Requestor remoteID) {
-        super(handleRequestError);
-        this.remoteID = remoteID;
+        super(handleRequestError); 
+        this.remoteID = remoteID; 
 
     }
-
 
     /**
      * @param red
      */
-    public ServerInvokationException(String handleRequestError) {
+    public ServerInvokationException(String handleRequestError,String host) {
         super(handleRequestError);
-        remoteID=null;
+        remoteID=new Requestor(host);
     }
 
 

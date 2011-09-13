@@ -49,7 +49,11 @@ public class ExceptionWrapper implements Storable {
         if (e instanceof RemoteCallException) {
             this._exception = JSON_MAPPER.objectToString(e);
         } else {
+            if(e.getStackTrace().length>0){
+                message = e.getMessage()+ " @"+e.getStackTrace()[0].getClassName()+"."+e.getStackTrace()[0].getMethodName()+"("+e.getStackTrace()[0].getFileName()+":"+e.getStackTrace()[0].getLineNumber()+")";  
+            }else{
             message = e.getMessage();
+            }
         }
 
         this.name = e.getClass().getName();

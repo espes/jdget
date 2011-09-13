@@ -35,6 +35,13 @@ public class Requestor implements Storable {
        this.parameter=parameter;
     }
 
+    /**
+     * @param host
+     */
+    public Requestor(String host) {
+       remoteAddress=host;
+    }
+
     public String getServiceName() {
         return serviceName;
     }
