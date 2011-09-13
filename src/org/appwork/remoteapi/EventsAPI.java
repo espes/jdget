@@ -16,11 +16,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.appwork.net.protocol.http.HTTPConstants;
-import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.MinTimeWeakReference;
-import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.session.HttpSession;
 
 /**
@@ -91,7 +88,11 @@ public abstract class EventsAPI implements EventsAPIInterface {
             eventJson.put("messageid", event.getMessageID());
             if (checkID) {
                 /* check if we are out of sync */
-                if (event.getMessageID() != lastEventID + 1) { throw new RemoteAPIOutOfSyncException(); }
+                if (event.getMessageID() != lastEventID + 1) {
+                    /* we push back the event */
+                    queue.pushBackEvent(event);
+                    throw new RemoteAPIOutOfSyncException();
+                }
                 checkID = false;
             }
             eventJson.put("data", event.getData());
@@ -117,13 +118,10 @@ public abstract class EventsAPI implements EventsAPIInterface {
             sb.append(");");
             text = sb.toString();
         }
-        int length;
+
         try {
-            length = text.getBytes("UTF-8").length;
-            response.setResponseCode(ResponseCode.SUCCESS_OK);
-            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
-            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text/javascript"));
-            response.getOutputStream().write(text.getBytes("UTF-8"));
+            final byte[] bytes = text.getBytes("UTF-8");
+            RemoteAPI.sendBytes(response, false, bytes);
         } catch (final Throwable e) {
             throw new RuntimeException(e);
         }

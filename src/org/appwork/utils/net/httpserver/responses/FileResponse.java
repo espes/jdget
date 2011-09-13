@@ -203,6 +203,11 @@ public class FileResponse {
         } finally {
             try {
                 /* gzip first */
+                gos.finish();
+            } catch (final Throwable e) {
+            }
+            try {
+                /* gzip first */
                 gos.close();
             } catch (final Throwable e) {
             }

@@ -17,12 +17,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map.Entry;
+import java.util.zip.GZIPOutputStream;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.utils.Regex;
+import org.appwork.utils.ReusableByteArrayOutputStreamPool;
+import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
@@ -64,8 +67,34 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         return (T) v;
     }
 
+    protected static void sendBytes(final RemoteAPIResponse response, final boolean gzip, final byte[] bytes) throws IOException {
+        if (gzip == false) {
+            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
+            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
+            response.getOutputStream().write(bytes);
+        } else {
+            final ReusableByteArrayOutputStream ros = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(1024);
+            try {
+                response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_CONTENT_ENCODING, "gzip"));
+                response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
+                final GZIPOutputStream out = new GZIPOutputStream(ros);
+                out.write(bytes);
+                out.finish();
+                response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, ros.size() + ""));
+                response.getOutputStream().write(ros.getInternalBuffer(), 0, ros.size());
+            } finally {
+                try {
+                    ReusableByteArrayOutputStreamPool.reuseReusableByteArrayOutputStream(ros);
+                } catch (final Throwable e) {
+                }
+            }
+        }
+
+    }
+
     /* hashmap that holds all registered interfaces and their pathes */
     private final HashMap<String, InterfaceHandler<?>> interfaces = new HashMap<String, InterfaceHandler<?>>();
+
     private final HashMap<String, RemoteAPIProcess<?>> processes  = new HashMap<String, RemoteAPIProcess<?>>();
 
     private final Object                               LOCK       = new Object();
@@ -175,11 +204,9 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             sb.append(");");
             text = sb.toString();
         }
-        final int length = text.getBytes("UTF-8").length;
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text/javascript"));
-        response.getOutputStream().write(text.getBytes("UTF-8"));
-
+        final byte[] bytes = text.getBytes("UTF-8");
+        final boolean gzip = this.gzip(request);
+        RemoteAPI.sendBytes(response, gzip, bytes);
     }
 
     /**
@@ -258,6 +285,15 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             // System.out.println("found jquery callback: " + jqueryCallback);
         }
         return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback);
+    }
+
+    protected boolean gzip(final RemoteAPIRequest request) {
+        final HTTPHeader acceptEncoding = request.getRequestHeaders().get(HTTPConstants.HEADER_REQUEST_ACCEPT_ENCODING);
+        if (acceptEncoding != null) {
+            final String value = acceptEncoding.getValue();
+            if (value != null && value.contains("gzip")) { return true; }
+        }
+        return false;
     }
 
     /**

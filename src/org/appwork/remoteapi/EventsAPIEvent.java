@@ -9,6 +9,8 @@
  */
 package org.appwork.remoteapi;
 
+import org.appwork.storage.InvalidTypeException;
+
 /**
  * @author daniel
  * 
@@ -20,6 +22,10 @@ public class EventsAPIEvent {
     protected Object data      = null;
 
     public EventsAPIEvent() {
+    }
+
+    public EventsAPIEvent(final Object data) {
+        this.data = data;
     }
 
     @Override
@@ -41,7 +47,7 @@ public class EventsAPIEvent {
     /**
      * @return the messageID
      */
-    public long getMessageID() {
+    protected long getMessageID() {
         return this.messageID;
     }
 
@@ -55,6 +61,7 @@ public class EventsAPIEvent {
     /**
      * @param data
      *            the data to set
+     * @throws InvalidTypeException
      */
     public void setData(final Object data) {
         this.data = data;

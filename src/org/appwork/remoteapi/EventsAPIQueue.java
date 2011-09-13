@@ -35,6 +35,16 @@ public class EventsAPIQueue {
         return ret;
     }
 
+    protected synchronized void pushBackEvent(EventsAPIEvent event) {
+        if (event == null) { return; }
+        /*
+         * we clone event to avoid multiple usage of same event in different
+         * queues
+         */
+        event = event.clone();
+        this.events.addFirst(event);
+    }
+
     public synchronized void pushEvent(EventsAPIEvent event) {
         if (event == null) { return; }
         /*
