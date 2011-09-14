@@ -46,9 +46,11 @@ public class ChunkedOutputStream extends OutputStream {
                 this.os.write((byte) '\r');
                 this.os.write((byte) '\n');
                 /* send chunk data */
-                if (this.bufUsed > 0) {
+                if (this.bufUsed > 0 || emptyFlush) {
                     /* flush buffered data if any available */
-                    this.os.write(this.buffer, 0, this.bufUsed);
+                    if (this.bufUsed > 0) {
+                        this.os.write(this.buffer, 0, this.bufUsed);
+                    }
                     this.os.write((byte) '\r');
                     this.os.write((byte) '\n');
                 }
@@ -87,6 +89,7 @@ public class ChunkedOutputStream extends OutputStream {
 
     @Override
     public synchronized void write(final byte b[], final int off, final int len) throws IOException {
+        if (len == 0) { return; }
         if (this.bufUsed + len < this.buffer.length) {
             /* buffer has enough space for len bytes */
             /* fill buffer */

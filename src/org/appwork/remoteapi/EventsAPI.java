@@ -121,7 +121,7 @@ public abstract class EventsAPI implements EventsAPIInterface {
 
         try {
             final byte[] bytes = text.getBytes("UTF-8");
-            RemoteAPI.sendBytes(response, false, bytes);
+            RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), false, bytes);
         } catch (final Throwable e) {
             throw new RuntimeException(e);
         }

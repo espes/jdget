@@ -11,6 +11,10 @@ package org.appwork.utils.net.httpserver.responses;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
@@ -24,18 +28,25 @@ import org.appwork.utils.net.httpserver.HttpConnection;
  */
 public class HttpResponse implements HttpResponseInterface {
 
-    private final HeaderCollection responseHeaders;
-    public static final byte[]     NEWLINE      = "\r\n".getBytes();
-    public static final byte[]     HTTP11       = "HTTP/1.1 ".getBytes();
-    public static final byte[]     _0           = "0".getBytes();
-    private ResponseCode           responseCode = ResponseCode.SUCCESS_NO_CONTENT;
-    private final HttpConnection   connection;
-    private OutputStream           outputStream = null;
+    private final HeaderCollection        responseHeaders;
+    public static final byte[]            NEWLINE      = "\r\n".getBytes();
+    public static final byte[]            HTTP11       = "HTTP/1.1 ".getBytes();
+    public static final byte[]            _0           = "0".getBytes();
+    private ResponseCode                  responseCode = ResponseCode.SUCCESS_NO_CONTENT;
+    private final HttpConnection          connection;
+    private OutputStream                  outputStream = null;
+    private static final SimpleDateFormat date;
+    static {
+        date = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.UK);
+        HttpResponse.date.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
 
     public HttpResponse(final HttpConnection connection) {
         this.connection = connection;
         this.responseHeaders = new HeaderCollection();
-        this.responseHeaders.add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONNECTION, "Close"));
+        this.responseHeaders.add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_DATE, HttpResponse.date.format(new Date())));
+        this.responseHeaders.add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONNECTION, "close"));
+        this.responseHeaders.add(new HTTPHeader(HTTPConstants.HEADER_RESONSE_SERVER, "AppWork GmbH HttpServer"));
     }
 
     /**
