@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.MinTimeWeakReference;
 import org.appwork.utils.net.httpserver.session.HttpSession;
@@ -121,6 +122,7 @@ public abstract class EventsAPI implements EventsAPIInterface {
 
         try {
             final byte[] bytes = text.getBytes("UTF-8");
+            response.setResponseCode(ResponseCode.SUCCESS_OK);
             RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), false, bytes);
         } catch (final Throwable e) {
             throw new RuntimeException(e);
