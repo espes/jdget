@@ -82,10 +82,12 @@ public abstract class EventsAPI implements EventsAPIInterface {
         final ArrayList<HashMap<String, Object>> eventArray = new ArrayList<HashMap<String, Object>>();
         boolean checkID = lastEventID >= 0;
         while (event != null) {
+            /* build json for this event */
             final HashMap<String, Object> eventJson = new HashMap<String, Object>();
             if (event.getProcessID() != null) {
                 eventJson.put("pid", event.getProcessID());
             }
+            eventJson.put("namespace", event.getNamespace());
             eventJson.put("messageid", event.getMessageID());
             if (checkID) {
                 /* check if we are out of sync */
@@ -97,8 +99,8 @@ public abstract class EventsAPI implements EventsAPIInterface {
                 checkID = false;
             }
             eventJson.put("data", event.getData());
+            /* add event to event list */
             eventArray.add(eventJson);
-
             ret.put("data", eventArray);
             ret.put("id", event.getMessageID());
             event = queue.pullEvent();

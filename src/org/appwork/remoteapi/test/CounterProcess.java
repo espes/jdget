@@ -59,7 +59,7 @@ public class CounterProcess extends RemoteAPIProcess<Boolean> implements Counter
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            final EventsAPIEvent event = new EventsAPIEvent();
+            final EventsAPIEvent event = new EventsAPIEvent("test", null);
             event.setProcessID(this.getPID());
             event.setData(this.counter);
             final ArrayList<HttpSession> sessions = new ArrayList<HttpSession>();

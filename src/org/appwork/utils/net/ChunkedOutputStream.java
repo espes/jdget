@@ -62,11 +62,7 @@ public class ChunkedOutputStream extends OutputStream {
     @Override
     public synchronized void close() throws IOException {
         if (this.closed == false) {
-            /* flush rest available chunk data */
-            this.flush();
-            /* send empty chunk = EOF */
-            this._flush(true);
-            this.os.flush();
+            this.sendEOF();
             this.closed = true;
         }
         this.os.close();

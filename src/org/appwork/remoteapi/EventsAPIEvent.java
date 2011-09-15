@@ -17,21 +17,19 @@ import org.appwork.storage.InvalidTypeException;
  */
 public class EventsAPIEvent {
 
-    protected String processID = null;
-    protected long   messageID = -1;
-    protected Object data      = null;
+    protected String     processID = null;
+    protected long       messageID = -1;
+    protected Object     data      = null;
+    private final String namespace;
 
-    public EventsAPIEvent() {
-    }
-
-    public EventsAPIEvent(final Object data) {
+    public EventsAPIEvent(final String namespace, final Object data) {
+        this.namespace = namespace;
         this.data = data;
     }
 
     @Override
     public EventsAPIEvent clone() {
-        final EventsAPIEvent ret = new EventsAPIEvent();
-        ret.data = this.data;
+        final EventsAPIEvent ret = new EventsAPIEvent(this.namespace, this.data);
         ret.messageID = this.messageID;
         ret.processID = this.processID;
         return ret;
@@ -49,6 +47,10 @@ public class EventsAPIEvent {
      */
     protected long getMessageID() {
         return this.messageID;
+    }
+
+    public String getNamespace() {
+        return this.namespace;
     }
 
     /**
