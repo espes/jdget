@@ -261,4 +261,19 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en" }, values = { "shift","Shift" })
     String ShortCuts_key_shift();
 
+    @Default(lngs = { "en" }, values = { "%s1 TB","%s1 TB" })
+    String literally_tebibyte(String format);
+
+    @Default(lngs = { "en" }, values = { "%s1 GB","%s1 GB" })
+    String literally_gibibyte(String format);
+
+    @Default(lngs = { "en" }, values = { "%s1 MB","%s1 MB" })
+    String literally_mebibyte(String format);
+
+    @Default(lngs = { "en" }, values = { "%s1 KB","%s1 KB" })
+    String literally_kibibyte(String format);
+
+    @Default(lngs = { "en" }, values = { "%s1 B","%s1 B" })
+    String literally_byte(long fileSize);
+
 }

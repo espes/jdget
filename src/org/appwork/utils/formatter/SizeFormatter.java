@@ -13,6 +13,7 @@ import java.text.DecimalFormat;
 import java.util.regex.Pattern;
 
 import org.appwork.utils.Regex;
+import org.appwork.utils.locale._AWU;
 
 /**
  * @author $Author: unknown$
@@ -28,15 +29,39 @@ public class SizeFormatter {
      * @return
      */
     public static String formatBytes(long fileSize) {
-        if (fileSize < 0) {
-            fileSize = 0;
-        }
+      long abs = Math.abs(fileSize);
         final DecimalFormat c = new DecimalFormat("0.00");
-        if (fileSize >= 1024 * 1024 * 1024 * 1024l) { return c.format(fileSize / (1024 * 1024 * 1024 * 1024.0)) + " TiB"; }
-        if (fileSize >= 1024 * 1024 * 1024l) { return c.format(fileSize / (1024 * 1024 * 1024.0)) + " GiB"; }
-        if (fileSize >= 1024 * 1024l) { return c.format(fileSize / (1024 * 1024.0)) + " MiB"; }
-        if (fileSize >= 1024l) { return c.format(fileSize / 1024.0) + " KiB"; }
-        return fileSize + " B";
+        if (abs >= 1024 * 1024 * 1024 * 1024l) { return _AWU.T.literally_tebibyte(c.format(fileSize / (1024 * 1024 * 1024 * 1024.0))); }
+        if (abs >= 1024 * 1024 * 1024l) { return _AWU.T.literally_gibibyte(c.format(fileSize / (1024 * 1024 * 1024.0))); }
+        if (abs >= 1024 * 1024l) { return _AWU.T.literally_mebibyte(c.format(fileSize / (1024 * 1024.0))); }
+        if (abs >= 1024l) { return _AWU.T.literally_kibibyte(c.format(fileSize / 1024.0)); }
+        return _AWU.T.literally_byte(fileSize);
+    }
+
+    public static enum Unit {
+        TB(1024l*1024l*1024l*1024l),
+        GB(1024l*1024l*1024l),
+        MB(1024l*1024l),
+        KB(1024l),
+        B(1l);
+        private long bytes;
+
+        private Unit(long bytes){
+            this.bytes=bytes;
+        }
+
+        public long getBytes() {
+            return bytes;
+        }
+    }
+
+    public static Unit getBestUnit(long fileSize) {
+        long abs = Math.abs(fileSize);
+        if (abs >= 1024 * 1024 * 1024 * 1024l) { return Unit.TB; }
+        if (abs >= 1024 * 1024 * 1024l) { return Unit.GB; }
+        if (abs >= 1024 * 1024l) { return Unit.MB; }
+        if (abs >= 1024l) { return Unit.KB; }
+        return Unit.B;
     }
 
     public static long getSize(final String string) {
