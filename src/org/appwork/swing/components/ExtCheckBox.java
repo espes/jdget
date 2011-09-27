@@ -29,10 +29,21 @@ public class ExtCheckBox extends JCheckBox implements ActionListener, ToolTipHan
     public ExtCheckBox(JComponent... components) {
         super();
         this.tooltipFactory = new TooltipTextDelegateFactory(this);
-        this.dependencies = components;
-        addActionListener(this);
-        updateDependencies();
 
+        addActionListener(this);
+        setDependencies(components);
+   
+
+    }
+
+    public JComponent[] getDependencies() {
+        return dependencies;
+    }
+
+    public void setDependencies(JComponent[] dependencies) {
+        this.dependencies = dependencies;
+
+        updateDependencies();
     }
 
     public TooltipTextDelegateFactory getTooltipFactory() {

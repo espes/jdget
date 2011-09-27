@@ -31,12 +31,7 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
         this(new SpinnerNumberModel(min, min, max, steps));
 
     }
-    public synchronized void addMouseListener(MouseListener l) {
-        super.addMouseListener(l);
-        ((JSpinner.DefaultEditor) getEditor()).getTextField().addMouseListener(l);
-       
-        
-    }
+
     /**
      * @param model
      */

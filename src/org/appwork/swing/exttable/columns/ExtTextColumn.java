@@ -32,7 +32,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     private Font              rendererFont;
     private Font              editorFont;
     protected MigPanel        editor;
+
     protected RenderLabel     rendererIcon;
+
     protected MigPanel        renderer;
     private RenderLabel       editorIconLabel;
 

@@ -9,6 +9,8 @@
  */
 package org.appwork.swing.components;
 
+import java.awt.event.MouseListener;
+
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
@@ -23,6 +25,13 @@ public class ExtSpinner extends JSpinner {
      */
     public ExtSpinner(SpinnerNumberModel spinnerNumberModel) {
         super(spinnerNumberModel);
+        
+    }
+    
+    public synchronized void addMouseListener(MouseListener l) {
+        super.addMouseListener(l);
+        ((JSpinner.DefaultEditor) getEditor()).getTextField().addMouseListener(l);
+       
         
     }
 
