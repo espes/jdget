@@ -54,11 +54,12 @@ public class CopyCutPasteHandler extends EventQueue {
         if (MenuSelectionManager.defaultManager().getSelectedPath().length > 0) return;
 
         JPopupMenu menu;
+        final JTextComponent t = (JTextComponent) c;
         if (c instanceof ContextMenuAdapter) {
-            menu = ((ContextMenuAdapter) c).getPopupMenu();
+            menu = ((ContextMenuAdapter) c).getPopupMenu(new CutAction(t),new CopyAction(t),new PasteAction(t),new DeleteAction(t),new SelectAction(t));
             if (menu == null) return;
         } else {
-            final JTextComponent t = (JTextComponent) c;
+
 
             // create menu
             menu = new JPopupMenu();

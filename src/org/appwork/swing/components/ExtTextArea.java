@@ -49,9 +49,9 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
 
         if (super.getText().equals(this.helpText)) {
             this.setText("");
-            this.setForeground(this.defaultColor);
+          
         }
-
+        this.setForeground(this.defaultColor);
     }
 
     public void focusLost(final FocusEvent arg0) {

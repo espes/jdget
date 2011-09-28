@@ -276,4 +276,13 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en" }, values = { "%s1 B","%s1 B" })
     String literally_byte(long fileSize);
 
+    @Default(lngs = { "en" }, values = { "Enter a path...","Bitte Pfad eingeben..." })
+    String pathchooser_helptext();
+
+    @Default(lngs = { "en" }, values = { "Choose path!","Pfad auswählen!" })
+    String pathchooser_dialog_title();
+
+    @Default(lngs = { "en" }, values = { "Browse","Auswählen" })
+    String pathchooser_browselabel();
+
 }

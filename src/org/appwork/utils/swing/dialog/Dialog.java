@@ -38,6 +38,16 @@ import org.appwork.utils.swing.EDTHelper;
  */
 public class Dialog implements WindowFocusListener {
     /**
+     * 
+     */
+    public static final String LASTSELECTION = "LASTSELECTION_";
+
+    /**
+     * 
+     */
+    public static final String FILECHOOSER = "FILECHOOSER";
+
+    /**
      * Requests a FileChooserDialog.
      * 
      * @param id
@@ -623,9 +633,9 @@ public class Dialog implements WindowFocusListener {
 
                         /* preSelection */
                         File preSelection = preSelect;
-                        if (preSelection == null && JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null) != null) {
-                            preSelection = new File(JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null));
-                            Log.L.info("Preselection: " + id + ": " + JSonStorage.getStorage("FILECHOOSER").get("LASTSELECTION_" + id, (String) null));
+                        if (preSelection == null && JSonStorage.getStorage(FILECHOOSER).get(LASTSELECTION + id, (String) null) != null) {
+                            preSelection = new File(JSonStorage.getStorage(FILECHOOSER).get(LASTSELECTION + id, (String) null));
+                            Log.L.info("Preselection: " + id + ": " + JSonStorage.getStorage(FILECHOOSER).get(LASTSELECTION + id, (String) null));
                         } else {
                             Log.L.info("Given Preselection: " + preSelection);
                         }
@@ -679,7 +689,7 @@ public class Dialog implements WindowFocusListener {
                                         final File[] files = rets.toArray(new File[rets.size()]);
                                         final File first = files[0];
                                         if (first != null) {
-                                            JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, first.getAbsolutePath());
+                                            JSonStorage.getStorage(FILECHOOSER).put(LASTSELECTION + id, first.getAbsolutePath());
                                         }
                                         return files;
                                     } else {
@@ -694,7 +704,7 @@ public class Dialog implements WindowFocusListener {
                                  */
                                 ret = Dialog.this.validateFileType(ret, fileSelectionMode.getId(), false);
                                 if (ret != null) {
-                                    JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
+                                    JSonStorage.getStorage(FILECHOOSER).put(LASTSELECTION + id, ret.getAbsolutePath());
                                     return new File[] { ret };
                                 } else {
                                     return null;
@@ -710,7 +720,7 @@ public class Dialog implements WindowFocusListener {
                                  */
                                 ret = Dialog.this.validateFileType(ret, fileSelectionMode.getId(), true);
                                 if (ret != null) {
-                                    JSonStorage.getStorage("FILECHOOSER").put("LASTSELECTION_" + id, ret.getAbsolutePath());
+                                    JSonStorage.getStorage(FILECHOOSER).put(LASTSELECTION + id, ret.getAbsolutePath());
                                     return new File[] { ret };
                                 } else {
                                     return null;
