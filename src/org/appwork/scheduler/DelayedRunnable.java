@@ -57,7 +57,7 @@ public abstract class DelayedRunnable implements Runnable {
                 }
                 this.delayer = this.service.schedule(new Runnable() {
                     public void run() {
-
+                        boolean doWhat = false;
                         synchronized (DelayedRunnable.this) {
                             /* do we have to run now? */
                             final long dif = System.currentTimeMillis() - DelayedRunnable.this.lastRunRequest;
@@ -78,15 +78,23 @@ public abstract class DelayedRunnable implements Runnable {
                             DelayedRunnable.this.delayer = null;
                             if (runNow) {
                                 /* we no longer delay the run */
-                                DelayedRunnable.this.delayedrun();
+                                doWhat = true;
                                 /* reset nextDelay and firstRunRequest */
                                 DelayedRunnable.this.firstRunRequest = System.currentTimeMillis();
                                 DelayedRunnable.this.nextDelay = DelayedRunnable.this.delayInMS;
                             } else {
                                 /* lets delay it again */
                                 DelayedRunnable.this.nextDelay = DelayedRunnable.this.delayInMS - dif;
+                                doWhat = false;
                                 DelayedRunnable.this.run();
                             }
+                        }
+                        if (doWhat) {
+                            /* we no longer delay the run */
+                            DelayedRunnable.this.delayedrun();
+                        } else {
+                            /* lets delay it again */
+                            DelayedRunnable.this.run();
                         }
                     }
 
