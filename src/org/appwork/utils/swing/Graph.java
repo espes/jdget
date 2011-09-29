@@ -16,14 +16,21 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import org.appwork.swing.components.tooltips.ExtTooltip;
+import org.appwork.swing.components.tooltips.ToolTipController;
+import org.appwork.swing.components.tooltips.ToolTipHandler;
+import org.appwork.swing.components.tooltips.TooltipTextDelegateFactory;
 import org.appwork.utils.formatter.SizeFormatter;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.swing.graph.Limiter;
@@ -32,7 +39,7 @@ import org.appwork.utils.swing.graph.Limiter;
  * @author thomas
  * 
  */
-abstract public class Graph extends JPanel {
+abstract public class Graph extends JPanel implements ToolTipHandler{
 
     private static final long serialVersionUID = 6943108941655020136L;
     private int               i;
@@ -63,13 +70,38 @@ abstract public class Graph extends JPanel {
     private int               all;
 
     private Limiter[]         limiter;
+    private TooltipTextDelegateFactory tooltipFactory;
 
     public Graph() {
         this(60, 1000);
 
     }
+    public ExtTooltip createExtTooltip(Point mousePosition) {
+        return getTooltipFactory().createTooltip();
+    }
 
+    public boolean isTooltipDisabledUntilNextRefocus() {
+        return false;
+    }
+
+    public boolean updateTooltip(ExtTooltip activeToolTip, MouseEvent e) {
+        return false;
+    }
+    
+    @Override
+    public void setToolTipText(final String text) {
+
+        this.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, text);
+
+        if (text == null || text.length() == 0) {
+            ToolTipController.getInstance().unregister(this);
+        } else {
+            ToolTipController.getInstance().register(this);
+        }
+    }
     public Graph(final int capacity, final int interval) {
+        this.tooltipFactory = new TooltipTextDelegateFactory(this);
+//        ToolTipController.getInstance().
         this.colorA = new Color(100, 100, 100, 40);
         this.colorB = new Color(100, 100, 100, 80);
         this.average = 0;
@@ -80,6 +112,12 @@ abstract public class Graph extends JPanel {
 
     }
 
+    public TooltipTextDelegateFactory getTooltipFactory() {
+        return tooltipFactory;
+    }
+    public void setTooltipFactory(TooltipTextDelegateFactory tooltipFactory) {
+        this.tooltipFactory = tooltipFactory;
+    }
     /**
      * @return the averageColor
      */
@@ -346,6 +384,8 @@ abstract public class Graph extends JPanel {
 
                 public void actionPerformed(final ActionEvent e) {
                     synchronized (Graph.this.LOCK) {
+                       
+                        setToolTipText(createTooltipText());
                         Graph.this.repaint();
                     }
                 }
@@ -395,6 +435,13 @@ abstract public class Graph extends JPanel {
         }
     }
 
+    /**
+     * @return
+     */
+    protected String createTooltipText() {
+     
+        return getAverageSpeedString()+"  "+getSpeedString();
+    }
     public void stop() {
         synchronized (this.LOCK) {
             this.running = false;
