@@ -52,14 +52,23 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
 
             @Override
             public String valueToString(final Object value) throws ParseException {
-
-                return SizeFormatter.formatBytes(((Number) value).longValue());
+           
+                return longToText(((Number) value).longValue());
             }
 
         });
         ((JSpinner.DefaultEditor) getEditor()).getTextField().setFormatterFactory(factory);
         ((JSpinner.DefaultEditor) getEditor()).getTextField().addFocusListener(this);
         ((JSpinner.DefaultEditor) getEditor()).getTextField().addActionListener(this);
+    }
+
+    /**
+     * @param longValue
+     * @return
+     */
+    protected String longToText(long longValue) {
+     
+        return SizeFormatter.formatBytes(longValue);
     }
 
     public Object getNextValue() {

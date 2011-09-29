@@ -21,18 +21,25 @@ import javax.swing.SpinnerNumberModel;
 public class ExtSpinner extends JSpinner {
 
     /**
-     * @param spinnerNumberModel 
+     * @param spinnerNumberModel
      */
     public ExtSpinner(SpinnerNumberModel spinnerNumberModel) {
         super(spinnerNumberModel);
-        
+
     }
-    
+
     public synchronized void addMouseListener(MouseListener l) {
         super.addMouseListener(l);
         ((JSpinner.DefaultEditor) getEditor()).getTextField().addMouseListener(l);
-       
-        
+
+    }
+
+    /**
+     * @return
+     */
+    public int getIntValue() {
+        // TODO Auto-generated method stub
+        return ((Number) getValue()).intValue();
     }
 
 }

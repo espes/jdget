@@ -1,6 +1,7 @@
 package org.appwork.swing.components;
 
 import java.awt.Point;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
@@ -21,6 +22,7 @@ public class ExtButton extends JButton implements ToolTipHandler {
      */
     private static final long serialVersionUID = -7151290227825542967L;
     private TooltipFactory    tooltipFactory;
+    private MouseAdapter      rollOverlistener;
 
     /**
      * @param autoDetectAction
@@ -39,7 +41,7 @@ public class ExtButton extends JButton implements ToolTipHandler {
             ToolTipController.getInstance().register(this);
         } else {
             ToolTipController.getInstance().unregister(this);
-           
+
         }
         return this;
     }
@@ -115,6 +117,37 @@ public class ExtButton extends JButton implements ToolTipHandler {
             ToolTipController.getInstance().unregister(this);
         } else {
             ToolTipController.getInstance().register(this);
+        }
+    }
+
+    /**
+     * @param b
+     */
+    public void setRolloverEffectEnabled(boolean b) {
+        if (b) {
+            if (rollOverlistener == null) {
+                rollOverlistener = new MouseAdapter() {
+
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        setContentAreaFilled(true);
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        setContentAreaFilled(false);
+                    }
+
+                };
+            }
+            addMouseListener(rollOverlistener);
+            setContentAreaFilled(false);
+
+        } else {
+            if (rollOverlistener != null) {
+                removeMouseListener(rollOverlistener);
+                rollOverlistener = null;
+            }
         }
     }
 }
