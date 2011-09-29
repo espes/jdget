@@ -4,13 +4,13 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 
-public abstract class ExtRowHighlighter {
+public abstract class ExtOverlayRowHighlighter {
 
     private Color borderColor;
 
     private Color contentColor;
 
-    public ExtRowHighlighter(final Color borderColor, final Color contentColor) {
+    public ExtOverlayRowHighlighter(final Color borderColor, final Color contentColor) {
         this.borderColor = borderColor;
         this.contentColor = contentColor;
     }
@@ -18,16 +18,16 @@ public abstract class ExtRowHighlighter {
     abstract public boolean doHighlight(ExtTable<?> extTable, int row);
 
     /**
-     * @return the {@link ExtRowHighlighter#borderColor}
-     * @see ExtRowHighlighter#borderColor
+     * @return the {@link ExtOverlayRowHighlighter#borderColor}
+     * @see ExtOverlayRowHighlighter#borderColor
      */
     public Color getBorderColor() {
         return this.borderColor;
     }
 
     /**
-     * @return the {@link ExtRowHighlighter#contentColor}
-     * @see ExtRowHighlighter#contentColor
+     * @return the {@link ExtOverlayRowHighlighter#contentColor}
+     * @see ExtOverlayRowHighlighter#contentColor
      */
     public Color getContentColor() {
         return this.contentColor;
@@ -55,8 +55,8 @@ public abstract class ExtRowHighlighter {
 
     /**
      * @param borderColor
-     *            the {@link ExtRowHighlighter#borderColor} to set
-     * @see ExtRowHighlighter#borderColor
+     *            the {@link ExtOverlayRowHighlighter#borderColor} to set
+     * @see ExtOverlayRowHighlighter#borderColor
      */
     public void setBorderColor(final Color borderColor) {
         this.borderColor = borderColor;
@@ -64,8 +64,8 @@ public abstract class ExtRowHighlighter {
 
     /**
      * @param contentColor
-     *            the {@link ExtRowHighlighter#contentColor} to set
-     * @see ExtRowHighlighter#contentColor
+     *            the {@link ExtOverlayRowHighlighter#contentColor} to set
+     * @see ExtOverlayRowHighlighter#contentColor
      */
     public void setContentColor(final Color contentColor) {
         this.contentColor = contentColor;

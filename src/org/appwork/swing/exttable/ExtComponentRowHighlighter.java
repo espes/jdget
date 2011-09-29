@@ -19,7 +19,7 @@ import javax.swing.text.JTextComponent;
  * @author thomas Highlighterclass which can be added to ExtTableModel.
  *         columnrenderers will set the for and background of their component
  *         according to this highlighter
- * @see ExtRowHighlighter
+ * @see ExtOverlayRowHighlighter
  */
 public abstract class ExtComponentRowHighlighter<E> {
 

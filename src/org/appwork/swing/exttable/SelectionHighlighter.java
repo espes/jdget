@@ -2,7 +2,7 @@ package org.appwork.swing.exttable;
 
 import java.awt.Color;
 
-public class SelectionHighlighter extends ExtRowHighlighter {
+public class SelectionHighlighter extends ExtOverlayRowHighlighter {
 
     public SelectionHighlighter(Color borderColor, Color contentColor) {
         super(borderColor, contentColor);

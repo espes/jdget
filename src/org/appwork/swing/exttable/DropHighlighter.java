@@ -18,7 +18,7 @@ import javax.swing.JTable.DropLocation;
  * @author daniel
  * 
  */
-public class DropHighlighter extends ExtRowHighlighter {
+public class DropHighlighter extends ExtOverlayRowHighlighter {
 
     public DropHighlighter(final Color borderColor, final Color contentColor) {
         super(borderColor, contentColor);
