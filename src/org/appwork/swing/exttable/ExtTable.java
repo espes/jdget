@@ -222,14 +222,9 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
         this.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
-            @SuppressWarnings("unchecked")
             public void valueChanged(final ListSelectionEvent e) {
-                ArrayList<E> sel = ExtTable.this.getExtTableModel().getSelectedObjects();
-                if (sel != null && sel.size() == 0) {
-                    sel = null;
-                }
-                ExtTable.this.onSelectionChanged(sel);
-                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SELECTION_CHANGED, sel));
+                ExtTable.this.onSelectionChanged();
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SELECTION_CHANGED));
 
             }
 
@@ -645,12 +640,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     }
 
-    // @Override
-    // public Point getToolTipLocation(final MouseEvent event) {
-    // // this.toolTipPosition = event.getPoint();
-    // return super.getToolTipLocation(event);
-    // }
-
     /**
      * Returns the original Cellrenderer given bei the current LAF UI Used to
      * have an reference to the LAF's default renderer
@@ -662,6 +651,12 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     public TableCellRenderer getLafCellRenderer(final int row, final int column) {
         return super.getCellRenderer(row, column);
     }
+
+    // @Override
+    // public Point getToolTipLocation(final MouseEvent event) {
+    // // this.toolTipPosition = event.getPoint();
+    // return super.getToolTipLocation(event);
+    // }
 
     /**
      * @return the rowHighlighters
@@ -742,7 +737,11 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     }
 
-    protected void onSelectionChanged(final ArrayList<E> selected) {
+    /**
+     * 
+     */
+    protected void onSelectionChanged() {
+
     }
 
     /**

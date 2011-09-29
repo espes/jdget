@@ -236,6 +236,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         return this.tableData.contains(at);
     }
 
+    public int countSelectedObjects() {
+        if (this.table == null) { return 0; }
+        return this.table.getSelectedRowCount();
+    }
+
     /**
      * Returns the Celleditor for the given column
      * 
