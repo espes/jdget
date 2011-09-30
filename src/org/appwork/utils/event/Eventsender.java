@@ -11,6 +11,7 @@ package org.appwork.utils.event;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -103,30 +104,27 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
         System.exit(1);
     }
 
-    transient protected ArrayList<ListenerType>          addRequestedListeners    = null;
     /**
      * List of registered Eventlistener
      */
-    // TODO: DO we really need ArrayLists here?
-    transient volatile protected ArrayList<ListenerType> listeners                = null;
-    private final Object                                 LOCK                     = new Object();
-    private volatile long                                readR                    = 0;
+
+    transient volatile protected ArrayList<ListenerType>                strongListeners = null;
+    transient volatile protected ArrayList<WeakReference<ListenerType>> weakListener    = null;
+
+    private final Object                                                LOCK            = new Object();
+
     /**
      * List of Listeners that are requested for removal
      * 
      */
-    // We use a removeList to avoid threating problems
-    transient protected ArrayList<ListenerType>          removeRequestedListeners = null;
-
-    private volatile long                                writeR                   = 0;
 
     /**
      * Creates a new Eventsender Instance
      */
     public Eventsender() {
-        this.listeners = new ArrayList<ListenerType>();
-        this.removeRequestedListeners = new ArrayList<ListenerType>();
-        this.addRequestedListeners = new ArrayList<ListenerType>();
+        this.strongListeners = new ArrayList<ListenerType>();
+        this.weakListener = new ArrayList<WeakReference<ListenerType>>();
+
     }
 
     /**
@@ -135,10 +133,17 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
      * @param listener
      */
     public void addAllListener(final ArrayList<ListenerType> listener) {
-        for (final ListenerType l : listener) {
-            this.addListener(l);
-        }
+        this.addAllListener(listener, false);
+    }
 
+    public void addAllListener(final ArrayList<ListenerType> listener, final boolean weak) {
+        for (final ListenerType l : listener) {
+            this.addListener(l, weak);
+        }
+    }
+
+    public void addListener(final ListenerType t) {
+        this.addListener(t, false);
     }
 
     /**
@@ -146,66 +151,69 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
      * 
      * @param listener
      */
-    public void addListener(final ListenerType t) {
+    public void addListener(final ListenerType t, final boolean weak) {
+        if (t == null) { return; }
         synchronized (this.LOCK) {
-            /* decrease WriteCounter in case we remove the removeRequested */
-            if (this.removeRequestedListeners.contains(t)) {
-                this.removeRequestedListeners.remove(t);
-                this.writeR--;
+            boolean added = false;
+            if (weak == false) {
+                /* update strong listeners */
+                final ArrayList<ListenerType> newStrongListener = new ArrayList<ListenerType>(this.strongListeners);
+                if (!newStrongListener.contains(t)) {
+                    newStrongListener.add(t);
+                }
+                this.strongListeners = newStrongListener;
             }
-            /*
-             * increase WriteCounter in case we add addRequestedListeners and t
-             * is not in current listeners list
-             */
-            if (!this.addRequestedListeners.contains(t) && !this.listeners.contains(t)) {
-                this.addRequestedListeners.add(t);
-                this.writeR++;
+            /* update weak listeners */
+            ListenerType l = null;
+            final ArrayList<WeakReference<ListenerType>> newWeakListener = new ArrayList<WeakReference<ListenerType>>(this.weakListener.size());
+            for (final WeakReference<ListenerType> listener : this.weakListener) {
+                if ((l = listener.get()) == null) {
+                    /* remove weak listener because it is gone */
+                } else if (l == t) {
+                    /* list already contains t, no need to add it again */
+                    added = true;
+                    newWeakListener.add(listener);
+                } else {
+                    newWeakListener.add(listener);
+                }
             }
+            if (added == false) {
+                newWeakListener.add(new WeakReference<ListenerType>(t));
+            }
+            this.weakListener = newWeakListener;
+        }
+    }
+
+    public void cleanup() {
+        synchronized (this.LOCK) {
+            final ArrayList<WeakReference<ListenerType>> newWeakListener = new ArrayList<WeakReference<ListenerType>>(this.weakListener.size());
+            for (final WeakReference<ListenerType> listener : this.weakListener) {
+                if (listener.get() == null) {
+                    /* weak item is gone */
+                    continue;
+                } else {
+                    newWeakListener.add(listener);
+                }
+            }
+            this.weakListener = newWeakListener;
         }
     }
 
     final public void fireEvent(final EventType event) {
         if (event == null) { return; }
-        ArrayList<ListenerType> listeners;
-        synchronized (this.LOCK) {
-            if (this.writeR == this.readR) {
-                /* nothing changed, we can use old pointer to listeners */
-                if (this.listeners.size() == 0) { return; }
-                listeners = this.listeners;
-            } else {
-                /* create new list with copy of old one */
-                listeners = new ArrayList<ListenerType>(this.listeners);
-                /* remove and add wished items */
-                listeners.removeAll(this.removeRequestedListeners);
-                this.removeRequestedListeners.clear();
-                listeners.addAll(this.addRequestedListeners);
-                this.addRequestedListeners.clear();
-                /* update ReadCounter and pointer to listeners */
-                this.readR = this.writeR;
-                this.listeners = listeners;
-                if (this.listeners.size() == 0) { return; }
+        ListenerType t = null;
+        boolean cleanup = false;
+        final ArrayList<WeakReference<ListenerType>> listeners = this.weakListener;
+        for (final WeakReference<ListenerType> listener : listeners) {
+            t = listener.get();
+            if (t == null) {
+                cleanup = true;
+                continue;
             }
-        }
-        for (final ListenerType t : listeners) {
-            // final long tt = System.currentTimeMillis();
-
             this.fireEvent(t, event);
-            // System.out.println(t + " " + (System.currentTimeMillis() - tt));
         }
-        synchronized (this.LOCK) {
-            if (this.writeR != this.readR) {
-                /* something changed, lets update the list */
-                /* create new list with copy of old one */
-                listeners = new ArrayList<ListenerType>(this.listeners);
-                /* remove and add wished items */
-                listeners.removeAll(this.removeRequestedListeners);
-                this.removeRequestedListeners.clear();
-                listeners.addAll(this.addRequestedListeners);
-                this.addRequestedListeners.clear();
-                /* update ReadCounter and pointer to listeners */
-                this.readR = this.writeR;
-                this.listeners = listeners;
-            }
+        if (cleanup && listeners.size() > 0) {
+            this.cleanup();
         }
     }
 
@@ -216,44 +224,19 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
      * @return
      */
     final public void fireEvent(final int id, final Object... parameters) {
-
-        ArrayList<ListenerType> listeners;
-        synchronized (this.LOCK) {
-            if (this.writeR == this.readR) {
-                /* nothing changed, we can use old pointer to listeners */
-                if (this.listeners.size() == 0) { return; }
-                listeners = this.listeners;
-            } else {
-                /* create new list with copy of old one */
-                listeners = new ArrayList<ListenerType>(this.listeners);
-                /* remove and add wished items */
-                listeners.removeAll(this.removeRequestedListeners);
-                this.removeRequestedListeners.clear();
-                listeners.addAll(this.addRequestedListeners);
-                this.addRequestedListeners.clear();
-                /* update ReadCounter and pointer to listeners */
-                this.readR = this.writeR;
-                this.listeners = listeners;
-                if (this.listeners.size() == 0) { return; }
+        ListenerType t = null;
+        boolean cleanup = false;
+        final ArrayList<WeakReference<ListenerType>> listeners = this.weakListener;
+        for (final WeakReference<ListenerType> listener : listeners) {
+            t = listener.get();
+            if (t == null) {
+                cleanup = true;
+                continue;
             }
-        }
-        for (final ListenerType t : listeners) {
             this.fireEvent(t, id, parameters);
         }
-        synchronized (this.LOCK) {
-            if (this.writeR != this.readR) {
-                /* something changed, lets update the list */
-                /* create new list with copy of old one */
-                listeners = new ArrayList<ListenerType>(this.listeners);
-                /* remove and add wished items */
-                listeners.removeAll(this.removeRequestedListeners);
-                this.removeRequestedListeners.clear();
-                listeners.addAll(this.addRequestedListeners);
-                this.addRequestedListeners.clear();
-                /* update ReadCounter and pointer to listeners */
-                this.readR = this.writeR;
-                this.listeners = listeners;
-            }
+        if (cleanup && listeners.size() > 0) {
+            this.cleanup();
         }
     }
 
@@ -277,32 +260,50 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
     }
 
     public ArrayList<ListenerType> getListener() {
-        synchronized (this.LOCK) {
-            return new ArrayList<ListenerType>(this.listeners);
+        final ArrayList<WeakReference<ListenerType>> listeners = this.weakListener;
+        boolean cleanup = true;
+        final ArrayList<ListenerType> ret = new ArrayList<ListenerType>(listeners.size());
+        ListenerType t = null;
+        for (final WeakReference<ListenerType> listener : listeners) {
+            t = listener.get();
+            if (t != null) {
+                ret.add(t);
+            } else {
+                cleanup = true;
+            }
         }
+        if (cleanup && listeners.size() > 0) {
+            this.cleanup();
+        }
+        return ret;
     }
 
     public boolean hasListener() {
-        synchronized (this.LOCK) {
-            return this.listeners.size() > 0;
+        final ArrayList<WeakReference<ListenerType>> listeners = this.weakListener;
+        for (final WeakReference<ListenerType> listener : listeners) {
+            if (listener.get() != null) { return true; }
         }
+        return false;
     }
 
     public void removeListener(final ListenerType t) {
+        if (t == null) { return; }
         synchronized (this.LOCK) {
-            /* decrease WriteCounter in case we remove the addRequest */
-            if (this.addRequestedListeners.contains(t)) {
-                this.addRequestedListeners.remove(t);
-                this.writeR--;
+            ListenerType l = null;
+            final ArrayList<WeakReference<ListenerType>> newWeakListener = new ArrayList<WeakReference<ListenerType>>(this.weakListener.size());
+            final ArrayList<ListenerType> newStrongListener = new ArrayList<ListenerType>(this.strongListeners);
+            for (final WeakReference<ListenerType> listener : this.weakListener) {
+                if ((l = listener.get()) == null) {
+                    /* weak item is gone */
+                    continue;
+                } else if (l != t) {
+                    newWeakListener.add(listener);
+                }
             }
-            /*
-             * increase WriteCounter in case we add removeRequest and t is in
-             * current listeners list
-             */
-            if (!this.removeRequestedListeners.contains(t) && this.listeners.contains(t)) {
-                this.removeRequestedListeners.add(t);
-                this.writeR++;
-            }
+            /* remove strong item */
+            newStrongListener.remove(t);
+            this.weakListener = newWeakListener;
+            this.strongListeners = newStrongListener;
         }
     }
 }

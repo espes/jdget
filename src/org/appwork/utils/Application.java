@@ -244,9 +244,9 @@ public class Application {
             Log.L.severe("getContextClassLoader() is null");
             return true;
         }
-        System.out.println(name);
+        // System.out.println(name);
         final URL caller = cll.getResource(name);
-        System.out.println(caller);
+        // System.out.println(caller);
         /*
          * caller is null in case the ressource is not found or not enough
          * rights, in that case we assume its not jared

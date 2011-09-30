@@ -237,7 +237,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         this.getTableHeader().setPreferredSize(new Dimension(this.getColumnModel().getTotalColumnWidth(), 19));
         // assures that the table is painted over the complete available high
         // This method is 1.6 only
-        if (Application.getJavaVersion() >= 16000000) {
+        if (Application.getJavaVersion() >= Application.JAVA16) {
             this.setFillsViewportHeight(true);
         }
 
