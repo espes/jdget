@@ -615,7 +615,7 @@ public class Dialog implements WindowFocusListener {
                             fc.setFileFilter(fileFilter);
                         }
 
-                        if (multiSelection && (dialogType == null || dialogType.getId() == FileChooserType.SAVE_DIALOG.getId())) {
+                        if (multiSelection) {
                             fc.setMultiSelectionEnabled(true);
                         } else {
                             fc.setMultiSelectionEnabled(false);
@@ -678,10 +678,19 @@ public class Dialog implements WindowFocusListener {
                             case JFileChooser.APPROVE_OPTION:
                                 if (multiSelection) {
                                     final ArrayList<File> rets = new ArrayList<File>();
-                                    for (File ret : fc.getSelectedFiles()) {
+                                    File[] sfiles = fc.getSelectedFiles();
+                                    File sfile = fc.getSelectedFile();
+                                    for (File ret : sfiles) {
                                         ret = Dialog.this.validateFileType(ret, fileSelectionMode.getId(), false);
                                         if (ret != null) {
                                             rets.add(ret);
+                                        }
+                                    }
+                                    
+                                    if(rets.size()==0){
+                                        sfile = Dialog.this.validateFileType(sfile, fileSelectionMode.getId(), false);
+                                        if (sfile != null) {
+                                            rets.add(sfile);
                                         }
                                     }
 

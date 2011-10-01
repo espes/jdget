@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Locale;
 
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
@@ -35,6 +36,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     private final Class<T>                configInterface;
     private HashMap<Method, KeyHandler>   methodMap;
+    private HashMap<String, KeyHandler>   keyHandlerMap;
 
     private final JsonKeyValueStorage     primitiveStorage;
     private boolean                       crypted;
@@ -291,7 +293,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
     private void parseInterface() throws SecurityException, IllegalArgumentException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
         this.methodMap = new HashMap<Method, KeyHandler>();
-
+this.keyHandlerMap=new HashMap<String, KeyHandler>();
         final HashMap<String, Method> keyGetterMap = new HashMap<String, Method>();
         final HashMap<String, Method> keySetterMap = new HashMap<String, Method>();
         String key;
@@ -301,7 +303,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         while (clazz != null && clazz != ConfigInterface.class) {
             for (final Method m : clazz.getDeclaredMethods()) {
                 if (m.getName().startsWith("get")) {
-                    key = m.getName().substring(3).toLowerCase();
+                    key = m.getName().substring(3).toLowerCase(Locale.ENGLISH);
                     // we do not allow to setters/getters with the same name but
                     // different cases. this only confuses the user when editing
                     // the
@@ -334,9 +336,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     kh.setGetter(h);
 
                     this.methodMap.put(m, kh);
+                    keyHandlerMap.put(key, kh);
 
                 } else if (m.getName().startsWith("is")) {
-                    key = m.getName().substring(2).toLowerCase();
+                    key = m.getName().substring(2).toLowerCase(Locale.ENGLISH);
                     // we do not allow to setters/getters with the same name but
                     // different cases. this only confuses the user when editing
                     // the
@@ -357,10 +360,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     }
                     final MethodHandler h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m);
                     kh.setGetter(h);
-
+                    keyHandlerMap.put(key, kh);
                     this.methodMap.put(m, kh);
                 } else if (m.getName().startsWith("set")) {
-                    key = m.getName().substring(3).toLowerCase();
+                    key = m.getName().substring(3).toLowerCase(Locale.ENGLISH);
                     if (keySetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keySetterMap.containsKey(key) + "<-->" + m); }
                     if (m.getParameterTypes().length != 1) { throw new InterfaceParseException("Setter " + m + " has !=1 parameters."); }
                     if (m.getReturnType() != void.class) { throw new InterfaceParseException("Setter " + m + " has a returntype != void"); }
@@ -387,7 +390,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     }
                     final MethodHandler h = new MethodHandler(this, MethodHandler.Type.SETTER, key, m);
                     kh.setSetter(h);
-
+                    keyHandlerMap.put(key, kh);
                     this.methodMap.put(m, kh);
 
                 } else {
@@ -497,4 +500,13 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
      * java.lang.reflect.Method, java.lang.Object[])
      */
+
+    /**
+     * @param key2
+     */
+    public KeyHandler getKeyHandler(String key) {
+      return keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
+        
+    }
+   
 }

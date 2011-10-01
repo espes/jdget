@@ -367,7 +367,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.resetEditor();
         this.configureEditorHighlighters(ret, (E) value, isSelected, row);
         this.configureEditorComponent((E) value, isSelected, row, column);
-        ret.setEnabled(this.isEnabled((E) value));
+        ret.setEnabled(getModel().getTable().isEnabled()&&this.isEnabled((E) value));
 
         return ret;
     }
@@ -379,7 +379,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.resetRenderer();
         this.configureRendererHighlighters(ret, (E) value, isSelected, hasFocus, row);
         this.configureRendererComponent((E) value, isSelected, hasFocus, row, column);
-        ret.setEnabled(this.isEnabled((E) value));
+        ret.setEnabled(getModel().getTable().isEnabled()&&this.isEnabled((E) value));
 
         return ret;
     }

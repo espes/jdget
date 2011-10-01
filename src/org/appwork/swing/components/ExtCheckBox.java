@@ -5,14 +5,19 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
+import javax.swing.ButtonModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
+import org.appwork.storage.config.ConfigInterface;
 import org.appwork.swing.components.tooltips.ExtTooltip;
 import org.appwork.swing.components.tooltips.ToolTipHandler;
 import org.appwork.swing.components.tooltips.TooltipTextDelegateFactory;
+import org.appwork.utils.swing.EDTRunner;
 
-public class ExtCheckBox extends JCheckBox implements ActionListener, ToolTipHandler {
+public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
 
     /**
      * 
@@ -30,12 +35,42 @@ public class ExtCheckBox extends JCheckBox implements ActionListener, ToolTipHan
         super();
         this.tooltipFactory = new TooltipTextDelegateFactory(this);
 
-        addActionListener(this);
+//        addActionListener(this);
         setDependencies(components);
-   
 
     }
 
+    /**
+     * @param class1
+     * @param string
+     * @param table
+     * @param btadd
+     * @param btRemove
+     */
+    public ExtCheckBox(Class<? extends ConfigInterface> configInterface, String storageKey, JComponent... components) {
+        this(components);
+        setModel(new ConfigToggleButtonModel(configInterface, storageKey));
+        updateDependencies();
+
+    }
+    public void setModel(ButtonModel newModel) {
+        super.setModel(newModel);
+        newModel.addChangeListener(new ChangeListener() {
+            
+            @Override
+            public void stateChanged(ChangeEvent e) {
+               new EDTRunner(){
+
+                @Override
+                protected void runInEDT() {
+                   updateDependencies();
+                }
+                   
+               };
+            }
+        });
+      
+    }
     public JComponent[] getDependencies() {
         return dependencies;
     }
@@ -54,34 +89,34 @@ public class ExtCheckBox extends JCheckBox implements ActionListener, ToolTipHan
         this.tooltipFactory = tooltipFactory;
     }
 
-    public void setSelected(boolean b) {
-   
-        super.setSelected(b);
+//    public void setSelected(boolean b) {
+//
+//        super.setSelected(b);
+//
+//        updateDependencies();
+//    }
 
-        updateDependencies();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        updateDependencies();
-    }
+//    /*
+//     * (non-Javadoc)
+//     * 
+//     * @see
+//     * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+//     */
+//    @Override
+//    public void actionPerformed(ActionEvent e) {
+//        updateDependencies();
+//    }
 
     /**
      * 
      */
     public void updateDependencies() {
-   
-            if (dependencies != null) {
-                for (JComponent c : dependencies)
-                    c.setEnabled(isSelected());
-            }
-        
+
+        if (dependencies != null) {
+            for (JComponent c : dependencies)
+                c.setEnabled(isSelected());
+        }
+
     }
 
     /*
