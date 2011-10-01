@@ -261,16 +261,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 return handler.getValue();
 
             } else {
-                try {
-                    handler.setValue(parameter[0]);
-                    this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter[0]));
-                } catch (final InvocationTargetException t) {
-                    this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALIDATOR_ERROR, t.getTargetException(), handler));
+                setValue(handler, parameter[0]);
 
-                } catch (final Throwable t) {
-                    this.eventSender.fireEvent(new ConfigEvent<T>((T) instance, ConfigEvent.Types.VALIDATOR_ERROR, t, handler));
-
-                }
                 return null;
             }
         }
@@ -293,7 +285,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
     private void parseInterface() throws SecurityException, IllegalArgumentException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
         this.methodMap = new HashMap<Method, KeyHandler>();
-this.keyHandlerMap=new HashMap<String, KeyHandler>();
+        this.keyHandlerMap = new HashMap<String, KeyHandler>();
         final HashMap<String, Method> keyGetterMap = new HashMap<String, Method>();
         final HashMap<String, Method> keySetterMap = new HashMap<String, Method>();
         String key;
@@ -494,6 +486,7 @@ this.keyHandlerMap=new HashMap<String, KeyHandler>();
         }
         return JSonStorage.toString(ret);
     }
+
     /*
      * (non-Javadoc)
      * 
@@ -505,8 +498,34 @@ this.keyHandlerMap=new HashMap<String, KeyHandler>();
      * @param key2
      */
     public KeyHandler getKeyHandler(String key) {
-      return keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
-        
+        return keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
+
     }
-   
+
+    /**
+     * @param keyHandler
+     * @param parameter
+     */
+    public void setValue(KeyHandler handler, Object parameter) {
+        try {
+            handler.setValue(parameter);
+            this.eventSender.fireEvent(new ConfigEvent<T>(getConfigInterface(), ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter));
+        } catch (final InvocationTargetException t) {
+            this.eventSender.fireEvent(new ConfigEvent<T>(getConfigInterface(), ConfigEvent.Types.VALIDATOR_ERROR, t.getTargetException(), handler));
+
+        } catch (final Throwable t) {
+            this.eventSender.fireEvent(new ConfigEvent<T>(getConfigInterface(), ConfigEvent.Types.VALIDATOR_ERROR, t, handler));
+
+        }
+    }
+
+    /**
+     * @param keyHandler
+     * @return
+     */
+    public Object getValue(KeyHandler keyHandler) {
+     
+        return keyHandler.getValue();
+    }
+
 }

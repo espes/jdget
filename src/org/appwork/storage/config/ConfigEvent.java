@@ -15,7 +15,7 @@ import org.appwork.utils.event.SimpleEvent;
  * @author thomas
  * 
  */
-public class ConfigEvent<T extends ConfigInterface> extends SimpleEvent<T, Object, ConfigEvent.Types> {
+public class ConfigEvent<T extends ConfigInterface> extends SimpleEvent<Class<T>, Object, ConfigEvent.Types> {
     public static enum Types {
         VALUE_UPDATED,
         /**
@@ -31,7 +31,7 @@ public class ConfigEvent<T extends ConfigInterface> extends SimpleEvent<T, Objec
      * @param type
      * @param parameters
      */
-    public ConfigEvent(final T caller, final Types type, final Object... parameters) {
+    public ConfigEvent(final Class<T> caller, final Types type, final Object... parameters) {
         super(caller, type, parameters);
         // TODO Auto-generated constructor stub
     }

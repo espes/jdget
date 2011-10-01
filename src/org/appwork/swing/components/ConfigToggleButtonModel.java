@@ -6,7 +6,7 @@ import org.appwork.storage.config.ConfigEventListener;
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.storage.config.KeyHandler;
-import org.appwork.utils.logging.Log;
+import org.appwork.storage.config.StorageHandler;
 
 public class ConfigToggleButtonModel extends ToggleButtonModel implements ConfigEventListener {
 
@@ -17,31 +17,30 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Config
 
     private KeyHandler        keyHandler;
 
+    private StorageHandler<?> sh;
+
     public ConfigToggleButtonModel(Class<? extends ConfigInterface> class1, String key) {
         ConfigInterface config = JsonConfig.create(class1);
-
-        config.getStorageHandler().getEventSender().addListener(this, true);
+        sh = config.getStorageHandler();
+        sh.getEventSender().addListener(this, true);
         keyHandler = config.getStorageHandler().getKeyHandler(key);
-        if(keyHandler==null)throw new NullPointerException("Key "+key+" is invalid for "+class1);
+        if (keyHandler == null) throw new NullPointerException("Key " + key + " is invalid for " + class1);
     }
 
     public boolean isSelected() {
-        return (Boolean) keyHandler.getValue();
+        return (Boolean) sh.getValue(keyHandler);
     }
 
     public void setSelected(boolean b) {
-        try {
-            keyHandler.setValue(b);
-        } catch (Throwable e) {
-            Log.exception(e);
-        }
+        sh.setValue(keyHandler, b);
+
     }
 
-    public void onConfigValidatorError(ConfigInterface config, Throwable validateException, KeyHandler methodHandler) {
+    public void onConfigValidatorError(Class<? extends ConfigInterface> config, Throwable validateException, KeyHandler methodHandler) {
         fireStateChanged();
     }
 
-    public void onConfigValueModified(ConfigInterface config, String key, Object newValue) {
+    public void onConfigValueModified(Class<? extends ConfigInterface> config, String key, Object newValue) {
         fireStateChanged();
     }
 

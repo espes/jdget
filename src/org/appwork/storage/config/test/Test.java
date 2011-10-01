@@ -49,13 +49,13 @@ public class Test {
             jc.getStorageHandler().getEventSender().addListener(new ConfigEventListener() {
 
                 @Override
-                public void onConfigValidatorError(final ConfigInterface config, final Throwable validateException, final KeyHandler methodHandler) {
+                public void onConfigValidatorError(final Class<? extends ConfigInterface> config, final Throwable validateException, final KeyHandler methodHandler) {
                     // TODO Auto-generated method stub
 
                 }
 
                 @Override
-                public void onConfigValueModified(final ConfigInterface config, final String key, final Object newValue) {
+                public void onConfigValueModified(final Class<? extends ConfigInterface> config, final String key, final Object newValue) {
                     System.out.println("New value: " + key + "=\r\n" + JSonStorage.toString(newValue));
                 }
             });

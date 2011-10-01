@@ -17,7 +17,7 @@ import java.util.EventListener;
  */
 public interface ConfigEventListener extends EventListener {
 
-    public void onConfigValidatorError(ConfigInterface config, Throwable validateException, KeyHandler methodHandler);
+    public void onConfigValidatorError(Class<? extends ConfigInterface> config, Throwable validateException, KeyHandler methodHandler);
 
-    public void onConfigValueModified(ConfigInterface config, String key, Object newValue);
+    public void onConfigValueModified(Class<? extends ConfigInterface> config, String key, Object newValue);
 }
