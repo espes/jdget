@@ -22,6 +22,8 @@ public class ExtSpinner extends JSpinner {
 
     /**
      * @param spinnerNumberModel
+     * @param maximum 
+     * @param minimium 
      */
     public ExtSpinner(SpinnerNumberModel spinnerNumberModel) {
         super(spinnerNumberModel);

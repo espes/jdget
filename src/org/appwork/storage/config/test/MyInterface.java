@@ -12,6 +12,9 @@ package org.appwork.storage.config.test;
 import java.util.ArrayList;
 
 import org.appwork.storage.config.ConfigInterface;
+import org.appwork.storage.config.JsonConfig;
+import org.appwork.storage.config.KeyHandler;
+import org.appwork.storage.config.StorageHandler;
 import org.appwork.storage.config.annotations.CryptedStorage;
 import org.appwork.storage.config.annotations.DefaultBooleanArrayValue;
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
@@ -31,6 +34,7 @@ import org.appwork.storage.config.annotations.DefaultObjectValue;
 import org.appwork.storage.config.annotations.DefaultStringArrayValue;
 import org.appwork.storage.config.annotations.DefaultStringValue;
 import org.appwork.storage.config.annotations.PlainStorage;
+import org.appwork.storage.config.annotations.SpinnerValidator;
 
 /**
  * @author thomas
@@ -38,7 +42,11 @@ import org.appwork.storage.config.annotations.PlainStorage;
  */
 @PlainStorage
 public interface MyInterface extends ConfigInterface {
+    public static final MyInterface                 CFG = JsonConfig.create(MyInterface.class);
+    @SuppressWarnings("unchecked")
+    public static final StorageHandler<MyInterface> SH  = (StorageHandler<MyInterface>) CFG.getStorageHandler();
 
+    
     @DefaultBooleanValue(value = true)
     public boolean getB2();
 
@@ -69,10 +77,14 @@ public interface MyInterface extends ConfigInterface {
     /**
      * @return
      */
-    @CryptedStorage(key = { 0x01, 0x02, 0x11, 0x01, 0x01, 0x54, 0x01, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x22, 0x01 })
-    public ArrayList<TestObject> getGenericList();
 
-    @DefaultIntValue(value = 0)
+    public ArrayList<TestObject> getGenericList();
+    
+    @SuppressWarnings("unchecked")
+    public static final KeyHandler<Integer> INT = (KeyHandler<Integer>) CFG.getStorageHandler().getKeyHandler("Int");
+    @DefaultIntValue(value = 2)
+    @SpinnerValidator(min=1,max=10,step=1)
+
     public int getInt();
 
     @DefaultIntArrayValue(value = { 1, 2, 3 })

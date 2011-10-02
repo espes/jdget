@@ -205,6 +205,8 @@ public class JsonKeyValueStorage extends Storage {
                 this.put(key, (Enum<?>) def);
             } else if (def instanceof Double) {
                 this.put(key, (Double) def);
+            } else if (def instanceof Float) {
+                this.put(key, (Float) def);
             } else {
                 throw new StorageException("Invalid datatype: " + (def != null ? def.getClass() : "null"));
             }

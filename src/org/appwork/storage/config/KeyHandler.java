@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
 import org.appwork.storage.TypeRef;
+import org.appwork.storage.config.annotations.AboutConfig;
 import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.storage.config.annotations.CryptedStorage;
 import org.appwork.storage.config.annotations.DefaultBooleanArrayValue;
@@ -37,6 +38,10 @@ import org.appwork.storage.config.annotations.DefaultStringArrayValue;
 import org.appwork.storage.config.annotations.DefaultStringValue;
 import org.appwork.storage.config.annotations.Description;
 import org.appwork.storage.config.annotations.PlainStorage;
+import org.appwork.storage.config.annotations.RangeValidator;
+import org.appwork.storage.config.annotations.RegexValidator;
+import org.appwork.storage.config.annotations.RequiresRestart;
+import org.appwork.storage.config.annotations.SpinnerValidator;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.reflection.Clazz;
 
@@ -44,7 +49,7 @@ import org.appwork.utils.reflection.Clazz;
  * @author thomas
  * 
  */
-public class KeyHandler {
+public class KeyHandler<RawClass> {
 
     private static final int             MIN_LIFETIME            = 10000;
     private static final String          ANNOTATION_PACKAGE_NAME = CryptedStorage.class.getPackage().getName();
@@ -73,7 +78,7 @@ public class KeyHandler {
      * @param storageHandler
      * @param key2
      */
-    public KeyHandler(final StorageHandler<?> storageHandler, final String key) {
+    protected KeyHandler(final StorageHandler<?> storageHandler, final String key) {
         this.storageHandler = storageHandler;
         this.key = key;
         // get parent crypt infos
@@ -99,7 +104,7 @@ public class KeyHandler {
         /**
          * This main mark is important!!
          */
-        final Class<?>[] okForAll = new Class<?>[] { AllowStorage.class, Description.class, CryptedStorage.class, PlainStorage.class };
+        final Class<?>[] okForAll = new Class<?>[] { AboutConfig.class,RequiresRestart.class, AllowStorage.class, Description.class, CryptedStorage.class, PlainStorage.class };
         final Class<?>[] clazzes = new Class<?>[classes.length + okForAll.length];
         System.arraycopy(classes, 0, clazzes, 0, classes.length);
         System.arraycopy(okForAll, 0, clazzes, classes.length, okForAll.length);
@@ -139,7 +144,7 @@ public class KeyHandler {
         return ret;
     }
 
-    public boolean getDefaultBoolean() {
+    protected boolean getDefaultBoolean() {
         if (this.defaultFactory != null) {
             try {
 
@@ -152,7 +157,7 @@ public class KeyHandler {
         return this.defaultBoolean;
     }
 
-    public byte getDefaultByte() {
+    protected byte getDefaultByte() {
         if (this.defaultFactory != null) {
             try {
 
@@ -164,7 +169,7 @@ public class KeyHandler {
         return this.defaultByte;
     }
 
-    public double getDefaultDouble() {
+    protected double getDefaultDouble() {
         if (this.defaultFactory != null) {
             try {
 
@@ -176,7 +181,7 @@ public class KeyHandler {
         return this.defaultDouble;
     }
 
-    public Enum<?> getDefaultEnum() {
+    protected Enum<?> getDefaultEnum() {
         if (this.defaultFactory != null) {
             try {
 
@@ -189,7 +194,7 @@ public class KeyHandler {
         return this.defaultEnum;
     }
 
-    public float getDefaultFloat() {
+    protected float getDefaultFloat() {
         if (this.defaultFactory != null) {
             try {
 
@@ -201,7 +206,7 @@ public class KeyHandler {
         return this.defaultFloat;
     }
 
-    public int getDefaultInteger() {
+    protected int getDefaultInteger() {
         if (this.defaultFactory != null) {
             try {
 
@@ -213,7 +218,7 @@ public class KeyHandler {
         return this.defaultInteger;
     }
 
-    public long getDefaultLong() {
+    protected long getDefaultLong() {
         if (this.defaultFactory != null) {
             try {
 
@@ -225,7 +230,7 @@ public class KeyHandler {
         return this.defaultLong;
     }
 
-    public Object getDefaultObject() {
+    protected Object getDefaultObject() {
         if (this.defaultFactory != null) {
             try {
 
@@ -237,7 +242,7 @@ public class KeyHandler {
         return this.defaultObject;
     }
 
-    public String getDefaultString() {
+    protected String getDefaultString() {
         if (this.defaultFactory != null) {
             try {
                 final String ret = (String) this.getter.getMethod().invoke(this.defaultFactory, new Object[] {});
@@ -253,30 +258,31 @@ public class KeyHandler {
     /**
      * @return
      */
-    public Object getDefaultValue() {
+    @SuppressWarnings("unchecked")
+    public RawClass getDefaultValue() {
         if (this.isPrimitive()) {
             if (Clazz.isBoolean(this.getter.getRawClass())) {
-                return this.getDefaultBoolean();
+                return (RawClass) new Boolean(this.getDefaultBoolean());
             } else if (Clazz.isLong(this.getter.getRawClass())) {
-                return this.getDefaultLong();
+                return (RawClass) new Long(this.getDefaultLong());
             } else if (Clazz.isInteger(this.getter.getRawClass())) {
-                return this.getDefaultInteger();
+                return (RawClass) new Integer(this.getDefaultInteger());
             } else if (Clazz.isByte(this.getter.getRawClass())) {
-                return this.getDefaultByte();
+                return (RawClass) new Byte(this.getDefaultByte());
             } else if (Clazz.isFloat(this.getter.getRawClass())) {
-                return this.getDefaultFloat();
+                return (RawClass) new Float(this.getDefaultFloat());
             } else if (this.getRawClass() == String.class) {
-                return this.getDefaultString();
+                return (RawClass) this.getDefaultString();
             } else if (this.getRawClass().isEnum()) {
 
-                return this.getDefaultEnum();
+                return (RawClass) this.getDefaultEnum();
             } else if (Clazz.isDouble(this.getRawClass())) {
-                return this.getDefaultDouble();
+                return (RawClass) new Double(this.getDefaultDouble());
             } else {
                 return null;
             }
         } else {
-            return this.getDefaultObject();
+            return (RawClass) this.getDefaultObject();
 
         }
 
@@ -293,27 +299,28 @@ public class KeyHandler {
     /**
      * @return
      */
-    public Class<?> getRawClass() {
-        // TODO Auto-generated method stub
-        return this.getter.getRawClass();
+    @SuppressWarnings("unchecked")
+    public Class<RawClass> getRawClass() {
+        return (Class<RawClass>) this.getter.getRawClass();
     }
 
     public MethodHandler getSetter() {
         return this.setter;
     }
 
-    public StorageHandler<?> getStorageHandler() {
+    protected StorageHandler<?> getStorageHandler() {
         return this.storageHandler;
     }
 
     /**
      * @return
      */
-    public Object getValue() {
+    @SuppressWarnings("unchecked")
+    protected RawClass getValue() {
 
         if (this.isPrimitive()) {
 
-            return this.storageHandler.getPrimitive(this);
+            return (RawClass) this.storageHandler.getPrimitive(this);
 
         } else {
             Object ret = this.cache != null ? this.cache.get() : null;
@@ -323,7 +330,7 @@ public class KeyHandler {
                 this.cache = new MinTimeWeakReference<Object>(ret, KeyHandler.MIN_LIFETIME, "Storage " + this.getKey());
 
             }
-            return ret;
+            return (RawClass) ret;
         }
     }
 
@@ -332,7 +339,7 @@ public class KeyHandler {
      * 
      */
     @SuppressWarnings("unchecked")
-    public void init() throws ClassNotFoundException {
+    protected void init() throws ClassNotFoundException {
         // read local cryptinfos
         this.primitive = JSonStorage.canStorePrimitive(this.getter.getMethod().getReturnType());
         final CryptedStorage an = this.getAnnotation(CryptedStorage.class);
@@ -360,6 +367,8 @@ public class KeyHandler {
         // init defaultvalues. read from annotations
         this.defaultFactory = this.storageHandler.getDefaultFactory();
         final boolean hasDefaultFactory = this.storageHandler.getDefaultFactory() != null;
+        
+        // ,RegexValidator.class,
         if (this.primitive) {
             if (Clazz.isBoolean(this.getter.getRawClass())) {
                 final DefaultBooleanValue ann = this.getAnnotation(DefaultBooleanValue.class);
@@ -375,7 +384,7 @@ public class KeyHandler {
 
                     this.defaultLong = ann.value();
                 }
-                this.checkBadAnnotations(DefaultLongValue.class);
+                this.checkBadAnnotations(DefaultLongValue.class, SpinnerValidator.class, RangeValidator.class);
             } else if (Clazz.isInteger(this.getter.getRawClass())) {
                 final DefaultIntValue ann = this.getAnnotation(DefaultIntValue.class);
                 if (ann != null) {
@@ -383,7 +392,7 @@ public class KeyHandler {
 
                     this.defaultInteger = ann.value();
                 }
-                this.checkBadAnnotations(DefaultIntValue.class);
+                this.checkBadAnnotations(DefaultIntValue.class,SpinnerValidator.class, RangeValidator.class);
             } else if (Clazz.isByte(this.getter.getRawClass())) {
                 final DefaultByteValue ann = this.getAnnotation(DefaultByteValue.class);
                 if (ann != null) {
@@ -391,7 +400,7 @@ public class KeyHandler {
 
                     this.defaultByte = ann.value();
                 }
-                this.checkBadAnnotations(DefaultByteValue.class);
+                this.checkBadAnnotations(DefaultByteValue.class,SpinnerValidator.class, RangeValidator.class);
             } else if (Clazz.isFloat(this.getter.getRawClass())) {
                 final DefaultFloatValue ann = this.getAnnotation(DefaultFloatValue.class);
                 if (ann != null) {
@@ -408,7 +417,7 @@ public class KeyHandler {
                     this.defaultString = ann.value();
                 }
 
-                this.checkBadAnnotations(DefaultStringValue.class);
+                this.checkBadAnnotations(DefaultStringValue.class,RegexValidator.class);
             } else if (this.getter.getRawClass().isEnum()) {
 
                 final DefaultEnumValue ann = this.getAnnotation(DefaultEnumValue.class);
@@ -456,7 +465,7 @@ public class KeyHandler {
 
                         this.defaultObject = ann.value();
                     }
-                    this.checkBadAnnotations(DefaultLongArrayValue.class);
+                    this.checkBadAnnotations(DefaultLongArrayValue.class,SpinnerValidator.class, RangeValidator.class);
                 } else if (Clazz.isInteger(ct)) {
 
                     final DefaultIntArrayValue ann = this.getAnnotation(DefaultIntArrayValue.class);
@@ -465,7 +474,7 @@ public class KeyHandler {
 
                         this.defaultObject = ann.value();
                     }
-                    this.checkBadAnnotations(DefaultIntArrayValue.class);
+                    this.checkBadAnnotations(DefaultIntArrayValue.class,SpinnerValidator.class, RangeValidator.class);
                 } else if (Clazz.isByte(ct)) {
                     final DefaultByteArrayValue ann = this.getAnnotation(DefaultByteArrayValue.class);
                     if (ann != null) {
@@ -473,7 +482,7 @@ public class KeyHandler {
 
                         this.defaultObject = ann.value();
                     }
-                    this.checkBadAnnotations(DefaultByteArrayValue.class);
+                    this.checkBadAnnotations(DefaultByteArrayValue.class,SpinnerValidator.class, RangeValidator.class);
                 } else if (Clazz.isFloat(ct)) {
 
                     final DefaultFloatArrayValue ann = this.getAnnotation(DefaultFloatArrayValue.class);
@@ -491,7 +500,7 @@ public class KeyHandler {
 
                         this.defaultObject = ann.value();
                     }
-                    this.checkBadAnnotations(DefaultStringArrayValue.class);
+                    this.checkBadAnnotations(DefaultStringArrayValue.class,RegexValidator.class);
                 } else if (ct.isEnum()) {
                     final DefaultEnumArrayValue ann = this.getAnnotation(DefaultEnumArrayValue.class);
                     if (ann != null) {
@@ -536,6 +545,7 @@ public class KeyHandler {
 
                 this.checkBadAnnotations(DefaultObjectValue.class);
             }
+            
 
         }
     }
@@ -543,7 +553,7 @@ public class KeyHandler {
     /**
      * @return
      */
-    public boolean isCrypted() {
+    protected boolean isCrypted() {
         return this.crypted;
     }
 
@@ -551,12 +561,12 @@ public class KeyHandler {
      * @param m
      * @return
      */
-    public boolean isGetter(final Method m) {
+    protected boolean isGetter(final Method m) {
 
         return m.equals(this.getter.getMethod());
     }
 
-    public boolean isPrimitive() {
+    protected boolean isPrimitive() {
         return this.primitive;
     }
 
@@ -564,7 +574,7 @@ public class KeyHandler {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public Object read() {
+    protected RawClass read() {
         try {
             Log.L.finer("Read Config: " + this.path.getAbsolutePath());
             if (this.defaultFactory != null) {
@@ -580,15 +590,15 @@ public class KeyHandler {
                     }
                     this.defaultObject = ret;
                 }
-                return ret;
+                return (RawClass) ret;
             } else {
-                return JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, new TypeRef(this.getter.getMethod().getGenericReturnType()) {
+                return (RawClass) JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, new TypeRef(this.getter.getMethod().getGenericReturnType()) {
                 }, this.defaultObject);
             }
 
         } finally {
             if (!this.path.exists()) {
-                this.write(this.defaultObject);
+                this.write((RawClass) this.defaultObject);
             }
 
         }
@@ -597,7 +607,7 @@ public class KeyHandler {
     /**
      * @param h
      */
-    public void setGetter(final MethodHandler h) {
+    protected void setGetter(final MethodHandler h) {
         this.getter = h;
 
     }
@@ -605,7 +615,7 @@ public class KeyHandler {
     /**
      * @param h
      */
-    public void setSetter(final MethodHandler h) {
+    protected void setSetter(final MethodHandler h) {
         this.setter = h;
 
     }
@@ -613,7 +623,7 @@ public class KeyHandler {
     /**
      * @param object
      */
-    public void setValue(final Object object) throws Throwable {
+    protected void setValue(final RawClass object) throws Throwable {
         final Object validator = this.storageHandler.getValidator();
         if (validator != null) {
             // we call the defaultfactory setter to validate
@@ -627,6 +637,8 @@ public class KeyHandler {
                 this.storageHandler.putPrimitive(this.setter.getKey(), (Boolean) object);
 
             } else if (this.setter.getRawClass() == Long.class || this.setter.getRawClass() == long.class) {
+                
+             
                 this.storageHandler.putPrimitive(this.setter.getKey(), (Long) object);
             } else if (this.setter.getRawClass() == Integer.class || this.setter.getRawClass() == int.class) {
                 this.storageHandler.putPrimitive(this.setter.getKey(), (Integer) object);
@@ -660,9 +672,21 @@ public class KeyHandler {
     /**
      * @param object
      */
-    public void write(final Object object) {
+    protected void write(final RawClass object) {
 
         JSonStorage.saveTo(this.path, !this.crypted, this.cryptKey, JSonStorage.serializeToJson(object));
+
+    }
+
+    /**
+     * @return
+     */
+    public Class<?> getDeclaringClass() {
+        if (getter != null) {
+            return getter.getMethod().getDeclaringClass();
+        } else {
+            return setter.getMethod().getDeclaringClass();
+        }
 
     }
 

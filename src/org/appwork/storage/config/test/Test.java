@@ -16,6 +16,7 @@ import org.appwork.storage.config.ConfigEventListener;
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.storage.config.KeyHandler;
+import org.appwork.storage.config.StorageHandler;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -23,8 +24,11 @@ import org.appwork.utils.logging.Log;
  * 
  */
 public class Test {
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws InterruptedException {
 
+        
+        new PerformanceObserver().start();
+        JsonConfig.create(MyInterface.class);
         /*
          * 1. Define an INterface with all required getters and setters. Use
          * Annotations to give defaultvalues or cryptinfos
@@ -45,20 +49,23 @@ public class Test {
         }
         try {
             final MyInterface jc = JsonConfig.create(MyInterface.class);
-
-            jc.getStorageHandler().getEventSender().addListener(new ConfigEventListener() {
-
-                @Override
-                public void onConfigValidatorError(final Class<? extends ConfigInterface> config, final Throwable validateException, final KeyHandler methodHandler) {
-                    // TODO Auto-generated method stub
-
-                }
-
-                @Override
-                public void onConfigValueModified(final Class<? extends ConfigInterface> config, final String key, final Object newValue) {
-                    System.out.println("New value: " + key + "=\r\n" + JSonStorage.toString(newValue));
-                }
-            });
+//
+//            jc.getStorageHandler().getEventSender().addListener(new ConfigEventListener() {
+//
+//                @Override
+//                public void onConfigValidatorError(final Class<? extends ConfigInterface> config, final Throwable validateException, final KeyHandler methodHandler) {
+//                    // TODO Auto-generated method stub
+//
+//                }
+//
+//                @Override
+//                public void onConfigValueModified(final Class<? extends ConfigInterface> config, final String key, final Object newValue) {
+//                    System.out.println("New value: " + key + "=\r\n" + JSonStorage.toString(newValue));
+//                }
+//            });
+            
+            
+           
             /*
              * 3. Use getters and setters as if your storage would be a normal
              * instance.
@@ -78,10 +85,95 @@ public class Test {
             System.out.println(JSonStorage.toString(jc.getGenericList()));
 
             System.out.println(JSonStorage.toString(jc.getStringArray()));
+            
+            /*
+             * 4. get values by key
+             * 
+             * 
+             * 
+             */
+            StorageHandler<?> storageHandler = MyInterface.CFG.getStorageHandler();
+         System.out.println(storageHandler.getValue("Float"));  
+            System.out.println(MyInterface.CFG.getInt());
+            //Set Statics in the interface to use compiletime checks
+          Integer i = storageHandler.getValue( MyInterface.INT);
+            System.out.println(i);
+            MyInterface.CFG.setInt(100);
+            long rounds=1000000;
+            long t;
+             t = System.currentTimeMillis();
+            for(long x=0;x<rounds;x++){
+                JsonConfig.create(MyInterface.class).getInt();
+            }
+            System.out.println("Complete access: \t"+(System.currentTimeMillis()-t));
+            
+            t = System.currentTimeMillis();
+            for(long x=0;x<rounds;x++){
+               MyInterface.SH.getValue( "Int");
+            }
+            System.out.println("by (str) key access: \t"+(System.currentTimeMillis()-t));
+            
+            t = System.currentTimeMillis();
+            for(long x=0;x<rounds;x++){
+                MyInterface.CFG.getInt();
+            }
+            System.out.println("Static prxy access: \t"+(System.currentTimeMillis()-t));
+
+            t = System.currentTimeMillis();
+            for(long x=0;x<rounds;x++){
+               MyInterface.SH.getValue( MyInterface.INT);
+            }
+            System.out.println("Full st access: \t"+(System.currentTimeMillis()-t));
+            
+            t = System.currentTimeMillis();
+            for(long x=0;x<rounds;x++){
+               o.getA();
+            }
+            System.out.println("direct cls access: \t"+(System.currentTimeMillis()-t));
+            System.out.println("WRITE");
+            
+            t = System.currentTimeMillis();
+            for(long x=0;x<rounds;x++){
+                JsonConfig.create(MyInterface.class).setInt(5);
+            }
+            System.out.println("Complete access: \t"+(System.currentTimeMillis()-t));
+            
+            t = System.currentTimeMillis();
+            for(long x=0;x<rounds;x++){
+               MyInterface.SH.setValue( "Int",5);
+            }
+            System.out.println("by (str) key access: \t"+(System.currentTimeMillis()-t));
+            
+            t = System.currentTimeMillis();
+            for(long x=0;x<rounds;x++){
+                MyInterface.CFG.setInt(5);
+            }
+            System.out.println("Static prxy access: \t"+(System.currentTimeMillis()-t));
+
+            t = System.currentTimeMillis();
+            for(long x=0;x<rounds;x++){
+               MyInterface.SH.setValue( MyInterface.INT,5);
+            }
+            System.out.println("Full st access: \t"+(System.currentTimeMillis()-t));
+            
+            t = System.currentTimeMillis();
+            for(long x=0;x<rounds;x++){
+               o.setA(5);
+            }
+            System.out.println("direct cls access: \t"+(System.currentTimeMillis()-t));
+            
+            System.out.println("TEST SUCCESSFULL");
+            
         } catch (final RuntimeException e) {
             // seems like the interface is malformed
             Log.exception(e);
+            
+            System.out.println("TEST FAILED");
         }
+      
+//        System.out.println("ConfigTime: "+MyInterface.SH.getNanoTime()+" "+JsonConfig.create(MyInterface.class).getStorageHandler().getNanoTime());
+        
+//System.exit(1);
 
     }
 }

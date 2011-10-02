@@ -16,6 +16,7 @@ package org.appwork.storage.config;
  */
 
 public interface ConfigInterface {
+
     public StorageHandler<?> getStorageHandler();
 
     String toString();
