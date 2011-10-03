@@ -19,15 +19,19 @@ import java.util.Map.Entry;
 
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.JsonConfig;
-import org.appwork.storage.config.StorageHandler;
+import org.appwork.storage.config.handler.StorageHandler;
 
 /**
  * @author Thomas
  * 
  */
 public class PerformanceObserver extends Thread {
+public PerformanceObserver(){
+    StorageHandler.PROFILER_MAP = new HashMap<String, Long>();
+    StorageHandler.PROFILER_CALLNUM_MAP=new HashMap<String, Long>();
+   
+}
 
-    private boolean profileInterfaces = false;
     private boolean profileMethods    = true;
     private long interval=5000;
 
@@ -53,7 +57,16 @@ public class PerformanceObserver extends Thread {
 
         while (true) {
      
-            if(profileMethods){
+            print();
+
+        }
+    }
+
+    /**
+     * 
+     */
+    public void print() {
+        if(profileMethods){
             // /
             ArrayList<Entry<String, Long>> entries = new ArrayList<Entry<String, Long>>();
             for (Iterator<Entry<String, Long>> it = StorageHandler.PROFILER_MAP.entrySet().iterator(); it.hasNext();) {
@@ -82,13 +95,9 @@ public class PerformanceObserver extends Thread {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-
-        }
     }
 
     public void start() {
-        StorageHandler.PROFILER_MAP = new HashMap<String, Long>();
-        StorageHandler.PROFILER_CALLNUM_MAP=new HashMap<String, Long>();
-        super.start();
+       super.start();
     }
 }

@@ -5,8 +5,8 @@ import javax.swing.JToggleButton.ToggleButtonModel;
 import org.appwork.storage.config.ConfigEventListener;
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.JsonConfig;
-import org.appwork.storage.config.KeyHandler;
-import org.appwork.storage.config.StorageHandler;
+import org.appwork.storage.config.handler.KeyHandler;
+import org.appwork.storage.config.handler.StorageHandler;
 
 public class ConfigToggleButtonModel extends ToggleButtonModel implements ConfigEventListener {
 

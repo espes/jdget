@@ -12,6 +12,8 @@ package org.appwork.storage.config;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.appwork.storage.config.handler.StorageHandler;
+
 /**
  * @author thomas
  * 

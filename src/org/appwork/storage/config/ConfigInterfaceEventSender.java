@@ -9,6 +9,7 @@
  */
 package org.appwork.storage.config;
 
+import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.event.Eventsender;
 
 /**

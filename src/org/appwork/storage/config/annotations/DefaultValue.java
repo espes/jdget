@@ -5,10 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.appwork.storage.config.defaults.DefaultFactory;
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD })
-public @interface RangeValidator {
-
-    long[] range();
-
+public @interface DefaultValue {
+    Class<? extends DefaultFactory> value();
 }

@@ -106,8 +106,8 @@ public class JsonKeyValueStorage extends Storage {
                 if (def instanceof int[]) {
                     final int[] rets = new int[((ArrayList<?>) ret).size()];
                     for (final Object o : (ArrayList<?>) ret) {
-                        if (o instanceof Integer) {
-                            rets[index++] = (Integer) o;
+                        if (o instanceof Number) {
+                            rets[index++] = ((Number) o).intValue();                       
                         } else {
                             throw new RuntimeException("Cannot cast " + o.getClass() + " to int");
                         }
@@ -116,8 +116,8 @@ public class JsonKeyValueStorage extends Storage {
                 } else if (def instanceof Integer[]) {
                     final Integer[] rets = new Integer[((ArrayList<?>) ret).size()];
                     for (final Object o : (ArrayList<?>) ret) {
-                        if (o instanceof Integer) {
-                            rets[index++] = (Integer) o;
+                        if (o instanceof Number) {
+                            rets[index++] = ((Number) o).intValue();
                         } else {
                             throw new RuntimeException("Cannot cast " + o.getClass() + " to Integer");
                         }
@@ -126,10 +126,8 @@ public class JsonKeyValueStorage extends Storage {
                 } else if (def instanceof long[]) {
                     final long[] rets = new long[((ArrayList<?>) ret).size()];
                     for (final Object o : (ArrayList<?>) ret) {
-                        if (o instanceof Long) {
-                            rets[index++] = (Long) o;
-                        } else if (o instanceof Integer) {
-                            rets[index++] = ((Integer) o).longValue();
+                        if (o instanceof Number) {
+                            rets[index++] = ((Number) o).longValue();
                         } else {
                             throw new RuntimeException("Cannot cast " + o.getClass() + " to long");
                         }
@@ -138,10 +136,8 @@ public class JsonKeyValueStorage extends Storage {
                 } else if (def instanceof Long[]) {
                     final Long[] rets = new Long[((ArrayList<?>) ret).size()];
                     for (final Object o : (ArrayList<?>) ret) {
-                        if (o instanceof Integer) {
-                            rets[index++] = ((Integer) o).longValue();
-                        } else if (o instanceof Long) {
-                            rets[index++] = (Long) o;
+                        if (o instanceof Number) {
+                            rets[index++] = ((Number) o).longValue();                      
                         } else {
                             throw new RuntimeException("Cannot cast " + o.getClass() + " to Long");
                         }
@@ -175,6 +171,24 @@ public class JsonKeyValueStorage extends Storage {
                     // Exception("Had to convert long to integer for storage " +
                     // this.name + "." + key + "=" + ret));
                     ret = new Integer(((Long) ret).intValue());
+                }
+            }else
+            
+            if (def instanceof Double) {
+                if (ret instanceof Float) {
+                    // this is normal, because jackson converts tiny longs to
+                    // ints automatically
+                    // Log.exception(Level.FINE, new
+                    // Exception("Had to convert integer to long for storage " +
+                    // this.name + "." + key + "=" + ret));
+                    ret = ((Float) ret).doubleValue();
+                }
+            } else if (def instanceof Float) {
+                if (ret instanceof Double) {
+                    // Log.exception(Level.FINE, new
+                    // Exception("Had to convert long to integer for storage " +
+                    // this.name + "." + key + "=" + ret));
+                    ret = ((Double) ret).floatValue();
                 }
             }
         }

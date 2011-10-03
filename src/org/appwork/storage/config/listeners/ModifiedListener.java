@@ -5,7 +5,7 @@ import java.util.Locale;
 
 import org.appwork.storage.config.ConfigEventListener;
 import org.appwork.storage.config.ConfigInterface;
-import org.appwork.storage.config.KeyHandler;
+import org.appwork.storage.config.handler.KeyHandler;
 
 public abstract class ModifiedListener implements ConfigEventListener {
 

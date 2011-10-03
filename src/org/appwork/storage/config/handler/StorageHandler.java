@@ -7,25 +7,30 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.storage.config;
+package org.appwork.storage.config.handler;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Locale;
 
+import org.appwork.exceptions.WTFException;
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
 import org.appwork.storage.StorageException;
+import org.appwork.storage.config.ConfigEvent;
+import org.appwork.storage.config.ConfigInterface;
+import org.appwork.storage.config.ConfigInterfaceEventSender;
+import org.appwork.storage.config.InterfaceParseException;
+import org.appwork.storage.config.MethodHandler;
+import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.storage.config.annotations.CryptedStorage;
-import org.appwork.storage.config.annotations.DefaultFactory;
-import org.appwork.storage.config.annotations.ValueValidator;
 import org.appwork.utils.reflection.Clazz;
 
 /**
@@ -35,21 +40,19 @@ import org.appwork.utils.reflection.Clazz;
  */
 public class StorageHandler<T extends ConfigInterface> implements InvocationHandler {
 
-    private final Class<T>                      configInterface;
-    private HashMap<Method, KeyHandler<Object>> methodMap;
-    private HashMap<String, KeyHandler<Object>> keyHandlerMap;
+    private final Class<T>                 configInterface;
+    private HashMap<Method, KeyHandler<?>> methodMap;
+    private HashMap<String, KeyHandler<?>> keyHandlerMap;
 
-    private final JsonKeyValueStorage           primitiveStorage;
-    private boolean                             crypted;
-    private byte[]                              key                  = JSonStorage.KEY;
-    private File                                path;
-    private ConfigInterfaceEventSender<T>       eventSender;
-    private T                                   defaultFactory;
-    private T                                   validator;
+    protected final JsonKeyValueStorage    primitiveStorage;
+    private boolean                        crypted;
+    private byte[]                         key                  = JSonStorage.KEY;
+    private File                           path;
+    private ConfigInterfaceEventSender<T>  eventSender;
 
     // set externaly to start profiling
-    public static HashMap<String, Long>         PROFILER_MAP         = null;
-    public static HashMap<String, Long>         PROFILER_CALLNUM_MAP = null;
+    public static HashMap<String, Long>    PROFILER_MAP         = null;
+    public static HashMap<String, Long>    PROFILER_CALLNUM_MAP = null;
 
     /**
      * @param name
@@ -59,49 +62,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     public StorageHandler(final File name, final Class<T> configInterface) {
         this.configInterface = configInterface;
         this.eventSender = new ConfigInterfaceEventSender<T>();
-        final DefaultFactory defaultFactoryAnnotation = configInterface.getAnnotation(DefaultFactory.class);
-        if (defaultFactoryAnnotation != null && defaultFactoryAnnotation.value() != null) {
-            try {
-                final Class<? extends ConfigInterface> clazz = defaultFactoryAnnotation.value();
-                for (final Class<?> c : clazz.getInterfaces()) {
-                    if (c == configInterface) {
-                        this.defaultFactory = (T) defaultFactoryAnnotation.value().newInstance();
-                        break;
-                    }
-
-                }
-                if (this.defaultFactory == null) {
-
-                throw new InterfaceParseException("Defaultfactory " + clazz + " has to implement " + configInterface); }
-
-            } catch (final InstantiationException e) {
-                throw new InterfaceParseException(e);
-            } catch (final IllegalAccessException e) {
-                throw new InterfaceParseException(e);
-            }
-        }
-
-        final ValueValidator validator = configInterface.getAnnotation(ValueValidator.class);
-        if (validator != null && validator.value() != null) {
-            try {
-                final Class<? extends ConfigInterface> clazz = validator.value();
-                for (final Class<?> c : clazz.getInterfaces()) {
-                    if (c == configInterface) {
-                        this.validator = (T) validator.value().newInstance();
-                        break;
-                    }
-
-                }
-                if (this.validator == null) {
-
-                throw new InterfaceParseException("ValueValidator " + clazz + " has to implement " + configInterface); }
-
-            } catch (final InstantiationException e) {
-                throw new InterfaceParseException(e);
-            } catch (final IllegalAccessException e) {
-                throw new InterfaceParseException(e);
-            }
-        }
 
         this.path = name;
         final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
@@ -124,7 +84,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         }
         try {
             this.parseInterface();
-        } catch (final Exception e) {
+        } catch (final Throwable e) {
             throw new InterfaceParseException(e);
         }
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
@@ -144,10 +104,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.configInterface;
     }
 
-    public T getDefaultFactory() {
-        return this.defaultFactory;
-    }
-
     public ConfigInterfaceEventSender<T> getEventSender() {
         return this.eventSender;
     }
@@ -159,7 +115,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     // /**
     // * @return
     // */
-    public HashMap<Method, KeyHandler<Object>> getMap() {
+    public HashMap<Method, KeyHandler<?>> getMap() {
         // TODO Auto-generated method stub
         return this.methodMap;
     }
@@ -197,7 +153,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 // getter.getDefaultStringArray());
             } else if (keyHandler.getRawClass().isEnum()) {
 
-                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultEnum());
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
             } else if (keyHandler.getRawClass() == Double.class | keyHandler.getRawClass() == double.class) {
                 return this.getPrimitive(keyHandler.getKey(), 0.0d);
             } else {
@@ -206,25 +162,25 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         } else {
             if (Clazz.isBoolean(keyHandler.getRawClass())) {
 
-                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultBoolean());
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
 
             } else if (Clazz.isLong(keyHandler.getRawClass())) {
-                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultLong());
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
             } else if (Clazz.isInteger(keyHandler.getRawClass())) {
-                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultInteger());
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
             } else if (Clazz.isFloat(keyHandler.getRawClass())) {
-                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultFloat());
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
             } else if (Clazz.isByte(keyHandler.getRawClass())) {
-                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultByte());
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
             } else if (keyHandler.getRawClass() == String.class) {
-                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultString());
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
                 // } else if (getter.getRawClass() == String[].class) {
                 // return this.get(getter.getKey(),
                 // getter.getDefaultStringArray());
             } else if (keyHandler.getRawClass().isEnum()) {
-                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultEnum());
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
             } else if (Clazz.isDouble(keyHandler.getRawClass())) {
-                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultDouble());
+                return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
             } else {
                 throw new StorageException("Invalid datatype: " + keyHandler.getRawClass());
             }
@@ -242,20 +198,28 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.primitiveStorage.get(key, def);
     }
 
-    public T getValidator() {
-        return this.validator;
-    }
-
+    @SuppressWarnings("unchecked")
     public Object invoke(final Object instance, final Method m, final Object[] parameter) throws Throwable {
         long t = PROFILER_MAP == null ? 0 : System.nanoTime();
-        System.currentTimeMillis();
+
         try {
+
             if (m == null) {
                 // yes.... Method m may be null. this happens if we call a
                 // method in the interface's own static init.
                 return this;
             }
-            if (m.getName().equals("toString")) {
+            final KeyHandler<?> handler = this.methodMap.get(m);
+            if (handler != null) {
+                if (handler.isGetter(m)) {
+                    return handler.getValue();
+
+                } else {
+                    setValue((KeyHandler<Object>) handler, parameter[0]);
+
+                    return null;
+                }
+            } else if (m.getName().equals("toString")) {
                 return this.toString();
                 // } else if (m.getName().equals("addListener")) {
                 // this.eventSender.addListener((ConfigEventListener)
@@ -269,15 +233,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 return this;
 
             } else {
-                final KeyHandler<Object> handler = this.methodMap.get(m);
-                if (handler.isGetter(m)) {
-                    return handler.getValue();
-
-                } else {
-                    setValue(handler, parameter[0]);
-
-                    return null;
-                }
+                throw new WTFException(m + " ??? no keyhandler. This is not possible!");
             }
         } finally {
             if (PROFILER_MAP != null && m != null) {
@@ -301,22 +257,16 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     /**
-     * @throws ClassNotFoundException
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws NoSuchMethodException
-     * @throws IllegalArgumentException
-     * @throws SecurityException
+     * @throws Throwable
      * 
      */
-    private void parseInterface() throws SecurityException, IllegalArgumentException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
-        this.methodMap = new HashMap<Method, KeyHandler<Object>>();
-        this.keyHandlerMap = new HashMap<String, KeyHandler<Object>>();
+    private void parseInterface() throws Throwable {
+        this.methodMap = new HashMap<Method, KeyHandler<?>>();
+        this.keyHandlerMap = new HashMap<String, KeyHandler<?>>();
         final HashMap<String, Method> keyGetterMap = new HashMap<String, Method>();
         final HashMap<String, Method> keySetterMap = new HashMap<String, Method>();
         String key;
-        final HashMap<String, KeyHandler<Object>> parseMap = new HashMap<String, KeyHandler<Object>>();
+        final HashMap<String, KeyHandler<?>> parseMap = new HashMap<String, KeyHandler<?>>();
 
         Class<?> clazz = this.configInterface;
         while (clazz != null && clazz != ConfigInterface.class) {
@@ -345,9 +295,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         }
                         if (!found) { throw new InterfaceParseException(e); }
                     }
-                    KeyHandler<Object> kh = parseMap.get(key);
+                    KeyHandler<?> kh = parseMap.get(key);
                     if (kh == null) {
-                        kh = new KeyHandler<Object>(this, key);
+                        kh = createKeyHandler(key, m.getGenericReturnType());
                         parseMap.put(key, kh);
                     }
                     // JSonStorage.canStorePrimitive(m.getReturnType())
@@ -372,9 +322,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         throw new InterfaceParseException(e);
                     }
 
-                    KeyHandler<Object> kh = parseMap.get(key);
+                    KeyHandler<?> kh = parseMap.get(key);
                     if (kh == null) {
-                        kh = new KeyHandler<Object>(this, key);
+                        kh = createKeyHandler(key, m.getGenericReturnType());
                         parseMap.put(key, kh);
                     }
                     final MethodHandler h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m);
@@ -402,9 +352,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         if (!found) { throw new InterfaceParseException(e); }
                     }
 
-                    KeyHandler<Object> kh = parseMap.get(key);
+                    KeyHandler<?> kh = parseMap.get(key);
                     if (kh == null) {
-                        kh = new KeyHandler<Object>(this, key);
+                        kh = createKeyHandler(key, m.getGenericParameterTypes()[0]);
                         parseMap.put(key, kh);
                     }
                     final MethodHandler h = new MethodHandler(this, MethodHandler.Type.SETTER, key, m);
@@ -426,6 +376,63 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
         for (final KeyHandler<?> kh : this.methodMap.values()) {
             kh.init();
+        }
+    }
+
+    /**
+     * @param key2
+     * @param genericReturnType
+     * @return
+     */
+    private KeyHandler<?> createKeyHandler(String key, Type type) {
+        if (type instanceof Class && ((Class<?>) type).isArray()) {
+
+            final Class<?> ct = ((Class<?>) type).getComponentType();
+            if (Clazz.isBoolean(ct)) {
+                return new BooleanListHandler(this, key);
+
+            } else if (Clazz.isLong(ct)) {
+
+                return new LongListHandler(this, key);
+            } else if (Clazz.isInteger(ct)) {
+                return new IntegerListHandler(this, key);
+            } else if (Clazz.isByte(ct)) {
+                return new ByteListHandler(this, key);
+            } else if (Clazz.isFloat(ct)) {
+
+                return new FloatListHandler(this, key);
+            } else if (ct == String.class) {
+                return new StringListHandler(this, key);
+            } else if (ct.isEnum()) {
+                return new EnumListHandler(this, key);
+
+            } else if (Clazz.isDouble(ct)) {
+                return new DoubleListHandler(this, key);
+            } else {
+
+                return new ObjectKeyHandler(this, key, type);
+            }
+        } else if (Clazz.isBoolean(type)) {
+            return new BooleanKeyHandler(this, key);
+        } else if (Clazz.isByte(type)) {
+            return new ByteKeyHandler(this, key);
+        } else if (Clazz.isDouble(type)) {
+            return new DoubleKeyHandler(this, key);
+        } else if (Clazz.isFloat(type)) {
+            return new FloatKeyHandler(this, key);
+
+        } else if (Clazz.isInteger(type)) {
+            return new IntegerKeyHandler(this, key);
+        } else if (type instanceof Class && ((Class<?>) type).isEnum()) {
+            return new EnumKeyHandler(this, key);
+        } else if (type == String.class) {
+            return new StringKeyHandler(this, key);
+        } else if (Clazz.isLong(type)) {
+            return new LongKeyHandler(this, key);
+
+        } else {
+
+            return new ObjectKeyHandler(this, key, type);
         }
     }
 
@@ -524,8 +531,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     /**
      * @param key2
      */
-    public KeyHandler<? extends Object> getKeyHandler(String key) {
-        KeyHandler<Object> ret = keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
+    public KeyHandler<?> getKeyHandler(String key) {
+        KeyHandler<?> ret = keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
         if (ret == null) throw new NullPointerException("No KeyHandler: " + key + " in " + configInterface);
         return ret;
 
@@ -543,12 +550,17 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         try {
             handler.setValue(parameter);
             this.eventSender.fireEvent(new ConfigEvent<T>(getConfigInterface(), ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter));
-        } catch (final InvocationTargetException t) {
-            this.eventSender.fireEvent(new ConfigEvent<T>(getConfigInterface(), ConfigEvent.Types.VALIDATOR_ERROR, t.getTargetException(), handler));
-
+        } catch (ValidationException e) {
+            this.eventSender.fireEvent(new ConfigEvent<T>(getConfigInterface(), ConfigEvent.Types.VALIDATOR_ERROR, e, handler));
+            // } catch (final InvocationTargetException t) {
+            // this.eventSender.fireEvent(new
+            // ConfigEvent<T>(getConfigInterface(),
+            // ConfigEvent.Types.VALIDATOR_ERROR, t.getTargetException(),
+            // handler));
+            throw e;
         } catch (final Throwable t) {
             this.eventSender.fireEvent(new ConfigEvent<T>(getConfigInterface(), ConfigEvent.Types.VALIDATOR_ERROR, t, handler));
-
+            throw new ValidationException(t);
         }
     }
 

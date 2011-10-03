@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 
+import org.appwork.storage.config.handler.StorageHandler;
 import org.appwork.utils.Application;
 
 /**

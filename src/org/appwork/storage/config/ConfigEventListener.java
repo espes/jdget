@@ -11,6 +11,8 @@ package org.appwork.storage.config;
 
 import java.util.EventListener;
 
+import org.appwork.storage.config.handler.KeyHandler;
+
 /**
  * @author thomas
  * 

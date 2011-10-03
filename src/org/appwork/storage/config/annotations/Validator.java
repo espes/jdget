@@ -5,12 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.appwork.storage.config.ConfigInterface;
+import org.appwork.storage.config.defaults.DefaultFactory;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE })
-public @interface ValueValidator {
-
-    Class<? extends ConfigInterface> value();
-
+@Target({ ElementType.METHOD })
+public @interface Validator {
+    Class<? extends AbstractValidator> value();
 }

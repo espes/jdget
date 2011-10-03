@@ -9,6 +9,8 @@
  */
 package org.appwork.utils.reflection;
 
+import java.lang.reflect.Type;
+
 /**
  * @author thomas
  * 
@@ -29,7 +31,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isBoolean(final Class<?> type) {
+    public static boolean isBoolean(final Type type) {
         return type == Boolean.class || type == boolean.class;
     }
 
@@ -40,7 +42,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isByte(final Class<?> type) {
+    public static boolean isByte(final Type type) {
         return type == Byte.class || type == byte.class;
     }
 
@@ -51,7 +53,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isCharacter(final Class<?> type) {
+    public static boolean isCharacter(final Type type) {
         return type == Character.class || type == char.class;
     }
 
@@ -62,7 +64,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isDouble(final Class<?> type) {
+    public static boolean isDouble(final Type type) {
         return type == Double.class || type == double.class;
     }
 
@@ -73,7 +75,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isFloat(final Class<?> type) {
+    public static boolean isFloat(final Type type) {
         return type == Float.class || type == float.class;
     }
 
@@ -84,7 +86,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isInteger(final Class<?> type) {
+    public static boolean isInteger(final Type type) {
         return type == Integer.class || type == int.class;
     }
 
@@ -95,7 +97,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isLong(final Class<?> type) {
+    public static boolean isLong(final Type type) {
         return type == Long.class || type == long.class;
     }
 
@@ -105,8 +107,9 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isPrimitive(final Class<?> type) {
-        return type.isPrimitive() || Clazz.isPrimitiveWrapper(type);
+    public static boolean isPrimitive(final Type type) {
+        if (type instanceof Class) { return ((Class<?>) type).isPrimitive() || Clazz.isPrimitiveWrapper(type); }
+        return false;
     }
 
     /**
@@ -115,7 +118,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isPrimitiveWrapper(final Class<?> type) {
+    public static boolean isPrimitiveWrapper(final Type type) {
         return type == Boolean.class || type == Integer.class || type == Long.class || type == Byte.class || type == Short.class || type == Float.class || type == Double.class || type == Character.class || type == Void.class;
 
     }
@@ -127,7 +130,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isShort(final Class<?> type) {
+    public static boolean isShort(final Type type) {
         return type == Short.class || type == short.class;
     }
 
@@ -138,7 +141,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isVoid(final Class<?> type) {
+    public static boolean isVoid(final Type type) {
         return type == Void.class || type == void.class;
     }
 

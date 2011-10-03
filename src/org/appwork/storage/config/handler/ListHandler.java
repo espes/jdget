@@ -7,20 +7,22 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.storage.config;
-
-import org.appwork.storage.config.handler.StorageHandler;
+package org.appwork.storage.config.handler;
 
 
 /**
- * @author thomas
- * 
+ * @author Thomas
+ *
  */
+public abstract class ListHandler<T> extends KeyHandler<T> {
 
-public interface ConfigInterface {
-
-    public StorageHandler<?> getStorageHandler();
-
-    String toString();
+    /**
+     * @param storageHandler
+     * @param key
+     */
+    public ListHandler(StorageHandler<?> storageHandler, String key) {
+        super(storageHandler, key);
+      
+    }
 
 }

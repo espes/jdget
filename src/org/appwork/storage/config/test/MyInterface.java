@@ -13,8 +13,6 @@ import java.util.ArrayList;
 
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.JsonConfig;
-import org.appwork.storage.config.KeyHandler;
-import org.appwork.storage.config.StorageHandler;
 import org.appwork.storage.config.annotations.CryptedStorage;
 import org.appwork.storage.config.annotations.DefaultBooleanArrayValue;
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
@@ -33,8 +31,11 @@ import org.appwork.storage.config.annotations.DefaultLongValue;
 import org.appwork.storage.config.annotations.DefaultObjectValue;
 import org.appwork.storage.config.annotations.DefaultStringArrayValue;
 import org.appwork.storage.config.annotations.DefaultStringValue;
+import org.appwork.storage.config.annotations.DefaultValue;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.SpinnerValidator;
+import org.appwork.storage.config.handler.KeyHandler;
+import org.appwork.storage.config.handler.StorageHandler;
 
 /**
  * @author thomas
@@ -128,5 +129,8 @@ public interface MyInterface extends ConfigInterface {
      * @param o
      */
     public void setObject(TestObject o);
+    
+    @DefaultValue(MyDefaultCreator.class)
+    public ArrayList<Integer> getDefault();
 
 }

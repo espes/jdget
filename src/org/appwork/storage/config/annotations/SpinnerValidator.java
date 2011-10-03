@@ -15,6 +15,6 @@ public @interface SpinnerValidator {
 
     long max();
 
-    long step();
+    long step() default 1;
 
 }
