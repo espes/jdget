@@ -48,7 +48,10 @@ public class FloatKeyHandler extends KeyHandler<Float> {
     protected void initHandler() {
         try{
             this.defaultValue = getAnnotation(DefaultFloatValue.class).value();
-           }catch(NullPointerException e){}
+           }catch(NullPointerException e){
+               defaultValue=0f;
+               
+           }
     }
     @SuppressWarnings("unchecked")
     @Override

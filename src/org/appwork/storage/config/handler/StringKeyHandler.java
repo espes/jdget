@@ -40,6 +40,7 @@ public class StringKeyHandler extends KeyHandler<String> {
         try {
             defaultValue = getAnnotation(DefaultStringValue.class).value();
         } catch (NullPointerException e) {
+            defaultValue=null;
         }
     }
     @SuppressWarnings("unchecked")

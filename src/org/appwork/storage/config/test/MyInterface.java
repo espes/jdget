@@ -67,7 +67,7 @@ public interface MyInterface extends ConfigInterface {
     @DefaultDoubleArrayValue(value = { 1.0d, 2.0d, 3.0d })
     public double[] getDoubleArray();
 
-    @DefaultEnumValue(value = "org.appwork.storage.config.test.Type.A")
+    @DefaultEnumValue(value = "A")
     public Type getEnum();
 
     @DefaultFloatValue(value = 0.5f)

@@ -3,6 +3,7 @@ package org.appwork.storage.config.swing.models;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
+import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 import org.appwork.storage.config.events.ConfigEventListener;
 import org.appwork.storage.config.handler.ByteKeyHandler;
@@ -84,8 +85,12 @@ public class ConfigByteSpinnerModel extends SpinnerNumberModel implements Config
 
     @Override
     public void setValue(Object value) {
+        try {
         keyHandler.setValue(((Number) value).byteValue());
-
+        }catch(ValidationException e){           
+            java.awt.Toolkit.getDefaultToolkit().beep();          
+     
+        }
     }
 
     public void onConfigValidatorError(KeyHandler<?> keyHandler, Throwable validateException) {

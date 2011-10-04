@@ -30,7 +30,6 @@ import org.appwork.storage.config.events.ConfigEvent;
 import org.appwork.storage.config.events.ConfigEvent.Types;
 import org.appwork.storage.config.events.ConfigEventSender;
 
-
 /**
  * @author thomas
  * 
@@ -50,7 +49,7 @@ public abstract class KeyHandler<RawClass> {
 
     protected byte[]                  cryptKey;
     protected JsonKeyValueStorage     primitiveStorage;
-    private ConfigEventSender     eventSender;
+    private ConfigEventSender         eventSender;
 
     /**
      * @param storageHandler
@@ -254,6 +253,14 @@ public abstract class KeyHandler<RawClass> {
      */
     public void setValue(final RawClass object) throws ValidationException {
         try {
+            RawClass old = getValue();
+            if (object == null && old == null) {        
+                return;
+            } else if (object != null && object.equals(old)) { 
+                //                
+                return;
+
+            }
             validateValue(object);
             putValue(object);
 
@@ -272,7 +279,6 @@ public abstract class KeyHandler<RawClass> {
 
     }
 
-
     /**
      * @param valueUpdated
      * @param keyHandler
@@ -284,12 +290,11 @@ public abstract class KeyHandler<RawClass> {
             eventSender.fireEvent(new ConfigEvent(type, this, parameter));
         }
 
-
     }
 
     @Override
     public String toString() {
-        return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey();
+        return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey() + " = " + getValue();
     }
 
     /**
@@ -313,11 +318,12 @@ public abstract class KeyHandler<RawClass> {
 
     /**
      * returns true of this keyhandler belongs to ConfigInterface
+     * 
      * @param settings
      * @return
      */
-    public boolean isChildOf(ConfigInterface settings) {        
-        return settings.getStorageHandler()==getStorageHandler();
+    public boolean isChildOf(ConfigInterface settings) {
+        return settings.getStorageHandler() == getStorageHandler();
     }
 
 }

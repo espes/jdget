@@ -33,7 +33,7 @@ public PerformanceObserver(){
 }
 
     private boolean profileMethods    = true;
-    private long interval=5000;
+    private long interval=30000;
 
     public long getInterval() {
         return interval;

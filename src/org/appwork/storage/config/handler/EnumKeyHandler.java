@@ -35,18 +35,20 @@ public class EnumKeyHandler extends KeyHandler<Enum> {
      */
     @Override
     protected void initHandler() throws Throwable {
+        // chek if this is really the best way to convert string to
+        // enum
+    
+      
+   
         final DefaultEnumValue ann = this.getAnnotation(DefaultEnumValue.class);
-        if (ann != null) {
+        if (ann != null) {        
            
-            // chek if this is really the best way to convert string to
-            // enum
-            final int index = ann.value().lastIndexOf(".");
-            final String name = ann.value().substring(index + 1);
-            final String clazz = ann.value().substring(0, index);
 
          
-                defaultValue = Enum.valueOf((Class<Enum>) Class.forName(clazz), name);
+                defaultValue = Enum.valueOf(  getRawClass(), ann.value());
          
+        }else{
+            defaultValue=  getRawClass().getEnumConstants()[0];
         }
     }
     @SuppressWarnings("unchecked")

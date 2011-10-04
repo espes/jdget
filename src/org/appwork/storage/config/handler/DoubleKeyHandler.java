@@ -48,9 +48,13 @@ public class DoubleKeyHandler extends KeyHandler<Double> {
      */
     @Override
     protected void initHandler() {
+        
         try{
             this.defaultValue = getAnnotation(DefaultDoubleValue.class).value();
-           }catch(NullPointerException e){}
+           }catch(NullPointerException e){
+               defaultValue=0d;
+               
+           }
     }
 
     /* (non-Javadoc)

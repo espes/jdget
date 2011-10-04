@@ -53,6 +53,7 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
         try {
             this.defaultValue = getAnnotation(DefaultIntValue.class).value();
         } catch (NullPointerException e) {
+            defaultValue=0;
         }
         validator = getAnnotation(SpinnerValidator.class);
         if (validator != null) {

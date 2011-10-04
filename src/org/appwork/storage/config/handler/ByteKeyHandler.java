@@ -53,6 +53,7 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
      */
     @Override
     protected void initHandler() {
+        defaultValue=0;
         try{
             this.defaultValue = getAnnotation(DefaultByteValue.class).value();
            }catch(NullPointerException e){}
