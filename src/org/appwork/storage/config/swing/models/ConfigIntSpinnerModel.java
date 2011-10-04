@@ -1,7 +1,5 @@
 package org.appwork.storage.config.swing.models;
 
-import java.beans.PropertyChangeListener;
-
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
@@ -12,15 +10,17 @@ import org.appwork.storage.config.handler.IntegerKeyHandler;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.swing.EDTRunner;
 
-import com.sun.media.sound.Toolkit;
-
 public class ConfigIntSpinnerModel extends SpinnerNumberModel implements ConfigEventListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private IntegerKeyHandler keyHandler;
 
     public ConfigIntSpinnerModel(IntegerKeyHandler keyHandler) {
         this.keyHandler = keyHandler;
-//        keyHandler.getEventSender().removeListener(this);
+        // keyHandler.getEventSender().removeListener(this);
         keyHandler.getEventSender().addListener(this, true);
 
         SpinnerValidator spinn = keyHandler.getAnnotation(SpinnerValidator.class);
@@ -90,11 +90,11 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements ConfigE
 
     @Override
     public void setValue(Object value) {
-        try{
-        keyHandler.setValue(((Number) value).intValue());
-        }catch(ValidationException e){           
-            java.awt.Toolkit.getDefaultToolkit().beep();          
-           
+        try {
+            keyHandler.setValue(((Number) value).intValue());
+        } catch (ValidationException e) {
+            java.awt.Toolkit.getDefaultToolkit().beep();
+
         }
     }
 
@@ -112,7 +112,7 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements ConfigE
 
         new EDTRunner() {
             @Override
-            protected void runInEDT() {            
+            protected void runInEDT() {
                 fireStateChanged();
             }
         };
