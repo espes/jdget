@@ -33,7 +33,6 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Config
 
     public void setSelected(boolean b) {
         sh.setValue(keyHandler, b);
-
     }
 
     public void onConfigValidatorError(Class<? extends ConfigInterface> config, Throwable validateException, KeyHandler methodHandler) {

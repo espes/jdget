@@ -23,6 +23,7 @@ import org.appwork.storage.config.annotations.DefaultValue;
 import org.appwork.storage.config.annotations.Description;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.RequiresRestart;
+import org.appwork.storage.config.annotations.Validator;
 
 /**
  * @author thomas
@@ -39,13 +40,10 @@ public abstract class KeyHandler<RawClass> {
     private boolean                   primitive;
     protected RawClass                defaultValue;
 
-    public RawClass getDefaultValue() {
-        return defaultValue;
-    }
+    protected boolean                 crypted;
 
-    protected boolean             crypted;
-    protected byte[]              cryptKey;
-    protected JsonKeyValueStorage primitiveStorage;
+    protected byte[]                  cryptKey;
+    protected JsonKeyValueStorage     primitiveStorage;
 
     /**
      * @param storageHandler
@@ -57,7 +55,7 @@ public abstract class KeyHandler<RawClass> {
         // get parent crypt infos
         this.crypted = storageHandler.isCrypted();
         this.cryptKey = storageHandler.getKey();
-        primitiveStorage = storageHandler.primitiveStorage;
+        this.primitiveStorage = storageHandler.primitiveStorage;
         // this.refQueue = new ReferenceQueue<Object>();
 
     }
@@ -78,7 +76,7 @@ public abstract class KeyHandler<RawClass> {
         /**
          * This main mark is important!!
          */
-        final Class<?>[] okForAll = new Class<?>[] { DefaultValue.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, Description.class, CryptedStorage.class, PlainStorage.class };
+        final Class<?>[] okForAll = new Class<?>[] { Validator.class, DefaultValue.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, Description.class, CryptedStorage.class, PlainStorage.class };
         final Class<?>[] clazzes = new Class<?>[classes.length + okForAll.length];
         System.arraycopy(classes, 0, clazzes, 0, classes.length);
         System.arraycopy(okForAll, 0, clazzes, classes.length, okForAll.length);
@@ -102,6 +100,11 @@ public abstract class KeyHandler<RawClass> {
     }
 
     /**
+     * @return
+     */
+    protected abstract Class<? extends Annotation>[] getAllowedAnnotations();
+
+    /**
      * @param <T>
      * @param class1
      * @return
@@ -116,6 +119,22 @@ public abstract class KeyHandler<RawClass> {
             if (KeyHandler.ANNOTATION_PACKAGE_NAME.equals(class1.getPackage().getName())) { throw new InterfaceParseException("Dupe Annotation in  " + this + " (" + class1 + ")"); }
         }
         return ret;
+    }
+
+    /**
+     * @return
+     */
+    public Class<?> getDeclaringClass() {
+        if (this.getter != null) {
+            return this.getter.getMethod().getDeclaringClass();
+        } else {
+            return this.setter.getMethod().getDeclaringClass();
+        }
+
+    }
+
+    public RawClass getDefaultValue() {
+        return this.defaultValue;
     }
 
     public MethodHandler getGetter() {
@@ -171,15 +190,10 @@ public abstract class KeyHandler<RawClass> {
             this.crypted = false;
 
         }
-        checkBadAnnotations(getAllowedAnnotations());
-        initHandler();
+        this.checkBadAnnotations(this.getAllowedAnnotations());
+        this.initHandler();
 
     }
-
-    /**
-     * @return
-     */
-    protected abstract Class<? extends Annotation>[] getAllowedAnnotations();
 
     /**
      * @throws Throwable
@@ -208,6 +222,11 @@ public abstract class KeyHandler<RawClass> {
     }
 
     /**
+     * @param object
+     */
+    protected abstract void putValue(RawClass object);
+
+    /**
      * @param h
      */
     protected void setGetter(final MethodHandler h) {
@@ -228,20 +247,10 @@ public abstract class KeyHandler<RawClass> {
      */
     protected void setValue(final RawClass object) throws Throwable {
 
-        validateValue(object);
-        putValue(object);
+        this.validateValue(object);
+        this.putValue(object);
 
     }
-
-    /**
-     * @param object
-     */
-    protected abstract void validateValue(RawClass object) throws Throwable;
-
-    /**
-     * @param object
-     */
-    protected abstract void putValue(RawClass object);
 
     @Override
     public String toString() {
@@ -249,15 +258,8 @@ public abstract class KeyHandler<RawClass> {
     }
 
     /**
-     * @return
+     * @param object
      */
-    public Class<?> getDeclaringClass() {
-        if (getter != null) {
-            return getter.getMethod().getDeclaringClass();
-        } else {
-            return setter.getMethod().getDeclaringClass();
-        }
-
-    }
+    protected abstract void validateValue(RawClass object) throws Throwable;
 
 }
