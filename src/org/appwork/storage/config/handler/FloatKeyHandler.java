@@ -68,7 +68,7 @@ public class FloatKeyHandler extends KeyHandler<Float> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected Float getValue() {
+    public Float getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

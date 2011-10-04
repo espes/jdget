@@ -76,7 +76,7 @@ public class StringListHandler extends ListHandler<String[]> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected String[] getValue() {
+    public String[] getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

@@ -70,7 +70,7 @@ public class IntegerListHandler extends ListHandler<int[]> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected int[] getValue() {
+    public int[] getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

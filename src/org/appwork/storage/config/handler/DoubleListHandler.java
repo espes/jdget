@@ -67,7 +67,7 @@ public class DoubleListHandler extends ListHandler<double[]> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected double[] getValue() {
+    public double[] getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

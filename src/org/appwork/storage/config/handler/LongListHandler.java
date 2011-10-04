@@ -69,7 +69,7 @@ public class LongListHandler extends ListHandler<long[]> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected long[] getValue() {
+    public long[] getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

@@ -92,7 +92,7 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected Integer getValue() {
+    public Integer getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

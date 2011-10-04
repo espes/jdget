@@ -58,7 +58,7 @@ public class PerformanceTest {
 
         t = System.nanoTime();
         for (long x = 0; x < rounds; x++) {
-            MyInterface.SH.getValue("Int");
+            MyInterface.SH.getKeyHandler("Int").getValue();
         }
         if (print) System.out.println((System.nanoTime() - t) / rounds + "\t ns READ by String key");
 
@@ -70,7 +70,7 @@ public class PerformanceTest {
 
         t = System.nanoTime();
         for (long x = 0; x < rounds; x++) {
-            MyInterface.SH.getValue(MyInterface.INT);
+            MyInterface.INT.getValue();
         }
         if (print) System.out.println((System.nanoTime() - t) / rounds + "\t ns READ Proxy Bypass - static Keyhandler");
         TestObject o = new TestObject();
@@ -88,7 +88,7 @@ public class PerformanceTest {
 
         t = System.nanoTime();
         for (long x = 0; x < rounds; x++) {
-            MyInterface.SH.setValue("Int", 5);
+            MyInterface.SH.getKeyHandler("Int").setValue(5);
         }
         if (print) System.out.println((System.nanoTime() - t) / rounds + "\t ns WRITE by String key");
 
@@ -100,7 +100,7 @@ public class PerformanceTest {
 
         t = System.nanoTime();
         for (long x = 0; x < rounds; x++) {
-            MyInterface.SH.setValue(MyInterface.INT, 5);
+            MyInterface.INT.setValue(5);
         }
         if (print) System.out.println((System.nanoTime() - t) / rounds + "\t ns WRITE Proxy Bypass - static Keyhandler");
 

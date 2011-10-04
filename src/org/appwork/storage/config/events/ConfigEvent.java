@@ -7,15 +7,16 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.storage.config;
+package org.appwork.storage.config.events;
 
+import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.event.SimpleEvent;
 
 /**
  * @author thomas
  * 
  */
-public class ConfigEvent<T extends ConfigInterface> extends SimpleEvent<Class<T>, Object, ConfigEvent.Types> {
+public class ConfigEvent extends SimpleEvent<KeyHandler<?>, Object, ConfigEvent.Types> {
     public static enum Types {
         VALUE_UPDATED,
         /**
@@ -31,8 +32,8 @@ public class ConfigEvent<T extends ConfigInterface> extends SimpleEvent<Class<T>
      * @param type
      * @param parameters
      */
-    public ConfigEvent(final Class<T> caller, final Types type, final Object... parameters) {
-        super(caller, type, parameters);
+    public ConfigEvent( final Types type, KeyHandler<?> caller,final Object parameter) {
+        super(caller, type, parameter);
         // TODO Auto-generated constructor stub
     }
 

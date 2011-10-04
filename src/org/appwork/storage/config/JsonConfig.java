@@ -38,7 +38,7 @@ public class JsonConfig {
     @SuppressWarnings("unchecked")
     public static <T extends ConfigInterface> T create(final Class<T> configInterface) {
 
-        synchronized (JsonConfig.CACHE) {
+        synchronized (JsonConfig.CACHE) { 
 
             ConfigInterface ret = JsonConfig.CACHE.get(configInterface.getName());
             if (ret == null) {

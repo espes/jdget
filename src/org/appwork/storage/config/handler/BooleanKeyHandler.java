@@ -80,7 +80,7 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected Boolean getValue() {
+    public Boolean getValue() {
    
         return primitiveStorage.get(getKey(), defaultValue);
     }

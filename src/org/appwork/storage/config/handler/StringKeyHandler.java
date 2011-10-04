@@ -74,7 +74,7 @@ public class StringKeyHandler extends KeyHandler<String> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected String getValue() {
+    public String getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

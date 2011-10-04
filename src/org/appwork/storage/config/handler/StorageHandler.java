@@ -23,14 +23,13 @@ import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
 import org.appwork.storage.StorageException;
-import org.appwork.storage.config.ConfigEvent;
 import org.appwork.storage.config.ConfigInterface;
-import org.appwork.storage.config.ConfigInterfaceEventSender;
 import org.appwork.storage.config.InterfaceParseException;
 import org.appwork.storage.config.MethodHandler;
-import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.storage.config.annotations.CryptedStorage;
+import org.appwork.storage.config.events.ConfigEvent;
+import org.appwork.storage.config.events.ConfigEventSender;
 import org.appwork.utils.reflection.Clazz;
 
 /**
@@ -48,7 +47,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private boolean                        crypted;
     private byte[]                         key                  = JSonStorage.KEY;
     private File                           path;
-    private ConfigInterfaceEventSender<T>  eventSender;
+    private ConfigEventSender  eventSender;
 
     // set externaly to start profiling
     public static HashMap<String, Long>    PROFILER_MAP         = null;
@@ -61,7 +60,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     @SuppressWarnings("unchecked")
     public StorageHandler(final File name, final Class<T> configInterface) {
         this.configInterface = configInterface;
-        this.eventSender = new ConfigInterfaceEventSender<T>();
+        this.eventSender = new ConfigEventSender();
 
         this.path = name;
         final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
@@ -104,7 +103,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.configInterface;
     }
 
-    public ConfigInterfaceEventSender<T> getEventSender() {
+    public ConfigEventSender getEventSender() {
         return this.eventSender;
     }
 
@@ -215,7 +214,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     return handler.getValue();
 
                 } else {
-                    setValue((KeyHandler<Object>) handler, parameter[0]);
+                    ((KeyHandler<Object>)handler).setValue(parameter[0]);
+                  
 
                     return null;
                 }
@@ -531,63 +531,19 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     /**
      * @param key2
      */
-    public KeyHandler<?> getKeyHandler(String key) {
-        KeyHandler<?> ret = keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
-        if (ret == null) throw new NullPointerException("No KeyHandler: " + key + " in " + configInterface);
-        return ret;
-
-    }
-
-    /**
-     * @param <RawClass>
-     * @throws NullPointerException
-     *             if there is no keyhandler for key
-     * 
-     * @param keyHandler
-     * @param parameter
-     */
-    public <RawClass> void setValue(KeyHandler<RawClass> handler, RawClass parameter) {
-        try {
-            handler.setValue(parameter);
-            this.eventSender.fireEvent(new ConfigEvent<T>(getConfigInterface(), ConfigEvent.Types.VALUE_UPDATED, handler.getKey(), parameter));
-        } catch (ValidationException e) {
-            this.eventSender.fireEvent(new ConfigEvent<T>(getConfigInterface(), ConfigEvent.Types.VALIDATOR_ERROR, e, handler));
-            // } catch (final InvocationTargetException t) {
-            // this.eventSender.fireEvent(new
-            // ConfigEvent<T>(getConfigInterface(),
-            // ConfigEvent.Types.VALIDATOR_ERROR, t.getTargetException(),
-            // handler));
-            throw e;
-        } catch (final Throwable t) {
-            this.eventSender.fireEvent(new ConfigEvent<T>(getConfigInterface(), ConfigEvent.Types.VALIDATOR_ERROR, t, handler));
-            throw new ValidationException(t);
-        }
-    }
-
-    /**
-     * @throws NullPointerException
-     *             if there is no keyhandler for key
-     * 
-     * @param key
-     * @param value
-     */
     @SuppressWarnings("unchecked")
-    public void setValue(String key, Object value) {
-        setValue((KeyHandler<Object>) getKeyHandler(key), value);
+    public KeyHandler<Object> getKeyHandler(String key) {
+        return getKeyHandler(key,KeyHandler.class);
+
     }
 
-    /**
-     * @param <RawClass>
-     * @throws NullPointerException
-     *             if there is no keyhandler for key
-     * 
-     * @param keyHandler
-     * @return
-     */
-    public <RawClass> RawClass getValue(KeyHandler<RawClass> keyHandler) {
+   
 
-        return keyHandler.getValue();
+    protected void fireEvent(ConfigEvent.Types type, KeyHandler<?> keyHandler, Object parameter) {
+        eventSender.fireEvent(new ConfigEvent(type, keyHandler, parameter));
     }
+
+
 
     /**
      * @throws NullPointerException
@@ -598,7 +554,20 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     public Object getValue(String key) {
 
-        return getValue(getKeyHandler(key));
+        return getKeyHandler(key).getValue();
+    }
+
+    /**
+     * @param <RawClass>
+     * @param string
+     * @param class1
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <E extends KeyHandler<?>>E getKeyHandler(String key, Class<E> class1) {
+        KeyHandler<?> ret = keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
+        if (ret == null) throw new NullPointerException("No KeyHandler: " + key + " in " + configInterface);
+        return (E) ret;
     }
 
 }

@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.storage.config;
+package org.appwork.storage.config.events;
 
 import java.util.EventListener;
 
@@ -19,7 +19,7 @@ import org.appwork.storage.config.handler.KeyHandler;
  */
 public interface ConfigEventListener extends EventListener {
 
-    public void onConfigValidatorError(Class<? extends ConfigInterface> config, Throwable validateException, KeyHandler methodHandler);
+    public void onConfigValidatorError(KeyHandler<?> keyHandler, Throwable validateException);
 
-    public void onConfigValueModified(Class<? extends ConfigInterface> config, String key, Object newValue);
+    public void onConfigValueModified(KeyHandler<?> keyHandler, Object newValue);
 }

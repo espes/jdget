@@ -14,8 +14,10 @@ import java.lang.reflect.Method;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
+import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.InterfaceParseException;
 import org.appwork.storage.config.MethodHandler;
+import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.AboutConfig;
 import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.storage.config.annotations.CryptedStorage;
@@ -24,6 +26,10 @@ import org.appwork.storage.config.annotations.Description;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.RequiresRestart;
 import org.appwork.storage.config.annotations.Validator;
+import org.appwork.storage.config.events.ConfigEvent;
+import org.appwork.storage.config.events.ConfigEvent.Types;
+import org.appwork.storage.config.events.ConfigEventSender;
+
 
 /**
  * @author thomas
@@ -44,6 +50,7 @@ public abstract class KeyHandler<RawClass> {
 
     protected byte[]                  cryptKey;
     protected JsonKeyValueStorage     primitiveStorage;
+    private ConfigEventSender     eventSender;
 
     /**
      * @param storageHandler
@@ -157,7 +164,7 @@ public abstract class KeyHandler<RawClass> {
         return this.setter;
     }
 
-    protected StorageHandler<?> getStorageHandler() {
+    public StorageHandler<?> getStorageHandler() {
         return this.storageHandler;
     }
 
@@ -165,7 +172,7 @@ public abstract class KeyHandler<RawClass> {
      * @return
      */
     @SuppressWarnings("unchecked")
-    protected abstract RawClass getValue();
+    public abstract RawClass getValue();
 
     /**
      * @throws Throwable
@@ -245,10 +252,38 @@ public abstract class KeyHandler<RawClass> {
     /**
      * @param object
      */
-    protected void setValue(final RawClass object) throws Throwable {
+    public void setValue(final RawClass object) throws ValidationException {
+        try {
+            validateValue(object);
+            putValue(object);
 
-        this.validateValue(object);
-        this.putValue(object);
+            fireEvent(ConfigEvent.Types.VALUE_UPDATED, this, object);
+
+        } catch (ValidationException e) {
+            fireEvent(ConfigEvent.Types.VALIDATOR_ERROR, this, e);
+
+            throw e;
+        } catch (final Throwable t) {
+            ValidationException e = new ValidationException(t);
+            fireEvent(ConfigEvent.Types.VALIDATOR_ERROR, this, e);
+
+            throw e;
+        }
+
+    }
+
+
+    /**
+     * @param valueUpdated
+     * @param keyHandler
+     * @param object
+     */
+    private void fireEvent(Types type, KeyHandler<?> keyHandler, Object parameter) {
+        storageHandler.fireEvent(type, keyHandler, parameter);
+        if (eventSender != null) {
+            eventSender.fireEvent(new ConfigEvent(type, this, parameter));
+        }
+
 
     }
 
@@ -261,5 +296,28 @@ public abstract class KeyHandler<RawClass> {
      * @param object
      */
     protected abstract void validateValue(RawClass object) throws Throwable;
+
+    /**
+     * Lazy initialiser of the eventsender. we do not wnat to create an
+     * eventsender if nowbody uses it
+     * 
+     * @return
+     */
+    public synchronized ConfigEventSender getEventSender() {
+
+        if (eventSender == null) {
+            eventSender = new ConfigEventSender();
+        }
+        return eventSender;
+    }
+
+    /**
+     * returns true of this keyhandler belongs to ConfigInterface
+     * @param settings
+     * @return
+     */
+    public boolean isChildOf(ConfigInterface settings) {        
+        return settings.getStorageHandler()==getStorageHandler();
+    }
 
 }

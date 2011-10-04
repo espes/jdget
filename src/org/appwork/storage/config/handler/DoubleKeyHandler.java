@@ -66,7 +66,7 @@ public class DoubleKeyHandler extends KeyHandler<Double> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected Double getValue() {
+    public Double getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

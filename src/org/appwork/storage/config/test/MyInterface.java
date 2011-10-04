@@ -34,6 +34,7 @@ import org.appwork.storage.config.annotations.DefaultStringValue;
 import org.appwork.storage.config.annotations.DefaultValue;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.SpinnerValidator;
+import org.appwork.storage.config.handler.IntegerKeyHandler;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.storage.config.handler.StorageHandler;
 
@@ -81,8 +82,8 @@ public interface MyInterface extends ConfigInterface {
 
     public ArrayList<TestObject> getGenericList();
     
-    @SuppressWarnings("unchecked")
-    public static final KeyHandler<Integer> INT = (KeyHandler<Integer>) CFG.getStorageHandler().getKeyHandler("Int");
+ 
+    public static final IntegerKeyHandler INT =  CFG.getStorageHandler().getKeyHandler("Int",IntegerKeyHandler.class);
     @DefaultIntValue(value = 2)
     @SpinnerValidator(min=1,max=10,step=1)
 

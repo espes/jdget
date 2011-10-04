@@ -12,11 +12,11 @@ package org.appwork.storage.config.test;
 import java.util.ArrayList;
 
 import org.appwork.storage.JSonStorage;
-import org.appwork.storage.config.ConfigEventListener;
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.SpinnerValidator;
+import org.appwork.storage.config.events.ConfigEventListener;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.storage.config.handler.StorageHandler;
 import org.appwork.utils.logging.Log;

@@ -70,7 +70,7 @@ public class FloatListHandler extends ListHandler<float[]> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected float[] getValue() {
+    public float[] getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

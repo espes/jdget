@@ -12,6 +12,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.appwork.storage.config.ConfigInterface;
+import org.appwork.storage.config.handler.BooleanKeyHandler;
+import org.appwork.storage.config.swing.models.ConfigToggleButtonModel;
 import org.appwork.swing.components.tooltips.ExtTooltip;
 import org.appwork.swing.components.tooltips.ToolTipHandler;
 import org.appwork.swing.components.tooltips.TooltipTextDelegateFactory;
@@ -47,9 +49,9 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
      * @param btadd
      * @param btRemove
      */
-    public ExtCheckBox(Class<? extends ConfigInterface> configInterface, String storageKey, JComponent... components) {
+    public ExtCheckBox(BooleanKeyHandler keyHandler, JComponent... components) {
         this(components);
-        setModel(new ConfigToggleButtonModel(configInterface, storageKey));
+        setModel(new ConfigToggleButtonModel(keyHandler));
         updateDependencies();
 
     }

@@ -82,7 +82,7 @@ public class LongKeyHandler extends KeyHandler<Long> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected Long getValue() {
+    public Long getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

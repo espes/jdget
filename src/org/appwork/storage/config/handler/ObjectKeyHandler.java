@@ -83,7 +83,7 @@ public class ObjectKeyHandler extends KeyHandler<Object> {
     }
 
     @Override
-    protected Object getValue() {
+    public Object getValue() {
         Object ret = this.cache != null ? this.cache.get() : null;
         if (ret == null) {
             try {

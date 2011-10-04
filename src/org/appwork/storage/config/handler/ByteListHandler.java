@@ -77,7 +77,7 @@ public class ByteListHandler extends ListHandler<byte[]> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected byte[] getValue() {
+    public byte[] getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

@@ -80,7 +80,7 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected Byte getValue() {
+    public Byte getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

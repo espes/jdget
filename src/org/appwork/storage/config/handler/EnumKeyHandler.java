@@ -76,7 +76,7 @@ public class EnumKeyHandler extends KeyHandler<Enum> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected Enum getValue() {
+    public Enum getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

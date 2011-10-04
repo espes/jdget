@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.storage.config;
+package org.appwork.storage.config.events;
 
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.event.Eventsender;
@@ -16,7 +16,7 @@ import org.appwork.utils.event.Eventsender;
  * @author thomas
  * 
  */
-public class ConfigInterfaceEventSender<T extends ConfigInterface> extends Eventsender<ConfigEventListener, ConfigEvent<T>> {
+public class ConfigEventSender extends Eventsender<ConfigEventListener, ConfigEvent> {
 
     /*
      * (non-Javadoc)
@@ -26,13 +26,13 @@ public class ConfigInterfaceEventSender<T extends ConfigInterface> extends Event
      * org.appwork.utils.event.DefaultEvent)
      */
     @Override
-    protected void fireEvent(final ConfigEventListener listener, final ConfigEvent<T> event) {
+    protected void fireEvent(final ConfigEventListener listener, final ConfigEvent event) {
         switch (event.getType()) {
         case VALUE_UPDATED:
-            listener.onConfigValueModified(event.getCaller(), (String) event.getParameter(0), event.getParameter(1));
+            listener.onConfigValueModified(event.getCaller(), event.getParameter());
             break;
         case VALIDATOR_ERROR:
-            listener.onConfigValidatorError(event.getCaller(), (Throwable) event.getParameter(0), (KeyHandler) event.getParameter(1));
+            listener.onConfigValidatorError(event.getCaller(), (Throwable) event.getParameter());
             break;
         default:
             throw new RuntimeException(event.getType() + " is not handled");

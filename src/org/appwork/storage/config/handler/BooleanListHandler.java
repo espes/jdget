@@ -79,7 +79,7 @@ public class BooleanListHandler extends ListHandler<boolean[]> {
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected boolean[] getValue() {
+    public boolean[] getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
     }
 
