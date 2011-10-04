@@ -11,7 +11,7 @@ package org.appwork.storage.config;
 
 /**
  * @author Thomas
- *
+ * 
  */
 public class IllegalTypeException extends Exception {
 
@@ -25,36 +25,25 @@ public class IllegalTypeException extends Exception {
 
     /**
      * @param message
-     * @param cause
-     * @param enableSuppression
-     * @param writableStackTrace
      */
-    public IllegalTypeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * @param message
-     * @param cause
-     */
-    public IllegalTypeException(String message, Throwable cause) {
-        super(message, cause);
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * @param message
-     */
-    public IllegalTypeException(String message) {
+    public IllegalTypeException(final String message) {
         super(message);
         // TODO Auto-generated constructor stub
     }
 
     /**
+     * @param message
      * @param cause
      */
-    public IllegalTypeException(Throwable cause) {
+    public IllegalTypeException(final String message, final Throwable cause) {
+        super(message, cause);
+        // TODO Auto-generated constructor stub
+    }
+
+    /**
+     * @param cause
+     */
+    public IllegalTypeException(final Throwable cause) {
         super(cause);
         // TODO Auto-generated constructor stub
     }

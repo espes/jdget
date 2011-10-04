@@ -1,9 +1,11 @@
 package org.appwork.exceptions;
 
 /**
- * For all "What the F$%&" Situations. We all know that the shouldn't exist, but we all know: They do! 
+ * For all "What the F$%&" Situations. We all know that the shouldn't exist, but
+ * we all know: They do!
+ * 
  * @author Thomas
- *
+ * 
  */
 public class WTFException extends RuntimeException {
 
@@ -17,36 +19,25 @@ public class WTFException extends RuntimeException {
 
     /**
      * @param message
-     * @param cause
-     * @param enableSuppression
-     * @param writableStackTrace
      */
-    public WTFException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * @param message
-     * @param cause
-     */
-    public WTFException(String message, Throwable cause) {
-        super(message, cause);
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * @param message
-     */
-    public WTFException(String message) {
+    public WTFException(final String message) {
         super(message);
         // TODO Auto-generated constructor stub
     }
 
     /**
+     * @param message
      * @param cause
      */
-    public WTFException(Throwable cause) {
+    public WTFException(final String message, final Throwable cause) {
+        super(message, cause);
+        // TODO Auto-generated constructor stub
+    }
+
+    /**
+     * @param cause
+     */
+    public WTFException(final Throwable cause) {
         super(cause);
         // TODO Auto-generated constructor stub
     }

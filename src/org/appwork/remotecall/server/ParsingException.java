@@ -11,7 +11,7 @@ package org.appwork.remotecall.server;
 
 /**
  * @author thomas
- *
+ * 
  */
 public class ParsingException extends Exception {
 
@@ -25,36 +25,25 @@ public class ParsingException extends Exception {
 
     /**
      * @param message
-     * @param cause
-     * @param enableSuppression
-     * @param writableStackTrace
      */
-    public ParsingException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * @param message
-     * @param cause
-     */
-    public ParsingException(String message, Throwable cause) {
-        super(message, cause);
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * @param message
-     */
-    public ParsingException(String message) {
+    public ParsingException(final String message) {
         super(message);
         // TODO Auto-generated constructor stub
     }
 
     /**
+     * @param message
      * @param cause
      */
-    public ParsingException(Throwable cause) {
+    public ParsingException(final String message, final Throwable cause) {
+        super(message, cause);
+        // TODO Auto-generated constructor stub
+    }
+
+    /**
+     * @param cause
+     */
+    public ParsingException(final Throwable cause) {
         super(cause);
         // TODO Auto-generated constructor stub
     }
