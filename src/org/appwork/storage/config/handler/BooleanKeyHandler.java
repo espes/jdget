@@ -51,6 +51,8 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
         final DefaultBooleanValue ann = this.getAnnotation(DefaultBooleanValue.class);
         if (ann != null) {
             defaultValue = ann.value();
+        }else{
+            defaultValue=false;
         }
     
     }
@@ -82,7 +84,9 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
     @Override
     public Boolean getValue() {
    
-        return primitiveStorage.get(getKey(), defaultValue);
+      return primitiveStorage.get(getKey(), defaultValue);
+        
+     
     }
 
 }
