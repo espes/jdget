@@ -17,9 +17,6 @@ import org.appwork.storage.config.handler.KeyHandler;
  * @author thomas
  * 
  */
-public interface ConfigEventListener extends EventListener {
+public interface ConfigEventListener extends GenericConfigEventListener<Object> {
 
-    public void onConfigValidatorError(KeyHandler<?> keyHandler, Throwable validateException);
-
-    public void onConfigValueModified(KeyHandler<?> keyHandler, Object newValue);
 }

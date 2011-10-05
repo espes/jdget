@@ -9,6 +9,7 @@
  */
 package org.appwork.storage.config.events;
 
+import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.event.Eventsender;
 
@@ -16,7 +17,7 @@ import org.appwork.utils.event.Eventsender;
  * @author thomas
  * 
  */
-public class ConfigEventSender extends Eventsender<ConfigEventListener, ConfigEvent> {
+public class ConfigEventSender<RawClass> extends Eventsender<GenericConfigEventListener<RawClass>, ConfigEvent> {
 
     /*
      * (non-Javadoc)
@@ -25,14 +26,16 @@ public class ConfigEventSender extends Eventsender<ConfigEventListener, ConfigEv
      * org.appwork.utils.event.Eventsender#fireEvent(java.util.EventListener,
      * org.appwork.utils.event.DefaultEvent)
      */
+    @SuppressWarnings("unchecked")
     @Override
-    protected void fireEvent(final ConfigEventListener listener, final ConfigEvent event) {
+    protected void fireEvent(final GenericConfigEventListener<RawClass> listener, final ConfigEvent event) {
         switch (event.getType()) {
         case VALUE_UPDATED:
-            listener.onConfigValueModified(event.getCaller(), event.getParameter());
+            listener.onConfigValueModified((KeyHandler<RawClass>)event.getCaller(), (RawClass)event.getParameter());
             break;
         case VALIDATOR_ERROR:
-            listener.onConfigValidatorError(event.getCaller(), (Throwable) event.getParameter());
+           
+            listener.onConfigValidatorError((KeyHandler<RawClass>)event.getCaller(), (RawClass) ((ValidationException) event.getParameter()).getValue(), (ValidationException) event.getParameter());
             break;
         default:
             throw new RuntimeException(event.getType() + " is not handled");

@@ -6,11 +6,12 @@ import javax.swing.SpinnerNumberModel;
 import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 import org.appwork.storage.config.events.ConfigEventListener;
+import org.appwork.storage.config.events.GenericConfigEventListener;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.storage.config.handler.LongKeyHandler;
 import org.appwork.utils.swing.EDTRunner;
 
-public class ConfigLongSpinnerModel extends SpinnerNumberModel implements ConfigEventListener {
+public class ConfigLongSpinnerModel extends SpinnerNumberModel implements GenericConfigEventListener<Long> {
 
     /**
      * 
@@ -97,7 +98,7 @@ public class ConfigLongSpinnerModel extends SpinnerNumberModel implements Config
         }
     }
 
-    public void onConfigValidatorError(KeyHandler<?> keyHandler, Throwable validateException) {
+    public void onConfigValidatorError(KeyHandler<Long> keyHandler, Long invalidValue, ValidationException validateException) {
         new EDTRunner() {
 
             @Override
@@ -107,7 +108,7 @@ public class ConfigLongSpinnerModel extends SpinnerNumberModel implements Config
         };
     }
 
-    public void onConfigValueModified(KeyHandler<?> keyHandler, Object newValue) {
+    public void onConfigValueModified(KeyHandler<Long> keyHandler, Long newValue) {
         new EDTRunner() {
 
             @Override

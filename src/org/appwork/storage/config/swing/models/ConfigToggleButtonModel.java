@@ -2,12 +2,13 @@ package org.appwork.storage.config.swing.models;
 
 import javax.swing.JToggleButton.ToggleButtonModel;
 
-import org.appwork.storage.config.events.ConfigEventListener;
+import org.appwork.storage.config.ValidationException;
+import org.appwork.storage.config.events.GenericConfigEventListener;
 import org.appwork.storage.config.handler.BooleanKeyHandler;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.swing.EDTRunner;
 
-public class ConfigToggleButtonModel extends ToggleButtonModel implements ConfigEventListener {
+public class ConfigToggleButtonModel extends ToggleButtonModel implements GenericConfigEventListener<Boolean>   {
 
     /**
      * 
@@ -31,7 +32,7 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Config
 
     }
 
-    public void onConfigValidatorError(KeyHandler<?> keyHandler, Throwable validateException) {
+    public void onConfigValidatorError(KeyHandler<Boolean> keyHandler, Boolean invalidValue, ValidationException validateException) {
         new EDTRunner() {
 
             @Override
@@ -42,7 +43,7 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Config
 
     }
 
-    public void onConfigValueModified(KeyHandler<?> keyHandler, Object newValue) {
+    public void onConfigValueModified(KeyHandler<Boolean> keyHandler, Boolean newValue) {
         new EDTRunner() {
 
             @Override

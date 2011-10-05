@@ -13,6 +13,6 @@ package org.appwork.storage.config.defaults;
  * @author Thomas
  *
  */
-public abstract class DefaultFactory<T> {
+public abstract class AbstractDefaultFactory<T> {
     public abstract T getDefaultValue();
 }

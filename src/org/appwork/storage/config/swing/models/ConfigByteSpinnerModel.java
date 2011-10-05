@@ -6,11 +6,12 @@ import javax.swing.SpinnerNumberModel;
 import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 import org.appwork.storage.config.events.ConfigEventListener;
+import org.appwork.storage.config.events.GenericConfigEventListener;
 import org.appwork.storage.config.handler.ByteKeyHandler;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.swing.EDTRunner;
 
-public class ConfigByteSpinnerModel extends SpinnerNumberModel implements ConfigEventListener {
+public class ConfigByteSpinnerModel extends SpinnerNumberModel implements GenericConfigEventListener<Byte> {
 
     private ByteKeyHandler keyHandler;
 
@@ -93,7 +94,11 @@ public class ConfigByteSpinnerModel extends SpinnerNumberModel implements Config
         }
     }
 
-    public void onConfigValidatorError(KeyHandler<?> keyHandler, Throwable validateException) {
+    /* (non-Javadoc)
+     * @see org.appwork.storage.config.events.GenericConfigEventListener#onConfigValidatorError(org.appwork.storage.config.handler.KeyHandler, java.lang.Throwable)
+     */
+    @Override
+    public void onConfigValidatorError(KeyHandler<Byte> keyHandler, Byte invalidValue, ValidationException validateException) {
         new EDTRunner() {
 
             @Override
@@ -103,7 +108,11 @@ public class ConfigByteSpinnerModel extends SpinnerNumberModel implements Config
         };
     }
 
-    public void onConfigValueModified(KeyHandler<?> keyHandler, Object newValue) {
+    /* (non-Javadoc)
+     * @see org.appwork.storage.config.events.GenericConfigEventListener#onConfigValueModified(org.appwork.storage.config.handler.KeyHandler, java.lang.Object)
+     */
+    @Override
+    public void onConfigValueModified(KeyHandler<Byte> keyHandler, Byte newValue) {
         new EDTRunner() {
 
             @Override
@@ -111,6 +120,8 @@ public class ConfigByteSpinnerModel extends SpinnerNumberModel implements Config
                 fireStateChanged();
             }
         };
+        
     }
+
 
 }

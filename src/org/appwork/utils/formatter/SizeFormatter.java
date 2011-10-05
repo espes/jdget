@@ -29,7 +29,7 @@ public class SizeFormatter {
      * @return
      */
     public static String formatBytes(long fileSize) {
-      long abs = Math.abs(fileSize);
+        long abs = Math.abs(fileSize);
         final DecimalFormat c = new DecimalFormat("0.00");
         if (abs >= 1024 * 1024 * 1024 * 1024l) { return _AWU.T.literally_tebibyte(c.format(fileSize / (1024 * 1024 * 1024 * 1024.0))); }
         if (abs >= 1024 * 1024 * 1024l) { return _AWU.T.literally_gibibyte(c.format(fileSize / (1024 * 1024 * 1024.0))); }
@@ -39,15 +39,15 @@ public class SizeFormatter {
     }
 
     public static enum Unit {
-        TB(1024l*1024l*1024l*1024l),
-        GB(1024l*1024l*1024l),
-        MB(1024l*1024l),
+        TB(1024l * 1024l * 1024l * 1024l),
+        GB(1024l * 1024l * 1024l),
+        MB(1024l * 1024l),
         KB(1024l),
         B(1l);
         private long bytes;
 
-        private Unit(long bytes){
-            this.bytes=bytes;
+        private Unit(long bytes) {
+            this.bytes = bytes;
         }
 
         public long getBytes() {
@@ -65,10 +65,14 @@ public class SizeFormatter {
     }
 
     public static long getSize(final String string) {
-        return SizeFormatter.getSize(string, true);
+        return SizeFormatter.getSize(string, true, false);
     }
 
-    public static long getSize(final String string, final boolean kibi) {
+    public static long getSize(String string, boolean kibi, boolean allowNegative) {
+        boolean negative = false;
+        if (allowNegative) {
+            negative = Pattern.compile("\\D*\\-.*").matcher(string).matches();
+        }
         int unit = 1000;
         if (kibi) {
             unit = 1024;
@@ -97,6 +101,12 @@ public class SizeFormatter {
             res *= unit;
         }
 
-        return Math.round(res);
+        return negative ? -1 * Math.round(res) : Math.round(res);
+
+    }
+
+    public static long getSize(final String string, final boolean kibi) {
+        return getSize(string, kibi, false);
+
     }
 }

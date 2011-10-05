@@ -19,23 +19,22 @@ import org.appwork.storage.config.annotations.DefaultBooleanValue;
 import org.appwork.storage.config.annotations.DefaultByteArrayValue;
 import org.appwork.storage.config.annotations.DefaultByteValue;
 import org.appwork.storage.config.annotations.DefaultDoubleArrayValue;
-import org.appwork.storage.config.annotations.DefaultDoubleValue;
 import org.appwork.storage.config.annotations.DefaultEnumArrayValue;
 import org.appwork.storage.config.annotations.DefaultEnumValue;
+import org.appwork.storage.config.annotations.DefaultFactory;
 import org.appwork.storage.config.annotations.DefaultFloatArrayValue;
 import org.appwork.storage.config.annotations.DefaultFloatValue;
 import org.appwork.storage.config.annotations.DefaultIntArrayValue;
 import org.appwork.storage.config.annotations.DefaultIntValue;
+import org.appwork.storage.config.annotations.DefaultJsonObject;
 import org.appwork.storage.config.annotations.DefaultLongArrayValue;
 import org.appwork.storage.config.annotations.DefaultLongValue;
-import org.appwork.storage.config.annotations.DefaultObjectValue;
 import org.appwork.storage.config.annotations.DefaultStringArrayValue;
 import org.appwork.storage.config.annotations.DefaultStringValue;
-import org.appwork.storage.config.annotations.DefaultValue;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.SpinnerValidator;
+import org.appwork.storage.config.defaults.AbstractDefaultFactory;
 import org.appwork.storage.config.handler.IntegerKeyHandler;
-import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.storage.config.handler.StorageHandler;
 
 /**
@@ -48,7 +47,6 @@ public interface MyInterface extends ConfigInterface {
     @SuppressWarnings("unchecked")
     public static final StorageHandler<MyInterface> SH  = (StorageHandler<MyInterface>) CFG.getStorageHandler();
 
-    
     @DefaultBooleanValue(value = true)
     public boolean getB2();
 
@@ -61,11 +59,13 @@ public interface MyInterface extends ConfigInterface {
     @DefaultByteArrayValue(value = { 1, 2, 3 })
     public byte[] getByteArray();
 
-    @DefaultDoubleValue(value = 0.1d)
+    @DefaultFactory(DefaultD.class)
     public double getD();
 
     @DefaultDoubleArrayValue(value = { 1.0d, 2.0d, 3.0d })
     public double[] getDoubleArray();
+
+    public void setDoubleArray(double[] arr);
 
     @DefaultEnumValue(value = "A")
     public Type getEnum();
@@ -81,12 +81,11 @@ public interface MyInterface extends ConfigInterface {
      */
 
     public ArrayList<TestObject> getGenericList();
-    
- 
-    public static final IntegerKeyHandler INT =  CFG.getStorageHandler().getKeyHandler("Int",IntegerKeyHandler.class);
-    @DefaultIntValue(value = 2)
-    @SpinnerValidator(min=1,max=10,step=1)
 
+    public static final IntegerKeyHandler INT = CFG.getStorageHandler().getKeyHandler("Int", IntegerKeyHandler.class);
+
+    @DefaultIntValue(value = 2)
+    @SpinnerValidator(min = 1, max = 10, step = 1)
     public int getInt();
 
     @DefaultIntArrayValue(value = { 1, 2, 3 })
@@ -98,7 +97,7 @@ public interface MyInterface extends ConfigInterface {
     @DefaultLongArrayValue(value = { 1, 2, 3 })
     public long[] getLongArray();
 
-    @DefaultObjectValue(value = "{\"a\":5}")
+//    @DefaultJsonObject(value = "{\"a\":5}")
     public TestObject getObject();
 
     public ArrayList<TestObject[]> getStorableArrayList();
@@ -125,13 +124,22 @@ public interface MyInterface extends ConfigInterface {
      * @param is
      */
     public void setIntArray(int[] is);
+    class DefFac extends AbstractDefaultFactory<TestObject>{
 
+        @Override
+        public TestObject getDefaultValue() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+            
+        }
     /**
      * @param o
      */
+    @DefaultFactory(org.appwork.storage.config.test.MyInterface.DefFac.class)
     public void setObject(TestObject o);
-    
-    @DefaultValue(MyDefaultCreator.class)
+
+    @DefaultFactory(MyDefaultCreator.class)
     public ArrayList<Integer> getDefault();
 
 }

@@ -10,8 +10,11 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
+import org.appwork.storage.config.annotations.DefaultByteValue;
+import org.appwork.storage.config.annotations.DefaultStringValue;
 
 /**
  * @author Thomas
@@ -48,15 +51,14 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
     @SuppressWarnings("unchecked")
     @Override
     protected void initHandler() {
-        final DefaultBooleanValue ann = this.getAnnotation(DefaultBooleanValue.class);
-        if (ann != null) {
-            defaultValue = ann.value();
-        }else{
-            defaultValue=false;
-        }
+       
     
     }
-
+    @Override
+    protected boolean initDefaults() throws Throwable {
+        defaultValue=false;
+       return super.initDefaults();
+    }
     /*
      * (non-Javadoc)
      * 
@@ -69,15 +71,12 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
 
     }
 
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.handler.KeyHandler#getAllowedAnnotations()
-     */
-    @SuppressWarnings("unchecked")
+  
     @Override
-    protected Class<? extends Annotation>[] getAllowedAnnotations() {       
-        return (Class<? extends Annotation>[]) new Class<?>[]{DefaultBooleanValue.class};
-    }
+    protected Class<? extends Annotation> getDefaultAnnotation() {
 
+        return DefaultBooleanValue.class;
+    }
     /* (non-Javadoc)
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */

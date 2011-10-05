@@ -28,7 +28,7 @@ import org.appwork.storage.config.annotations.DefaultIntArrayValue;
 import org.appwork.storage.config.annotations.DefaultIntValue;
 import org.appwork.storage.config.annotations.DefaultLongArrayValue;
 import org.appwork.storage.config.annotations.DefaultLongValue;
-import org.appwork.storage.config.annotations.DefaultObjectValue;
+import org.appwork.storage.config.annotations.DefaultJsonObject;
 import org.appwork.storage.config.annotations.DefaultStringArrayValue;
 import org.appwork.storage.config.annotations.DefaultStringValue;
 import org.appwork.storage.config.annotations.PlainStorage;
@@ -88,7 +88,7 @@ public interface BadInterface extends ConfigInterface {
     @DefaultLongArrayValue(value = { 1, 2, 3 })
     public long[] getLongArray();
 
-    @DefaultObjectValue(value = "{\"a\":5}")
+    @DefaultJsonObject(value = "{\"a\":5}")
     public BadTestObject getObject();
 
     public ArrayList<BadTestObject[]> getStorableArrayList();

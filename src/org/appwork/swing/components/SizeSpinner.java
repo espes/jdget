@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.MouseListener;
 import java.text.ParseException;
 
 import javax.swing.JFormattedTextField.AbstractFormatter;
@@ -37,7 +36,7 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
      */
     public SizeSpinner(SpinnerNumberModel model) {
         super(model);
-       
+
         // this.addFocusListener(this);
         nm = (SpinnerNumberModel) super.getModel();
 
@@ -47,12 +46,12 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
 
             @Override
             public Object stringToValue(String text) throws ParseException {
-                return SizeFormatter.getSize(text);
+                return SizeFormatter.getSize(text,true,true);
             }
 
             @Override
             public String valueToString(final Object value) throws ParseException {
-           
+
                 return longToText(((Number) value).longValue());
             }
 
@@ -67,7 +66,7 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
      * @return
      */
     protected String longToText(long longValue) {
-     
+
         return SizeFormatter.formatBytes(longValue);
     }
 
@@ -79,7 +78,12 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
 
         int c = (int) (num == 0 ? 0 : Math.log10(num / unit.getBytes()));
         c = Math.max(0, c - 1);
-        long newV = (long) Math.min(((Number) nm.getMaximum()).longValue(), num + unit.getBytes() * Math.pow(10, c));
+        long newV;
+        if (nm.getMaximum() != null) {
+            newV = (long) Math.min(((Number) nm.getMaximum()).longValue(), num + unit.getBytes() * Math.pow(10, c));
+        } else {
+            newV = (long) (num + unit.getBytes() * Math.pow(10, c));
+        }
         Unit newUnit = SizeFormatter.getBestUnit((long) newV);
         if (newUnit == unit) {
             if (newV == num) {
@@ -102,8 +106,12 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
         Unit unit = SizeFormatter.getBestUnit(num);
         int c = (int) (num == 0 ? 0 : Math.log10(num / unit.getBytes()));
         c = Math.max(0, c - 1);
-        long nv = (long) Math.max(((Number) nm.getMinimum()).longValue(), num - unit.getBytes() * Math.pow(10, c));
-        ;
+        long nv;
+        if (nm.getMinimum() != null) {
+            nv = (long) Math.max(((Number) nm.getMinimum()).longValue(), num - unit.getBytes() * Math.pow(10, c));
+        } else {
+            nv = (long) (num - unit.getBytes() * Math.pow(10, c));
+        }
         Unit nunit = SizeFormatter.getBestUnit(nv);
         if (nunit == unit) {
             if (nv == num) {
@@ -146,10 +154,15 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
      * 
      */
     private void correct() {
-        long min = ((Number) nm.getMinimum()).longValue();
-        long max = ((Number) nm.getMaximum()).longValue();
+
         long v = ((Number) getValue()).longValue();
-        long newValue = Math.min(max, Math.max(v, min));
+        long newValue = v;
+        if (nm.getMinimum() != null) {
+            newValue = Math.max(v, ((Number) nm.getMinimum()).longValue());
+        }
+        if (nm.getMaximum() != null) {
+            newValue = Math.min(((Number) nm.getMaximum()).longValue(), newValue);
+        }
         if (newValue != v) {
             beep();
             setValue(newValue);
@@ -190,8 +203,8 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
      * @return
      */
     public long getBytes() {
-        
-        return ((Number)getValue()).longValue();
+
+        return ((Number) getValue()).longValue();
     }
 
 }

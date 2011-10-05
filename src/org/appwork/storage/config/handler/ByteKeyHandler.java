@@ -10,11 +10,14 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 
 import org.appwork.storage.config.ValidationException;
+import org.appwork.storage.config.annotations.DefaultBooleanArrayValue;
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
 import org.appwork.storage.config.annotations.DefaultByteValue;
 import org.appwork.storage.config.annotations.DefaultLongValue;
+import org.appwork.storage.config.annotations.DefaultStringValue;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 
 /**
@@ -43,21 +46,31 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
     protected void putValue(Byte object) {
         this.storageHandler.putPrimitive(getKey(),  object);
     }
+    
+    @Override
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+
+        return DefaultByteValue.class;
+    }
+    @Override
+    protected boolean initDefaults() throws Throwable {
+        defaultValue=0;
+       return super.initDefaults();
+    }
     @SuppressWarnings("unchecked")
     @Override
     protected Class<? extends Annotation>[] getAllowedAnnotations() {       
-        return (Class<? extends Annotation>[]) new Class<?>[]{DefaultByteValue.class,SpinnerValidator.class};
+        ArrayList<Class<? extends Annotation>> list = new ArrayList<Class<? extends Annotation>>();
+    
+        list.add(SpinnerValidator.class);
+        return (Class<? extends Annotation>[]) list.toArray(new Class<?>[] {});
     }
     /* (non-Javadoc)
      * @see org.appwork.storage.config.KeyHandler#initHandler()
      */
     @Override
     protected void initHandler() {
-        defaultValue=0;
-        try{
-            this.defaultValue = getAnnotation(DefaultByteValue.class).value();
-           }catch(NullPointerException e){}
-        
+      
         validator = getAnnotation(SpinnerValidator.class);
         if (validator != null) {
             min = (byte) validator.min();

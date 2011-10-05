@@ -85,12 +85,7 @@ public class JsonKeyValueStorage extends Storage {
         this.closed = true;
     }
 
-    @Override
-    public long decrease(final String key) {
-        long ret = this.get(key, 0l).intValue();
-        this.put(key, --ret);
-        return ret;
-    }
+ 
 
     @SuppressWarnings("unchecked")
     @Override
@@ -99,62 +94,7 @@ public class JsonKeyValueStorage extends Storage {
         Object ret = contains ? this.map.get(key) : null;
 
         if (ret != null && def != null && ret.getClass() != def.getClass()) {
-            /* ret class different from def class, so we have to convert */
-            if (ret instanceof ArrayList<?>) {
-                int index = 0;
-                /* array of something */
-                if (def instanceof int[]) {
-                    final int[] rets = new int[((ArrayList<?>) ret).size()];
-                    for (final Object o : (ArrayList<?>) ret) {
-                        if (o instanceof Number) {
-                            rets[index++] = ((Number) o).intValue();                       
-                        } else {
-                            throw new RuntimeException("Cannot cast " + o.getClass() + " to int");
-                        }
-                    }
-                    ret = rets;
-                } else if (def instanceof Integer[]) {
-                    final Integer[] rets = new Integer[((ArrayList<?>) ret).size()];
-                    for (final Object o : (ArrayList<?>) ret) {
-                        if (o instanceof Number) {
-                            rets[index++] = ((Number) o).intValue();
-                        } else {
-                            throw new RuntimeException("Cannot cast " + o.getClass() + " to Integer");
-                        }
-                    }
-                    ret = rets;
-                } else if (def instanceof long[]) {
-                    final long[] rets = new long[((ArrayList<?>) ret).size()];
-                    for (final Object o : (ArrayList<?>) ret) {
-                        if (o instanceof Number) {
-                            rets[index++] = ((Number) o).longValue();
-                        } else {
-                            throw new RuntimeException("Cannot cast " + o.getClass() + " to long");
-                        }
-                    }
-                    ret = rets;
-                } else if (def instanceof Long[]) {
-                    final Long[] rets = new Long[((ArrayList<?>) ret).size()];
-                    for (final Object o : (ArrayList<?>) ret) {
-                        if (o instanceof Number) {
-                            rets[index++] = ((Number) o).longValue();                      
-                        } else {
-                            throw new RuntimeException("Cannot cast " + o.getClass() + " to Long");
-                        }
-                    }
-                    ret = rets;
-                } else if (def instanceof String[]) {
-                    final String[] rets = new String[((ArrayList<?>) ret).size()];
-                    for (final Object o : (ArrayList<?>) ret) {
-                        if (o instanceof String) {
-                            rets[index++] = (String) o;
-                        } else {
-                            throw new RuntimeException("Cannot cast " + o.getClass() + " to Long");
-                        }
-                    }
-                    ret = rets;
-                }
-            }
+            /* ret class different from def class, so we have to convert */           
 
             if (def instanceof Long) {
                 if (ret instanceof Integer) {
@@ -198,23 +138,13 @@ public class JsonKeyValueStorage extends Storage {
             if (def instanceof Boolean) {
                 this.put(key, (Boolean) def);
             } else if (def instanceof Long) {
-                this.put(key, (Long) def);
-            } else if (def instanceof Long[]) {
-                this.put(key, (Long[]) def);
-            } else if (def instanceof long[]) {
-                this.put(key, (long[]) def);
+                this.put(key, (Long) def);           
             } else if (def instanceof Integer) {
-                this.put(key, (Integer) def);
-            } else if (def instanceof Integer[]) {
-                this.put(key, (Integer[]) def);
-            } else if (def instanceof int[]) {
-                this.put(key, (int[]) def);
+                this.put(key, (Integer) def);            
             } else if (def instanceof Byte) {
                 this.put(key, (Byte) def);
             } else if (def instanceof String || def == null) {
-                this.put(key, (String) def);
-            } else if (def instanceof String[]) {
-                this.put(key, (String[]) def);
+                this.put(key, (String) def);         
             } else if (def instanceof Enum<?>) {
                 this.put(key, (Enum<?>) def);
             } else if (def instanceof Double) {
@@ -276,13 +206,7 @@ public class JsonKeyValueStorage extends Storage {
         return this.map.containsKey(key);
     }
 
-    @Override
-    public long increase(final String key) {
-        long ret = this.get(key, 0).intValue();
-        this.put(key, ++ret);
-        return ret;
-    }
-
+  
     /**
      * @return the autoPutValues
      */
@@ -365,6 +289,7 @@ public class JsonKeyValueStorage extends Storage {
         }
     }
 
+    
     public void put(final String key, final int value) throws StorageException {
         final boolean contains = this.map.containsKey(key);
         final Integer old = contains ? this.get(key, value) : null;
@@ -376,16 +301,7 @@ public class JsonKeyValueStorage extends Storage {
         }
     }
 
-    public void put(final String key, final int[] value) {
-        final boolean contains = this.map.containsKey(key);
-        final int[] old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<int[]>(this, key, old, value));
-        } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<int[]>(this, key, value));
-        }
-    }
+ 
 
     @Override
     public void put(final String key, final Integer value) throws StorageException {
@@ -398,17 +314,15 @@ public class JsonKeyValueStorage extends Storage {
             this.getEventSender().fireEvent(new StorageKeyAddedEvent<Integer>(this, key, value));
         }
     }
+    
 
-    public void put(final String key, final Integer[] value) {
-        final boolean contains = this.map.containsKey(key);
-        final Integer[] old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Integer[]>(this, key, old, value));
-        } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Integer[]>(this, key, value));
-        }
-    }
+ 
+
+ 
+
+    
+  
+
 
     public void put(final String key, final long value) throws StorageException {
         final boolean contains = this.map.containsKey(key);
@@ -433,31 +347,7 @@ public class JsonKeyValueStorage extends Storage {
         }
     }
 
-    public void put(final String key, final long[] value) {
-        final boolean contains = this.map.containsKey(key);
-        final long[] old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<long[]>(this, key, old, value));
-        } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<long[]>(this, key, value));
-        }
-    }
 
-    /**
-     * @param key
-     * @param def
-     */
-    public void put(final String key, final Long[] value) {
-        final boolean contains = this.map.containsKey(key);
-        final Long[] old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Long[]>(this, key, old, value));
-        } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Long[]>(this, key, value));
-        }
-    }
 
     @Override
     public void put(final String key, final String value) throws StorageException {
@@ -471,16 +361,7 @@ public class JsonKeyValueStorage extends Storage {
         }
     }
 
-    public void put(final String key, final String[] value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
-        final String[] old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<String[]>(this, key, old, value));
-        } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<String[]>(this, key, value));
-        }
-    }
+
 
     @Override
     public Object remove(final String key) {
@@ -525,5 +406,9 @@ public class JsonKeyValueStorage extends Storage {
         }
 
     }
+
+  
+
+    
 
 }

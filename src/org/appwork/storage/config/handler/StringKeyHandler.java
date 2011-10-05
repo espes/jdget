@@ -10,10 +10,10 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 
-import org.appwork.storage.config.annotations.DefaultBooleanValue;
+import org.appwork.storage.config.InterfaceParseException;
 import org.appwork.storage.config.annotations.DefaultStringValue;
-import org.appwork.storage.config.annotations.RegexValidator;
 
 /**
  * @author Thomas
@@ -37,16 +37,27 @@ public class StringKeyHandler extends KeyHandler<String> {
      */
     @Override
     protected void initHandler() {
+
         try {
             defaultValue = getAnnotation(DefaultStringValue.class).value();
         } catch (NullPointerException e) {
-            defaultValue=null;
+            defaultValue = null;
+            if (defaultFactoryClass != null) {
+
+                try {
+                    defaultValue = (String) defaultFactoryClass.newInstance().getDefaultValue();
+                } catch (Throwable e1) {
+                    throw new InterfaceParseException(e1);
+                }
+            }
+
         }
     }
-    @SuppressWarnings("unchecked")
+
     @Override
-    protected Class<? extends Annotation>[] getAllowedAnnotations() {       
-        return (Class<? extends Annotation>[]) new Class<?>[]{DefaultStringValue.class,RegexValidator.class};
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+
+        return DefaultStringValue.class;
     }
     /*
      * (non-Javadoc)
@@ -67,15 +78,18 @@ public class StringKeyHandler extends KeyHandler<String> {
      */
     @Override
     protected void putValue(String object) {
-        // TODO Auto-generated method stub
+        primitiveStorage.put(getKey(), object);
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
     public String getValue() {
+
         return primitiveStorage.get(getKey(), defaultValue);
     }
 

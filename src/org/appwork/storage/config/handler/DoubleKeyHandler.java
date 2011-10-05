@@ -10,11 +10,14 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
+import org.appwork.storage.config.annotations.DefaultByteValue;
 import org.appwork.storage.config.annotations.DefaultDoubleValue;
 import org.appwork.storage.config.annotations.DefaultFloatValue;
 import org.appwork.storage.config.annotations.DefaultLongValue;
+import org.appwork.storage.config.annotations.SpinnerValidator;
 
 /**
  * @author Thomas
@@ -38,24 +41,19 @@ public class DoubleKeyHandler extends KeyHandler<Double> {
     protected void putValue(Double object) {
         this.storageHandler.putPrimitive(getKey(),  object);
     }
-    @SuppressWarnings("unchecked")
-    @Override
-    protected Class<? extends Annotation>[] getAllowedAnnotations() {       
-        return (Class<? extends Annotation>[]) new Class<?>[]{DefaultDoubleValue.class};
+    
+    protected  Class<? extends Annotation> getDefaultAnnotation(){
+      return  DefaultDoubleValue.class;
     }
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.KeyHandler#initHandler()
-     */
+    
+    
+    
     @Override
-    protected void initHandler() {
-        
-        try{
-            this.defaultValue = getAnnotation(DefaultDoubleValue.class).value();
-           }catch(NullPointerException e){
-               defaultValue=0d;
-               
-           }
+    protected boolean initDefaults() throws Throwable {
+        defaultValue=0d;
+       return super.initDefaults();
     }
+
 
     /* (non-Javadoc)
      * @see org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
@@ -72,6 +70,15 @@ public class DoubleKeyHandler extends KeyHandler<Double> {
     @Override
     public Double getValue() {
         return primitiveStorage.get(getKey(), defaultValue);
+    }
+
+    /* (non-Javadoc)
+     * @see org.appwork.storage.config.handler.KeyHandler#initHandler()
+     */
+    @Override
+    protected void initHandler() throws Throwable {
+        // TODO Auto-generated method stub
+        
     }
 
 }

@@ -10,10 +10,10 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 
-import org.appwork.storage.config.annotations.DefaultBooleanValue;
 import org.appwork.storage.config.annotations.DefaultStringArrayValue;
-import org.appwork.storage.config.annotations.RegexValidator;
 
 /**
  * @author Thomas
@@ -21,12 +21,15 @@ import org.appwork.storage.config.annotations.RegexValidator;
  */
 public class StringListHandler extends ListHandler<String[]> {
 
+    
+
     /**
      * @param storageHandler
      * @param key
+     * @param type
      */
-    public StringListHandler(StorageHandler<?> storageHandler, String key) {
-        super(storageHandler, key);
+    public StringListHandler(StorageHandler<?> storageHandler, String key, Type type) {
+        super(storageHandler, key, type);
         // TODO Auto-generated constructor stub
     }
 
@@ -44,11 +47,13 @@ public class StringListHandler extends ListHandler<String[]> {
         } catch (NullPointerException e) {
         }
     }
-    @SuppressWarnings("unchecked")
+    
     @Override
-    protected Class<? extends Annotation>[] getAllowedAnnotations() {       
-        return (Class<? extends Annotation>[]) new Class<?>[]{DefaultStringArrayValue.class,RegexValidator.class};
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+
+        return DefaultStringArrayValue.class;
     }
+ 
     /*
      * (non-Javadoc)
      * 
@@ -59,25 +64,6 @@ public class StringListHandler extends ListHandler<String[]> {
     protected void validateValue(String[] object) throws Throwable {
         // TODO Auto-generated method stub
 
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
-     */
-    @Override
-    protected void putValue(String[] object) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
-     */
-    @Override
-    public String[] getValue() {
-        return primitiveStorage.get(getKey(), defaultValue);
-    }
+    }   
 
 }

@@ -19,7 +19,6 @@ public abstract class Storage {
 
     abstract public void close();
 
-    public abstract long decrease(String key);
 
     abstract public <E> E get(String key, E def) throws StorageException;
 
@@ -37,11 +36,7 @@ public abstract class Storage {
      * @return
      */
     abstract public boolean hasProperty(String key);
-
-    /**
-     * @param string
-     */
-    public abstract long increase(String key);
+   
 
     abstract public void put(String key, Boolean value) throws StorageException;
 

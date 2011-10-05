@@ -10,65 +10,92 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 
 import org.appwork.storage.JsonKeyValueStorage;
 import org.appwork.storage.config.ValidationException;
-import org.appwork.storage.config.annotations.DefaultBooleanValue;
 import org.appwork.storage.config.annotations.DefaultLongValue;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 
 /**
  * @author Thomas
- *
+ * 
  */
 public class LongKeyHandler extends KeyHandler<Long> {
 
     private JsonKeyValueStorage primitiveStorage;
-    private SpinnerValidator validator;
-    private long min;
-    private long max;
+    private SpinnerValidator    validator;
+    private long                min;
+    private long                max;
+
     /**
      * @param storageHandler
      * @param key
      */
     public LongKeyHandler(StorageHandler<?> storageHandler, String key) {
         super(storageHandler, key);
-   
+
         // TODO Auto-generated constructor stub
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
      */
     @Override
     protected void putValue(Long object) {
-        
-        this.storageHandler.putPrimitive(getKey(),  object);
+
+        this.storageHandler.putPrimitive(getKey(), object);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.storage.config.KeyHandler#initHandler()
      */
     @Override
     protected void initHandler() {
-       try{
-        this.defaultValue = getAnnotation(DefaultLongValue.class).value();
-       }catch(NullPointerException e){defaultValue=0l;}
-       
-       validator = getAnnotation(SpinnerValidator.class);
-       if (validator != null) {
-           min = (long) validator.min();
-           max = (long) validator.max();
+        try {
+            this.defaultValue = getAnnotation(DefaultLongValue.class).value();
+        } catch (NullPointerException e) {
+            defaultValue = 0l;
+        }
 
-       }
+        validator = getAnnotation(SpinnerValidator.class);
+        if (validator != null) {
+            min = (long) validator.min();
+            max = (long) validator.max();
+
+        }
     }
+
+    @Override
+    protected boolean initDefaults() throws Throwable {
+        defaultValue = 0l;
+        return super.initDefaults();
+    }
+
+    @Override
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+
+        return DefaultLongValue.class;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    protected Class<? extends Annotation>[] getAllowedAnnotations() {       
-        return (Class<? extends Annotation>[]) new Class<?>[]{DefaultLongValue.class,SpinnerValidator.class};
+    protected Class<? extends Annotation>[] getAllowedAnnotations() {
+        ArrayList<Class<? extends Annotation>> list = new ArrayList<Class<? extends Annotation>>();
+
+        list.add(SpinnerValidator.class);
+        return (Class<? extends Annotation>[]) list.toArray(new Class<?>[] {});
     }
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
      */
     @Override
     protected void validateValue(Long object) throws Throwable {
@@ -78,7 +105,9 @@ public class LongKeyHandler extends KeyHandler<Long> {
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override

@@ -10,9 +10,12 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
 import org.appwork.storage.config.annotations.DefaultEnumArrayValue;
+import org.appwork.storage.config.annotations.DefaultStringArrayValue;
 
 /**
  * @author Thomas
@@ -20,14 +23,18 @@ import org.appwork.storage.config.annotations.DefaultEnumArrayValue;
  */
 public class EnumListHandler extends ListHandler<Enum<?>[]> {
 
+
+
     /**
      * @param storageHandler
      * @param key
+     * @param type
      */
-    public EnumListHandler(StorageHandler<?> storageHandler, String key) {
-        super(storageHandler, key);
+    public EnumListHandler(StorageHandler<?> storageHandler, String key, Type type) {
+        super(storageHandler, key, type);
         // TODO Auto-generated constructor stub
     }
+
 
     /* (non-Javadoc)
      * @see org.appwork.storage.config.KeyHandler#initHandler()
@@ -52,11 +59,14 @@ public class EnumListHandler extends ListHandler<Enum<?>[]> {
 
         }
     }
-    @SuppressWarnings("unchecked")
+    
+    
     @Override
-    protected Class<? extends Annotation>[] getAllowedAnnotations() {       
-        return (Class<? extends Annotation>[]) new Class<?>[]{DefaultEnumArrayValue.class};
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+
+        return DefaultEnumArrayValue.class;
     }
+
     /* (non-Javadoc)
      * @see org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
      */
@@ -64,23 +74,6 @@ public class EnumListHandler extends ListHandler<Enum<?>[]> {
     protected void validateValue(Enum<?>[] object) throws Throwable {
         // TODO Auto-generated method stub
 
-    }
-
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
-     */
-    @Override
-    protected void putValue(Enum<?>[] object) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
-     */
-    @Override
-    public Enum<?>[] getValue() {
-        return primitiveStorage.get(getKey(), defaultValue);
     }
 
 }

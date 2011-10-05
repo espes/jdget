@@ -10,8 +10,10 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 
 import org.appwork.storage.config.ValidationException;
+import org.appwork.storage.config.annotations.DefaultByteValue;
 import org.appwork.storage.config.annotations.DefaultIntValue;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 
@@ -65,12 +67,25 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
 
     private int min;
     private int max;
+    @Override
+    protected boolean initDefaults() throws Throwable {
+        defaultValue=0;
+       return super.initDefaults();
+    }
+    
+    
+    @Override
+    protected Class<? extends Annotation> getDefaultAnnotation() {
 
+        return DefaultIntValue.class;
+    }
     @SuppressWarnings("unchecked")
     @Override
     protected Class<? extends Annotation>[] getAllowedAnnotations() {
-        return (Class<? extends Annotation>[]) new Class<?>[] { DefaultIntValue.class, SpinnerValidator.class };
-    }
+        ArrayList<Class<? extends Annotation>> list = new ArrayList<Class<? extends Annotation>>();
+    
+        list.add(SpinnerValidator.class);
+        return (Class<? extends Annotation>[]) list.toArray(new Class<?>[] {}); }
 
     /*
      * (non-Javadoc)

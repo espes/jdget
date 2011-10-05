@@ -10,11 +10,14 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 
 import org.appwork.storage.StorageException;
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
+import org.appwork.storage.config.annotations.DefaultByteValue;
 import org.appwork.storage.config.annotations.DefaultFloatValue;
 import org.appwork.storage.config.annotations.DefaultLongValue;
+import org.appwork.storage.config.annotations.SpinnerValidator;
 
 /**
  * @author Thomas
@@ -53,11 +56,19 @@ public class FloatKeyHandler extends KeyHandler<Float> {
                
            }
     }
-    @SuppressWarnings("unchecked")
+    
     @Override
-    protected Class<? extends Annotation>[] getAllowedAnnotations() {       
-        return (Class<? extends Annotation>[]) new Class<?>[]{DefaultFloatValue.class};
+    protected boolean initDefaults() throws Throwable {
+        defaultValue=0f;
+       return super.initDefaults();
     }
+    
+    @Override
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+
+        return DefaultFloatValue.class;
+    }
+    
     /* (non-Javadoc)
      * @see org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
      */

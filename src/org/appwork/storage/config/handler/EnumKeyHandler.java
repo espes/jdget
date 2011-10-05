@@ -10,10 +10,15 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 
+import org.appwork.storage.JSonStorage;
+import org.appwork.storage.TypeRef;
 import org.appwork.storage.config.InterfaceParseException;
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
+import org.appwork.storage.config.annotations.DefaultByteValue;
 import org.appwork.storage.config.annotations.DefaultEnumValue;
+import org.appwork.storage.config.annotations.SpinnerValidator;
 
 /**
  * @author Thomas
@@ -35,27 +40,43 @@ public class EnumKeyHandler extends KeyHandler<Enum> {
      */
     @Override
     protected void initHandler() throws Throwable {
-        // chek if this is really the best way to convert string to
-        // enum
-    
+      
       
    
-        final DefaultEnumValue ann = this.getAnnotation(DefaultEnumValue.class);
-        if (ann != null) {        
-           
-
-         
-                defaultValue = Enum.valueOf(  getRawClass(), ann.value());
-         
-        }else{
-            defaultValue=  getRawClass().getEnumConstants()[0];
-        }
+      
     }
-    @SuppressWarnings("unchecked")
     @Override
-    protected Class<? extends Annotation>[] getAllowedAnnotations() {       
-        return (Class<? extends Annotation>[]) new Class<?>[]{DefaultEnumValue.class};
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+
+        return DefaultEnumValue.class;
+    } 
+    @Override
+    protected boolean initDefaults() throws Throwable {
+        
+        defaultValue=  getRawClass().getEnumConstants()[0];
+        boolean ret = false;
+        if (defaultFactoryClass != null) {
+
+            defaultValue = (Enum) defaultFactoryClass.newInstance().getDefaultValue();
+            ret = true;
+        }
+        if (defaultJson != null) {
+            defaultValue =  JSonStorage.restoreFromString(defaultJson, new TypeRef<Enum>(getRawClass()) {
+            }, null);
+            ret = true;
+
+        }
+
+        final DefaultEnumValue ann = this.getAnnotation(DefaultEnumValue.class);
+        if (ann != null) {
+            defaultValue = Enum.valueOf(  getRawClass(), ann.value());
+            ret = true;
+        }
+
+      
+       return ret;
     }
+ 
     /* (non-Javadoc)
      * @see org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
      */
