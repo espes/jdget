@@ -11,7 +11,6 @@ package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
@@ -21,14 +20,15 @@ import org.appwork.storage.config.InterfaceParseException;
 import org.appwork.storage.config.MethodHandler;
 import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.AboutConfig;
+import org.appwork.storage.config.annotations.AbstractValidator;
 import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.storage.config.annotations.CryptedStorage;
-import org.appwork.storage.config.annotations.DefaultJsonObject;
 import org.appwork.storage.config.annotations.DefaultFactory;
+import org.appwork.storage.config.annotations.DefaultJsonObject;
 import org.appwork.storage.config.annotations.Description;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.RequiresRestart;
-import org.appwork.storage.config.annotations.Validator;
+import org.appwork.storage.config.annotations.ValidatorFactory;
 import org.appwork.storage.config.defaults.AbstractDefaultFactory;
 import org.appwork.storage.config.events.ConfigEvent;
 import org.appwork.storage.config.events.ConfigEvent.Types;
@@ -40,22 +40,23 @@ import org.appwork.storage.config.events.ConfigEventSender;
  */
 public abstract class KeyHandler<RawClass> {
 
-    private static final String                  ANNOTATION_PACKAGE_NAME = CryptedStorage.class.getPackage().getName();
-    private static final String                  PACKAGE_NAME            = PlainStorage.class.getPackage().getName();
-    private final String                         key;
-    private MethodHandler                        getter;
-    protected String                             defaultJson;
+    private static final String                          ANNOTATION_PACKAGE_NAME = CryptedStorage.class.getPackage().getName();
+    private static final String                          PACKAGE_NAME            = PlainStorage.class.getPackage().getName();
+    private final String                                 key;
+    private MethodHandler                                getter;
+    protected String                                     defaultJson;
     protected Class<? extends AbstractDefaultFactory<?>> defaultFactoryClass;
-    protected MethodHandler                      setter;
-    protected final StorageHandler<?>            storageHandler;
-    private boolean                              primitive;
-    protected RawClass                           defaultValue;
+    protected MethodHandler                              setter;
+    protected final StorageHandler<?>                    storageHandler;
+    private boolean                                      primitive;
+    protected RawClass                                   defaultValue;
 
-    protected boolean                            crypted;
+    protected boolean                                    crypted;
 
-    protected byte[]                             cryptKey;
-    protected JsonKeyValueStorage                primitiveStorage;
-    private ConfigEventSender<RawClass>          eventSender;
+    protected byte[]                                     cryptKey;
+    protected JsonKeyValueStorage                        primitiveStorage;
+    private ConfigEventSender<RawClass>                  eventSender;
+    private AbstractValidator<RawClass>                  validatorFactory;
 
     /**
      * @param storageHandler
@@ -78,7 +79,7 @@ public abstract class KeyHandler<RawClass> {
         if (getAnnotation(DefaultJsonObject.class) != null) checker++;
         if (getAnnotation(DefaultFactory.class) != null) checker++;
         if (checker > 1) { throw new InterfaceParseException("Make sure that you use only one  of getDefaultAnnotation,DefaultObjectValue or DefaultValue "); }
-        
+
         this.checkBadAnnotations(this.getter.getMethod(), class1);
         if (this.setter != null) {
             this.checkBadAnnotations(this.setter.getMethod(), class1);
@@ -94,7 +95,7 @@ public abstract class KeyHandler<RawClass> {
         /**
          * This main mark is important!!
          */
-        final Class<?>[] okForAll = new Class<?>[] { Validator.class, DefaultJsonObject.class,DefaultFactory.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, Description.class, CryptedStorage.class, PlainStorage.class };
+        final Class<?>[] okForAll = new Class<?>[] { ValidatorFactory.class, DefaultJsonObject.class, DefaultFactory.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, Description.class, CryptedStorage.class, PlainStorage.class };
         final Class<?>[] clazzes = new Class<?>[classes.length + okForAll.length];
         System.arraycopy(classes, 0, clazzes, 0, classes.length);
         System.arraycopy(okForAll, 0, clazzes, classes.length, okForAll.length);
@@ -106,7 +107,7 @@ public abstract class KeyHandler<RawClass> {
             if (!aName.startsWith(KeyHandler.PACKAGE_NAME)) {
                 continue;
             }
-            if (getDefaultAnnotation()!=null&&getDefaultAnnotation().isAssignableFrom(a.getClass())) continue;
+            if (getDefaultAnnotation() != null && getDefaultAnnotation().isAssignableFrom(a.getClass())) continue;
             for (final Class<?> ok : clazzes) {
                 if (ok.isAssignableFrom(a.getClass())) {
                     continue main;
@@ -117,7 +118,6 @@ public abstract class KeyHandler<RawClass> {
 
     }
 
- 
     /**
      * @param <T>
      * @param class1
@@ -214,23 +214,26 @@ public abstract class KeyHandler<RawClass> {
         // json7String from
         final DefaultJsonObject ann = this.getAnnotation(DefaultJsonObject.class);
         if (ann != null) {
-            if (defaultFactoryClass != null) throw new InterfaceParseException("Cannot use " + DefaultJsonObject.class.getName() + " and " + DefaultFactory.class.getName()+" for "+this);
+            if (defaultFactoryClass != null) throw new InterfaceParseException("Cannot use " + DefaultJsonObject.class.getName() + " and " + DefaultFactory.class.getName() + " for " + this);
             defaultJson = ann.value();
             // this.defaultValue = JSonStorage.restoreFromString(v, typeRef,
             // null);
         }
-
+        try {
+            validatorFactory = (AbstractValidator<RawClass>) getAnnotation(ValidatorFactory.class).value().newInstance();
+        } catch (NullPointerException e) {
+        }
         this.checkBadAnnotations(this.getAllowedAnnotations());
         this.initDefaults();
 
         this.initHandler();
 
     }
-    @SuppressWarnings("unchecked")
 
+    @SuppressWarnings("unchecked")
     protected Class<? extends Annotation>[] getAllowedAnnotations() {
-  
-        return (Class<? extends Annotation>[]) new Class<?>[]{};
+
+        return (Class<? extends Annotation>[]) new Class<?>[] {};
 
     }
 
@@ -326,6 +329,9 @@ public abstract class KeyHandler<RawClass> {
                 //
                 return;
 
+            }
+            if (validatorFactory != null) {
+                validatorFactory.validate(object);
             }
             validateValue(object);
             putValue(object);

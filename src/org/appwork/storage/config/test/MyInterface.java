@@ -13,6 +13,8 @@ import java.util.ArrayList;
 
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.JsonConfig;
+import org.appwork.storage.config.ValidationException;
+import org.appwork.storage.config.annotations.AbstractValidator;
 import org.appwork.storage.config.annotations.CryptedStorage;
 import org.appwork.storage.config.annotations.DefaultBooleanArrayValue;
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
@@ -33,6 +35,7 @@ import org.appwork.storage.config.annotations.DefaultStringArrayValue;
 import org.appwork.storage.config.annotations.DefaultStringValue;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.SpinnerValidator;
+import org.appwork.storage.config.annotations.ValidatorFactory;
 import org.appwork.storage.config.defaults.AbstractDefaultFactory;
 import org.appwork.storage.config.handler.IntegerKeyHandler;
 import org.appwork.storage.config.handler.StorageHandler;
@@ -133,10 +136,24 @@ public interface MyInterface extends ConfigInterface {
         }
             
         }
+    class DefValid extends AbstractValidator<TestObject>{
+
+        /* (non-Javadoc)
+         * @see org.appwork.storage.config.annotations.AbstractValidator#validate(java.lang.Object)
+         */
+        @Override
+        public void validate(TestObject object) throws ValidationException {
+           System.out.println("CHECK "+object);
+        }
+
+      
+            
+        }
     /**
      * @param o
      */
     @DefaultFactory(org.appwork.storage.config.test.MyInterface.DefFac.class)
+    @ValidatorFactory(org.appwork.storage.config.test.MyInterface.DefValid.class)
     public void setObject(TestObject o);
 
     @DefaultFactory(MyDefaultCreator.class)

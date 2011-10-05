@@ -9,6 +9,6 @@ import org.appwork.storage.config.defaults.AbstractDefaultFactory;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD })
-public @interface Validator {
-    Class<? extends AbstractValidator> value();
+public @interface ValidatorFactory {
+    Class<? extends AbstractValidator<?>> value();
 }
