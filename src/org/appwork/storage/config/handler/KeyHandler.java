@@ -75,9 +75,15 @@ public abstract class KeyHandler<RawClass> {
 
     protected void checkBadAnnotations(final Class<? extends Annotation>... class1) {
         int checker = 0;
-        if (getAnnotation(getDefaultAnnotation()) != null) checker++;
-        if (getAnnotation(DefaultJsonObject.class) != null) checker++;
-        if (getAnnotation(DefaultFactory.class) != null) checker++;
+        if (this.getAnnotation(this.getDefaultAnnotation()) != null) {
+            checker++;
+        }
+        if (this.getAnnotation(DefaultJsonObject.class) != null) {
+            checker++;
+        }
+        if (this.getAnnotation(DefaultFactory.class) != null) {
+            checker++;
+        }
         if (checker > 1) { throw new InterfaceParseException("Make sure that you use only one  of getDefaultAnnotation,DefaultObjectValue or DefaultValue "); }
 
         this.checkBadAnnotations(this.getter.getMethod(), class1);
@@ -102,12 +108,16 @@ public abstract class KeyHandler<RawClass> {
 
         main: for (final Annotation a : m.getAnnotations()) {
             // all other Annotations are ok anyway
-            if (a == null) continue;
+            if (a == null) {
+                continue;
+            }
             final String aName = a.annotationType().getName();
             if (!aName.startsWith(KeyHandler.PACKAGE_NAME)) {
                 continue;
             }
-            if (getDefaultAnnotation() != null && getDefaultAnnotation().isAssignableFrom(a.getClass())) continue;
+            if (this.getDefaultAnnotation() != null && this.getDefaultAnnotation().isAssignableFrom(a.getClass())) {
+                continue;
+            }
             for (final Class<?> ok : clazzes) {
                 if (ok.isAssignableFrom(a.getClass())) {
                     continue main;
@@ -119,12 +129,32 @@ public abstract class KeyHandler<RawClass> {
     }
 
     /**
+     * @param valueUpdated
+     * @param keyHandler
+     * @param object
+     */
+    private void fireEvent(final Types type, final KeyHandler<?> keyHandler, final Object parameter) {
+        this.storageHandler.fireEvent(type, keyHandler, parameter);
+        if (this.eventSender != null) {
+            this.eventSender.fireEvent(new ConfigEvent(type, this, parameter));
+        }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Class<? extends Annotation>[] getAllowedAnnotations() {
+
+        return (Class<? extends Annotation>[]) new Class<?>[] {};
+
+    }
+
+    /**
      * @param <T>
      * @param class1
      * @return
      */
     public <T extends Annotation> T getAnnotation(final Class<T> class1) {
-        if (class1 == null) return null;
+        if (class1 == null) { return null; }
         T ret = this.getter.getMethod().getAnnotation(class1);
         if (ret == null && this.setter != null) {
             ret = this.setter.getMethod().getAnnotation(class1);
@@ -147,8 +177,25 @@ public abstract class KeyHandler<RawClass> {
 
     }
 
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+        return null;
+    }
+
     public RawClass getDefaultValue() {
         return this.defaultValue;
+    }
+
+    /**
+     * Lazy initialiser of the eventsender. we do not wnat to create an
+     * eventsender if nowbody uses it
+     * 
+     * @return
+     */
+    public synchronized ConfigEventSender<RawClass> getEventSender() {
+        if (this.eventSender == null) {
+            this.eventSender = new ConfigEventSender<RawClass>();
+        }
+        return this.eventSender;
     }
 
     public MethodHandler getGetter() {
@@ -205,40 +252,29 @@ public abstract class KeyHandler<RawClass> {
 
         }
 
-        DefaultFactory dv = getAnnotation(DefaultFactory.class);
+        final DefaultFactory dv = this.getAnnotation(DefaultFactory.class);
         if (dv != null) {
-            defaultFactoryClass = dv.value();
+            this.defaultFactoryClass = dv.value();
         }
 
         // if rawtypoe is an storable, we can have defaultvalues in
         // json7String from
         final DefaultJsonObject ann = this.getAnnotation(DefaultJsonObject.class);
         if (ann != null) {
-            if (defaultFactoryClass != null) throw new InterfaceParseException("Cannot use " + DefaultJsonObject.class.getName() + " and " + DefaultFactory.class.getName() + " for " + this);
-            defaultJson = ann.value();
+            if (this.defaultFactoryClass != null) { throw new InterfaceParseException("Cannot use " + DefaultJsonObject.class.getName() + " and " + DefaultFactory.class.getName() + " for " + this); }
+            this.defaultJson = ann.value();
             // this.defaultValue = JSonStorage.restoreFromString(v, typeRef,
             // null);
         }
         try {
-            validatorFactory = (AbstractValidator<RawClass>) getAnnotation(ValidatorFactory.class).value().newInstance();
-        } catch (NullPointerException e) {
+            this.validatorFactory = (AbstractValidator<RawClass>) this.getAnnotation(ValidatorFactory.class).value().newInstance();
+        } catch (final NullPointerException e) {
         }
         this.checkBadAnnotations(this.getAllowedAnnotations());
         this.initDefaults();
 
         this.initHandler();
 
-    }
-
-    @SuppressWarnings("unchecked")
-    protected Class<? extends Annotation>[] getAllowedAnnotations() {
-
-        return (Class<? extends Annotation>[]) new Class<?>[] {};
-
-    }
-
-    protected Class<? extends Annotation> getDefaultAnnotation() {
-        return null;
     }
 
     /**
@@ -248,22 +284,22 @@ public abstract class KeyHandler<RawClass> {
     @SuppressWarnings("unchecked")
     protected boolean initDefaults() throws Throwable {
         boolean ret = false;
-        if (defaultFactoryClass != null) {
+        if (this.defaultFactoryClass != null) {
 
-            defaultValue = (RawClass) defaultFactoryClass.newInstance().getDefaultValue();
+            this.defaultValue = (RawClass) this.defaultFactoryClass.newInstance().getDefaultValue();
             ret = true;
         }
-        if (defaultJson != null) {
-            defaultValue = (RawClass) JSonStorage.restoreFromString(defaultJson, new TypeRef<Object>(getRawClass()) {
+        if (this.defaultJson != null) {
+            this.defaultValue = (RawClass) JSonStorage.restoreFromString(this.defaultJson, new TypeRef<Object>(this.getRawClass()) {
             }, null);
             ret = true;
 
         }
 
-        Annotation ann = getAnnotation(getDefaultAnnotation());
+        final Annotation ann = this.getAnnotation(this.getDefaultAnnotation());
         if (ann != null) {
 
-            defaultValue = (RawClass) ann.annotationType().getMethod("value", new Class[] {}).invoke(ann, new Object[] {});
+            this.defaultValue = (RawClass) ann.annotationType().getMethod("value", new Class[] {}).invoke(ann, new Object[] {});
             ret = true;
         }
 
@@ -275,6 +311,16 @@ public abstract class KeyHandler<RawClass> {
      * 
      */
     protected abstract void initHandler() throws Throwable;
+
+    /**
+     * returns true of this keyhandler belongs to ConfigInterface
+     * 
+     * @param settings
+     * @return
+     */
+    public boolean isChildOf(final ConfigInterface settings) {
+        return settings.getStorageHandler() == this.getStorageHandler();
+    }
 
     /**
      * @return
@@ -322,7 +368,7 @@ public abstract class KeyHandler<RawClass> {
      */
     public void setValue(final RawClass object) throws ValidationException {
         try {
-            RawClass old = getValue();
+            final RawClass old = this.getValue();
             if (object == null && old == null) {
                 return;
             } else if (object != null && object.equals(old)) {
@@ -330,74 +376,37 @@ public abstract class KeyHandler<RawClass> {
                 return;
 
             }
-            if (validatorFactory != null) {
-                validatorFactory.validate(object);
+            if (this.validatorFactory != null) {
+                this.validatorFactory.validate(object);
             }
-            validateValue(object);
-            putValue(object);
+            this.validateValue(object);
+            this.putValue(object);
 
-            fireEvent(ConfigEvent.Types.VALUE_UPDATED, this, object);
+            this.fireEvent(ConfigEvent.Types.VALUE_UPDATED, this, object);
 
-        } catch (ValidationException e) {
+        } catch (final ValidationException e) {
             e.setValue(object);
-            fireEvent(ConfigEvent.Types.VALIDATOR_ERROR, this, e);
+            this.fireEvent(ConfigEvent.Types.VALIDATOR_ERROR, this, e);
 
             throw e;
         } catch (final Throwable t) {
-            ValidationException e = new ValidationException(t);
+            final ValidationException e = new ValidationException(t);
             e.setValue(object);
-            fireEvent(ConfigEvent.Types.VALIDATOR_ERROR, this, e);
+            this.fireEvent(ConfigEvent.Types.VALIDATOR_ERROR, this, e);
 
             throw e;
-        }
-
-    }
-
-    /**
-     * @param valueUpdated
-     * @param keyHandler
-     * @param object
-     */
-    private void fireEvent(Types type, KeyHandler<?> keyHandler, Object parameter) {
-        storageHandler.fireEvent(type, keyHandler, parameter);
-        if (eventSender != null) {
-            eventSender.fireEvent(new ConfigEvent(type, this, parameter));
         }
 
     }
 
     @Override
     public String toString() {
-        return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey() + " = " + getValue();
+        return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey() + " = " + this.getValue();
     }
 
     /**
      * @param object
      */
     protected abstract void validateValue(RawClass object) throws Throwable;
-
-    /**
-     * Lazy initialiser of the eventsender. we do not wnat to create an
-     * eventsender if nowbody uses it
-     * 
-     * @return
-     */
-    public synchronized ConfigEventSender<RawClass> getEventSender() {
-
-        if (eventSender == null) {
-            eventSender = new ConfigEventSender<RawClass>();
-        }
-        return eventSender;
-    }
-
-    /**
-     * returns true of this keyhandler belongs to ConfigInterface
-     * 
-     * @param settings
-     * @return
-     */
-    public boolean isChildOf(ConfigInterface settings) {
-        return settings.getStorageHandler() == getStorageHandler();
-    }
 
 }

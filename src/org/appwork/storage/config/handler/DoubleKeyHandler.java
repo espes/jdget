@@ -10,18 +10,12 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 
-import org.appwork.storage.config.annotations.DefaultBooleanValue;
-import org.appwork.storage.config.annotations.DefaultByteValue;
 import org.appwork.storage.config.annotations.DefaultDoubleValue;
-import org.appwork.storage.config.annotations.DefaultFloatValue;
-import org.appwork.storage.config.annotations.DefaultLongValue;
-import org.appwork.storage.config.annotations.SpinnerValidator;
 
 /**
  * @author Thomas
- *
+ * 
  */
 public class DoubleKeyHandler extends KeyHandler<Double> {
 
@@ -29,56 +23,63 @@ public class DoubleKeyHandler extends KeyHandler<Double> {
      * @param storageHandler
      * @param key
      */
-    public  DoubleKeyHandler(StorageHandler<?> storageHandler, String key) {
+    public DoubleKeyHandler(final StorageHandler<?> storageHandler, final String key) {
         super(storageHandler, key);
         // TODO Auto-generated constructor stub
     }
 
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
-     */
     @Override
-    protected void putValue(Double object) {
-        this.storageHandler.putPrimitive(getKey(),  object);
-    }
-    
-    protected  Class<? extends Annotation> getDefaultAnnotation(){
-      return  DefaultDoubleValue.class;
-    }
-    
-    
-    
-    @Override
-    protected boolean initDefaults() throws Throwable {
-        defaultValue=0d;
-       return super.initDefaults();
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+        return DefaultDoubleValue.class;
     }
 
-
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
-     */
-    @Override
-    protected void validateValue(Double object) throws Throwable {
-        // TODO Auto-generated method stub
-        
-    }
-
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
     public Double getValue() {
-        return primitiveStorage.get(getKey(), defaultValue);
+        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
     }
 
-    /* (non-Javadoc)
+    @Override
+    protected boolean initDefaults() throws Throwable {
+        this.defaultValue = 0d;
+        return super.initDefaults();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.storage.config.handler.KeyHandler#initHandler()
      */
     @Override
     protected void initHandler() throws Throwable {
         // TODO Auto-generated method stub
-        
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
+     */
+    @Override
+    protected void putValue(final Double object) {
+        this.storageHandler.putPrimitive(this.getKey(), object);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
+     */
+    @Override
+    protected void validateValue(final Double object) throws Throwable {
+        // TODO Auto-generated method stub
+
     }
 
 }
