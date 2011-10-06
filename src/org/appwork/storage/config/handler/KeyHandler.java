@@ -228,25 +228,41 @@ public abstract class KeyHandler<RawClass> {
     @SuppressWarnings("unchecked")
     public abstract RawClass getValue();
 
+    public void validateEncryptionKey(byte[] key2) {
+        if (key2 == null) throw new InterfaceParseException("Key missing in " + this);
+        if (key2.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + this + " is invalid. required length: " + JSonStorage.KEY.length); }
+
+    }
+
     /**
      * @throws Throwable
      * 
      */
     @SuppressWarnings("unchecked")
     protected void init() throws Throwable {
+
         // read local cryptinfos
         this.primitive = JSonStorage.canStorePrimitive(this.getter.getMethod().getReturnType());
         final CryptedStorage an = this.getAnnotation(CryptedStorage.class);
+        crypted=storageHandler.isCrypted();
+        cryptKey=storageHandler.getCryptKey();
         if (an != null) {
+            if (storageHandler.isCrypted()) {
+                throw new InterfaceParseException("No reason to mark " + this + " as @CryptedStorage. Parent is already CryptedStorage");
+            } else if (!(this instanceof ListHandler)) { throw new InterfaceParseException(this + " Cannot set @CryptedStorage on primitive fields. Use an object, or an extra plain config interface"); }
             this.crypted = true;
-            if (an.key() != null) {
-                this.cryptKey = an.key();
-                if (this.cryptKey.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + this + " is invalid"); }
-            }
+            validateEncryptionKey(an.key());
+            cryptKey = an.key();
         }
         final PlainStorage anplain = this.getAnnotation(PlainStorage.class);
-        if (anplain != null && this.crypted) {
-            if (an != null) { throw new InterfaceParseException("Cannot Set CryptStorage and PlainStorage Annotation"); }
+        if (anplain != null) {
+            if (an != null) { throw new InterfaceParseException("Cannot Set CryptStorage and PlainStorage Annotation in " + this); }
+            if (!storageHandler.isCrypted()) {
+                throw new InterfaceParseException("No reason to mark " + this + " as @PlainStorage. Parent is already Plain");
+            } else if (!(this instanceof ListHandler)) { throw new InterfaceParseException(this + " Cannot set @PlainStorage on primitive fields. Use an object, or an extra plain config interface");
+            // primitive storage. cannot set single plain values in a en crypted
+            // primitive storage
+            }
             // parent crypted, but plain for this single entry
             this.crypted = false;
 

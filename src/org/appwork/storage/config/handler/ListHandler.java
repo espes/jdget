@@ -39,13 +39,13 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
         super(storageHandler, key);
         typeRef = new TypeRef<Object>(type) {
         };
-        this.path = new File(this.storageHandler.getPath() + "." + getKey() + "." + (this.isCrypted() ? "ejs" : "json"));
+       
 
     }
+    
     @Override
     protected void initHandler() throws Throwable {
-        // TODO Auto-generated method stub
-        
+        this.path = new File(this.storageHandler.getPath() + "." + getKey() + "." + (this.isCrypted() ? "ejs" : "json"));
     }
 
 

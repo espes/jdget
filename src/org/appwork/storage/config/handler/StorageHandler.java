@@ -670,4 +670,15 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return (E) ret;
     }
 
+    /**
+     * @return
+     */
+    protected byte[] getCryptKey() {
+        return key;
+    }
+
+    /**
+     * @param key2
+     */
+
 }
