@@ -33,20 +33,7 @@ public class StringListHandler extends ListHandler<String[]> {
         // TODO Auto-generated constructor stub
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.KeyHandler#initHandler()
-     */
-    @Override
-    protected void initHandler() {
-        try {
 
-            defaultValue = getAnnotation(DefaultStringArrayValue.class).value();
-
-        } catch (NullPointerException e) {
-        }
-    }
     
     @Override
     protected Class<? extends Annotation> getDefaultAnnotation() {

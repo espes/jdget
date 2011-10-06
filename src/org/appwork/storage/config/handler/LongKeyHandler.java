@@ -56,11 +56,7 @@ public class LongKeyHandler extends KeyHandler<Long> {
      */
     @Override
     protected void initHandler() {
-        try {
-            this.defaultValue = getAnnotation(DefaultLongValue.class).value();
-        } catch (NullPointerException e) {
-            defaultValue = 0l;
-        }
+      
 
         validator = getAnnotation(SpinnerValidator.class);
         if (validator != null) {

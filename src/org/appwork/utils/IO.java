@@ -276,7 +276,7 @@ public class IO {
         file.createNewFile();
         if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
         if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
-
+System.out.println("Write "+file);
         final FileOutputStream out = new FileOutputStream(file);
         try {
             out.write(data);

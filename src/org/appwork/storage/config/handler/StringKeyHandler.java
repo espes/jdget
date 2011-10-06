@@ -35,24 +35,7 @@ public class StringKeyHandler extends KeyHandler<String> {
      * 
      * @see org.appwork.storage.config.KeyHandler#initHandler()
      */
-    @Override
-    protected void initHandler() {
 
-        try {
-            defaultValue = getAnnotation(DefaultStringValue.class).value();
-        } catch (NullPointerException e) {
-            defaultValue = null;
-            if (defaultFactoryClass != null) {
-
-                try {
-                    defaultValue = (String) defaultFactoryClass.newInstance().getDefaultValue();
-                } catch (Throwable e1) {
-                    throw new InterfaceParseException(e1);
-                }
-            }
-
-        }
-    }
 
     @Override
     protected Class<? extends Annotation> getDefaultAnnotation() {
@@ -91,6 +74,15 @@ public class StringKeyHandler extends KeyHandler<String> {
     public String getValue() {
 
         return primitiveStorage.get(getKey(), defaultValue);
+    }
+
+    /* (non-Javadoc)
+     * @see org.appwork.storage.config.handler.KeyHandler#initHandler()
+     */
+    @Override
+    protected void initHandler() throws Throwable {
+        // TODO Auto-generated method stub
+        
     }
 
 }
