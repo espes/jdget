@@ -756,6 +756,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         }.start();
     }
 
+    public void setSortColumn(final ExtColumn<E> e) {
+        this.sortColumn = e;
+    }
+
     /**
      * Sets the table in which the model is used. This method should only be
      * used internally.
