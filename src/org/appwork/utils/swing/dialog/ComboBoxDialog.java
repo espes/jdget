@@ -22,7 +22,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.logging.Log;
 
-public class ComboBoxDialog extends AbstractDialog<Integer> {
+public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxDialogInterface {
     /**
      * 
      */
@@ -144,6 +144,17 @@ public class ComboBoxDialog extends AbstractDialog<Integer> {
         contentpane.add(this.box, "pushy,growy, width n:n:450,height 24!");
 
         return contentpane;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.utils.swing.dialog.ComboBoxDialogInterface#getSelectedIndex()
+     */
+    @Override
+    public int getSelectedIndex() {
+        return getReturnIndex();
     }
 
 }

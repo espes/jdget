@@ -36,6 +36,12 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
     }
     private String  helpText = null;
     private boolean setting;
+    private boolean clearHelpTextOnFocus=true;
+
+
+    public boolean isClearHelpTextOnFocus() {
+        return clearHelpTextOnFocus;
+    }
 
     public void caretUpdate(final CaretEvent arg0) {
 
@@ -44,7 +50,11 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
     public void focusGained(final FocusEvent arg0) {
 
         if (super.getText().equals(this.helpText)) {
-            this.setText("");
+           if(isClearHelpTextOnFocus()){
+               this.setText("");
+           }else{
+               selectAll();
+           }
            
         }
         this.setForeground(this.defaultColor);
@@ -185,6 +195,14 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
         menu.add(deleteAction);
         menu.add(selectAction);
         return menu;
+    }
+
+    /**
+     * @param b
+     */
+    public void setClearHelpTextOnFocus(boolean b) {
+clearHelpTextOnFocus=b;
+        
     }
 
 }

@@ -1,14 +1,20 @@
 package org.appwork.utils.images;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
+import java.awt.image.RGBImageFilter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
@@ -62,6 +68,38 @@ public class IconIO {
         } else {
             return new ImageIcon(IconIO.getScaledInstance(IconIO.getImage(resource), size, size, Interpolation.BICUBIC, true));
         }
+    }
+
+    public static BufferedImage colorRangeToTransparency(BufferedImage image, Color c1, Color c2) {
+ 
+        final int r1 = c1.getRed();
+        final int g1 = c1.getGreen();
+        final int b1 = c1.getBlue();
+        final int r2 = c2.getRed();
+        final int g2 = c2.getGreen();
+        final int b2 = c2.getBlue();
+        ImageFilter filter = new RGBImageFilter() {
+            public final int filterRGB(int x, int y, int rgb) {
+
+                int r = (rgb & 0xFF0000) >> 16;
+                int g = (rgb & 0xFF00) >> 8;
+                int b = rgb & 0xFF;
+                if (r >= r1 && r <= r2 && g >= g1 && g <= g2 && b >= b1 && b <= b2) {
+                    // Set fully transparent but keep color
+                    // calculate a alpha value based on the distance between the
+                    // range borders and the pixel color
+                    int dist = ((Math.abs(r - (r1 + r2) / 2) + Math.abs(g - (g1 + g2) / 2) + Math.abs(b - (b1 + b2) / 2))) * 2;
+                
+                    return new Color(r, g, b, Math.min(255, dist)).getRGB();
+                }
+
+                return rgb;
+            }
+        };
+
+        ImageProducer ip = new FilteredImageSource(image.getSource(), filter);
+        Image img = Toolkit.getDefaultToolkit().createImage(ip);
+        return toBufferedImage(img);
     }
 
     /**
