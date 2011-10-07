@@ -37,6 +37,7 @@ public abstract class Queue extends Thread {
     protected ArrayList<QueueAction<?, ? extends Throwable>>                         queueThreadHistory  = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
     protected Thread                                                                 thread              = null;
     protected boolean                                                                waitFlag            = true;
+    private QueueAction<?, ? extends Throwable>                                      sourceItem          = null;
     protected static AtomicInteger                                                   QUEUELOOPPREVENTION = new AtomicInteger(0);
 
     public Queue(final String id) {
@@ -72,6 +73,11 @@ public abstract class Queue extends Thread {
             /*
              * call comes from current running item, so lets start item
              */
+            final QueueAction<?, ? extends Throwable> source = ((Queue) Thread.currentThread()).getSourceQueueAction();
+            if (source != null) {
+                /* forward source priority */
+                action.setQueuePrio(source.getQueuePrio());
+            }
             this.startItem(action, false);
         } else {
             /* call does not come from current running item, so lets queue it */
@@ -110,6 +116,11 @@ public abstract class Queue extends Thread {
              * excaption handling is passed to top item. startItem throws an
              * exception in error case
              */
+            final QueueAction<?, ? extends Throwable> source = ((Queue) Thread.currentThread()).getSourceQueueAction();
+            if (source != null) {
+                /* forward source priority */
+                item.setQueuePrio(source.getQueuePrio());
+            }
             this.startItem(item, false);
         } else {
             /* call does not come from current running item, so lets queue it */
@@ -171,6 +182,10 @@ public abstract class Queue extends Thread {
             if (ret == null) { return -1; }
             return ret.size();
         }
+    }
+
+    protected QueueAction<?, ? extends Throwable> getSourceQueueAction() {
+        return this.sourceItem;
     }
 
     /**
@@ -310,9 +325,11 @@ public abstract class Queue extends Thread {
                     continue;
                 }
                 try {
+                    this.sourceItem = item;
                     this.startItem(item, true);
                 } catch (final Throwable e) {
-
+                } finally {
+                    this.sourceItem = null;
                 }
             } catch (final Throwable e) {
                 Log.L.info("Queue rescued!");
