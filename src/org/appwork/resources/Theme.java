@@ -65,6 +65,10 @@ public class Theme {
         this.imageIconCache.clear();
     }
 
+    public boolean hasIcon(String string) {
+        return getURL("images/", string, ".png") != null;
+    }
+
     public ImageIcon getCached(final String key) {
         final MinTimeWeakReference<ImageIcon> cache = this.imageIconCache.get(key);
         if (cache != null) { return cache.get(); }
@@ -243,7 +247,7 @@ public class Theme {
      *            resource extension
      * @return
      */
-    private URL getURL(final String pre, final String relativePath, final String ext) {
+    public URL getURL(final String pre, final String relativePath, final String ext) {
         final String path = this.getPath(pre, relativePath, ext);
         try {
 

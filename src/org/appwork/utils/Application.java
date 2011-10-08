@@ -156,6 +156,7 @@ public class Application {
      * @return
      */
     public static URL getRessourceURL(final String relative) {
+
         return Application.getRessourceURL(relative, true);
     }
 
@@ -170,6 +171,7 @@ public class Application {
      */
     public static URL getRessourceURL(final String relative, final boolean preferClasspath) {
         try {
+            if(relative==null)return null;
             if (preferClasspath) {
 
                 final URL res = Application.class.getClassLoader().getResource(relative);

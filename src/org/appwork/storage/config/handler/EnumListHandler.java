@@ -36,12 +36,12 @@ public class EnumListHandler extends ListHandler<Enum<?>[]> {
     }
 
 
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.KeyHandler#initHandler()
-     */
+
+    
     @Override
-    protected void initHandler() throws Throwable {
+    protected boolean initDefaults() throws Throwable {
         final DefaultEnumArrayValue ann = this.getAnnotation(DefaultEnumArrayValue.class);
+         
         if (ann != null) {
         
             // chek if this is really the best way to convert string
@@ -56,11 +56,16 @@ public class EnumListHandler extends ListHandler<Enum<?>[]> {
                 ret[i] = Enum.valueOf((Class<Enum>) Class.forName(clazz), name);
             }
         defaultValue=ret;
+        return true;
 
         }
+        defaultValue=  null;
+        return false;
     }
-    
-    
+
+
+
+
     @Override
     protected Class<? extends Annotation> getDefaultAnnotation() {
 

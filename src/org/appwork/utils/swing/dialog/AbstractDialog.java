@@ -41,6 +41,7 @@ import javax.swing.WindowConstants;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
@@ -197,26 +198,37 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // add listeners here
             this.okButton.addActionListener(this);
             this.cancelButton.addActionListener(this);
+           
             // add icon if available
             if (this.icon != null) {
+                getDialog().setLayout(new MigLayout("ins 5,wrap 2","[][grow,fill]","[grow,fill][]"));
                 this.getDialog().add(this.iconLabel = new JLabel(this.icon), "split 2,alignx left,aligny center,shrinkx,gapright 10");
+            }else{
+                getDialog().setLayout(new MigLayout("ins 5,wrap 1","[grow,fill]","[grow,fill][]")); 
             }
             // Layout the dialog content and add it to the contentpane
             this.panel = this.layoutDialogContent();
-            this.getDialog().add(this.panel, "pushx,growx,pushy,growy,spanx,aligny center,wrap");
+          
+            this.getDialog().add(this.panel, "");
 
             // add the countdown timer
-            this.getDialog().add(this.timerLbl, "split 3,growx,hidemode 2");
+            MigPanel bottom = new MigPanel("ins 0", "[]20[grow,fill][]", "[]");
+            bottom.setOpaque(false);
+          
+            bottom.add(this.timerLbl);
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
+             
                 this.dontshowagain = new JCheckBox(_AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
                 this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
                 this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
                 this.dontshowagain.setSelected(this.doNotShowAgainSelected);
-                this.getDialog().add(this.dontshowagain, "growx,pushx,alignx right,gapleft 20");
+            
+                bottom.add(this.dontshowagain, "alignx right");
             } else {
-                this.getDialog().add(Box.createHorizontalGlue(), "growx,pushx,alignx right,gapleft 20");
+                bottom.add(Box.createHorizontalGlue());
             }
-            this.getDialog().add(this.defaultButtons, "alignx right,shrinkx");
+            bottom.add(this.defaultButtons);
+           
             if ((this.flagMask & Dialog.BUTTONS_HIDE_OK) == 0) {
 
                 // Set OK as defaultbutton
@@ -233,12 +245,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                     }
                 });
                 focus = this.okButton;
-                this.defaultButtons.add(this.okButton, "alignx right,tag ok,sizegroup confirms,growx,pushx");
+                this.defaultButtons.add(this.okButton, "alignx right,tag ok,sizegroup confirms");
 
             }
             if (!BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_CANCEL)) {
 
-                this.defaultButtons.add(this.cancelButton, "alignx right,tag cancel,sizegroup confirms,growx,pushx");
+                this.defaultButtons.add(this.cancelButton, "alignx right,tag cancel,sizegroup confirms");
                 if (BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_OK)) {
                     this.getDialog().getRootPane().setDefaultButton(this.cancelButton);
                     this.cancelButton.requestFocusInWindow();
@@ -252,19 +264,20 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 // show timer
                 this.initTimer(this.getCountdown());
             } else {
-                this.timerLbl.setVisible(false);
+                this.timerLbl.setText(null);
             }
-
+            getDialog().add(bottom,"spanx");
             // pack dialog
             this.getDialog().invalidate();
             // this.setMinimumSize(this.getPreferredSize());
             if (!getDialog().isMinimumSizeSet()) {
                 this.getDialog().setMinimumSize(new Dimension(300, 80));
             }
+            this.getDialog().setResizable(this.isResizable());
+           
             this.pack();
 
-            this.getDialog().setResizable(this.isResizable());
-
+  
             // minimum size foir a dialog
 
             // // Dimension screenDim =
@@ -317,7 +330,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 ((Window) this.getDialog().getParent()).setAlwaysOnTop(true);
                 ((Window) this.getDialog().getParent()).setAlwaysOnTop(false);
             }
-
+        
             this.setVisible(true);
         } finally {
             // System.out.println("SET OLD");
@@ -404,7 +417,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 if (tag == null) {
                     tag = "help";
                 }
-                ret.add(new JButton(a), "alignx right,tag " + tag + ",sizegroup confirms,growx,pushx");
+                ret.add(new JButton(a), "tag " + tag + ",sizegroup confirms");
             }
         }
         return ret;

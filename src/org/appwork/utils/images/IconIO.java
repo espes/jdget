@@ -11,9 +11,12 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.ConvolveOp;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
 import java.awt.image.ImageProducer;
+import java.awt.image.Kernel;
 import java.awt.image.RGBImageFilter;
 import java.io.IOException;
 import java.net.URL;
@@ -71,7 +74,7 @@ public class IconIO {
     }
 
     public static BufferedImage colorRangeToTransparency(BufferedImage image, Color c1, Color c2) {
- 
+
         final int r1 = c1.getRed();
         final int g1 = c1.getGreen();
         final int b1 = c1.getBlue();
@@ -89,7 +92,7 @@ public class IconIO {
                     // calculate a alpha value based on the distance between the
                     // range borders and the pixel color
                     int dist = ((Math.abs(r - (r1 + r2) / 2) + Math.abs(g - (g1 + g2) / 2) + Math.abs(b - (b1 + b2) / 2))) * 2;
-                
+
                     return new Color(r, g, b, Math.min(255, dist)).getRGB();
                 }
 
@@ -124,7 +127,7 @@ public class IconIO {
      * @return a scaled version of the original {@code BufferedImage}
      */
     public static BufferedImage getScaledInstance(final Image img, int width, int height, final Interpolation interpolation, final boolean higherQuality) {
-        final double faktor = Math.max((double) img.getWidth(null) / width, (double) img.getHeight(null) / height);
+         double faktor =Math.max((double) img.getWidth(null) / width, (double) img.getHeight(null) / height);
         width = Math.max((int) (img.getWidth(null) / faktor), 1);
         height = Math.max((int) (img.getHeight(null) / faktor), 1);
         if (faktor == 1.0 && img instanceof BufferedImage) { return (BufferedImage) img; }
@@ -258,6 +261,31 @@ public class IconIO {
         g.drawImage(src, 0, 0, null);
         g.dispose();
         return image;
+    }
+
+    /**
+     * @param image
+     * @return
+     */
+    public static BufferedImage blur(BufferedImage image) {
+        float[] matrix = new float[400];
+        for (int i = 0; i < 400; i++)
+            matrix[i] = 1.0f / 400.0f;
+
+        BufferedImageOp op = new ConvolveOp(new Kernel(20, 20, matrix), ConvolveOp.EDGE_NO_OP, null);
+        return op.filter(image, null);
+
+    }
+
+    /**
+     * @param image
+     * @param i
+     * @param j
+     * @return
+     */
+    public static BufferedImage getScaledInstance(BufferedImage img, int width, int height) {
+        // TODO Auto-generated method stub
+        return getScaledInstance(img, width, height, Interpolation.BICUBIC  , true);
     }
 
 }
