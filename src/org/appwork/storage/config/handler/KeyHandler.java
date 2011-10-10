@@ -33,6 +33,7 @@ import org.appwork.storage.config.defaults.AbstractDefaultFactory;
 import org.appwork.storage.config.events.ConfigEvent;
 import org.appwork.storage.config.events.ConfigEvent.Types;
 import org.appwork.storage.config.events.ConfigEventSender;
+import org.appwork.utils.reflection.Clazz;
 
 /**
  * @author thomas
@@ -390,7 +391,7 @@ public abstract class KeyHandler<RawClass> {
             } else if (oldValue != null && newValue == null) {
                 /* new is null, but old is not */
                 changed = true;
-            } else if (!newValue.getClass().isPrimitive()) {
+            } else if (!Clazz.isPrimitive(getRawClass())) {
                 /* no primitive, we cannot detect changes 100% */
                 changed = true;
             } else if (!newValue.equals(oldValue)) {
