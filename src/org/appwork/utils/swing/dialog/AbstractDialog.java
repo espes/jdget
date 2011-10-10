@@ -202,7 +202,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // add icon if available
             if (this.icon != null) {
                 getDialog().setLayout(new MigLayout("ins 5,wrap 2","[][grow,fill]","[grow,fill][]"));
-                this.getDialog().add(this.iconLabel = new JLabel(this.icon), "split 2,alignx left,aligny center,shrinkx,gapright 10");
+                this.getDialog().add(this.iconLabel = new JLabel(this.icon), "gapright 10");
             }else{
                 getDialog().setLayout(new MigLayout("ins 5,wrap 1","[grow,fill]","[grow,fill][]")); 
             }
@@ -266,7 +266,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             } else {
                 this.timerLbl.setText(null);
             }
-            getDialog().add(bottom,"spanx");
+            getDialog().add(bottom,"spanx,growx,pushx");
             // pack dialog
             this.getDialog().invalidate();
             // this.setMinimumSize(this.getPreferredSize());
