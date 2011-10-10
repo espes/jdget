@@ -228,12 +228,6 @@ public abstract class KeyHandler<RawClass> {
     @SuppressWarnings("unchecked")
     public abstract RawClass getValue();
 
-    public void validateEncryptionKey(byte[] key2) {
-        if (key2 == null) throw new InterfaceParseException("Key missing in " + this);
-        if (key2.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + this + " is invalid. required length: " + JSonStorage.KEY.length); }
-
-    }
-
     /**
      * @throws Throwable
      * 
@@ -244,20 +238,20 @@ public abstract class KeyHandler<RawClass> {
         // read local cryptinfos
         this.primitive = JSonStorage.canStorePrimitive(this.getter.getMethod().getReturnType());
         final CryptedStorage an = this.getAnnotation(CryptedStorage.class);
-        crypted=storageHandler.isCrypted();
-        cryptKey=storageHandler.getCryptKey();
+        this.crypted = this.storageHandler.isCrypted();
+        this.cryptKey = this.storageHandler.getCryptKey();
         if (an != null) {
-            if (storageHandler.isCrypted()) {
+            if (this.storageHandler.isCrypted()) {
                 throw new InterfaceParseException("No reason to mark " + this + " as @CryptedStorage. Parent is already CryptedStorage");
             } else if (!(this instanceof ListHandler)) { throw new InterfaceParseException(this + " Cannot set @CryptedStorage on primitive fields. Use an object, or an extra plain config interface"); }
             this.crypted = true;
-            validateEncryptionKey(an.key());
-            cryptKey = an.key();
+            this.validateEncryptionKey(an.key());
+            this.cryptKey = an.key();
         }
         final PlainStorage anplain = this.getAnnotation(PlainStorage.class);
         if (anplain != null) {
             if (an != null) { throw new InterfaceParseException("Cannot Set CryptStorage and PlainStorage Annotation in " + this); }
-            if (!storageHandler.isCrypted()) {
+            if (!this.storageHandler.isCrypted()) {
                 throw new InterfaceParseException("No reason to mark " + this + " as @PlainStorage. Parent is already Plain");
             } else if (!(this instanceof ListHandler)) { throw new InterfaceParseException(this + " Cannot set @PlainStorage on primitive fields. Use an object, or an extra plain config interface");
             // primitive storage. cannot set single plain values in a en crypted
@@ -380,34 +374,46 @@ public abstract class KeyHandler<RawClass> {
     }
 
     /**
-     * @param object
+     * @param newValue
      */
-    public void setValue(final RawClass object) throws ValidationException {
+    public void setValue(final RawClass newValue) throws ValidationException {
         try {
-            final RawClass old = this.getValue();
-            if (object == null && old == null) {
+            final RawClass oldValue = this.getValue();
+            if (oldValue == null && newValue == null) {
+                /* everything is null */
                 return;
-            } else if (object != null && object.equals(old)) {
-                //
-                return;
-
             }
+            boolean changed = false;
+            if (newValue != null && oldValue == null) {
+                /* old is null, but new is not */
+                changed = true;
+            } else if (oldValue != null && newValue == null) {
+                /* new is null, but old is not */
+                changed = true;
+            } else if (!newValue.getClass().isPrimitive()) {
+                /* no primitive, we cannot detect changes 100% */
+                changed = true;
+            } else if (!newValue.equals(oldValue)) {
+                /* does not equal */
+                changed = true;
+            }
+            if (changed == false) { return; }
             if (this.validatorFactory != null) {
-                this.validatorFactory.validate(object);
+                this.validatorFactory.validate(newValue);
             }
-            this.validateValue(object);
-            this.putValue(object);
+            this.validateValue(newValue);
+            this.putValue(newValue);
 
-            this.fireEvent(ConfigEvent.Types.VALUE_UPDATED, this, object);
+            this.fireEvent(ConfigEvent.Types.VALUE_UPDATED, this, newValue);
 
         } catch (final ValidationException e) {
-            e.setValue(object);
+            e.setValue(newValue);
             this.fireEvent(ConfigEvent.Types.VALIDATOR_ERROR, this, e);
 
             throw e;
         } catch (final Throwable t) {
             final ValidationException e = new ValidationException(t);
-            e.setValue(object);
+            e.setValue(newValue);
             this.fireEvent(ConfigEvent.Types.VALIDATOR_ERROR, this, e);
 
             throw e;
@@ -418,6 +424,12 @@ public abstract class KeyHandler<RawClass> {
     @Override
     public String toString() {
         return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey() + " = " + this.getValue();
+    }
+
+    public void validateEncryptionKey(final byte[] key2) {
+        if (key2 == null) { throw new InterfaceParseException("Key missing in " + this); }
+        if (key2.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + this + " is invalid. required length: " + JSonStorage.KEY.length); }
+
     }
 
     /**
