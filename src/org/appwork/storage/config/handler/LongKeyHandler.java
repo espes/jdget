@@ -23,7 +23,7 @@ import org.appwork.storage.config.annotations.SpinnerValidator;
  */
 public class LongKeyHandler extends KeyHandler<Long> {
 
-    private JsonKeyValueStorage primitiveStorage;
+
     private SpinnerValidator    validator;
     private long                min;
     private long                max;

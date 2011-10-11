@@ -73,7 +73,13 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
     private boolean              rendererMode;
 
     private char[]               password = new char[] {};
-    private static String        MASK     = "••••••••••";
+
+    private String mask=null;
+    public void setMask(String mask) {
+        this.mask = mask;
+    }
+
+    public static String        MASK     = "••••••••••";
 
     /**
      * @param constraints
@@ -89,12 +95,20 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
         this.editor.addFocusListener(this);
         this.add(this.renderer, "hidemode 3");
         this.add(this.editor, "hidemode 3");
-        this.editor.setText(ExtPasswordField.MASK);
+        this.editor.setText(getMask());
         // this.renderer.setBackground(Color.RED);
-        this.renderer.setText(ExtPasswordField.MASK);
+        this.renderer.setText(getMask());
         this.editor.getDocument().addDocumentListener(this);
         this.setRendererMode(true);
 
+    }
+
+    /**
+     * @return
+     */
+    protected String getMask() {
+        // TODO Auto-generated method stub
+        return mask!=null?mask:ExtPasswordField.MASK;
     }
 
     /*
@@ -105,7 +119,7 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
      */
     @Override
     public void changedUpdate(final DocumentEvent e) {
-        if (!this.equal(this.editor.getPassword(), ExtPasswordField.MASK.toCharArray())) {
+        if (!this.equal(this.editor.getPassword(), getMask().toCharArray())) {
             this.onChanged();
         }
 
@@ -117,16 +131,18 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
      * @return
      */
     private boolean equal(final char[] pw, final char[] ca) {
-        boolean equals = pw.length == ca.length;
-        if (equals) {
+
+        if (pw.length == ca.length) {
             for (int i = 0; i < pw.length; i++) {
                 if (pw[i] != ca[i]) {
-                    equals = false;
-                    break;
+                 return false;
                 }
             }
+            return true;
+        }else{
+            return false;
         }
-        return false;
+
     }
 
     /*
@@ -141,7 +157,7 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
             this.setRendererMode(false);
             this.editor.requestFocus();
         } else {
-            this.editor.setText(ExtPasswordField.MASK);
+            this.editor.setText(getMask());
             this.editor.selectAll();
         }
 
@@ -157,11 +173,12 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
 
         if (e.getSource() == this.editor) {
             final char[] pw = this.editor.getPassword();
-            final char[] ca = ExtPasswordField.MASK.toCharArray();
+            final char[] ca = getMask().toCharArray();
 
             if (!this.equal(pw, ca)) {
+                this.equal(pw, ca);
                 this.password = pw;
-                this.editor.setText(ExtPasswordField.MASK);
+                this.editor.setText(getMask());
             }
             this.setRendererMode(true);
             this.setHelpText(this.getHelpText());
@@ -192,7 +209,7 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
      */
     @Override
     public void insertUpdate(final DocumentEvent e) {
-        if (!this.equal(this.editor.getPassword(), ExtPasswordField.MASK.toCharArray())) {
+        if (!this.equal(this.editor.getPassword(), getMask().toCharArray())) {
             this.onChanged();
         }
 
@@ -210,7 +227,7 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
      */
     @Override
     public void removeUpdate(final DocumentEvent e) {
-        if (!this.equal(this.editor.getPassword(), ExtPasswordField.MASK.toCharArray())) {
+        if (!this.equal(this.editor.getPassword(), getMask().toCharArray())) {
             this.onChanged();
         }
 
@@ -233,11 +250,11 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
     public void setHelpText(final String helpText) {
         this.renderer.setHelpText(helpText);
 
-        if (this.getHelpText() != null && (this.getPassword() == null || this.getPassword().length == 0 || ExtPasswordField.MASK.equals(new String(this.getPassword())))) {
+        if (this.getHelpText() != null && (this.getPassword() == null || this.getPassword().length == 0 || getMask().equals(new String(this.getPassword())))) {
             this.renderer.setText(this.getHelpText());
             this.renderer.setForeground(this.getHelpColor());
         } else {
-            this.renderer.setText(ExtPasswordField.MASK);
+            this.renderer.setText(getMask());
             this.renderer.setForeground(this.renderer.getDefaultColor());
         }
         this.setRendererMode(this.rendererMode);

@@ -248,6 +248,7 @@ public class HTTPConstants {
      * along the request-response chain. Pragma: no-cache
      */
     public static final String HEADER_REQUEST_VIA                        = "Via";
+    public static final String HEADER_REQUEST_LOCATION                        = "Location";
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
