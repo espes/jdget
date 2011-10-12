@@ -5,17 +5,23 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
 
 import org.appwork.app.gui.copycutpaste.CopyCutPasteHandler;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storage;
+import org.appwork.swing.action.BasicAction;
+import org.appwork.swing.components.ExtButton;
 import org.appwork.swing.trayicon.AWTrayIcon;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.logging.Log;
@@ -36,13 +42,69 @@ public abstract class BasicGui {
 
     private final Storage storage;
 
+    public static void main(String[] args) {
+        BasicGui bg = new BasicGui("Test") {
+
+            @Override
+            protected void requestExit() {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            protected void layoutPanel() {
+
+                getFrame().add(new ExtButton(new BasicAction("DOIT") {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        new Thread() {
+                            public void run() {
+                                try {
+
+                                    Thread.sleep(5000);
+                                    System.out.println("HIDE");
+                                    getFrame().setVisible(false);
+                                    Thread.sleep(5000);
+                                    System.out.println("SHOW");
+                                    getFrame().setVisible(true);
+                                } catch (InterruptedException e) {
+                                    // TODO Auto-generated catch block
+                                    e.printStackTrace();
+                                }
+                            }
+
+                        }.start();
+                        JOptionPane.showMessageDialog(getFrame(), "bla");
+                    }
+                }));
+            }
+        };
+    }
+
     protected BasicGui(final String title) {
 
-        this.frame = new JFrame(title);
+        this.frame = new JFrame(title) {
+            public void setVisible(boolean b) {
+                //if we hide a frame which is locked by an active modal dialog, we get in problems. avoid this!
+                if (!b) {
+                    for (Window w : getOwnedWindows()) {
+                        if (w instanceof JDialog && ((JDialog) w).isModal() && w.isActive()) {
+                            Toolkit.getDefaultToolkit().beep();
+                            throw new ActiveDialogException(((JDialog) w));
+                        }
+
+                    }
+                }
+                super.setVisible(b);
+            }
+
+        };
 
         // dilaog init
         this.storage = JSonStorage.getPlainStorage("BasicGui");
         Dialog.getInstance().setParentOwner(this.frame);
+
         this.frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(final WindowEvent arg0) {

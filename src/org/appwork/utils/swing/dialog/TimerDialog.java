@@ -42,7 +42,7 @@ public abstract class TimerDialog {
             }
 
         }
-
+ 
         @Override
         public void dispose() {
             TimerDialog.this.dispose();

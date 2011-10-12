@@ -332,6 +332,18 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             }
         
             this.setVisible(true);
+            //dialog gets closed
+            System.out.println("Unlocked "+ this.getDialog().isDisplayable());
+          
+          
+            if(returnBitMask==0){
+          setVisible(true);
+            Log.L.fine("Answer: Parent Closed ");
+            this.returnBitMask |= Dialog.RETURN_CLOSED;
+            setVisible(false);
+      
+            this.dispose();
+            }
         } finally {
             // System.out.println("SET OLD");
             Dialog.getInstance().setParentOwner(this.getDialog().getParent());
@@ -349,6 +361,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     public void actionPerformed(final ActionEvent e) {
+        
+        
+        
         if (e.getSource() == this.okButton) {
             Log.L.fine("Answer: Button<OK:" + this.okButton.getText() + ">");
             this.setReturnmask(true);
