@@ -23,6 +23,7 @@ import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
+import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.HTTPHeader;
 
@@ -290,7 +291,21 @@ public class InterfaceHandler<T> {
                         throw new ParseException("return Type of " + m + " is invalid");
                     }
                 } else {
-                    JSonStorage.canStore(m.getGenericReturnType());
+                    try {
+                        JSonStorage.canStore(m.getGenericReturnType());
+                    } catch (final InvalidTypeException e) {
+                        final AllowStorage allow = m.getAnnotation(AllowStorage.class);
+                        boolean found = false;
+                        if (allow != null) {
+                            for (final Class<?> c : allow.value()) {
+                                if (e.getType() == c) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!found) { throw new InvalidTypeException(e); }
+                    }
                 }
             } catch (final InvalidTypeException e) {
                 throw new ParseException("return Type of " + m + " is invalid", e);
