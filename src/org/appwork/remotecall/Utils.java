@@ -9,11 +9,17 @@
  */
 package org.appwork.remotecall;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.URLEncoder;
 
 import org.appwork.remotecall.client.SerialiseException;
 import org.appwork.storage.JSonStorage;
+import org.appwork.utils.reflection.Clazz;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 
 /**
  * @author thomas
@@ -21,25 +27,9 @@ import org.appwork.storage.JSonStorage;
  */
 public class Utils {
 
-    public static final char PARAMETER_DELIMINATOR = '\n';
 
-    /**
-     * @param returnValue
-     * @param returnType
-     * @return
-     */
-    public static Object convert(final Object obj, final Class<?> class1) {
 
-        if (class1 == int.class) {
-            return ((Number) obj).intValue();
-        } else if (class1 == long.class) {
-            //
-            return ((Number) obj).longValue();
-        } else if (class1 == void.class) { return null; }
-
-        return obj;
-
-    }
+ 
 
     /**
      * @param m
@@ -62,13 +52,13 @@ public class Utils {
         return sb.toString();
     }
 
-    public static String serialise(final Object[] args) throws SerialiseException {
+    public static String serialise(final Object[] args) throws SerialiseException, UnsupportedEncodingException {
 
         if (args == null) { return ""; }
         final StringBuilder sb = new StringBuilder();
         for (final Object o : args) {
             if (sb.length() > 0) {
-                sb.append(Utils.PARAMETER_DELIMINATOR);
+                sb.append("&=");
             }
             sb.append(Utils.serialiseSingleObject(o));
         }
@@ -83,6 +73,35 @@ public class Utils {
             throw new SerialiseException(e);
 
         }
+    }
+
+    /**
+     * @param string
+     * @param types
+     * @return
+     * @throws IOException
+     * @throws JsonMappingException
+     * @throws JsonParseException
+     */
+    public  static Object convert(final Object obj, Type type) throws JsonParseException, JsonMappingException, IOException {
+   
+        if(Clazz.isPrimitive(type)){
+            if(Clazz.isByte(type)){
+                return ((Number)obj).byteValue();
+            }else if(Clazz.isDouble(type)){
+                return ((Number)obj).doubleValue();
+            }else if(Clazz.isFloat(type)){
+                return ((Number)obj).floatValue();
+            }else if(Clazz.isLong(type)){
+                return ((Number)obj).longValue();
+            }else if(Clazz.isInteger(type)){
+                return ((Number)obj).intValue();
+            }
+            
+        }
+        return obj;
+        
+
     }
 
 }

@@ -11,25 +11,33 @@ package org.appwork.remotecall.client;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.HashSet;
 
+import org.appwork.remotecall.RemoteCallInterface;
 import org.appwork.remotecall.Utils;
 import org.appwork.remotecall.server.ExceptionWrapper;
 import org.appwork.remotecall.server.ParsingException;
 import org.appwork.remotecall.server.RemoteCallException;
 import org.appwork.remotecall.server.ServerInvokationException;
+import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
+import org.appwork.storage.config.InterfaceParseException;
+import org.appwork.utils.logging.Log;
 
 /**
  * @author thomas
  * 
  */
-public class InvocationHandlerImpl implements InvocationHandler {
+public class InvocationHandlerImpl<T extends RemoteCallInterface> implements InvocationHandler {
 
-    private final RemoteCallClient        client;
-    private final HashMap<Method, String> methodMap;
-    private final String                  name;
+    private final RemoteCallClient         client;
+ 
+    private final String                   name;
+    private Class<T>                       interfaceClass;
+    private HashMap<String, MethodHandler> handler;
 
     /*
      * (non-Javadoc)
@@ -40,38 +48,72 @@ public class InvocationHandlerImpl implements InvocationHandler {
     /**
      * @param client
      * @param class1
-     * @throws ParsingException 
+     * @throws ParsingException
      */
-    public InvocationHandlerImpl(final RemoteCallClient client, final Class<?> class1) throws ParsingException {
+    public InvocationHandlerImpl(final RemoteCallClient client, final Class<T> class1) throws ParsingException {
         this.client = client;
         this.name = class1.getSimpleName();
-        this.methodMap = new HashMap<Method, String>();
+        interfaceClass = class1;
+      
+        parse();
 
-        for (final Method m : class1.getMethods()) {
-            this.methodMap.put(m, Utils.createMethodFingerPrint(m));
-            for (Class<?> e : m.getExceptionTypes()) {
-                if (e.isAssignableFrom(RemoteCallException.class)) { throw new ParsingException(m + " exceptions do not extend RemoteCallException"); }
-                try {
-                    e.getConstructors();
-             
-                } catch (Throwable e1) {
-                    throw new ParsingException(e + " no accessable null constructor available");
-                }
-            }
-
-        }
     }
 
+    /**
+     * 
+     */
+    private void parse() {
+
+        Class<?> clazz = this.interfaceClass;
+        this.handler = new HashMap<String, MethodHandler>();
+        HashSet<String> dupe = new HashSet<String>();
+        while (clazz != null && clazz != RemoteCallInterface.class) {
+            for (final Method m : clazz.getDeclaredMethods()) {
+
+                if (!dupe.add(m.getName())) { throw new InterfaceParseException("Method " + m.getName() + " is avlailable twice in " + clazz); }
+                try {
+                  if(m.getGenericReturnType()!=void.class)  JSonStorage.canStore(m.getGenericReturnType());
+                    for (Type t : m.getGenericParameterTypes()) {
+                        JSonStorage.canStore(t);
+                    }
+                } catch (final InvalidTypeException e) {
+                    Log.exception(e);
+                    throw new InterfaceParseException("Json Serialize not possible for " + m);
+                }
+                for (Class<?> e : m.getExceptionTypes()) {
+                    if (e.isAssignableFrom(RemoteCallException.class)) { throw new InterfaceParseException(m + " exceptions do not extend RemoteCallException"); }
+                    try {
+                        e.getConstructors();
+
+                    } catch (Throwable e1) {
+                        throw new InterfaceParseException(e + " no accessable null constructor available");
+                    }
+                }
+                handler.put(m.getName(), new MethodHandler(m));
+            }
+
+            // run down the calss hirarchy to find all methods. getMethods does
+            // not work, because it only finds public methods
+            final Class<?>[] interfaces = clazz.getInterfaces();
+            clazz = interfaces[0];
+
+        }
+
+    }
+
+   
     public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
 
         String returnValue;
         Object obj;
 
         try {
-            returnValue = this.client.call(this.name, this.methodMap.get(method), args);
-            obj = JSonStorage.restoreFromString(returnValue, new TypeRef(method.getGenericReturnType()) {
-            }, null);
-            return Utils.convert(obj, method.getReturnType());
+          
+            returnValue = this.client.call(this.name, method.getName(), args);
+            TypeRef<Object> tr = new TypeRef<Object>(method.getGenericReturnType()) {
+            };
+            obj = JSonStorage.restoreFromString(returnValue, tr, null);
+            return Utils.convert(obj,tr.getType());
 
         } catch (final ServerInvokationException e) {
 
@@ -89,4 +131,12 @@ public class InvocationHandlerImpl implements InvocationHandler {
 
     }
 
+    /**
+     * @return 
+     * 
+     */
+    public HashMap<String, MethodHandler> getHandler() {
+        return handler;
+        
+    }
 }

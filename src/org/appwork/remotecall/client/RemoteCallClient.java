@@ -1,5 +1,7 @@
 package org.appwork.remotecall.client;
 
+import java.io.UnsupportedEncodingException;
+
 import org.appwork.remotecall.Utils;
 import org.appwork.remotecall.server.ServerInvokationException;
 
@@ -18,6 +20,8 @@ public abstract class RemoteCallClient {
         try {
             return send(serviceName, routine, Utils.serialise(args));
         } catch (final SerialiseException e) {
+            throw new RuntimeException(e);
+        } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
 
