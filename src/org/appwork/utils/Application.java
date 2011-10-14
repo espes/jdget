@@ -22,6 +22,7 @@ import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 
+import org.appwork.exceptions.WTFException;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
@@ -309,6 +310,18 @@ public class Application {
      */
     public synchronized static void setApplication(final String newAppFolder) {
         Application.APP_FOLDER = newAppFolder;
+    }
+
+    /**
+     * @return
+     */
+    public static URL getRootURL() {
+        
+        try {
+            return new File(getRoot()).toURI().toURL();
+        } catch (MalformedURLException e) {
+           throw new WTFException(e);
+        }
     }
 
 }
