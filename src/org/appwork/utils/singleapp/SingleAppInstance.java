@@ -67,7 +67,7 @@ public class SingleAppInstance {
     private File                    portFile      = null;
 
     public SingleAppInstance(final String appID) {
-        this(appID, new File(Application.getRoot()));
+        this(appID, new File(Application.getHome()));
     }
 
     public SingleAppInstance(final String appID, final File directory) {

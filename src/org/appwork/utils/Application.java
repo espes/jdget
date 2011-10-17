@@ -145,7 +145,7 @@ public class Application {
      * @return
      */
     public static File getResource(final String relative) {
-        return new File(Application.getRoot(), relative);
+        return new File(Application.getHome(), relative);
     }
 
     /**
@@ -172,17 +172,17 @@ public class Application {
      */
     public static URL getRessourceURL(final String relative, final boolean preferClasspath) {
         try {
-            if(relative==null)return null;
+            if (relative == null) return null;
             if (preferClasspath) {
 
                 final URL res = Application.class.getClassLoader().getResource(relative);
                 if (res != null) { return res; }
-                final File file = new File(Application.getRoot(), relative);
+                final File file = new File(Application.getHome(), relative);
                 if (!file.exists()) { return null; }
                 return file.toURI().toURL();
 
             } else {
-                final File file = new File(Application.getRoot(), relative);
+                final File file = new File(Application.getHome(), relative);
                 if (file.exists()) { return file.toURI().toURL(); }
 
                 final URL res = Application.class.getClassLoader().getResource(relative);
@@ -201,7 +201,7 @@ public class Application {
      * 
      * @return
      */
-    public static String getRoot() {
+    public static String getHome() {
         return Application.getRoot(Application.class);
     }
 
@@ -315,13 +315,60 @@ public class Application {
     /**
      * @return
      */
-    public static URL getRootURL() {
-        
+    public static URL getHomeURL() {
+
         try {
-            return new File(getRoot()).toURI().toURL();
+            return new File(getHome()).toURI().toURL();
         } catch (MalformedURLException e) {
-           throw new WTFException(e);
+            throw new WTFException(e);
         }
+    }
+
+    /**
+     * @return
+     */
+    public static File getApplicationRoot() {
+        return getRootByClass(Application.class,null);
+    }
+
+    /**
+     * @param class1
+     * @param subPaths 
+     * @return
+     */
+    public static File getRootByClass(Class<?> class1, String subPaths) {
+        // this is the jar file
+        String loc;
+        try {
+            loc = URLDecoder.decode(class1.getProtectionDomain().getCodeSource().getLocation().getFile(), "UTF-8");
+        } catch (final Exception e) {
+            loc = class1.getProtectionDomain().getCodeSource().getLocation().getFile();
+            System.err.println("failed urldecoding Location: " + loc);
+        }
+        File appRoot = new File(loc);
+        if (appRoot.isFile()) {
+            appRoot = appRoot.getParentFile();
+        }
+if(subPaths!=null){
+    return new File(appRoot,subPaths);
+}
+        return appRoot;
+    }
+
+    /**
+     * @param class1
+     * @param subPaths TODO
+     * @return
+     */
+    public static URL getRootUrlByClass(Class<?> class1, String subPaths) {
+        // TODO Auto-generated method stub
+        try {
+            return getRootByClass(class1,subPaths).toURI().toURL();
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }
