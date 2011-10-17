@@ -19,5 +19,6 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/WinFileIconExport/libs/doc.zip!/javadoc"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="src" path="/JDBrowser"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

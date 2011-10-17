@@ -97,9 +97,10 @@ public class Main {
 
         String dll = null;
         dll = "C:\\Windows\\system32\\User32.dll";
-        dll = "C:\\Users\\thomas\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
-        dll = "C:\\Program Files\\JDownloader\\JDownloader.exe";
-        dll = "C:\\Windows\\system32\\Shell32.dll";
+        // dll =
+        // "C:\\Users\\thomas\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe";
+        // dll = "C:\\Program Files\\JDownloader\\JDownloader.exe";
+        // dll = "C:\\Windows\\system32\\Shell32.dll";
         final String NameID = new File(dll).getName();
         final HMODULE lib = Kernel.I.LoadLibraryExA(dll, null, Kernel.LOAD_LIBRARY_AS_DATAFILE);
 
