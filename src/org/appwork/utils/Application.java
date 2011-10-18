@@ -53,6 +53,7 @@ public class Application {
     private static String ROOT;
 
     private static long   javaVersion = 0;
+    public static long    JAVA15      = 15000000;
     public static long    JAVA16      = 16000000;
     public static long    JAVA17      = 17000000;
 
@@ -100,6 +101,34 @@ public class Application {
 
     public static String getApplication() {
         return Application.APP_FOLDER;
+    }
+
+    /**
+     * @return
+     */
+    public static File getApplicationRoot() {
+        return Application.getRootByClass(Application.class, null);
+    }
+
+    /**
+     * Returns the Path of appworkutils.jar
+     * 
+     * @return
+     */
+    public static String getHome() {
+        return Application.getRoot(Application.class);
+    }
+
+    /**
+     * @return
+     */
+    public static URL getHomeURL() {
+
+        try {
+            return new File(Application.getHome()).toURI().toURL();
+        } catch (final MalformedURLException e) {
+            throw new WTFException(e);
+        }
     }
 
     public static long getJavaVersion() {
@@ -172,7 +201,7 @@ public class Application {
      */
     public static URL getRessourceURL(final String relative, final boolean preferClasspath) {
         try {
-            if (relative == null) return null;
+            if (relative == null) { return null; }
             if (preferClasspath) {
 
                 final URL res = Application.class.getClassLoader().getResource(relative);
@@ -194,15 +223,6 @@ public class Application {
             e.printStackTrace();
         }
         return null;
-    }
-
-    /**
-     * Returns the Path of appworkutils.jar
-     * 
-     * @return
-     */
-    public static String getHome() {
-        return Application.getRoot(Application.class);
     }
 
     /**
@@ -231,6 +251,45 @@ public class Application {
         // do not use Log.L here. this might be null
         System.out.println("App Root: " + Application.ROOT);
         return Application.ROOT;
+    }
+
+    /**
+     * @param class1
+     * @param subPaths
+     * @return
+     */
+    public static File getRootByClass(final Class<?> class1, final String subPaths) {
+        // this is the jar file
+        String loc;
+        try {
+            loc = URLDecoder.decode(class1.getProtectionDomain().getCodeSource().getLocation().getFile(), "UTF-8");
+        } catch (final Exception e) {
+            loc = class1.getProtectionDomain().getCodeSource().getLocation().getFile();
+            System.err.println("failed urldecoding Location: " + loc);
+        }
+        File appRoot = new File(loc);
+        if (appRoot.isFile()) {
+            appRoot = appRoot.getParentFile();
+        }
+        if (subPaths != null) { return new File(appRoot, subPaths); }
+        return appRoot;
+    }
+
+    /**
+     * @param class1
+     * @param subPaths
+     *            TODO
+     * @return
+     */
+    public static URL getRootUrlByClass(final Class<?> class1, final String subPaths) {
+        // TODO Auto-generated method stub
+        try {
+            return Application.getRootByClass(class1, subPaths).toURI().toURL();
+        } catch (final MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -310,65 +369,6 @@ public class Application {
      */
     public synchronized static void setApplication(final String newAppFolder) {
         Application.APP_FOLDER = newAppFolder;
-    }
-
-    /**
-     * @return
-     */
-    public static URL getHomeURL() {
-
-        try {
-            return new File(getHome()).toURI().toURL();
-        } catch (MalformedURLException e) {
-            throw new WTFException(e);
-        }
-    }
-
-    /**
-     * @return
-     */
-    public static File getApplicationRoot() {
-        return getRootByClass(Application.class,null);
-    }
-
-    /**
-     * @param class1
-     * @param subPaths 
-     * @return
-     */
-    public static File getRootByClass(Class<?> class1, String subPaths) {
-        // this is the jar file
-        String loc;
-        try {
-            loc = URLDecoder.decode(class1.getProtectionDomain().getCodeSource().getLocation().getFile(), "UTF-8");
-        } catch (final Exception e) {
-            loc = class1.getProtectionDomain().getCodeSource().getLocation().getFile();
-            System.err.println("failed urldecoding Location: " + loc);
-        }
-        File appRoot = new File(loc);
-        if (appRoot.isFile()) {
-            appRoot = appRoot.getParentFile();
-        }
-if(subPaths!=null){
-    return new File(appRoot,subPaths);
-}
-        return appRoot;
-    }
-
-    /**
-     * @param class1
-     * @param subPaths TODO
-     * @return
-     */
-    public static URL getRootUrlByClass(Class<?> class1, String subPaths) {
-        // TODO Auto-generated method stub
-        try {
-            return getRootByClass(class1,subPaths).toURI().toURL();
-        } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return null;
     }
 
 }

@@ -11,7 +11,6 @@ package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 
 import org.appwork.storage.config.annotations.DefaultStringArrayValue;
 
@@ -21,26 +20,20 @@ import org.appwork.storage.config.annotations.DefaultStringArrayValue;
  */
 public class StringListHandler extends ListHandler<String[]> {
 
-    
-
     /**
      * @param storageHandler
      * @param key
      * @param type
      */
-    public StringListHandler(StorageHandler<?> storageHandler, String key, Type type) {
+    public StringListHandler(final StorageHandler<?> storageHandler, final String key, final Type type) {
         super(storageHandler, key, type);
-        // TODO Auto-generated constructor stub
     }
 
-
-    
     @Override
     protected Class<? extends Annotation> getDefaultAnnotation() {
-
         return DefaultStringArrayValue.class;
     }
- 
+
     /*
      * (non-Javadoc)
      * 
@@ -48,9 +41,7 @@ public class StringListHandler extends ListHandler<String[]> {
      * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
      */
     @Override
-    protected void validateValue(String[] object) throws Throwable {
-        // TODO Auto-generated method stub
-
-    }   
+    protected void validateValue(final String[] object) throws Throwable {
+    }
 
 }

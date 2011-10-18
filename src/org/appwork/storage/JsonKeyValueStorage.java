@@ -1,7 +1,6 @@
 package org.appwork.storage;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -33,11 +32,10 @@ public class JsonKeyValueStorage extends Storage {
         this.file = file;
         this.name = file.getName();
         this.key = key;
-        synchronized (JSonStorage.LOCK) {
-            final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
-            }, new HashMap<String, Object>());
-            this.map.putAll(load);
-        }
+        final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
+        }, new HashMap<String, Object>());
+
+        this.map.putAll(load);
     }
 
     public JsonKeyValueStorage(final String name) throws StorageException {
@@ -56,12 +54,11 @@ public class JsonKeyValueStorage extends Storage {
         Log.L.finer("Read Config: " + this.file.getAbsolutePath());
 
         this.key = key;
-        synchronized (JSonStorage.LOCK) {
-            final HashMap<String, Object> load = JSonStorage.restoreFrom(this.file, plain, key, new TypeRef<HashMap<String, Object>>() {
-            }, new HashMap<String, Object>());
-            // Log.L.finer(JSonStorage.toString(load));
-            this.map.putAll(load);
-        }
+
+        final HashMap<String, Object> load = JSonStorage.restoreFrom(this.file, plain, key, new TypeRef<HashMap<String, Object>>() {
+        }, new HashMap<String, Object>());
+        // Log.L.finer(JSonStorage.toString(load));
+        this.map.putAll(load);
     }
 
     @Override
@@ -85,8 +82,6 @@ public class JsonKeyValueStorage extends Storage {
         this.closed = true;
     }
 
- 
-
     @SuppressWarnings("unchecked")
     @Override
     public <E> E get(final String key, final E def) throws StorageException {
@@ -94,7 +89,7 @@ public class JsonKeyValueStorage extends Storage {
         Object ret = contains ? this.map.get(key) : null;
 
         if (ret != null && def != null && ret.getClass() != def.getClass()) {
-            /* ret class different from def class, so we have to convert */           
+            /* ret class different from def class, so we have to convert */
 
             if (def instanceof Long) {
                 if (ret instanceof Integer) {
@@ -112,8 +107,8 @@ public class JsonKeyValueStorage extends Storage {
                     // this.name + "." + key + "=" + ret));
                     ret = new Integer(((Long) ret).intValue());
                 }
-            }else
-            
+            } else
+
             if (def instanceof Double) {
                 if (ret instanceof Float) {
                     // this is normal, because jackson converts tiny longs to
@@ -138,13 +133,13 @@ public class JsonKeyValueStorage extends Storage {
             if (def instanceof Boolean) {
                 this.put(key, (Boolean) def);
             } else if (def instanceof Long) {
-                this.put(key, (Long) def);           
+                this.put(key, (Long) def);
             } else if (def instanceof Integer) {
-                this.put(key, (Integer) def);            
+                this.put(key, (Integer) def);
             } else if (def instanceof Byte) {
                 this.put(key, (Byte) def);
             } else if (def instanceof String || def == null) {
-                this.put(key, (String) def);         
+                this.put(key, (String) def);
             } else if (def instanceof Enum<?>) {
                 this.put(key, (Enum<?>) def);
             } else if (def instanceof Double) {
@@ -206,7 +201,6 @@ public class JsonKeyValueStorage extends Storage {
         return this.map.containsKey(key);
     }
 
-  
     /**
      * @return the autoPutValues
      */
@@ -289,7 +283,6 @@ public class JsonKeyValueStorage extends Storage {
         }
     }
 
-    
     public void put(final String key, final int value) throws StorageException {
         final boolean contains = this.map.containsKey(key);
         final Integer old = contains ? this.get(key, value) : null;
@@ -300,8 +293,6 @@ public class JsonKeyValueStorage extends Storage {
             this.getEventSender().fireEvent(new StorageKeyAddedEvent<Integer>(this, key, value));
         }
     }
-
- 
 
     @Override
     public void put(final String key, final Integer value) throws StorageException {
@@ -314,15 +305,6 @@ public class JsonKeyValueStorage extends Storage {
             this.getEventSender().fireEvent(new StorageKeyAddedEvent<Integer>(this, key, value));
         }
     }
-    
-
- 
-
- 
-
-    
-  
-
 
     public void put(final String key, final long value) throws StorageException {
         final boolean contains = this.map.containsKey(key);
@@ -347,8 +329,6 @@ public class JsonKeyValueStorage extends Storage {
         }
     }
 
-
-
     @Override
     public void put(final String key, final String value) throws StorageException {
         final boolean contains = this.map.containsKey(key);
@@ -360,8 +340,6 @@ public class JsonKeyValueStorage extends Storage {
             this.getEventSender().fireEvent(new StorageKeyAddedEvent<String>(this, key, value));
         }
     }
-
-
 
     @Override
     public Object remove(final String key) {
@@ -406,9 +384,5 @@ public class JsonKeyValueStorage extends Storage {
         }
 
     }
-
-  
-
-    
 
 }

@@ -14,6 +14,7 @@ import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxEditor;
@@ -477,7 +478,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         this(null);
     }
 
-    public SearchComboBox(final ArrayList<T> plugins) {
+    public SearchComboBox(final List<T> plugins) {
         super((ComboBoxModel) null);
         this.addFocusListener(new FocusListener() {
 
@@ -643,7 +644,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * 
      * @param listModel
      */
-    public void setList(final ArrayList<T> listModel) {
+    public void setList(final List<T> listModel) {
         super.setModel(new DefaultComboBoxModel(listModel.toArray(new Object[] {})));
         try {
             final BasicComboBoxUI udi = (BasicComboBoxUI) this.getUI();

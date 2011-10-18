@@ -88,9 +88,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.model = table;
         this.sortOrderIdentifier = null;
 
-        if (this.model != null) {
-            this.id = this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName() + "." + (this.model.getColumnCount() + 1);
-        }
+        this.generateID();
         // sort function
         this.rowSorter = new ExtDefaultRowSorter<E>();
         this.tooltip = new ToolTip();
@@ -209,6 +207,10 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public void extendControlButtonMenu(final JPopupMenu popup) {
         // TODO Auto-generated method stub
 
+    }
+
+    private void generateID() {
+        this.id = this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName();
     }
 
     /**
@@ -367,7 +369,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.resetEditor();
         this.configureEditorHighlighters(ret, (E) value, isSelected, row);
         this.configureEditorComponent((E) value, isSelected, row, column);
-        ret.setEnabled(getModel().getTable().isEnabled()&&this.isEnabled((E) value));
+        ret.setEnabled(this.getModel().getTable().isEnabled() && this.isEnabled((E) value));
 
         return ret;
     }
@@ -379,7 +381,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.resetRenderer();
         this.configureRendererHighlighters(ret, (E) value, isSelected, hasFocus, row);
         this.configureRendererComponent((E) value, isSelected, hasFocus, row, column);
-        ret.setEnabled(getModel().getTable().isEnabled()&&this.isEnabled((E) value));
+        ret.setEnabled(this.getModel().getTable().isEnabled() && this.isEnabled((E) value));
 
         return ret;
     }
@@ -540,8 +542,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public void setModel(final ExtTableModel<E> model) {
         this.model = model;
-        this.id = this.getClass().getSuperclass().getSimpleName() + "." + this.getClass().getName() + "." + model.getColumnCount();
-        System.out.println(this.id);
+        this.generateID();
     }
 
     public void setResizable(final boolean resizeAllowed) {
