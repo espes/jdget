@@ -234,12 +234,9 @@ public class Application {
         if (Application.isJared(rootOfClazz)) {
             // this is the jar file
             URL loc;
-            try {
-                loc = rootOfClazz.getProtectionDomain().getCodeSource().getLocation();
-            } catch (final Exception e) {
-                loc = rootOfClazz.getProtectionDomain().getCodeSource().getLocation();
-                System.err.println("failed urldecoding Location: " + loc);
-            }
+
+            loc = rootOfClazz.getProtectionDomain().getCodeSource().getLocation();
+
             File appRoot;
             try {
                 appRoot = new File(loc.toURI());
@@ -269,12 +266,9 @@ public class Application {
     public static File getRootByClass(final Class<?> class1, final String subPaths) {
         // this is the jar file
         URL loc;
-        try {
-            loc = class1.getProtectionDomain().getCodeSource().getLocation();
-        } catch (final Exception e) {
-            loc = class1.getProtectionDomain().getCodeSource().getLocation();
-            System.err.println("failed urldecoding Location: " + loc);
-        }
+
+        loc = class1.getProtectionDomain().getCodeSource().getLocation();
+
         File appRoot;
         try {
             appRoot = new File(loc.toURI());
