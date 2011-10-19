@@ -17,9 +17,9 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLDecoder;
 import java.nio.charset.Charset;
 
 import org.appwork.exceptions.WTFException;
@@ -233,18 +233,26 @@ public class Application {
         if (Application.ROOT != null) { return Application.ROOT; }
         if (Application.isJared(rootOfClazz)) {
             // this is the jar file
-            String loc;
+            URL loc;
             try {
-                loc = URLDecoder.decode(rootOfClazz.getProtectionDomain().getCodeSource().getLocation().getFile(), "UTF-8");
+                loc = rootOfClazz.getProtectionDomain().getCodeSource().getLocation();
             } catch (final Exception e) {
-                loc = rootOfClazz.getProtectionDomain().getCodeSource().getLocation().getFile();
+                loc = rootOfClazz.getProtectionDomain().getCodeSource().getLocation();
                 System.err.println("failed urldecoding Location: " + loc);
             }
-            File appRoot = new File(loc);
-            if (appRoot.isFile()) {
-                appRoot = appRoot.getParentFile();
+            File appRoot;
+            try {
+                appRoot = new File(loc.toURI());
+
+                if (appRoot.isFile()) {
+                    appRoot = appRoot.getParentFile();
+                }
+                Application.ROOT = appRoot.getAbsolutePath();
+            } catch (URISyntaxException e) {
+                Log.exception(e);
+                Application.ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + Application.APP_FOLDER + System.getProperty("file.separator");
+
             }
-            Application.ROOT = appRoot.getAbsolutePath();
         } else {
             Application.ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + Application.APP_FOLDER + System.getProperty("file.separator");
         }
@@ -260,19 +268,26 @@ public class Application {
      */
     public static File getRootByClass(final Class<?> class1, final String subPaths) {
         // this is the jar file
-        String loc;
+        URL loc;
         try {
-            loc = URLDecoder.decode(class1.getProtectionDomain().getCodeSource().getLocation().getFile(), "UTF-8");
+            loc = class1.getProtectionDomain().getCodeSource().getLocation();
         } catch (final Exception e) {
-            loc = class1.getProtectionDomain().getCodeSource().getLocation().getFile();
+            loc = class1.getProtectionDomain().getCodeSource().getLocation();
             System.err.println("failed urldecoding Location: " + loc);
         }
-        File appRoot = new File(loc);
-        if (appRoot.isFile()) {
-            appRoot = appRoot.getParentFile();
+        File appRoot;
+        try {
+            appRoot = new File(loc.toURI());
+
+            if (appRoot.isFile()) {
+                appRoot = appRoot.getParentFile();
+            }
+            if (subPaths != null) { return new File(appRoot, subPaths); }
+            return appRoot;
+        } catch (URISyntaxException e) {
+            Log.exception(e);
+            return null;
         }
-        if (subPaths != null) { return new File(appRoot, subPaths); }
-        return appRoot;
     }
 
     /**
