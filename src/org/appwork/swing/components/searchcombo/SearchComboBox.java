@@ -636,7 +636,6 @@ public abstract class SearchComboBox<T> extends JComboBox {
     public void setHelpText(final String helptext) {
         this.helptext = helptext;
         this.updateHelpText();
-
     }
 
     /**
@@ -645,6 +644,9 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * @param listModel
      */
     public void setList(final List<T> listModel) {
+        if (this.usePrototype() && listModel.size() > 0) {
+            this.setPrototypeDisplayValue(listModel.get(0));
+        }
         super.setModel(new DefaultComboBoxModel(listModel.toArray(new Object[] {})));
         try {
             final BasicComboBoxUI udi = (BasicComboBoxUI) this.getUI();
@@ -684,6 +686,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
             // for lafs not extending BasicComboBoxUI it is possible to open a
             // empty popup
         }
+
     }
 
     /**
@@ -789,6 +792,10 @@ public abstract class SearchComboBox<T> extends JComboBox {
             this.setText(this.helptext);
             this.updateColorByContent();
         }
+    }
+
+    public boolean usePrototype() {
+        return true;
     }
 
 }

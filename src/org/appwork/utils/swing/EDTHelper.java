@@ -26,21 +26,21 @@ public abstract class EDTHelper<T> implements Runnable {
     /**
      * flag. If Runnable has terminated yet
      */
-    private boolean      done    = false;
+    private volatile boolean done    = false;
 
     /**
      * flag, has runnable already started, invoked in edt
      */
-    private boolean      started = false;
+    private volatile boolean started = false;
     /**
      * lock used for EDT waiting
      */
-    private final Object lock    = new Object();
+    private final Object     lock    = new Object();
 
     /**
      * Stores The returnvalue. This Value if of the Generic Datatype T
      */
-    private T            returnValue;
+    private T                returnValue;
 
     /**
      * Implement this method. Gui code should be used ONLY in this Method.
@@ -65,22 +65,22 @@ public abstract class EDTHelper<T> implements Runnable {
      * Run the runnable
      */
     public void run() {
-        synchronized (this.lock) {
-            this.started = true;
-        }
+        this.started = true;
         try {
             this.returnValue = this.edtRun();
-        } catch (final Exception e) {
+        } catch (final Throwable e) {
             org.appwork.utils.logging.Log.exception(e);
+        } finally {
+            synchronized (this.lock) {
+                this.done = true;
+                this.lock.notify();
+            }
         }
-        synchronized (this.lock) {
-            this.lock.notify();
-        }
-        this.done = true;
+
     }
 
-    public boolean start() {
-        return this.start(false);
+    public void start() {
+        this.start(false);
     }
 
     /**
@@ -88,16 +88,13 @@ public abstract class EDTHelper<T> implements Runnable {
      * 
      * returns true in case we are in EDT or false if it got invoked later
      */
-    public boolean start(final boolean invokeLater) {
-        synchronized (this.lock) {
-            this.started = true;
-        }
+    public void start(final boolean invokeLater) {
+        if (this.started) { return; }
+        this.started = true;
         if (!invokeLater && SwingUtilities.isEventDispatchThread()) {
             this.run();
-            return true;
         } else {
             SwingUtilities.invokeLater(this);
-            return false;
         }
     }
 
@@ -107,20 +104,14 @@ public abstract class EDTHelper<T> implements Runnable {
      */
     public void waitForEDT() {
         if (this.done) { return; }
-        boolean waitForFinish = true;
+        this.start(false);
+        if (this.done) { return; }
         synchronized (this.lock) {
-            if (this.started == false) {
-                waitForFinish = !this.start(false);
-            }
-        }
-        if (waitForFinish) {
-            while (!this.done) {
-                synchronized (this.lock) {
-                    try {
-                        this.lock.wait(1000);
-                    } catch (final InterruptedException e) {
-                    }
-                }
+            if (this.done) { return; }
+            try {
+                this.lock.wait();
+            } catch (final InterruptedException e) {
+                org.appwork.utils.logging.Log.exception(e);
             }
         }
     }
