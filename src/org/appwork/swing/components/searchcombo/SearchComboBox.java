@@ -43,6 +43,7 @@ import javax.swing.plaf.basic.ComboPopup;
 import org.appwork.app.gui.BasicGui;
 import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
+import org.appwork.swing.components.searchcombo.SearchComboBox.Editor;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.SwingUtils;
@@ -93,6 +94,20 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
             };
             this.tf.getDocument().addDocumentListener(this);
+tf.addFocusListener(new FocusListener() {
+
+            @Override
+            public void focusGained(final FocusEvent e) {
+//                SearchComboBox.this.getEditor().getEditorComponent().requestFocus();
+            }
+
+            @Override
+            public void focusLost(final FocusEvent e) {
+                // TODO Auto-generated method stub
+              hidePopup();
+
+            }
+        });
             this.icon = new JLabel();
             // editor panel
             this.panel = new MigPanel("ins 0", "[][grow,fill]", "[grow,fill]") {
@@ -490,6 +505,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
             @Override
             public void focusLost(final FocusEvent e) {
                 // TODO Auto-generated method stub
+              hidePopup();
 
             }
         });
@@ -497,7 +513,9 @@ public abstract class SearchComboBox<T> extends JComboBox {
             this.setList(plugins);
         }
 
+   
         this.setEditor(new Editor());
+        
         this.setEditable(true);
 
         // we extends the existing renderer. this avoids LAF incompatibilities
