@@ -36,6 +36,14 @@ public class ExtButton extends JButton implements ToolTipHandler {
 
     }
 
+    /**
+     * 
+     */
+    public ExtButton() {
+     this(null);
+        // TODO Auto-generated constructor stub
+    }
+
     public ExtButton setTooltipsEnabled(boolean b) {
         if (b) {
             ToolTipController.getInstance().register(this);
@@ -130,18 +138,20 @@ public class ExtButton extends JButton implements ToolTipHandler {
 
                     @Override
                     public void mouseEntered(MouseEvent e) {
-                        setContentAreaFilled(true);
+                        onRollOver();
+                   
                     }
 
                     @Override
                     public void mouseExited(MouseEvent e) {
-                        setContentAreaFilled(false);
+                        onRollOut();
+                  
                     }
 
                 };
             }
             addMouseListener(rollOverlistener);
-            setContentAreaFilled(false);
+            onRollOut();
 
         } else {
             if (rollOverlistener != null) {
@@ -149,5 +159,21 @@ public class ExtButton extends JButton implements ToolTipHandler {
                 rollOverlistener = null;
             }
         }
+    }
+
+    /**
+     * 
+     */
+    protected void onRollOut() {
+        setContentAreaFilled(false);
+        
+    }
+
+    /**
+     * 
+     */
+    protected void onRollOver() {
+        setContentAreaFilled(true);
+        
     }
 }
