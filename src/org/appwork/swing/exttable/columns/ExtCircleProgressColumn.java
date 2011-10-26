@@ -31,6 +31,66 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
         this(title, null);
     }
 
+    public class IndeterminatedCircledProgressBar extends CircledProgressBar {
+
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
+        /**
+         * 
+         */
+
+        private long timer        = 0;
+        private long cleanupTimer = 0;
+
+        @Override
+        public boolean isDisplayable() {
+            return true;
+        }
+
+        @Override
+        public boolean isVisible() {
+            return false;
+        }
+
+        @Override
+        public void repaint() {
+            final ExtTableModel<E> mod = ExtCircleProgressColumn.this.getModel();
+            if (mod != null && mod.getTable() != null && mod.getTable().isShowing()) {
+
+                // cleanup map in case we removed a indeterminated value
+                if (System.currentTimeMillis() - this.cleanupTimer > 30000) {
+                    Entry<E, Long> next;
+                    for (final Iterator<Entry<E, Long>> it = ExtCircleProgressColumn.this.map.entrySet().iterator(); it.hasNext();) {
+                        next = it.next();
+                        final long lastUpdate = System.currentTimeMillis() - next.getValue();
+                        if (lastUpdate > 5000) {
+                            it.remove();
+                        }
+                    }
+
+                    this.cleanupTimer = System.currentTimeMillis();
+                    if (ExtCircleProgressColumn.this.map.size() == 0) {
+                        ExtCircleProgressColumn.this.indeterminatedRenderer.setIndeterminate(false);
+                        return;
+                    }
+
+                }
+                if (System.currentTimeMillis() - this.timer > 1000 / ExtCircleProgressColumn.this.getFps() && ExtCircleProgressColumn.this.columnIndex >= 0) {
+                    final ArrayList<E> selection = mod.getSelectedObjects();
+
+                    mod.fireTableChanged(new TableModelEvent(mod, 0, Integer.MAX_VALUE, ExtCircleProgressColumn.this.columnIndex, TableModelEvent.UPDATE));
+                    mod.setSelectedObjects(selection);
+                    this.timer = System.currentTimeMillis();
+                }
+
+            }
+
+        }
+
+    }
+
     public ExtCircleProgressColumn(final String name, final ExtTableModel<E> extModel) {
         super(name, extModel);
         this.determinatedRenderer = new CircledProgressBar() {
@@ -41,60 +101,7 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
             }
         };
 
-        this.indeterminatedRenderer = new CircledProgressBar() {
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 1L;
-            private long              timer            = 0;
-            private long              cleanupTimer     = 0;
-
-            @Override
-            public boolean isDisplayable() {
-                return true;
-            }
-
-            @Override
-            public boolean isVisible() {
-                return false;
-            }
-
-            @Override
-            public void repaint() {
-                final ExtTableModel<E> mod = ExtCircleProgressColumn.this.getModel();
-                if (mod != null && mod.getTable() != null && mod.getTable().isShowing()) {
-
-                    // cleanup map in case we removed a indeterminated value
-                    if (System.currentTimeMillis() - this.cleanupTimer > 30000) {
-                        Entry<E, Long> next;
-                        for (final Iterator<Entry<E, Long>> it = ExtCircleProgressColumn.this.map.entrySet().iterator(); it.hasNext();) {
-                            next = it.next();
-                            final long lastUpdate = System.currentTimeMillis() - next.getValue();
-                            if (lastUpdate > 5000) {
-                                it.remove();
-                            }
-                        }
-
-                        this.cleanupTimer = System.currentTimeMillis();
-                        if (ExtCircleProgressColumn.this.map.size() == 0) {
-                            ExtCircleProgressColumn.this.indeterminatedRenderer.setIndeterminate(false);
-                            return;
-                        }
-
-                    }
-                    if (System.currentTimeMillis() - this.timer > 1000 / ExtCircleProgressColumn.this.getFps() && ExtCircleProgressColumn.this.columnIndex >= 0) {
-                        final ArrayList<E> selection = mod.getSelectedObjects();
-
-                        mod.fireTableChanged(new TableModelEvent(mod, 0, Integer.MAX_VALUE, ExtCircleProgressColumn.this.columnIndex, TableModelEvent.UPDATE));
-                        mod.setSelectedObjects(selection);
-                        this.timer = System.currentTimeMillis();
-                    }
-
-                }
-
-            }
-
-        };
+        this.indeterminatedRenderer = new IndeterminatedCircledProgressBar();
         this.map = new HashMap<E, Long>();
 
         // this.getModel().addTableModelListener(new TableModelListener() {

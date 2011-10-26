@@ -52,11 +52,16 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
             if (!BasicCircleProgressBarUI.this.circleBar.isDisplayable()) {
                 BasicCircleProgressBarUI.this.cleanUpIndeterminateValues();
             }
-            if (BasicCircleProgressBarUI.this.circleBar.isShowing()) {
+          
+            //if bar is showing, or the bar is part of a renderer
+            if (BasicCircleProgressBarUI.this.circleBar.isShowing()||circleBar instanceof org.appwork.swing.exttable.columns.ExtCircleProgressColumn.IndeterminatedCircledProgressBar) {
                 BasicCircleProgressBarUI.this.animatedProgress += BasicCircleProgressBarUI.this.animationStepSize;
                 BasicCircleProgressBarUI.this.animatedProgress %= 2.f;
                 BasicCircleProgressBarUI.this.circleBar.repaint();
             }
+            
+            
+          
 
         }
     }

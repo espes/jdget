@@ -709,6 +709,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     @Override
     public boolean isTooltipDisabledUntilNextRefocus() {
         // table has handle ech cell as an own component.
+        
         return false;
     }
 

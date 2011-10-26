@@ -83,7 +83,7 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             @Override
             protected boolean isIndeterminated(final TextObject value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
                 // TODO Auto-generated method stub
-                return isSelected;
+                return true;
             }
         });
 
