@@ -9,6 +9,10 @@
  */
 package org.appwork.swing.exttable.test;
 
+import java.io.File;
+
+import org.appwork.utils.Application;
+
 /**
  * @author thomas
  * 
@@ -18,12 +22,14 @@ public class TextObject {
     private String     b;
     private String     c;
     private final long rand = (long) (Math.random() * 100);
+    private File file;
 
     public TextObject(final String a, final String b, final String c) {
         super();
         this.a = a;
         this.b = b;
         this.c = c;
+        file=Application.getResource(a);
     }
 
     public String getA() {
@@ -56,6 +62,17 @@ public class TextObject {
 
     public void setC(final String c) {
         this.c = c;
+    }
+
+    /**
+     * @param newFile
+     */
+    public void setFile(File newFile) {
+       this.file=newFile;
+    }
+
+    public File getFile() {
+        return file;
     }
 
 }

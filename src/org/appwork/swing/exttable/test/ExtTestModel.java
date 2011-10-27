@@ -9,13 +9,20 @@
  */
 package org.appwork.swing.exttable.test;
 
+import java.io.File;
+
 import javax.swing.Icon;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.swing.exttable.ExtTableModel;
-import org.appwork.swing.exttable.columns.ExtCircleProgressColumn;
-import org.appwork.swing.exttable.columns.ExtProgressColumn;
+import org.appwork.swing.exttable.columns.ExtFileBrowser;
 import org.appwork.swing.exttable.columns.ExtTextColumn;
+import org.appwork.utils.Application;
+import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.dialog.Dialog.FileChooserSelectionMode;
+import org.appwork.utils.swing.dialog.Dialog.FileChooserType;
+import org.appwork.utils.swing.dialog.DialogCanceledException;
+import org.appwork.utils.swing.dialog.DialogClosedException;
 
 /**
  * @author thomas
@@ -46,54 +53,95 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
     @Override
     protected void initColumns() {
 
-        this.addColumn(new ExtProgressColumn<TextObject>("BAR") {
+        // this.addColumn(new ExtProgressColumn<TextObject>("BAR") {
+        //
+        // @Override
+        // protected String getString(final TextObject value) {
+        // // TODO Auto-generated method stub
+        // return value.getRand() + " Tooltip";
+        // }
+        //
+        // @Override
+        // protected long getValue(final TextObject value) {
+        // // TODO Auto-generated method stub
+        // return value.getRand();
+        // }
+        //
+        // @Override
+        // protected boolean isIndeterminated(final TextObject value, final
+        // boolean isSelected, final boolean hasFocus, final int row, final int
+        // column) {
+        // // TODO Auto-generated method stub
+        // return isSelected;
+        // }
+        // });
+        // this.addColumn(new ExtCircleProgressColumn<TextObject>("PIE") {
+        //
+        // @Override
+        // protected String getString(final TextObject value) {
+        // // TODO Auto-generated method stub
+        // return null;
+        // }
+        //
+        // @Override
+        // protected long getValue(final TextObject value) {
+        // // TODO Auto-generated method stub
+        // return value.getRand();
+        // }
+        //
+        // @Override
+        // protected boolean isIndeterminated(final TextObject value, final
+        // boolean isSelected, final boolean hasFocus, final int row, final int
+        // column) {
+        // // TODO Auto-generated method stub
+        // return true;
+        // }
+        // });
+        addColumn(new ExtFileBrowser<TextObject>("Browse me") {
 
             @Override
-            protected String getString(final TextObject value) {
+            public File getFile(TextObject o) {
                 // TODO Auto-generated method stub
-                return value.getRand() + " Tooltip";
+                return o.getFile();
             }
 
             @Override
-            protected long getValue(final TextObject value) {
-                // TODO Auto-generated method stub
-                return value.getRand();
+            protected void setFile(TextObject object, File newFile) {
+                object.setFile(newFile);
+                
             }
 
             @Override
-            protected boolean isIndeterminated(final TextObject value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+            public File browse(TextObject object) {
                 // TODO Auto-generated method stub
-                return isSelected;
-            }
-        });
-        this.addColumn(new ExtCircleProgressColumn<TextObject>("PIE") {
-
-            @Override
-            protected String getString(final TextObject value) {
-                // TODO Auto-generated method stub
+                try {
+                    return Dialog.getInstance().showFileChooser("test", "Choose file", FileChooserSelectionMode.FILES_AND_DIRECTORIES, null, false, FileChooserType.OPEN_DIALOG, object.getFile())[0];
+                } catch (DialogCanceledException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (DialogClosedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 return null;
             }
 
-            @Override
-            protected long getValue(final TextObject value) {
-                // TODO Auto-generated method stub
-                return value.getRand();
-            }
+         
 
-            @Override
-            protected boolean isIndeterminated(final TextObject value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-                // TODO Auto-generated method stub
-                return true;
-            }
         });
-
-        this.addColumn(new ExtTextColumn<TextObject>("col 1") {
+        this.addColumn(new ExtTextColumn<TextObject>("EDIT ME") {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public int getDefaultWidth() {
+
                 return 40;
+            }
+
+            @Override
+            public boolean isEditable(final TextObject obj) {
+                return true;
             }
 
             @Override

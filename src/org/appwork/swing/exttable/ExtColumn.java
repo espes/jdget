@@ -373,7 +373,22 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
         return ret;
     }
+    /**
+     * @param e
+     * @param obj
+     */
+    protected void onSingleClick(final MouseEvent e, final E obj) {
 
+    }
+    /**
+     * This method will be called when a doubleclick is performed on the object
+     * <code>obj</code>
+     * 
+     * @param obj
+     */
+    protected void onDoubleClick(final MouseEvent e, final E obj) {
+        
+    }
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {

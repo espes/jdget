@@ -97,13 +97,12 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorForeground = this.editorField.getForeground();
         this.rendererFont = this.rendererField.getFont();
         this.editorFont = this.editorField.getFont();
-        this.editor = new RendererMigPanel("ins 0,debug", "[]5[grow,fill]", "[grow,fill]");
+        this.editor = new MigPanel("ins 0", "[]5[grow,fill]", "[grow,fill]");
 
         this.renderer = new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
 
         this.editor.add(this.editorIconLabel, "hidemode 2");
         this.editor.add(this.editorField);
-
         this.renderer.add(this.rendererIcon, "hidemode 2");
         this.renderer.add(this.rendererField);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
@@ -243,10 +242,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorField.setBackground(null);
         this.editor.setOpaque(false);
         this.editorIconLabel.setIcon(null);
-        editorField.setBackground(Color.RED);
-        editorField.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.RED));
-        editor.setOpaque(true);
-        editor.setBackground(Color.yellow);
     }
 
     @Override

@@ -28,10 +28,10 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
         this.listener = new MouseAdapter() {
 
             private int col = -1;
-            private int row = -1;
-
+            private int row = -1;           
             @Override
             public void mouseMoved(final MouseEvent e) {
+           
                 final ExtTable<T> table = ExtComponentColumn.this.getModel().getTable();
                 final int col = table.columnAtPoint(e.getPoint());
                 final int row = table.getRowIndexByPoint(e.getPoint());
@@ -39,6 +39,7 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
                 final int modelIndex = table.getColumnModel().getColumn(col).getModelIndex();
                 if (col != this.col || row != this.row) {
                     if (ExtComponentColumn.this.getModel().getExtColumnByModelIndex(modelIndex) == ExtComponentColumn.this) {
+                       
                         ExtComponentColumn.this.onCellUpdate(col, row);
                     } else {
                         if (table.getEditingColumn() == col && table.getEditingRow() == row) {

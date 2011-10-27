@@ -686,7 +686,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     @Override
     public String getToolTipText(final MouseEvent event) {
-        return "BLÖA";
+        return "BLA";
     }
 
     public boolean isColumnButtonVisible() {
@@ -717,14 +717,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return null;
     }
 
-    /**
-     * This method will be called when a doubleclick is performed on the object
-     * <code>obj</code>
-     * 
-     * @param obj
-     */
-    protected void onDoubleClick(final MouseEvent e, final E obj) {
-    }
+
 
     /**
      * Override this to handle header sort clicks
@@ -804,10 +797,27 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     protected void onSingleClick(final MouseEvent e, final E obj) {
 
     }
-
+    /**
+     * This method will be called when a doubleclick is performed on the object
+     * <code>obj</code>
+     * 
+     * @param obj
+     */
+    protected void onDoubleClick(final MouseEvent e, final E obj) {
+        
+    }
     @Override
     public void paintComponent(final Graphics g) {
+      
         super.paintComponent(g);
+
+      paintHighlighters(g);
+    }
+
+    /**
+     * @param g
+     */
+    private void paintHighlighters(Graphics g) {
         /*
          * highlighter TODO: this might get slow for many rows TODO: change
          * order? highlighting columns "overpaint" the text
@@ -836,6 +846,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 }
             }
         }
+        
     }
 
     /**
@@ -997,14 +1008,20 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
+                ExtColumn<E> col = getExtColumnAtPoint(e.getPoint());
+                if(col!=null)col.onDoubleClick(e,obj);
+                
                 // System.out.println(row);
                 if (obj != null) {
                     this.onDoubleClick(e, obj);
+                  
                     this.eventSender.fireEvent(new ExtTableEvent<E>(this, ExtTableEvent.Types.DOUBLECLICK, obj));
                 }
             } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 1) {
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
+                ExtColumn<E> col = getExtColumnAtPoint(e.getPoint());
+                if(col!=null)col.onSingleClick(e,obj);
                 // System.out.println(row);
                 if (obj != null) {
                     this.onSingleClick(e, obj);
