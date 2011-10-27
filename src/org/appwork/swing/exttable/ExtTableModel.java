@@ -89,12 +89,26 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.iconDesc = AWUTheme.I().getIcon("exttable/sortDesc", -1);
         final ExtColumn<E> defSortColumn = this.getDefaultSortColumn();
         String columnId = defSortColumn == null ? null : defSortColumn.getID();
+        String columnSortMode = null;
         if (this.isSortStateSaverEnabled()) {
             columnId = this.getStorage().get(ExtTableModel.SORTCOLUMN_KEY, columnId);
+            columnSortMode = this.getStorage().get(ExtTableModel.SORT_ORDER_ID_KEY, null);
+            /*
+             * restore sortMode by using shared StringObject so that String ==
+             * String works
+             */
+            if (columnSortMode != null) {
+                if (columnSortMode.equals(ExtColumn.SORT_ASC)) {
+                    columnSortMode = ExtColumn.SORT_ASC;
+                } else if (columnSortMode.equals(ExtColumn.SORT_DESC)) {
+                    columnSortMode = ExtColumn.SORT_DESC;
+                }
+            }
         }
         if (columnId != null) {
             for (final ExtColumn<E> col : this.columns) {
                 if (col.getID().equals(columnId)) {
+                    col.setSortOrderIdentifier(columnSortMode);
                     this.sortColumn = col;
                     break;
                 }
@@ -792,7 +806,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
         if (column != null) {
             final String id = column.getSortOrderIdentifier();
-
             try {
                 this.getStorage().put(ExtTableModel.SORT_ORDER_ID_KEY, id);
                 this.getStorage().put(ExtTableModel.SORTCOLUMN_KEY, column.getID());

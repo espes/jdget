@@ -164,28 +164,18 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                 public void run() {
                     try {
                         // get selections before sorting
-                        ArrayList<E> data = ExtColumn.this.model.getElements();
+                        final ArrayList<E> data = ExtColumn.this.model.getElements();
                         try {
                             // sort data
-
                             ExtColumn.this.setSortOrderIdentifier(newID);
-                            data = ExtColumn.this.getModel().sort(data, ExtColumn.this);
                         } catch (final Exception e) {
                         }
-                        final ArrayList<E> newData = data;
-                        // switch toggle
+                        ExtColumn.this.getModel()._fireTableStructureChanged(data, true);
 
-                        // Do this in EDT
                         new EDTHelper<Object>() {
 
                             @Override
                             public Object edtRun() {
-                                final ArrayList<E> selections = ExtColumn.this.model.getSelectedObjects();
-                                ExtColumn.this.model.tableData = newData;
-                                // inform model about structure change
-                                ExtColumn.this.model.fireTableStructureChanged();
-                                // restore selection
-                                ExtColumn.this.model.setSelectedObjects(selections);
                                 ExtColumn.this.getModel().getTable().getTableHeader().repaint();
                                 return null;
                             }
@@ -373,22 +363,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
         return ret;
     }
-    /**
-     * @param e
-     * @param obj
-     */
-    protected void onSingleClick(final MouseEvent e, final E obj) {
 
-    }
-    /**
-     * This method will be called when a doubleclick is performed on the object
-     * <code>obj</code>
-     * 
-     * @param obj
-     */
-    protected void onDoubleClick(final MouseEvent e, final E obj) {
-        
-    }
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
@@ -529,6 +504,24 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     public boolean matchSearch(final E object, final Pattern pattern) {
         return false;
+    }
+
+    /**
+     * This method will be called when a doubleclick is performed on the object
+     * <code>obj</code>
+     * 
+     * @param obj
+     */
+    protected void onDoubleClick(final MouseEvent e, final E obj) {
+
+    }
+
+    /**
+     * @param e
+     * @param obj
+     */
+    protected void onSingleClick(final MouseEvent e, final E obj) {
+
     }
 
     /**
