@@ -20,222 +20,6 @@ import java.util.regex.Pattern;
 
 public class Regex {
 
-    private Matcher matcher;
-    private boolean memOpt = true;
-
-    public Regex(final Matcher matcher) {
-        if (matcher != null) {
-            this.matcher = matcher;
-        }
-    }
-
-    public Regex(final Object data, final Pattern pattern) {
-        this(data.toString(), pattern);
-    }
-
-    public Regex(final Object data, final String pattern) {
-        this(data.toString(), pattern);
-    }
-
-    public Regex(final Object data, final String pattern, final int flags) {
-        this(data.toString(), pattern, flags);
-    }
-
-    public Regex(final String data, final Pattern pattern) {
-        if (data != null && pattern != null) {
-            matcher = pattern.matcher(data);
-        }
-    }
-
-    public Regex(final String data, final String pattern) {
-        if (data != null && pattern != null) {
-            matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(data);
-        }
-    }
-
-    public Regex(final String data, final String pattern, final int flags) {
-        if (data != null && pattern != null) {
-            matcher = Pattern.compile(pattern, flags).matcher(data);
-        }
-    }
-
-    /**
-     * Gibt die Anzahl der Treffer zurück
-     * 
-     * @return
-     */
-    public int count() {
-        if (matcher == null) {
-            return 0;
-        } else {
-            matcher.reset();
-            int c = 0;
-            final Matcher matchertmp = matcher;
-            while (matchertmp.find()) {
-                c++;
-            }
-            return c;
-        }
-    }
-
-    public String getMatch(final int group) {
-        if (matcher != null) {
-            final Matcher matcher = this.matcher;
-            matcher.reset();
-            if (matcher.find()) {
-                String ret = matcher.group(group + 1);
-                if (ret != null && memOpt) return new String(ret);
-                return ret;
-            }
-        }
-        return null;
-    }
-
-    public Matcher getMatcher() {
-        if (matcher != null) {
-            matcher.reset();
-        }
-        return matcher;
-    }
-
-    /**
-     * Gibt alle Treffer eines Matches in einem 2D array aus
-     * 
-     * @return
-     */
-    public String[][] getMatches() {
-        if (matcher == null) {
-            return null;
-        } else {
-            final Matcher matcher = this.matcher;
-            matcher.reset();
-            final ArrayList<String[]> ar = new ArrayList<String[]>();
-            while (matcher.find()) {
-                int c = matcher.groupCount();
-                int d = 1;
-                String[] group;
-                if (c == 0) {
-                    group = new String[c + 1];
-                    d = 0;
-                } else {
-                    group = new String[c];
-                }
-
-                for (int i = d; i <= c; i++) {
-                    String tmp = matcher.group(i);
-                    if (tmp != null && memOpt) tmp = new String(tmp);
-                    group[i - d] = tmp;
-                }
-                ar.add(group);
-            }
-            return (ar.size() == 0) ? new String[][] {} : ar.toArray(new String[][] {});
-        }
-    }
-
-    public String[] getColumn(int x) {
-        if (matcher == null) {
-            return null;
-        } else {
-            x++;
-            final Matcher matcher = this.matcher;
-            matcher.reset();
-
-            final ArrayList<String> ar = new ArrayList<String>();
-            while (matcher.find()) {
-                String tmp = matcher.group(x);
-                if (tmp != null && memOpt) tmp = new String(tmp);
-                ar.add(tmp);
-            }
-            return ar.toArray(new String[ar.size()]);
-        }
-    }
-
-    public boolean matches() {
-        final Matcher matcher = this.matcher;
-        if (matcher == null) {
-            return false;
-        } else {
-            matcher.reset();
-            return matcher.find();
-        }
-    }
-
-    /**
-     * Setzt den Matcher
-     * 
-     * @param matcher
-     */
-    public void setMatcher(final Matcher matcher) {
-        this.matcher = matcher;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder ret = new StringBuilder();
-        final String[][] matches = getMatches();
-        final int matchesLength = matches.length;
-        String[] match;
-        int matchLength;
-        for (int i = 0; i < matchesLength; i++) {
-            match = matches[i];
-            matchLength = match.length;
-            for (int j = 0; j < matchLength; j++) {
-                ret.append("match[");
-                ret.append(i);
-                ret.append("][");
-                ret.append(j);
-                ret.append("] = ");
-                ret.append(match[j]);
-                ret.append(System.getProperty("line.separator"));
-            }
-        }
-        matcher.reset();
-        return ret.toString();
-    }
-
-    public String getMatch(int entry, int group) {
-        if (matcher != null) {
-            final Matcher matcher = this.matcher;
-            matcher.reset();
-            // group++;
-            entry++;
-            int groupCount = 0;
-            while (matcher.find()) {
-                if (groupCount == group) {
-                    String ret = matcher.group(entry);
-                    if (ret != null && memOpt) return new String(ret);
-                    return ret;
-                }
-                groupCount++;
-            }
-        }
-        return null;
-    }
-
-    public String[] getRow(final int y) {
-        if (matcher != null) {
-            final Matcher matcher = this.matcher;
-            matcher.reset();
-            int groupCount = 0;
-            while (matcher.find()) {
-                if (groupCount == y) {
-                    final int c = matcher.groupCount();
-
-                    final String[] group = new String[c];
-
-                    for (int i = 1; i <= c; i++) {
-                        String tmp = matcher.group(i);
-                        if (tmp != null && memOpt) tmp = new String(tmp);
-                        group[i - 1] = tmp;
-                    }
-                    return group;
-                }
-                groupCount++;
-            }
-        }
-        return null;
-    }
-
     public static String escape(final String pattern) {
         final char[] specials = new char[] { '(', '[', '{', '\\', '^', '-', '$', '|', ']', '}', ')', '?', '*', '+', '.' };
         final int patternLength = pattern.length();
@@ -244,7 +28,7 @@ public class Regex {
         char act;
         for (int i = 0; i < patternLength; i++) {
             act = pattern.charAt(i);
-            for (char s : specials) {
+            for (final char s : specials) {
                 if (act == s) {
                     sb.append('\\');
                     break;
@@ -277,20 +61,243 @@ public class Regex {
         return new Regex(page, string).matches();
     }
 
-    public Regex setMemoryOptimized(boolean t) {
-        this.memOpt = t;
-        return this;
-    }
-
     /**
      * @param sslResponse
      * @param string
      * @param string2
      * @return
      */
-    public static String replace(String text, String regex, String replacement) {
-  
-        return Pattern.compile(regex,Pattern.DOTALL|Pattern.MULTILINE).matcher(text).replaceAll(replacement);
+    public static String replace(final String text, final String regex, final String replacement) {
+
+        return Pattern.compile(regex, Pattern.DOTALL | Pattern.MULTILINE).matcher(text).replaceAll(replacement);
+    }
+
+    private Matcher matcher;
+
+    private boolean memOpt = true;
+
+    public Regex(final Matcher matcher) {
+        if (matcher != null) {
+            this.matcher = matcher;
+        }
+    }
+
+    public Regex(final Object data, final Pattern pattern) {
+        this(data.toString(), pattern);
+    }
+
+    public Regex(final Object data, final String pattern) {
+        this(data.toString(), pattern);
+    }
+
+    public Regex(final Object data, final String pattern, final int flags) {
+        this(data.toString(), pattern, flags);
+    }
+
+    public Regex(final String data, final Pattern pattern) {
+        if (data != null && pattern != null) {
+            this.matcher = pattern.matcher(data);
+        }
+    }
+
+    public Regex(final String data, final String pattern) {
+        if (data != null && pattern != null) {
+            this.matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(data);
+        }
+    }
+
+    public Regex(final String data, final String pattern, final int flags) {
+        if (data != null && pattern != null) {
+            this.matcher = Pattern.compile(pattern, flags).matcher(data);
+        }
+    }
+
+    /**
+     * Gibt die Anzahl der Treffer zurück
+     * 
+     * @return
+     */
+    public int count() {
+        if (this.matcher == null) {
+            return 0;
+        } else {
+            this.matcher.reset();
+            int c = 0;
+            final Matcher matchertmp = this.matcher;
+            while (matchertmp.find()) {
+                c++;
+            }
+            return c;
+        }
+    }
+
+    public String[] getColumn(int x) {
+        if (this.matcher == null) {
+            return null;
+        } else {
+            x++;
+            final Matcher matcher = this.matcher;
+            matcher.reset();
+
+            final ArrayList<String> ar = new ArrayList<String>();
+            while (matcher.find()) {
+                String tmp = matcher.group(x);
+                if (tmp != null && this.memOpt) {
+                    tmp = new String(tmp);
+                }
+                ar.add(tmp);
+            }
+            return ar.toArray(new String[ar.size()]);
+        }
+    }
+
+    public String getMatch(final int group) {
+        if (this.matcher != null) {
+            final Matcher matcher = this.matcher;
+            matcher.reset();
+            if (matcher.find()) {
+                final String ret = matcher.group(group + 1);
+                if (ret != null && this.memOpt) { return new String(ret); }
+                return ret;
+            }
+        }
+        return null;
+    }
+
+    public String getMatch(int entry, final int group) {
+        if (this.matcher != null) {
+            final Matcher matcher = this.matcher;
+            matcher.reset();
+            // group++;
+            entry++;
+            int groupCount = 0;
+            while (matcher.find()) {
+                if (groupCount == group) {
+                    final String ret = matcher.group(entry);
+                    if (ret != null && this.memOpt) { return new String(ret); }
+                    return ret;
+                }
+                groupCount++;
+            }
+        }
+        return null;
+    }
+
+    public Matcher getMatcher() {
+        if (this.matcher != null) {
+            this.matcher.reset();
+        }
+        return this.matcher;
+    }
+
+    /**
+     * Gibt alle Treffer eines Matches in einem 2D array aus
+     * 
+     * @return
+     */
+    public String[][] getMatches() {
+        if (this.matcher == null) {
+            return null;
+        } else {
+            final Matcher matcher = this.matcher;
+            matcher.reset();
+            final ArrayList<String[]> ar = new ArrayList<String[]>();
+            while (matcher.find()) {
+                final int c = matcher.groupCount();
+                int d = 1;
+                String[] group;
+                if (c == 0) {
+                    group = new String[c + 1];
+                    d = 0;
+                } else {
+                    group = new String[c];
+                }
+
+                for (int i = d; i <= c; i++) {
+                    String tmp = matcher.group(i);
+                    if (tmp != null && this.memOpt) {
+                        tmp = new String(tmp);
+                    }
+                    group[i - d] = tmp;
+                }
+                ar.add(group);
+            }
+            return ar.size() == 0 ? new String[][] {} : ar.toArray(new String[][] {});
+        }
+    }
+
+    public String[] getRow(final int y) {
+        if (this.matcher != null) {
+            final Matcher matcher = this.matcher;
+            matcher.reset();
+            int groupCount = 0;
+            while (matcher.find()) {
+                if (groupCount == y) {
+                    final int c = matcher.groupCount();
+
+                    final String[] group = new String[c];
+
+                    for (int i = 1; i <= c; i++) {
+                        String tmp = matcher.group(i);
+                        if (tmp != null && this.memOpt) {
+                            tmp = new String(tmp);
+                        }
+                        group[i - 1] = tmp;
+                    }
+                    return group;
+                }
+                groupCount++;
+            }
+        }
+        return null;
+    }
+
+    public boolean matches() {
+        final Matcher matcher = this.matcher;
+        if (matcher == null) {
+            return false;
+        } else {
+            matcher.reset();
+            return matcher.find();
+        }
+    }
+
+    /**
+     * Setzt den Matcher
+     * 
+     * @param matcher
+     */
+    public void setMatcher(final Matcher matcher) {
+        this.matcher = matcher;
+    }
+
+    public Regex setMemoryOptimized(final boolean t) {
+        this.memOpt = t;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder ret = new StringBuilder();
+        final String[][] matches = this.getMatches();
+        final int matchesLength = matches.length;
+        String[] match;
+        int matchLength;
+        for (int i = 0; i < matchesLength; i++) {
+            match = matches[i];
+            matchLength = match.length;
+            for (int j = 0; j < matchLength; j++) {
+                ret.append("match[");
+                ret.append(i);
+                ret.append("][");
+                ret.append(j);
+                ret.append("] = ");
+                ret.append(match[j]);
+                ret.append(System.getProperty("line.separator"));
+            }
+        }
+        this.matcher.reset();
+        return ret.toString();
     }
 
 }
