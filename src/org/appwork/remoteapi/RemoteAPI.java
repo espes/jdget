@@ -10,6 +10,8 @@
 package org.appwork.remoteapi;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -68,7 +70,73 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         return (T) v;
     }
 
-    protected static boolean gzip(final RemoteAPIRequest request) {
+    public static OutputStream getOutputStream(final RemoteAPIResponse response, final RemoteAPIRequest request, final boolean gzip, final boolean wrapJQuery) throws IOException {
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CACHE_CONTROL, "no-store, no-cache"));
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING, HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
+        if (gzip) {
+            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_CONTENT_ENCODING, "gzip"));
+        }
+        response.setResponseCode(ResponseCode.SUCCESS_OK);
+        final OutputStream os = response.getOutputStream();
+        final ChunkedOutputStream cos = new ChunkedOutputStream(os);
+        final OutputStream uos;
+        final GZIPOutputStream out;
+        if (gzip) {
+            uos = out = new GZIPOutputStream(cos);
+        } else {
+            out = null;
+            uos = cos;
+        }
+        return new OutputStream() {
+            boolean wrapperHeader = wrapJQuery && request.getJqueryCallback() != null;
+            boolean wrapperEnd    = wrapJQuery && request.getJqueryCallback() != null;
+
+            @Override
+            public void close() throws IOException {
+                this.wrapperEnd();
+                if (out != null) {
+                    out.finish();
+                    out.flush();
+                }
+                uos.close();
+            }
+
+            @Override
+            public void flush() throws IOException {
+                uos.flush();
+            }
+
+            private void wrapperEnd() throws UnsupportedEncodingException, IOException {
+                if (this.wrapperEnd) {
+                    uos.write(")".getBytes("UTF-8"));
+                    this.wrapperEnd = false;
+                }
+            }
+
+            private void wrapperHeader() throws UnsupportedEncodingException, IOException {
+                if (this.wrapperHeader) {
+                    uos.write(request.getJqueryCallback().getBytes("UTF-8"));
+                    uos.write("(".getBytes("UTF-8"));
+                    this.wrapperHeader = false;
+                }
+            }
+
+            @Override
+            public void write(final byte[] b) throws IOException {
+                this.wrapperHeader();
+                uos.write(b);
+            }
+
+            @Override
+            public void write(final int b) throws IOException {
+                this.wrapperHeader();
+                uos.write(b);
+            }
+        };
+    }
+
+    public static boolean gzip(final RemoteAPIRequest request) {
         final HTTPHeader acceptEncoding = request.getRequestHeaders().get(HTTPConstants.HEADER_REQUEST_ACCEPT_ENCODING);
         if (acceptEncoding != null) {
             final String value = acceptEncoding.getValue();
@@ -256,7 +324,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         final Object v = JSonStorage.restoreFromString(string, new TypeRef(type) {
         }, null);
-        if (type instanceof Class && Clazz.isPrimitive((Class<?>) type)) {
+        if (type instanceof Class && Clazz.isPrimitive(type)) {
             return RemoteAPI.cast(v, (Class<?>) type);
         } else {
             return v;
