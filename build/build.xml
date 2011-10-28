@@ -23,7 +23,14 @@
 			
 			</javac>
 	</target>
-
+	<!-- Signs the jars -->
+	<target name="sign">
+		<signjar keystore="${appwork_java_cert}" alias="${appwork_java_cert_alias}" storepass="${appwork_java_cert_pass}">
+			<path>
+				<fileset dir="${dist}" includes="**/*.jar" />
+			</path>
+		</signjar>
+	</target>
 	<target name="jar">
 		<manifest file="Manifest.MF">
 			<attribute name="Created-By" value="AppWork GmbH" />
@@ -41,7 +48,7 @@
 		<delete file="Manifest.MF" failonerror="false" />
 	</target>
 
-	<target name="standardBuild" depends="compile,jar">
+	<target name="standardBuild" depends="compile,jar,sign">
 	</target>
 
 </project>
