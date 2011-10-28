@@ -136,7 +136,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
     /**
      * @param object
      */
-    protected void write(final Object object) {
+    protected void write(final T object) {
 
         JSonStorage.saveTo(this.path, !this.crypted, this.cryptKey, JSonStorage.serializeToJson(object));
 
@@ -149,7 +149,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
      * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
      */
     @Override
-    protected void validateValue(Object object) throws Throwable {
+    protected void validateValue(T object) throws Throwable {
         // TODO Auto-generated method stub
 
     }
