@@ -168,6 +168,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                         try {
                             // sort data
                             ExtColumn.this.setSortOrderIdentifier(newID);
+                            ExtColumn.this.getModel().setSortColumn(ExtColumn.this);
                         } catch (final Exception e) {
                         }
                         ExtColumn.this.getModel()._fireTableStructureChanged(data, true);

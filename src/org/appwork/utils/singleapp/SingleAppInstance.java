@@ -178,8 +178,10 @@ public class SingleAppInstance {
             Socket runninginstance = null;
             if (port != 0) {
                 try {
-                    runninginstance = new Socket(getLocalHost(), port);
-                    runninginstance.setSoTimeout(10000);/* set Timeout */
+                    runninginstance = new Socket();
+                    InetSocketAddress con = new InetSocketAddress(getLocalHost(), port);
+                    runninginstance.connect(con, 1000);
+                    runninginstance.setSoTimeout(2000);/* set Timeout */
                     final BufferedInputStream in = new BufferedInputStream(runninginstance.getInputStream());
                     final OutputStream out = runninginstance.getOutputStream();
                     final String response = readLine(in);
@@ -194,10 +196,8 @@ public class SingleAppInstance {
                         for (final String msg : message) {
                             writeLine(out, msg);
                         }
-                    }
-                } catch (final UnknownHostException e) {
-                    return false;
-                } catch (final IOException e) {
+                    }                
+                } catch (final IOException e) {                    
                     return false;
                 } finally {
                     if (runninginstance != null) {
@@ -219,6 +219,7 @@ public class SingleAppInstance {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -227,6 +228,7 @@ public class SingleAppInstance {
     }
 
     public synchronized void start() throws AnotherInstanceRunningException, UncheckableInstanceException {
+
         if (fileLock != null) { return; }
         if (alreadyUsed) {
             cannotStart("create new instance!");
