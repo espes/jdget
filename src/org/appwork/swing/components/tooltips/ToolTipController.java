@@ -79,7 +79,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      * Access the only existing instance by using {@link #getInstance()}.
      */
     private ToolTipController() {
-        this.setDelay(1000);
+        this.setDelay(2500);
     }
 
     public int getChangeDelay() {
@@ -380,7 +380,8 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
     protected void showTooltip() {
 
         ToolTipController.this.hideTooltip();
-        if (ToolTipController.this.activeComponent != null && !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
+        if (ToolTipController.this.activeComponent != null &&activeComponent.hasFocus()&& !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
+  
             Window ownerWindow = SwingUtilities.getWindowAncestor(activeComponent);
             // if the components window is not the active any more, for exmaple
             // because we opened a dialog, don't show tooltip
