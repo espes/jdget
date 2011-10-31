@@ -22,6 +22,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
+import org.appwork.utils.Files;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 import org.appwork.utils.net.ChunkedOutputStream;
@@ -34,9 +35,19 @@ import org.appwork.utils.net.httpserver.requests.HttpRequestInterface;
  */
 public class FileResponse {
 
+    public static String getMimeType(final String name) {
+        final String extension = Files.getExtension(name);
+        String mime = FileResponse.MIMES.get(extension.toLowerCase(Locale.ENGLISH));
+        if (mime == null) {
+            mime = "application/octet-stream";
+        }
+        return mime;
+    }
+
     private final HttpRequestInterface     request;
     private final HttpResponseInterface    response;
     private File                           inputFile;
+
     private URL                            inputURL;
 
     private static HashMap<String, String> MIMES = new HashMap<String, String>();
@@ -116,13 +127,7 @@ public class FileResponse {
 
     /* return mimetype for given Content */
     protected String getMimeType() {
-        final String extension = this.getFileName().replaceFirst(".+\\.", "");
-        String mime = FileResponse.MIMES.get(extension.toLowerCase(Locale.ENGLISH));
-        if (mime == null) {
-            mime = "application/octet-stream";
-        }
-        return mime;
-
+        return FileResponse.getMimeType(this.getFileName());
     }
 
     public void sendFile() throws IOException {

@@ -23,6 +23,7 @@ public class Base64OutputStream extends FilterOutputStream {
     private final byte          writebuffer[]  = new byte[4];
     private int                 index          = 0;
     private static final byte   padding        = (byte) '=';
+    private boolean             endFlush       = false;
 
     /**
      * @param out
@@ -33,24 +34,28 @@ public class Base64OutputStream extends FilterOutputStream {
 
     @Override
     public void flush() throws IOException {
-        if (this.index == 0) {
+        if (this.index == 0 || this.endFlush) {
             this.out.flush();
             return;
         }
-        this.writebuffer[2] = Base64OutputStream.padding;
-        this.writebuffer[3] = Base64OutputStream.padding;
-        switch (this.index) {
-        case 1:
-            this.writebuffer[0] = (byte) Base64OutputStream.base64[(this.base64buffer[0] & 0xFC) >> 2];
-            this.writebuffer[1] = (byte) Base64OutputStream.base64[(this.base64buffer[0] & 0x03) << 4];
-            this.out.write(this.writebuffer);
-            break;
-        case 2:
-            this.writebuffer[0] = (byte) Base64OutputStream.base64[(this.base64buffer[0] & 0xFC) >> 2];
-            this.writebuffer[1] = (byte) Base64OutputStream.base64[(this.base64buffer[0] & 0x03) << 4 | (this.base64buffer[1] & 0xF0) >> 4];
-            this.writebuffer[2] = (byte) Base64OutputStream.base64[(this.base64buffer[1] & 0x0F) << 2];
-            this.out.write(this.writebuffer);
-            break;
+        if (this.endFlush == false) {
+            /* a Base64 Stream can only be padded once at the end! */
+            this.endFlush = true;
+            this.writebuffer[2] = Base64OutputStream.padding;
+            this.writebuffer[3] = Base64OutputStream.padding;
+            switch (this.index) {
+            case 1:
+                this.writebuffer[0] = (byte) Base64OutputStream.base64[(this.base64buffer[0] & 0xFC) >> 2];
+                this.writebuffer[1] = (byte) Base64OutputStream.base64[(this.base64buffer[0] & 0x03) << 4];
+                this.out.write(this.writebuffer);
+                break;
+            case 2:
+                this.writebuffer[0] = (byte) Base64OutputStream.base64[(this.base64buffer[0] & 0xFC) >> 2];
+                this.writebuffer[1] = (byte) Base64OutputStream.base64[(this.base64buffer[0] & 0x03) << 4 | (this.base64buffer[1] & 0xF0) >> 4];
+                this.writebuffer[2] = (byte) Base64OutputStream.base64[(this.base64buffer[1] & 0x0F) << 2];
+                this.out.write(this.writebuffer);
+                break;
+            }
         }
         this.index = 0;
         this.out.flush();
