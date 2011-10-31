@@ -95,7 +95,7 @@ public abstract class ExtLongColumn<E> extends ExtColumn<E> {
     }
 
     @Override
-    public boolean isSortable(final Object obj) {
+    public boolean isSortable(final E obj) {
         return true;
     }
 
