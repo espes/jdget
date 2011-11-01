@@ -20,6 +20,7 @@ import java.awt.image.Kernel;
 import java.awt.image.RGBImageFilter;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
@@ -127,7 +128,7 @@ public class IconIO {
      * @return a scaled version of the original {@code BufferedImage}
      */
     public static BufferedImage getScaledInstance(final Image img, int width, int height, final Interpolation interpolation, final boolean higherQuality) {
-         double faktor =Math.max((double) img.getWidth(null) / width, (double) img.getHeight(null) / height);
+        double faktor = Math.max((double) img.getWidth(null) / width, (double) img.getHeight(null) / height);
         width = Math.max((int) (img.getWidth(null) / faktor), 1);
         height = Math.max((int) (img.getHeight(null) / faktor), 1);
         if (faktor == 1.0 && img instanceof BufferedImage) { return (BufferedImage) img; }
@@ -285,7 +286,35 @@ public class IconIO {
      */
     public static BufferedImage getScaledInstance(BufferedImage img, int width, int height) {
         // TODO Auto-generated method stub
-        return getScaledInstance(img, width, height, Interpolation.BICUBIC  , true);
+        return getScaledInstance(img, width, height, Interpolation.BICUBIC, true);
     }
 
+    /**
+     * This function removes the major color of the image and replaces it with transparency. 
+     * @param image
+     * @return
+     */
+    public static BufferedImage removeBackground(BufferedImage image, double tollerance) {
+
+        HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
+        int biggestValue = 0;
+        int color = -1;
+        for (int rgb : image.getRGB(0, 0, image.getWidth()-1, image.getHeight()-1, null, 0, image.getWidth())) {
+            Integer v = map.get(rgb);
+            if (v == null) v = 0;
+            v++;
+            map.put(rgb, v);
+            if (v > biggestValue) {
+                biggestValue = v;
+                color = rgb;
+            }
+        }
+        Color col = new Color(color);
+  
+        int r = col.getRed();
+        int g = col.getGreen();
+        int b = col.getBlue();
+        int a = col.getAlpha();
+        return colorRangeToTransparency(image, new Color(Math.max((int) (r * (1d - tollerance)),0), Math.max((int) (g * (1d - tollerance)),0),Math.max((int) (b * (1d - tollerance)),0), a), new Color(Math.min(255,(int) (r * (1d + tollerance))), Math.min(255,(int) (g * (1d + tollerance))),Math.min(255,(int) (b * (1d + tollerance))), a));
+    }
 }
