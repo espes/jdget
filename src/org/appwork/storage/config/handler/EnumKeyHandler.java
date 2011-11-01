@@ -91,8 +91,7 @@ public class EnumKeyHandler extends KeyHandler<Enum> {
      */
     @Override
     protected void putValue(Enum object) {
-        // TODO Auto-generated method stub
-
+        primitiveStorage.put(getKey(), object);
     }
 
     /* (non-Javadoc)
