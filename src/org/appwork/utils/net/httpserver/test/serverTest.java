@@ -34,7 +34,7 @@ public class serverTest {
         HttpSessionControllerImp ll;
         server.registerRequestHandler(ll = new HttpSessionControllerImp());
 
-        ll.registerSessionRequestHandler(serverTest.rapi);
+        ll.registerSessionRequestHandler(serverTest.rapi);  
         try {
             serverTest.rapi.register(ll);
             serverTest.rapi.register(new TESTAPIImpl());
