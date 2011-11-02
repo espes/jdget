@@ -1,6 +1,7 @@
 package org.appwork.swing.exttable.utils;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -9,7 +10,7 @@ import org.appwork.swing.exttable.ExtTable;
 public class MinimumSelectionObserver implements ListSelectionListener {
 
     protected final ExtTable<?>    table;
-    protected final AbstractAction action;
+    protected final Action action;
     protected final int            minSelections;
 
     /**
@@ -17,7 +18,7 @@ public class MinimumSelectionObserver implements ListSelectionListener {
      * @param action
      * @param minSelections
      */
-    public MinimumSelectionObserver(final ExtTable<?> table, final AbstractAction action, final int minSelections) {
+    public MinimumSelectionObserver(final ExtTable<?> table, final Action action, final int minSelections) {
         this.table = table;
         this.action = action;
         this.minSelections = minSelections;
