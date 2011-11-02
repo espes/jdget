@@ -155,6 +155,7 @@ public class JsonKeyValueStorage extends Storage {
             try {
                 ret = Enum.valueOf(((Enum<?>) def).getDeclaringClass(), (String) ret);
             } catch (final Throwable e) {
+                map.remove(key);
                 Log.exception(e);
                 if (this.autoPutValues) {
                     this.put(key, (Enum<?>) def);
