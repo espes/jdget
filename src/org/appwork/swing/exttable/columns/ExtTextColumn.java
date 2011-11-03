@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
@@ -37,6 +39,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     protected MigPanel        renderer;
     private RenderLabel       editorIconLabel;
+    protected boolean noset=false;
 
     /**
      * @param string
@@ -61,7 +64,25 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
                 super.setIcon(icon);
             }
         };
+        editorField.addKeyListener(new KeyListener() {
 
+            public void keyTyped(KeyEvent e) {
+            }
+
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                  noset=true;
+                  try{
+                    stopCellEditing();
+                  }finally{
+                      noset=false;
+                  }
+                }
+            }
+
+            public void keyPressed(KeyEvent e) {
+            }
+        });
         this.rendererIcon.setOpaque(false);
         this.editorIconLabel = new RenderLabel() {
             /**
@@ -101,9 +122,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
         this.renderer = new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
 
-   
-        layoutEditor(editor,editorIconLabel,editorField);
- layoutRenderer(renderer,rendererIcon,rendererField);
+        layoutEditor(editor, editorIconLabel, editorField);
+        layoutRenderer(renderer, rendererIcon, rendererField);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
@@ -139,14 +159,14 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     }
 
     /**
-     * @param rendererField 
-     * @param rendererIco 
+     * @param rendererField
+     * @param rendererIco
      * @param renderer2
      */
     protected void layoutRenderer(MigPanel renderer, RenderLabel rendererIcon, RenderLabel rendererField) {
         renderer.add(rendererIcon, "hidemode 2");
         renderer.add(rendererField);
-        
+
     }
 
     public void actionPerformed(final ActionEvent e) {
@@ -316,7 +336,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void setValue(final Object value, final E object) {
-        this.setStringValue((String) value, object);
+       if(!noset) this.setStringValue((String) value, object);
     }
 
 }
