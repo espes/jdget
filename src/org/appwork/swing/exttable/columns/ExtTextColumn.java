@@ -101,10 +101,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
         this.renderer = new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
 
-        this.editor.add(this.editorIconLabel, "hidemode 2");
-        this.editor.add(this.editorField);
-        this.renderer.add(this.rendererIcon, "hidemode 2");
-        this.renderer.add(this.rendererField);
+   
+        layoutEditor(editor,editorIconLabel,editorField);
+ layoutRenderer(renderer,rendererIcon,rendererField);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
@@ -127,6 +126,27 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
         });
 
+    }
+
+    /**
+     * @param editor2
+     * @param editorIconLabel2
+     * @param editorField2
+     */
+    protected void layoutEditor(MigPanel editor, RenderLabel editorIconLabel, JTextField editorField) {
+        editor.add(editorIconLabel, "hidemode 2");
+        editor.add(editorField);
+    }
+
+    /**
+     * @param rendererField 
+     * @param rendererIco 
+     * @param renderer2
+     */
+    protected void layoutRenderer(MigPanel renderer, RenderLabel rendererIcon, RenderLabel rendererField) {
+        renderer.add(rendererIcon, "hidemode 2");
+        renderer.add(rendererField);
+        
     }
 
     public void actionPerformed(final ActionEvent e) {

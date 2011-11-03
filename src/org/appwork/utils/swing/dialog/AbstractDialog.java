@@ -96,7 +96,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private AbstractAction[] actions                = null;
 
-    private final String     title;
+    private String           title;
 
     private JLabel           iconLabel;
 
@@ -198,37 +198,37 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // add listeners here
             this.okButton.addActionListener(this);
             this.cancelButton.addActionListener(this);
-           
+
             // add icon if available
             if (this.icon != null) {
-                getDialog().setLayout(new MigLayout("ins 5,wrap 2","[][grow,fill]","[grow,fill][]"));
+                getDialog().setLayout(new MigLayout("ins 5,wrap 2", "[][grow,fill]", "[grow,fill][]"));
                 this.getDialog().add(this.iconLabel = new JLabel(this.icon), "gapright 10");
-            }else{
-                getDialog().setLayout(new MigLayout("ins 5,wrap 1","[grow,fill]","[grow,fill][]")); 
+            } else {
+                getDialog().setLayout(new MigLayout("ins 5,wrap 1", "[grow,fill]", "[grow,fill][]"));
             }
             // Layout the dialog content and add it to the contentpane
             this.panel = this.layoutDialogContent();
-          
+
             this.getDialog().add(this.panel, "");
 
             // add the countdown timer
             MigPanel bottom = new MigPanel("ins 0", "[]20[grow,fill][]", "[]");
             bottom.setOpaque(false);
-          
+
             bottom.add(this.timerLbl);
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-             
+
                 this.dontshowagain = new JCheckBox(_AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
                 this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
                 this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
                 this.dontshowagain.setSelected(this.doNotShowAgainSelected);
-            
+
                 bottom.add(this.dontshowagain, "alignx right");
             } else {
                 bottom.add(Box.createHorizontalGlue());
             }
             bottom.add(this.defaultButtons);
-           
+
             if ((this.flagMask & Dialog.BUTTONS_HIDE_OK) == 0) {
 
                 // Set OK as defaultbutton
@@ -266,7 +266,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             } else {
                 this.timerLbl.setText(null);
             }
-            getDialog().add(bottom,"spanx,growx,pushx");
+            getDialog().add(bottom, "spanx,growx,pushx");
             // pack dialog
             this.getDialog().invalidate();
             // this.setMinimumSize(this.getPreferredSize());
@@ -274,10 +274,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 this.getDialog().setMinimumSize(new Dimension(300, 80));
             }
             this.getDialog().setResizable(this.isResizable());
-           
+
             this.pack();
 
-  
             // minimum size foir a dialog
 
             // // Dimension screenDim =
@@ -330,19 +329,18 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 ((Window) this.getDialog().getParent()).setAlwaysOnTop(true);
                 ((Window) this.getDialog().getParent()).setAlwaysOnTop(false);
             }
-        
+
             this.setVisible(true);
-            //dialog gets closed
-            System.out.println("Unlocked "+ this.getDialog().isDisplayable());
-          
-          
-            if(returnBitMask==0){
-          setVisible(true);
-            Log.L.fine("Answer: Parent Closed ");
-            this.returnBitMask |= Dialog.RETURN_CLOSED;
-            setVisible(false);
-      
-            this.dispose();
+            // dialog gets closed
+            System.out.println("Unlocked " + this.getDialog().isDisplayable());
+
+            if (returnBitMask == 0) {
+                setVisible(true);
+                Log.L.fine("Answer: Parent Closed ");
+                this.returnBitMask |= Dialog.RETURN_CLOSED;
+                setVisible(false);
+
+                this.dispose();
             }
         } finally {
             // System.out.println("SET OLD");
@@ -361,9 +359,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     public void actionPerformed(final ActionEvent e) {
-        
-        
-        
+
         if (e.getSource() == this.okButton) {
             Log.L.fine("Answer: Button<OK:" + this.okButton.getText() + ">");
             this.setReturnmask(true);
@@ -606,7 +602,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @param title2
      */
     protected void setTitle(final String title2) {
-        this.getDialog().setTitle(title2);
+        try {
+            this.getDialog().setTitle(title2);
+        } catch (NullPointerException e) {
+            title = title2;
+        }
     }
 
     /**

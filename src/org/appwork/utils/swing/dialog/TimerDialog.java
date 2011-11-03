@@ -116,7 +116,7 @@ public abstract class TimerDialog {
         this.getDialog().realDispose();
 
     }
-
+ 
     /**
      * @return
      */
