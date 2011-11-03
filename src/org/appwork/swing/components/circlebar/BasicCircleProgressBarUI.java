@@ -128,7 +128,7 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
      * 
      */
     public void cleanUpIndeterminateValues() {
-        this.timer.stop();
+      if(timer!=null)  this.timer.stop();
         this.timer = null;
         this.animatedProgress = 0.0f;
     }

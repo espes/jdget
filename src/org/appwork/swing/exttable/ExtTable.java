@@ -686,7 +686,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     @Override
     public String getToolTipText(final MouseEvent event) {
-        return "BLA";
+        return null;
     }
 
     public boolean isColumnButtonVisible() {
