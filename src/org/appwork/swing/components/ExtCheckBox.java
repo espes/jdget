@@ -3,6 +3,8 @@ package org.appwork.swing.components;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 
 import javax.swing.ButtonModel;
@@ -57,20 +59,22 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
     }
     public void setModel(ButtonModel newModel) {
         super.setModel(newModel);
-        newModel.addChangeListener(new ChangeListener() {
+        newModel.addItemListener(new ItemListener() {
             
             @Override
-            public void stateChanged(ChangeEvent e) {
-               new EDTRunner(){
+            public void itemStateChanged(ItemEvent e) {
+              
+                new EDTRunner(){
 
-                @Override
-                protected void runInEDT() {
-                   updateDependencies();
-                }
-                   
-               };
+                 @Override
+                 protected void runInEDT() {
+                    updateDependencies();
+                 }
+                    
+                }; 
             }
         });
+       
       
     }
     public JComponent[] getDependencies() {
