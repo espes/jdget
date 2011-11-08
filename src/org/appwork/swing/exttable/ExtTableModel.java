@@ -136,19 +136,26 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         new EDTRunner() {
             @Override
             protected void runInEDT() {
-                final boolean adjusting = ExtTableModel.this.getTable().getSelectionModel().getValueIsAdjusting();
-                final int anchor = ExtTableModel.this.getTable().getSelectionModel().getAnchorSelectionIndex();
-                final int lead = ExtTableModel.this.getTable().getSelectionModel().getLeadSelectionIndex();
-                ExtTableModel.this.tableData = newdata;
-                ExtTableModel.this.fireTableStructureChanged();
-                if (ExtTableModel.this.tableData.size() > 0) {
-                    ExtTableModel.this.setSelectedObjects(selection);
-                    if (adjusting) {
-                        ExtTableModel.this.getTable().getSelectionModel().setAnchorSelectionIndex(anchor);
-                        ExtTableModel.this.getTable().getSelectionModel().setLeadSelectionIndex(lead);
-                        ExtTableModel.this.getTable().getSelectionModel().setValueIsAdjusting(adjusting);
+                final ExtTable<E> ltable = ExtTableModel.this.getTable();
+                if (ltable != null) {
+                    final boolean adjusting = ltable.getSelectionModel().getValueIsAdjusting();
+                    final int anchor = ltable.getSelectionModel().getAnchorSelectionIndex();
+                    final int lead = ltable.getSelectionModel().getLeadSelectionIndex();
+                    ExtTableModel.this.setTableData(newdata);
+                    ExtTableModel.this.fireTableStructureChanged();
+                    if (ExtTableModel.this.getRowCount() > 0) {
+                        ExtTableModel.this.setSelectedObjects(selection);
+                        if (adjusting) {
+                            ltable.getSelectionModel().setAnchorSelectionIndex(anchor);
+                            ltable.getSelectionModel().setLeadSelectionIndex(lead);
+                            ltable.getSelectionModel().setValueIsAdjusting(adjusting);
+                        }
                     }
+                } else {
+                    ExtTableModel.this.setTableData(newdata);
+                    ExtTableModel.this.fireTableStructureChanged();
                 }
+
             }
         };
     }
@@ -157,21 +164,12 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param files
      */
     public void addAllElements(final E... files) {
-        new EDTHelper<Object>() {
-            @Override
-            public Object edtRun() {
-                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
-                for (final E e : files) {
-                    ExtTableModel.this.tableData.add(e);
-                }
-
-                ExtTableModel.this.refreshSort();
-                ExtTableModel.this.fireTableStructureChanged();
-                ExtTableModel.this.setSelectedObjects(selection);
-                return null;
-            }
-        }.start();
-
+        if (files == null || files.length == 0) { return; }
+        final ArrayList<E> newdata = new ArrayList<E>(this.getTableData());
+        for (final E n : files) {
+            newdata.add(n);
+        }
+        this._fireTableStructureChanged(newdata, true);
     }
 
     /**
@@ -201,21 +199,12 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param at
      */
     public void addElement(final E at) {
-        new EDTHelper<Object>() {
-            @Override
-            public Object edtRun() {
-                final ArrayList<E> selection = ExtTableModel.this.getSelectedObjects();
-                ExtTableModel.this.tableData.add(at);
-                ExtTableModel.this.refreshSort();
-                ExtTableModel.this.fireTableStructureChanged();
-                ExtTableModel.this.setSelectedObjects(selection);
-                return null;
-            }
-        }.start();
+        final ArrayList<E> newdata = new ArrayList<E>(this.getTableData());
+        newdata.add(at);
+        this._fireTableStructureChanged(newdata, true);
     }
 
     public synchronized void addExtComponentRowHighlighter(final ExtComponentRowHighlighter<E> h) {
-
         this.extComponentRowHighlighters.add(h);
     }
 
@@ -226,7 +215,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
-                ExtTableModel.this.tableData = new ArrayList<E>();
+                ExtTableModel.this.setTableData(new ArrayList<E>());
                 ExtTableModel.this.fireTableStructureChanged();
                 return null;
             }
@@ -237,9 +226,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * clears all selection models
      */
     public void clearSelection() {
-        if (this.table == null) { return; }
-        this.table.getSelectionModel().clearSelection();
-        this.table.getColumnModel().getSelectionModel().clearSelection();
+        final ExtTable<E> ltable = this.getTable();
+        if (ltable == null) { return; }
+        ltable.getSelectionModel().clearSelection();
+        ltable.getColumnModel().getSelectionModel().clearSelection();
     }
 
     /**
@@ -247,12 +237,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public boolean contains(final E at) {
-        return this.tableData.contains(at);
+        return this.getTableData().contains(at);
     }
 
     public int countSelectedObjects() {
-        if (this.table == null) { return 0; }
-        return this.table.getSelectedRowCount();
+        final ExtTable<E> ltable = this.getTable();
+        if (ltable == null) { return 0; }
+        return ltable.getSelectedRowCount();
     }
 
     /**
@@ -347,14 +338,16 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public E getElementAt(final int i) {
-        return this.tableData.get(i);
+        final ArrayList<E> ltableData = this.getTableData();
+        if (i >= 0 && i < ltableData.size()) { return ltableData.get(i); }
+        return null;
     }
 
     /**
      * @return
      */
     public ArrayList<E> getElements() {
-        return new ArrayList<E>(this.tableData);
+        return new ArrayList<E>(this.getTableData());
     }
 
     /**
@@ -373,7 +366,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public ExtColumn<E> getExtColumnByViewIndex(final int viewColumnIndex) {
-
         return this.getExtColumnByModelIndex(this.getTable().convertColumnIndexToModel(viewColumnIndex));
     }
 
@@ -419,11 +411,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public E getObjectbyRow(final int index) {
-
-        synchronized (this.tableData) {
-            if (index >= 0 && index < this.tableData.size()) { return this.tableData.get(index); }
-            return null;
-        }
+        return this.getElementAt(index);
     }
 
     /**
@@ -432,7 +420,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @see #tableData
      */
     public int getRowCount() {
-        return this.tableData.size();
+        return this.getTableData().size();
     }
 
     /**
@@ -442,9 +430,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public int getRowforObject(final E o) {
-        synchronized (this.tableData) {
-            return this.tableData.indexOf(o);
-        }
+        return this.getTableData().indexOf(o);
     }
 
     /**
@@ -453,10 +439,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public ArrayList<E> getSelectedObjects() {
-        if (this.table == null) { return new ArrayList<E>(0); }
-        final int[] rows = this.table.getSelectedRows();
+        final ExtTable<E> ltable = this.getTable();
+        if (ltable == null) { return new ArrayList<E>(0); }
+        final int[] rows = ltable.getSelectedRows();
         final ArrayList<E> ret = new ArrayList<E>(rows.length);
-        final ArrayList<E> data = this.tableData;
+        final ArrayList<E> data = this.getTableData();
         for (final int row : rows) {
             if (row >= data.size() || row < 0) {
                 continue;
@@ -520,8 +507,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public ArrayList<E> getTableObjects() {
-        final ArrayList<E> ret = new ArrayList<E>(this.tableData);
-        return ret;
+        return new ArrayList<E>(this.getTableData());
     }
 
     /**
@@ -530,11 +516,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * each object in its way
      */
     public E getValueAt(final int rowIndex, final int columnIndex) {
-        try {
-            return this.tableData.get(rowIndex);
-        } catch (final IndexOutOfBoundsException e) {
-            return null;
-        }
+        return this.getElementAt(rowIndex);
     }
 
     /**
@@ -608,7 +590,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     public ArrayList<E> refreshSort(final ArrayList<E> data) {
         try {
-            return this.sort(data, this.sortColumn);
+            final ArrayList<E> ret = this.sort(data, this.sortColumn);
+            if (ret == null) { return data; }
+            return ret;
         } catch (final NullPointerException e) {
             Log.exception(e);
             return data;
@@ -619,32 +603,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param selectedObjects
      */
     public void removeAll(final ArrayList<E> selectedObjects) {
-        final ArrayList<E> tmp = new ArrayList<E>(this.tableData);
+        final ArrayList<E> tmp = new ArrayList<E>(this.getTableData());
         tmp.removeAll(selectedObjects);
-        final ArrayList<E> selection = new EDTHelper<ArrayList<E>>() {
-
-            @Override
-            public ArrayList<E> edtRun() {
-                return ExtTableModel.this.getSelectedObjects();
-            }
-
-        }.getReturnValue();
-        if (selection != null) {
-            selection.removeAll(selectedObjects);
-        }
-        new EDTHelper<Object>() {
-            @Override
-            public Object edtRun() {
-                ExtTableModel.this.tableData = tmp;
-                ExtTableModel.this.refreshSort();
-                ExtTableModel.this.fireTableStructureChanged();
-                if (ExtTableModel.this.tableData.size() > 0) {
-                    ExtTableModel.this.setSelectedObjects(selection);
-                }
-                return null;
-            }
-        }.start();
-
+        this._fireTableStructureChanged(tmp, true);
     }
 
     /**
@@ -670,16 +631,16 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         } else {
             p = Pattern.compile(".*?" + ret + ".*?", caseSensitive ? Pattern.CASE_INSENSITIVE : 0 | Pattern.DOTALL);
         }
-
-        for (int i = startRow; i < this.tableData.size(); i++) {
+        final ArrayList<E> ltableData = this.getTableData();
+        for (int i = startRow; i < ltableData.size(); i++) {
             for (int c = 0; c < this.columns.size(); c++) {
-                if (this.columns.get(c).matchSearch(this.tableData.get(i), p)) { return this.tableData.get(i); }
+                if (this.columns.get(c).matchSearch(ltableData.get(i), p)) { return ltableData.get(i); }
             }
 
         }
         for (int i = 0; i < startRow; i++) {
             for (int c = 0; c < this.columns.size(); c++) {
-                if (this.columns.get(c).matchSearch(this.tableData.get(i), p)) { return this.tableData.get(i); }
+                if (this.columns.get(c).matchSearch(ltableData.get(i), p)) { return ltableData.get(i); }
             }
 
         }
@@ -720,16 +681,16 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param latest
      */
     public void setSelectedObject(final E latest) {
-        if (this.table == null) { return; }
+        final ExtTable<E> ltable = ExtTableModel.this.getTable();
+        if (ltable == null) { return; }
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
-                if (ExtTableModel.this.table == null) { return null; }
                 ExtTableModel.this.clearSelection();
                 if (latest == null) { return null; }
                 final int row = ExtTableModel.this.getRowforObject(latest);
                 if (row >= 0) {
-                    ExtTableModel.this.table.addRowSelectionInterval(row, row);
+                    ltable.addRowSelectionInterval(row, row);
                 }
                 return null;
             }
@@ -742,16 +703,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param selections
      */
     public void setSelectedObjects(final ArrayList<E> selections) {
-        if (this.table == null) { return; }
-        if (selections == null || selections.size() == 0) { return; }
+        final ExtTable<E> ltable = ExtTableModel.this.getTable();
+        if (ltable == null || selections == null || selections.size() == 0) { return; }
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
-                if (ExtTableModel.this.table == null) { return null; }
-                if (selections == null || selections.size() == 0) {
-                    ExtTableModel.this.clearSelection();
-                    return null;
-                }
+                ExtTableModel.this.clearSelection();
+                if (selections == null || selections.size() == 0) { return null; }
                 // Transform to rowindex list
                 final ArrayList<Integer> selectedRows = new ArrayList<Integer>();
                 int rowIndex = -1;
@@ -763,7 +721,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 }
                 Collections.sort(selectedRows);
                 for (final Integer row : selectedRows) {
-                    ExtTableModel.this.table.addRowSelectionInterval(row, row);
+                    ltable.addRowSelectionInterval(row, row);
                 }
                 return null;
             }
@@ -784,17 +742,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this.table = table;
     }
 
+    protected void setTableData(final ArrayList<E> data) {
+        this.tableData = data;
+    }
+
     // TODO docu
     @Override
     public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
         this.columns.get(columnIndex).setValueAt(value, rowIndex, columnIndex);
-    }
-
-    /**
-     * @return
-     */
-    public int size() {
-        return this.tableData.size();
     }
 
     /**

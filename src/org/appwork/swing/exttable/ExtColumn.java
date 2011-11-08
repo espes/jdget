@@ -209,7 +209,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     public Rectangle getBounds() {
         final Rectangle first = this.getModel().getTable().getCellRect(0, this.getIndex(), true);
-        final Rectangle last = this.getModel().getTable().getCellRect(this.getModel().size() - 1, this.getIndex(), true);
+        final Rectangle last = this.getModel().getTable().getCellRect(this.getModel().getRowCount() - 1, this.getIndex(), true);
         first.height = last.y + last.height - first.y;
         return first;
     }

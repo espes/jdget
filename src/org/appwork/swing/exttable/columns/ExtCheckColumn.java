@@ -89,7 +89,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         final JPopupMenu ret = new JPopupMenu();
         boolean allenabled = true;
         boolean editable = false;
-        for (int i = 0; i < this.getModel().size(); i++) {
+        for (int i = 0; i < this.getModel().getRowCount(); i++) {
             if (this.isEditable(this.getModel().getElementAt(i))) {
                 editable = true;
 
@@ -220,7 +220,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
      * @param b
      */
     protected void setEnabledAll(final boolean b) {
-        for (int i = 0; i < this.getModel().size(); i++) {
+        for (int i = 0; i < this.getModel().getRowCount(); i++) {
             if (this.isEditable(this.getModel().getElementAt(i))) {
                 this.setBooleanValue(b, this.getModel().getElementAt(i));
             }
