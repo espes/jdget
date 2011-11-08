@@ -201,10 +201,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
             // add icon if available
             if (this.icon != null) {
-                getDialog().setLayout(new MigLayout("ins 5,wrap 2", "[][grow,fill]", "[grow,fill][]"));
+                this.getDialog().setLayout(new MigLayout("ins 5,wrap 2", "[][grow,fill]", "[grow,fill][]"));
                 this.getDialog().add(this.iconLabel = new JLabel(this.icon), "gapright 10");
             } else {
-                getDialog().setLayout(new MigLayout("ins 5,wrap 1", "[grow,fill]", "[grow,fill][]"));
+                this.getDialog().setLayout(new MigLayout("ins 5,wrap 1", "[grow,fill]", "[grow,fill][]"));
             }
             // Layout the dialog content and add it to the contentpane
             this.panel = this.layoutDialogContent();
@@ -212,7 +212,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             this.getDialog().add(this.panel, "");
 
             // add the countdown timer
-            MigPanel bottom = new MigPanel("ins 0", "[]20[grow,fill][]", "[]");
+            final MigPanel bottom = new MigPanel("ins 0", "[]20[grow,fill][]", "[]");
             bottom.setOpaque(false);
 
             bottom.add(this.timerLbl);
@@ -266,11 +266,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             } else {
                 this.timerLbl.setText(null);
             }
-            getDialog().add(bottom, "spanx,growx,pushx");
+            this.getDialog().add(bottom, "spanx,growx,pushx");
             // pack dialog
             this.getDialog().invalidate();
             // this.setMinimumSize(this.getPreferredSize());
-            if (!getDialog().isMinimumSizeSet()) {
+            if (!this.getDialog().isMinimumSizeSet()) {
                 this.getDialog().setMinimumSize(new Dimension(300, 80));
             }
             this.getDialog().setResizable(this.isResizable());
@@ -334,11 +334,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // dialog gets closed
             System.out.println("Unlocked " + this.getDialog().isDisplayable());
 
-            if (returnBitMask == 0) {
-                setVisible(true);
+            if (this.returnBitMask == 0) {
+                this.setVisible(true);
                 Log.L.fine("Answer: Parent Closed ");
                 this.returnBitMask |= Dialog.RETURN_CLOSED;
-                setVisible(false);
+                this.setVisible(false);
 
                 this.dispose();
             }
@@ -604,8 +604,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     protected void setTitle(final String title2) {
         try {
             this.getDialog().setTitle(title2);
-        } catch (NullPointerException e) {
-            title = title2;
+        } catch (final NullPointerException e) {
+            this.title = title2;
         }
     }
 

@@ -39,7 +39,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     protected MigPanel        renderer;
     private RenderLabel       editorIconLabel;
-    protected boolean noset=false;
+    protected boolean         noset            = false;
 
     /**
      * @param string
@@ -64,23 +64,23 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
                 super.setIcon(icon);
             }
         };
-        editorField.addKeyListener(new KeyListener() {
+        this.editorField.addKeyListener(new KeyListener() {
 
-            public void keyTyped(KeyEvent e) {
+            public void keyPressed(final KeyEvent e) {
             }
 
-            public void keyReleased(KeyEvent e) {
+            public void keyReleased(final KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                  noset=true;
-                  try{
-                    stopCellEditing();
-                  }finally{
-                      noset=false;
-                  }
+                    ExtTextColumn.this.noset = true;
+                    try {
+                        ExtTextColumn.this.stopCellEditing();
+                    } finally {
+                        ExtTextColumn.this.noset = false;
+                    }
                 }
             }
 
-            public void keyPressed(KeyEvent e) {
+            public void keyTyped(final KeyEvent e) {
             }
         });
         this.rendererIcon.setOpaque(false);
@@ -122,8 +122,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
         this.renderer = new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
 
-        layoutEditor(editor, editorIconLabel, editorField);
-        layoutRenderer(renderer, rendererIcon, rendererField);
+        this.layoutEditor(this.editor, this.editorIconLabel, this.editorField);
+        this.layoutRenderer(this.renderer, this.rendererIcon, this.rendererField);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
@@ -145,27 +145,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             }
 
         });
-
-    }
-
-    /**
-     * @param editor2
-     * @param editorIconLabel2
-     * @param editorField2
-     */
-    protected void layoutEditor(MigPanel editor, RenderLabel editorIconLabel, JTextField editorField) {
-        editor.add(editorIconLabel, "hidemode 2");
-        editor.add(editorField);
-    }
-
-    /**
-     * @param rendererField
-     * @param rendererIco
-     * @param renderer2
-     */
-    protected void layoutRenderer(MigPanel renderer, RenderLabel rendererIcon, RenderLabel rendererField) {
-        renderer.add(rendererIcon, "hidemode 2");
-        renderer.add(rendererField);
 
     }
 
@@ -269,6 +248,27 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         return true;
     }
 
+    /**
+     * @param editor2
+     * @param editorIconLabel2
+     * @param editorField2
+     */
+    protected void layoutEditor(final MigPanel editor, final RenderLabel editorIconLabel, final JTextField editorField) {
+        editor.add(editorIconLabel, "hidemode 2");
+        editor.add(editorField);
+    }
+
+    /**
+     * @param rendererField
+     * @param rendererIco
+     * @param renderer2
+     */
+    protected void layoutRenderer(final MigPanel renderer, final RenderLabel rendererIcon, final RenderLabel rendererField) {
+        renderer.add(rendererIcon, "hidemode 2");
+        renderer.add(rendererField);
+
+    }
+
     @Override
     public boolean matchSearch(final E object, final Pattern pattern) {
         return pattern.matcher(this.getStringValue(object)).matches();
@@ -336,7 +336,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void setValue(final Object value, final E object) {
-       if(!noset) this.setStringValue((String) value, object);
+        if (!this.noset) {
+            this.setStringValue((String) value, object);
+        }
     }
 
 }
