@@ -193,7 +193,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
              * We set the focus on the ok button. if no ok button is shown, we
              * set the focus on cancel button
              */
-            JButton focus = this.okButton;
+            JButton focus = null;
 
             // add listeners here
             this.okButton.addActionListener(this);
@@ -303,21 +303,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 this.getDialog().setLocation(SwingUtils.getCenter(this.getDialog().getParent(), this.getDialog()));
             }
             // register an escape listener to cancel the dialog
-            final KeyStroke ks = KeyStroke.getKeyStroke("ESCAPE");
-            focus.getInputMap().put(ks, "ESCAPE");
-            focus.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ESCAPE");
-            focus.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
-            focus.getActionMap().put("ESCAPE", new AbstractAction() {
-
-                private static final long serialVersionUID = -6666144330707394562L;
-
-                public void actionPerformed(final ActionEvent e) {
-                    Log.L.fine("Answer: Key<ESCAPE>");
-                    AbstractDialog.this.setReturnmask(false);
-                    AbstractDialog.this.dispose();
-                }
-            });
-            focus.requestFocus();
+            this.registerEscape(focus);
             this.packed();
 
             // System.out.println("NEW ONE "+this.getDialog());
@@ -355,7 +341,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             ((Window) this.getDialog().getParent()).setAlwaysOnTop(true);
             ((Window) this.getDialog().getParent()).setAlwaysOnTop(false);
         }
-
     }
 
     public void actionPerformed(final ActionEvent e) {
@@ -486,6 +471,16 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         return this.initialized;
     }
 
+    /**
+     * override to change default resizable flag
+     * 
+     * @return
+     */
+    protected boolean isResizable() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
     // /**
     // * should be overwritten and return a Dimension of the dialog should have
     // a
@@ -497,16 +492,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     //
     // return null;
     // }
-
-    /**
-     * override to change default resizable flag
-     * 
-     * @return
-     */
-    protected boolean isResizable() {
-        // TODO Auto-generated method stub
-        return false;
-    }
 
     /**
      * This method has to be overwritten to implement custom content
@@ -530,6 +515,26 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * may be overwritten to set focus to special components etc.
      */
     protected void packed() {
+    }
+
+    protected void registerEscape(final JComponent focus) {
+        if (focus != null) {
+            final KeyStroke ks = KeyStroke.getKeyStroke("ESCAPE");
+            focus.getInputMap().put(ks, "ESCAPE");
+            focus.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ESCAPE");
+            focus.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
+            focus.getActionMap().put("ESCAPE", new AbstractAction() {
+
+                private static final long serialVersionUID = -6666144330707394562L;
+
+                public void actionPerformed(final ActionEvent e) {
+                    Log.L.fine("Answer: Key<ESCAPE>");
+                    AbstractDialog.this.setReturnmask(false);
+                    AbstractDialog.this.dispose();
+                }
+            });
+            focus.requestFocus();
+        }
     }
 
     /**

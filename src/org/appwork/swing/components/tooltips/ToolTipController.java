@@ -97,7 +97,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
             this.activePopup = null;
             this.lastHidden = System.currentTimeMillis();
             if (this.activeComponent != null) {
-                Window ownerWindow = SwingUtilities.getWindowAncestor(activeComponent);
+                final Window ownerWindow = SwingUtilities.getWindowAncestor(this.activeComponent);
                 if (ownerWindow != null) {
                     ownerWindow.removeWindowFocusListener(this);
                 }
@@ -355,7 +355,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
             tt.addMouseListener(ToolTipController.this);
 
             this.activePopup = popupFactory.getPopup(this.activeComponent, this.activeToolTipPanel, ttPosition.x, ttPosition.y);
-            Window ownerWindow = SwingUtilities.getWindowAncestor(activeComponent);
+            final Window ownerWindow = SwingUtilities.getWindowAncestor(this.activeComponent);
             // if the components window is not the active any more, for exmaple
             // because we opened a dialog, don't show tooltip
 
@@ -380,16 +380,17 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
     protected void showTooltip() {
 
         ToolTipController.this.hideTooltip();
-        if (ToolTipController.this.activeComponent != null &&activeComponent.hasFocus()&& !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
-  
-            Window ownerWindow = SwingUtilities.getWindowAncestor(activeComponent);
+        final JComponent aC = ToolTipController.this.activeComponent;
+        if (aC != null && aC.hasFocus() && !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
+
+            final Window ownerWindow = SwingUtilities.getWindowAncestor(aC);
             // if the components window is not the active any more, for exmaple
             // because we opened a dialog, don't show tooltip
 
             if (ownerWindow.isActive()) {
                 final Point p = new Point(ToolTipController.this.mousePosition);
-                SwingUtilities.convertPointFromScreen(p, ToolTipController.this.activeComponent);
-                this.show(((ToolTipHandler) ToolTipController.this.activeComponent).createExtTooltip(p));
+                SwingUtilities.convertPointFromScreen(p, aC);
+                this.show(((ToolTipHandler) aC).createExtTooltip(p));
             }
 
         }
@@ -412,7 +413,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      * WindowEvent)
      */
     @Override
-    public void windowGainedFocus(WindowEvent e) {
+    public void windowGainedFocus(final WindowEvent e) {
         // TODO Auto-generated method stub
 
     }
@@ -425,8 +426,8 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      * )
      */
     @Override
-    public void windowLostFocus(WindowEvent e) {
-        hideTooltip();
+    public void windowLostFocus(final WindowEvent e) {
+        this.hideTooltip();
 
     }
 }
