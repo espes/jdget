@@ -34,8 +34,8 @@ public class ZipIOWriter {
     private final byte[]    buf        = new byte[8192];
 
     public ZipIOWriter(final ByteArrayOutputStream stream) throws FileNotFoundException, ZipIOException {
-        fileStream = stream;
-        zipStream = new ZipOutputStream(fileStream);
+        this.fileStream = stream;
+        this.zipStream = new ZipOutputStream(this.fileStream);
     }
 
     /**
@@ -48,7 +48,7 @@ public class ZipIOWriter {
      */
     public ZipIOWriter(final File zipFile) throws FileNotFoundException, ZipIOException {
         this.zipFile = zipFile;
-        openZip(false);
+        this.openZip(false);
     }
 
     /**
@@ -63,7 +63,7 @@ public class ZipIOWriter {
      */
     public ZipIOWriter(final File zipFile, final boolean overwrite) throws FileNotFoundException, ZipIOException {
         this.zipFile = zipFile;
-        openZip(overwrite);
+        this.openZip(overwrite);
     }
 
     /**
@@ -81,9 +81,9 @@ public class ZipIOWriter {
     public synchronized void add(final File add, final boolean compress, final String path) throws ZipIOException, IOException {
         if (add == null || !add.exists()) { throw new ZipIOException("add " + add.getAbsolutePath() + " invalid"); }
         if (add.isFile()) {
-            addFileInternal(add, compress, path);
+            this.addFileInternal(add, compress, path);
         } else if (add.isDirectory()) {
-            addDirectoryInternal(add, compress, path);
+            this.addDirectoryInternal(add, compress, path);
         } else {
             throw new ZipIOException("add " + add.getAbsolutePath() + " invalid");
         }
@@ -103,12 +103,12 @@ public class ZipIOWriter {
                 /* STORED must have a CRC32! */
                 zipAdd.setCrc(Hash.getCRC32(data));
             }
-            zipStream.putNextEntry(zipAdd);
+            this.zipStream.putNextEntry(zipAdd);
             zipEntryAdded = true;
-            zipStream.write(data, 0, data.length);
+            this.zipStream.write(data, 0, data.length);
         } finally {
             if (zipEntryAdded) {
-                zipStream.closeEntry();
+                this.zipStream.closeEntry();
             }
         }
     }
@@ -126,7 +126,7 @@ public class ZipIOWriter {
      * @throws IOException
      */
     public synchronized void addDirectory(final File addDirectory, final boolean compress, final String path) throws ZipIOException, IOException {
-        addDirectoryInternal(addDirectory, compress, path);
+        this.addDirectoryInternal(addDirectory, compress, path);
     }
 
     private void addDirectoryInternal(final File addDirectory, final boolean compress, final String path) throws ZipIOException, IOException {
@@ -135,9 +135,9 @@ public class ZipIOWriter {
         if (list == null) { return; }
         for (final File add : list) {
             if (add.isFile()) {
-                addFileInternal(add, compress, (path != null && path.trim().length() > 0 ? path + "/" : "") + addDirectory.getName());
+                this.addFileInternal(add, compress, (path != null && path.trim().length() > 0 ? path + "/" : "") + addDirectory.getName());
             } else if (add.isDirectory()) {
-                addDirectoryInternal(add, compress, (path != null && path.trim().length() > 0 ? path + "/" : "") + addDirectory.getName());
+                this.addDirectoryInternal(add, compress, (path != null && path.trim().length() > 0 ? path + "/" : "") + addDirectory.getName());
             } else {
                 throw new ZipIOException("addDirectory " + addDirectory.getAbsolutePath() + " invalid");
             }
@@ -172,15 +172,15 @@ public class ZipIOWriter {
                 zipAdd.setCrc(Hash.getCRC32(addFile));
             }
             fin = new FileInputStream(addFile);
-            zipStream.putNextEntry(zipAdd);
+            this.zipStream.putNextEntry(zipAdd);
             zipEntryAdded = true;
             int len;
-            while ((len = fin.read(buf)) > 0) {
-                zipStream.write(buf, 0, len);
+            while ((len = fin.read(this.buf)) > 0) {
+                this.zipStream.write(this.buf, 0, len);
             }
         } finally {
             if (zipEntryAdded) {
-                zipStream.closeEntry();
+                this.zipStream.closeEntry();
             }
             if (fin != null) {
                 fin.close();
@@ -192,7 +192,7 @@ public class ZipIOWriter {
 
         final String fullPath = (path != null && path.trim().length() > 0 ? path + "/" : "") + addFile.getName();
 
-        addFile(addFile, compress, fullPath);
+        this.addFile(addFile, compress, fullPath);
     }
 
     /**
@@ -208,7 +208,7 @@ public class ZipIOWriter {
      * @throws IOException
      */
     public synchronized void addFileToPath(final File addFile, final boolean compress, final String path) throws ZipIOException, IOException {
-        addFileInternal(addFile, compress, path);
+        this.addFileInternal(addFile, compress, path);
     }
 
     /**
@@ -217,41 +217,27 @@ public class ZipIOWriter {
      * @throws Throwable
      */
     public synchronized void close() throws IOException {
-        Throwable e = null;
         try {
             try {
-                zipStream.flush();
+                this.zipStream.flush();
             } catch (final Throwable e2) {
-                if (e == null) {
-                    e = e2;
-                }
             }
             try {
-                fileStream.flush();
+                this.fileStream.flush();
             } catch (final Throwable e2) {
-                if (e == null) {
-                    e = e2;
-                }
             }
             try {
-                zipStream.close();
+                this.zipStream.close();
             } catch (final Throwable e2) {
-                if (e == null) {
-                    e = e2;
-                }
             }
             try {
-                fileStream.close();
+                this.fileStream.close();
             } catch (final Throwable e2) {
-                if (e == null) {
-                    e = e2;
-                }
             }
         } finally {
-            zipStream = null;
-            fileStream = null;
+            this.zipStream = null;
+            this.fileStream = null;
         }
-        if (e != null) { throw new IOException(e); }
     }
 
     /**
@@ -263,12 +249,12 @@ public class ZipIOWriter {
      * @throws FileNotFoundException
      */
     private void openZip(final boolean overwrite) throws ZipIOException, FileNotFoundException {
-        if (fileStream != null && zipStream != null) { return; }
-        if (zipFile == null || zipFile.isDirectory()) { throw new ZipIOException("invalid zipFile"); }
-        if (zipFile.exists() && !overwrite) { throw new ZipIOException("zipFile already exists"); }
+        if (this.fileStream != null && this.zipStream != null) { return; }
+        if (this.zipFile == null || this.zipFile.isDirectory()) { throw new ZipIOException("invalid zipFile"); }
+        if (this.zipFile.exists() && !overwrite) { throw new ZipIOException("zipFile already exists"); }
 
-        fileStream = new FileOutputStream(zipFile);
-        zipStream = new ZipOutputStream(fileStream);
+        this.fileStream = new FileOutputStream(this.zipFile);
+        this.zipStream = new ZipOutputStream(this.fileStream);
     }
 
 }

@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 
+import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.handler.StorageHandler;
 import org.appwork.utils.Application;
 
@@ -26,10 +27,6 @@ public class JsonConfig {
 
     private static final HashMap<String, ConfigInterface> CACHE = new HashMap<String, ConfigInterface>();
 
-    public static HashMap<String, ConfigInterface> getCache() {
-        return CACHE;
-    }
-
     /**
      * @param <T>
      * @param class1
@@ -37,33 +34,56 @@ public class JsonConfig {
      */
     @SuppressWarnings("unchecked")
     public static <T extends ConfigInterface> T create(final Class<T> configInterface) {
-
-        synchronized (JsonConfig.CACHE) { 
-
-            ConfigInterface ret = JsonConfig.CACHE.get(configInterface.getName());
-            if (ret == null) {
-
-                // a static referenze in the interface itself would bypass the
-                // cache and create to storagehandler. let's create a dummy
-                // proxy here. and check again afterwards
-                Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new InvocationHandler() {
-
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        // TODO Auto-generated method stub
-                        return null;
-                    }
-                });
+        ConfigInterface ret = JsonConfig.CACHE.get(configInterface.getName());
+        if (ret == null) {
+            /*
+             * we first lock on Cache to access it and check for existence of
+             * the configInterface
+             */
+            synchronized (JsonConfig.CACHE) {
                 ret = JsonConfig.CACHE.get(configInterface.getName());
                 if (ret == null) {
-         
-                    ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(Application.getResource("cfg/" + configInterface.getName()), configInterface));
-                    JsonConfig.CACHE.put(configInterface.getName(), ret);
+                    /*
+                     * see GraphicalUserInterface, a static inside the
+                     * configInterface itself
+                     */
+                    // a static referenze in the interface itself would bypass
+                    // the
+                    // cache and create to storagehandler. let's create a dummy
+                    // proxy here. and check again afterwards
+                    Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new InvocationHandler() {
+
+                        @Override
+                        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                            // TODO Auto-generated method stub
+                            return null;
+                        }
+                    });
+                    /* check if the cache now has this configInterface */
+                    ret = JsonConfig.CACHE.get(configInterface.getName());
                 }
             }
-            return (T) ret;
-        }
 
+            if (ret == null) {
+                /*
+                 * WARNING: as the JSonConfig uses JSonStorage in Background we
+                 * FIRST get JSonStorage Lock AND then JSonStorage Lock. This
+                 * avoids deadlocks that could happen if we restore an Json
+                 * Object which needs to create a JSonConfig during the restore
+                 * procress
+                 */
+                synchronized (JSonStorage.LOCK) {
+                    synchronized (JsonConfig.CACHE) {
+                        ret = JsonConfig.CACHE.get(configInterface.getName());
+                        if (ret == null) {
+                            ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(Application.getResource("cfg/" + configInterface.getName()), configInterface));
+                            JsonConfig.CACHE.put(configInterface.getName(), ret);
+                        }
+                    }
+                }
+            }
+        }
+        return (T) ret;
     }
 
     /**
@@ -73,16 +93,28 @@ public class JsonConfig {
     @SuppressWarnings("unchecked")
     public static <T extends ConfigInterface> T create(final File path, final Class<T> configInterface) {
         final String id = path.getAbsolutePath() + configInterface.getName();
-        synchronized (JsonConfig.CACHE) {
+        /*
+         * WARNING: as the JSonConfig uses JSonStorage in Background we FIRST
+         * get JSonStorage Lock AND then JSonStorage Lock. This avoids deadlocks
+         * that could happen if we restore an Json Object which needs to create
+         * a JSonConfig during the restore procress
+         */
+        synchronized (JSonStorage.LOCK) {
+            synchronized (JsonConfig.CACHE) {
 
-            ConfigInterface ret = JsonConfig.CACHE.get(id);
-            if (ret == null) {
-                ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(path, configInterface));
-                JsonConfig.CACHE.put(id, ret);
+                ConfigInterface ret = JsonConfig.CACHE.get(id);
+                if (ret == null) {
+                    ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(path, configInterface));
+                    JsonConfig.CACHE.put(id, ret);
+                }
+                return (T) ret;
             }
-            return (T) ret;
         }
 
+    }
+
+    public static HashMap<String, ConfigInterface> getCache() {
+        return JsonConfig.CACHE;
     }
 
 }

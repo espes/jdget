@@ -23,11 +23,11 @@ public class TextAreaDialog extends AbstractDialog<String> {
 
     private static final long serialVersionUID = 5129590048597691591L;
 
-    private final String      message;
+    protected final String    message;
 
-    private final String      def;
+    protected final String    def;
 
-    private JTextArea         txtArea;
+    protected JTextArea       txtArea;
 
     public TextAreaDialog(final String title, final String message, final String def) {
         super(0, title, AWUTheme.I().getIcon("dialog/info", 32), null, null);

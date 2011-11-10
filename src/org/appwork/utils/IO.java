@@ -156,29 +156,20 @@ public class IO {
     }
 
     public static byte[] readStream(final int maxSize, final InputStream input) throws IOException {
-        BufferedInputStream bis = null;
         ByteArrayOutputStream baos = null;
         try {
-
-            bis = new BufferedInputStream(input);
             baos = new ByteArrayOutputStream();
-
             final byte[] b = new byte[32767];
             int len;
-            while ((len = bis.read(b)) != -1) {
+            while ((len = input.read(b)) != -1) {
                 if (len > 0) {
                     baos.write(b, 0, len);
                     if (maxSize > 0 && baos.size() > maxSize) { throw new IOException("Max size exeeded!"); }
                 }
-
             }
         } finally {
             try {
                 input.close();
-            } catch (final Exception e) {
-            }
-            try {
-                bis.close();
             } catch (final Exception e) {
             }
             try {
@@ -276,7 +267,7 @@ public class IO {
         file.createNewFile();
         if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
         if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
-System.out.println("Write "+file);
+        System.out.println("Write " + file);
         final FileOutputStream out = new FileOutputStream(file);
         try {
             out.write(data);
