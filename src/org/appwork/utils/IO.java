@@ -17,6 +17,7 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 
+import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 import org.appwork.utils.os.CrossSystem;
 
 public class IO {
@@ -24,9 +25,11 @@ public class IO {
     public static void copyFile(final File in, final File out) throws IOException {
         FileInputStream fis = null;
         FileOutputStream fos = null;
-        final FileChannel inChannel = (fis = new FileInputStream(in)).getChannel();
-        final FileChannel outChannel = (fos = new FileOutputStream(out)).getChannel();
+        FileChannel inChannel = null;
+        FileChannel outChannel = null;
         try {
+            inChannel = (fis = new FileInputStream(in)).getChannel();
+            outChannel = (fos = new FileOutputStream(out)).getChannel();
             if (CrossSystem.isWindows()) {
                 // magic number for Windows, 64Mb - 32Kb)
                 // On the Windows plateform, you can't copy a file bigger than
@@ -156,18 +159,25 @@ public class IO {
     }
 
     public static byte[] readStream(final int maxSize, final InputStream input) throws IOException {
-        ByteArrayOutputStream baos = null;
+        return IO.readStream(maxSize, input, new ByteArrayOutputStream());
+    }
+
+    public static byte[] readStream(final int maxSize, final InputStream input, final ByteArrayOutputStream baos) throws IOException {
+        ReusableByteArrayOutputStream os = null;
         try {
-            baos = new ByteArrayOutputStream();
-            final byte[] b = new byte[32767];
+            os = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(32767);
             int len;
-            while ((len = input.read(b)) != -1) {
+            while ((len = input.read(os.getInternalBuffer())) != -1) {
                 if (len > 0) {
-                    baos.write(b, 0, len);
+                    baos.write(os.getInternalBuffer(), 0, len);
                     if (maxSize > 0 && baos.size() > maxSize) { throw new IOException("Max size exeeded!"); }
                 }
             }
         } finally {
+            try {
+                ReusableByteArrayOutputStreamPool.reuseReusableByteArrayOutputStream(os);
+            } catch (final Throwable e) {
+            }
             try {
                 input.close();
             } catch (final Exception e) {
