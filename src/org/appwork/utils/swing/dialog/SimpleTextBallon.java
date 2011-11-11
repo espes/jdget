@@ -66,7 +66,7 @@ public class SimpleTextBallon extends BalloonDialog {
         header.setOpaque(false);
         this.tit = new JLabel(this.dTitle);
         this.tit.setOpaque(false);
-        this.ic = AWUTheme.I().getIcon("close", 16);
+        this.ic = AWUTheme.I().getIcon("close", -1);
         SwingUtils.toBold(this.tit);
         this.closer = new JButton(this.ic);
         this.closer.setContentAreaFilled(false);

@@ -424,7 +424,11 @@ public abstract class KeyHandler<RawClass> {
 
     @Override
     public String toString() {
+        try{
         return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey() + " = " + this.getValue();
+        }catch(Exception e){
+            return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey();
+        }
     }
 
     public void validateEncryptionKey(final byte[] key2) {
