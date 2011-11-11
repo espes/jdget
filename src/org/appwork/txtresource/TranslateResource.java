@@ -28,7 +28,7 @@ public class TranslateResource {
     /**
      * 
      */
-    private static final long serialVersionUID = 1L;
+  
     private final URL         url;
     private TranslateData     data;
     private final String      name;
@@ -43,7 +43,8 @@ public class TranslateResource {
     }
 
     public TranslateData getData() throws UnsupportedEncodingException, IOException {
-        synchronized (this) {
+  
+    
             if (this.data == null) {
                 if (this.url != null) {
                     final String txt = this.read(this.url);
@@ -52,7 +53,7 @@ public class TranslateResource {
             }
             return this.data;
 
-        }
+        
     }
 
     /**

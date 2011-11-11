@@ -40,7 +40,7 @@ public class JsonConfig {
              * we first lock on Cache to access it and check for existence of
              * the configInterface
              */
-            synchronized (JsonConfig.CACHE) {
+            synchronized (JSonStorage.LOCK) {
                 ret = JsonConfig.CACHE.get(configInterface.getName());
                 if (ret == null) {
                     /*
@@ -62,26 +62,24 @@ public class JsonConfig {
                     /* check if the cache now has this configInterface */
                     ret = JsonConfig.CACHE.get(configInterface.getName());
                 }
-            }
 
-            if (ret == null) {
-                /*
-                 * WARNING: as the JSonConfig uses JSonStorage in Background we
-                 * FIRST get JSonStorage Lock AND then JSonStorage Lock. This
-                 * avoids deadlocks that could happen if we restore an Json
-                 * Object which needs to create a JSonConfig during the restore
-                 * procress
-                 */
-                synchronized (JSonStorage.LOCK) {
-                    synchronized (JsonConfig.CACHE) {
-                        ret = JsonConfig.CACHE.get(configInterface.getName());
-                        if (ret == null) {
-                            ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(Application.getResource("cfg/" + configInterface.getName()), configInterface));
-                            JsonConfig.CACHE.put(configInterface.getName(), ret);
-                        }
+                if (ret == null) {
+                    /*
+                     * WARNING: as the JSonConfig uses JSonStorage in Background
+                     * we FIRST get JSonStorage Lock AND then JSonStorage Lock.
+                     * This avoids deadlocks that could happen if we restore an
+                     * Json Object which needs to create a JSonConfig during the
+                     * restore procress
+                     */
+
+                    ret = JsonConfig.CACHE.get(configInterface.getName());
+                    if (ret == null) {
+                        ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(Application.getResource("cfg/" + configInterface.getName()), configInterface));
+                        JsonConfig.CACHE.put(configInterface.getName(), ret);
                     }
                 }
             }
+
         }
         return (T) ret;
     }
@@ -100,7 +98,7 @@ public class JsonConfig {
          * a JSonConfig during the restore procress
          */
         synchronized (JSonStorage.LOCK) {
-            synchronized (JsonConfig.CACHE) {
+         
 
                 ConfigInterface ret = JsonConfig.CACHE.get(id);
                 if (ret == null) {
@@ -108,7 +106,7 @@ public class JsonConfig {
                     JsonConfig.CACHE.put(id, ret);
                 }
                 return (T) ret;
-            }
+            
         }
 
     }
