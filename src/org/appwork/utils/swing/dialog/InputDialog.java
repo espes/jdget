@@ -27,6 +27,7 @@ import javax.swing.text.JTextComponent;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.BinaryLogic;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging.Log;
 
 public class InputDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
@@ -54,26 +55,26 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
      */
     @Override
     protected String createReturnValue() {
-        return getReturnID();
+        return this.getReturnID();
     }
 
     public String getDefaultMessage() {
-        return defaultMessage;
+        return this.defaultMessage;
     }
 
     public String getMessage() {
-        return message;
+        return this.message;
     }
 
     public String getReturnID() {
-        if ((getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
-        if (input == null || input.getText() == null) { return null; }
-        if (input instanceof JPasswordField) { return new String(((JPasswordField) input).getPassword()); }
-        return input.getText();
+        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
+        if (this.input == null || this.input.getText() == null) { return null; }
+        if (this.input instanceof JPasswordField) { return new String(((JPasswordField) this.input).getPassword()); }
+        return this.input.getText();
     }
 
     public void keyPressed(final KeyEvent e) {
-        cancel();
+        this.cancel();
     }
 
     public void keyReleased(final KeyEvent e) {
@@ -85,38 +86,40 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
     @Override
     public JComponent layoutDialogContent() {
         final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
-        messageArea = new JTextPane();
-        messageArea.setBorder(null);
-        messageArea.setBackground(null);
-        messageArea.setOpaque(false);
-        messageArea.setText(message);
-        messageArea.setEditable(false);
-        messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
-        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_HTML)) {
-            messageArea.setContentType("text/html");
+        if (!StringUtils.isEmpty(this.message)) {
+            this.messageArea = new JTextPane();
+            this.messageArea.setBorder(null);
+            this.messageArea.setBackground(null);
+            this.messageArea.setOpaque(false);
+            this.messageArea.setText(this.message);
+            this.messageArea.setEditable(false);
+            this.messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+            if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
+                this.messageArea.setContentType("text/html");
+            }
+            contentpane.add(this.messageArea);
         }
-        contentpane.add(messageArea);
-        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
-            input = new JTextPane();
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
+            this.input = new JTextPane();
 
-            input.setText(defaultMessage);
-            input.addKeyListener(this);
-            input.addMouseListener(this);
-            contentpane.add(new JScrollPane(input), "height 20:60:n,pushy,growy,w 450");
+            this.input.setText(this.defaultMessage);
+            this.input.addKeyListener(this);
+            this.input.addMouseListener(this);
+            contentpane.add(new JScrollPane(this.input), "height 20:60:n,pushy,growy,w 450");
         } else {
-            input = BinaryLogic.containsAll(flagMask, Dialog.STYLE_PASSWORD) ? new JPasswordField() : new JTextField();
-            input.setBorder(BorderFactory.createEtchedBorder());
-            input.setText(defaultMessage);
-            input.addKeyListener(this);
-            input.addMouseListener(this);
-            contentpane.add(input, "pushy,growy,w 450");
+            this.input = BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_PASSWORD) ? new JPasswordField() : new JTextField();
+            this.input.setBorder(BorderFactory.createEtchedBorder());
+            this.input.setText(this.defaultMessage);
+            this.input.addKeyListener(this);
+            this.input.addMouseListener(this);
+            contentpane.add(this.input, "pushy,growy,w 450");
         }
 
         return contentpane;
     }
 
     public void mouseClicked(final MouseEvent e) {
-        cancel();
+        this.cancel();
     }
 
     public void mouseEntered(final MouseEvent e) {
@@ -133,15 +136,15 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
 
     @Override
     protected void packed() {
-        input.selectAll();
-        requestFocus();
-        input.requestFocusInWindow();
+        this.input.selectAll();
+        this.requestFocus();
+        this.input.requestFocusInWindow();
     }
 
     public void setDefaultMessage(final String defaultMessage) {
         this.defaultMessage = defaultMessage;
-        if (input != null) {
-            input.setText(defaultMessage);
+        if (this.input != null) {
+            this.input.setText(defaultMessage);
         }
     }
 
