@@ -1,5 +1,7 @@
 package org.appwork.swing.exttable;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.regex.Pattern;
@@ -31,23 +33,23 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * 
      */
-    public static final String                             SORT_ORDER_ID_KEY = "SORT_ORDER_ID";
+    public static final String                             SORT_ORDER_ID_KEY   = "SORT_ORDER_ID";
     /**
      * 
      */
-    public static final String                             SORTCOLUMN_KEY    = "SORTCOLUMN";
+    public static final String                             SORTCOLUMN_KEY      = "SORTCOLUMN";
     /**
      * 
      */
-    private static final long                              serialVersionUID  = 939549808899567618L;
+    private static final long                              serialVersionUID    = 939549808899567618L;
     /**
      * complete table structure has changed
      */
-    protected static final int                             UPDATE_STRUCTURE  = 1;
+    protected static final int                             UPDATE_STRUCTURE    = 1;
     /**
      * Column instances
      */
-    protected ArrayList<ExtColumn<E>>                      columns           = new ArrayList<ExtColumn<E>>();
+    protected ArrayList<ExtColumn<E>>                      columns             = new ArrayList<ExtColumn<E>>();
 
     /**
      * Modelid to have an seperate key for database savong
@@ -57,12 +59,12 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * the table that uses this model
      */
-    private ExtTable<E>                                    table             = null;
+    private ExtTable<E>                                    table               = null;
 
     /**
      * a list of objects. Each object represents one table row
      */
-    protected ArrayList<E>                                 tableData         = new ArrayList<E>();
+    protected ArrayList<E>                                 tableData           = new ArrayList<E>();
 
     protected ExtColumn<E>                                 sortColumn;
 
@@ -70,6 +72,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     private final ImageIcon                                iconAsc;
     private final ImageIcon                                iconDesc;
+    private final PropertyChangeListener                   replaceDelayer;
+    private ArrayList<E>                                   delayedNewTableData = null;
+    private ArrayList<E>                                   delayedSelection    = null;
 
     /**
      * Create a new ExtTableModel.
@@ -114,7 +119,28 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 }
             }
         }
+        /**
+         * we use this PropertyChangeListener to avoid tableRefresh while the
+         * table is in editing mode
+         **/
+        this.replaceDelayer = new PropertyChangeListener() {
 
+            @Override
+            public void propertyChange(final PropertyChangeEvent evt) {
+                if ("tableCellEditor".equalsIgnoreCase(evt.getPropertyName()) && evt.getNewValue() == null) {
+                    /*
+                     * tableCellEditor is null again, now we can refresh the
+                     * TableData and Selection
+                     */
+                    final ExtTable<E> ltable = ExtTableModel.this.getTable();
+                    if (ltable != null) {
+                        ltable.removePropertyChangeListener(this);
+                    }
+                    ExtTableModel.this._replaceTableData(ExtTableModel.this.delayedNewTableData, ExtTableModel.this.delayedSelection, false);
+                }
+            }
+
+        };
     }
 
     public void _fireTableStructureChanged(ArrayList<E> newtableData, final boolean refreshSort) {
@@ -133,29 +159,67 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         if (selection != null) {
             selection.retainAll(newdata);
         }
+        this._replaceTableData(newdata, selection, true);
+    }
+
+    /**
+     * this replaces the tables Data and Selection
+     * 
+     * checkEditing tells if we should check for table Editing mode
+     * 
+     * if it is false, we will replace the data for sure
+     * 
+     * if it is true, we check whether the table is in editing mode. if so we
+     * add a propertychange listener and temporarily save the new data and
+     * selection
+     * 
+     * @param newtableData
+     * @param selection
+     * @param checkEditing
+     */
+    private void _replaceTableData(final ArrayList<E> newtableData, final ArrayList<E> selection, final boolean checkEditing) {
+        if (newtableData == null) { return; }
+
         new EDTRunner() {
             @Override
             protected void runInEDT() {
                 final ExtTable<E> ltable = ExtTableModel.this.getTable();
-                if (ltable != null) {
-                    final boolean adjusting = ltable.getSelectionModel().getValueIsAdjusting();
-                    final int anchor = ltable.getSelectionModel().getAnchorSelectionIndex();
-                    final int lead = ltable.getSelectionModel().getLeadSelectionIndex();
-                    ExtTableModel.this.setTableData(newdata);
-                    ExtTableModel.this.fireTableStructureChanged();
-                    if (ExtTableModel.this.getRowCount() > 0) {
-                        ExtTableModel.this.setSelectedObjects(selection);
-                        if (adjusting) {
-                            ltable.getSelectionModel().setAnchorSelectionIndex(anchor);
-                            ltable.getSelectionModel().setLeadSelectionIndex(lead);
-                            ltable.getSelectionModel().setValueIsAdjusting(adjusting);
+                final boolean replaceNow = !checkEditing || ltable == null || !ltable.isEditing();
+                if (replaceNow) {
+                    if (ltable != null) {
+                        /* replace now */
+                        /* clear delayed TableData and Selection */
+                        ExtTableModel.this.delayedNewTableData = null;
+                        ExtTableModel.this.delayedSelection = null;
+                        ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
+                        /* replace TableData and set Selection */
+                        final boolean adjusting = ltable.getSelectionModel().getValueIsAdjusting();
+                        final int anchor = ltable.getSelectionModel().getAnchorSelectionIndex();
+                        final int lead = ltable.getSelectionModel().getLeadSelectionIndex();
+                        ExtTableModel.this.setTableData(newtableData);
+                        ExtTableModel.this.fireTableStructureChanged();
+                        if (ExtTableModel.this.getRowCount() > 0) {
+                            if (selection != null) {
+                                ExtTableModel.this.setSelectedObjects(selection);
+                            }
+                            if (adjusting) {
+                                ltable.getSelectionModel().setAnchorSelectionIndex(anchor);
+                                ltable.getSelectionModel().setLeadSelectionIndex(lead);
+                                ltable.getSelectionModel().setValueIsAdjusting(adjusting);
+                            }
                         }
+                    } else {
+                        ExtTableModel.this.setTableData(newtableData);
+                        ExtTableModel.this.fireTableStructureChanged();
                     }
                 } else {
-                    ExtTableModel.this.setTableData(newdata);
-                    ExtTableModel.this.fireTableStructureChanged();
+                    /* replace later because table is in editing mode */
+                    /* set delayed TableData and Selection */
+                    ExtTableModel.this.delayedNewTableData = newtableData;
+                    ExtTableModel.this.delayedSelection = selection;
+                    ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
+                    ltable.addPropertyChangeListener(ExtTableModel.this.replaceDelayer);
                 }
-
             }
         };
     }
@@ -212,14 +276,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * 
      */
     public void clear() {
-        new EDTHelper<Object>() {
-            @Override
-            public Object edtRun() {
-                ExtTableModel.this.setTableData(new ArrayList<E>());
-                ExtTableModel.this.fireTableStructureChanged();
-                return null;
-            }
-        }.start();
+        ExtTableModel.this._replaceTableData(new ArrayList<E>(), null, true);
     }
 
     /**
