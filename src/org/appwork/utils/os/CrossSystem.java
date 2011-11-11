@@ -50,6 +50,9 @@ public class CrossSystem {
     public static final byte    OS_WINDOWS_7           = 8;
     public static final byte    OS_WINDOWS_SERVER_2008 = 9;
 
+    private static Boolean      openURLSupport         = null;
+    private static Boolean      openFILESupport        = null;
+
     /**
      * Cache to store the OS string in
      */
@@ -95,6 +98,32 @@ public class CrossSystem {
         } else {
             MIME = new MimeDefault();
         }
+    }
+
+    private static boolean _isOpenBrowserSupported() {
+        if (CrossSystem.isWindows()) { return true; }
+        try {
+            if (!Desktop.isDesktopSupported()) { return false; }
+            final Desktop desktop = Desktop.getDesktop();
+            if (!desktop.isSupported(Desktop.Action.BROWSE)) { return false; }
+            return true;
+        } catch (final Throwable e) {
+            Log.exception(Level.WARNING, e);
+        }
+        return false;
+    }
+
+    private static boolean _isOpenFileSupported() {
+        if (CrossSystem.isWindows()) { return true; }
+        try {
+            if (!Desktop.isDesktopSupported()) { return false; }
+            final Desktop desktop = Desktop.getDesktop();
+            if (!desktop.isSupported(Desktop.Action.OPEN)) { return false; }
+            return true;
+        } catch (final Throwable e) {
+            Log.exception(Level.WARNING, e);
+        }
+        return false;
     }
 
     /**
@@ -205,16 +234,9 @@ public class CrossSystem {
      * @return
      */
     public static boolean isOpenBrowserSupported() {
-        if (CrossSystem.isWindows()) { return true; }
-        try {
-            if (!Desktop.isDesktopSupported()) { return false; }
-            final Desktop desktop = Desktop.getDesktop();
-            if (!desktop.isSupported(Desktop.Action.BROWSE)) { return false; }
-            return true;
-        } catch (final Throwable e) {
-            Log.exception(Level.WARNING, e);
-        }
-        return false;
+        if (CrossSystem.openURLSupport != null) { return CrossSystem.openURLSupport; }
+        CrossSystem.openURLSupport = CrossSystem._isOpenBrowserSupported();
+        return CrossSystem.openURLSupport;
     }
 
     /**
@@ -223,16 +245,9 @@ public class CrossSystem {
      * @return
      */
     public static boolean isOpenFileSupported() {
-        if (CrossSystem.isWindows()) { return true; }
-        try {
-            if (!Desktop.isDesktopSupported()) { return false; }
-            final Desktop desktop = Desktop.getDesktop();
-            if (!desktop.isSupported(Desktop.Action.OPEN)) { return false; }
-            return true;
-        } catch (final Throwable e) {
-            Log.exception(Level.WARNING, e);
-        }
-        return false;
+        if (CrossSystem.openFILESupport != null) { return CrossSystem.openFILESupport; }
+        CrossSystem.openFILESupport = CrossSystem._isOpenFileSupported();
+        return CrossSystem.openFILESupport;
     }
 
     /**
