@@ -159,6 +159,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         if (selection != null) {
             selection.retainAll(newdata);
         }
+
         this._replaceTableData(newdata, selection, true);
     }
 
@@ -177,7 +178,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param selection
      * @param checkEditing
      */
-    private void _replaceTableData(final ArrayList<E> newtableData, final ArrayList<E> selection, final boolean checkEditing) {
+    protected void _replaceTableData(final ArrayList<E> newtableData, final ArrayList<E> selection, final boolean checkEditing) {
         if (newtableData == null) { return; }
 
         new EDTRunner() {
