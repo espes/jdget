@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
@@ -33,6 +35,7 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
     protected JTextArea       txt;
     private int               oldRowHeight;
     private int               oldRowNum;
+    protected boolean         noset            = false;
 
     /**
      * @param string
@@ -45,10 +48,34 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
     public ExtTextAreaColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
         this.txt = new JTextArea();
+        this.txt.addKeyListener(new KeyListener() {
+
+            public void keyPressed(final KeyEvent e) {
+            }
+
+            public void keyReleased(final KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    ExtTextAreaColumn.this.noset = true;
+                    try {
+                        ExtTextAreaColumn.this.stopCellEditing();
+                    } finally {
+                        ExtTextAreaColumn.this.noset = false;
+                    }
+                }
+            }
+
+            public void keyTyped(final KeyEvent e) {
+            }
+        });
         this.editor = new JScrollPane(this.txt);
 
         this.txt.addFocusListener(this);
         this.renderer = new RenderLabel() {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1856757784567522988L;
+
             @Override
             public boolean isVisible() {
                 return false;
@@ -124,20 +151,25 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
 
     }
 
+    protected void firePropertyChange(final String propertyName, final Object oldValue, final Object newValue) {
+
+    }
+
     @Override
     public void focusGained(final FocusEvent e) {
-        // this.txt.selectAll();
     }
 
     @Override
     public void focusLost(final FocusEvent e) {
-        // TODO Auto-generated method stub
-        this.stopCellEditing();
+        if (!e.isTemporary()) {
+            /*
+             * we check for temporary , because a rightclick menu will cause
+             * focus lost but editing should not stop
+             */
+            this.stopCellEditing();
+        }
     }
-    protected void firePropertyChange(String propertyName,
-            Object oldValue, Object newValue) {
-        
-    }
+
     @Override
     public Object getCellEditorValue() {
         return this.txt.getText();
@@ -148,7 +180,6 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
      */
     @Override
     public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
-
         return this.editor;
     }
 
@@ -166,7 +197,6 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
      * @return
      */
     private int getMaxHeight(final E value) {
-        // TODO Auto-generated method stub
         return 300;
     }
 
@@ -273,7 +303,9 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
     @Override
     public void setValue(final Object value, final E object) {
         this.getModel().getTable().setRowHeight(this.oldRowNum, this.oldRowHeight);
-        this.setStringValue((String) value, object);
+        if (!this.noset) {
+            this.setStringValue((String) value, object);
+        }
     }
 
 }

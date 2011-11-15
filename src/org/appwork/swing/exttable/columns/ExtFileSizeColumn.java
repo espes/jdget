@@ -32,6 +32,11 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
     public ExtFileSizeColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
         this.renderer = new RenderLabel() {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1045896241157027789L;
+
             @Override
             public boolean isVisible() {
                 return false;
