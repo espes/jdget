@@ -58,23 +58,25 @@ public class PathChooser extends MigPanel {
     private ExtTextField txt;
     private ExtButton    bt;
     private String       id;
+
     public JPopupMenu getPopupMenu(ExtTextField txt, CutAction cutAction, CopyAction copyAction, PasteAction pasteAction, DeleteAction deleteAction, SelectAction selectAction) {
-     return null;   
+        return null;
     }
+
     public PathChooser(String id) {
         super("ins 0", "[grow,fill][]", "[grow,fill]");
         this.id = id;
-        txt = new ExtTextField(){
+        txt = new ExtTextField() {
 
             @Override
             public JPopupMenu getPopupMenu(CutAction cutAction, CopyAction copyAction, PasteAction pasteAction, DeleteAction deleteAction, SelectAction selectAction) {
-                JPopupMenu self = PathChooser.this.getPopupMenu(txt,cutAction, copyAction, pasteAction, deleteAction, selectAction);
-                
-                if(self==null){return super.getPopupMenu(cutAction, copyAction, pasteAction, deleteAction, selectAction);}
-                    return self;
-                
+                JPopupMenu self = PathChooser.this.getPopupMenu(txt, cutAction, copyAction, pasteAction, deleteAction, selectAction);
+
+                if (self == null) { return super.getPopupMenu(cutAction, copyAction, pasteAction, deleteAction, selectAction); }
+                return self;
+
             }
-            
+
         };
         txt.setHelpText(getHelpText());
         bt = new ExtButton(new BrowseAction());
@@ -189,19 +191,29 @@ public class PathChooser extends MigPanel {
 
         return file2.getAbsolutePath();
     }
+
     /**
      * @return
      */
     public String getPath() {
-   
+
         return txt.getText();
     }
+
     /**
      * @param downloadDestination
      */
     public void setPath(String downloadDestination) {
         txt.setText(downloadDestination);
-        
+
+    }
+
+    /**
+     * @param packagizerFilterRuleDialog_layoutDialogContent_dest_help
+     */
+    public void setHelpText(String helpText) {
+        txt.setHelpText(helpText);
+
     }
 
 }
