@@ -61,7 +61,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             public void setIcon(final Icon icon) {
 
                 this.setVisible(icon != null);
-                super.setIcon(icon);
+                if (icon != getIcon()) {
+                    super.setIcon(icon);
+                }
             }
         };
         this.editorField.addKeyListener(new KeyListener() {
@@ -104,7 +106,11 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
              * 
              */
             private static final long serialVersionUID = 1L;
-
+            public void setText(String text) {
+                if(text!=getText()){
+                    super.setText(text);
+                }
+            }
             @Override
             public void setIcon(final Icon icon) {
 
@@ -276,6 +282,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void resetEditor() {
+        editor.setEnabled(true);
         this.editorField.setFont(this.editorFont);
         this.editorField.setForeground(this.editorForeground);
         this.editorField.setOpaque(false);
@@ -286,6 +293,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void resetRenderer() {
+        renderer.setEnabled(true);
         this.rendererField.setBorder(this.defaultBorder);
         this.rendererField.setOpaque(false);
         this.rendererField.setBackground(null);

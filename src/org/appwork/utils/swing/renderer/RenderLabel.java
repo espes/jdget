@@ -92,6 +92,7 @@ public class RenderLabel extends JLabel {
      */
     @Override
     public void setEnabled(final boolean b) {
+        if(b==isEnabled())return;
         super.setEnabled(b);
         if (!b && this.getIcon() != null) {
             this.setDisabledIcon(ImageProvider.getDisabledIcon(this.getIcon()));
@@ -105,10 +106,19 @@ public class RenderLabel extends JLabel {
      */
     @Override
     public void setIcon(final Icon icon) {
+        if (icon == getIcon()) return;
         if (!this.isEnabled()) {
             this.setDisabledIcon(ImageProvider.getDisabledIcon(icon));
         }
+        if (icon == null) {
+            setDisabledIcon(null);
+        }
         super.setIcon(icon);
+    }
+
+    public void setDisabledIcon(Icon disabledIcon) {
+        if (disabledIcon == getDisabledIcon()) return;
+        super.setDisabledIcon(disabledIcon);
     }
 
     @Override

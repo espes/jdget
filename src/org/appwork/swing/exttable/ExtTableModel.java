@@ -4,6 +4,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.swing.Icon;
@@ -835,5 +836,31 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             }
         }
         return data;
+    }
+
+    /**
+     * call this for drag&drop or cut&paste
+     * 
+     * @param transferData
+     * @param dropRow
+     * @return
+     */
+    public boolean move(ArrayList<E> transferData, int dropRow) {
+        try {
+            final ArrayList<E> newdata = new ArrayList<E>(this.getTableData().size());
+            List<E> before = new ArrayList<E>(getTableData().subList(0, dropRow));
+            List<E> after = new ArrayList<E>(getTableData().subList(dropRow, getTableData().size()));
+            before.removeAll(transferData);
+            after.removeAll(transferData);
+            newdata.addAll(before);
+            newdata.addAll(transferData);
+            newdata.addAll(after);
+            this._fireTableStructureChanged(newdata, true);
+            return true;
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        return false;
+
     }
 }

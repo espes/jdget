@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
+import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
@@ -107,6 +108,15 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     protected boolean                                 headerDragging;
     private ExtColumn<E>                              lastTooltipCol;
     private int                                       lastTooltipRow;
+    private ExtDataFlavor<E> flavor;
+
+    public void setTransferHandler(ExtTransferHandler<E> newHandler) {
+     
+   
+        newHandler.setTable(this);
+        super.setTransferHandler(newHandler);
+
+    }
 
     /**
      * Create an Extended Table instance
@@ -120,6 +130,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      */
     public ExtTable(final ExtTableModel<E> model) {
         super(model);
+        flavor=new ExtDataFlavor<E>(getClass());
         this.eventSender = new ExtTableEventSender();
         ToolTipController.getInstance().register(this);
         ToolTipManager.sharedInstance().unregisterComponent(this);
@@ -276,7 +287,13 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     protected void accommodateColumnDelta(final int index, final int delta) {
         System.out.println(delta);
     }
-
+    public void setDragEnabled(boolean b) {
+        super.setDragEnabled(b);
+        if(getTransferHandler()==null){
+            setTransferHandler(new ExtTransferHandler<E>());
+            setDropMode(DropMode.INSERT_ROWS);
+        }
+    }
     /**
      * adds a row highlighter
      * 
@@ -1339,6 +1356,14 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         final int row = this.getRowIndexByPoint(e.getPoint());
         final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
         return this.lastTooltipCol != col || this.lastTooltipRow != row;
+    }
+
+    /**
+     * @return
+     */
+    public ExtDataFlavor<E> getDataFlavor() {
+        // TODO Auto-generated method stub
+        return flavor;
     }
 
 }
