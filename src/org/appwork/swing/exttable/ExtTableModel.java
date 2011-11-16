@@ -641,15 +641,20 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * 
      * 
      */
-    /* better sort outside edt and then set new,sorted table data */
-    @Deprecated
     public void refreshSort() {
-        this.refreshSort(this.getTableData());
+        this._fireTableStructureChanged(this.getTableObjects(), true);
     }
 
     public ArrayList<E> refreshSort(final ArrayList<E> data) {
         try {
+            boolean sameTable = false;
+            if (this.tableData == data) {
+                sameTable = true;
+            }
             final ArrayList<E> ret = this.sort(data, this.sortColumn);
+            if (this.tableData == ret && sameTable) {
+                Log.exception(new Throwable("WARNING: sorting on live backend!"));
+            }
             if (ret == null) { return data; }
             return ret;
         } catch (final NullPointerException e) {
