@@ -137,6 +137,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                     if (ltable != null) {
                         ltable.removePropertyChangeListener(this);
                     }
+
                     ExtTableModel.this._replaceTableData(ExtTableModel.this.delayedNewTableData, ExtTableModel.this.delayedSelection, false);
                 }
             }
@@ -182,13 +183,16 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     protected void _replaceTableData(final ArrayList<E> newtableData, final ArrayList<E> selection, final boolean checkEditing) {
         if (newtableData == null) { return; }
 
+
         new EDTRunner() {
             @Override
             protected void runInEDT() {
                 final ExtTable<E> ltable = ExtTableModel.this.getTable();
                 final boolean replaceNow = !checkEditing || ltable == null || !ltable.isEditing();
                 if (replaceNow) {
+             
                     if (ltable != null) {
+                    
                         /* replace now */
                         /* clear delayed TableData and Selection */
                         ExtTableModel.this.delayedNewTableData = null;
@@ -199,6 +203,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         final int anchor = ltable.getSelectionModel().getAnchorSelectionIndex();
                         final int lead = ltable.getSelectionModel().getLeadSelectionIndex();
                         ExtTableModel.this.setTableData(newtableData);
+                 
                         ExtTableModel.this.fireTableStructureChanged();
                         if (ExtTableModel.this.getRowCount() > 0) {
                             if (selection != null) {
@@ -215,6 +220,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         ExtTableModel.this.fireTableStructureChanged();
                     }
                 } else {
+                
                     /* replace later because table is in editing mode */
                     /* set delayed TableData and Selection */
                     ExtTableModel.this.delayedNewTableData = newtableData;
@@ -860,6 +866,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             newdata.addAll(before);
             newdata.addAll(transferData);
             newdata.addAll(after);
+            
             this._fireTableStructureChanged(newdata, true);
             return true;
         } catch (Throwable t) {

@@ -36,6 +36,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
+import javax.swing.TransferHandler;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -108,11 +109,10 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     protected boolean                                 headerDragging;
     private ExtColumn<E>                              lastTooltipCol;
     private int                                       lastTooltipRow;
-    private ExtDataFlavor<E> flavor;
+    private ExtDataFlavor<E>                          flavor;
 
     public void setTransferHandler(ExtTransferHandler<E> newHandler) {
-     
-   
+
         newHandler.setTable(this);
         super.setTransferHandler(newHandler);
 
@@ -130,7 +130,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      */
     public ExtTable(final ExtTableModel<E> model) {
         super(model);
-        flavor=new ExtDataFlavor<E>(getClass());
+        flavor = new ExtDataFlavor<E>(getClass());
         this.eventSender = new ExtTableEventSender();
         ToolTipController.getInstance().register(this);
         ToolTipManager.sharedInstance().unregisterComponent(this);
@@ -284,16 +284,25 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     }
 
+    public Component getEditorComponent() {
+        // update cell editor.
+      if(    getCellEditor()!=null)  getCellEditor().getTableCellEditorComponent(this, getValueAt(getEditingRow(), getEditingColumn()), isCellSelected(getEditingRow(), getEditingColumn()), getEditingRow(), getEditingColumn());
+        return editorComp;
+    }
+
     protected void accommodateColumnDelta(final int index, final int delta) {
-        System.out.println(delta);
+//        System.out.println(delta);
     }
-    public void setDragEnabled(boolean b) {
-        super.setDragEnabled(b);
-        if(getTransferHandler()==null){
-            setTransferHandler(new ExtTransferHandler<E>());
-            setDropMode(DropMode.INSERT_ROWS);
-        }
-    }
+
+    // public boolean editCellAt(int row, int column, EventObject e){
+    // if( super.editCellAt(row, column, e)){
+    //
+    // return true;
+    // }
+    // return false;
+    // }
+  
+
     /**
      * adds a row highlighter
      * 
@@ -589,18 +598,8 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return this.columnForegroundSelected;
     }
 
-    /**
-     * @return
-     */
-    private int getColumnWidth() {
-        int ret = 0;
-        for (int i = 0; i < this.getColumnCount(); i++) {
-            final int w = this.getColumnModel().getColumn(i).getWidth();
-            System.out.println(i + " : " + w);
-            ret += w;
-        }
-        return ret;
-    }
+   
+
 
     /**
      * @return the size of the contextmenu icons
@@ -998,7 +997,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
                 final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
-                // System.out.println(row);
+      
                 if (obj == null || row == -1) {
                     /* no object under mouse, lets clear the selection */
                     this.clearSelection();
@@ -1030,7 +1029,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                     col.onDoubleClick(e, obj);
                 }
 
-                // System.out.println(row);
+           
                 if (obj != null) {
                     this.onDoubleClick(e, obj);
 
@@ -1043,7 +1042,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 if (col != null) {
                     col.onSingleClick(e, obj);
                 }
-                // System.out.println(row);
+              
                 if (obj != null) {
                     this.onSingleClick(e, obj);
                 }
@@ -1241,7 +1240,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 rect.setLocation(rect.x - pt.x, rect.y - pt.y);
 
                 viewport.scrollRectToVisible(rect);
-                System.out.println("Scrol " + rect);
+             
                 return null;
             }
 

@@ -355,8 +355,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
+    
         final JComponent ret = this.getEditorComponent((E) value, isSelected, row, column);
-
         this.resetEditor();
         this.configureEditorHighlighters(ret, (E) value, isSelected, row);
         this.configureEditorComponent((E) value, isSelected, row, column);
@@ -368,7 +368,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        final JComponent ret = this.getRendererComponent((E) value, isSelected, hasFocus, row, column);
+      final JComponent ret = this.getRendererComponent((E) value, isSelected, hasFocus, row, column);
         this.resetRenderer();
         this.configureRendererHighlighters(ret, (E) value, isSelected, hasFocus, row);
         this.configureRendererComponent((E) value, isSelected, hasFocus, row, column);
