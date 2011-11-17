@@ -318,16 +318,19 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
             this.setVisible(true);
             // dialog gets closed
-            System.out.println("Unlocked " + this.getDialog().isDisplayable());
-
-            if (this.returnBitMask == 0) {
-                this.setVisible(true);
-                Log.L.fine("Answer: Parent Closed ");
-                this.returnBitMask |= Dialog.RETURN_CLOSED;
-                this.setVisible(false);
-
-                this.dispose();
-            }
+            //17.11.2011 I did not comment this -  may be debug code while finding the problem with dialogs with closed parent...s
+            
+            //this code causes a dialog which gets disposed without setting return mask to appear again.
+//            System.out.println("Unlocked " + this.getDialog().isDisplayable());
+//
+//            if (this.returnBitMask == 0) {
+//                this.setVisible(true);
+//                Log.L.fine("Answer: Parent Closed ");
+//                this.returnBitMask |= Dialog.RETURN_CLOSED;
+//                this.setVisible(false);
+//
+//                this.dispose();
+//            }
         } finally {
             // System.out.println("SET OLD");
             Dialog.getInstance().setParentOwner(this.getDialog().getParent());
