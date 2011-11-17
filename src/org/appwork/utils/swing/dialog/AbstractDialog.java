@@ -57,7 +57,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN = new HashMap<String, Integer>();
 
-    static Integer getSessionDontShowAgainValue(final String key) {
+    public static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
         if (ret == null) { return -1; }
 
@@ -111,6 +111,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.icon = BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON) ? null : icon;
         this.okOption = okOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_OK() : okOption;
         this.cancelOption = cancelOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
+    }
+
+    public boolean isHiddenByDontShowAgain() {
+        final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
+        return i >= 0;
     }
 
     /**
@@ -318,19 +323,22 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
             this.setVisible(true);
             // dialog gets closed
-            //17.11.2011 I did not comment this -  may be debug code while finding the problem with dialogs with closed parent...s
-            
-            //this code causes a dialog which gets disposed without setting return mask to appear again.
-//            System.out.println("Unlocked " + this.getDialog().isDisplayable());
-//
-//            if (this.returnBitMask == 0) {
-//                this.setVisible(true);
-//                Log.L.fine("Answer: Parent Closed ");
-//                this.returnBitMask |= Dialog.RETURN_CLOSED;
-//                this.setVisible(false);
-//
-//                this.dispose();
-//            }
+            // 17.11.2011 I did not comment this - may be debug code while
+            // finding the problem with dialogs with closed parent...s
+
+            // this code causes a dialog which gets disposed without setting
+            // return mask to appear again.
+            // System.out.println("Unlocked " +
+            // this.getDialog().isDisplayable());
+            //
+            // if (this.returnBitMask == 0) {
+            // this.setVisible(true);
+            // Log.L.fine("Answer: Parent Closed ");
+            // this.returnBitMask |= Dialog.RETURN_CLOSED;
+            // this.setVisible(false);
+            //
+            // this.dispose();
+            // }
         } finally {
             // System.out.println("SET OLD");
             Dialog.getInstance().setParentOwner(this.getDialog().getParent());

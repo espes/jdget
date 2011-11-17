@@ -315,7 +315,7 @@ public abstract class TimerDialog {
     /**
      * @param b
      */
-    public void setVisible(final boolean b) {
+    public void setVisible(final boolean b) {    
         this.getDialog().setVisible(b);
     }
 

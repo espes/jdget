@@ -152,7 +152,7 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             }
 
             try {
-                this.ballonPanel = new BallonPanel(this, this.component, this.timerLbl, this.dontshowagain, this.desiredLocation);
+                this.ballonPanel = new BallonPanel(this, this.component, this.timerLbl, this.dontshowagain, getDesiredLocation());
 
             } catch (final OffScreenException e1) {
                 // TODO Auto-generated catch block
@@ -207,10 +207,10 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             // this workaround ajusts locations to the dart
             if (this.ballonPanel.isExpandToBottom()) {
 
-                this.getDialog().setLocation(new Point(this.desiredLocation.x - 11, this.desiredLocation.y - 13));
+                this.getDialog().setLocation(new Point(this.getDesiredLocation().x - 11, this.getDesiredLocation().y - 13));
             } else {
 
-                this.getDialog().setLocation(new Point(this.desiredLocation.x - 11, this.desiredLocation.y + 27));
+                this.getDialog().setLocation(new Point(this.getDesiredLocation().x - 11, this.getDesiredLocation().y + 27));
             }
 
             // register an escape listener to cancel the dialog
@@ -288,6 +288,14 @@ public class BalloonDialog extends AbstractDialog<Integer> {
             ((Window) this.getDialog().getParent()).setAlwaysOnTop(false);
         }
 
+    }
+
+    /**
+     * @return
+     */
+    protected Point getDesiredLocation() {
+        // TODO Auto-generated method stub
+        return desiredLocation;
     }
 
     /**
