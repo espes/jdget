@@ -10,11 +10,8 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
-import org.appwork.storage.config.annotations.DefaultByteValue;
-import org.appwork.storage.config.annotations.DefaultStringValue;
 
 /**
  * @author Thomas
@@ -26,21 +23,31 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
      * @param storageHandler
      * @param key
      */
-    public BooleanKeyHandler(StorageHandler<?> storageHandler, String key) {
+    public BooleanKeyHandler(final StorageHandler<?> storageHandler, final String key) {
         super(storageHandler, key);
         // TODO Auto-generated constructor stub
+    }
+
+    @Override
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+
+        return DefaultBooleanValue.class;
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
+     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
-    protected void putValue(Boolean object) {
+    public Boolean getValue() {
+        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
+    }
 
-        this.storageHandler.putPrimitive(getKey(), object);
-
+    @Override
+    protected boolean initDefaults() throws Throwable {
+        this.defaultValue = false;
+        return super.initDefaults();
     }
 
     /*
@@ -51,14 +58,31 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
     @SuppressWarnings("unchecked")
     @Override
     protected void initHandler() {
-       
-    
+
     }
+
+    public boolean isEnabled() {
+        final Boolean value = this.getValue();
+        if (value == null || value == false) { return false; }
+        return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
+     */
     @Override
-    protected boolean initDefaults() throws Throwable {
-        defaultValue=false;
-       return super.initDefaults();
+    protected void putValue(final Boolean object) {
+
+        this.storageHandler.putPrimitive(this.getKey(), object);
+
     }
+
+    public void toggle() {
+        this.setValue(!this.getValue());
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -66,26 +90,9 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
      * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
      */
     @Override
-    protected void validateValue(Boolean object) throws Throwable {
+    protected void validateValue(final Boolean object) throws Throwable {
         // TODO Auto-generated method stub
 
-    }
-
-  
-    @Override
-    protected Class<? extends Annotation> getDefaultAnnotation() {
-
-        return DefaultBooleanValue.class;
-    }
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
-     */
-    @Override
-    public Boolean getValue() {
-   
-      return primitiveStorage.get(getKey(), defaultValue);
-        
-     
     }
 
 }

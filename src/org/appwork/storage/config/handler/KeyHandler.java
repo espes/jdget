@@ -391,7 +391,7 @@ public abstract class KeyHandler<RawClass> {
             } else if (oldValue != null && newValue == null) {
                 /* new is null, but old is not */
                 changed = true;
-            } else if (!Clazz.isPrimitive(getRawClass())) {
+            } else if (!Clazz.isPrimitive(this.getRawClass())) {
                 /* no primitive, we cannot detect changes 100% */
                 changed = true;
             } else if (!newValue.equals(oldValue)) {
@@ -419,14 +419,13 @@ public abstract class KeyHandler<RawClass> {
 
             throw e;
         }
-
     }
 
     @Override
     public String toString() {
-        try{
-        return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey() + " = " + this.getValue();
-        }catch(Exception e){
+        try {
+            return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey() + " = " + this.getValue();
+        } catch (final Exception e) {
             return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey();
         }
     }
