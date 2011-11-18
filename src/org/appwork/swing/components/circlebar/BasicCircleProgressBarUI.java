@@ -28,6 +28,7 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.JComponent;
+import javax.swing.Timer;
 import javax.swing.plaf.ComponentUI;
 
 import org.appwork.utils.event.predefined.changeevent.ChangeEvent;
@@ -52,16 +53,13 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
             if (!BasicCircleProgressBarUI.this.circleBar.isDisplayable()) {
                 BasicCircleProgressBarUI.this.cleanUpIndeterminateValues();
             }
-          
-            //if bar is showing, or the bar is part of a renderer
-            if (BasicCircleProgressBarUI.this.circleBar.isShowing()||circleBar instanceof org.appwork.swing.exttable.columns.ExtCircleProgressColumn.IndeterminatedCircledProgressBar) {
+
+            // if bar is showing, or the bar is part of a renderer
+            if (BasicCircleProgressBarUI.this.circleBar.isShowing() || BasicCircleProgressBarUI.this.circleBar instanceof org.appwork.swing.exttable.columns.ExtCircleProgressColumn.IndeterminatedCircledProgressBar) {
                 BasicCircleProgressBarUI.this.animatedProgress += BasicCircleProgressBarUI.this.animationStepSize;
                 BasicCircleProgressBarUI.this.animatedProgress %= 2.f;
                 BasicCircleProgressBarUI.this.circleBar.repaint();
             }
-            
-            
-          
 
         }
     }
@@ -128,7 +126,10 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
      * 
      */
     public void cleanUpIndeterminateValues() {
-      if(timer!=null)  this.timer.stop();
+        final Timer ltimer = this.timer;
+        if (ltimer != null) {
+            ltimer.stop();
+        }
         this.timer = null;
         this.animatedProgress = 0.0f;
     }
@@ -194,10 +195,11 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
      */
     public void initIndeterminate() {
         if (this.timer != null) { return; }
-        this.timer = new javax.swing.Timer(1000 / this.circleBar.getAnimationFPS(), new AnimationListener());
-        this.timer.setInitialDelay(0);
-        this.timer.setRepeats(true);
-        this.timer.start();
+        final javax.swing.Timer timer = new javax.swing.Timer(1000 / this.circleBar.getAnimationFPS(), new AnimationListener());
+        timer.setInitialDelay(0);
+        timer.setRepeats(true);
+        timer.start();
+        this.timer = timer;
 
     }
 
