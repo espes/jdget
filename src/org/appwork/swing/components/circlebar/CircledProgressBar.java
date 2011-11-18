@@ -50,9 +50,11 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
      */
     public CircledProgressBar() {
         this(new DefaultBoundedRangeModel());
-
+      
     }
-
+    public boolean isFocusable() {
+        return false;
+    }
     /**
      * @param model
      */
