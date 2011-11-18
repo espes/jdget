@@ -1,9 +1,7 @@
-package org.appwork.storage.config.test;
+package org.appwork.storage.config;
 
 import java.util.HashSet;
 
-import org.appwork.storage.config.ConfigInterface;
-import org.appwork.storage.config.JsonConfig;
 import org.appwork.storage.config.annotations.Description;
 import org.appwork.storage.config.handler.KeyHandler;
 
