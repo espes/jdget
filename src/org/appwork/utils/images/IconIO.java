@@ -284,7 +284,7 @@ public class IconIO {
      * @param j
      * @return
      */
-    public static BufferedImage getScaledInstance(BufferedImage img, int width, int height) {
+    public static BufferedImage getScaledInstance(Image img, int width, int height) {
         // TODO Auto-generated method stub
         return getScaledInstance(img, width, height, Interpolation.BICUBIC, true);
     }

@@ -42,7 +42,8 @@ public class TranslationFactory {
             final String id = sb.toString();
             T ret = (T) TranslationFactory.CACHE.get(id);
             if (ret == null) {
-                ret = (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class[] { class1 }, new TranslationHandler(class1, lookup));
+               
+                ret = (T) Proxy.newProxyInstance( class1.getClassLoader(), new Class[] { class1 }, new TranslationHandler(class1, lookup));
                 TranslationFactory.CACHE.put(id, ret);
             }
 

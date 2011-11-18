@@ -142,7 +142,6 @@ public class Theme {
         }
         if (ret == null) {
             final URL url = this.getURL("images/", relativePath, ".png");
-
             ret = IconIO.getImageIcon(url, size);
             if (url == null) {
 

@@ -51,7 +51,7 @@ public class JsonConfig {
                     // the
                     // cache and create to storagehandler. let's create a dummy
                     // proxy here. and check again afterwards
-                    Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new InvocationHandler() {
+                    Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new InvocationHandler() {
 
                         @Override
                         public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
@@ -102,7 +102,8 @@ public class JsonConfig {
 
                 ConfigInterface ret = JsonConfig.CACHE.get(id);
                 if (ret == null) {
-                    ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(path, configInterface));
+                  
+                    ret = (T) Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(path, configInterface));
                     JsonConfig.CACHE.put(id, ret);
                 }
                 return (T) ret;
