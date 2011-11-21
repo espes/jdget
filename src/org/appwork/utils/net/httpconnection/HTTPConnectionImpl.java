@@ -298,7 +298,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
             if (this.contentDecoded) {
                 /* we convert different content-encodings to normal inputstream */
                 final String encoding = this.getHeaderField("Content-Encoding");
-                if (encoding == null || encoding.length() == 0) {
+                if (encoding == null || encoding.length() == 0 || "none".equalsIgnoreCase(encoding)) {
                     /* no encoding */
                     this.convertedInputStream = this.inputStream;
                 } else if ("gzip".equalsIgnoreCase(encoding)) {
