@@ -31,7 +31,6 @@ public class BasicHTTP {
     public static void main(final String[] args) throws MalformedURLException, IOException, InterruptedException {
 
         final BasicHTTP client = new BasicHTTP();
-
         System.out.println(client.getPage(new URL("http://ipcheck0.jdownloader.org")));
         // client.download(new URL("http://update3.jdownloader.org/speed.avi"),
         // null, new File("/home/daniel/speed.avi"));
@@ -342,6 +341,7 @@ public class BasicHTTP {
                 writer = new OutputStreamWriter(outputStream);
                 writer.write(postData);
                 writer.flush();
+                this.connection.finalizeConnect();
                 close = false;
                 return this.connection;
             } finally {
@@ -396,6 +396,7 @@ public class BasicHTTP {
                 writer = new OutputStreamWriter(outputStream);
                 writer.write(data);
                 writer.flush();
+                this.connection.finalizeConnect();
                 reader = new BufferedReader(isr = new InputStreamReader(this.connection.getInputStream(), "UTF-8"));
                 final StringBuilder sb = new StringBuilder();
                 String str;
@@ -437,7 +438,7 @@ public class BasicHTTP {
     }
 
     public void setConnectTimeout(final int connectTimeout) {
-        this.connectTimeout = connectTimeout;
+        this.connectTimeout = Math.max(1000, connectTimeout);
     }
 
     public void setProxy(final HTTPProxy proxy) {
@@ -445,7 +446,7 @@ public class BasicHTTP {
     }
 
     public void setReadTimeout(final int readTimeout) {
-        this.readTimeout = readTimeout;
+        this.readTimeout = Math.max(1000, readTimeout);
     }
 
 }

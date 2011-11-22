@@ -39,9 +39,20 @@ public class JSonStorage {
         /* shutdown hook to save all open Storages */
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
             @Override
+            public int getHookPriority() {
+                return 0;
+            }
+
+            @Override
             public void run() {
                 JSonStorage.save();
             }
+
+            @Override
+            public String toString() {
+                return "JSonStorage";
+            }
+
         });
 
     }

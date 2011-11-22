@@ -108,6 +108,11 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
             /* we can continue to use the socks5 connection */
             this.httpSocket = establishedConnection;
         }
+        /* update connection stats of proxy */
+        if (this.proxy != null) {
+            this.proxy.getUsedConnections().incrementAndGet();
+            this.proxy.getCurrentConnections().incrementAndGet();
+        }
         this.httpResponseCode = -1;
         this.requestTime = System.currentTimeMillis() - startTime;
         this.httpPath = new org.appwork.utils.Regex(this.httpURL.toString(), "https?://.*?(/.+)").getMatch(0);
@@ -122,15 +127,20 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
     public void disconnect() {
         if (this.isConnected()) {
             try {
+                if (!this.connectionClosed) {
+                    this.connectionClosed = true;
+                    /* update connection stats of proxy */
+                    if (this.proxy != null) {
+                        this.proxy.getCurrentConnections().decrementAndGet();
+                    }
+                }
                 this.httpSocket.close();
             } catch (final Throwable e) {
-                e.printStackTrace();
             }
         }
         try {
             this.socks5socket.close();
         } catch (final Throwable e) {
-            e.printStackTrace();
         }
     }
 

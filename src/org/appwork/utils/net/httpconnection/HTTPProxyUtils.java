@@ -13,9 +13,10 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -23,17 +24,8 @@ import java.util.List;
  * 
  */
 public class HTTPProxyUtils {
-    public static LinkedList<InetAddress> getLocalIPs() {
-        final LinkedList<InetAddress> ipsLocal = new LinkedList<InetAddress>();
-        // debug
-        // try {
-        // ipsLocal.add(InetAddress.getByName("google.de"));
-        //
-        // ipsLocal.add(InetAddress.getByName("jdownloader.org"));
-        // } catch (final UnknownHostException e1) {
-        // // TODO Auto-generated catch block
-        // e1.printStackTrace();
-        // }
+    public static List<InetAddress> getLocalIPs() {
+        final HashSet<InetAddress> ipsLocal = new HashSet<InetAddress>();
         try {
             final Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
             while (nets.hasMoreElements()) {
@@ -48,11 +40,7 @@ public class HTTPProxyUtils {
                     if (addr.getAddress().isLoopbackAddress()) {
                         continue;
                     }
-                    final InetAddress ip = addr.getAddress();
-                    if (!ipsLocal.contains(ip)) {
-                        ipsLocal.add(ip);
-
-                    }
+                    ipsLocal.add(addr.getAddress());
                 }
                 /* find all subinterfaces for each network interface, eg. eth0.1 */
                 final Enumeration<NetworkInterface> nets2 = cur.getSubInterfaces();
@@ -67,17 +55,14 @@ public class HTTPProxyUtils {
                         if (addr.getAddress().isLoopbackAddress()) {
                             continue;
                         }
-                        final InetAddress ip = addr.getAddress();
-                        if (!ipsLocal.contains(ip)) {
-                            ipsLocal.add(ip);
-                        }
+                        ipsLocal.add(addr.getAddress());
                     }
                 }
             }
-        } catch (final SocketException e) {
+        } catch (final Throwable e) {
             e.printStackTrace();
         }
-        return ipsLocal;
+        return Collections.unmodifiableList(new ArrayList<InetAddress>(ipsLocal));
     }
 
 }

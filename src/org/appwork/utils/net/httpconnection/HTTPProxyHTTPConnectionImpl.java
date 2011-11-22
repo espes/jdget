@@ -46,6 +46,11 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
         final long startTime = System.currentTimeMillis();
         try {
             this.httpSocket.connect(new InetSocketAddress(host, this.proxy.getPort()), this.connectTimeout);
+            /* update connection stats of proxy */
+            if (this.proxy != null) {
+                this.proxy.getUsedConnections().incrementAndGet();
+                this.proxy.getCurrentConnections().incrementAndGet();
+            }
         } catch (final IOException e) {
             this.proxy.setStatus(HTTPProxy.STATUS.OFFLINE);
             throw new ProxyConnectException(e.getMessage());
@@ -87,6 +92,11 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                 try {
                     this.httpSocket.close();
                 } catch (final Throwable nothing) {
+                } finally {
+                    /* update connection stats of proxy */
+                    if (this.proxy != null) {
+                        this.proxy.getCurrentConnections().decrementAndGet();
+                    }
                 }
                 if ("407".equals(proxyCode)) {
                     /* auth invalid/missing */
@@ -132,6 +142,11 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                 try {
                     this.httpSocket.close();
                 } catch (final Throwable e2) {
+                } finally {
+                    /* update connection stats of proxy */
+                    if (this.proxy != null) {
+                        this.proxy.getCurrentConnections().decrementAndGet();
+                    }
                 }
                 throw new IOException("HTTPProxyHTTPConnection: " + e, e);
             }
