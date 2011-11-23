@@ -233,12 +233,15 @@ public class StateMachine {
     public void removeListener(final StateEventListener listener) {
         this.eventSender.removeListener(listener);
     }
-
-    public void reset() {
+/**
+ * set force to true of you want to reset in any case. else reset is only possible inf inal state
+ * @param force
+ */
+    public void reset(boolean force) {
         StateEvent event;
         synchronized (this.lock) {
             if (this.currentState == this.initState) { return; }
-            if (this.finalState != this.currentState) { throw new StateConflictException("Cannot reset from state " + this.currentState); }
+            if (!force&&this.finalState != this.currentState) { throw new StateConflictException("Cannot reset from state " + this.currentState); }
             event = new StateEvent(this, StateEvent.Types.CHANGED, this.currentState, this.initState);
             Log.L.finest(this.owner + " State changed (reset) " + this.currentState + " -> " + this.initState);
             this.currentState = this.initState;

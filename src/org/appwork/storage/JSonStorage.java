@@ -342,6 +342,7 @@ public class JSonStorage {
     }
 
     public static void save() {
+        System.out.println("Start Saving Storage");
         synchronized (JSonStorage.MAP) {
             for (final Entry<String, Storage> entry : JSonStorage.MAP.entrySet()) {
                 try {
@@ -357,6 +358,7 @@ public class JSonStorage {
                 }
             }
         }
+        System.out.println("ENDED Saving Storage");
     }
 
     public static void saveTo(final File file, final boolean plain, final byte[] key, final String json) throws StorageException {

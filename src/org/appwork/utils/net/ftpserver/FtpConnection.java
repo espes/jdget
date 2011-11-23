@@ -529,7 +529,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
                     }
                     this.stateMachine.setStatus(FtpConnection.LOGOUT);
                     this.stateMachine.setStatus(FtpConnection.IDLEEND);
-                    this.stateMachine.reset();
+                    this.stateMachine.reset(false);
                     throw new FtpNotLoginException();
                 }
             } else {
@@ -780,7 +780,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
 
     private void onUSER(final String params[]) throws IOException, FtpException {
         if (this.stateMachine.isFinal()) {
-            this.stateMachine.reset();
+            this.stateMachine.reset(false);
         }
         this.stateMachine.setStatus(FtpConnection.USER);
         this.connectionState.setUser(this.ftpServer.getFtpCommandHandler().getUser(params[1]));
@@ -802,7 +802,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             }
             this.stateMachine.setStatus(FtpConnection.LOGOUT);
             this.stateMachine.setStatus(FtpConnection.IDLEEND);
-            this.stateMachine.reset();
+            this.stateMachine.reset(false);
             throw new FtpNotLoginException();
         }
     }

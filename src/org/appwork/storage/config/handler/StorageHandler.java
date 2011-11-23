@@ -100,6 +100,11 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
 
             @Override
+            public int getHookPriority() {
+                return 0;
+            }
+
+            @Override
             public String toString() {
                 return "Save " + StorageHandler.this.path + "[" + configInterface.getName() + "]";
             }
