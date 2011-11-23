@@ -1,20 +1,15 @@
 package org.appwork.utils.net.httpconnection;
 
 import java.net.InetAddress;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.appwork.utils.Regex;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 
 public class HTTPProxy {
-
-    public static enum STATUS {
-        OK,
-        OFFLINE,
-        INVALIDAUTH
-    }
 
     public static enum TYPE {
         NONE,
@@ -23,36 +18,72 @@ public class HTTPProxy {
         HTTP
     }
 
-    private final AtomicLong      usedConnections    = new AtomicLong(0);
-    private final AtomicInteger   currentConnections = new AtomicInteger(0);
+    public static final HTTPProxy NONE = new HTTPProxy(TYPE.NONE) {
 
-    public static final HTTPProxy NONE               = new HTTPProxy(TYPE.NONE) {
+                                           @Override
+                                           public void setLocalIP(final InetAddress localIP) {
+                                           }
 
-                                                         @Override
-                                                         public void setLocalIP(final InetAddress localIP) {
-                                                         }
+                                           @Override
+                                           public void setPass(final String pass) {
+                                           }
 
-                                                         @Override
-                                                         public void setPass(final String pass) {
-                                                         }
+                                           @Override
+                                           public void setPort(final int port) {
+                                           }
 
-                                                         @Override
-                                                         public void setPort(final int port) {
-                                                         }
+                                           @Override
+                                           public void setType(final TYPE type) {
+                                           }
 
-                                                         @Override
-                                                         public void setStatus(final STATUS status) {
-                                                         }
+                                           @Override
+                                           public void setUser(final String user) {
+                                           }
 
-                                                         @Override
-                                                         public void setType(final TYPE type) {
-                                                         }
+                                       };
 
-                                                         @Override
-                                                         public void setUser(final String user) {
-                                                         }
-
-                                                     };
+    public static List<HTTPProxy> getFromSystemProperties() {
+        final ArrayList<HTTPProxy> ret = new ArrayList<HTTPProxy>();
+        try {
+            {
+                /* try to parse http proxy from system properties */
+                final String host = System.getProperties().getProperty("http.proxyHost");
+                if (!StringUtils.isEmpty(host)) {
+                    int port = 80;
+                    final String ports = System.getProperty("http.proxyPort");
+                    if (!StringUtils.isEmpty(ports)) {
+                        port = Integer.parseInt(ports);
+                    }
+                    final HTTPProxy pr = new HTTPProxy(HTTPProxy.TYPE.HTTP, host, port);
+                    final String user = System.getProperty("http.proxyUser");
+                    final String pass = System.getProperty("http.proxyPassword");
+                    if (!StringUtils.isEmpty(user)) {
+                        pr.setUser(user);
+                    }
+                    if (!StringUtils.isEmpty(pass)) {
+                        pr.setPass(pass);
+                    }
+                    ret.add(pr);
+                }
+            }
+            {
+                /* try to parse socks5 proxy from system properties */
+                final String host = System.getProperties().getProperty("socksProxyHost");
+                if (!StringUtils.isEmpty(host)) {
+                    int port = 1080;
+                    final String ports = System.getProperty("socksProxyPort");
+                    if (!StringUtils.isEmpty(ports)) {
+                        port = Integer.parseInt(ports);
+                    }
+                    final HTTPProxy pr = new HTTPProxy(HTTPProxy.TYPE.SOCKS5, host, port);
+                    ret.add(pr);
+                }
+            }
+        } catch (final Throwable e) {
+            Log.exception(e);
+        }
+        return ret;
+    }
 
     public static HTTPProxy getHTTPProxy(final HTTPProxyStorable storable) {
         if (storable == null || storable.getType() == null) { return null; }
@@ -147,10 +178,12 @@ public class HTTPProxy {
     private String      pass    = null;
 
     private int         port    = 80;
-
     protected String    host    = null;
+
     private TYPE        type    = TYPE.DIRECT;
-    private STATUS      status  = STATUS.OK;
+
+    protected HTTPProxy() {
+    }
 
     public HTTPProxy(final InetAddress direct) {
         this.type = TYPE.DIRECT;
@@ -167,8 +200,14 @@ public class HTTPProxy {
         this.host = HTTPProxy.getInfo(host, "" + port)[0];
     }
 
-    public AtomicInteger getCurrentConnections() {
-        return this.currentConnections;
+    protected void cloneProxy(final HTTPProxy proxy) {
+        if (proxy == null) { return; }
+        this.user = proxy.user;
+        this.localIP = proxy.localIP;
+        this.pass = proxy.pass;
+        this.port = proxy.port;
+        this.type = proxy.type;
+        this.localIP = proxy.localIP;
     }
 
     public String getHost() {
@@ -190,19 +229,8 @@ public class HTTPProxy {
         return this.port;
     }
 
-    /**
-     * @return the status
-     */
-    public STATUS getStatus() {
-        return this.status;
-    }
-
     public TYPE getType() {
         return this.type;
-    }
-
-    public AtomicLong getUsedConnections() {
-        return this.usedConnections;
     }
 
     public String getUser() {
@@ -275,14 +303,6 @@ public class HTTPProxy {
 
     public void setPort(final int port) {
         this.port = port;
-    }
-
-    /**
-     * @param status
-     *            the status to set
-     */
-    public void setStatus(final STATUS status) {
-        this.status = status;
     }
 
     public void setType(final TYPE type) {

@@ -49,7 +49,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
     protected String                         httpHeader           = null;
 
     protected boolean                        outputClosed         = false;
-    protected boolean                        connectionClosed     = false;
     private boolean                          contentDecoded       = true;
     protected long                           postTodoLength       = -1;
     private int[]                            allowedResponseCodes = new int[0];
@@ -107,8 +106,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
                     if (this.proxy.getLocalIP() == null) { throw new IOException("Invalid localIP"); }
                     this.httpSocket.bind(new InetSocketAddress(this.proxy.getLocalIP(), 0));
                 } catch (final IOException e) {
-                    this.proxy.setStatus(HTTPProxy.STATUS.OFFLINE);
-                    throw new ProxyConnectException(e.getMessage());
+                    throw new ProxyConnectException(e, this.proxy);
                 }
             } else if (this.proxy != null && this.proxy.isNone()) {
                 /* none is also allowed here */
@@ -117,11 +115,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
             try {
                 /* try to connect to given host now */
                 this.httpSocket.connect(new InetSocketAddress(host, port), this.connectTimeout);
-                /* update connection stats of proxy */
-                if (this.proxy != null) {
-                    this.proxy.getUsedConnections().incrementAndGet();
-                    this.proxy.getCurrentConnections().incrementAndGet();
-                }
                 this.requestTime = System.currentTimeMillis() - startTime;
                 ee = null;
                 break;
@@ -133,13 +126,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 ee = e;
             }
         }
-        if (ee != null) {
-            /* update connection stats of proxy */
-            if (this.proxy != null) {
-                this.proxy.getCurrentConnections().decrementAndGet();
-            }
-            throw ee;
-        }
+        if (ee != null) { throw ee; }
         this.httpPath = new org.appwork.utils.Regex(this.httpURL.toString(), "https?://.*?(/.+)").getMatch(0);
         if (this.httpPath == null) {
             this.httpPath = "/";
@@ -233,13 +220,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
     public void disconnect() {
         if (this.isConnected()) {
             try {
-                if (!this.connectionClosed) {
-                    this.connectionClosed = true;
-                    /* update connection stats of proxy */
-                    if (this.proxy != null) {
-                        this.proxy.getCurrentConnections().decrementAndGet();
-                    }
-                }
                 this.httpSocket.close();
             } catch (final Throwable e) {
             }

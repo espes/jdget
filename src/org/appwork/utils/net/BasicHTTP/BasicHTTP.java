@@ -88,11 +88,16 @@ public class BasicHTTP {
         try {
             this.download(url, progress, maxSize, baos, -1);
         } catch (final IOException e) {
-            if (baos.size() > 0) { throw new BasicHTTPException(this.connection, e); }
-        }
-        try {
-            baos.close();
-        } catch (final Throwable t) {
+            if (baos.size() > 0) {
+                throw new BasicHTTPException(this.connection, e);
+            } else {
+                throw e;
+            }
+        } finally {
+            try {
+                baos.close();
+            } catch (final Throwable t) {
+            }
         }
         return baos.toByteArray();
     }

@@ -31,8 +31,8 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
             final String user = this.proxy.getUser() == null ? "" : this.proxy.getUser();
             final String pass = this.proxy.getPass() == null ? "" : this.proxy.getPass();
             this.proxyRequest = new StringBuilder("AUTH user:pass\r\n");
-            final byte[] username = user.getBytes("UTF-8");
-            final byte[] password = pass.getBytes("UTF-8");
+            final byte[] username = user.getBytes("ISO-8859-1");
+            final byte[] password = pass.getBytes("ISO-8859-1");
             /* must be 1 */
             this.socks5outputstream.write((byte) 1);
             /* send username */
@@ -43,17 +43,15 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
             this.socks5outputstream.write(password);
             /* read response, 2 bytes */
             final byte[] resp = this.readResponse(2);
-            if (resp[0] != 1) { throw new IOException("Socks5HTTPConnection: invalid Socks5 response"); }
-            if (resp[1] != 0) {
-                this.proxy.setStatus(HTTPProxy.STATUS.INVALIDAUTH);
-                throw new ProxyAuthException();
-            }
+            if (resp[0] != 1) { throw new ProxyConnectException(this.proxy); }
+            if (resp[1] != 0) { throw new ProxyAuthException(this.proxy); }
         } catch (final IOException e) {
             try {
                 this.socks5socket.close();
             } catch (final Throwable e2) {
             }
-            throw e;
+            if (e instanceof HTTPProxyException) { throw e; }
+            throw new ProxyConnectException(e, this.proxy);
         }
     }
 
@@ -61,83 +59,74 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
     public void connect() throws IOException {
         if (this.isConnected()) { return;/* oder fehler */
         }
-        if (this.proxy == null || !this.proxy.getType().equals(HTTPProxy.TYPE.SOCKS5)) { throw new IOException("Socks5HTTPConnection: invalid Socks5 Proxy!"); }
-        /* create and connect to socks5 proxy */
-        this.socks5socket = new Socket();
-        this.socks5socket.setSoTimeout(this.readTimeout);
-        final long startTime = System.currentTimeMillis();
         try {
-            this.socks5socket.connect(new InetSocketAddress(this.proxy.getHost(), this.proxy.getPort()), this.connectTimeout);
-        } catch (final IOException e) {
-            this.proxy.setStatus(HTTPProxy.STATUS.OFFLINE);
-            throw new ProxyConnectException(e.getMessage());
-        }
-        this.socks5inputstream = this.socks5socket.getInputStream();
-        this.socks5outputstream = this.socks5socket.getOutputStream();
-        /* establish connection to socks5 */
-        final int method = this.sayHello();
-        if (method == 2) {
-            /* username/password authentication */
-            this.authenticateProxy();
-        } else {
-            this.proxyRequest = new StringBuilder("NONE AUTH\r\n");
-        }
-        /* establish to destination through socks5 */
-        this.httpPort = this.httpURL.getPort();
-        this.httpHost = this.httpURL.getHost();
-        if (this.httpPort == -1) {
-            this.httpPort = this.httpURL.getDefaultPort();
-        }
-        final Socket establishedConnection = this.establishConnection();
-        if (this.httpURL.getProtocol().startsWith("https")) {
-            /* we need to lay ssl over normal socks5 connection */
-            SSLSocket sslSocket = null;
+            if (this.proxy == null || !this.proxy.getType().equals(HTTPProxy.TYPE.SOCKS5)) { throw new IOException("Socks5HTTPConnection: invalid Socks5 Proxy!"); }
+            /* create and connect to socks5 proxy */
+            this.socks5socket = new Socket();
+            this.socks5socket.setSoTimeout(this.readTimeout);
+            final long startTime = System.currentTimeMillis();
             try {
-                final SSLSocketFactory socketFactory = TrustALLSSLFactory.getSSLFactoryTrustALL();
-                sslSocket = (SSLSocket) socketFactory.createSocket(establishedConnection, this.httpHost, this.httpPort, true);
-                sslSocket.startHandshake();
-            } catch (final SSLHandshakeException e) {
-                try {
-                    this.socks5socket.close();
-                } catch (final Throwable e2) {
-                }
-                throw new IOException("Socks5HTTPConnection: " + e);
+                this.socks5socket.connect(new InetSocketAddress(this.proxy.getHost(), this.proxy.getPort()), this.connectTimeout);
+            } catch (final IOException e) {
+                throw new ProxyConnectException(e, this.proxy);
             }
-            this.httpSocket = sslSocket;
-        } else {
-            /* we can continue to use the socks5 connection */
-            this.httpSocket = establishedConnection;
+            this.socks5inputstream = this.socks5socket.getInputStream();
+            this.socks5outputstream = this.socks5socket.getOutputStream();
+            /* establish connection to socks5 */
+            final int method = this.sayHello();
+            if (method == 2) {
+                /* username/password authentication */
+                this.authenticateProxy();
+            } else {
+                this.proxyRequest = new StringBuilder("NONE AUTH\r\n");
+            }
+            /* establish to destination through socks5 */
+            this.httpPort = this.httpURL.getPort();
+            this.httpHost = this.httpURL.getHost();
+            if (this.httpPort == -1) {
+                this.httpPort = this.httpURL.getDefaultPort();
+            }
+            final Socket establishedConnection = this.establishConnection();
+            if (this.httpURL.getProtocol().startsWith("https")) {
+                /* we need to lay ssl over normal socks5 connection */
+                SSLSocket sslSocket = null;
+                try {
+                    final SSLSocketFactory socketFactory = TrustALLSSLFactory.getSSLFactoryTrustALL();
+                    sslSocket = (SSLSocket) socketFactory.createSocket(establishedConnection, this.httpHost, this.httpPort, true);
+                    sslSocket.startHandshake();
+                } catch (final SSLHandshakeException e) {
+                    try {
+                        this.socks5socket.close();
+                    } catch (final Throwable e2) {
+                    }
+                    throw new ProxyConnectException(e, this.proxy);
+                }
+                this.httpSocket = sslSocket;
+            } else {
+                /* we can continue to use the socks5 connection */
+                this.httpSocket = establishedConnection;
+            }
+            this.httpResponseCode = -1;
+            this.requestTime = System.currentTimeMillis() - startTime;
+            this.httpPath = new org.appwork.utils.Regex(this.httpURL.toString(), "https?://.*?(/.+)").getMatch(0);
+            if (this.httpPath == null) {
+                this.httpPath = "/";
+            }
+            /* now send Request */
+            this.sendRequest();
+        } catch (final IOException e) {
+            try {
+                this.disconnect();
+            } catch (final Throwable e2) {
+            }
+            if (e instanceof HTTPProxyException) { throw e; }
+            throw new ProxyConnectException(e, this.proxy);
         }
-        /* update connection stats of proxy */
-        if (this.proxy != null) {
-            this.proxy.getUsedConnections().incrementAndGet();
-            this.proxy.getCurrentConnections().incrementAndGet();
-        }
-        this.httpResponseCode = -1;
-        this.requestTime = System.currentTimeMillis() - startTime;
-        this.httpPath = new org.appwork.utils.Regex(this.httpURL.toString(), "https?://.*?(/.+)").getMatch(0);
-        if (this.httpPath == null) {
-            this.httpPath = "/";
-        }
-        /* now send Request */
-        this.sendRequest();
     }
 
     @Override
     public void disconnect() {
-        if (this.isConnected()) {
-            try {
-                if (!this.connectionClosed) {
-                    this.connectionClosed = true;
-                    /* update connection stats of proxy */
-                    if (this.proxy != null) {
-                        this.proxy.getCurrentConnections().decrementAndGet();
-                    }
-                }
-                this.httpSocket.close();
-            } catch (final Throwable e) {
-            }
-        }
+        super.disconnect();
         try {
             this.socks5socket.close();
         } catch (final Throwable e) {
@@ -155,7 +144,7 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
             /* we use domain names */
             this.socks5outputstream.write((byte) 3);
             /* send somain name */
-            final byte[] domain = this.httpHost.getBytes("UTF-8");
+            final byte[] domain = this.httpHost.getBytes("ISO-8859-1");
             this.socks5outputstream.write((byte) domain.length);
             this.socks5outputstream.write(domain);
             /* send port */
@@ -165,7 +154,7 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
             this.socks5outputstream.flush();
             /* read response, 4 bytes and then read rest of response */
             final byte[] resp = this.readResponse(4);
-            if (resp[0] != 5) { throw new IOException("Socks5HTTPConnection: invalid Socks5 response"); }
+            if (resp[0] != 5) { throw new ProxyConnectException("Socks5HTTPConnection: invalid Socks5 response", this.proxy); }
             switch (resp[1]) {
             case 0:
                 break;
@@ -180,7 +169,7 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
             case 6:
             case 7:
             case 8:
-                throw new ConnectException("Socks5HTTPConnection: could not establish connection, status=" + resp[1]);
+                throw new ProxyConnectException("Socks5HTTPConnection: could not establish connection, status=" + resp[1], this.proxy);
             }
             if (resp[3] == 1) {
                 /* ip4v response */
@@ -189,7 +178,7 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
                 /* domain name response */
                 this.readResponse(1 + domain.length + 2);
             } else {
-                throw new IOException("Socks5HTTPConnection: unsupported address Type " + resp[3]);
+                throw new ProxyConnectException("Socks5HTTPConnection: unsupported address Type " + resp[3], this.proxy);
             }
             return this.socks5socket;
         } catch (final IOException e) {
@@ -197,7 +186,8 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
                 this.socks5socket.close();
             } catch (final Throwable e2) {
             }
-            throw e;
+            if (e instanceof HTTPProxyException) { throw e; }
+            throw new ProxyConnectException(e, this.proxy);
         }
     }
 
@@ -241,15 +231,16 @@ public class Socks5HTTPConnectionImpl extends HTTPConnectionImpl {
             this.socks5outputstream.flush();
             /* read response, 2 bytes */
             final byte[] resp = this.readResponse(2);
-            if (resp[0] != 5) { throw new IOException("Socks5HTTPConnection: invalid Socks5 response"); }
-            if (resp[1] == 255) { throw new IOException("Socks5HTTPConnection: no acceptable authentication method found"); }
+            if (resp[0] != 5) { throw new ProxyConnectException("Socks5HTTPConnection: invalid Socks5 response", this.proxy); }
+            if (resp[1] == 255) { throw new ProxyConnectException("Socks5HTTPConnection: no acceptable authentication method found", this.proxy); }
             return resp[1];
         } catch (final IOException e) {
             try {
                 this.socks5socket.close();
             } catch (final Throwable e2) {
             }
-            throw e;
+            if (e instanceof HTTPProxyException) { throw e; }
+            throw new ProxyConnectException(e, this.proxy);
         }
     }
 }
