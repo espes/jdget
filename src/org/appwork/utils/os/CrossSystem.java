@@ -197,7 +197,7 @@ public class CrossSystem {
         return CrossSystem.OS_ID;
     }
 
-    public static String getJavaInterpreter() {
+    public static String getJavaBinary() {
         if (CrossSystem.JAVAINT != null) { return CrossSystem.JAVAINT; }
         String javaBinary = "java";
         if (CrossSystem.isWindows()) {
@@ -292,7 +292,7 @@ public class CrossSystem {
     }
 
     public static void main(final String[] args) {
-        System.out.println(CrossSystem.getJavaInterpreter());
+        System.out.println(CrossSystem.getJavaBinary());
     }
 
     /**
