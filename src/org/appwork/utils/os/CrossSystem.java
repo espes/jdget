@@ -52,6 +52,7 @@ public class CrossSystem {
 
     private static Boolean      openURLSupport         = null;
     private static Boolean      openFILESupport        = null;
+    private static String       JAVAINT                = null;
 
     /**
      * Cache to store the OS string in
@@ -196,6 +197,26 @@ public class CrossSystem {
         return CrossSystem.OS_ID;
     }
 
+    public static String getJavaInterpreter() {
+        if (CrossSystem.JAVAINT != null) { return CrossSystem.JAVAINT; }
+        String javaBinary = "java";
+        if (CrossSystem.isWindows()) {
+            javaBinary = "javaw.exe";
+        }
+        final String javaHome = System.getProperty("java.home");
+        if (javaHome != null) {
+            /* get path from system property */
+            final File java = new File(new File(javaHome), "/bin/" + javaBinary);
+            if (java.exists() && java.isFile()) {
+                CrossSystem.JAVAINT = java.getAbsolutePath();
+
+            }
+        } else {
+            CrossSystem.JAVAINT = javaBinary;
+        }
+        return CrossSystem.JAVAINT;
+    }
+
     /**
      * Returns the Mime Class for the current OS
      * 
@@ -270,6 +291,10 @@ public class CrossSystem {
         return false;
     }
 
+    public static void main(final String[] args) {
+        System.out.println(CrossSystem.getJavaInterpreter());
+    }
+
     /**
      * Opens a file or directory
      * 
@@ -314,6 +339,5 @@ public class CrossSystem {
             } catch (final DialogNoAnswerException donothing) {
             }
         }
-
     }
 }
