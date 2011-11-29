@@ -62,6 +62,7 @@ public abstract class ExtRadioColumn<E> extends ExtColumn<E> implements ActionLi
 
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+        
         this.editor.removeActionListener(this);
         this.editor.setSelected(this.getBooleanValue(value));
         this.editor.addActionListener(this);

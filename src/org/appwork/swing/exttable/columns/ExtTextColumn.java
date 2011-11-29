@@ -106,11 +106,13 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
              * 
              */
             private static final long serialVersionUID = 1L;
+
             public void setText(String text) {
-                if(text!=getText()){
+                if (text != getText()) {
                     super.setText(text);
                 }
             }
+
             @Override
             public void setIcon(final Icon icon) {
 
@@ -161,17 +163,19 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
-        this.editorField.removeActionListener(this);
 
-        String str = this.getStringValue(value);
-        if (str == null) {
-            // under substance, setting setText(null) somehow sets the label
-            // opaque.
-            str = "";
-        }
-        this.editorField.setText(str);
+    
+            this.editorField.removeActionListener(this);
+            String str = this.getStringValue(value);
+            if (str == null) {
+                // under substance, setting setText(null) somehow sets the label
+                // opaque.
+                str = "";
+            }
+            this.editorField.setText(str);
+            this.editorField.addActionListener(this);
+        
         this.editorIconLabel.setIcon(this.getIcon(value));
-        this.editorField.addActionListener(this);
 
     }
 

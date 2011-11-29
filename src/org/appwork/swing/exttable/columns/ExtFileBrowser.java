@@ -74,13 +74,13 @@ public abstract class ExtFileBrowser<T> extends ExtComponentColumn<T> implements
             public void setForeground(Color fg) {
                 super.setForeground(fg);
                 rendererLabel.setForeground(fg);
-             
 
             }
 
             public void setBackground(Color bg) {
                 super.setBackground(bg);
             }
+
             public void setVisible(boolean aFlag) {
                 rendererLabel.setVisible(aFlag);
                 rendererButton.setVisible(aFlag);
@@ -115,10 +115,12 @@ public abstract class ExtFileBrowser<T> extends ExtComponentColumn<T> implements
                 editorLabel.setForeground(fg);
 
             }
+
             public void setVisible(boolean aFlag) {
                 editorLabel.setVisible(aFlag);
                 editorButton.setVisible(aFlag);
             }
+
             public void setBackground(Color bg) {
                 super.setBackground(bg);
             }
@@ -143,9 +145,11 @@ public abstract class ExtFileBrowser<T> extends ExtComponentColumn<T> implements
 
     @Override
     public void configureEditorComponent(T value, boolean isSelected, int row, int column) {
-        editObject = value;
-        editorLabel.setText(getFile(value) + "");
-        editorLabel.setCaretPosition(0);
+     
+            editObject = value;
+            editorLabel.setText(getFile(value) + "");
+            editorLabel.setCaretPosition(0);
+        
 
     }
 

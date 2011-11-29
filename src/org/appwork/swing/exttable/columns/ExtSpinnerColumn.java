@@ -103,10 +103,12 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
 
-        final Number n = this.getNumber(value);
-        this.editor.setModel(this.getModel(value, n));
-        this.editor.setEditor(this.getEditor(value, n, this.editor));
-        this.editor.setValue(n);
+
+            final Number n = this.getNumber(value);
+            this.editor.setModel(this.getModel(value, n));
+            this.editor.setEditor(this.getEditor(value, n, this.editor));
+            this.editor.setValue(n);
+        
 
     }
 

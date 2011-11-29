@@ -284,9 +284,12 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     }
 
+    @SuppressWarnings("unchecked")
     public Component getEditorComponent() {
         // update cell editor.
-      if(    getCellEditor()!=null)  getCellEditor().getTableCellEditorComponent(this, getValueAt(getEditingRow(), getEditingColumn()), isCellSelected(getEditingRow(), getEditingColumn()), getEditingRow(), getEditingColumn());
+      if(    getCellEditor()!=null&&getCellEditor() instanceof ExtColumn){
+          ((ExtColumn)getCellEditor()).getTableCellEditorComponent(this, getValueAt(getEditingRow(), getEditingColumn()), isCellSelected(getEditingRow(), getEditingColumn()), getEditingRow(), getEditingColumn(),true);
+      }
         return editorComp;
     }
 
