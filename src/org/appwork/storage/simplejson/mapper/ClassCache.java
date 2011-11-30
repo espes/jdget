@@ -56,25 +56,25 @@ public class ClassCache {
                 if (m.getAnnotation(Ignore.class) != null || ignores.contains(m.toString())) {
                     continue;
                 }
-            
+
                 if (m.getName().startsWith("get") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
-                    cc.getter.add(g = new Getter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
+                    cc.getter.add(g = new Getter(createKey(m.getName().substring(3)), m));
                     cc.getterMap.put(g.getKey(), g);
                     Log.L.finer(m.toString());
-            
+
                 } else if (m.getName().startsWith("is") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
-                    cc.getter.add(g = new Getter(m.getName().substring(2, 3).toLowerCase() + m.getName().substring(3), m));
+                    cc.getter.add(g = new Getter(createKey(m.getName().substring(2)), m));
                     cc.getterMap.put(g.getKey(), g);
                     Log.L.finer(m.toString());
                 } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
-                    cc.setter.add(s = new Setter(m.getName().substring(3, 4).toLowerCase() + m.getName().substring(4), m));
+                    cc.setter.add(s = new Setter(createKey(m.getName().substring(3)), m));
                     cc.setterMap.put(s.getKey(), s);
                     Log.L.finer(m.toString());
                 }
 
             }
-        } while ((cls = cls.getSuperclass()) != null&&cls!=Object.class);
-        //we do not want to serialize object's getter
+        } while ((cls = cls.getSuperclass()) != null && cls != Object.class);
+        // we do not want to serialize object's getter
         for (final Constructor<?> c : clazz.getDeclaredConstructors()) {
             if (c.getParameterTypes().length == 0) {
 
@@ -98,6 +98,30 @@ public class ClassCache {
             }
         }
         return cc;
+    }
+
+    /**
+     * 
+     * Jackson maps methodnames to keys like this. setID becomes key "id" ,
+     * setMethodName becomes "methodName". To keep compatibility between jackson
+     * and simplemapper, we should do it the same way
+     * 
+     * @param substring
+     * @return
+     */
+    private static String createKey(String key) {
+        StringBuilder sb = new StringBuilder();
+        char[] ca = key.toCharArray();
+        boolean starter = true;
+        for (int i = 0; i < ca.length; i++) {
+            if (starter && Character.isUpperCase(ca[i])) {
+                sb.append(Character.toLowerCase(ca[i]));
+            } else {
+                starter = false;
+                sb.append(ca[i]);
+            }
+        }
+        return sb.toString();
     }
 
     /**

@@ -1,6 +1,7 @@
 package org.appwork.remotecall.server;
 
 import java.lang.reflect.InvocationTargetException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 
 import org.appwork.remotecall.RemoteCallInterface;
@@ -44,7 +45,7 @@ public class RemoteCallServer {
             try {
                 for (int i = 0; i < types.length; i++) {
 
-                    params[i] = Utils.convert(JSonStorage.restoreFromString(parameters[i], types[i], null), types[i].getType());
+                    params[i] = Utils.convert(JSonStorage.restoreFromString(URLDecoder.decode(parameters[i], "UTF-8"), types[i], null), types[i].getType());
                 }
 
             } catch (final Exception e) {

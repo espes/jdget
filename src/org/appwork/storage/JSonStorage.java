@@ -111,7 +111,7 @@ public class JSonStorage {
                             JSonStorage.canStoreIntern(m.getGenericReturnType(), path + "->" + m.getGenericReturnType());
 
                         } else if (m.getName().startsWith("set")) {
-                            if (m.getParameterTypes().length != 1) { throw new InvalidTypeException(gType, "Setter " + path + "." + m + " has != Parameters."); }
+                            if (m.getParameterTypes().length != 1) { throw new InvalidTypeException(gType, "Setter " + path + "." + m + " has != 1 Parameters."); }
 
                         }
                     }
