@@ -85,4 +85,21 @@ public class ParameterParser {
         return map.get(string);
     }
 
+    /**
+     * @param string
+     * @return
+     */
+    public boolean hasCommandSwitch(String string) {
+   
+        return map.containsKey(string);
+    }
+
+    /**
+     * @return
+     */
+    public String[] getRawArguments() {
+        // TODO Auto-generated method stub
+        return startArguments;
+    }
+
 }
