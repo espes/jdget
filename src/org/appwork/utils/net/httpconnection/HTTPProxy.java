@@ -203,6 +203,7 @@ public class HTTPProxy {
     protected void cloneProxy(final HTTPProxy proxy) {
         if (proxy == null) { return; }
         this.user = proxy.user;
+        this.host = proxy.host;
         this.localIP = proxy.localIP;
         this.pass = proxy.pass;
         this.port = proxy.port;
