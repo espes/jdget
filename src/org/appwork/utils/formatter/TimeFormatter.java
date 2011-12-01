@@ -146,6 +146,7 @@ public class TimeFormatter {
     }
 
     public static Date parseDateString(final String date) {
+        if (date == null) { return null; }
         Date expireDate = null;
         for (final String format : TimeFormatter.dateformats) {
             try {
