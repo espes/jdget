@@ -13,7 +13,7 @@ import org.appwork.utils.event.DefaultEvent;
  * 
  * 
  */
-public class SwitchEvent extends DefaultEvent {
+public class CommandSwitch extends DefaultEvent {
     /**
      * the parameters that follow the {@link #switchCommand} without leading -
      */
@@ -28,23 +28,23 @@ public class SwitchEvent extends DefaultEvent {
      * @param switchCommand
      * @param array
      */
-    public SwitchEvent(final String switchCommand, final String[] array) {
+    public CommandSwitch(final String switchCommand, final String[] array) {
         super(null);
         this.switchCommand = switchCommand;
         parameters = array;
     }
 
     /**
-     * @return the {@link SwitchEvent#parameters}
-     * @see SwitchEvent#parameters
+     * @return the {@link CommandSwitch#parameters}
+     * @see CommandSwitch#parameters
      */
     public String[] getParameters() {
         return parameters;
     }
 
     /**
-     * @return the {@link SwitchEvent#switchCommand}
-     * @see SwitchEvent#switchCommand
+     * @return the {@link CommandSwitch#switchCommand}
+     * @see CommandSwitch#switchCommand
      */
     public String getSwitchCommand() {
         return switchCommand;

@@ -14,6 +14,6 @@ public abstract class CommandSwitchListener implements EventListener {
     /**
      * @param event
      */
-    abstract public void executeCommandSwitch(SwitchEvent event);
+    abstract public void executeCommandSwitch(CommandSwitch event);
 
 }

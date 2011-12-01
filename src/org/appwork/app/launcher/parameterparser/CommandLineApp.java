@@ -44,7 +44,7 @@ public abstract class CommandLineApp {
      * 
      * @param event
      */
-    abstract public void execute(SwitchEvent event);
+    abstract public void execute(CommandSwitch event);
 
     /**
      * @return the {@link CommandLineApp#commands}
@@ -70,7 +70,7 @@ public abstract class CommandLineApp {
         return parameters;
     }
 
-    public void onEmptyCommand(final SwitchEvent event) {
+    public void onEmptyCommand(final CommandSwitch event) {
     }
 
     /**
