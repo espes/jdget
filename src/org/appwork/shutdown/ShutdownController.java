@@ -64,6 +64,7 @@ public class ShutdownController extends Thread {
 
     private final LinkedList<ShutdownEvent>       hooks;
     private final ArrayList<ShutdownVetoListener> vetoListeners;
+    private int exitCode=0;
 
     /**
      * Create a new instance of ShutdownController. This is a singleton class.
@@ -197,7 +198,7 @@ public class ShutdownController extends Thread {
             }
             Thread th = new Thread("ShutdownThread") {
                 public void run() {
-                    System.exit(0);
+                    System.exit(getExitCode());
                 }
             };
 
@@ -261,5 +262,17 @@ public class ShutdownController extends Thread {
             // we have to catch it here without the risk of another exception.
 
         }
+    }
+
+    /**
+     * @param i
+     */
+    public void setExitCode(int i) {
+       exitCode=i;
+        
+    }
+
+    public int getExitCode() {
+        return exitCode;
     }
 }
