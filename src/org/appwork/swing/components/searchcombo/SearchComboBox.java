@@ -615,7 +615,7 @@ tf.addFocusListener(new FocusListener() {
     /**
      * 
      */
-    protected void onChanged() {
+    public void onChanged() {
         // TODO Auto-generated method stub
 
     }

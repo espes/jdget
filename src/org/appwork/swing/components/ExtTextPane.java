@@ -112,7 +112,7 @@ public class ExtTextPane extends JTextPane implements DocumentListener, FocusLis
     /**
      * 
      */
-    protected void onChanged() {
+    public void onChanged() {
         // TODO Auto-generated method stub
 
     }

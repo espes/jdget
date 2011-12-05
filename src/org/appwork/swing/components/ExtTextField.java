@@ -19,7 +19,7 @@ import org.appwork.app.gui.copycutpaste.DeleteAction;
 import org.appwork.app.gui.copycutpaste.PasteAction;
 import org.appwork.app.gui.copycutpaste.SelectAction;
 
-public class ExtTextField extends JTextField implements CaretListener, FocusListener, DocumentListener, ContextMenuAdapter {
+public class ExtTextField extends JTextField implements CaretListener, FocusListener, DocumentListener, ContextMenuAdapter, TextComponentInterface {
     protected Color defaultColor;
     private Color   helpColor;
 
@@ -34,10 +34,9 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
         getDocument().addDocumentListener(this);
 
     }
-    private String  helpText = null;
+    private String  helpText             = null;
     private boolean setting;
-    private boolean clearHelpTextOnFocus=true;
-
+    private boolean clearHelpTextOnFocus = true;
 
     public boolean isClearHelpTextOnFocus() {
         return clearHelpTextOnFocus;
@@ -50,12 +49,12 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
     public void focusGained(final FocusEvent arg0) {
 
         if (super.getText().equals(this.helpText)) {
-           if(isClearHelpTextOnFocus()){
-               this.setText("");
-           }else{
-               selectAll();
-           }
-           
+            if (isClearHelpTextOnFocus()) {
+                this.setText("");
+            } else {
+                selectAll();
+            }
+
         }
         this.setForeground(this.defaultColor);
 
@@ -158,7 +157,7 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
     /**
      * 
      */
-    protected void onChanged() {
+    public void onChanged() {
         // TODO Auto-generated method stub
 
     }
@@ -201,8 +200,8 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
      * @param b
      */
     public void setClearHelpTextOnFocus(boolean b) {
-clearHelpTextOnFocus=b;
-        
+        clearHelpTextOnFocus = b;
+
     }
 
 }

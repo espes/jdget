@@ -98,7 +98,7 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
     /**
      * 
      */
-    protected void onChanged() {
+    public void onChanged() {
         // TODO Auto-generated method stub
 
     }

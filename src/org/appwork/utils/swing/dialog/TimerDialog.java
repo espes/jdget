@@ -42,7 +42,7 @@ public abstract class TimerDialog {
             }
 
         }
- 
+
         @Override
         public void dispose() {
             TimerDialog.this.dispose();
@@ -116,7 +116,7 @@ public abstract class TimerDialog {
         this.getDialog().realDispose();
 
     }
- 
+
     /**
      * @return
      */
@@ -168,8 +168,9 @@ public abstract class TimerDialog {
 
         try {
 
-            return new Dimension(Math.min(Toolkit.getDefaultToolkit().getScreenSize().width, w), Math.min(Toolkit.getDefaultToolkit().getScreenSize().height, h));
+            Dimension ret = new Dimension(Math.min(Toolkit.getDefaultToolkit().getScreenSize().width, w), Math.min(Toolkit.getDefaultToolkit().getScreenSize().height, h));
 
+            return ret;
         } catch (final Throwable e) {
             return pref;
         }
@@ -315,7 +316,7 @@ public abstract class TimerDialog {
     /**
      * @param b
      */
-    public void setVisible(final boolean b) {    
+    public void setVisible(final boolean b) {
         this.getDialog().setVisible(b);
     }
 

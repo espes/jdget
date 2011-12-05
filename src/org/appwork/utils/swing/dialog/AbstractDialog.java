@@ -207,7 +207,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // add icon if available
             if (this.icon != null) {
                 this.getDialog().setLayout(new MigLayout("ins 5,wrap 2", "[][grow,fill]", "[grow,fill][]"));
-                this.getDialog().add(this.iconLabel = new JLabel(this.icon), "gapright 10");
+                this.getDialog().add(getIconComponent(), getIconConstraints());
             } else {
                 this.getDialog().setLayout(new MigLayout("ins 5,wrap 1", "[grow,fill]", "[grow,fill][]"));
             }
@@ -352,6 +352,23 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             ((Window) this.getDialog().getParent()).setAlwaysOnTop(true);
             ((Window) this.getDialog().getParent()).setAlwaysOnTop(false);
         }
+    }
+
+    /**
+     * @return
+     */
+   protected JComponent getIconComponent() {
+        this.iconLabel = new JLabel(this.icon);
+//        iconLabel.setVerticalAlignment(JLabel.TOP);
+        return iconLabel;
+    }
+
+    /**
+     * @return
+     */
+    protected String getIconConstraints() {
+        // TODO Auto-generated method stub
+        return "gapright 10,gaptop 2";
     }
 
     public void actionPerformed(final ActionEvent e) {

@@ -14,31 +14,33 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.text.JTextComponent;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.swing.components.ExtPasswordField;
+import org.appwork.swing.components.ExtTextField;
+import org.appwork.swing.components.TextComponentInterface;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging.Log;
 
 public class InputDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
-    private static final long serialVersionUID = 9206575398715006581L;
-    protected String          defaultMessage;
-    protected String          message;
+    private static final long      serialVersionUID = 9206575398715006581L;
+    protected String               defaultMessage;
+    protected String               message;
 
-    private JTextPane         messageArea;
+    private JTextPane              messageArea;
 
-    private JTextComponent    input;
+    private TextComponentInterface input;
+    private JTextPane              bigInput;
 
     public InputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
@@ -85,7 +87,7 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
 
     @Override
     public JComponent layoutDialogContent() {
-        final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
+        final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[grow,fill]"));
         if (!StringUtils.isEmpty(this.message)) {
             this.messageArea = new JTextPane();
             this.messageArea.setBorder(null);
@@ -97,25 +99,42 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
                 this.messageArea.setContentType("text/html");
             }
-            contentpane.add(this.messageArea);
+            contentpane.add(this.messageArea, "hmin 19,growy,pushy");
         }
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
-            this.input = new JTextPane();
+            this.bigInput = new JTextPane();
 
-            this.input.setText(this.defaultMessage);
-            this.input.addKeyListener(this);
-            this.input.addMouseListener(this);
-            contentpane.add(new JScrollPane(this.input), "height 20:60:n,pushy,growy,w 450");
+            this.bigInput.setText(this.defaultMessage);
+            this.bigInput.addKeyListener(this);
+            this.bigInput.addMouseListener(this);
+            contentpane.add(new JScrollPane(this.bigInput), "height 20:60:n,pushy,growy,w 450");
         } else {
-            this.input = BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_PASSWORD) ? new JPasswordField() : new JTextField();
-            this.input.setBorder(BorderFactory.createEtchedBorder());
+            this.input = getSmallInputComponent();
+            // this.input.setBorder(BorderFactory.createEtchedBorder());
             this.input.setText(this.defaultMessage);
-            this.input.addKeyListener(this);
-            this.input.addMouseListener(this);
-            contentpane.add(this.input, "pushy,growy,w 450");
+            ((JTextComponent) this.input).addKeyListener(this);
+            ((JTextComponent) this.input).addMouseListener(this);
+            contentpane.add(((JTextComponent) this.input), "w 450");
         }
 
         return contentpane;
+    }
+
+    /**
+     * @return
+     */
+    private TextComponentInterface getSmallInputComponent() {
+        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_PASSWORD)) {
+            return new ExtPasswordField();
+
+        } else {
+            return new ExtTextField();
+        }
+    }
+
+    protected boolean isResizable() {
+        // TODO Auto-generated method stub
+        return true;
     }
 
     public void mouseClicked(final MouseEvent e) {

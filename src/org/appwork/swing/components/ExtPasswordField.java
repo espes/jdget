@@ -16,9 +16,10 @@ import javax.swing.event.DocumentListener;
 import org.appwork.app.gui.BasicGui;
 import org.appwork.app.gui.MigPanel;
 
-public class ExtPasswordField extends MigPanel implements FocusListener, DocumentListener {
+public class ExtPasswordField extends MigPanel implements FocusListener, DocumentListener, TextComponentInterface {
 
     public static void main(final String[] args) {
+
         new BasicGui("ExtPasswordField") {
 
             @Override
@@ -74,12 +75,13 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
 
     private char[]               password = new char[] {};
 
-    private String mask=null;
+    private String               mask     = null;
+
     public void setMask(String mask) {
         this.mask = mask;
     }
 
-    public static String        MASK     = "••••••••••";
+    public static String MASK = "••••••••••";
 
     /**
      * @param constraints
@@ -108,7 +110,7 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
      */
     protected String getMask() {
         // TODO Auto-generated method stub
-        return mask!=null?mask:ExtPasswordField.MASK;
+        return mask != null ? mask : ExtPasswordField.MASK;
     }
 
     /*
@@ -134,12 +136,10 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
 
         if (pw.length == ca.length) {
             for (int i = 0; i < pw.length; i++) {
-                if (pw[i] != ca[i]) {
-                 return false;
-                }
+                if (pw[i] != ca[i]) { return false; }
             }
             return true;
-        }else{
+        } else {
             return false;
         }
 
@@ -215,7 +215,7 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
 
     }
 
-    protected void onChanged() {
+    public void onChanged() {
 
     }
 
@@ -276,6 +276,37 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
         this.renderer.setVisible(b);
         this.editor.setVisible(!b);
         this.revalidate();
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.TextComponentInterface#getText()
+     */
+    @Override
+    public String getText() {
+
+        return new String(this.getPassword());
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.utils.swing.dialog.TextComponentInterface#setText(java.lang
+     * .String)
+     */
+    @Override
+    public void setText(String text) {
+        this.setPassword(text.toCharArray());
+    }
+
+    /* (non-Javadoc)
+     * @see org.appwork.swing.components.TextComponentInterface#selectAll()
+     */
+    @Override
+    public void selectAll() {
+      editor.selectAll();
     }
 
 }
