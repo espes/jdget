@@ -1,6 +1,8 @@
 package org.appwork.swing.exttable.columns;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
@@ -46,6 +48,8 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
 
     private SpinnerNumberModel floatModel;
 
+    private FocusListener      tableFocusLost;
+
     public ExtSpinnerColumn(final String name) {
         this(name, null);
 
@@ -67,6 +71,19 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
 
         this.doubleEditor.getTextField().addActionListener(this);
 
+        tableFocusLost = new FocusListener() {
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                stopCellEditing();
+            }
+
+            @Override
+            public void focusGained(FocusEvent e) {
+                // TODO Auto-generated method stub
+
+            }
+        };
         this.intModel = new SpinnerNumberModel(0, Integer.MIN_VALUE, Integer.MAX_VALUE, 1);
         this.longModel = new SpinnerNumberModel(0l, Long.MIN_VALUE, Long.MAX_VALUE, 1l);
         this.byteModel = new SpinnerNumberModel((byte) 0, Byte.MIN_VALUE, Byte.MAX_VALUE, (byte) 1);
@@ -103,12 +120,10 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
 
-
-            final Number n = this.getNumber(value);
-            this.editor.setModel(this.getModel(value, n));
-            this.editor.setEditor(this.getEditor(value, n, this.editor));
-            this.editor.setValue(n);
-        
+        final Number n = this.getNumber(value);
+        this.editor.setModel(this.getModel(value, n));
+        this.editor.setEditor(this.getEditor(value, n, this.editor));
+        this.editor.setValue(n);
 
     }
 
@@ -169,6 +184,7 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
      */
     @Override
     public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
+
         return this.editor;
     }
 
@@ -249,7 +265,12 @@ public abstract class ExtSpinnerColumn<E> extends ExtTextColumn<E> {
      */
     @Override
     public boolean isEditable(final E obj) {
-        // TODO Auto-generated method stub
+        if (tableFocusLost != null) {
+            //spinner buttons to not throw a focus lost event, so we stop ediing if table los focus
+            
+            getModel().getTable().addFocusListener(tableFocusLost);
+            tableFocusLost = null;
+        }
         return true;
     }
 

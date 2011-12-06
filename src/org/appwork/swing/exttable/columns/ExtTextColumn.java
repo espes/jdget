@@ -202,7 +202,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     @Override
     public void focusLost(final FocusEvent e) {
         // TODO Auto-generated method stub
-
+System.out.println(2);
     }
 
     @Override
