@@ -16,8 +16,10 @@ import java.io.Writer;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
 public class IO {
@@ -27,6 +29,7 @@ public class IO {
         FileOutputStream fos = null;
         FileChannel inChannel = null;
         FileChannel outChannel = null;
+        if(Log.L.isLoggable(Level.FINEST))Log.L.finest("Copy " + in+" to "+out);
         try {
             inChannel = (fis = new FileInputStream(in)).getChannel();
             outChannel = (fos = new FileOutputStream(out)).getChannel();
@@ -209,6 +212,7 @@ public class IO {
     public static byte[] readURL(final URL url, final int maxSize) throws IOException {
         InputStream input = null;
         try {
+            if(Log.L.isLoggable(Level.FINEST))Log.L.finest("Read " + url+" max size: "+maxSize);
             input = url.openStream();
             return IO.readStream(maxSize, input);
         } finally {
@@ -229,6 +233,7 @@ public class IO {
 
         InputStream fis = null;
         try {
+            if(Log.L.isLoggable(Level.FINEST))Log.L.finest("Read " + ressourceURL);
             fis = ressourceURL.openStream();
             return IO.readInputStreamToString(fis);
         } finally {
@@ -246,6 +251,7 @@ public class IO {
         if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
         if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
         FileWriter fw = null;
+        if(Log.L.isLoggable(Level.FINEST))Log.L.finest("Write " + file);
         final Writer output = new BufferedWriter(fw = new FileWriter(file));
 
         try {
@@ -277,7 +283,7 @@ public class IO {
         file.createNewFile();
         if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
         if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
-        System.out.println("Write " + file);
+        if(Log.L.isLoggable(Level.FINEST))Log.L.finest("Write " + file);
         final FileOutputStream out = new FileOutputStream(file);
         try {
             out.write(data);

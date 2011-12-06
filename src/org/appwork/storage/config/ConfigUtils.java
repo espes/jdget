@@ -1,5 +1,7 @@
 package org.appwork.storage.config;
 
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.appwork.storage.config.annotations.Description;
@@ -22,8 +24,10 @@ public class ConfigUtils {
         // public static final BooleanKeyHandler LINK_FILTER_ENABLED =
         // SH.getKeyHandler("LinkFilterEnabled", BooleanKeyHandler.class);
         HashSet<KeyHandler<?>> unique = new HashSet<KeyHandler<?>>();
-        for (KeyHandler<?> kh : JsonConfig.create(configInterface).getStorageHandler().getMap().values()) {
+        HashMap<Method, KeyHandler<?>> map = JsonConfig.create(configInterface).getStorageHandler().getMap();
+        for (KeyHandler<?> kh : map.values()) {
             if (!unique.add(kh)) continue;
+            System.out.println("// "+kh);
 //            String key = kh.getKey();
             String methodname = kh.getSetter().getMethod().getName().substring(3);
             StringBuilder sb = new StringBuilder();

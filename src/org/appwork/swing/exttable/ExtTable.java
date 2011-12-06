@@ -1004,7 +1004,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 if (obj == null || row == -1) {
                     /* no object under mouse, lets clear the selection */
                     this.clearSelection();
-                    final JPopupMenu popup = this.onContextMenu(new JPopupMenu(), null, null, col, null);
+                    final JPopupMenu popup = this.onContextMenu(new JPopupMenu(), null, null, col, e);
                     this.eventSender.fireEvent(new ExtTableEvent<JPopupMenu>(this, ExtTableEvent.Types.CONTEXTMENU, popup));
                     if (popup != null && popup.getComponentCount() > 0) {
                         popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);

@@ -13,6 +13,8 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.appwork.shutdown.ShutdownController;
+
 public class Log {
 
     private static Logger LOGGER;
@@ -21,6 +23,7 @@ public class Log {
      * Create the singleton logger instance
      */
     static {
+   
         Log.LOGGER = Logger.getLogger("org.appwork");
         Log.LOGGER.setUseParentHandlers(false);
         final ConsoleHandler cHandler = new ConsoleHandler();
