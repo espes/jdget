@@ -1,8 +1,12 @@
 package org.appwork.shutdown;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.appwork.utils.logging.Log;
@@ -29,7 +33,7 @@ public class ShutdownController extends Thread {
 
             @Override
             public void run() {
-                System.out.println("DO " + this.getHookPriority());
+                Log.L.finest("DO " + this.getHookPriority());
             }
 
         });
@@ -42,7 +46,7 @@ public class ShutdownController extends Thread {
 
             @Override
             public void run() {
-                System.out.println("DO " + this.getHookPriority());
+                Log.L.finest("DO " + this.getHookPriority());
 
             }
 
@@ -56,7 +60,7 @@ public class ShutdownController extends Thread {
 
             @Override
             public void run() {
-                System.out.println("DO " + this.getHookPriority());
+                Log.L.finest("DO " + this.getHookPriority());
             }
 
         });
@@ -64,7 +68,49 @@ public class ShutdownController extends Thread {
 
     private final LinkedList<ShutdownEvent>       hooks;
     private final ArrayList<ShutdownVetoListener> vetoListeners;
-    private int exitCode=0;
+    private int                                   exitCode = 0;
+
+    class ShutdownEventWrapper extends ShutdownEvent {
+
+        private Thread orgThread;
+
+        /**
+         * @param value
+         */
+        public ShutdownEventWrapper(Thread value) {
+            this.orgThread = value;
+            // call "Nativ" hooks at the end.
+            this.setHookPriority(Integer.MIN_VALUE);
+        }
+
+        @Override
+        public String toString() {
+            return "ShutdownEventWrapper " + orgThread + " - " + orgThread.getClass().getName() + " Priority: " + this.getHookPriority();
+        }
+
+        @Override
+        public int hashCode() {
+
+            return orgThread.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof ShutdownEventWrapper) { return orgThread == ((ShutdownEventWrapper) obj).orgThread; }
+            return false;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.appwork.shutdown.ShutdownEvent#run()
+         */
+        @Override
+        public void run() {
+            orgThread.run();
+        }
+
+    }
 
     /**
      * Create a new instance of ShutdownController. This is a singleton class.
@@ -75,7 +121,56 @@ public class ShutdownController extends Thread {
 
         this.hooks = new LinkedList<ShutdownEvent>();
         this.vetoListeners = new ArrayList<ShutdownVetoListener>();
-        Runtime.getRuntime().addShutdownHook(this);
+        try {
+            // first try to hook in the original hooks manager
+            // to "disable" the original hook manager, we overwrite the actual
+            // hook list with our own one, and redirect all registered hooks to
+            // ShutdownController.
+            // this may fail (reflektion). As a fallback we just add
+            // Shutdowncontroller as a normal hook.
+
+            IdentityHashMap<Thread, Thread> hookDelegater = new IdentityHashMap<Thread, Thread>() {
+                {
+                    // SHutdowncontroller should be the only hook!!
+                    super.put(ShutdownController.this, ShutdownController.this);
+                }
+
+                public Thread put(Thread key, final Thread value) {
+                    ShutdownEventWrapper hook = new ShutdownEventWrapper(value);
+
+                    addShutdownEvent(hook);
+                    return null;
+                }
+
+                public Thread remove(Object key) {
+                    removeShutdownEvent(new ShutdownEventWrapper((Thread) key));
+                    return (Thread) key;
+                }
+            };
+
+            Field field = Class.forName("java.lang.ApplicationShutdownHooks").getDeclaredField("hooks");
+            field.setAccessible(true);
+            Map<Thread, Thread> hooks = (Map<Thread, Thread>) field.get(null);
+            synchronized (hooks) {
+
+                Set<Thread> threads = hooks.keySet();
+
+                for (Thread hook : threads) {
+                    addShutdownEvent(new ShutdownEventWrapper(hook));
+                    System.out.println(hook);
+                }
+                field.set(null, hookDelegater);
+            }
+
+        } catch (Throwable e) {
+            Log.exception(e);
+            Runtime.getRuntime().addShutdownHook(this);
+        }
+
+        // do not remove the Log call here. we have to be sure that Log.class is
+        // already loaded
+        Log.L.finest("Init ShutdownController");
+
     }
 
     /**
@@ -210,7 +305,7 @@ public class ShutdownController extends Thread {
                     return;
                 }
             }
-            System.out.println("DONE");
+            Log.L.finest("DONE");
         } else {
             synchronized (this.vetoListeners) {
                 for (final ShutdownVetoListener v : this.vetoListeners) {
@@ -225,9 +320,9 @@ public class ShutdownController extends Thread {
     public void run() {
         /*
          * Attention. This runs in shutdownhook. make sure, that we do not have
-         * to load previous unloaded classes here. For example avoid Log.class
-         * here
+         * to load previous unloaded classes here.
          */
+
         try {
             synchronized (this.hooks) {
                 int i = 0;
@@ -236,7 +331,7 @@ public class ShutdownController extends Thread {
                         i++;
                         final long started = System.currentTimeMillis();
 
-                        System.out.println("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: start item->" + e);
+                        Log.L.finest("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: start item->" + e);
                         final Thread thread = new Thread(e);
                         thread.setName("ShutdownHook [" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]");
                         thread.start();
@@ -247,10 +342,10 @@ public class ShutdownController extends Thread {
 
                         }
                         if (thread.isAlive()) {
-                            System.out.println("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->is still running after " + e.getMaxDuration() + " ms");
-                            System.out.println("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->StackTrace:\r\n" + this.getStackTrace(thread));
+                            Log.L.finest("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->is still running after " + e.getMaxDuration() + " ms");
+                            Log.L.finest("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->StackTrace:\r\n" + this.getStackTrace(thread));
                         } else {
-                            System.out.println("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: item ended after->" + (System.currentTimeMillis() - started));
+                            Log.L.finest("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: item ended after->" + (System.currentTimeMillis() - started));
                         }
                     } catch (final Throwable e1) {
                         e1.printStackTrace();
@@ -268,8 +363,8 @@ public class ShutdownController extends Thread {
      * @param i
      */
     public void setExitCode(int i) {
-       exitCode=i;
-        
+        exitCode = i;
+
     }
 
     public int getExitCode() {
