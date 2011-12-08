@@ -147,8 +147,8 @@ public class Application {
                 ret = ret + Long.parseLong(u) * 1000;
             }
             if (b != null) {
-                /* append beta number */
-                ret = ret + Long.parseLong(u);
+                /* append build number */
+                ret = ret + Long.parseLong(b);
             }
             Application.javaVersion = ret;
             return ret;

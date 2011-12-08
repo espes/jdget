@@ -1,5 +1,7 @@
 package org.appwork.storage.config.swing.models;
 
+import java.awt.event.ItemEvent;
+
 import javax.swing.JToggleButton.ToggleButtonModel;
 
 import org.appwork.storage.config.ValidationException;
@@ -31,6 +33,14 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Generi
         keyHandler.setValue(b);
 
     }
+    
+    private void fireItemStateChanged(){
+        fireItemStateChanged(
+                new ItemEvent(ConfigToggleButtonModel.this,
+                              ItemEvent.ITEM_STATE_CHANGED,
+                              ConfigToggleButtonModel.this,
+                              ConfigToggleButtonModel.this.isSelected() ?  ItemEvent.SELECTED : ItemEvent.DESELECTED));
+    }
 
     public void onConfigValidatorError(KeyHandler<Boolean> keyHandler, Boolean invalidValue, ValidationException validateException) {
         new EDTRunner() {
@@ -38,6 +48,7 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Generi
             @Override
             protected void runInEDT() {
                 fireStateChanged();
+                fireItemStateChanged();
             }
         };
 
@@ -49,6 +60,7 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Generi
             @Override
             protected void runInEDT() {
                 fireStateChanged();
+                fireItemStateChanged();
             }
         };
 
