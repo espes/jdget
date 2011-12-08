@@ -70,9 +70,16 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
 
     public String getReturnID() {
         if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
-        if (this.input == null || this.input.getText() == null) { return null; }
-        if (this.input instanceof JPasswordField) { return new String(((JPasswordField) this.input).getPassword()); }
-        return this.input.getText();
+
+        if (input == null) {
+            if (this.bigInput == null || this.bigInput.getText() == null) { return null; }
+
+            return this.bigInput.getText();
+        } else {
+            if (this.input == null || this.input.getText() == null) { return null; }
+            if (this.input instanceof JPasswordField) { return new String(((JPasswordField) this.input).getPassword()); }
+            return this.input.getText();
+        }
     }
 
     public void keyPressed(final KeyEvent e) {
@@ -155,9 +162,16 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
 
     @Override
     protected void packed() {
-        this.input.selectAll();
+        if (input != null) {
+            this.input.selectAll();
+            this.input.requestFocusInWindow();
+        }
+        if (bigInput != null) {
+            bigInput.selectAll();
+            this.bigInput.requestFocusInWindow();
+        }
         this.requestFocus();
-        this.input.requestFocusInWindow();
+
     }
 
     public void setDefaultMessage(final String defaultMessage) {
