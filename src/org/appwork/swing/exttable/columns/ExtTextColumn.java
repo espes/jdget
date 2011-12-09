@@ -160,7 +160,10 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorField.removeActionListener(this);
         this.fireEditingStopped();
     }
+    protected void configureCurrentlyEditingComponent(E value, boolean isSelected, int row, int column) {
+        this.editorIconLabel.setIcon(this.getIcon(value));
 
+    }
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
 
