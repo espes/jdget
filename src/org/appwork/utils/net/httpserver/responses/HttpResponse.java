@@ -46,7 +46,7 @@ public class HttpResponse implements HttpResponseInterface {
         this.responseHeaders = new HeaderCollection();
         this.responseHeaders.add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_DATE, HttpResponse.date.format(new Date())));
         this.responseHeaders.add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONNECTION, "close"));
-        this.responseHeaders.add(new HTTPHeader(HTTPConstants.HEADER_RESONSE_SERVER, "AppWork GmbH HttpServer"));
+        this.responseHeaders.add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_SERVER, "AppWork GmbH HttpServer"));
     }
 
     /**

@@ -12,7 +12,9 @@ package org.appwork.remoteapi;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
+import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.HeaderCollection;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
 import org.appwork.utils.net.httpserver.responses.HttpResponseInterface;
@@ -27,6 +29,8 @@ public class RemoteAPIResponse implements HttpResponseInterface {
 
     public RemoteAPIResponse(final HttpResponse response) {
         this.response = response;
+        //Remote API requests are available via CORS by default.
+        this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
     }
 
     public OutputStream getOutputStream() throws IOException {
