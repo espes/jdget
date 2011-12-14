@@ -21,22 +21,7 @@ import java.util.regex.Pattern;
 public class Regex {
 
     public static String escape(final String pattern) {
-        final char[] specials = new char[] { '(', '[', '{', '\\', '^', '-', '$', '|', ']', '}', ')', '?', '*', '+', '.' };
-        final int patternLength = pattern.length();
-        final StringBuilder sb = new StringBuilder();
-        sb.setLength(patternLength);
-        char act;
-        for (int i = 0; i < patternLength; i++) {
-            act = pattern.charAt(i);
-            for (final char s : specials) {
-                if (act == s) {
-                    sb.append('\\');
-                    break;
-                }
-            }
-            sb.append(act);
-        }
-        return sb.toString().trim();
+        return Pattern.quote(pattern);
     }
 
     public static String[] getLines(final String arg) {
