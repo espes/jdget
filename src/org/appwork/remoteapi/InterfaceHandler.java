@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -65,6 +66,7 @@ public class InterfaceHandler<T> {
     private final TreeMap<String, TreeMap<Integer, Method>> methods;
     private final HashMap<Method, Integer>                  parameterCountMap;
     private final HashMap<Method, Integer>                  methodsAuthLevel;
+    private final HashMap<String, Method>                   rawMethods;
     private final int                                       defaultAuthLevel;
 
     private boolean                                         sessionRequired = false;
@@ -88,6 +90,7 @@ public class InterfaceHandler<T> {
         this.parameterCountMap.put(InterfaceHandler.HELP, 0);
         this.methodsAuthLevel = new HashMap<Method, Integer>();
         this.methodsAuthLevel.put(InterfaceHandler.HELP, 0);
+        this.rawMethods = new HashMap<String, Method>();
     }
 
     public int getAuthLevel(final Method m) {
@@ -106,7 +109,9 @@ public class InterfaceHandler<T> {
         final TreeMap<Integer, Method> methodsByName = this.methods.get(methodName);
         if (methodsByName == null) { return null; }
 
-        return methodsByName.get(length);
+        Method ret = methodsByName.get(length);
+        if (ret == null) ret = rawMethods.get(methodName);
+        return ret;
     }
 
     /**
@@ -145,7 +150,7 @@ public class InterfaceHandler<T> {
                     sb.append(an.value() + "");
                 }
                 // sb.append("\r\n    Description: ");
-
+                
                 final HashMap<Type, Integer> map = new HashMap<Type, Integer>();
                 String call = "/" + name;
                 int count = 0;
@@ -229,6 +234,9 @@ public class InterfaceHandler<T> {
             if (methodsByName == null) {
                 methodsByName = new TreeMap<Integer, Method>();
                 this.methods.put(name, methodsByName);
+            }
+            if (m.getAnnotation(ApiRawMethod.class) != null) {
+                this.rawMethods.put(name, m);
             }
             int l = 0;
             for (final Class<?> c : m.getParameterTypes()) {

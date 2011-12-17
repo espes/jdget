@@ -35,10 +35,16 @@ public class HeaderCollection implements Iterable<HTTPHeader> {
     public void add(final HTTPHeader header) {
         if (!HeaderCollection.DUPES_ALLOWED.containsKey(header.getKey()) && this.headersMap.containsKey(header.getKey())) {
             // overwrite
-            Log.L.warning("Overwrite Header: " + header);
             for (final Iterator<HTTPHeader> it = this.headers.iterator(); it.hasNext();) {
-                if (it.next().getKey().equals(header.getKey())) {
-                    it.remove();
+                HTTPHeader elem;
+                if ((elem = it.next()).getKey().equalsIgnoreCase(header.getKey())) {
+                    if (elem.isAllowOverwrite()) {
+                        Log.L.warning("Overwrite Header: " + header);
+                        it.remove();
+                    } else {
+                        Log.L.warning("Header must not be overwritten: " + header);
+                        return;
+                    }
                     break;
                 }
             }
@@ -48,11 +54,15 @@ public class HeaderCollection implements Iterable<HTTPHeader> {
     }
 
     public HTTPHeader get(final String key) {
-        return this.headersMap.get(key);
+        for (final Iterator<HTTPHeader> it = this.headers.iterator(); it.hasNext();) {
+            HTTPHeader elem;
+            if ((elem = it.next()).getKey().equalsIgnoreCase(key)) { return elem; }
+        }
+        return null;
     }
 
     public String getValue(final String key) {
-        final HTTPHeader ret = this.headersMap.get(key);
+        final HTTPHeader ret = get(key);
         if (ret != null) { return ret.getValue(); }
         return null;
     }

@@ -16,13 +16,26 @@ package org.appwork.utils.net;
 
 public class HTTPHeader {
 
-    public static final byte[] DELIMINATOR = ": ".getBytes();
+    public static final byte[] DELIMINATOR    = ": ".getBytes();
     private String             key;
     private String             value;
+    private boolean            allowOverwrite = true;
+
+    public boolean isAllowOverwrite() {
+        return allowOverwrite;
+    }
+
+   
 
     public HTTPHeader(final String key, final String value) {
         this.key = key;
         this.value = value;
+    }
+
+    public HTTPHeader(final String key, final String value, boolean overwriteAllowed) {
+        this.key = key;
+        this.value = value;
+        this.allowOverwrite = overwriteAllowed;
     }
 
     public String format() {

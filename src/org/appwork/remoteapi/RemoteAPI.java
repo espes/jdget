@@ -89,8 +89,8 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             uos = cos;
         }
         return new OutputStream() {
-            boolean wrapperHeader = wrapJQuery && request.getJqueryCallback() != null;
-            boolean wrapperEnd    = wrapJQuery && request.getJqueryCallback() != null;
+            boolean wrapperHeader = wrapJQuery && request!=null &&request.getJqueryCallback() != null;
+            boolean wrapperEnd    = wrapJQuery && request!=null &&request.getJqueryCallback() != null;
 
             @Override
             public void close() throws IOException {

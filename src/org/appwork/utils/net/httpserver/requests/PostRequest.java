@@ -47,7 +47,8 @@ public class PostRequest extends HttpRequest {
      */
     public synchronized LinkedList<String[]> getPostParameter() throws IOException {
         if (this.postParameterParsed) { return this.postParameters; }
-        if ("application/x-www-form-urlencoded".equalsIgnoreCase(this.getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE))) {
+        String type = this.getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE);
+        if ("application/x-www-form-urlencoded".equalsIgnoreCase(type)) {
             final String contentLength = this.getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH);
             int length = contentLength == null ? -1 : Integer.parseInt(contentLength);
             if (length <= 0) { throw new IOException("application/x-www-form-urlencoded without content-length"); }
