@@ -104,11 +104,10 @@ public class InterfaceHandler<T> {
      * @param methodName
      * @return
      */
-    public Method getMethod(final String methodName, final int length) {
+    public Method getMethod(String methodName, final int length) {
         if (methodName.equals(InterfaceHandler.HELP.getName())) { return InterfaceHandler.HELP; }
         final TreeMap<Integer, Method> methodsByName = this.methods.get(methodName);
         if (methodsByName == null) { return null; }
-
         Method ret = methodsByName.get(length);
         if (ret == null) ret = rawMethods.get(methodName);
         return ret;
@@ -150,7 +149,7 @@ public class InterfaceHandler<T> {
                     sb.append(an.value() + "");
                 }
                 // sb.append("\r\n    Description: ");
-                
+
                 final HashMap<Type, Integer> map = new HashMap<Type, Integer>();
                 String call = "/" + name;
                 int count = 0;

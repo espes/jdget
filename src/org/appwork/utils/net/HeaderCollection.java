@@ -13,8 +13,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import org.appwork.utils.logging.Log;
-
 /**
  * @author daniel
  * 
@@ -39,10 +37,10 @@ public class HeaderCollection implements Iterable<HTTPHeader> {
                 HTTPHeader elem;
                 if ((elem = it.next()).getKey().equalsIgnoreCase(header.getKey())) {
                     if (elem.isAllowOverwrite()) {
-                        Log.L.warning("Overwrite Header: " + header);
+                        //Log.L.warning("Overwrite Header: " + header);
                         it.remove();
                     } else {
-                        Log.L.warning("Header must not be overwritten: " + header);
+                        //Log.L.warning("Header must not be overwritten: " + header);
                         return;
                     }
                     break;

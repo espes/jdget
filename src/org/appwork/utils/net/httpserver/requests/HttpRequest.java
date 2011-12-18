@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.net.httpserver.requests;
 
+import java.io.IOException;
 import java.util.LinkedList;
 
 import org.appwork.utils.net.HeaderCollection;
@@ -72,5 +73,21 @@ public abstract class HttpRequest implements HttpRequestInterface {
 
     public void setRequestHeaders(final HeaderCollection requestHeaders) {
         this.requestHeaders = requestHeaders;
+    }
+    
+    public static String getParameterbyKey(HttpRequestInterface request, String key) throws IOException {
+        LinkedList<String[]> params = request.getRequestedURLParameters();
+        if (params != null) {
+            for (String[] param : params) {
+                if (key.equalsIgnoreCase(param[0]) && param.length == 2) return param[1];
+            }
+        }
+        params = request.getPostParameter();
+        if (params != null) {
+            for (String[] param : params) {
+                if (key.equalsIgnoreCase(param[0]) && param.length == 2) return param[1];
+            }
+        }
+        return null;
     }
 }

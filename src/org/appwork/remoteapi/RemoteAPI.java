@@ -89,8 +89,8 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             uos = cos;
         }
         return new OutputStream() {
-            boolean wrapperHeader = wrapJQuery && request!=null &&request.getJqueryCallback() != null;
-            boolean wrapperEnd    = wrapJQuery && request!=null &&request.getJqueryCallback() != null;
+            boolean wrapperHeader = wrapJQuery && request != null && request.getJqueryCallback() != null;
+            boolean wrapperEnd    = wrapJQuery && request != null && request.getJqueryCallback() != null;
 
             @Override
             public void close() throws IOException {
@@ -334,6 +334,18 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
         final String[] intf = new Regex(request.getRequestedPath(), "/((.+)/)?(.+)$").getRow(0);
         if (intf == null || intf.length != 3) { return null; }
+        /* intf=unimportant,namespace,method */
+        if (intf[2] != null && intf[2].endsWith("/")) {
+            /* special handling for commands without name */
+            /**
+             * Explanation: this is for special handling of this
+             * http://localhost/test -->this is method test in root
+             * http://localhost/test/ --> this is method without name in
+             * namespace test
+             */
+            intf[1] = intf[2].substring(0, intf[2].length() - 1);
+            intf[2] = "";
+        }
         InterfaceHandler<?> interfaceHandler = null;
         if (intf[1] == null) {
             intf[1] = "";
