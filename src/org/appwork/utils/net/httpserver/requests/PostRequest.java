@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.util.LinkedList;
 
 import org.appwork.net.protocol.http.HTTPConstants;
+import org.appwork.utils.Regex;
 import org.appwork.utils.net.httpserver.HttpConnection;
 
 /**
@@ -48,7 +49,9 @@ public class PostRequest extends HttpRequest {
     public synchronized LinkedList<String[]> getPostParameter() throws IOException {
         if (this.postParameterParsed) { return this.postParameters; }
         String type = this.getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE);
-        if ("application/x-www-form-urlencoded".equalsIgnoreCase(type)) {
+        if (new Regex(type, "(application/x-www-form-urlencoded)").matches()) {
+            String charSet = new Regex(type, "charset=(.*?)($| )").getMatch(0);
+            if (charSet == null) charSet = "UTF-8";
             final String contentLength = this.getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH);
             int length = contentLength == null ? -1 : Integer.parseInt(contentLength);
             if (length <= 0) { throw new IOException("application/x-www-form-urlencoded without content-length"); }
@@ -64,7 +67,7 @@ public class PostRequest extends HttpRequest {
                     }
                 }
             }
-            final String postData = new String(bos.toByteArray(), "UTF-8");
+            final String postData = new String(bos.toByteArray(), charSet);
             this.postParameters = HttpConnection.parseParameterList(postData);
         }
         this.postParameterParsed = true;
