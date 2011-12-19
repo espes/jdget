@@ -17,6 +17,8 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.awt.event.MouseAdapter;
@@ -101,6 +103,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     private JLabel           iconLabel;
 
     protected boolean        doNotShowAgainSelected = false;
+
+    private FocusListener defaultButton;
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
@@ -189,9 +193,31 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // Dispose dialog on close
             this.getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
             this.getDialog().addWindowListener(this);
+            defaultButton = new FocusListener() {
+
+                @Override
+                public void focusLost(FocusEvent e) {
+                   
+                    final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
+                    if (root != null) {
+                        root.setDefaultButton(null);
+                    }
+                }
+
+                @Override
+                public void focusGained(FocusEvent e) {
+                 
+                    final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
+                    if (root != null && e.getComponent() instanceof JButton) {
+                        root.setDefaultButton((JButton) e.getComponent());
+                    }
+                }
+            };
             // create panel for the dialog's buttons
             this.okButton = new JButton(this.okOption);
             this.cancelButton = new JButton(this.cancelOption);
+            cancelButton.addFocusListener(defaultButton);
+            okButton.addFocusListener(defaultButton);
             this.defaultButtons = this.getDefaultButtonPanel();
 
             /*
@@ -199,7 +225,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
              * set the focus on cancel button
              */
             JButton focus = null;
-
+      
             // add listeners here
             this.okButton.addActionListener(this);
             this.cancelButton.addActionListener(this);
@@ -245,10 +271,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                             final JRootPane root = SwingUtilities.getRootPane(defaultButton);
                             if (root != null) {
                                 root.setDefaultButton(defaultButton);
+                                System.out.println("Set default " + defaultButton);
                             }
                         }
                     }
                 });
+           
                 focus = this.okButton;
                 this.defaultButtons.add(this.okButton, "alignx right,tag ok,sizegroup confirms");
 
@@ -259,6 +287,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 if (BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_OK)) {
                     this.getDialog().getRootPane().setDefaultButton(this.cancelButton);
                     this.cancelButton.requestFocusInWindow();
+                  
                     // focus is on cancel if OK is hidden
                     focus = this.cancelButton;
                 }
@@ -357,9 +386,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     /**
      * @return
      */
-   protected JComponent getIconComponent() {
+    protected JComponent getIconComponent() {
         this.iconLabel = new JLabel(this.icon);
-//        iconLabel.setVerticalAlignment(JLabel.TOP);
+        // iconLabel.setVerticalAlignment(JLabel.TOP);
         return iconLabel;
     }
 
@@ -441,7 +470,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 if (tag == null) {
                     tag = "help";
                 }
-                ret.add(new JButton(a), "tag " + tag + ",sizegroup confirms");
+                JButton bt;
+                ret.add(bt=new JButton(a), "tag " + tag + ",sizegroup confirms");
+                bt.addFocusListener(defaultButton);
             }
         }
         return ret;
