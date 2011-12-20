@@ -112,6 +112,9 @@ public abstract class QueueAction<T, E extends Throwable> {
         this.finished = true;
     }
 
+    protected void postRun() {
+    }
+
     public void reset() {
         this.exeption = null;
         this.killed = false;
@@ -164,6 +167,12 @@ public abstract class QueueAction<T, E extends Throwable> {
                 throw (RuntimeException) th;
             } else {
                 throw (E) th;
+            }
+        } finally {
+            try {
+                this.postRun();
+            } catch (final Throwable e) {
+                Log.exception(e);
             }
         }
     }
