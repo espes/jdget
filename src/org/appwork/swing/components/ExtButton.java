@@ -43,6 +43,11 @@ public class ExtButton extends JButton implements ToolTipHandler {
      this(null);
         // TODO Auto-generated constructor stub
     }
+    @Override
+    public boolean isTooltipWithoutFocusEnabled() {
+        // TODO Auto-generated method stub
+        return true;
+    }
 
     public ExtButton setTooltipsEnabled(boolean b) {
         if (b) {

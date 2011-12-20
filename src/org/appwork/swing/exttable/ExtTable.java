@@ -1368,4 +1368,13 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return flavor;
     }
 
+    /* (non-Javadoc)
+     * @see org.appwork.swing.components.tooltips.ToolTipHandler#isTooltipWithoutFocusEnabled()
+     */
+    @Override
+    public boolean isTooltipWithoutFocusEnabled() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
 }

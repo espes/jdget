@@ -86,6 +86,11 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
 
         };
     }
+    @Override
+    public boolean isTooltipWithoutFocusEnabled() {
+        // TODO Auto-generated method stub
+        return true;
+    }
 
     /*
      * (non-Javadoc)

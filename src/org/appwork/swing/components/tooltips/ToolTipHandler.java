@@ -59,4 +59,9 @@ public interface ToolTipHandler {
      */
     boolean updateTooltip(ExtTooltip activeToolTip, MouseEvent e);
 
+    /**
+     * @return true if component can show a tooltip without having the current focus
+     */
+    boolean isTooltipWithoutFocusEnabled();
+
 }

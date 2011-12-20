@@ -71,6 +71,11 @@ abstract public class Graph extends JPanel implements ToolTipHandler{
 
     private Limiter[]         limiter;
     private TooltipTextDelegateFactory tooltipFactory;
+    @Override
+    public boolean isTooltipWithoutFocusEnabled() {
+        // TODO Auto-generated method stub
+        return true;
+    }
 
     public Graph() {
         this(60, 1000);
