@@ -334,7 +334,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
                 this.getDialog().setLocation(new Point((int) (screenSize.getWidth() - this.getDialog().getWidth() - 20), (int) (screenSize.getHeight() - this.getDialog().getHeight() - 60)));
             } else {
-                this.getDialog().setLocation(SwingUtils.getCenter(this.getDialog().getParent(), this.getDialog()));
+                this.getDialog().setLocation(getDesiredLocation());
             }
             // register an escape listener to cancel the dialog
             this.registerEscape(focus);
@@ -381,6 +381,14 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             ((Window) this.getDialog().getParent()).setAlwaysOnTop(true);
             ((Window) this.getDialog().getParent()).setAlwaysOnTop(false);
         }
+    }
+
+    /**
+     * @return
+     */
+    protected Point getDesiredLocation() {
+
+        return SwingUtils.getCenter(this.getDialog().getParent(), this.getDialog());
     }
 
     /**
