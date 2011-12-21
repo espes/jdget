@@ -10,6 +10,7 @@
 package org.appwork.utils.formatter;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -19,11 +20,31 @@ import org.appwork.utils.Regex;
 
 public class TimeFormatter {
 
-    private static final String[] dateformats  = new String[] { "EEE, dd-MMM-yy HH:mm:ss z", "EEE, dd-MMM-yyyy HH:mm:ss z", "EEE, dd MMM yyyy HH:mm:ss z", "EEE MMM dd HH:mm:ss z yyyy", "EEE, dd-MMM-yyyy HH:mm:ss z", "EEEE, dd-MMM-yy HH:mm:ss z" };
-
-    public static final int       HIDE_SECONDS = 1 << 1;
-    public static final int       HIDE_MARKER  = 1 << 2;
-    public static final int       CLOCK        = 1 << 3;
+    private static final ArrayList<SimpleDateFormat> dateformats  = new ArrayList<SimpleDateFormat>();
+    static {
+        try {
+            SimpleDateFormat sdf;
+            TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy z", Locale.UK));
+            sdf.setLenient(false);
+            TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEE, dd-MMM-yy HH:mm:ss z", Locale.UK));
+            sdf.setLenient(false);
+            TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z", Locale.UK));
+            sdf.setLenient(false);
+            TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.UK));
+            sdf.setLenient(false);
+            TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.UK));
+            sdf.setLenient(false);
+            TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z", Locale.UK));
+            sdf.setLenient(false);
+            TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEEE, dd-MMM-yy HH:mm:ss z", Locale.UK));
+            sdf.setLenient(false);
+        } catch (final Throwable e) {
+            e.printStackTrace();
+        }
+    }
+    public static final int                          HIDE_SECONDS = 1 << 1;
+    public static final int                          HIDE_MARKER  = 1 << 2;
+    public static final int                          CLOCK        = 1 << 3;
 
     public static String formatMilliSeconds(final long totalSeconds, final int flags) {
         return TimeFormatter.formatSeconds(totalSeconds / 1000, flags);
@@ -148,13 +169,11 @@ public class TimeFormatter {
     public static Date parseDateString(final String date) {
         if (date == null) { return null; }
         Date expireDate = null;
-        for (final String format : TimeFormatter.dateformats) {
+        for (final SimpleDateFormat format : TimeFormatter.dateformats) {
             try {
-                final SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.UK);
-                sdf.setLenient(false);
-                expireDate = sdf.parse(date);
+                expireDate = format.parse(date);
                 break;
-            } catch (final Exception e2) {
+            } catch (final Throwable e2) {
             }
         }
         if (expireDate == null) { return null; }
