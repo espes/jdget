@@ -27,7 +27,7 @@ public class Log {
         Log.LOGGER = Logger.getLogger("org.appwork");
         Log.LOGGER.setUseParentHandlers(false);
         final ConsoleHandler cHandler = new ConsoleHandler();
-        cHandler.setLevel(Level.ALL);
+        cHandler.setLevel(Level.WARNING);
         cHandler.setFormatter(new LogFormatter());
         Log.LOGGER.addHandler(cHandler);
         try {
