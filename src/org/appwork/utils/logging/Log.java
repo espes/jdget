@@ -27,7 +27,7 @@ public class Log {
         Log.LOGGER = Logger.getLogger("org.appwork");
         Log.LOGGER.setUseParentHandlers(false);
         final ConsoleHandler cHandler = new ConsoleHandler();
-        cHandler.setLevel(Level.WARNING);
+        cHandler.setLevel(Level.ALL);
         cHandler.setFormatter(new LogFormatter());
         Log.LOGGER.addHandler(cHandler);
         try {
@@ -40,7 +40,7 @@ public class Log {
         }
 
         Log.LOGGER.addHandler(LogEventHandler.getInstance());
-        Log.LOGGER.setLevel(Level.ALL);
+        Log.LOGGER.setLevel(Level.WARNING);
     }
     /**
      * For shorter access
