@@ -60,16 +60,16 @@ public class ClassCache {
                 if (m.getName().startsWith("get") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
                     cc.getter.add(g = new Getter(createKey(m.getName().substring(3)), m));
                     cc.getterMap.put(g.getKey(), g);
-                    Log.L.finer(m.toString());
+//                    Log.L.finer(m.toString());
 
                 } else if (m.getName().startsWith("is") && m.getParameterTypes().length == 0 && m.getReturnType() != void.class) {
                     cc.getter.add(g = new Getter(createKey(m.getName().substring(2)), m));
                     cc.getterMap.put(g.getKey(), g);
-                    Log.L.finer(m.toString());
+//                    Log.L.finer(m.toString());
                 } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
                     cc.setter.add(s = new Setter(createKey(m.getName().substring(3)), m));
                     cc.setterMap.put(s.getKey(), s);
-                    Log.L.finer(m.toString());
+//                    Log.L.finer(m.toString());
                 }
 
             }

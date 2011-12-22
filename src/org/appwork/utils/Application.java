@@ -35,27 +35,18 @@ import org.appwork.utils.os.CrossSystem;
  */
 public class Application {
     static {
-        if (Charset.defaultCharset() == Charset.forName("cp1252")) {
-            System.out.println("REDIRECT Sys.out");
-            // workaround.
-            // even 1252 is default codepage, windows console expects cp850
-            // codepage input
-            try {
-                System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, "CP850"));
-            } catch (final UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
+        redirectOutputStreams();
     }
-    private static String APP_FOLDER  = ".appwork";
+    private static String  APP_FOLDER  = ".appwork";
 
-    private static String ROOT;
+    private static String  ROOT;
 
-    private static long   javaVersion = 0;
-    public static long    JAVA15      = 15000000;
-    public static long    JAVA16      = 16000000;
-    public static long    JAVA17      = 17000000;
+    private static long    javaVersion = 0;
+    public static long     JAVA15      = 15000000;
+    public static long     JAVA16      = 16000000;
+    public static long     JAVA17      = 17000000;
+
+    private static boolean REDIRECTED  = false;
 
     /**
      * Adds a folder to the System classloader classpath this might fail if
@@ -76,6 +67,31 @@ public class Application {
             throw new IOException("Error, could not add URL to system classloader");
         }
 
+    }
+
+    /**
+     * 
+     */
+    public static void redirectOutputStreams() {
+        if (REDIRECTED) return;
+        if (Charset.defaultCharset() == Charset.forName("cp1252")) {
+            REDIRECTED = true;
+            // workaround.
+            // even 1252 is default codepage, windows console expects cp850
+            // codepage input
+            try {
+                System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, "CP850"));
+            } catch (final UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            try {
+                System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err), true, "CP850"));
+            } catch (final UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -253,7 +269,7 @@ public class Application {
         } else {
             Application.ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + Application.APP_FOLDER + System.getProperty("file.separator");
         }
-        // do not use Log.L here. this might be null    
+        // do not use Log.L here. this might be null
         return Application.ROOT;
     }
 

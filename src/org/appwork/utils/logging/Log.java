@@ -13,7 +13,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.appwork.shutdown.ShutdownController;
+import org.appwork.utils.Application;
 
 public class Log {
 
@@ -23,7 +23,7 @@ public class Log {
      * Create the singleton logger instance
      */
     static {
-   
+        Application.redirectOutputStreams();
         Log.LOGGER = Logger.getLogger("org.appwork");
         Log.LOGGER.setUseParentHandlers(false);
         final ConsoleHandler cHandler = new ConsoleHandler();
