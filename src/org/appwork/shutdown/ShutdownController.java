@@ -157,7 +157,7 @@ public class ShutdownController extends Thread {
 
                 for (Thread hook : threads) {
                     addShutdownEvent(new ShutdownEventWrapper(hook));
-                    System.out.println(hook);
+                    
                 }
                 field.set(null, hookDelegater);
             }

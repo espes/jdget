@@ -57,7 +57,7 @@ public class LogFormatter extends SimpleFormatter {
         sb.append(this.longTimestamp.format(this.date));
         sb.append(" - ");
         sb.append(record.getLevel().getName());
-        sb.append(" [");
+        sb.append(" [ ");
         if (record.getSourceClassName() != null) {
             sb.append(record.getSourceClassName());
         } else {
@@ -69,7 +69,7 @@ public class LogFormatter extends SimpleFormatter {
             sb.append(')');
         }
 
-        sb.append("] ");
+        sb.append(" ] ");
 
         sb.append("-> ");
         sb.append(message);

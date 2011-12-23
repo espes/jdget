@@ -11,6 +11,7 @@ package org.appwork.utils.logging;
 
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import org.appwork.utils.Application;
@@ -55,7 +56,16 @@ public class Log {
      * @param e
      */
     public static void exception(final Level level, final Throwable e) {
-        Log.getLogger().log(level, level.getName() + " Exception occurred", e);
+        try {
+            StackTraceElement[] st = new Exception().getStackTrace();
+            LogRecord lr = new LogRecord(level, level.getName() + " Exception occurred");
+            lr.setThrown(e);
+            lr.setSourceClassName(st[1].getClassName()+"."+st[1].getMethodName());
+            lr.setSourceMethodName(st[1].getFileName() + ":" + st[1].getLineNumber() );
+            Log.getLogger().log(lr);
+        } catch (Throwable a1) {
+            Log.L.log(level, level.getName() + " Exception occurred", e);
+        }
     }
 
     /**
