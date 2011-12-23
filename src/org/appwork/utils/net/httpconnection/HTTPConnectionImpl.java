@@ -20,6 +20,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.appwork.utils.LowerCaseHashMap;
 import org.appwork.utils.Regex;
+import org.appwork.utils.net.Base64InputStream;
 import org.appwork.utils.net.ChunkedInputStream;
 import org.appwork.utils.net.CountingOutputStream;
 
@@ -292,6 +293,11 @@ public class HTTPConnectionImpl implements HTTPConnection {
         if (code >= 200 && code <= 400 || code == 404 || code == 403 || this.isResponseCodeAllowed(code)) {
             if (this.convertedInputStream != null) { return this.convertedInputStream; }
             if (this.contentDecoded) {
+                final String encodingTransfer = this.getHeaderField("Content-Transfer-Encoding");
+                if ("base64".equalsIgnoreCase(encodingTransfer)) {
+                    /* base64 encoded content */
+                    this.inputStream = new Base64InputStream(this.inputStream);
+                }
                 /* we convert different content-encodings to normal inputstream */
                 final String encoding = this.getHeaderField("Content-Encoding");
                 if (encoding == null || encoding.length() == 0 || "none".equalsIgnoreCase(encoding)) {
