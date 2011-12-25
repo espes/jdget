@@ -16,6 +16,7 @@ import javax.swing.JTextPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
+import org.appwork.app.gui.MigPanel;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
@@ -42,11 +43,13 @@ public class ConfirmDialog extends AbstractDialog<Integer> {
 
     @Override
     public JComponent layoutDialogContent() {
+        MigPanel p = new MigPanel("", "[]", "[]");
         this.textField = new JTextPane() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean getScrollableTracksViewportWidth() {
+
                 return !BinaryLogic.containsAll(ConfirmDialog.this.flagMask, Dialog.STYLE_LARGE);
             }
         };
@@ -74,10 +77,14 @@ public class ConfirmDialog extends AbstractDialog<Integer> {
         this.textField.setCaretPosition(0);
 
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
-            return new JScrollPane(this.textField);
+
+            p.add(new JScrollPane(this.textField));
         } else {
-            return this.textField;
+
+            p.add(textField);
+
         }
+        return p;
     }
 
     @Override
