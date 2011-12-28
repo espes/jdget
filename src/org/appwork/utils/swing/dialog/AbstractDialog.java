@@ -29,6 +29,7 @@ import java.util.HashMap;
 
 import javax.swing.AbstractAction;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -118,7 +119,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     public boolean isHiddenByDontShowAgain() {
-        final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
+        if(dontshowagain!=null&&this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()){
+            return false;
+        }
+       final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
         return i >= 0;
     }
 
@@ -249,7 +253,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             bottom.add(this.timerLbl);
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
-                this.dontshowagain = new JCheckBox(_AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN());
+                this.dontshowagain = new JCheckBox(getDontShowAgainLabelText());
                 this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
                 this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
                 this.dontshowagain.setSelected(this.doNotShowAgainSelected);
@@ -381,6 +385,14 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             ((Window) this.getDialog().getParent()).setAlwaysOnTop(true);
             ((Window) this.getDialog().getParent()).setAlwaysOnTop(false);
         }
+    }
+
+    /**
+     * @return
+     */
+    protected String getDontShowAgainLabelText() {
+      
+        return _AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN();
     }
 
     /**
