@@ -9,6 +9,8 @@
  */
 package org.appwork.utils.swing;
 
+import java.util.logging.Level;
+
 import javax.swing.SwingUtilities;
 
 /**
@@ -111,7 +113,7 @@ public abstract class EDTHelper<T> implements Runnable {
             try {
                 this.lock.wait();
             } catch (final InterruptedException e) {
-                org.appwork.utils.logging.Log.exception(e);
+                org.appwork.utils.logging.Log.exception(Level.WARNING,e);
             }
         }
     }
