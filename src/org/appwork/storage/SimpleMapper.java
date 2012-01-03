@@ -69,8 +69,9 @@ public class SimpleMapper implements JSONMapper {
      * org.appwork.storage.TypeRef)
      */
     @Override
-    public <T> T stringToObject(final String jsonString, final TypeRef<T> type) throws JSonMapperException {
+    public <T> T stringToObject( String jsonString, final TypeRef<T> type) throws JSonMapperException {
         try {
+           
             return this.mapper.jsonToObject(new JSonFactory(jsonString).parse(), type);
         } catch (final ParserException e) {
             throw new JSonMapperException(e);

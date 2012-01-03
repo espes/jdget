@@ -249,6 +249,9 @@ public class HTTPConstants {
      */
     public static final String HEADER_REQUEST_VIA                          = "Via";
     public static final String HEADER_REQUEST_LOCATION                     = "Location";
+    public static final String HEADER_REQUEST_X_FORWARDED_FOR              = "X-Forwarded-For";
+    public static final String HEADER_REQUEST_X_CLIENT_IP                  = "X-Client-IP";
+
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache

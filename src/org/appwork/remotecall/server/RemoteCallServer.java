@@ -44,8 +44,14 @@ public class RemoteCallServer {
             final Object[] params = new Object[types.length];
             try {
                 for (int i = 0; i < types.length; i++) {
-
-                    params[i] = Utils.convert(JSonStorage.restoreFromString(URLDecoder.decode(parameters[i], "UTF-8"), types[i], null), types[i].getType());
+//parameters should already be urldecoded here
+                    
+                    if(types[i].getType()==String.class){
+                        //fix if there is no " around strings
+                         if(!parameters[i].startsWith("\""))parameters[i]="\""+parameters[i]; 
+                         if(!parameters[i].endsWith("\""))parameters[i]+="\"";
+                     }
+                    params[i] = Utils.convert(JSonStorage.restoreFromString(parameters[i], types[i], null), types[i].getType());
                 }
 
             } catch (final Exception e) {

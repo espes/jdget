@@ -58,7 +58,7 @@ public class Utils {
         final StringBuilder sb = new StringBuilder();
         for (final Object o : args) {
             if (sb.length() > 0) {
-                sb.append("&=");
+                sb.append("&");
             }
             sb.append(Utils.serialiseSingleObject(o));
         }
