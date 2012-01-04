@@ -23,7 +23,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
@@ -36,12 +35,13 @@ import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
-import javax.swing.TransferHandler;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -71,7 +71,8 @@ import org.appwork.utils.swing.EDTRunner;
  */
 public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChangeListener {
 
-    private static final long                         serialVersionUID    = 2822230056021924679L;
+    public static final String                        SUGGESTEDROWHEIGHTPROPERTY = "ExtTable.SuggestedFontHeight";
+    private static final long                         serialVersionUID           = 2822230056021924679L;
     /**
      * Column background color if column is NOT selected
      */
@@ -99,24 +100,17 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * true if search is enabled
      */
 
-    private boolean                                   searchEnabled       = false;
+    private boolean                                   searchEnabled              = false;
     private SearchDialog                              searchDialog;
     private final ExtTableEventSender                 eventSender;
-    private JComponent                                columnButton        = null;
-    private boolean                                   columnButtonVisible = true;
+    private JComponent                                columnButton               = null;
+    private boolean                                   columnButtonVisible        = true;
     private int                                       verticalScrollPolicy;
 
     protected boolean                                 headerDragging;
     private ExtColumn<E>                              lastTooltipCol;
     private int                                       lastTooltipRow;
     private ExtDataFlavor<E>                          flavor;
-
-    public void setTransferHandler(ExtTransferHandler<E> newHandler) {
-
-        newHandler.setTable(this);
-        super.setTransferHandler(newHandler);
-
-    }
 
     /**
      * Create an Extended Table instance
@@ -130,7 +124,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      */
     public ExtTable(final ExtTableModel<E> model) {
         super(model);
-        flavor = new ExtDataFlavor<E>(getClass());
+        this.flavor = new ExtDataFlavor<E>(this.getClass());
         this.eventSender = new ExtTableEventSender();
         ToolTipController.getInstance().register(this);
         ToolTipManager.sharedInstance().unregisterComponent(this);
@@ -140,6 +134,31 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         this.setColumnModel(new ExtColumnModel(this.getColumnModel()));
 
         model.setTable(this);
+        final int suggestedRowHeight = UIManager.getInt(ExtTable.SUGGESTEDROWHEIGHTPROPERTY);
+        if (suggestedRowHeight > 0) {
+            this.setRowHeight(suggestedRowHeight);
+        }
+        this.setTableHeader(new JTableHeader(this.getColumnModel()) {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 6099615257824836337L;
+
+            @Override
+            public void setPreferredSize(final Dimension preferredSize) {
+                int suggestedRowHeight = UIManager.getInt(ExtTable.SUGGESTEDROWHEIGHTPROPERTY);
+                if (suggestedRowHeight > 0 && suggestedRowHeight > preferredSize.getHeight()) {
+                    if (suggestedRowHeight > 0) {
+                        suggestedRowHeight += 8;
+                    }
+                    Log.L.info("Using SuggestedRowHeight of " + suggestedRowHeight + " instead of setPreferredSize of " + ExtTable.this.rowHeight);
+                    preferredSize.height = suggestedRowHeight;
+                }
+                super.setPreferredSize(preferredSize);
+            }
+
+        });
         this.createColumns();
         // get defaultbackground and Foregroundcolors
         Component c = super.getCellRenderer(0, 0).getTableCellRendererComponent(this, "", true, false, 0, 0);
@@ -284,27 +303,9 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     }
 
-    @SuppressWarnings("unchecked")
-    public Component getEditorComponent() {
-        // update cell editor.
-      if(    getCellEditor()!=null&&getCellEditor() instanceof ExtColumn){
-          ((ExtColumn)getCellEditor()).getTableCellEditorComponent(this, getValueAt(getEditingRow(), getEditingColumn()), isCellSelected(getEditingRow(), getEditingColumn()), getEditingRow(), getEditingColumn(),true);
-      }
-        return editorComp;
-    }
-
     protected void accommodateColumnDelta(final int index, final int delta) {
-//        System.out.println(delta);
+        // System.out.println(delta);
     }
-
-    // public boolean editCellAt(int row, int column, EventObject e){
-    // if( super.editCellAt(row, column, e)){
-    //
-    // return true;
-    // }
-    // return false;
-    // }
-  
 
     /**
      * adds a row highlighter
@@ -365,6 +366,14 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
         return popup;
     }
+
+    // public boolean editCellAt(int row, int column, EventObject e){
+    // if( super.editCellAt(row, column, e)){
+    //
+    // return true;
+    // }
+    // return false;
+    // }
 
     @Override
     protected void configureEnclosingScrollPane() {
@@ -539,6 +548,10 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return true;
     }
 
+    public void forceRowHeight(final int rowHeight) {
+        super.setRowHeight(rowHeight);
+    }
+
     /* we do always create columsn ourself */
     @Override
     public boolean getAutoCreateColumnsFromModel() {
@@ -601,15 +614,30 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return this.columnForegroundSelected;
     }
 
-   
-
-
     /**
      * @return the size of the contextmenu icons
      */
     public int getContextIconSize() {
 
         return 22;
+    }
+
+    /**
+     * @return
+     */
+    public ExtDataFlavor<E> getDataFlavor() {
+        // TODO Auto-generated method stub
+        return this.flavor;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Component getEditorComponent() {
+        // update cell editor.
+        if (this.getCellEditor() != null && this.getCellEditor() instanceof ExtColumn) {
+            ((ExtColumn) this.getCellEditor()).getTableCellEditorComponent(this, this.getValueAt(this.getEditingRow(), this.getEditingColumn()), this.isCellSelected(this.getEditingRow(), this.getEditingColumn()), this.getEditingRow(), this.getEditingColumn(), true);
+        }
+        return this.editorComp;
     }
 
     /**
@@ -671,18 +699,18 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return super.getCellRenderer(row, column);
     }
 
-    // @Override
-    // public Point getToolTipLocation(final MouseEvent event) {
-    // // this.toolTipPosition = event.getPoint();
-    // return super.getToolTipLocation(event);
-    // }
-
     /**
      * @return the rowHighlighters
      */
     public ArrayList<ExtOverlayRowHighlighter> getRowHighlighters() {
         return this.rowHighlighters;
     }
+
+    // @Override
+    // public Point getToolTipLocation(final MouseEvent event) {
+    // // this.toolTipPosition = event.getPoint();
+    // return super.getToolTipLocation(event);
+    // }
 
     /**
      * @param point
@@ -729,6 +757,18 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     public boolean isTooltipDisabledUntilNextRefocus() {
         // table has handle ech cell as an own component.
 
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.swing.components.tooltips.ToolTipHandler#
+     * isTooltipWithoutFocusEnabled()
+     */
+    @Override
+    public boolean isTooltipWithoutFocusEnabled() {
+        // TODO Auto-generated method stub
         return false;
     }
 
@@ -1000,7 +1040,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
                 final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
-      
+
                 if (obj == null || row == -1) {
                     /* no object under mouse, lets clear the selection */
                     this.clearSelection();
@@ -1032,7 +1072,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                     col.onDoubleClick(e, obj);
                 }
 
-           
                 if (obj != null) {
                     this.onDoubleClick(e, obj);
 
@@ -1045,7 +1084,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 if (col != null) {
                     col.onSingleClick(e, obj);
                 }
-              
+
                 if (obj != null) {
                     this.onSingleClick(e, obj);
                 }
@@ -1243,7 +1282,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 rect.setLocation(rect.x - pt.x, rect.y - pt.y);
 
                 viewport.scrollRectToVisible(rect);
-             
+
                 return null;
             }
 
@@ -1283,12 +1322,19 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         this.reconfigureColumnButton();
     }
 
-    /**
-     * @param searchEnabled
-     *            the searchEnabled to set
-     */
-    public void setSearchEnabled(final boolean searchEnabled) {
-        this.searchEnabled = searchEnabled;
+    @Override
+    public void setRowHeight(final int rowHeight) {
+        int suggestedRowHeight = UIManager.getInt(ExtTable.SUGGESTEDROWHEIGHTPROPERTY);
+        if (suggestedRowHeight > 0 && suggestedRowHeight > rowHeight) {
+            if (suggestedRowHeight > 0) {
+                /* add 2 more pixels because of borders and such stuff */
+                suggestedRowHeight += 8;
+            }
+            Log.L.info("Using SuggestedRowHeight of " + suggestedRowHeight + " instead of setRowHeight of " + rowHeight);
+            super.setRowHeight(suggestedRowHeight);
+        } else {
+            super.setRowHeight(rowHeight);
+        }
     }
 
     //
@@ -1299,6 +1345,21 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     // }
     // return -1;
     // }
+
+    /**
+     * @param searchEnabled
+     *            the searchEnabled to set
+     */
+    public void setSearchEnabled(final boolean searchEnabled) {
+        this.searchEnabled = searchEnabled;
+    }
+
+    public void setTransferHandler(final ExtTransferHandler<E> newHandler) {
+
+        newHandler.setTable(this);
+        super.setTransferHandler(newHandler);
+
+    }
 
     /**
      * Starts a Search Prozess. Usualy opens a Search Dialog
@@ -1358,23 +1419,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         final int row = this.getRowIndexByPoint(e.getPoint());
         final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
         return this.lastTooltipCol != col || this.lastTooltipRow != row;
-    }
-
-    /**
-     * @return
-     */
-    public ExtDataFlavor<E> getDataFlavor() {
-        // TODO Auto-generated method stub
-        return flavor;
-    }
-
-    /* (non-Javadoc)
-     * @see org.appwork.swing.components.tooltips.ToolTipHandler#isTooltipWithoutFocusEnabled()
-     */
-    @Override
-    public boolean isTooltipWithoutFocusEnabled() {
-        // TODO Auto-generated method stub
-        return false;
     }
 
 }
