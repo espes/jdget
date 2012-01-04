@@ -86,12 +86,16 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         return this.changeDelay;
     }
 
+    public boolean isTooltipActive() {
+        return activeToolTipPanel != null;
+    }
+
     /**
      * 
      */
     public void hideTooltip() {
         if (this.activePopup != null) {
-
+            activeToolTipPanel = null;
             this.activePopup.hide();
             // this.activePopup.removeMouseListener(this);
             this.activePopup = null;
@@ -374,6 +378,10 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         }
     }
 
+    protected ExtTooltip getActiveToolTipPanel() {
+        return activeToolTipPanel;
+    }
+
     /**
      * 
      */
@@ -381,7 +389,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
 
         ToolTipController.this.hideTooltip();
         final JComponent aC = ToolTipController.this.activeComponent;
-        if (aC != null && (!aC.isFocusable()||aC.hasFocus()||((ToolTipHandler) aC).isTooltipWithoutFocusEnabled()) && !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
+        if (aC != null && (!aC.isFocusable() || aC.hasFocus() || ((ToolTipHandler) aC).isTooltipWithoutFocusEnabled()) && !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
 
             final Window ownerWindow = SwingUtilities.getWindowAncestor(aC);
             // if the components window is not the active any more, for exmaple
@@ -428,6 +436,17 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
     @Override
     public void windowLostFocus(final WindowEvent e) {
         this.hideTooltip();
+
+    }
+
+    /**
+     * @param iconedProcessIndicator
+     */
+    public void show(ToolTipHandler handler) {
+        this.activeComponent = (JComponent) handler;
+
+        this.mousePosition = MouseInfo.getPointerInfo().getLocation();
+        this.showTooltip();
 
     }
 }
