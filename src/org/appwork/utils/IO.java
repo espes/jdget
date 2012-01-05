@@ -99,9 +99,8 @@ public class IO {
 
     public static String readInputStreamToString(final InputStream fis) throws UnsupportedEncodingException, IOException {
         BufferedReader f = null;
-        InputStreamReader isr = null;
-        try {
-            f = new BufferedReader(isr = new InputStreamReader(fis, "UTF8"));
+           try {
+            f = new BufferedReader(new InputStreamReader(fis, "UTF8"));
             String line;
             final StringBuilder ret = new StringBuilder();
             final String sep = System.getProperty("line.separator");
@@ -117,10 +116,7 @@ public class IO {
                 f.close();
             } catch (final Throwable e) {
             }
-            try {
-                isr.close();
-            } catch (final Throwable e) {
-            }
+          
         }
     }
 
