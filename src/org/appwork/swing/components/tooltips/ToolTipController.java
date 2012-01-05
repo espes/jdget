@@ -317,13 +317,15 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      * @param createExtTooltip
      */
     private void show(final ExtTooltip tt) {
+       
         this.hideTooltip();
+//        delayer.stop();
         if (tt != null) {
             final PopupFactory popupFactory = PopupFactory.getSharedInstance();
             final GraphicsConfiguration gc = this.activeComponent.getGraphicsConfiguration();
             final Rectangle screenBounds = gc.getBounds();
             final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
-            final Point ttPosition = this.mousePosition;
+            final Point ttPosition = new Point(this.mousePosition.x,mousePosition.y);
 
             // if screen has insets, we have to deacrease the available space
             screenBounds.x += screenInsets.left;
@@ -356,8 +358,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
             }
 
             ToolTipController.this.activeToolTipPanel = tt;
-            tt.addMouseListener(ToolTipController.this);
-
+            tt.addMouseListener(ToolTipController.this);System.out.println(ttPosition);
             this.activePopup = popupFactory.getPopup(this.activeComponent, this.activeToolTipPanel, ttPosition.x, ttPosition.y);
             final Window ownerWindow = SwingUtilities.getWindowAncestor(this.activeComponent);
             // if the components window is not the active any more, for exmaple
