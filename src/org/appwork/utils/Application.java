@@ -392,6 +392,7 @@ public class Application {
      * @param newJar
      */
     public synchronized static void setApplication(final String newAppFolder) {
+       ROOT=null;
         Application.APP_FOLDER = newAppFolder;
     }
 
