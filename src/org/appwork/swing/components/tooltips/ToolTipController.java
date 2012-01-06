@@ -358,7 +358,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
             }
 
             ToolTipController.this.activeToolTipPanel = tt;
-            tt.addMouseListener(ToolTipController.this);System.out.println(ttPosition);
+            tt.addMouseListener(ToolTipController.this);
             this.activePopup = popupFactory.getPopup(this.activeComponent, this.activeToolTipPanel, ttPosition.x, ttPosition.y);
             final Window ownerWindow = SwingUtilities.getWindowAncestor(this.activeComponent);
             // if the components window is not the active any more, for exmaple
@@ -410,6 +410,10 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      * @param circledProgressBar
      */
     public void unregister(final ToolTipHandler circledProgressBar) {
+        if(activeComponent==circledProgressBar){
+            delayer.stop();
+            activeComponent=null;
+        }
         circledProgressBar.removeMouseListener(this);
         circledProgressBar.removeMouseMotionListener(this);
 
