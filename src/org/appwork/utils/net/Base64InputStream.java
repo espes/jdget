@@ -98,7 +98,7 @@ public class Base64InputStream extends FilterInputStream {
 
     @Override
     public int read() throws IOException {
-        final int next = this.returnDecodedBase64();
+        final int next = this.returnDecodedBase64();       
         if (next >= 0) {
             /* we still have decoded data left to return */
             return next;
@@ -141,7 +141,8 @@ public class Base64InputStream extends FilterInputStream {
         int next = -1;
         if (this.decodedAvailable > 0) {
             this.decodedAvailable--;
-            next = this.base64Decoded[0];
+            /*need to mask the byte*/
+            next = (int) ((byte) this.base64Decoded[0] & 0xff);
             this.base64Decoded[0] = this.base64Decoded[1];
             this.base64Decoded[1] = this.base64Decoded[2];
         }
