@@ -44,7 +44,7 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
      */
     public static ExtTooltipSettings createConfig(final String id) {
 
-        return JsonConfig.create(Application.getResource("cfg/ExtTooltipSettings_" + id + ".json"), ExtTooltipSettings.class);
+        return JsonConfig.create(Application.getResource("cfg/ExtTooltipSettings_" + id), ExtTooltipSettings.class);
     }
 
     private final ExtTooltipSettings config;
