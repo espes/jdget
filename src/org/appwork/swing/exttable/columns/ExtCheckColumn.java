@@ -44,7 +44,10 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         this.renderer = new RendererCheckBox();
 
         this.editor = new JCheckBox();
-
+        
+        //Avoids focus flickering when clicking the boxes
+        editor.setFocusable(false);
+        renderer.setFocusable(false);
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
             @Override
             public int compare(final E o1, final E o2) {
@@ -203,6 +206,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         this.editor.setHorizontalAlignment(SwingConstants.CENTER);
         this.editor.setOpaque(false);
         this.editor.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+     
 
     }
 
@@ -211,6 +215,7 @@ public abstract class ExtCheckColumn<E> extends ExtColumn<E> implements ActionLi
         this.renderer.setHorizontalAlignment(SwingConstants.CENTER);
         this.renderer.setOpaque(false);
         this.renderer.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+      
 
     }
 
