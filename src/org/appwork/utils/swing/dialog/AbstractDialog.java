@@ -97,7 +97,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     protected int            returnBitMask          = 0;
 
-    private AbstractAction[] actions                = null;
+    protected AbstractAction[] actions                = null;
 
     private String           title;
 
@@ -247,7 +247,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             this.getDialog().add(this.panel, "");
 
             // add the countdown timer
-            final MigPanel bottom = new MigPanel("ins 0", "[]20[grow,fill][]", "[]");
+            final MigPanel bottom = createBottomPanel();
             bottom.setOpaque(false);
 
             bottom.add(this.timerLbl);
@@ -390,6 +390,14 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     /**
      * @return
      */
+    protected MigPanel createBottomPanel() {
+        // TODO Auto-generated method stub
+        return new MigPanel("ins 0", "[]20[grow,fill][]", "[]");
+    }
+
+    /**
+     * @return
+     */
     protected String getDontShowAgainLabelText() {
       
         return _AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN();
@@ -483,7 +491,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @return
      */
     protected JPanel getDefaultButtonPanel() {
-        final JPanel ret = new JPanel(new MigLayout("ins 0", "[]", "0[]0"));
+        final JPanel ret = createBottomButtonPanel();
         if (this.actions != null) {
             for (final AbstractAction a : this.actions) {
                 String tag = (String) a.getValue("tag");
@@ -497,6 +505,14 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         }
         return ret;
 
+    }
+
+    /**
+     * @return
+     */
+    protected JPanel createBottomButtonPanel() {
+        // TODO Auto-generated method stub
+        return new JPanel(new MigLayout("ins 0", "[]", "0[]0"));
     }
 
     /**

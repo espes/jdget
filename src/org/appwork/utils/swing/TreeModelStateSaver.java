@@ -77,13 +77,18 @@ public class TreeModelStateSaver {
             @Override
             public Object edtRun() {
                 try {
-                    if (TreeModelStateSaver.this.tree.getModel() != null) {
+                    if (TreeModelStateSaver.this.tree.getModel() == null) { 
+                        
+                        return null;};
+                        
+                     
                         TreeModelStateSaver.this.restoreState(TreeModelStateSaver.this.tree.getModel().getRoot(), new ArrayList<Object>());
-                    }
+                    
                     final TreePath[] selectedPathes = TreeModelStateSaver.this.getSelectedPathes();
                     if (selectedPathes != null && selectedPathes.length > 0) {
                         TreeModelStateSaver.this.tree.getSelectionModel().clearSelection();
                         TreeModelStateSaver.this.tree.getSelectionModel().setSelectionPaths(selectedPathes);
+                
                     }
                 } catch (final Throwable e) {
                     Log.exception(Level.WARNING, e);
@@ -101,6 +106,7 @@ public class TreeModelStateSaver {
             public Object edtRun() {
                 if (node == null) { return null; }
                 path.add(node);
+       
                 TreeModelStateSaver.this.treePath = new TreePath(path.toArray(new Object[] {}));
                 final Boolean bo = TreeModelStateSaver.this.expandCache.get(node);
                 try {

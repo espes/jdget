@@ -355,9 +355,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
-   return  this.getTableCellEditorComponent(table, (E)value, isSelected, row, column,false);
-       
-  
+        return this.getTableCellEditorComponent(table, (E) value, isSelected, row, column, false);
+
     }
 
     /**
@@ -366,19 +365,24 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @param isSelected
      * @param row
      * @param column
-     * @param editing set editing to true, if the cellrenderer should not update the editing value. for example a text in a textfiled. in this case the renderer only updates the rest. colors, borders...
+     * @param editing
+     *            set editing to true, if the cellrenderer should not update the
+     *            editing value. for example a text in a textfiled. in this case
+     *            the renderer only updates the rest. colors, borders...
      * @return
      */
     public Component getTableCellEditorComponent(JTable table, E value, boolean isSelected, int row, int column, boolean editing) {
-        final JComponent ret = this.getEditorComponent( value, isSelected, row, column);
+        final JComponent ret = this.getEditorComponent(value, isSelected, row, column);
         this.resetEditor();
-        this.configureEditorHighlighters(ret,  value, isSelected, row);
-       if(editing){
-          //while editing, we call a different method, which can be used to update colors, borders, layouts, but not the editing value itself.
-           this.configureCurrentlyEditingComponent(value, isSelected, row, column);
-       }else{
-           this.configureEditorComponent(value, isSelected, row, column);
-       }
+        this.configureEditorHighlighters(ret, value, isSelected, row);
+        if (editing) {
+            // while editing, we call a different method, which can be used to
+            // update colors, borders, layouts, but not the editing value
+            // itself.
+            this.configureCurrentlyEditingComponent(value, isSelected, row, column);
+        } else {
+            this.configureEditorComponent(value, isSelected, row, column);
+        }
         ret.setEnabled(this.getModel().getTable().isEnabled() && this.isEnabled(value));
 
         return ret;
@@ -392,13 +396,13 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     protected void configureCurrentlyEditingComponent(E value, boolean isSelected, int row, int column) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-      final JComponent ret = this.getRendererComponent((E) value, isSelected, hasFocus, row, column);
+        final JComponent ret = this.getRendererComponent((E) value, isSelected, hasFocus, row, column);
         this.resetRenderer();
         this.configureRendererHighlighters(ret, (E) value, isSelected, hasFocus, row);
         this.configureRendererComponent((E) value, isSelected, hasFocus, row, column);
@@ -691,6 +695,14 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             }
         };
 
+    }
+
+    /**
+     * @param boolean1
+     * @return true if the column is visible
+     */
+    public boolean isVisible(boolean savedValue) {
+        return savedValue;
     }
 
 }
