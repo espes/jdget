@@ -45,14 +45,14 @@ public class HTMLParser {
     }
 
     final private static Httppattern[] linkAndFormPattern = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?['|\"](.*?)['|\"]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("src.*?=(.*?)[ |>]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)\\2", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/\\1\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
-    final private static String        protocolPattern    = "(flashget|h.{2,3}|directhttp|httpviajd|httpsviajd|https|ccf|dlc|ftp|jd|rsdf|jdlist|file)";
+    final private static String        protocolPattern    = "(flashget|directhttp|https?viajd|https?|ccf|dlc|ftp|jd|rsdf|jdlist|file)";
     final private static Pattern[]     basePattern        = new Pattern[] { Pattern.compile("href=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
     final private static Pattern       pat1               = Pattern.compile("(" + HTMLParser.protocolPattern + "://|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static Pattern             mp                 = null;
 
     static {
         try {
-            HTMLParser.mp = Pattern.compile("(" + HTMLParser.protocolPattern + "://|www\\.)[^\\s<>'\"]*(((?!\\s" + HTMLParser.protocolPattern + "://|\\swww\\.)[^<>'\"]){0,20}([\\?|\\&][^<>'\\s\"]{1,10}\\=[^<>'\\s\"]+|\\.(htm[^<>'\\s\"]*|php|cgi|rar|zip|exe|avi|mpe?g|7z|bz2|doc|jpg|bmp|m4a|mdf|mkv|wav|mp[34]|pdf|wm[^<>'\\s\"]*|xcf|jar|swf|class|cue|bin|dll|cab|png|ico|gif|iso)[^<>'\\s\"]*))?", Pattern.CASE_INSENSITIVE);
+            HTMLParser.mp = Pattern.compile("(" + HTMLParser.protocolPattern + "://|www\\.)[^\\r\\t\\n\\v\\f<>'\"]*(((?!\\s" + HTMLParser.protocolPattern + "://|\\swww\\.)[^<>'\"]){0,20}([\\?|\\&][^<>'^\\r\\t\\n\\v\\f\"]{1,10}\\=[^<>'^\\r\\t\\n\\v\\f\"]+|\\.([a-zA-Z0-9]{2,4})[^<>'^\\r\\t\\n\\v\\f\"]*))?", Pattern.CASE_INSENSITIVE);
         } catch (final Throwable e) {
             Log.exception(e);
         }
@@ -63,23 +63,29 @@ public class HTMLParser {
             results = new HashSet<String>();
         }
         if (data == null || (data = data.trim()).length() == 0) { return results; }
+        if ((data.startsWith("directhttp://") || data.startsWith("httpviajd://") || data.startsWith("httpsviajd://")) && results.contains(data)) {
+            /* we dont have to further check urls with those prefixes */
+            return results;
+        }
         /* find reversed */
         String reversedata = new StringBuilder(data).reverse().toString();
         HTMLParser._getHttpLinksFinder(reversedata, url, results);
         reversedata = null;
         /* find base64'ed */
-        final String base64Data = Encoding.htmlDecode(data);
-        final String base64data = Encoding.Base64Decode(base64Data);
-        HTMLParser._getHttpLinksFinder(base64data, url, results);
+        String base64Data = Encoding.htmlDecode(data);
+        base64Data = Encoding.Base64Decode(base64Data);
+        HTMLParser._getHttpLinksFinder(base64Data, url, results);
+        base64Data = null;
         /* find hex'ed */
         String hex = new Regex(data, "(([0-9a-fA-F]{2}| )+)").getMatch(0);
         if (hex != null && hex.length() > 24) {
             try {
                 /* remove spaces from hex-coded string */
                 hex = hex.replaceAll(" ", "");
-                final String hexString = Hex.hex2String(hex);
+                String hexString = Hex.hex2String(hex);
                 hex = null;
                 HTMLParser._getHttpLinksFinder(hexString, url, results);
+                hexString = null;
             } catch (final Throwable e) {
                 Log.exception(e);
             }
