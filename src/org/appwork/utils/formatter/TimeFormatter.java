@@ -38,6 +38,8 @@ public class TimeFormatter {
             sdf.setLenient(false);
             TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEEE, dd-MMM-yy HH:mm:ss z", Locale.UK));
             sdf.setLenient(false);
+            TimeFormatter.dateformats.add(sdf = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z", Locale.UK));
+            sdf.setLenient(true);
         } catch (final Throwable e) {
             e.printStackTrace();
         }
