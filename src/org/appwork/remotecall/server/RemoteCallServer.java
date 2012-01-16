@@ -1,7 +1,6 @@
 package org.appwork.remotecall.server;
 
 import java.lang.reflect.InvocationTargetException;
-import java.net.URLDecoder;
 import java.util.HashMap;
 
 import org.appwork.remotecall.RemoteCallInterface;
@@ -27,6 +26,16 @@ public class RemoteCallServer {
         this.servicesMap.put(class1.getSimpleName(), new RemoteCallServiceWrapper(class1, serviceImpl));
     }
 
+    /**
+     * IMPORTANT: parameters must be urldecoded!!
+     * 
+     * @param requestor
+     * @param clazz
+     * @param method
+     * @param parameters
+     * @return
+     * @throws ServerInvokationException
+     */
     protected String handleRequest(final Requestor requestor, final String clazz, final String method, final String[] parameters) throws ServerInvokationException {
         try {
             final RemoteCallServiceWrapper service = this.servicesMap.get(new String(clazz));
@@ -41,17 +50,22 @@ public class RemoteCallServer {
 
             final TypeRef<Object>[] types = m.getTypeRefs();
             if (types.length != parameters.length) { throw new ServerInvokationException(this.handleRequestError(requestor, new BadRequestException("parameters did not match " + method)), requestor); }
+
             final Object[] params = new Object[types.length];
             try {
                 for (int i = 0; i < types.length; i++) {
-//parameters should already be urldecoded here
-                    
-                    if(types[i].getType()==String.class&&!"null".equals(parameters[i])){
-                        //fix if there is no " around strings
-                         if(!parameters[i].startsWith("\""))parameters[i]="\""+parameters[i]; 
-                         if(!parameters[i].endsWith("\"")||parameters[i].length()==1)parameters[i]+="\"";
-                     }
-                    params[i] = Utils.convert(JSonStorage.restoreFromString(parameters[i], types[i], null), types[i].getType());
+                    // parameters should already be urldecoded here
+
+                    if (types[i].getType() == String.class && !"null".equals(parameters[i])) {
+                        // fix if there is no " around strings
+                        if (!parameters[i].startsWith("\"")) {
+                            parameters[i] = "\"" + parameters[i];
+                        }
+                        if (!parameters[i].endsWith("\"") || parameters[i].length() == 1) {
+                            parameters[i] += "\"";
+                        }
+                    }
+                    params[i] = Utils.convert(JSonStorage.restoreFromString(parameters[i], types[i]), types[i].getType());
                 }
 
             } catch (final Exception e) {
@@ -70,7 +84,7 @@ public class RemoteCallServer {
                 throw new ServerInvokationException(this.handleRequestError(requestor, cause), requestor);
             }
             throw new ServerInvokationException(this.handleRequestError(requestor, new RuntimeException(e1)), requestor);
-        } catch (ServerInvokationException e) {
+        } catch (final ServerInvokationException e) {
             throw e;
         } catch (final Throwable e) {
             throw new ServerInvokationException(this.handleRequestError(requestor, e), requestor);
