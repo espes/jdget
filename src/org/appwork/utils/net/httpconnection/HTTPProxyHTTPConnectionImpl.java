@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 import javax.net.ssl.SSLHandshakeException;
@@ -17,9 +18,10 @@ import org.appwork.utils.Regex;
 import org.appwork.utils.encoding.Base64;
 
 public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
-    private int           httpPort;
-    private String        httpHost;
-    private StringBuilder proxyRequest;
+    private int               httpPort;
+    private String            httpHost;
+    private StringBuilder     proxyRequest;
+    private InetSocketAddress proxyInetSocketAddress = null;
 
     public HTTPProxyHTTPConnectionImpl(final URL url, final HTTPProxy p) {
         super(url, p);
@@ -31,6 +33,8 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
      */
     @Override
     public void connect() throws IOException {
+        if (this.isConnected()) { return;/* oder fehler */
+        }
         try {
             if (this.proxy == null || !this.proxy.getType().equals(HTTPProxy.TYPE.HTTP)) { throw new IOException("HTTPProxyHTTPConnection: invalid HTTP Proxy!"); }
             if (this.proxy.getPass() != null && this.proxy.getPass().length() > 0 || this.proxy.getUser() != null && this.proxy.getUser().length() > 0) {
@@ -39,17 +43,36 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                 final String pass = this.proxy.getPass() == null ? "" : this.proxy.getPass();
                 this.requestProperties.put("Proxy-Authorization", "Basic " + new String(Base64.encodeToByte((user + ":" + pass).getBytes(), false)));
             }
-            if (this.isConnected()) { return; }
-            this.httpSocket = new Socket();
-            this.httpSocket.setSoTimeout(this.readTimeout);
-            this.httpResponseCode = -1;
-            final InetAddress host = InetAddress.getByName(this.proxy.getHost());
-            final long startTime = System.currentTimeMillis();
+            InetAddress hosts[] = null;
             try {
-                this.httpSocket.connect(new InetSocketAddress(host, this.proxy.getPort()), this.connectTimeout);
-            } catch (final IOException e) {
-                throw new ProxyConnectException(e, this.proxy);
+                /* resolv all possible proxy ip's */
+                hosts = InetAddress.getAllByName(this.proxy.getHost());
+            } catch (final UnknownHostException e) {
+                throw e;
             }
+            IOException ee = null;
+            long startTime = System.currentTimeMillis();
+            for (final InetAddress host : hosts) {
+                this.httpSocket = new Socket();
+                this.httpSocket.setSoTimeout(this.readTimeout);
+                try {
+                    /* create and connect to socks5 proxy */
+                    startTime = System.currentTimeMillis();
+                    this.httpSocket.connect(this.proxyInetSocketAddress = new InetSocketAddress(host, this.proxy.getPort()), this.connectTimeout);
+                    /* connection is okay */
+                    ee = null;
+                    break;
+                } catch (final IOException e) {
+                    /* connection failed, try next available ip */
+                    this.proxyInetSocketAddress = null;
+                    try {
+                        this.httpSocket.close();
+                    } catch (final Throwable e2) {
+                    }
+                    ee = e;
+                }
+            }
+            if (ee != null) { throw new ProxyConnectException(ee, this.proxy); }
             this.requestTime = System.currentTimeMillis() - startTime;
             if (this.httpURL.getProtocol().startsWith("https")) {
                 /* ssl via CONNECT method */
@@ -151,7 +174,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                  * httpPath needs to include complete path here, eg
                  * http://google.de/
                  */
-                this.proxyRequest = new StringBuilder("DIRECT");
+                this.proxyRequest = new StringBuilder("DIRECT\r\n");
                 this.httpPath = this.httpURL.toString();
             }
             /* now send Request */
@@ -183,7 +206,10 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
         if (this.proxyRequest != null) {
             final StringBuilder sb = new StringBuilder();
             sb.append("-->HTTPProxy:").append(this.proxy.getHost() + ":" + this.proxy.getPort()).append("\r\n");
-            sb.append("----------------CONNECTRequest------------------\r\n");
+            if (this.proxyInetSocketAddress != null && this.proxyInetSocketAddress.getAddress() != null) {
+                sb.append("-->HTTPProxyIP:").append(this.proxyInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
+            }
+            sb.append("----------------CONNECTRequest(HTTP)------------\r\n");
             sb.append(this.proxyRequest.toString());
             sb.append("------------------------------------------------\r\n");
             sb.append(super.getRequestInfo());

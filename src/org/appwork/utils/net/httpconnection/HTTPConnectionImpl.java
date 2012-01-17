@@ -26,33 +26,35 @@ import org.appwork.utils.net.CountingOutputStream;
 
 public class HTTPConnectionImpl implements HTTPConnection {
 
-    protected LinkedHashMap<String, String>  requestProperties    = null;
+    protected LinkedHashMap<String, String>  requestProperties          = null;
     protected long[]                         ranges;
 
-    protected String                         customcharset        = null;
+    protected String                         customcharset              = null;
 
-    protected Socket                         httpSocket           = null;
-    protected URL                            httpURL              = null;
-    protected HTTPProxy                      proxy                = null;
-    protected String                         httpPath             = null;
+    protected Socket                         httpSocket                 = null;
+    protected URL                            httpURL                    = null;
+    protected HTTPProxy                      proxy                      = null;
+    protected String                         httpPath                   = null;
 
-    protected RequestMethod                  httpMethod           = RequestMethod.GET;
-    protected LowerCaseHashMap<List<String>> headers              = null;
-    protected int                            httpResponseCode     = -1;
-    protected String                         httpResponseMessage  = "";
-    protected int                            readTimeout          = 30000;
-    protected int                            connectTimeout       = 30000;
-    protected long                           requestTime          = -1;
-    protected OutputStream                   outputStream         = null;
-    protected InputStream                    inputStream          = null;
-    protected InputStream                    convertedInputStream = null;
-    protected boolean                        inputStreamConnected = false;
-    protected String                         httpHeader           = null;
+    protected RequestMethod                  httpMethod                 = RequestMethod.GET;
+    protected LowerCaseHashMap<List<String>> headers                    = null;
+    protected int                            httpResponseCode           = -1;
+    protected String                         httpResponseMessage        = "";
+    protected int                            readTimeout                = 30000;
+    protected int                            connectTimeout             = 30000;
+    protected long                           requestTime                = -1;
+    protected OutputStream                   outputStream               = null;
+    protected InputStream                    inputStream                = null;
+    protected InputStream                    convertedInputStream       = null;
+    protected boolean                        inputStreamConnected       = false;
+    protected String                         httpHeader                 = null;
 
-    protected boolean                        outputClosed         = false;
-    private boolean                          contentDecoded       = true;
-    protected long                           postTodoLength       = -1;
-    private int[]                            allowedResponseCodes = new int[0];
+    protected boolean                        outputClosed               = false;
+    private boolean                          contentDecoded             = true;
+    protected long                           postTodoLength             = -1;
+    private int[]                            allowedResponseCodes       = new int[0];
+    private InetSocketAddress                proxyInetSocketAddress     = null;
+    protected InetSocketAddress              connectedInetSocketAddress = null;
 
     public HTTPConnectionImpl(final URL url) {
         this(url, null);
@@ -90,8 +92,10 @@ public class HTTPConnectionImpl implements HTTPConnection {
         IOException ee = null;
         for (final InetAddress host : hosts) {
             if (this.httpURL.getProtocol().startsWith("https")) {
+                /* https */
                 this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
             } else {
+                /* http */
                 this.httpSocket = new Socket();
             }
             this.httpSocket.setSoTimeout(this.readTimeout);
@@ -105,8 +109,9 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 /* bind socket to given interface */
                 try {
                     if (this.proxy.getLocalIP() == null) { throw new IOException("Invalid localIP"); }
-                    this.httpSocket.bind(new InetSocketAddress(this.proxy.getLocalIP(), 0));
+                    this.httpSocket.bind(this.proxyInetSocketAddress = new InetSocketAddress(this.proxy.getLocalIP(), 0));
                 } catch (final IOException e) {
+                    this.proxyInetSocketAddress = null;
                     throw new ProxyConnectException(e, this.proxy);
                 }
             } else if (this.proxy != null && this.proxy.isNone()) {
@@ -115,11 +120,12 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
             try {
                 /* try to connect to given host now */
-                this.httpSocket.connect(new InetSocketAddress(host, port), this.connectTimeout);
+                this.httpSocket.connect(this.connectedInetSocketAddress = new InetSocketAddress(host, port), this.connectTimeout);
                 this.requestTime = System.currentTimeMillis() - startTime;
                 ee = null;
                 break;
             } catch (final IOException e) {
+                this.connectedInetSocketAddress = null;
                 try {
                     this.httpSocket.close();
                 } catch (final Throwable nothing) {
@@ -345,11 +351,16 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     protected String getRequestInfo() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("-->").append(this.getURL()).append("\r\n");
+        sb.append("-->Host:").append(this.getURL().getHost()).append("\r\n");
+        if (this.connectedInetSocketAddress != null && this.connectedInetSocketAddress.getAddress() != null) {
+            sb.append("-->HostIP:").append(this.connectedInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
+        }
+        if (this.proxyInetSocketAddress != null && this.proxyInetSocketAddress.getAddress() != null) {
+            sb.append("-->LocalIP:").append(this.proxyInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
+        }
+        sb.append("----------------Request-------------------------\r\n");
 
-        sb.append("----------------Request------------------\r\n");
-
-        sb.append(this.httpMethod.toString()).append(' ').append(this.getURL().getPath()).append((this.getURL().getQuery() != null ? "?" + this.getURL().getQuery() : "")).append(" HTTP/1.1\r\n");
+        sb.append(this.httpMethod.toString()).append(' ').append(this.httpPath).append(" HTTP/1.1\r\n");
 
         for (final String key : this.getRequestProperties().keySet()) {
             final String v = this.getRequestProperties().get(key);
@@ -361,7 +372,6 @@ public class HTTPConnectionImpl implements HTTPConnection {
             sb.append(v);
             sb.append("\r\n");
         }
-        sb.append("\r\n");
         return sb.toString();
     }
 
@@ -387,28 +397,31 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     protected String getResponseInfo() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("----------------Response------------------\r\n");
+        sb.append("----------------Response------------------------\r\n");
         try {
             if (this.isConnected()) {
                 this.connectInputStream();
+                sb.append(this.httpHeader).append("\r\n");
+                for (final Entry<String, List<String>> next : this.getHeaderFields().entrySet()) {
+                    // Achtung cookie reihenfolge ist wichtig!!!
+                    for (int i = next.getValue().size() - 1; i >= 0; i--) {
+                        if (next.getKey() == null) {
+                            sb.append(next.getValue().get(i));
+                            sb.append("\r\n");
+                        } else {
+                            sb.append(next.getKey());
+                            sb.append(": ");
+                            sb.append(next.getValue().get(i));
+                            sb.append("\r\n");
+                        }
+                    }
+                }
+                sb.append("------------------------------------------------\r\n");
+            } else {
+                sb.append("-------------not connected yet------------------");
             }
         } catch (final IOException nothing) {
-            sb.append("----no InputStream available----");
-        }
-        sb.append(this.httpHeader).append("\r\n");
-        for (final Entry<String, List<String>> next : this.getHeaderFields().entrySet()) {
-            // Achtung cookie reihenfolge ist wichtig!!!
-            for (int i = next.getValue().size() - 1; i >= 0; i--) {
-                if (next.getKey() == null) {
-                    sb.append(next.getValue().get(i));
-                    sb.append("\r\n");
-                } else {
-                    sb.append(next.getKey());
-                    sb.append(": ");
-                    sb.append(next.getValue().get(i));
-                    sb.append("\r\n");
-                }
-            }
+            sb.append("----------no InputStream available--------------");
         }
         sb.append("\r\n");
         return sb.toString();
