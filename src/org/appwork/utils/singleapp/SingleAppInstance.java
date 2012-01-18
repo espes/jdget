@@ -72,6 +72,7 @@ public class SingleAppInstance {
 
     public SingleAppInstance(final String appID, final File directory) {
         this.appID = appID;
+        directory.mkdirs();
         lockFile = new File(directory, appID + ".lock");
         portFile = new File(directory, appID + ".port");
         ShutdownController.getInstance().addShutdownEvent(new ShutdownRunableEvent(new ShutdownHook(this)));

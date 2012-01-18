@@ -11,6 +11,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -126,20 +127,14 @@ public abstract class BasicGui {
         });
         this.frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         // set appicon
-        final ArrayList<Image> list = new ArrayList<Image>();
-
-        try {
-            list.add(ImageProvider.getBufferedImage("appicon", true, false));
-        } catch (final Throwable e) {
-            Log.exception(e);
-        }
+   
         try {
             this.lockPanel = LockPanel.create(this.frame);
         } catch (final AWTException e1) {
 
             org.appwork.utils.logging.Log.exception(e1);
         }
-        this.frame.setIconImages(list);
+        this.frame.setIconImages(getAppIconList());
         // Set Application dimensions and locations
 
         // set extended state
@@ -168,6 +163,17 @@ public abstract class BasicGui {
         this.frame.setVisible(true);
         Toolkit.getDefaultToolkit().getSystemEventQueue().push(new CopyCutPasteHandler());
 
+    }
+
+    /**
+     * @return
+     */
+    protected List<? extends Image> getAppIconList() {
+     final ArrayList<Image> list = new ArrayList<Image>();
+
+        
+   
+        return list;
     }
 
     public void dispose() {
