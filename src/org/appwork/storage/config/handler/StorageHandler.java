@@ -94,10 +94,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             throw new InterfaceParseException(e);
         }
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
-            @Override
-            public void run() {
-                StorageHandler.this.primitiveStorage.save();
-            }
 
             @Override
             public int getHookPriority() {
@@ -105,14 +101,198 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
 
             @Override
+            public void run() {
+                StorageHandler.this.primitiveStorage.save();
+            }
+
+            @Override
             public String toString() {
                 return "Save " + StorageHandler.this.path + "[" + configInterface.getName() + "]";
             }
         });
+
+    }
+
+    /**
+     * @param key2
+     * @param genericReturnType
+     * @return
+     */
+    private KeyHandler<?> createKeyHandler(final String key, final Type type) {
+        if (Clazz.isBoolean(type)) {
+            return new BooleanKeyHandler(this, key);
+        } else if (Clazz.isByte(type)) {
+            return new ByteKeyHandler(this, key);
+        } else if (Clazz.isDouble(type)) {
+            return new DoubleKeyHandler(this, key);
+        } else if (Clazz.isFloat(type)) {
+            return new FloatKeyHandler(this, key);
+
+        } else if (Clazz.isInteger(type)) {
+            return new IntegerKeyHandler(this, key);
+        } else if (type instanceof Class && ((Class<?>) type).isEnum()) {
+            return new EnumKeyHandler(this, key);
+        } else if (type == String.class) {
+            return new StringKeyHandler(this, key);
+        } else if (Clazz.isLong(type)) {
+            return new LongKeyHandler(this, key);
+
+        } else if (type instanceof Class && ((Class<?>) type).isArray()) {
+
+            final Class<?> ct = ((Class<?>) type).getComponentType();
+            final boolean p = ct.isPrimitive();
+            if (Clazz.isBoolean(ct)) {
+
+                if (p) {
+                    return new ListHandler<boolean[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultBooleanArrayValue.class;
+                        }
+
+                    };
+                } else {
+                    return new ListHandler<Boolean[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultBooleanArrayValue.class;
+                        }
+
+                    };
+                }
+
+            } else if (Clazz.isLong(ct)) {
+                if (p) {
+                    return new ListHandler<long[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultLongArrayValue.class;
+                        }
+
+                    };
+                } else {
+                    return new ListHandler<Long[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultLongArrayValue.class;
+                        }
+
+                    };
+                }
+
+            } else if (Clazz.isInteger(ct)) {
+                if (p) {
+                    return new ListHandler<int[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultIntArrayValue.class;
+                        }
+
+                    };
+                } else {
+                    return new ListHandler<Integer[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultIntArrayValue.class;
+                        }
+
+                    };
+                }
+            } else if (Clazz.isByte(ct)) {
+                if (p) {
+                    return new ListHandler<byte[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultByteArrayValue.class;
+                        }
+
+                    };
+                } else {
+                    return new ListHandler<Byte[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultByteArrayValue.class;
+                        }
+
+                    };
+                }
+            } else if (Clazz.isFloat(ct)) {
+
+                if (p) {
+                    return new ListHandler<float[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultFloatArrayValue.class;
+                        }
+
+                    };
+                } else {
+                    return new ListHandler<Float[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultFloatArrayValue.class;
+                        }
+
+                    };
+                }
+            } else if (ct == String.class) {
+                return new StringListHandler(this, key, type);
+            } else if (ct.isEnum()) {
+                return new EnumListHandler(this, key, type);
+
+            } else if (Clazz.isDouble(ct)) {
+                if (p) {
+                    return new ListHandler<double[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultDoubleArrayValue.class;
+                        }
+
+                    };
+                } else {
+                    return new ListHandler<Double[]>(this, key, type) {
+                        @Override
+                        protected Class<? extends Annotation> getDefaultAnnotation() {
+
+                            return DefaultDoubleArrayValue.class;
+                        }
+
+                    };
+                }
+            } else {
+
+                return new ObjectKeyHandler(this, key, type);
+            }
+        } else {
+
+            return new ObjectKeyHandler(this, key, type);
+        }
+    }
+
+    protected void fireEvent(final ConfigEvent.Types type, final KeyHandler<?> keyHandler, final Object parameter) {
+        this.eventSender.fireEvent(new ConfigEvent(type, keyHandler, parameter));
     }
 
     public Class<T> getConfigInterface() {
         return this.configInterface;
+    }
+
+    /**
+     * @return
+     */
+    protected byte[] getCryptKey() {
+        return this.key;
     }
 
     public ConfigEventSender<Object> getEventSender() {
@@ -121,6 +301,28 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     public byte[] getKey() {
         return this.key;
+    }
+
+    /**
+     * @param key2
+     */
+    @SuppressWarnings("unchecked")
+    public KeyHandler<Object> getKeyHandler(final String key) {
+        return this.getKeyHandler(key, KeyHandler.class);
+
+    }
+
+    /**
+     * @param <RawClass>
+     * @param string
+     * @param class1
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <E extends KeyHandler<?>> E getKeyHandler(final String key, final Class<E> class1) {
+        final KeyHandler<?> ret = this.keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
+        if (ret == null) { throw new NullPointerException("No KeyHandler: " + key + " in " + this.configInterface); }
+        return (E) ret;
     }
 
     // /**
@@ -209,9 +411,21 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.primitiveStorage.get(key, def);
     }
 
+    /**
+     * @throws NullPointerException
+     *             if there is no keyhandler for key
+     * @param string
+     * @return
+     */
+
+    public Object getValue(final String key) {
+
+        return this.getKeyHandler(key).getValue();
+    }
+
     @SuppressWarnings("unchecked")
     public Object invoke(final Object instance, final Method m, final Object[] parameter) throws Throwable {
-        long t = PROFILER_MAP == null ? 0 : System.nanoTime();
+        final long t = StorageHandler.PROFILER_MAP == null ? 0 : System.nanoTime();
 
         try {
 
@@ -247,17 +461,19 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 throw new WTFException(m + " ??? no keyhandler. This is not possible!");
             }
         } finally {
-            if (PROFILER_MAP != null && m != null) {
-                long dur = System.nanoTime() - t;
-                String id = m.toString();
-                Long g = PROFILER_MAP.get(id);
-                if (g == null) g = 0l;
-                PROFILER_MAP.put(id, g + dur);
+            if (StorageHandler.PROFILER_MAP != null && m != null) {
+                final long dur = System.nanoTime() - t;
+                final String id = m.toString();
+                Long g = StorageHandler.PROFILER_MAP.get(id);
+                if (g == null) {
+                    g = 0l;
+                }
+                StorageHandler.PROFILER_MAP.put(id, g + dur);
             }
-            if (PROFILER_CALLNUM_MAP != null && m != null) {
-                String id = m.toString();
-                Long g = PROFILER_CALLNUM_MAP.get(id);
-                PROFILER_CALLNUM_MAP.put(id, g == null ? 1 : g + 1);
+            if (StorageHandler.PROFILER_CALLNUM_MAP != null && m != null) {
+                final String id = m.toString();
+                final Long g = StorageHandler.PROFILER_CALLNUM_MAP.get(id);
+                StorageHandler.PROFILER_CALLNUM_MAP.put(id, g == null ? 1 : g + 1);
             }
 
         }
@@ -308,7 +524,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     }
                     KeyHandler<?> kh = parseMap.get(key);
                     if (kh == null) {
-                        kh = createKeyHandler(key, m.getGenericReturnType());
+                        kh = this.createKeyHandler(key, m.getGenericReturnType());
                         parseMap.put(key, kh);
                     }
                     // JSonStorage.canStorePrimitive(m.getReturnType())
@@ -316,7 +532,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     kh.setGetter(h);
 
                     this.methodMap.put(m, kh);
-                    keyHandlerMap.put(key, kh);
+                    this.keyHandlerMap.put(key, kh);
 
                 } else if (m.getName().startsWith("is")) {
                     key = m.getName().substring(2).toLowerCase(Locale.ENGLISH);
@@ -335,12 +551,12 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
                     KeyHandler<?> kh = parseMap.get(key);
                     if (kh == null) {
-                        kh = createKeyHandler(key, m.getGenericReturnType());
+                        kh = this.createKeyHandler(key, m.getGenericReturnType());
                         parseMap.put(key, kh);
                     }
                     final MethodHandler h = new MethodHandler(this, MethodHandler.Type.GETTER, key, m);
                     kh.setGetter(h);
-                    keyHandlerMap.put(key, kh);
+                    this.keyHandlerMap.put(key, kh);
                     this.methodMap.put(m, kh);
                 } else if (m.getName().startsWith("set")) {
                     key = m.getName().substring(3).toLowerCase(Locale.ENGLISH);
@@ -365,12 +581,12 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
                     KeyHandler<?> kh = parseMap.get(key);
                     if (kh == null) {
-                        kh = createKeyHandler(key, m.getGenericParameterTypes()[0]);
+                        kh = this.createKeyHandler(key, m.getGenericParameterTypes()[0]);
                         parseMap.put(key, kh);
                     }
                     final MethodHandler h = new MethodHandler(this, MethodHandler.Type.SETTER, key, m);
                     kh.setSetter(h);
-                    keyHandlerMap.put(key, kh);
+                    this.keyHandlerMap.put(key, kh);
                     this.methodMap.put(m, kh);
 
                 } else {
@@ -387,161 +603,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
         for (final KeyHandler<?> kh : this.methodMap.values()) {
             kh.init();
-        }
-    }
-
-    /**
-     * @param key2
-     * @param genericReturnType
-     * @return
-     */
-    private KeyHandler<?> createKeyHandler(String key, Type type) {
-        if (Clazz.isBoolean(type)) {
-            return new BooleanKeyHandler(this, key);
-        } else if (Clazz.isByte(type)) {
-            return new ByteKeyHandler(this, key);
-        } else if (Clazz.isDouble(type)) {
-            return new DoubleKeyHandler(this, key);
-        } else if (Clazz.isFloat(type)) {
-            return new FloatKeyHandler(this, key);
-
-        } else if (Clazz.isInteger(type)) {
-            return new IntegerKeyHandler(this, key);
-        } else if (type instanceof Class && ((Class<?>) type).isEnum()) {
-            return new EnumKeyHandler(this, key);
-        } else if (type == String.class) {
-            return new StringKeyHandler(this, key);
-        } else if (Clazz.isLong(type)) {
-            return new LongKeyHandler(this, key);
-
-        } else if (type instanceof Class && ((Class<?>) type).isArray()) {
-
-            final Class<?> ct = ((Class<?>) type).getComponentType();
-            boolean p = ct.isPrimitive();
-            if (Clazz.isBoolean(ct)) {
-
-                if (p) {
-                    return new ListHandler<boolean[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultBooleanArrayValue.class;
-                        }
-
-                    };
-                } else {
-                    return new ListHandler<Boolean[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultBooleanArrayValue.class;
-                        }
-
-                    };
-                }
-
-            } else if (Clazz.isLong(ct)) {
-                if (p) {
-                    return new ListHandler<long[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultLongArrayValue.class;
-                        }
-
-                    };
-                } else {
-                    return new ListHandler<Long[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultLongArrayValue.class;
-                        }
-
-                    };
-                }
-
-            } else if (Clazz.isInteger(ct)) {
-                if (p) {
-                    return new ListHandler<int[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultIntArrayValue.class;
-                        }
-
-                    };
-                } else {
-                    return new ListHandler<Integer[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultIntArrayValue.class;
-                        }
-
-                    };
-                }
-            } else if (Clazz.isByte(ct)) {
-                if (p) {
-                    return new ListHandler<byte[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultByteArrayValue.class;
-                        }
-
-                    };
-                } else {
-                    return new ListHandler<Byte[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultByteArrayValue.class;
-                        }
-
-                    };
-                }
-            } else if (Clazz.isFloat(ct)) {
-
-                if (p) {
-                    return new ListHandler<float[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultFloatArrayValue.class;
-                        }
-
-                    };
-                } else {
-                    return new ListHandler<Float[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultFloatArrayValue.class;
-                        }
-
-                    };
-                }
-            } else if (ct == String.class) {
-                return new StringListHandler(this, key, type);
-            } else if (ct.isEnum()) {
-                return new EnumListHandler(this, key, type);
-
-            } else if (Clazz.isDouble(ct)) {
-                if (p) {
-                    return new ListHandler<double[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultDoubleArrayValue.class;
-                        }
-
-                    };
-                } else {
-                    return new ListHandler<Double[]>(this, key, type) {
-                        protected Class<? extends Annotation> getDefaultAnnotation() {
-
-                            return DefaultDoubleArrayValue.class;
-                        }
-
-                    };
-                }
-            } else {
-
-                return new ObjectKeyHandler(this, key, type);
-            }
-        } else {
-
-            return new ObjectKeyHandler(this, key, type);
         }
     }
 
@@ -578,6 +639,13 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         this.primitiveStorage.put(key2, object);
 
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
+     * java.lang.reflect.Method, java.lang.Object[])
+     */
 
     /**
      * @param key2
@@ -628,58 +696,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
         }
         return JSonStorage.toString(ret);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
-     * java.lang.reflect.Method, java.lang.Object[])
-     */
-
-    /**
-     * @param key2
-     */
-    @SuppressWarnings("unchecked")
-    public KeyHandler<Object> getKeyHandler(String key) {
-        return getKeyHandler(key, KeyHandler.class);
-
-    }
-
-    protected void fireEvent(ConfigEvent.Types type, KeyHandler<?> keyHandler, Object parameter) {
-        eventSender.fireEvent(new ConfigEvent(type, keyHandler, parameter));
-    }
-
-    /**
-     * @throws NullPointerException
-     *             if there is no keyhandler for key
-     * @param string
-     * @return
-     */
-
-    public Object getValue(String key) {
-
-        return getKeyHandler(key).getValue();
-    }
-
-    /**
-     * @param <RawClass>
-     * @param string
-     * @param class1
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <E extends KeyHandler<?>> E getKeyHandler(String key, Class<E> class1) {
-        KeyHandler<?> ret = keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
-        if (ret == null) throw new NullPointerException("No KeyHandler: " + key + " in " + configInterface);
-        return (E) ret;
-    }
-
-    /**
-     * @return
-     */
-    protected byte[] getCryptKey() {
-        return key;
     }
 
     /**

@@ -17,6 +17,7 @@ public class JsonKeyValueStorage extends Storage {
     private final byte[]                  key;
     private boolean                       autoPutValues = true;
     private boolean                       closed        = false;
+    private boolean                       changed       = false;
 
     public JsonKeyValueStorage(final File file) throws StorageException {
         this(file, false);
@@ -155,7 +156,7 @@ public class JsonKeyValueStorage extends Storage {
             try {
                 ret = Enum.valueOf(((Enum<?>) def).getDeclaringClass(), (String) ret);
             } catch (final Throwable e) {
-                map.remove(key);
+                this.map.remove(key);
                 Log.exception(e);
                 if (this.autoPutValues) {
                     this.put(key, (Enum<?>) def);
@@ -217,6 +218,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final boolean old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Boolean>(this, key, old, value));
         } else {
@@ -229,6 +231,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final Boolean old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Boolean>(this, key, old, value));
         } else {
@@ -241,6 +244,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final Byte old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Byte>(this, key, old, value));
         } else {
@@ -253,6 +257,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final Double old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Double>(this, key, old, value));
         } else {
@@ -265,6 +270,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final Enum<?> old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Enum<?>>(this, key, old, value));
         } else {
@@ -277,6 +283,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final Float old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Float>(this, key, old, value));
         } else {
@@ -288,6 +295,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final Integer old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Integer>(this, key, old, value));
         } else {
@@ -300,6 +308,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final Integer old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Integer>(this, key, old, value));
         } else {
@@ -311,6 +320,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final Long old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Long>(this, key, old, value));
         } else {
@@ -323,6 +333,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final Long old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Long>(this, key, old, value));
         } else {
@@ -335,6 +346,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean contains = this.map.containsKey(key);
         final String old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
+        this.changed = true;
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<String>(this, key, old, value));
         } else {
@@ -346,6 +358,7 @@ public class JsonKeyValueStorage extends Storage {
     public Object remove(final String key) {
         Object ret;
         if ((ret = this.map.remove(key)) != null) {
+            this.changed = true;
             this.getEventSender().fireEvent(new StorageKeyRemovedEvent<Object>(this, key, ret));
         }
         return ret;
@@ -354,15 +367,13 @@ public class JsonKeyValueStorage extends Storage {
     @Override
     public void save() throws StorageException {
         if (this.closed) { throw new StorageException("StorageChest already closed!"); }
+        if (this.changed == false) { return; }
         synchronized (JSonStorage.LOCK) {
-
-            String json = null;
-
             /*
              * writer are not threadsafe,
              * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
              */
-            json = JSonStorage.getMapper().objectToString(this.map);
+            final String json = JSonStorage.getMapper().objectToString(this.map);
             JSonStorage.saveTo(this.file, this.plain, this.key, json);
 
         }
@@ -379,6 +390,7 @@ public class JsonKeyValueStorage extends Storage {
     @Override
     public String toString() {
         try {
+            /* this is not ThreadSafe!! */
             return JSonStorage.getMapper().objectToString(this.map);
         } catch (final Throwable e) {
             return this.map.toString();
