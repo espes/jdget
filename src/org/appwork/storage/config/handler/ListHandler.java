@@ -11,13 +11,12 @@ package org.appwork.storage.config.handler;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.storage.config.MinTimeWeakReference;
+import org.appwork.storage.config.annotations.DefaultFactory;
 import org.appwork.storage.config.annotations.DefaultJsonObject;
 import org.appwork.utils.logging.Log;
 
@@ -28,35 +27,20 @@ import org.appwork.utils.logging.Log;
 public abstract class ListHandler<T> extends KeyHandler<T> {
     public static final int         MIN_LIFETIME = 10000;
     private MinTimeWeakReference<T> cache;
-    private TypeRef<Object>         typeRef;
-  
+    private final TypeRef<Object>   typeRef;
+
+    private File                    path;
 
     /**
      * @param storageHandler
      * @param key
      */
-    public ListHandler(StorageHandler<?> storageHandler, String key, Type type) {
+    public ListHandler(final StorageHandler<?> storageHandler, final String key, final Type type) {
         super(storageHandler, key);
-        typeRef = new TypeRef<Object>(type) {
+        this.typeRef = new TypeRef<Object>(type) {
         };
-       
 
     }
-    
-    @Override
-    protected void initHandler() throws Throwable {
-        this.path = new File(this.storageHandler.getPath() + "." + getKey() + "." + (this.isCrypted() ? "ejs" : "json"));
-    }
-
-
-  
-    @Override
-    protected void putValue(T object) {
-        this.write(object);
-        this.cache = new MinTimeWeakReference<T>(object, MIN_LIFETIME, "Storage " + this.getKey());
-    }
-
-  
 
     @Override
     public T getValue() {
@@ -64,24 +48,33 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
         if (ret == null) {
             try {
                 ret = (T) this.read();
-            } catch (InstantiationException e) {
+            } catch (final InstantiationException e) {
                 Log.exception(e);
-            } catch (IllegalAccessException e) {
+            } catch (final IllegalAccessException e) {
                 Log.exception(e);
             }
 
-            this.cache = new MinTimeWeakReference<T>(ret, MIN_LIFETIME, "Storage " + this.getKey());
+            this.cache = new MinTimeWeakReference<T>(ret, ListHandler.MIN_LIFETIME, "Storage " + this.getKey());
 
         }
         return ret;
     }
 
-    private File path;
-    protected boolean initDefaults() throws Throwable {
-      //objects init thier defaults only if required
-
-        return false;
+    @Override
+    protected void initDefaults() throws Throwable {
     }
+
+    @Override
+    protected void initHandler() throws Throwable {
+        this.path = new File(this.storageHandler.getPath() + "." + this.getKey() + "." + (this.isCrypted() ? "ejs" : "json"));
+    }
+
+    @Override
+    protected void putValue(final T object) {
+        this.write(object);
+        this.cache = new MinTimeWeakReference<T>(object, ListHandler.MIN_LIFETIME, "Storage " + this.getKey());
+    }
+
     /**
      * @return
      * @throws IllegalAccessException
@@ -93,29 +86,28 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
             Log.L.finer("Read Config: " + this.path.getAbsolutePath());
 
             final Object dummy = new Object();
-            Object ret = JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, typeRef, dummy);
+            final Object ret = JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, this.typeRef, dummy);
 
             if (ret == dummy) {
-                if (defaultValue != null) return defaultValue;
+                if (this.defaultValue != null) { return this.defaultValue; }
                 Annotation ann;
+                final DefaultJsonObject defaultJson = this.getAnnotation(DefaultJsonObject.class);
+                final DefaultFactory df = this.getAnnotation(DefaultFactory.class);
                 if (defaultJson != null) {
-                    defaultValue = (T) JSonStorage.restoreFromString(defaultJson, typeRef, null);
-                    defaultJson=null;
-                    return defaultValue;
-                } else if (defaultFactoryClass != null) {
-
-                    defaultValue = (T) defaultFactoryClass.newInstance().getDefaultValue();
-                    defaultFactoryClass=null;
-                    return defaultValue;
-                } else if(  (ann = getAnnotation(getDefaultAnnotation()))!=null){
+                    this.defaultValue = (T) JSonStorage.restoreFromString(defaultJson.value(), this.typeRef, null);
+                    return this.defaultValue;
+                } else if (df != null) {
+                    this.defaultValue = (T) df.value().newInstance().getDefaultValue();
+                    return this.defaultValue;
+                } else if ((ann = this.getAnnotation(this.getDefaultAnnotation())) != null) {
                     try {
-                        defaultValue = (T) ann.annotationType().getMethod("value", new Class[] {}).invoke(ann, new Object[] {});
-                    
-                    } catch (Throwable e) {
+                        this.defaultValue = (T) ann.annotationType().getMethod("value", new Class[] {}).invoke(ann, new Object[] {});
+
+                    } catch (final Throwable e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-                    return defaultValue;
+                    return this.defaultValue;
                 } else {
                     return null;
                 }
@@ -126,20 +118,10 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
 
         } finally {
             if (!this.path.exists()) {
-                this.write(defaultValue);
+                this.write(this.defaultValue);
             }
 
         }
-    }
-
-  
-    /**
-     * @param object
-     */
-    protected void write(final T object) {
-
-        JSonStorage.saveTo(this.path, !this.crypted, this.cryptKey, JSonStorage.serializeToJson(object));
-
     }
 
     /*
@@ -149,8 +131,17 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
      * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
      */
     @Override
-    protected void validateValue(T object) throws Throwable {
+    protected void validateValue(final T object) throws Throwable {
         // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param object
+     */
+    protected void write(final T object) {
+
+        JSonStorage.saveTo(this.path, !this.crypted, this.cryptKey, JSonStorage.serializeToJson(object));
 
     }
 

@@ -11,39 +11,37 @@ package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 
-import org.appwork.storage.config.annotations.DefaultBooleanValue;
 import org.appwork.storage.config.annotations.DefaultEnumArrayValue;
-import org.appwork.storage.config.annotations.DefaultStringArrayValue;
 
 /**
  * @author Thomas
- *
+ * 
  */
 public class EnumListHandler extends ListHandler<Enum<?>[]> {
-
-
 
     /**
      * @param storageHandler
      * @param key
      * @param type
      */
-    public EnumListHandler(StorageHandler<?> storageHandler, String key, Type type) {
+    public EnumListHandler(final StorageHandler<?> storageHandler, final String key, final Type type) {
         super(storageHandler, key, type);
         // TODO Auto-generated constructor stub
     }
 
-
-
-    
     @Override
-    protected boolean initDefaults() throws Throwable {
+    protected Class<? extends Annotation> getDefaultAnnotation() {
+
+        return DefaultEnumArrayValue.class;
+    }
+
+    @Override
+    protected void initDefaults() throws Throwable {
         final DefaultEnumArrayValue ann = this.getAnnotation(DefaultEnumArrayValue.class);
-         
+
         if (ann != null) {
-        
+
             // chek if this is really the best way to convert string
             // to
             // enum
@@ -55,28 +53,19 @@ public class EnumListHandler extends ListHandler<Enum<?>[]> {
 
                 ret[i] = Enum.valueOf((Class<Enum>) Class.forName(clazz), name);
             }
-        defaultValue=ret;
-        return true;
-
+            this.defaultValue = ret;
         }
-        defaultValue=  null;
-        return false;
+        this.defaultValue = null;
     }
 
-
-
-
-    @Override
-    protected Class<? extends Annotation> getDefaultAnnotation() {
-
-        return DefaultEnumArrayValue.class;
-    }
-
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
      */
     @Override
-    protected void validateValue(Enum<?>[] object) throws Throwable {
+    protected void validateValue(final Enum<?>[] object) throws Throwable {
         // TODO Auto-generated method stub
 
     }

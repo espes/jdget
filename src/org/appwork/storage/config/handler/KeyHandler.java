@@ -29,7 +29,6 @@ import org.appwork.storage.config.annotations.Description;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.RequiresRestart;
 import org.appwork.storage.config.annotations.ValidatorFactory;
-import org.appwork.storage.config.defaults.AbstractDefaultFactory;
 import org.appwork.storage.config.events.ConfigEvent;
 import org.appwork.storage.config.events.ConfigEvent.Types;
 import org.appwork.storage.config.events.ConfigEventSender;
@@ -41,23 +40,22 @@ import org.appwork.utils.reflection.Clazz;
  */
 public abstract class KeyHandler<RawClass> {
 
-    private static final String                          ANNOTATION_PACKAGE_NAME = CryptedStorage.class.getPackage().getName();
-    private static final String                          PACKAGE_NAME            = PlainStorage.class.getPackage().getName();
-    private final String                                 key;
-    private MethodHandler                                getter;
-    protected String                                     defaultJson;
-    protected Class<? extends AbstractDefaultFactory<?>> defaultFactoryClass;
-    protected MethodHandler                              setter;
-    protected final StorageHandler<?>                    storageHandler;
-    private boolean                                      primitive;
-    protected RawClass                                   defaultValue;
+    private static final String         ANNOTATION_PACKAGE_NAME = CryptedStorage.class.getPackage().getName();
+    private static final String         PACKAGE_NAME            = PlainStorage.class.getPackage().getName();
+    private final String                key;
+    private MethodHandler               getter;
 
-    protected boolean                                    crypted;
+    protected MethodHandler             setter;
+    protected final StorageHandler<?>   storageHandler;
+    private boolean                     primitive;
+    protected RawClass                  defaultValue;
 
-    protected byte[]                                     cryptKey;
-    protected JsonKeyValueStorage                        primitiveStorage;
-    private ConfigEventSender<RawClass>                  eventSender;
-    private AbstractValidator<RawClass>                  validatorFactory;
+    protected boolean                   crypted;
+
+    protected byte[]                    cryptKey;
+    protected JsonKeyValueStorage       primitiveStorage;
+    private ConfigEventSender<RawClass> eventSender;
+    private AbstractValidator<RawClass> validatorFactory;
 
     /**
      * @param storageHandler
@@ -182,8 +180,20 @@ public abstract class KeyHandler<RawClass> {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public RawClass getDefaultValue() {
-        return this.defaultValue;
+        try {
+            final DefaultFactory df = this.getAnnotation(DefaultFactory.class);
+            if (df != null) { return (RawClass) df.value().newInstance().getDefaultValue(); }
+            final DefaultJsonObject defaultJson = this.getAnnotation(DefaultJsonObject.class);
+            if (defaultJson != null) { return (RawClass) JSonStorage.restoreFromString(defaultJson.value(), new TypeRef<Object>(this.getRawClass()) {
+            }, null); }
+            final Annotation ann = this.getAnnotation(this.getDefaultAnnotation());
+            if (ann != null) { return (RawClass) ann.annotationType().getMethod("value", new Class[] {}).invoke(ann, new Object[] {}); }
+            return this.defaultValue;
+        } catch (final Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -226,7 +236,6 @@ public abstract class KeyHandler<RawClass> {
     /**
      * @return
      */
-    @SuppressWarnings("unchecked")
     public abstract RawClass getValue();
 
     /**
@@ -263,58 +272,17 @@ public abstract class KeyHandler<RawClass> {
 
         }
 
-        final DefaultFactory dv = this.getAnnotation(DefaultFactory.class);
-        if (dv != null) {
-            this.defaultFactoryClass = dv.value();
-        }
-
-        // if rawtypoe is an storable, we can have defaultvalues in
-        // json7String from
-        final DefaultJsonObject ann = this.getAnnotation(DefaultJsonObject.class);
-        if (ann != null) {
-            if (this.defaultFactoryClass != null) { throw new InterfaceParseException("Cannot use " + DefaultJsonObject.class.getName() + " and " + DefaultFactory.class.getName() + " for " + this); }
-            this.defaultJson = ann.value();
-            // this.defaultValue = JSonStorage.restoreFromString(v, typeRef,
-            // null);
-        }
         try {
             this.validatorFactory = (AbstractValidator<RawClass>) this.getAnnotation(ValidatorFactory.class).value().newInstance();
         } catch (final NullPointerException e) {
         }
         this.checkBadAnnotations(this.getAllowedAnnotations());
         this.initDefaults();
-
         this.initHandler();
-
     }
 
-    /**
-     * @return
-     * 
-     */
-    @SuppressWarnings("unchecked")
-    protected boolean initDefaults() throws Throwable {
-        boolean ret = false;
-        if (this.defaultFactoryClass != null) {
-
-            this.defaultValue = (RawClass) this.defaultFactoryClass.newInstance().getDefaultValue();
-            ret = true;
-        }
-        if (this.defaultJson != null) {
-            this.defaultValue = (RawClass) JSonStorage.restoreFromString(this.defaultJson, new TypeRef<Object>(this.getRawClass()) {
-            }, null);
-            ret = true;
-
-        }
-
-        final Annotation ann = this.getAnnotation(this.getDefaultAnnotation());
-        if (ann != null) {
-
-            this.defaultValue = (RawClass) ann.annotationType().getMethod("value", new Class[] {}).invoke(ann, new Object[] {});
-            ret = true;
-        }
-
-        return ret;
+    protected void initDefaults() throws Throwable {
+        this.defaultValue = null;
     }
 
     /**

@@ -13,7 +13,6 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 
 import org.appwork.storage.config.ValidationException;
-import org.appwork.storage.config.annotations.DefaultByteValue;
 import org.appwork.storage.config.annotations.DefaultIntValue;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 
@@ -25,77 +24,32 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
 
     private SpinnerValidator validator;
 
+    private int              min;
+
+    private int              max;
+
     /**
      * @param storageHandler
      * @param key
      */
-    public IntegerKeyHandler(StorageHandler<?> storageHandler, String key) {
+    public IntegerKeyHandler(final StorageHandler<?> storageHandler, final String key) {
         super(storageHandler, key);
         // TODO Auto-generated constructor stub
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
-     */
+    @SuppressWarnings("unchecked")
     @Override
-    protected void putValue(Integer object) {
-        this.storageHandler.putPrimitive(getKey(), object);
+    protected Class<? extends Annotation>[] getAllowedAnnotations() {
+        final ArrayList<Class<? extends Annotation>> list = new ArrayList<Class<? extends Annotation>>();
 
+        list.add(SpinnerValidator.class);
+        return (Class<? extends Annotation>[]) list.toArray(new Class<?>[] {});
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.KeyHandler#initHandler()
-     */
-    @Override
-    protected void initHandler() {
-     
-        validator = getAnnotation(SpinnerValidator.class);
-        if (validator != null) {
-            min = (int) validator.min();
-            max = (int) validator.max();
-
-        }
-    }
-
-    private int min;
-    private int max;
-    @Override
-    protected boolean initDefaults() throws Throwable {
-        defaultValue=0;
-       return super.initDefaults();
-    }
-    
-    
     @Override
     protected Class<? extends Annotation> getDefaultAnnotation() {
 
         return DefaultIntValue.class;
-    }
-    @SuppressWarnings("unchecked")
-    @Override
-    protected Class<? extends Annotation>[] getAllowedAnnotations() {
-        ArrayList<Class<? extends Annotation>> list = new ArrayList<Class<? extends Annotation>>();
-    
-        list.add(SpinnerValidator.class);
-        return (Class<? extends Annotation>[]) list.toArray(new Class<?>[] {}); }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
-     */
-    @Override
-    protected void validateValue(Integer object) throws Throwable {
-        if (validator != null) {
-            int v = object.intValue();
-            if (v < min || v > max) throw new ValidationException();
-        }
-
     }
 
     /*
@@ -105,7 +59,54 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
      */
     @Override
     public Integer getValue() {
-        return primitiveStorage.get(getKey(), defaultValue);
+        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
+    }
+
+    @Override
+    protected void initDefaults() throws Throwable {
+        this.defaultValue = 0;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.config.KeyHandler#initHandler()
+     */
+    @Override
+    protected void initHandler() {
+
+        this.validator = this.getAnnotation(SpinnerValidator.class);
+        if (this.validator != null) {
+            this.min = (int) this.validator.min();
+            this.max = (int) this.validator.max();
+
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
+     */
+    @Override
+    protected void putValue(final Integer object) {
+        this.storageHandler.putPrimitive(this.getKey(), object);
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
+     */
+    @Override
+    protected void validateValue(final Integer object) throws Throwable {
+        if (this.validator != null) {
+            final int v = object.intValue();
+            if (v < this.min || v > this.max) { throw new ValidationException(); }
+        }
+
     }
 
 }

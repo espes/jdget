@@ -348,9 +348,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         // only evaluate defaults of required
         if (this.primitiveStorage.hasProperty(keyHandler.getKey())) {
             if (Clazz.isBoolean(keyHandler.getRawClass())) {
-
                 return this.getPrimitive(keyHandler.getKey(), false);
-
             } else if (Clazz.isLong(keyHandler.getRawClass())) {
                 return this.getPrimitive(keyHandler.getKey(), 0l);
             } else if (Clazz.isInteger(keyHandler.getRawClass())) {

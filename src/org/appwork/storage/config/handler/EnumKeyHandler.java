@@ -10,19 +10,16 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
-import org.appwork.storage.config.InterfaceParseException;
-import org.appwork.storage.config.annotations.DefaultBooleanValue;
-import org.appwork.storage.config.annotations.DefaultByteValue;
 import org.appwork.storage.config.annotations.DefaultEnumValue;
-import org.appwork.storage.config.annotations.SpinnerValidator;
+import org.appwork.storage.config.annotations.DefaultFactory;
+import org.appwork.storage.config.annotations.DefaultJsonObject;
 
 /**
  * @author Thomas
- *
+ * 
  */
 public class EnumKeyHandler extends KeyHandler<Enum> {
 
@@ -30,76 +27,75 @@ public class EnumKeyHandler extends KeyHandler<Enum> {
      * @param storageHandler
      * @param key
      */
-    public EnumKeyHandler(StorageHandler<?> storageHandler, String key) {
+    public EnumKeyHandler(final StorageHandler<?> storageHandler, final String key) {
         super(storageHandler, key);
         // TODO Auto-generated constructor stub
     }
 
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.KeyHandler#initHandler()
-     */
-    @Override
-    protected void initHandler() throws Throwable {
-      
-      
-   
-      
-    }
     @Override
     protected Class<? extends Annotation> getDefaultAnnotation() {
 
         return DefaultEnumValue.class;
-    } 
-    @Override
-    protected boolean initDefaults() throws Throwable {
-        
-        defaultValue=  getRawClass().getEnumConstants()[0];
-        boolean ret = false;
-        if (defaultFactoryClass != null) {
-
-            defaultValue = (Enum) defaultFactoryClass.newInstance().getDefaultValue();
-            ret = true;
-        }
-        if (defaultJson != null) {
-            defaultValue =  JSonStorage.restoreFromString(defaultJson, new TypeRef<Enum>(getRawClass()) {
-            }, null);
-            ret = true;
-
-        }
-
-        final DefaultEnumValue ann = this.getAnnotation(DefaultEnumValue.class);
-        if (ann != null) {
-            defaultValue = Enum.valueOf(  getRawClass(), ann.value());
-            ret = true;
-        }
-
-      
-       return ret;
-    }
- 
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
-     */
-    @Override
-    protected void validateValue(Enum object) throws Throwable {
-        // TODO Auto-generated method stub
-
     }
 
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
-     */
-    @Override
-    protected void putValue(Enum object) {
-        primitiveStorage.put(getKey(), object);
-    }
-
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.storage.config.handler.KeyHandler#getValue()
      */
     @Override
     public Enum getValue() {
-        return primitiveStorage.get(getKey(), defaultValue);
+        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
+    }
+
+    @Override
+    protected void initDefaults() throws Throwable {
+        this.defaultValue = this.getRawClass().getEnumConstants()[0];
+        final DefaultFactory df = this.getAnnotation(DefaultFactory.class);
+        if (df != null) {
+            this.defaultValue = (Enum) df.value().newInstance().getDefaultValue();
+        }
+        final DefaultJsonObject defaultJson = this.getAnnotation(DefaultJsonObject.class);
+        if (defaultJson != null) {
+            this.defaultValue = JSonStorage.restoreFromString(defaultJson.value(), new TypeRef<Enum>(this.getRawClass()) {
+            }, null);
+        }
+        final DefaultEnumValue ann = this.getAnnotation(DefaultEnumValue.class);
+        if (ann != null) {
+            this.defaultValue = Enum.valueOf(this.getRawClass(), ann.value());
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.config.KeyHandler#initHandler()
+     */
+    @Override
+    protected void initHandler() throws Throwable {
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
+     */
+    @Override
+    protected void putValue(final Enum object) {
+        this.primitiveStorage.put(this.getKey(), object);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
+     */
+    @Override
+    protected void validateValue(final Enum object) throws Throwable {
+        // TODO Auto-generated method stub
+
     }
 
 }

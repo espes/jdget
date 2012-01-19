@@ -45,9 +45,8 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
     }
 
     @Override
-    protected boolean initDefaults() throws Throwable {
+    protected void initDefaults() throws Throwable {
         this.defaultValue = false;
-        return super.initDefaults();
     }
 
     /*

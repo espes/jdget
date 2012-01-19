@@ -44,9 +44,8 @@ public class DoubleKeyHandler extends KeyHandler<Double> {
     }
 
     @Override
-    protected boolean initDefaults() throws Throwable {
+    protected void initDefaults() throws Throwable {
         this.defaultValue = 0d;
-        return super.initDefaults();
     }
 
     /*

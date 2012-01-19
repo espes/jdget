@@ -387,6 +387,16 @@ public class JsonKeyValueStorage extends Storage {
         this.autoPutValues = autoPutValues;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.Storage#size()
+     */
+    @Override
+    public int size() {
+        return this.map.size();
+    }
+
     @Override
     public String toString() {
         try {
