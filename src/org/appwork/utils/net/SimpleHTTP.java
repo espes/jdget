@@ -346,11 +346,13 @@ public class SimpleHTTP {
                 this.connection.setDoInput(true);
                 this.connection.setUseCaches(false);
                 this.connection.setDoOutput(true);
-                try {
-                    final String loc = Loc.getLocale().split("_")[0];
-                    this.connection.setRequestProperty("Accept-Language", loc);
-                } catch (final Throwable e) {
-                    Log.exception(Level.WARNING, e);
+                if (Loc.getLocale() != null) {
+                    try {
+                        final String loc = Loc.getLocale().split("_")[0];
+                        this.connection.setRequestProperty("Accept-Language", loc);
+                    } catch (final Throwable e) {
+                        Log.exception(Level.WARNING, e);
+                    }
                 }
                 this.connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
                 this.connection.setRequestProperty("Connection", "Close");
