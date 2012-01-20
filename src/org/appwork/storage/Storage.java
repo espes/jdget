@@ -4,10 +4,9 @@ import org.appwork.utils.event.DefaultEventSender;
 
 public abstract class Storage {
 
-    private final DefaultEventSender<StorageEvent<?>> eventSender;
+    private DefaultEventSender<StorageEvent<?>> eventSender;
 
     public Storage() {
-        this.eventSender = new DefaultEventSender<StorageEvent<?>>();
     }
 
     /**
@@ -25,10 +24,19 @@ public abstract class Storage {
      * @return the eventSender
      */
     public DefaultEventSender<StorageEvent<?>> getEventSender() {
+        if (this.eventSender != null) { return this.eventSender; }
+        synchronized (this) {
+            if (this.eventSender != null) { return this.eventSender; }
+            this.eventSender = new DefaultEventSender<StorageEvent<?>>();
+        }
         return this.eventSender;
     }
 
     abstract public String getID();
+
+    public boolean hasEventSender() {
+        return this.eventSender != null;
+    }
 
     /**
      * @param key

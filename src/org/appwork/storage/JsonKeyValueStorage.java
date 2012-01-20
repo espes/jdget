@@ -68,7 +68,9 @@ public class JsonKeyValueStorage extends Storage {
         for (final Iterator<Entry<String, Object>> it = this.map.entrySet().iterator(); it.hasNext();) {
             next = it.next();
             it.remove();
-            this.getEventSender().fireEvent(new StorageKeyRemovedEvent<Object>(this, next.getKey(), next.getValue()));
+            if (this.hasEventSender()) {
+                this.getEventSender().fireEvent(new StorageKeyRemovedEvent<Object>(this, next.getKey(), next.getValue()));
+            }
         }
         this.map.clear();
     }
@@ -181,6 +183,11 @@ public class JsonKeyValueStorage extends Storage {
         return this.file.getAbsolutePath();
     }
 
+    /* WARNING: you should know what you are doing! */
+    public HashMap<String, Object> getInternalStorageMap() {
+        return this.map;
+    }
+
     /**
      * @return the key
      */
@@ -219,6 +226,7 @@ public class JsonKeyValueStorage extends Storage {
         final boolean old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Boolean>(this, key, old, value));
         } else {
@@ -232,6 +240,7 @@ public class JsonKeyValueStorage extends Storage {
         final Boolean old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Boolean>(this, key, old, value));
         } else {
@@ -245,6 +254,7 @@ public class JsonKeyValueStorage extends Storage {
         final Byte old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Byte>(this, key, old, value));
         } else {
@@ -258,6 +268,7 @@ public class JsonKeyValueStorage extends Storage {
         final Double old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Double>(this, key, old, value));
         } else {
@@ -271,6 +282,7 @@ public class JsonKeyValueStorage extends Storage {
         final Enum<?> old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Enum<?>>(this, key, old, value));
         } else {
@@ -284,6 +296,7 @@ public class JsonKeyValueStorage extends Storage {
         final Float old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Float>(this, key, old, value));
         } else {
@@ -296,6 +309,7 @@ public class JsonKeyValueStorage extends Storage {
         final Integer old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Integer>(this, key, old, value));
         } else {
@@ -309,6 +323,7 @@ public class JsonKeyValueStorage extends Storage {
         final Integer old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Integer>(this, key, old, value));
         } else {
@@ -321,6 +336,7 @@ public class JsonKeyValueStorage extends Storage {
         final Long old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Long>(this, key, old, value));
         } else {
@@ -334,6 +350,7 @@ public class JsonKeyValueStorage extends Storage {
         final Long old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<Long>(this, key, old, value));
         } else {
@@ -347,6 +364,7 @@ public class JsonKeyValueStorage extends Storage {
         final String old = contains ? this.get(key, value) : null;
         this.map.put(key, value);
         this.changed = true;
+        if (!this.hasEventSender()) { return; }
         if (contains) {
             this.getEventSender().fireEvent(new StorageValueChangeEvent<String>(this, key, old, value));
         } else {
@@ -359,7 +377,9 @@ public class JsonKeyValueStorage extends Storage {
         Object ret;
         if ((ret = this.map.remove(key)) != null) {
             this.changed = true;
-            this.getEventSender().fireEvent(new StorageKeyRemovedEvent<Object>(this, key, ret));
+            if (this.hasEventSender()) {
+                this.getEventSender().fireEvent(new StorageKeyRemovedEvent<Object>(this, key, ret));
+            }
         }
         return ret;
     }
@@ -375,7 +395,6 @@ public class JsonKeyValueStorage extends Storage {
              */
             final String json = JSonStorage.getMapper().objectToString(this.map);
             JSonStorage.saveTo(this.file, this.plain, this.key, json);
-
         }
     }
 
