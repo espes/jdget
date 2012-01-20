@@ -370,14 +370,6 @@ public abstract class Request {
         return this.httpConnection == null ? -1 : this.httpConnection.getRequestTime();
     }
 
-    public boolean isContentDecoded() {
-        return this.httpConnection == null ? false : this.httpConnection.isContentDecoded();
-    }
-
-    public void setContentDecoded(boolean c) {
-        this.contentDecoded = c;
-    }
-
     /**
      * @return the byteArray
      */
@@ -448,6 +440,10 @@ public abstract class Request {
         this.headers.put("Connection", "close");
     }
 
+    public boolean isContentDecoded() {
+        return this.httpConnection == null ? this.contentDecoded : this.httpConnection.isContentDecoded();
+    }
+
     public boolean isRequested() {
         return this.requested;
     }
@@ -463,7 +459,7 @@ public abstract class Request {
         this.httpConnection.setRequest(this);
         this.httpConnection.setReadTimeout(this.readTimeout);
         this.httpConnection.setConnectTimeout(this.connectTimeout);
-        this.httpConnection.setContentDecoded(contentDecoded);
+        this.httpConnection.setContentDecoded(this.contentDecoded);
 
         if (this.headers != null) {
             final int headersSize = this.headers.size();
@@ -502,6 +498,10 @@ public abstract class Request {
         this.connectTimeout = connectTimeout;
     }
 
+    public void setContentDecoded(final boolean c) {
+        this.contentDecoded = c;
+    }
+
     public void setCookies(final Cookies cookies) {
         this.cookies = cookies;
     }
@@ -528,8 +528,10 @@ public abstract class Request {
 
     public void setReadTimeout(final int readTimeout) {
         this.readTimeout = readTimeout;
-        URLConnectionAdapter con = this.httpConnection;
-        if (con != null) con.setReadTimeout(readTimeout);
+        final URLConnectionAdapter con = this.httpConnection;
+        if (con != null) {
+            con.setReadTimeout(readTimeout);
+        }
     }
 
     // @Override
