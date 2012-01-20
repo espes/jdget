@@ -234,7 +234,7 @@ public abstract class KeyHandler<RawClass> {
     }
 
     public RawClass getValue() {
-        if (this.primitiveStorage.hasProperty(this.getKey())) { return this.primitiveStorage.get(this.getKey(), (RawClass) null); }
+        if (this.primitiveStorage.hasProperty(this.getKey())) { return this.primitiveStorage.get(this.getKey(), (RawClass) this.defaultValue); }
         return this.primitiveStorage.get(this.getKey(), this.getDefaultValue());
     }
 
