@@ -51,19 +51,9 @@ public class LongKeyHandler extends KeyHandler<Long> {
         return DefaultLongValue.class;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
-     */
-    @Override
-    public Long getValue() {
-        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
-    }
-
     @Override
     protected void initDefaults() throws Throwable {
-        this.defaultValue = 0l;
+        this.setDefaultValue(0l);
     }
 
     /*

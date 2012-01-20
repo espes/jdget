@@ -33,19 +33,9 @@ public class DoubleKeyHandler extends KeyHandler<Double> {
         return DefaultDoubleValue.class;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
-     */
-    @Override
-    public Double getValue() {
-        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
-    }
-
     @Override
     protected void initDefaults() throws Throwable {
-        this.defaultValue = 0d;
+        this.setDefaultValue(0d);
     }
 
     /*

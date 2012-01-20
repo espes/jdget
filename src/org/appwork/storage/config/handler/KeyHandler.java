@@ -48,7 +48,7 @@ public abstract class KeyHandler<RawClass> {
     protected MethodHandler             setter;
     protected final StorageHandler<?>   storageHandler;
     private boolean                     primitive;
-    protected RawClass                  defaultValue;
+    private RawClass                    defaultValue;
 
     protected boolean                   crypted;
 
@@ -233,10 +233,10 @@ public abstract class KeyHandler<RawClass> {
         return this.storageHandler;
     }
 
-    /**
-     * @return
-     */
-    public abstract RawClass getValue();
+    public RawClass getValue() {
+        if (this.primitiveStorage.hasProperty(this.getKey())) { return this.primitiveStorage.get(this.getKey(), (RawClass) null); }
+        return this.primitiveStorage.get(this.getKey(), this.getDefaultValue());
+    }
 
     /**
      * @throws Throwable
@@ -325,6 +325,10 @@ public abstract class KeyHandler<RawClass> {
      * @param object
      */
     protected abstract void putValue(RawClass object);
+
+    public void setDefaultValue(final RawClass c) {
+        this.defaultValue = c;
+    }
 
     /**
      * @param h

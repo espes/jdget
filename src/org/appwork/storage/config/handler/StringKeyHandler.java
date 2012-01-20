@@ -10,9 +10,7 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 
-import org.appwork.storage.config.InterfaceParseException;
 import org.appwork.storage.config.annotations.DefaultStringValue;
 
 /**
@@ -25,7 +23,7 @@ public class StringKeyHandler extends KeyHandler<String> {
      * @param storageHandler
      * @param key
      */
-    public StringKeyHandler(StorageHandler<?> storageHandler, String key) {
+    public StringKeyHandler(final StorageHandler<?> storageHandler, final String key) {
         super(storageHandler, key);
         // TODO Auto-generated constructor stub
     }
@@ -36,20 +34,19 @@ public class StringKeyHandler extends KeyHandler<String> {
      * @see org.appwork.storage.config.KeyHandler#initHandler()
      */
 
-
     @Override
     protected Class<? extends Annotation> getDefaultAnnotation() {
 
         return DefaultStringValue.class;
     }
+
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
+     * @see org.appwork.storage.config.handler.KeyHandler#initHandler()
      */
     @Override
-    protected void validateValue(String object) throws Throwable {
+    protected void initHandler() throws Throwable {
         // TODO Auto-generated method stub
 
     }
@@ -60,29 +57,21 @@ public class StringKeyHandler extends KeyHandler<String> {
      * @see org.appwork.storage.config.KeyHandler#putValue(java.lang.Object)
      */
     @Override
-    protected void putValue(String object) {
-        primitiveStorage.put(getKey(), object);
+    protected void putValue(final String object) {
+        this.primitiveStorage.put(this.getKey(), object);
 
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
+     * @see
+     * org.appwork.storage.config.KeyHandler#validateValue(java.lang.Object)
      */
     @Override
-    public String getValue() {
-
-        return primitiveStorage.get(getKey(), defaultValue);
-    }
-
-    /* (non-Javadoc)
-     * @see org.appwork.storage.config.handler.KeyHandler#initHandler()
-     */
-    @Override
-    protected void initHandler() throws Throwable {
+    protected void validateValue(final String object) throws Throwable {
         // TODO Auto-generated method stub
-        
+
     }
 
 }

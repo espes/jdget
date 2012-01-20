@@ -89,25 +89,25 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
             final Object ret = JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, this.typeRef, dummy);
 
             if (ret == dummy) {
-                if (this.defaultValue != null) { return this.defaultValue; }
+                if (this.getDefaultValue() != null) { return this.getDefaultValue(); }
                 Annotation ann;
                 final DefaultJsonObject defaultJson = this.getAnnotation(DefaultJsonObject.class);
                 final DefaultFactory df = this.getAnnotation(DefaultFactory.class);
                 if (defaultJson != null) {
-                    this.defaultValue = (T) JSonStorage.restoreFromString(defaultJson.value(), this.typeRef, null);
-                    return this.defaultValue;
+                    this.setDefaultValue((T) JSonStorage.restoreFromString(defaultJson.value(), this.typeRef, null));
+                    return this.getDefaultValue();
                 } else if (df != null) {
-                    this.defaultValue = (T) df.value().newInstance().getDefaultValue();
-                    return this.defaultValue;
+                    this.setDefaultValue((T) df.value().newInstance().getDefaultValue());
+                    return this.getDefaultValue();
                 } else if ((ann = this.getAnnotation(this.getDefaultAnnotation())) != null) {
                     try {
-                        this.defaultValue = (T) ann.annotationType().getMethod("value", new Class[] {}).invoke(ann, new Object[] {});
+                        this.setDefaultValue((T) ann.annotationType().getMethod("value", new Class[] {}).invoke(ann, new Object[] {}));
 
                     } catch (final Throwable e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-                    return this.defaultValue;
+                    return this.getDefaultValue();
                 } else {
                     return null;
                 }
@@ -118,7 +118,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
 
         } finally {
             if (!this.path.exists()) {
-                this.write(this.defaultValue);
+                this.write(this.getDefaultValue());
             }
 
         }

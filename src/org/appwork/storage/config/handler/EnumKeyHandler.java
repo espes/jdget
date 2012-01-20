@@ -38,31 +38,21 @@ public class EnumKeyHandler extends KeyHandler<Enum> {
         return DefaultEnumValue.class;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
-     */
-    @Override
-    public Enum getValue() {
-        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
-    }
-
     @Override
     protected void initDefaults() throws Throwable {
-        this.defaultValue = this.getRawClass().getEnumConstants()[0];
+        this.setDefaultValue(this.getRawClass().getEnumConstants()[0]);
         final DefaultFactory df = this.getAnnotation(DefaultFactory.class);
         if (df != null) {
-            this.defaultValue = (Enum) df.value().newInstance().getDefaultValue();
+            this.setDefaultValue((Enum) df.value().newInstance().getDefaultValue());
         }
         final DefaultJsonObject defaultJson = this.getAnnotation(DefaultJsonObject.class);
         if (defaultJson != null) {
-            this.defaultValue = JSonStorage.restoreFromString(defaultJson.value(), new TypeRef<Enum>(this.getRawClass()) {
-            }, null);
+            this.setDefaultValue(JSonStorage.restoreFromString(defaultJson.value(), new TypeRef<Enum>(this.getRawClass()) {
+            }, null));
         }
         final DefaultEnumValue ann = this.getAnnotation(DefaultEnumValue.class);
         if (ann != null) {
-            this.defaultValue = Enum.valueOf(this.getRawClass(), ann.value());
+            this.setDefaultValue(Enum.valueOf(this.getRawClass(), ann.value()));
         }
     }
 

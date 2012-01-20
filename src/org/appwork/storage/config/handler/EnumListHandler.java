@@ -53,9 +53,10 @@ public class EnumListHandler extends ListHandler<Enum<?>[]> {
 
                 ret[i] = Enum.valueOf((Class<Enum>) Class.forName(clazz), name);
             }
-            this.defaultValue = ret;
+            this.setDefaultValue(ret);
+            return;
         }
-        this.defaultValue = null;
+        this.setDefaultValue(null);
     }
 
     /*

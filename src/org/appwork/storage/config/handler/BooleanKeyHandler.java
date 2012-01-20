@@ -34,19 +34,9 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
         return DefaultBooleanValue.class;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
-     */
-    @Override
-    public Boolean getValue() {
-        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
-    }
-
     @Override
     protected void initDefaults() throws Throwable {
-        this.defaultValue = false;
+        this.setDefaultValue(false);
     }
 
     /*
@@ -54,7 +44,7 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
      * 
      * @see org.appwork.storage.config.KeyHandler#initHandler()
      */
-    @SuppressWarnings("unchecked")
+
     @Override
     protected void initHandler() {
 
@@ -73,9 +63,7 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
      */
     @Override
     protected void putValue(final Boolean object) {
-
         this.storageHandler.putPrimitive(this.getKey(), object);
-
     }
 
     public void toggle() {

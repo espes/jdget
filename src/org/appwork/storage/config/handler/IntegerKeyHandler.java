@@ -52,19 +52,9 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
         return DefaultIntValue.class;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
-     */
-    @Override
-    public Integer getValue() {
-        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
-    }
-
     @Override
     protected void initDefaults() throws Throwable {
-        this.defaultValue = 0;
+        this.setDefaultValue(0);
     }
 
     /*

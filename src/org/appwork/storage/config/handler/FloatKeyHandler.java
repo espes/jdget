@@ -34,19 +34,9 @@ public class FloatKeyHandler extends KeyHandler<Float> {
         return DefaultFloatValue.class;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
-     */
-    @Override
-    public Float getValue() {
-        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
-    }
-
     @Override
     protected void initDefaults() throws Throwable {
-        this.defaultValue = 0f;
+        this.setDefaultValue(0f);
     }
 
     /*
@@ -57,10 +47,9 @@ public class FloatKeyHandler extends KeyHandler<Float> {
     @Override
     protected void initHandler() {
         try {
-            this.defaultValue = this.getAnnotation(DefaultFloatValue.class).value();
+            this.setDefaultValue(this.getAnnotation(DefaultFloatValue.class).value());
         } catch (final NullPointerException e) {
-            this.defaultValue = 0f;
-
+            this.setDefaultValue(0f);
         }
     }
 

@@ -46,23 +46,12 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
 
     @Override
     protected Class<? extends Annotation> getDefaultAnnotation() {
-
         return DefaultByteValue.class;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.config.handler.KeyHandler#getValue()
-     */
-    @Override
-    public Byte getValue() {
-        return this.primitiveStorage.get(this.getKey(), this.defaultValue);
     }
 
     @Override
     protected void initDefaults() throws Throwable {
-        this.defaultValue = 0;
+        this.setDefaultValue((byte) 0);
     }
 
     /*
@@ -72,12 +61,10 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
      */
     @Override
     protected void initHandler() {
-
         this.validator = this.getAnnotation(SpinnerValidator.class);
         if (this.validator != null) {
             this.min = (byte) this.validator.min();
             this.max = (byte) this.validator.max();
-
         }
     }
 
