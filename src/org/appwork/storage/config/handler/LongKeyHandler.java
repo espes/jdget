@@ -53,7 +53,7 @@ public class LongKeyHandler extends KeyHandler<Long> {
 
     @Override
     protected void initDefaults() throws Throwable {
-        this.setDefaultValue(0l);
+        this.setDefaultValue(Long.valueOf(0));
     }
 
     /*

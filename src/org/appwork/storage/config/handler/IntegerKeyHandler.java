@@ -54,7 +54,7 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
 
     @Override
     protected void initDefaults() throws Throwable {
-        this.setDefaultValue(0);
+        this.setDefaultValue(Integer.valueOf(0));
     }
 
     /*
