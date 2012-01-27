@@ -296,7 +296,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         this.connect();
         this.connectInputStream();
         final int code = this.getResponseCode();
-        if (code >= 200 && code <= 400 || code == 404 || code == 403 || this.isResponseCodeAllowed(code)) {
+        if (code >= 200 && code <= 400 || code == 404 || code == 403 || code == 416 || this.isResponseCodeAllowed(code)) {
             if (this.convertedInputStream != null) { return this.convertedInputStream; }
             if (this.contentDecoded) {
                 final String encodingTransfer = this.getHeaderField("Content-Transfer-Encoding");
