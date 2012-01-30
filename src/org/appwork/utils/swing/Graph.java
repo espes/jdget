@@ -39,38 +39,39 @@ import org.appwork.utils.swing.graph.Limiter;
  * @author thomas
  * 
  */
-abstract public class Graph extends JPanel implements ToolTipHandler{
+abstract public class Graph extends JPanel implements ToolTipHandler {
 
-    private static final long serialVersionUID = 6943108941655020136L;
-    private int               i;
-    private int[]             cache;
-    private transient Thread  fetcherThread;
-    private int               interval         = 1000;
-    private Timer             painter;
+    private static final long          serialVersionUID = 6943108941655020136L;
+    private int                        i;
+    private int[]                      cache;
+    private transient Thread           fetcherThread;
+    private int                        interval         = 1000;
+    private Timer                      painter;
 
-    private final Object      LOCK             = new Object();
+    private final Object               LOCK             = new Object();
 
-    private Color             colorA;
-    private Color             colorB;
+    private Color                      colorA;
+    private Color                      colorB;
 
-    public long               average;
+    public long                        average;
 
-    private int[]             averageCache;
+    private int[]                      averageCache;
 
-    private Color             averageColor     = new Color(0x333333);
-    private Color             averageTextColor = new Color(0);
-    private int               capacity         = 0;
-    private Color             textColor        = new Color(0);
-    private boolean           running          = false;
+    private Color                      averageColor     = new Color(0x333333);
+    private Color                      averageTextColor = new Color(0);
+    private int                        capacity         = 0;
+    private Color                      textColor        = new Color(0);
+    private boolean                    running          = false;
 
-    protected int             value;
+    protected int                      value;
 
-    private Font              textFont;
+    private Font                       textFont;
 
-    private int               all;
+    private int                        all;
 
-    private Limiter[]         limiter;
+    private Limiter[]                  limiter;
     private TooltipTextDelegateFactory tooltipFactory;
+
     @Override
     public boolean isTooltipWithoutFocusEnabled() {
         // TODO Auto-generated method stub
@@ -81,8 +82,14 @@ abstract public class Graph extends JPanel implements ToolTipHandler{
         this(60, 1000);
 
     }
+
     public ExtTooltip createExtTooltip(Point mousePosition) {
         return getTooltipFactory().createTooltip();
+    }
+
+    public long getAverageSpeed() {
+        if(all==0)return 0;
+        return average / this.all;
     }
 
     public boolean isTooltipDisabledUntilNextRefocus() {
@@ -92,7 +99,7 @@ abstract public class Graph extends JPanel implements ToolTipHandler{
     public boolean updateTooltip(ExtTooltip activeToolTip, MouseEvent e) {
         return false;
     }
-    
+
     @Override
     public void setToolTipText(final String text) {
 
@@ -104,9 +111,10 @@ abstract public class Graph extends JPanel implements ToolTipHandler{
             ToolTipController.getInstance().register(this);
         }
     }
+
     public Graph(final int capacity, final int interval) {
         this.tooltipFactory = new TooltipTextDelegateFactory(this);
-//        ToolTipController.getInstance().
+        // ToolTipController.getInstance().
         this.colorA = new Color(100, 100, 100, 40);
         this.colorB = new Color(100, 100, 100, 80);
         this.average = 0;
@@ -120,9 +128,11 @@ abstract public class Graph extends JPanel implements ToolTipHandler{
     public TooltipTextDelegateFactory getTooltipFactory() {
         return tooltipFactory;
     }
+
     public void setTooltipFactory(TooltipTextDelegateFactory tooltipFactory) {
         this.tooltipFactory = tooltipFactory;
     }
+
     /**
      * @return the averageColor
      */
@@ -389,7 +399,7 @@ abstract public class Graph extends JPanel implements ToolTipHandler{
 
                 public void actionPerformed(final ActionEvent e) {
                     synchronized (Graph.this.LOCK) {
-                       
+
                         setToolTipText(createTooltipText());
                         Graph.this.repaint();
                     }
@@ -444,9 +454,10 @@ abstract public class Graph extends JPanel implements ToolTipHandler{
      * @return
      */
     protected String createTooltipText() {
-     
-        return getAverageSpeedString()+"  "+getSpeedString();
+
+        return getAverageSpeedString() + "  " + getSpeedString();
     }
+
     public void stop() {
         synchronized (this.LOCK) {
             this.running = false;
