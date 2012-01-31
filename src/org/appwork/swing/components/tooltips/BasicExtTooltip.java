@@ -108,4 +108,13 @@ public class BasicExtTooltip extends ExtTooltip implements PropertyChangeListene
         }
 
     }
+
+    /* (non-Javadoc)
+     * @see org.appwork.swing.components.tooltips.ExtTooltip#toText()
+     */
+    @Override
+    public String toText() {
+        // TODO Auto-generated method stub
+        return tf.getText();
+    }
 }

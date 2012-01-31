@@ -20,4 +20,13 @@ public class PanelToolTip extends ExtTooltip {
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see org.appwork.swing.components.tooltips.ExtTooltip#toText()
+     */
+    @Override
+    public String toText() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

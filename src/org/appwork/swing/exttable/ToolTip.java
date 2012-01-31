@@ -56,4 +56,13 @@ public class ToolTip extends ExtTooltip {
         this.tf.setText(txt);
     }
 
+    /* (non-Javadoc)
+     * @see org.appwork.swing.components.tooltips.ExtTooltip#toText()
+     */
+    @Override
+    public String toText() {
+       
+        return tf.getText();
+    }
+
 }

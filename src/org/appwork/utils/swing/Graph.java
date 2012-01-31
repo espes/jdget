@@ -232,18 +232,19 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
                     max = Math.max(l.getValue(), max);
                 }
             }
-            final int height = this.getHeight();
+            final int height = this.getPaintHeight();
 
+            
             final Polygon poly = new Polygon();
-            poly.addPoint(0, this.getHeight());
+            poly.addPoint(0, getHeight());
             final Polygon apoly = new Polygon();
-            apoly.addPoint(0, this.getHeight());
+            apoly.addPoint(0, getHeight());
 
             for (int x = 0; x < this.cache.length; x++) {
 
-                poly.addPoint(x * this.getWidth() / (this.cache.length - 1), this.getHeight() - (int) (this.getHeight() * this.cache[id] * 0.9) / max);
+                poly.addPoint(x * this.getWidth() / (this.cache.length - 1), getHeight() - (int) (height * this.cache[id] * 0.9) / max);
                 if (this.averageColor != null) {
-                    apoly.addPoint(x * this.getWidth() / (this.cache.length - 1), this.getHeight() - (int) (this.getHeight() * this.averageCache[id] * 0.9) / max);
+                    apoly.addPoint(x * this.getWidth() / (this.cache.length - 1), getHeight() - (int) (height * this.averageCache[id] * 0.9) / max);
                 }
 
                 id++;
@@ -251,10 +252,10 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
                 id = id % this.cache.length;
             }
 
-            poly.addPoint(this.getWidth(), height);
-            apoly.addPoint(this.getWidth(), height);
+            poly.addPoint(this.getWidth(), getHeight());
+            apoly.addPoint(this.getWidth(), getHeight());
 
-            g2.setPaint(new GradientPaint(this.getWidth() / 2, 0, this.colorA, this.getWidth() / 2, height, this.colorB));
+            g2.setPaint(new GradientPaint(this.getWidth() / 2, getHeight()-getPaintHeight(), this.colorA, this.getWidth() / 2, getHeight(), this.colorB));
 
             g2.fill(poly);
             g2.setColor(this.colorB);
@@ -290,7 +291,7 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
                 for (final Limiter l : this.getLimiter()) {
                     if (l.getValue() > 0) {
 
-                        h = this.getHeight() - (int) (this.getHeight() * l.getValue() * 0.9) / max;
+                        h = getHeight() - (int) (height * l.getValue() * 0.9) / max;
                         g2.setPaint(new GradientPaint(this.getWidth() / 2, h, l.getColorA(), this.getWidth() / 2, h + height / 10, l.getColorB()));
                         g2.fillRect(0, h, this.getWidth(), height / 10);
                         // g2.drawRect(0, h, this.getWidth(), height / 5);
@@ -298,6 +299,14 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
                 }
             }
         }
+    }
+
+    /**
+     * @return
+     */
+    protected int getPaintHeight() {
+     
+        return getHeight();
     }
 
     /**

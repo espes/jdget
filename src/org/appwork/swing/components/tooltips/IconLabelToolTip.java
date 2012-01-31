@@ -58,4 +58,13 @@ public class IconLabelToolTip extends ExtTooltip {
         this.label.setText(name);
         this.repaint();
     }
+
+    /* (non-Javadoc)
+     * @see org.appwork.swing.components.tooltips.ExtTooltip#toText()
+     */
+    @Override
+    public String toText() {
+        // TODO Auto-generated method stub
+        return label.getText();
+    }
 }

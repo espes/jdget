@@ -71,8 +71,17 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
     private int             changeDelay = 500;
     private Popup           activePopup;
     private ExtTooltip      activeToolTipPanel;
+    private ToolTipPainter  handler;
 
     // private Window parentWindow;
+
+    public ToolTipPainter getHandler() {
+        return handler;
+    }
+
+    public void setHandler(ToolTipPainter handler) {
+        this.handler = handler;
+    }
 
     /**
      * Create a new instance of ToolTipManager. This is a singleton class.
@@ -94,6 +103,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      * 
      */
     public void hideTooltip() {
+        if (handler != null)handler.hideTooltip();
         if (this.activePopup != null) {
             activeToolTipPanel = null;
             this.activePopup.hide();
@@ -317,15 +327,20 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      * @param createExtTooltip
      */
     private void show(final ExtTooltip tt) {
-       
+
         this.hideTooltip();
-//        delayer.stop();
+        // delayer.stop();
         if (tt != null) {
+            if (handler != null){
+              if(handler.showToolTip(tt))return;
+              
+            }
+
             final PopupFactory popupFactory = PopupFactory.getSharedInstance();
             final GraphicsConfiguration gc = this.activeComponent.getGraphicsConfiguration();
             final Rectangle screenBounds = gc.getBounds();
             final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
-            final Point ttPosition = new Point(this.mousePosition.x,mousePosition.y);
+            final Point ttPosition = new Point(this.mousePosition.x, mousePosition.y);
 
             // if screen has insets, we have to deacrease the available space
             screenBounds.x += screenInsets.left;
@@ -410,9 +425,9 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      * @param circledProgressBar
      */
     public void unregister(final ToolTipHandler circledProgressBar) {
-        if(activeComponent==circledProgressBar){
+        if (activeComponent == circledProgressBar) {
             delayer.stop();
-            activeComponent=null;
+            activeComponent = null;
         }
         circledProgressBar.removeMouseListener(this);
         circledProgressBar.removeMouseMotionListener(this);

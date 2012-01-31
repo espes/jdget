@@ -241,4 +241,9 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
        createConfig(DEFAULT).setForegroundColor(black.getRGB());
         
     }
+
+    /**
+     * @return
+     */
+    abstract public String toText();
 }

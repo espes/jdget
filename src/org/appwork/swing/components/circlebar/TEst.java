@@ -67,6 +67,12 @@ public class TEst {
 
                                 return p;
                             }
+
+                            @Override
+                            public String toText() {
+                                // TODO Auto-generated method stub
+                                return null;
+                            }
                         };
 
                         return tt;
