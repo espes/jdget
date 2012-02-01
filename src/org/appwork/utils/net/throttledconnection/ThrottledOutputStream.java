@@ -31,7 +31,7 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     private int                        offset;
     private int                        todo;
     private int                        rest;
-    private long                       ret;    
+    private long                       ret;
     private long                       slotTimeLeft       = 0;
     private long                       lastTimeWrite      = 0;
 
@@ -166,6 +166,10 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
         }
     }
 
+    public long transfered() {
+        return this.transferedCounter;
+    }
+
     /**
      * return how many bytes got transfered till now and reset counter
      * 
@@ -178,16 +182,16 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     }
 
     @Override
-    public void write(final byte b[], final int off, final int len) throws IOException {        
+    public void write(final byte b[], final int off, final int len) throws IOException {
         if (this.limitCurrent == 0) {
             /* no limit is set */
             this.out.write(b, off, len);
-            this.transferedCounter+=len;
+            this.transferedCounter += len;
         } else {
             /* a limit is set */
-            offset = off;
-            rest = len;
-            while (rest > 0) {
+            this.offset = off;
+            this.rest = len;
+            while (this.rest > 0) {
                 /* loop until all data is written */
                 this.slotTimeLeft = 0;
                 if (this.limitCounter <= 0 && (this.slotTimeLeft = System.currentTimeMillis() - this.lastTimeWrite) < 1000) {
@@ -201,18 +205,22 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
                     }
                     /* refill Limit */
                     this.limitCounter = this.limitCurrent;
-                    if (this.limitCounter <= 0) this.limitCounter = rest;
+                    if (this.limitCounter <= 0) {
+                        this.limitCounter = this.rest;
+                    }
                 } else if (this.slotTimeLeft > 1000) {
                     /* slotTime is over, refill Limit too */
                     this.limitCounter = this.limitCurrent;
-                    if (this.limitCounter <= 0) this.limitCounter = rest;
+                    if (this.limitCounter <= 0) {
+                        this.limitCounter = this.rest;
+                    }
                 }
-                todo = Math.min(this.limitCounter, rest);
-                out.write(b, offset, todo);
-                offset += todo;
-                rest -= todo;
-                this.transferedCounter += todo;
-                this.limitCounter -= todo;
+                this.todo = Math.min(this.limitCounter, this.rest);
+                this.out.write(b, this.offset, this.todo);
+                this.offset += this.todo;
+                this.rest -= this.todo;
+                this.transferedCounter += this.todo;
+                this.limitCounter -= this.todo;
                 this.lastTimeWrite = System.currentTimeMillis();
             }
         }
@@ -224,7 +232,7 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
     @Override
     public void write(final int b) throws IOException {
         this.out.write(b);
-        this.transferedCounter++;        
+        this.transferedCounter++;
         if (this.limitCurrent != 0) {
             /* a Limit is set */
             this.limitCounter--;

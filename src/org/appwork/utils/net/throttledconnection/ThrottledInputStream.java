@@ -258,6 +258,10 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
         return this.in.skip(n);
     }
 
+    public long transfered() {
+        return this.transferedCounter;
+    }
+
     /**
      * return how many bytes got transfered till now and reset counter
      * 

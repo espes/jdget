@@ -44,6 +44,13 @@ public interface ThrottledConnection {
     public void setManager(ThrottledConnectionManager manager);
 
     /**
+     * return how many bytes this ThrottledConnection had transfered
+     * 
+     * @return
+     */
+    public long transfered();
+
+    /**
      * return how many bytes got transfered since last call of the function
      * 
      * @return transfered bytes

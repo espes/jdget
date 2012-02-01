@@ -31,9 +31,11 @@ public class ThrottledConnectionManager {
 
     private volatile int                         IncommingBandwidthLimit = 0;
     private volatile int                         IncommingBandwidthUsage = 0;
+    private volatile long                        IncommingTraffic        = 0;
 
     private volatile int                         OutgoingBandwidthLimit  = 0;
     private volatile int                         OutgoingBandwidthUsage  = 0;
+    private volatile long                        OutgoingTraffic         = 0;
 
     public ThrottledConnectionManager() {
     }
@@ -105,6 +107,10 @@ public class ThrottledConnectionManager {
         return this.managedIn.size();
     }
 
+    public long getIncommingTraffic() {
+        return this.IncommingTraffic;
+    }
+
     /**
      * returns a managed ThrottledInputStream for given InputStream
      * 
@@ -149,6 +155,10 @@ public class ThrottledConnectionManager {
 
     public int getOutgoingConnections() {
         return this.managedOut.size();
+    }
+
+    public long getOutgoingTraffic() {
+        return this.OutgoingTraffic;
     }
 
     private int manageConnections(final ArrayList<ThrottledConnection> managed, final int limit) {
@@ -275,7 +285,9 @@ public class ThrottledConnectionManager {
                         org.appwork.utils.logging.Log.exception(e);
                     }
                     ThrottledConnectionManager.this.IncommingBandwidthUsage = ThrottledConnectionManager.this.manageConnections(ThrottledConnectionManager.this.managedIn, ThrottledConnectionManager.this.IncommingBandwidthLimit);
+                    ThrottledConnectionManager.this.IncommingTraffic += ThrottledConnectionManager.this.IncommingBandwidthUsage;
                     ThrottledConnectionManager.this.OutgoingBandwidthUsage = ThrottledConnectionManager.this.manageConnections(ThrottledConnectionManager.this.managedOut, ThrottledConnectionManager.this.OutgoingBandwidthLimit);
+                    ThrottledConnectionManager.this.OutgoingTraffic += ThrottledConnectionManager.this.OutgoingBandwidthUsage;
                 }
             }
         };
