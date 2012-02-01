@@ -254,7 +254,7 @@ public class HTMLParser {
         if (!data.contains("://") || data.length() < 10) {
             /* data must contain at least the protocol seperator */
             /* a://b.c/d == minimum 10 length */
-            return results;
+            if (!data.contains("href")) { return results; }
         }
         HTMLParser._getHttpLinksFinder(data, url, results);
         HTMLParser._getHttpLinksDeepWalker(data, url, results);
