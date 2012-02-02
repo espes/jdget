@@ -13,6 +13,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+import org.appwork.utils.speedmeter.AverageSpeedMeter;
+import org.appwork.utils.speedmeter.SpeedMeterInterface;
+
 /**
  * @author daniel
  * 
@@ -32,12 +35,16 @@ public class ThrottledConnectionManager {
     private volatile int                         IncommingBandwidthLimit = 0;
     private volatile int                         IncommingBandwidthUsage = 0;
     private volatile long                        IncommingTraffic        = 0;
+    private SpeedMeterInterface                  IncommingSpeedMeter     = null;
 
     private volatile int                         OutgoingBandwidthLimit  = 0;
     private volatile int                         OutgoingBandwidthUsage  = 0;
     private volatile long                        OutgoingTraffic         = 0;
+    private SpeedMeterInterface                  OutgoingSpeedMeter      = null;
 
     public ThrottledConnectionManager() {
+        this.IncommingSpeedMeter = new AverageSpeedMeter(10);
+        this.OutgoingSpeedMeter = new AverageSpeedMeter(10);
     }
 
     /**
@@ -107,6 +114,10 @@ public class ThrottledConnectionManager {
         return this.managedIn.size();
     }
 
+    public SpeedMeterInterface getIncommingSpeedMeter() {
+        return this.IncommingSpeedMeter;
+    }
+
     public long getIncommingTraffic() {
         return this.IncommingTraffic;
     }
@@ -155,6 +166,10 @@ public class ThrottledConnectionManager {
 
     public int getOutgoingConnections() {
         return this.managedOut.size();
+    }
+
+    public SpeedMeterInterface getOutgoingSpeedMeter() {
+        return this.OutgoingSpeedMeter;
     }
 
     public long getOutgoingTraffic() {
@@ -285,8 +300,14 @@ public class ThrottledConnectionManager {
                         org.appwork.utils.logging.Log.exception(e);
                     }
                     ThrottledConnectionManager.this.IncommingBandwidthUsage = ThrottledConnectionManager.this.manageConnections(ThrottledConnectionManager.this.managedIn, ThrottledConnectionManager.this.IncommingBandwidthLimit);
+                    if (ThrottledConnectionManager.this.managedIn.size() > 0) {
+                        ThrottledConnectionManager.this.IncommingSpeedMeter.putSpeedMeter(ThrottledConnectionManager.this.IncommingBandwidthUsage, 1000);
+                    }
                     ThrottledConnectionManager.this.IncommingTraffic += ThrottledConnectionManager.this.IncommingBandwidthUsage;
                     ThrottledConnectionManager.this.OutgoingBandwidthUsage = ThrottledConnectionManager.this.manageConnections(ThrottledConnectionManager.this.managedOut, ThrottledConnectionManager.this.OutgoingBandwidthLimit);
+                    if (ThrottledConnectionManager.this.managedOut.size() > 0) {
+                        ThrottledConnectionManager.this.OutgoingSpeedMeter.putSpeedMeter(ThrottledConnectionManager.this.OutgoingBandwidthUsage, 1000);
+                    }
                     ThrottledConnectionManager.this.OutgoingTraffic += ThrottledConnectionManager.this.OutgoingBandwidthUsage;
                 }
             }
