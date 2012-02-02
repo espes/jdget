@@ -72,44 +72,9 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
     private Limiter[]                  limiter;
     private TooltipTextDelegateFactory tooltipFactory;
 
-    @Override
-    public boolean isTooltipWithoutFocusEnabled() {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
     public Graph() {
         this(60, 1000);
 
-    }
-
-    public ExtTooltip createExtTooltip(Point mousePosition) {
-        return getTooltipFactory().createTooltip();
-    }
-
-    public long getAverageSpeed() {
-        if(all==0)return 0;
-        return average / this.all;
-    }
-
-    public boolean isTooltipDisabledUntilNextRefocus() {
-        return false;
-    }
-
-    public boolean updateTooltip(ExtTooltip activeToolTip, MouseEvent e) {
-        return false;
-    }
-
-    @Override
-    public void setToolTipText(final String text) {
-
-        this.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, text);
-
-        if (text == null || text.length() == 0) {
-            ToolTipController.getInstance().unregister(this);
-        } else {
-            ToolTipController.getInstance().register(this);
-        }
     }
 
     public Graph(final int capacity, final int interval) {
@@ -125,12 +90,16 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
 
     }
 
-    public TooltipTextDelegateFactory getTooltipFactory() {
-        return tooltipFactory;
+    public ExtTooltip createExtTooltip(final Point mousePosition) {
+        return this.getTooltipFactory().createTooltip();
     }
 
-    public void setTooltipFactory(TooltipTextDelegateFactory tooltipFactory) {
-        this.tooltipFactory = tooltipFactory;
+    /**
+     * @return
+     */
+    protected String createTooltipText() {
+
+        return this.getAverageSpeedString() + "  " + this.getSpeedString();
     }
 
     /**
@@ -138,6 +107,11 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
      */
     public Color getAverageColor() {
         return this.averageColor;
+    }
+
+    public long getAverageSpeed() {
+        if (this.all == 0) { return 0; }
+        return this.average / this.all;
     }
 
     /**
@@ -184,6 +158,14 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
     /**
      * @return
      */
+    protected int getPaintHeight() {
+
+        return this.getHeight();
+    }
+
+    /**
+     * @return
+     */
     public String getSpeedString() {
         // TODO Auto-generated method stub
         if (this.all <= 0) { return null; }
@@ -204,10 +186,24 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
         return this.textFont;
     }
 
+    public TooltipTextDelegateFactory getTooltipFactory() {
+        return this.tooltipFactory;
+    }
+
     /**
      * @return
      */
     abstract public int getValue();
+
+    public boolean isTooltipDisabledUntilNextRefocus() {
+        return false;
+    }
+
+    @Override
+    public boolean isTooltipWithoutFocusEnabled() {
+        // TODO Auto-generated method stub
+        return true;
+    }
 
     @Override
     public void paintComponent(final Graphics g) {
@@ -226,25 +222,25 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
             for (final int element : this.averageCache) {
                 max = Math.max(element, max);
             }
-            if (this.getLimiter() != null) {
+            Limiter[] limitertmp = null;
+            if ((limitertmp = this.getLimiter()) != null) {
 
-                for (final Limiter l : this.getLimiter()) {
+                for (final Limiter l : limitertmp) {
                     max = Math.max(l.getValue(), max);
                 }
             }
             final int height = this.getPaintHeight();
 
-            
             final Polygon poly = new Polygon();
-            poly.addPoint(0, getHeight());
+            poly.addPoint(0, this.getHeight());
             final Polygon apoly = new Polygon();
-            apoly.addPoint(0, getHeight());
+            apoly.addPoint(0, this.getHeight());
 
             for (int x = 0; x < this.cache.length; x++) {
 
-                poly.addPoint(x * this.getWidth() / (this.cache.length - 1), getHeight() - (int) (height * this.cache[id] * 0.9) / max);
+                poly.addPoint(x * this.getWidth() / (this.cache.length - 1), this.getHeight() - (int) (height * this.cache[id] * 0.9) / max);
                 if (this.averageColor != null) {
-                    apoly.addPoint(x * this.getWidth() / (this.cache.length - 1), getHeight() - (int) (height * this.averageCache[id] * 0.9) / max);
+                    apoly.addPoint(x * this.getWidth() / (this.cache.length - 1), this.getHeight() - (int) (height * this.averageCache[id] * 0.9) / max);
                 }
 
                 id++;
@@ -252,10 +248,10 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
                 id = id % this.cache.length;
             }
 
-            poly.addPoint(this.getWidth(), getHeight());
-            apoly.addPoint(this.getWidth(), getHeight());
+            poly.addPoint(this.getWidth(), this.getHeight());
+            apoly.addPoint(this.getWidth(), this.getHeight());
 
-            g2.setPaint(new GradientPaint(this.getWidth() / 2, getHeight()-getPaintHeight(), this.colorA, this.getWidth() / 2, getHeight(), this.colorB));
+            g2.setPaint(new GradientPaint(this.getWidth() / 2, this.getHeight() - this.getPaintHeight(), this.colorA, this.getWidth() / 2, this.getHeight(), this.colorB));
 
             g2.fill(poly);
             g2.setColor(this.colorB);
@@ -286,12 +282,12 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
                 }
             }
 
-            if (this.getLimiter() != null) {
+            if (limitertmp != null) {
                 int h;
-                for (final Limiter l : this.getLimiter()) {
+                for (final Limiter l : limitertmp) {
                     if (l.getValue() > 0) {
 
-                        h = getHeight() - (int) (height * l.getValue() * 0.9) / max;
+                        h = this.getHeight() - (int) (height * l.getValue() * 0.9) / max;
                         g2.setPaint(new GradientPaint(this.getWidth() / 2, h, l.getColorA(), this.getWidth() / 2, h + height / 10, l.getColorB()));
                         g2.fillRect(0, h, this.getWidth(), height / 10);
                         // g2.drawRect(0, h, this.getWidth(), height / 5);
@@ -299,14 +295,6 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
                 }
             }
         }
-    }
-
-    /**
-     * @return
-     */
-    protected int getPaintHeight() {
-     
-        return getHeight();
     }
 
     /**
@@ -397,6 +385,22 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
         this.textFont = textFont;
     }
 
+    public void setTooltipFactory(final TooltipTextDelegateFactory tooltipFactory) {
+        this.tooltipFactory = tooltipFactory;
+    }
+
+    @Override
+    public void setToolTipText(final String text) {
+
+        this.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, text);
+
+        if (text == null || text.length() == 0) {
+            ToolTipController.getInstance().unregister(this);
+        } else {
+            ToolTipController.getInstance().register(this);
+        }
+    }
+
     public void start() {
         synchronized (this.LOCK) {
             if (this.fetcherThread != null) {
@@ -409,7 +413,7 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
                 public void actionPerformed(final ActionEvent e) {
                     synchronized (Graph.this.LOCK) {
 
-                        setToolTipText(createTooltipText());
+                        Graph.this.setToolTipText(Graph.this.createTooltipText());
                         Graph.this.repaint();
                     }
                 }
@@ -459,14 +463,6 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
         }
     }
 
-    /**
-     * @return
-     */
-    protected String createTooltipText() {
-
-        return getAverageSpeedString() + "  " + getSpeedString();
-    }
-
     public void stop() {
         synchronized (this.LOCK) {
             this.running = false;
@@ -481,6 +477,10 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
             Graph.this.repaint();
             this.setCapacity(this.capacity);
         }
+    }
+
+    public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
+        return false;
     }
 
 }
