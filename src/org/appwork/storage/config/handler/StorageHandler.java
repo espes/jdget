@@ -37,6 +37,7 @@ import org.appwork.storage.config.annotations.DefaultIntArrayValue;
 import org.appwork.storage.config.annotations.DefaultLongArrayValue;
 import org.appwork.storage.config.events.ConfigEvent;
 import org.appwork.storage.config.events.ConfigEventSender;
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.reflection.Clazz;
 
 /**
@@ -70,6 +71,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         this.eventSender = new ConfigEventSender<Object>();
 
         this.path = name;
+        if (name.getName().endsWith(".json") || name.getName().endsWith(".ejs")) {
+            Log.L.warning(name + " should not have an extension!!");
+        }
         final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
         if (crypted != null) {
             this.crypted = true;
