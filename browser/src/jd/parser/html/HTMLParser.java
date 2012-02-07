@@ -45,14 +45,15 @@ public class HTMLParser {
     }
 
     final private static Httppattern[] linkAndFormPattern = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?['|\"](.*?)['|\"]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("src.*?=(.*?)[ |>]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)\\2", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/\\1\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
-    final private static String        protocolPattern    = "(flashget|directhttp|https?viajd|https?|ccf|dlc|ftp|jd|rsdf|jdlist|file)";
+    final private static String        protocolPattern    = "(directhttp://https?://|flashget://|https?viajd://|https?://|ccf://|dlc://|ftp://|jd://|rsdf://|jdlist://|file://)";
     final private static Pattern[]     basePattern        = new Pattern[] { Pattern.compile("href=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
-    final private static Pattern       pat1               = Pattern.compile("(" + HTMLParser.protocolPattern + "://|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern       pat1               = Pattern.compile("(" + HTMLParser.protocolPattern + "|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern       protocols          = Pattern.compile("(" + HTMLParser.protocolPattern + ")");
     private static Pattern             mp                 = null;
 
     static {
         try {
-            HTMLParser.mp = Pattern.compile("(" + HTMLParser.protocolPattern + "://|www\\.)[^\\r\\t\\n\\v\\f<>'\"]*(((?!\\s" + HTMLParser.protocolPattern + "://|\\swww\\.)[^<>'\"]){0,20}([\\?|\\&][^<>'^\\r\\t\\n\\v\\f\"]{1,10}\\=[^<>'^\\r\\t\\n\\v\\f\"]+|\\.([a-zA-Z0-9]{2,4})[^<>'^\\r\\t\\n\\v\\f\"]*))?", Pattern.CASE_INSENSITIVE);
+            HTMLParser.mp = Pattern.compile("(" + HTMLParser.protocolPattern + "|www\\.)[^\\r\\t\\n\\v\\f<>'\"]*(((?!\\s" + HTMLParser.protocolPattern + "|\\swww\\.)[^<>'\"]){0,20}([\\?|\\&][^<>'^\\r\\t\\n\\v\\f\"]{1,10}\\=[^<>'^\\r\\t\\n\\v\\f\"]+|\\.([a-zA-Z0-9]{2,4})[^<>'^\\r\\t\\n\\v\\f\"]*))?", Pattern.CASE_INSENSITIVE);
         } catch (final Throwable e) {
             Log.exception(e);
         }
@@ -72,7 +73,7 @@ public class HTMLParser {
         HTMLParser._getHttpLinksFinder(reversedata, url, results);
         reversedata = null;
         /* find base64'ed */
-        String base64Data = Encoding.htmlDecode(data);
+        String base64Data = Encoding.urlDecode(data, true);
         base64Data = Encoding.Base64Decode(base64Data);
         HTMLParser._getHttpLinksFinder(base64Data, url, results);
         base64Data = null;
@@ -112,7 +113,7 @@ public class HTMLParser {
                 } else {
                     final String link = data.replaceFirst("h.{2,3}://", "http://").replaceFirst("^www\\.", "http://www.").replaceAll("[<>\"]*", "");
                     if (!link.matches(".*\\s.*")) {
-                        results.add(link.replaceAll("\\s", "%20"));
+                        results.add(HTMLParser.correctURL(link));
                     }
                 }
             }
@@ -153,7 +154,7 @@ public class HTMLParser {
         }
 
         if (url != null && url.trim().length() > 0) {
-            results.add(url);
+            results.add(HTMLParser.correctURL(url));
         } else {
             url = "";
         }
@@ -179,7 +180,7 @@ public class HTMLParser {
 
                 try {
                     new URL(link);
-                    results.add(link);
+                    results.add(HTMLParser.correctURL(link));
                 } catch (final MalformedURLException e) {
 
                 }
@@ -190,10 +191,28 @@ public class HTMLParser {
             m = HTMLParser.mp.matcher(data);
             while (m.find()) {
                 link = m.group(0);
+                link = link.trim();
+                final Matcher mlinks = HTMLParser.protocols.matcher(link);
+                int start = -1;
+                /*
+                 * special handling if we have multiple links without newline
+                 * seperation
+                 */
+                while (mlinks.find()) {
+                    if (start == -1) {
+                        start = mlinks.start();
+                    } else {
+                        results.add(HTMLParser.correctURL(link.substring(start, mlinks.start())));
+                        start = mlinks.start();
+                    }
+                }
+                if (start != -1) {
+                    results.add(HTMLParser.correctURL(link.substring(start)));
+                }
                 link = link.replaceAll("^h.{2,3}://", "http://");
                 link = link.replaceFirst("^www\\.", "http://www\\.");
-                link = link.trim();
-                results.add(link);
+                results.add(HTMLParser.correctURL(link));
+
             }
         }
         return results;
@@ -281,6 +300,11 @@ public class HTMLParser {
             ret.append(tmp);
         }
         return ret.toString();
+    }
+
+    private static String correctURL(final String input) {
+        /* spaces must be %20 encoded */
+        return input.replaceAll("\\s", "%20");
     }
 
     /**

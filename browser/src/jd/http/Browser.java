@@ -54,9 +54,9 @@ public class Browser {
     // we need this class in here due to jdownloader stable 0.9 compatibility
     public class BrowserException extends IOException {
 
-        private static final long serialVersionUID = 1509988898224037320L;
+        private static final long    serialVersionUID = 1509988898224037320L;
         private URLConnectionAdapter connection;
-        private Exception e = null;
+        private Exception            e                = null;
 
         public BrowserException(final String string) {
             super(string);
@@ -92,19 +92,19 @@ public class Browser {
 
     }
 
-    private static final HashMap<String, Cookies> COOKIES = new HashMap<String, Cookies>();
-    private static HTTPProxy GLOBAL_PROXY = null;
-    private static Logger LOGGER = null;
+    private static final HashMap<String, Cookies> COOKIES         = new HashMap<String, Cookies>();
+    private static HTTPProxy                      GLOBAL_PROXY    = null;
+    private static Logger                         LOGGER          = null;
 
     // added proxy map to find proxy passwords.
 
-    private static HashMap<String, Integer> REQUEST_INTERVAL_LIMIT_MAP;
+    private static HashMap<String, Integer>       REQUEST_INTERVAL_LIMIT_MAP;
 
-    private static HashMap<String, Long> REQUESTTIME_MAP;
+    private static HashMap<String, Long>          REQUESTTIME_MAP;
 
-    private static int TIMEOUT_CONNECT = 30000;
+    private static int                            TIMEOUT_CONNECT = 30000;
 
-    private static int TIMEOUT_READ = 30000;
+    private static int                            TIMEOUT_READ    = 30000;
 
     public static HTTPProxy _getGlobalProxy() {
         return Browser.GLOBAL_PROXY;
@@ -253,9 +253,9 @@ public class Browser {
         }
     }
 
-    private int[] allowedResponseCodes = new int[0];
+    private int[]          allowedResponseCodes = new int[0];
 
-    private static boolean VERBOSE = false;
+    private static boolean VERBOSE              = false;
 
     /**
      * Returns a corrected url, where multiple / and ../. are removed
@@ -418,35 +418,35 @@ public class Browser {
         return null;
     }
 
-    private String acceptLanguage = "de, en-gb;q=0.9, en;q=0.8";
+    private String                   acceptLanguage      = "de, en-gb;q=0.9, en;q=0.8";
     /*
      * -1 means use default Timeouts
      * 
      * 0 means infinite (DO NOT USE if not needed)
      */
-    private int connectTimeout = -1;
+    private int                      connectTimeout      = -1;
 
-    private HashMap<String, Cookies> cookies = new HashMap<String, Cookies>();
+    private HashMap<String, Cookies> cookies             = new HashMap<String, Cookies>();
 
-    private boolean cookiesExclusive = true;
-    private URL currentURL = null;
-    private String customCharset = null;
-    private boolean debug = false;
-    private boolean doRedirects = false;
-    private RequestHeader headers;
-    private int limit = 1 * 1024 * 1024;
-    private Logger logger = null;
-    private HTTPProxy proxy;
-    private int readTimeout = -1;
-    private int redirectLoopCounter = 0;
+    private boolean                  cookiesExclusive    = true;
+    private URL                      currentURL          = null;
+    private String                   customCharset       = null;
+    private boolean                  debug               = false;
+    private boolean                  doRedirects         = false;
+    private RequestHeader            headers;
+    private int                      limit               = 1 * 1024 * 1024;
+    private Logger                   logger              = null;
+    private HTTPProxy                proxy;
+    private int                      readTimeout         = -1;
+    private int                      redirectLoopCounter = 0;
 
-    private Request request;
+    private Request                  request;
 
     private HashMap<String, Integer> requestIntervalLimitMap;
 
-    private HashMap<String, Long> requestTimeMap;
+    private HashMap<String, Long>    requestTimeMap;
 
-    private boolean verbose = false;
+    private boolean                  verbose             = false;
 
     public Browser() {
         final Thread currentThread = Thread.currentThread();
