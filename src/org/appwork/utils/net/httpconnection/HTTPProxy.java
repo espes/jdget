@@ -171,13 +171,48 @@ public class HTTPProxy {
         return ret;
     }
 
+    public static HTTPProxy parseHTTPProxy(final String s) {
+        if (StringUtils.isEmpty(s)) { return null; }
+        final String type = new Regex(s, "(https?|socks5)://").getMatch(0);
+        final String auth = new Regex(s, "://(.*?)@").getMatch(0);
+        final String host = new Regex(s, "://.*?@(.*?)(/|$)").getMatch(0);
+        HTTPProxy ret = null;
+        if ("http".equalsIgnoreCase(type) || "https".equalsIgnoreCase(type)) {
+            ret = new HTTPProxy(TYPE.HTTP);
+            ret.port = 8080;
+        } else if ("socks5".equalsIgnoreCase(type)) {
+            ret = new HTTPProxy(TYPE.SOCKS5);
+            ret.port = 3128;
+        }
+        if (ret != null) {
+            final String hostname = new Regex(host, "(.*?)(:|$)").getMatch(0);
+            final String port = new Regex(host, ".*?:(\\d+)").getMatch(0);
+            if (!StringUtils.isEmpty(hostname)) {
+                ret.host = hostname;
+            }
+            if (!StringUtils.isEmpty(port) && ret != null) {
+                ret.port = Integer.parseInt(port);
+            }
+            final String username = new Regex(auth, "(.*?)(:|$)").getMatch(0);
+            final String password = new Regex(auth, ".*?:(.+)").getMatch(0);
+            if (!StringUtils.isEmpty(username)) {
+                ret.user = username;
+            }
+            if (!StringUtils.isEmpty(password)) {
+                ret.pass = password;
+            }
+            if (!StringUtils.isEmpty(ret.host)) { return ret; }
+        }
+        return null;
+    }
+
     private InetAddress localIP = null;
 
     private String      user    = null;
 
     private String      pass    = null;
-
     private int         port    = 80;
+
     protected String    host    = null;
 
     private TYPE        type    = TYPE.DIRECT;
