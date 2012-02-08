@@ -175,7 +175,7 @@ public class HTTPProxy {
         if (StringUtils.isEmpty(s)) { return null; }
         final String type = new Regex(s, "(https?|socks5)://").getMatch(0);
         final String auth = new Regex(s, "://(.*?)@").getMatch(0);
-        final String host = new Regex(s, "://.*?@(.*?)(/|$)").getMatch(0);
+        final String host = new Regex(s, "://.*?@?(.*?)(/|$)").getMatch(0);
         HTTPProxy ret = null;
         if ("http".equalsIgnoreCase(type) || "https".equalsIgnoreCase(type)) {
             ret = new HTTPProxy(TYPE.HTTP);
