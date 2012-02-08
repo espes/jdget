@@ -48,7 +48,7 @@ public abstract class KeyHandler<RawClass> {
     protected MethodHandler             setter;
     protected final StorageHandler<?>   storageHandler;
     private boolean                     primitive;
-    private RawClass                    defaultValue;
+    protected RawClass                  defaultValue;
 
     protected boolean                   crypted;
 

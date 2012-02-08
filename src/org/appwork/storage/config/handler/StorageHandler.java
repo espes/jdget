@@ -439,6 +439,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             final KeyHandler<?> handler = this.methodMap.get(m);
             if (handler != null) {
                 if (handler.isGetter(m)) {
+                             
+                    
                     return handler.getValue();
 
                 } else {

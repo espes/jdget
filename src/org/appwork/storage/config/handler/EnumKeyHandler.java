@@ -38,6 +38,12 @@ public class EnumKeyHandler extends KeyHandler<Enum> {
         return DefaultEnumValue.class;
     }
 
+    @SuppressWarnings("unchecked")
+    public Enum getDefaultValue() {
+        return this.defaultValue;
+
+    }
+
     @Override
     protected void initDefaults() throws Throwable {
         this.setDefaultValue(this.getRawClass().getEnumConstants()[0]);

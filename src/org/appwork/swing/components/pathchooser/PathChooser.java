@@ -83,11 +83,19 @@ public class PathChooser extends MigPanel {
         add(txt);
         add(bt);
 
-        String preSelection = JSonStorage.getStorage(Dialog.FILECHOOSER).get(Dialog.LASTSELECTION + id, (String) null);
+        String preSelection = JSonStorage.getStorage(Dialog.FILECHOOSER).get(Dialog.LASTSELECTION + id, getDefaultPreSelection());
         if (preSelection != null) {
             setFile(new File(preSelection));
         }
 
+    }
+
+    /**
+     * @return
+     */
+    protected String getDefaultPreSelection() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     public void setEnabled(boolean b) {

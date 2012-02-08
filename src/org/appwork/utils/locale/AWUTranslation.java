@@ -155,19 +155,19 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "(px)W:%s1; H:%s2", "(px)B:%s1; H:%s2" })
     String Layover_size(int width, int height);
 
-    @Default(lngs = { "en" }, values = { "%s1 B", "%s1 B" })
+    @Default(lngs = { "en","de" }, values = { "%s1 B", "%s1 B" })
     String literally_byte(long fileSize);
 
-    @Default(lngs = { "en" }, values = { "%s1 GB", "%s1 GB" })
+    @Default(lngs = { "en","de" }, values = { "%s1 GB", "%s1 GB" })
     String literally_gibibyte(String format);
 
-    @Default(lngs = { "en" }, values = { "%s1 KB", "%s1 KB" })
+    @Default(lngs = { "en","de" }, values = { "%s1 KB", "%s1 KB" })
     String literally_kibibyte(String format);
 
-    @Default(lngs = { "en" }, values = { "%s1 MB", "%s1 MB" })
+    @Default(lngs = { "en","de" }, values = { "%s1 MB", "%s1 MB" })
     String literally_mebibyte(String format);
 
-    @Default(lngs = { "en" }, values = { "%s1 TB", "%s1 TB" })
+    @Default(lngs = { "en","de" }, values = { "%s1 TB", "%s1 TB" })
     String literally_tebibyte(String format);
 
     @Default(lngs = { "en", "de" }, values = { "Lock Columnwidth", "Spaltenbreite festsetzen" })
@@ -203,13 +203,13 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Old Password:", "Altes Passwort" })
     String PASSWORDDIALOG_PASSWORDCHANGE_OLDPASSWORD();
 
-    @Default(lngs = { "en" }, values = { "Browse", "Auswählen" })
+    @Default(lngs = { "en","de" }, values = { "Browse", "Auswählen" })
     String pathchooser_browselabel();
 
-    @Default(lngs = { "en" }, values = { "Choose path!", "Pfad auswählen!" })
+    @Default(lngs = { "en","de" }, values = { "Choose path!", "Pfad auswählen!" })
     String pathchooser_dialog_title();
 
-    @Default(lngs = { "en" }, values = { "Enter a path...", "Bitte Pfad eingeben..." })
+    @Default(lngs = { "en","de" }, values = { "Enter a path...", "Bitte Pfad eingeben..." })
     String pathchooser_helptext();
 
     @Default(lngs = { "en", "de" }, values = { "Please wait tuntil download has finished", "Bitte warten bis der Download beendet ist" })
@@ -248,28 +248,28 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Regular Expressions", "Reguläre Ausrücke" })
     String SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION();
 
-    @Default(lngs = { "en" }, values = { "alt", "Alt" })
+    @Default(lngs = { "en","de" }, values = { "alt", "Alt" })
     String ShortCuts_key_alt();
 
-    @Default(lngs = { "en" }, values = { "alt Gr", "Alt Gr" })
+    @Default(lngs = { "en","de" }, values = { "alt Gr", "Alt Gr" })
     String ShortCuts_key_altGr();
 
-    @Default(lngs = { "en" }, values = { "button1", "button1" })
+    @Default(lngs = { "en","de" }, values = { "button1", "button1" })
     String ShortCuts_key_button1();
 
-    @Default(lngs = { "en" }, values = { "button2", "button2" })
+    @Default(lngs = { "en","de" }, values = { "button2", "button2" })
     String ShortCuts_key_button2();
 
-    @Default(lngs = { "en" }, values = { "button3", "button3" })
+    @Default(lngs = { "en","de" }, values = { "button3", "button3" })
     String ShortCuts_key_button3();
 
-    @Default(lngs = { "en" }, values = { "ctrl", "Strg" })
+    @Default(lngs = { "en","de" }, values = { "ctrl", "Strg" })
     String ShortCuts_key_ctrl();
 
-    @Default(lngs = { "en" }, values = { "meta", "meta" })
+    @Default(lngs = { "en","de" }, values = { "meta", "meta" })
     String ShortCuts_key_meta();
 
-    @Default(lngs = { "en" }, values = { "shift", "Shift" })
+    @Default(lngs = { "en","de" }, values = { "shift", "Shift" })
     String ShortCuts_key_shift();
 
     @Default(lngs = { "en", "de" }, values = { "Move your mouse over interactive buttons to get help here", "Bewegen Sie die Maus über Schaltflächen um hier Hilfe zu sehen" })

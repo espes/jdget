@@ -1,8 +1,6 @@
 package org.appwork.swing.components;
 
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
@@ -10,10 +8,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.ButtonModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.handler.BooleanKeyHandler;
 import org.appwork.storage.config.swing.models.ConfigToggleButtonModel;
 import org.appwork.swing.components.tooltips.ExtTooltip;
@@ -120,10 +115,20 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
 
         if (dependencies != null) {
             for (JComponent c : dependencies)
-                c.setEnabled(isSelected());
+                c.setEnabled(getDependenciesLogic(c,isSelected()));
         }
 
     }
+    /**
+ * @param c
+     * @param b 
+ * @return
+ */
+    protected boolean getDependenciesLogic(JComponent c, boolean b) {
+        // TODO Auto-generated method stub
+        return b;
+    }
+
     @Override
     public boolean isTooltipWithoutFocusEnabled() {
         // TODO Auto-generated method stub
