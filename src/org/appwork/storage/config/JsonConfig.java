@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 
+import org.appwork.exceptions.WTFException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.handler.StorageHandler;
 import org.appwork.utils.Application;
@@ -98,16 +99,42 @@ public class JsonConfig {
          * a JSonConfig during the restore procress
          */
         synchronized (JSonStorage.LOCK) {
-         
+
+            ConfigInterface ret = JsonConfig.CACHE.get(id);
+            if (ret == null) {
+
+                ret = (T) Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(path, configInterface));
+                JsonConfig.CACHE.put(id, ret);
+            }
+            return (T) ret;
+
+        }
+
+    }
+
+    public static <T extends ConfigInterface> T create(final String urlPath, final Class<T> configInterface) {
+        try {
+            final String id = urlPath + configInterface.getName();
+            /*
+             * WARNING: as the JSonConfig uses JSonStorage in Background we
+             * FIRST get JSonStorage Lock AND then JSonStorage Lock. This avoids
+             * deadlocks that could happen if we restore an Json Object which
+             * needs to create a JSonConfig during the restore procress
+             */
+            synchronized (JSonStorage.LOCK) {
 
                 ConfigInterface ret = JsonConfig.CACHE.get(id);
                 if (ret == null) {
-                  
-                    ret = (T) Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(path, configInterface));
+
+                    ret = (T) Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(urlPath, configInterface));
+
                     JsonConfig.CACHE.put(id, ret);
                 }
                 return (T) ret;
-            
+
+            }
+        } catch (Exception e) {
+            throw new WTFException(e);
         }
 
     }

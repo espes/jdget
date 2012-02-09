@@ -29,7 +29,7 @@ public class ConfigUtils {
             if (!unique.add(kh)) continue;
             System.out.println("// "+kh);
 //            String key = kh.getKey();
-            String methodname = kh.getSetter().getMethod().getName().substring(3);
+            String methodname = kh.getGetter().getMethod().getName().substring(3);
             StringBuilder sb = new StringBuilder();
             char c, lastc;
             lastc = ' ';

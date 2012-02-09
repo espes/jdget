@@ -330,6 +330,30 @@ public class JSonStorage {
         }
     }
 
+    public static <E> E restoreFromString(byte[] data, boolean plain, byte[] key, TypeRef<E> type, E def) {
+        if (data == null) { return def; }
+        String string = null;
+        try {
+
+            if (!plain) {
+                string = Crypto.decrypt(data, key);
+            } else {
+                string = new String(data, "UTF-8");
+            }
+            synchronized (JSonStorage.LOCK) {
+                if (type != null) {
+                    return JSonStorage.JSON_MAPPER.stringToObject(string, type);
+                } else {
+                    return (E) JSonStorage.JSON_MAPPER.stringToObject(string, def.getClass());
+                }
+            }
+        } catch (final Exception e) {
+            Log.exception(Level.WARNING, e);
+            Log.L.warning(string);
+            return def;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public static <E> E restoreFromString(final String string, final TypeRef<E> type, final E def) {
         if (string == null || "".equals(string)) { return def; }

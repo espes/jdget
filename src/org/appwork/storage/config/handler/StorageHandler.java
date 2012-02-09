@@ -14,6 +14,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -37,6 +40,7 @@ import org.appwork.storage.config.annotations.DefaultIntArrayValue;
 import org.appwork.storage.config.annotations.DefaultLongArrayValue;
 import org.appwork.storage.config.events.ConfigEvent;
 import org.appwork.storage.config.events.ConfigEventSender;
+import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.reflection.Clazz;
 
@@ -56,10 +60,61 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private byte[]                         key                  = JSonStorage.KEY;
     private File                           path;
     private ConfigEventSender<Object>      eventSender;
+    private String relativCPPath;
 
     // set externaly to start profiling
     public static HashMap<String, Long>    PROFILER_MAP         = null;
     public static HashMap<String, Long>    PROFILER_CALLNUM_MAP = null;
+
+    
+    /**
+     * @param path2
+     * @param configInterface2
+     * @throws URISyntaxException 
+     */
+    public StorageHandler(String classPath, Class<T> configInterface) throws URISyntaxException   {
+        this.configInterface = configInterface;
+        this.eventSender = new ConfigEventSender<Object>();
+
+        this.relativCPPath=classPath;
+        this.path = Application.getResource(classPath);
+ 
+        if (path.getName().endsWith(".json") || path.getName().endsWith(".ejs")) {
+            Log.L.warning(classPath + " should not have an extension!!");
+        }
+        final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
+        if (crypted != null) {
+            this.crypted = true;
+            if (crypted.key() != null) {
+                path=new File(Application.class.getClassLoader().getResource(classPath+".ejs").toURI());
+                this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath+".ejs"),Application.class.getClassLoader().getResource(classPath+".ejs"), false, crypted.key());
+
+                this.key = crypted.key();
+                if (this.key.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + configInterface + " is invalid"); }
+
+            } else {
+                path=new File(Application.class.getClassLoader().getResource(classPath+".ejs").toURI());
+                this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath+".ejs"),Application.class.getClassLoader().getResource(classPath+".ejs"), false, this.key = JSonStorage.KEY);
+
+            }
+        } else {
+            this.crypted = false;         
+            this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath+".json"),Application.class.getClassLoader().getResource(classPath+".json"), true,null);
+        }
+        
+        try {
+            this.parseInterface();
+        } catch (final Throwable e) {
+            throw new InterfaceParseException(e);
+        }
+       
+    }
+
+    
+    public String getRelativCPPath() {
+        return relativCPPath;
+    }
+
 
     /**
      * @param name
@@ -92,6 +147,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             this.crypted = false;
             this.primitiveStorage = new JsonKeyValueStorage(new File(this.path.getAbsolutePath() + ".json"), true);
         }
+        
         try {
             this.parseInterface();
         } catch (final Throwable e) {
@@ -116,6 +172,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         });
 
     }
+
 
     /**
      * @param key2

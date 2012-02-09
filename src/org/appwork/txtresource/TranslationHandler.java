@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 
 import org.appwork.storage.JSonStorage;
+import org.appwork.storage.config.annotations.DefaultStringValue;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
 
@@ -129,11 +130,14 @@ public class TranslationHandler implements InvocationHandler {
      * @param string
      * @return
      * @throws IOException
+     * @throws IllegalAccessException 
+     * @throws InstantiationException 
      */
-    private TranslateResource createTranslationResource(final String string) throws IOException {
+    private TranslateResource createTranslationResource(final String string) throws IOException, InstantiationException, IllegalAccessException {
         TranslateResource ret = this.resourceCache.get(string);
         if (ret != null) { return ret; }
-        final String path = this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
+        DynamicResourcePath rPath= tInterface.getAnnotation(DynamicResourcePath.class);
+        final String path = rPath!=null?rPath.value().newInstance().getPath()+ "." + string + ".lng":this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
         final URL url = Application.getRessourceURL(path, false);
         miss: if (url == null) {
             final Defaults ann = this.tInterface.getAnnotation(Defaults.class);

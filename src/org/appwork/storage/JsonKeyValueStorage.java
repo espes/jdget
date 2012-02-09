@@ -1,11 +1,15 @@
 package org.appwork.storage;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.appwork.exceptions.WTFException;
 import org.appwork.utils.Application;
+import org.appwork.utils.IO;
 import org.appwork.utils.logging.Log;
 
 public class JsonKeyValueStorage extends Storage {
@@ -60,6 +64,37 @@ public class JsonKeyValueStorage extends Storage {
         }, new HashMap<String, Object>());
         // Log.L.finer(JSonStorage.toString(load));
         this.map.putAll(load);
+    }
+
+    /**
+     * @param file
+     * @param resource
+     * @param b
+     * @param key2
+     */
+    public JsonKeyValueStorage(File file, URL resource, boolean plain, byte[] key) {
+        this.map = new HashMap<String, Object>();
+        this.plain = plain;
+        this.file = file;
+        this.name = file.getName();
+        this.key = key;
+      
+        if (resource != null) {
+
+            try {
+                final HashMap<String, Object> load = JSonStorage.restoreFromString(IO.readURL(resource), plain, key, new TypeRef<HashMap<String, Object>>() {
+                }, new HashMap<String, Object>());
+                this.map.putAll(load);
+            } catch (IOException e) {
+                throw new WTFException(e);
+            }
+        }
+        if (file.exists()) {
+            final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
+            }, new HashMap<String, Object>());
+
+            this.map.putAll(load);
+        }
     }
 
     @Override

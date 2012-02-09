@@ -203,7 +203,11 @@ public class Application {
      */
     public static URL getRessourceURL(final String relative, final boolean preferClasspath) {
         try {
+            
             if (relative == null) { return null; }
+            if(relative.startsWith("/")||relative.startsWith("\\")){
+                throw new WTFException("getRessourceURL only works with relative pathes.");
+            }
             if (preferClasspath) {
 
                 final URL res = Application.class.getClassLoader().getResource(relative);

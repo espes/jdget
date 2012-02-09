@@ -10,14 +10,19 @@
 package org.appwork.storage.config.handler;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.URL;
 
+import org.appwork.exceptions.WTFException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.storage.config.MinTimeWeakReference;
 import org.appwork.storage.config.annotations.DefaultFactory;
 import org.appwork.storage.config.annotations.DefaultJsonObject;
+import org.appwork.utils.Application;
+import org.appwork.utils.IO;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -30,6 +35,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
     private final TypeRef<Object>   typeRef;
 
     private File                    path;
+    private URL                     url;
 
     /**
      * @param storageHandler
@@ -48,10 +54,8 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
         if (ret == null) {
             try {
                 ret = (T) this.read();
-            } catch (final InstantiationException e) {
-                Log.exception(e);
-            } catch (final IllegalAccessException e) {
-                Log.exception(e);
+            } catch (final Throwable e) {
+                throw new WTFException(e);
             }
 
             this.cache = new MinTimeWeakReference<T>(ret, ListHandler.MIN_LIFETIME, "Storage " + this.getKey());
@@ -67,6 +71,11 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
     @Override
     protected void initHandler() throws Throwable {
         this.path = new File(this.storageHandler.getPath() + "." + this.getKey() + "." + (this.isCrypted() ? "ejs" : "json"));
+        if (storageHandler.getRelativCPPath() != null && !path.exists()) {
+            this.url = Application.getRessourceURL(storageHandler.getRelativCPPath() + "." + this.getKey() + "." + (this.isCrypted() ? "ejs" : "json"));
+         
+        }
+
     }
 
     @Override
@@ -79,15 +88,23 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
      * @return
      * @throws IllegalAccessException
      * @throws InstantiationException
+     * @throws IOException
      */
     @SuppressWarnings("unchecked")
-    protected Object read() throws InstantiationException, IllegalAccessException {
+    protected Object read() throws InstantiationException, IllegalAccessException, IOException {
         try {
-            Log.L.finer("Read Config: " + this.path.getAbsolutePath());
 
             final Object dummy = new Object();
-            final Object ret = JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, this.typeRef, dummy);
 
+            Object ret = null;
+            if (url != null) {
+                Log.L.finer("Read Config: " + url);
+                ret = JSonStorage.restoreFromString(IO.readURL(url), !this.crypted, this.cryptKey, this.typeRef, dummy);
+            } else {
+                Log.L.finer("Read Config: " + this.path.getAbsolutePath());
+
+                ret = JSonStorage.restoreFrom(this.path, !this.crypted, this.cryptKey, this.typeRef, dummy);
+            }
             if (ret == dummy) {
                 if (this.getDefaultValue() != null) { return this.getDefaultValue(); }
                 Annotation ann;
@@ -117,7 +134,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
             // }
 
         } finally {
-            if (!this.path.exists()) {
+            if (!this.path.exists()&&url==null) {
                 this.write(this.getDefaultValue());
             }
 
