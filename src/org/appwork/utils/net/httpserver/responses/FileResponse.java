@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Locale;
@@ -98,11 +99,12 @@ public class FileResponse {
     }
 
     /* what is the size of the given Content ? */
-    protected long getContentLength() {
+    protected long getContentLength(final long knownLength) {
         /* TODO: check for unsatisfied range or not allowed range */
         final boolean allowRanges = this.allowRanges();
         if (this.inputURL != null) {
             /* we do not know size of URL resources in advance! */
+            if (knownLength >= 0) { return knownLength; }
             return -1;
         } else {
             if (!allowRanges) {
@@ -132,12 +134,23 @@ public class FileResponse {
 
     public void sendFile() throws IOException {
         InputStream is = null;
+        URLConnection con = null;
         GZIPOutputStream gos = null;
         OutputStream os = null;
         ReusableByteArrayOutputStream ros = null;
         boolean chunked = false;
         boolean gzip = false;
+        long knownLength = -1;
         try {
+            /* get inputstream */
+            if (this.inputURL != null) {
+                con = this.inputURL.openConnection();
+                knownLength = con.getContentLengthLong();
+                is = con.getInputStream();
+            } else if (this.inputFile != null) {
+                is = new FileInputStream(this.inputFile);
+                knownLength = this.inputFile.length();
+            }
             this.response.setResponseCode(ResponseCode.SUCCESS_OK);
             if (this.allowRanges()) {
                 /* do we allow ranges? */
@@ -151,7 +164,7 @@ public class FileResponse {
                     this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_CONTENT_ENCODING, "gzip"));
                 }
             }
-            final long length = this.getContentLength();
+            final long length = this.getContentLength(knownLength);
             if (length >= 0 && !gzip) {
                 /* we know content length, send it */
                 this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
@@ -168,12 +181,6 @@ public class FileResponse {
             if (this.useContentDisposition()) {
                 /* offer file to download */
                 this.response.getResponseHeaders().add(new HTTPHeader("Content-Disposition", "attachment;filename*=UTF-8''" + URLEncoder.encode(this.getFileName(), "UTF-8")));
-            }
-            /* get inputstream */
-            if (this.inputURL != null) {
-                is = this.inputURL.openStream();
-            } else if (this.inputFile != null) {
-                is = new FileInputStream(this.inputFile);
             }
             /* configure outputstream */
             if (gzip) {

@@ -35,7 +35,7 @@ import org.appwork.utils.os.CrossSystem;
  */
 public class Application {
     static {
-        redirectOutputStreams();
+        Application.redirectOutputStreams();
     }
     private static String  APP_FOLDER  = ".appwork";
 
@@ -67,31 +67,6 @@ public class Application {
             throw new IOException("Error, could not add URL to system classloader");
         }
 
-    }
-
-    /**
-     * 
-     */
-    public static void redirectOutputStreams() {
-        if (REDIRECTED) return;
-        if (Charset.defaultCharset() == Charset.forName("cp1252")) {
-            REDIRECTED = true;
-            // workaround.
-            // even 1252 is default codepage, windows console expects cp850
-            // codepage input
-            try {
-                System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, "CP850"));
-            } catch (final UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            try {
-                System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err), true, "CP850"));
-            } catch (final UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
     }
 
     /**
@@ -207,10 +182,21 @@ public class Application {
     }
 
     /**
-     * Returns the Resource url for relative. depending on the preferClasspath
-     * parameter, the lookup order first checks classpath (jars/bin folders) and
-     * then local filesystem or first fs, then cp. may return null if resource
-     * does not exist in cp and fs
+     * Returns the Resource url for relative.
+     * 
+     * NOTE:this function only returns URL's that really exists!
+     * 
+     * if preferClassPath is true:
+     * 
+     * we first check if there is a ressource available inside current
+     * classpath, for example inside the jar itself. if no such URL exists we
+     * check for file in local filesystem
+     * 
+     * if preferClassPath if false:
+     * 
+     * first check local filesystem, then inside classpath
+     * 
+     * 
      * 
      * @param string
      * @param b
@@ -261,7 +247,7 @@ public class Application {
                     appRoot = appRoot.getParentFile();
                 }
                 Application.ROOT = appRoot.getAbsolutePath();
-            } catch (URISyntaxException e) {
+            } catch (final URISyntaxException e) {
                 Log.exception(e);
                 Application.ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + Application.APP_FOLDER + System.getProperty("file.separator");
 
@@ -293,7 +279,7 @@ public class Application {
             }
             if (subPaths != null) { return new File(appRoot, subPaths); }
             return appRoot;
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             Log.exception(e);
             return null;
         }
@@ -385,6 +371,31 @@ public class Application {
     }
 
     /**
+     * 
+     */
+    public static void redirectOutputStreams() {
+        if (Application.REDIRECTED) { return; }
+        if (Charset.defaultCharset() == Charset.forName("cp1252")) {
+            Application.REDIRECTED = true;
+            // workaround.
+            // even 1252 is default codepage, windows console expects cp850
+            // codepage input
+            try {
+                System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, "CP850"));
+            } catch (final UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            try {
+                System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err), true, "CP850"));
+            } catch (final UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
      * sets current Application Folder and Jar ID. MUST BE SET at startup! Can
      * only be set once!
      * 
@@ -392,7 +403,7 @@ public class Application {
      * @param newJar
      */
     public synchronized static void setApplication(final String newAppFolder) {
-       ROOT=null;
+        Application.ROOT = null;
         Application.APP_FOLDER = newAppFolder;
     }
 
