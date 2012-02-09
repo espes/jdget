@@ -1,4 +1,4 @@
-package org.jdownloader.update;
+package org.appwork.update;
 
 import java.awt.GraphicsEnvironment;
 
@@ -27,10 +27,7 @@ public class Options implements UpdaterOptions {
     public Options() {
         // some options shall not be written back to configfile.
         this.op = JsonConfig.create(UpdaterOptions.class);
-        this.app = this.op.getApp();
-        if (this.app == null) {
-            this.app = "JDownloader";
-        }
+    
 
         this.branch = this.op.getBranch();
         savedBranch=branch;
@@ -48,10 +45,6 @@ public class Options implements UpdaterOptions {
 
     }
 
-    @Override
-    public String getApp() {
-        return this.app;
-    }
 
     @Override
     public String getBranch() {
@@ -68,11 +61,7 @@ public class Options implements UpdaterOptions {
         return this.optionalList;
     }
 
-    @Override
-    public long getPackagePollInterval() {
-        // do not allow shorter intervals
-        return Math.max(5000, this.op.getPackagePollInterval());
-    }
+   
 
     @Override
     public String getRestartCommand() {
@@ -89,11 +78,7 @@ public class Options implements UpdaterOptions {
         return this.uninstallList;
     }
 
-    @Override
-    public String[] getUpdServerList() {
 
-        return this.op.getUpdServerList();
-    }
 
     @Override
     public String getWorkingDirectory() {
@@ -119,11 +104,6 @@ public class Options implements UpdaterOptions {
         return this.osFilter;
     }
 
-    @Override
-    public void setApp(final String app) {
-        this.app = app;
-
-    }
 
     @Override
     public void setBranch(final String branch) {
@@ -189,5 +169,7 @@ public class Options implements UpdaterOptions {
     public int getAutoCloseTimeout() {
         return autoCloseTimeout;
     }
+
+
 
 }

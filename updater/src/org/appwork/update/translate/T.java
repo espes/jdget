@@ -1,4 +1,4 @@
-package org.jdownloader.update.translate;
+package org.appwork.update.translate;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -12,6 +12,6 @@ public class T {
 
     @SuppressWarnings("unchecked")
     public static void main(final String[] args) throws URISyntaxException, IOException {
-        TranslationUtils.createFiles(false, Translation.class, AWUTranslation.class);
+        TranslationUtils.createFiles(false, Translation.class);
     }
 }

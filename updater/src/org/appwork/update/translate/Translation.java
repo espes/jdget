@@ -1,10 +1,12 @@
-package org.jdownloader.update.translate;
+package org.appwork.update.translate;
 
 import org.appwork.txtresource.Default;
 import org.appwork.txtresource.Defaults;
+import org.appwork.txtresource.DynamicResourcePath;
 import org.appwork.txtresource.TranslateInterface;
 
 @Defaults(lngs = { "en", "de" })
+@DynamicResourcePath(ResourceThemeAdapter.class)
 public interface Translation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "Updater outdated. Could not update the updater!", "Updater veraltet. Konnte Updater nicht aktualisieren." })
@@ -171,6 +173,7 @@ public interface Translation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "%s1 update(s) are ready for installation.", "%s1 Update(s) können jetzt installiert werden." })
     String updates_ready_for_install(int size);
+
     @Default(lngs = { "en", "de" }, values = { "Finished Updatecheck - Exit", "Updateprüfung abgeschlossen - Exit" })
     String literally_exit();
 

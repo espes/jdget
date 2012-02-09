@@ -1,4 +1,4 @@
-package org.jdownloader.update.gui;
+package org.appwork.update.gui;
 
 import java.awt.Image;
 import java.awt.event.ActionListener;

@@ -1,4 +1,4 @@
-package org.jdownloader.update;
+package org.appwork.update;
 
 import java.io.File;
 import java.io.IOException;

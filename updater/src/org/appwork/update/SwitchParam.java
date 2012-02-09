@@ -1,4 +1,4 @@
-package org.jdownloader.update;
+package org.appwork.update;
 
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging.Log;

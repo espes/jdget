@@ -1,4 +1,4 @@
-package org.jdownloader.update;
+package org.appwork.update;
 
 import org.appwork.update.updateclient.UpdaterState;
 import org.appwork.update.updateclient.event.UpdaterEvent;

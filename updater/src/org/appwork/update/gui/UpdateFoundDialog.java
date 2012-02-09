@@ -1,4 +1,4 @@
-package org.jdownloader.update.gui;
+package org.appwork.update.gui;
 
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
@@ -14,13 +14,13 @@ import javax.swing.JPanel;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.resources.AWUTheme;
+import org.appwork.update.translate.T;
 import org.appwork.update.updateclient.Updater;
 import org.appwork.utils.images.IconIO;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.SwingUtils;
 import org.appwork.utils.swing.dialog.ConfirmDialog;
 import org.appwork.utils.swing.dialog.Dialog;
-import org.jdownloader.update.translate.T;
 
 public class UpdateFoundDialog extends ConfirmDialog {
 
