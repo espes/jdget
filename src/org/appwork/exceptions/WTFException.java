@@ -12,6 +12,11 @@ public class WTFException extends RuntimeException {
     /**
      * 
      */
+    private static final long serialVersionUID = -6107320171996331828L;
+
+    /**
+     * 
+     */
     public WTFException() {
         super();
         // TODO Auto-generated constructor stub

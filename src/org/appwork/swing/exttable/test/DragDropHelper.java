@@ -26,6 +26,11 @@ import javax.swing.TransferHandler;
  */
 public class DragDropHelper extends TransferHandler implements DropTargetListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 648362975715129386L;
+
     @Override
     public boolean canImport(final JComponent comp, final DataFlavor[] transferFlavors) {
         // TODO Auto-generated method stub

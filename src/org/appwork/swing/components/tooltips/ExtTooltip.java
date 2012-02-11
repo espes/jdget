@@ -36,6 +36,11 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
     /**
      * 
      */
+    private static final long serialVersionUID = -2212735987320956801L;
+
+    /**
+     * 
+     */
     public static final String DEFAULT = "default";
 
     /**

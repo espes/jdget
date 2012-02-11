@@ -29,6 +29,11 @@ import com.sun.java.swing.SwingUtilities3;
  */
 public class TooltipPanel extends MigPanel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1211919273097600217L;
+
     class DelegateRepaintManager extends RepaintManager {
 
         /**

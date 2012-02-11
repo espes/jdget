@@ -317,7 +317,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
      * @return
      */
     private Object convert(String string, final Type type) {
-        if ((type == String.class || type instanceof Class && ((Class) type).isEnum()) && !string.startsWith("\"")) {
+        if ((type == String.class || type instanceof Class && ((Class<?>) type).isEnum()) && !string.startsWith("\"")) {
             /* workaround if strings are not escaped, same for enums */
             string = "\"" + string + "\"";
         }

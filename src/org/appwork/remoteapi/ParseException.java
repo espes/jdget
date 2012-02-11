@@ -15,6 +15,11 @@ package org.appwork.remoteapi;
  */
 public class ParseException extends Exception {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 732115776903140116L;
+
     public ParseException() {
         super();
         // TODO Auto-generated constructor stub

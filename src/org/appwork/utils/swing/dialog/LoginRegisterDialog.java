@@ -34,7 +34,6 @@ import org.appwork.utils.locale._AWU;
 
 public class LoginRegisterDialog extends AbstractDialog<String[]> implements KeyListener, MouseListener {
 
-    private static final long serialVersionUID = 9206575398715006581L;
     public static final int   REGISTER         = 1 << 20;
     public static final int   FORCE_REGISTER   = 1 << 21;
 

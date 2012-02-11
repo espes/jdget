@@ -40,8 +40,6 @@ import org.appwork.utils.os.CrossSystem;
  */
 public class ExceptionDialog extends AbstractDialog<Integer> {
 
-    private static final long serialVersionUID = -7647771640756844691L;
-
     private final String      message;
     private JTextPane         textField;
 

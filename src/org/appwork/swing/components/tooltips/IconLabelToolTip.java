@@ -9,6 +9,11 @@ import org.appwork.utils.swing.SwingUtils;
 
 public class IconLabelToolTip extends ExtTooltip {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1437567673004968332L;
+
     private String    name;
 
     private ImageIcon icon;

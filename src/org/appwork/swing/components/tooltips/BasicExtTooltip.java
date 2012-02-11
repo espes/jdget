@@ -26,6 +26,10 @@ import org.appwork.utils.swing.SwingUtils;
  */
 public class BasicExtTooltip extends ExtTooltip implements PropertyChangeListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 6869465876669412410L;
     private JTextArea        tf;
     private final JComponent component;
 

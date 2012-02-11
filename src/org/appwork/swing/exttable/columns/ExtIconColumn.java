@@ -26,6 +26,11 @@ public abstract class ExtIconColumn<E> extends ExtColumn<E> {
         super(name, table);
 
         this.renderer = new RenderLabel() {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 3886046725960279287L;
+
             @Override
             public boolean isVisible() {
                 return false;

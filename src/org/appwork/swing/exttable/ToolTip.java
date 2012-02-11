@@ -23,6 +23,10 @@ import org.appwork.utils.swing.SwingUtils;
  */
 public class ToolTip extends ExtTooltip {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -7756738003708525595L;
     private JTextArea tf;
 
     public ToolTip() {

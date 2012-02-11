@@ -14,9 +14,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -120,7 +118,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @param name
      * @param configInterface
      */
-    @SuppressWarnings("unchecked")
     public StorageHandler(final File name, final Class<T> configInterface) {
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();

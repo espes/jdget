@@ -18,6 +18,11 @@ public class IllegalTypeException extends Exception {
     /**
      * 
      */
+    private static final long serialVersionUID = -1737777556287429746L;
+
+    /**
+     * 
+     */
     public IllegalTypeException() {
         super();
         // TODO Auto-generated constructor stub

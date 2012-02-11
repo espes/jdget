@@ -26,7 +26,17 @@ import org.appwork.utils.swing.dialog.DialogCanceledException;
 import org.appwork.utils.swing.dialog.DialogClosedException;
 
 public class PathChooser extends MigPanel {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -3651657642011425583L;
+
     private class BrowseAction extends AbstractAction {
+        /**
+         * 
+         */
+        private static final long serialVersionUID = -4350861121298607806L;
+
         BrowseAction() {
             putValue(NAME, getBrowseLabel());
         }
@@ -67,6 +77,11 @@ public class PathChooser extends MigPanel {
         super("ins 0", "[grow,fill][]", "[grow,fill]");
         this.id = id;
         txt = new ExtTextField() {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 3243788323043431841L;
 
             @Override
             public JPopupMenu getPopupMenu(CutAction cutAction, CopyAction copyAction, PasteAction pasteAction, DeleteAction deleteAction, SelectAction selectAction) {

@@ -21,7 +21,7 @@ import java.util.ArrayList;
  */
 public class ExtTransferable implements Transferable {
 
-    private ExtDataFlavor flavor;
+    private ExtDataFlavor<?> flavor;
     private ArrayList<?>  items;
     private DataFlavor[] flavorList;
 

@@ -5,6 +5,11 @@ public class ResponseAlreadySentException extends RuntimeException {
     /**
      * 
      */
+    private static final long serialVersionUID = 1536214454339514720L;
+
+    /**
+     * 
+     */
     public ResponseAlreadySentException() {
         super();
         

@@ -21,8 +21,6 @@ import org.appwork.utils.logging.Log;
 
 public class TextAreaDialog extends AbstractDialog<String> {
 
-    private static final long serialVersionUID = 5129590048597691591L;
-
     protected final String    message;
 
     protected final String    def;

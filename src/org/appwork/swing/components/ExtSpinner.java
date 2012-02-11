@@ -21,6 +21,11 @@ import javax.swing.SpinnerNumberModel;
 public class ExtSpinner extends JSpinner {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = -885721913501063289L;
+
+    /**
      * @param spinnerNumberModel
      * @param maximum 
      * @param minimium 

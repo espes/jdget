@@ -2,6 +2,10 @@ package org.appwork.storage.config;
 
 public class ValidationException extends RuntimeException {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -6051722562096012959L;
     private Object value;
     public Object getValue() {
         return value;

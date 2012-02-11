@@ -23,6 +23,10 @@ import org.appwork.utils.locale._AWU;
  * 
  */
 public class SearchContextAction extends AbstractAction {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 9198500488284652091L;
     private final ExtTable<?> table;
 
     public SearchContextAction(final ExtTable<?> extTable) {

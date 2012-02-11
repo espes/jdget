@@ -24,8 +24,6 @@ import org.appwork.storage.Storage;
 import org.appwork.swing.action.BasicAction;
 import org.appwork.swing.components.ExtButton;
 import org.appwork.swing.trayicon.AWTrayIcon;
-import org.appwork.utils.ImageProvider.ImageProvider;
-import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.dialog.Dialog;
@@ -57,6 +55,11 @@ public abstract class BasicGui {
 
                 getFrame().add(new ExtButton(new BasicAction("DOIT") {
 
+                    /**
+                     * 
+                     */
+                    private static final long serialVersionUID = -4007724735998967065L;
+
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         new Thread() {
@@ -86,6 +89,11 @@ public abstract class BasicGui {
     protected BasicGui(final String title) {
 
         this.frame = new JFrame(title) {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -8325715174242107194L;
+
             public void setVisible(boolean b) {
                 //if we hide a frame which is locked by an active modal dialog, we get in problems. avoid this!
                 if (!b) {

@@ -18,6 +18,10 @@ import javax.swing.event.DocumentListener;
 import org.appwork.utils.swing.SwingUtils;
 
 public class ExtTextArea extends JTextArea implements FocusListener, DocumentListener {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -2215616004852131754L;
     private Color       defaultColor;
     private Color       helpColor;
 

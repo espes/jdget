@@ -112,10 +112,6 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
 
     private static final Color FOREGROUND        = Color.GREEN;
 
-    private static double tan(final double degree) {
-        return Math.tan(degree * Math.PI / 180.0);
-    }
-
     private javax.swing.Timer  timer;
     private CircledProgressBar circleBar;
 

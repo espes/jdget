@@ -24,6 +24,11 @@ import org.appwork.utils.event.predefined.changeevent.ChangeEventSender;
 
 public class CircledProgressBar extends JComponent implements ToolTipHandler {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -3518805542131925575L;
+
     private BoundedRangeModel       model;
 
     private ChangeListener          changeListener;

@@ -7,8 +7,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import org.appwork.app.gui.BasicGui;
-import org.appwork.swing.exttable.ExtColumn;
-import org.appwork.swing.exttable.ExtComponentRowHighlighter;
 import org.appwork.swing.exttable.ExtTable;
 import org.appwork.swing.exttable.SelectionHighlighter;
 

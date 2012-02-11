@@ -59,7 +59,6 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
         }
     }
 
-    private static final long serialVersionUID = 4425873806383799500L;
     public static final int   DISABLE_REMEMBER = 1 << 20;
 
     public static void main(final String[] args) {

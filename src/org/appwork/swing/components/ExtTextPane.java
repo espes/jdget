@@ -32,6 +32,10 @@ import org.appwork.utils.swing.SwingUtils;
  * 
  */
 public class ExtTextPane extends JTextPane implements DocumentListener, FocusListener {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -8609711635557381385L;
     private Color       defaultColor;
     private Color       helpColor;
 

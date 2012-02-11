@@ -10,7 +10,6 @@
 package org.appwork.remotecall.client;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 
 import org.appwork.storage.TypeRef;
 
@@ -21,7 +20,6 @@ import org.appwork.storage.TypeRef;
 public class MethodHandler {
 
     private Method            method;
-    @SuppressWarnings("rawtypes")
     private TypeRef<Object>[] typeRefs;
 
     /**

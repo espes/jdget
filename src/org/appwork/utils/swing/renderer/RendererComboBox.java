@@ -20,6 +20,11 @@ import javax.swing.JComboBox;
  */
 public class RendererComboBox extends JComboBox {
     /**
+     * 
+     */
+    private static final long serialVersionUID = -9016239285766238659L;
+
+    /**
      * A subclass of DefaultListCellRenderer that implements UIResource.
      * DefaultListCellRenderer doesn't implement UIResource directly so that
      * applications can safely override the cellRenderer property with
@@ -33,6 +38,11 @@ public class RendererComboBox extends JComboBox {
      * <code>java.beans</code> package. Please see {@link java.beans.XMLEncoder}.
      */
     public static class UIResource extends DefaultListCellRenderer implements javax.swing.plaf.UIResource {
+
+        /**
+         * 
+         */
+        private static final long serialVersionUID = -3522129530054102140L;
     }
 
     public RendererComboBox() {

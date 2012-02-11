@@ -10,7 +10,6 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 
 import org.appwork.app.gui.MigPanel;
@@ -21,6 +20,10 @@ import org.appwork.app.gui.MigPanel;
  */
 public class ScreenShotPanel extends MigPanel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 8107727218118044828L;
     private Image screenshot;
 
     /**
@@ -35,8 +38,6 @@ public class ScreenShotPanel extends MigPanel {
 
     @Override
     protected void paintComponent(final Graphics g) {
-        final Graphics2D g2 = (Graphics2D) g;
-
         if (this.ui != null) {
             final Graphics scratchGraphics = g == null ? null : g.create();
             try {

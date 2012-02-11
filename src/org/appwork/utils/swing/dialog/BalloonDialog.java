@@ -42,7 +42,6 @@ import org.appwork.utils.os.CrossSystem;
 
 public class BalloonDialog extends AbstractDialog<Integer> {
 
-    private static final long serialVersionUID = -7647771640756844691L;
     private JComponent        component;
     private Point             desiredLocation;
 
@@ -368,6 +367,11 @@ public class BalloonDialog extends AbstractDialog<Integer> {
     protected void layoutDialog() {
 
         this.dialog = new InternDialog() {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -1680562541557981314L;
 
             {
                 BalloonDialog.this.screenshotPanel = new ScreenShotPanel("ins 10", "[]", "[]");

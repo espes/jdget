@@ -147,7 +147,7 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
     }
 
     public static void main(final String[] args) throws AWTException, InterruptedException {
-        new EDTHelper() {
+        new EDTHelper<ScreenShooter>() {
 
             @Override
             public ScreenShooter edtRun() {

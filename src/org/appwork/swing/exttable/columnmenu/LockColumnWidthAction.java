@@ -24,6 +24,10 @@ import org.appwork.utils.locale._AWU;
  */
 public class LockColumnWidthAction extends AbstractAction {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 8571514195519414112L;
     private final ExtColumn<?> extColumn;
 
     /**

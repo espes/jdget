@@ -34,7 +34,7 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP, Ping 
 
     private final LinkedList<Color> colors  = new LinkedList<Color>();
     private volatile boolean        stop    = false;
-    private final int               counter = 0;
+//    private final int               counter = 0;
 
     @Override
     public void async(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
@@ -163,12 +163,11 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP, Ping 
      * 
      * @see org.appwork.remoteapi.test.Ping#startCounter()
      */
-    @SuppressWarnings("unchecked")
     @Override
     public CounterProcess startCounter(final RemoteAPIRequest request) {
         final CounterProcess cp = new CounterProcess();
         if (request instanceof SessionRemoteAPIRequest) {
-            final HttpSession session = ((SessionRemoteAPIRequest) request).getSession();
+            final HttpSession session = ((SessionRemoteAPIRequest<?>) request).getSession();
             cp.setSession(session);
         }
         new Thread(cp).start();

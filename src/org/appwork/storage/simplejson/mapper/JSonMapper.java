@@ -189,7 +189,7 @@ public class JSonMapper {
                 }
                 return ret;
             } else if (obj instanceof Class) {
-                return new JSonValue(((Class) obj).getName());
+                return new JSonValue(((Class<?>) obj).getName());
             } else if ((mapper = typeMapper.get(clazz)) != null) {
                 return mapper.map(obj);
             } else/* if (obj instanceof Storable) */{

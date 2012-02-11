@@ -30,8 +30,6 @@ import org.appwork.utils.locale._AWU;
 
 public class SearchDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
-    private static final long serialVersionUID = 9206575398715006581L;
-
     private final String      message;
     private JTextPane         messageArea;
     private JTextComponent    input;

@@ -20,6 +20,10 @@ import org.appwork.utils.formatter.SizeFormatter.Unit;
 
 public class SizeSpinner extends ExtSpinner implements FocusListener, ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -3983659343629867162L;
     private SpinnerNumberModel nm;
 
     public void setModel(SpinnerModel model) {

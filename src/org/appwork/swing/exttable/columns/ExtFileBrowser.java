@@ -28,6 +28,10 @@ import org.appwork.utils.swing.SwingUtils;
  * 
  */
 public abstract class ExtFileBrowser<T> extends ExtComponentColumn<T> implements ActionListener {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -6538541922869223568L;
     protected MigPanel renderer;
     private JTextField rendererLabel;
     private JButton    rendererButton;
@@ -71,6 +75,11 @@ public abstract class ExtFileBrowser<T> extends ExtComponentColumn<T> implements
         SwingUtils.setOpaque(rendererLabel, false);
         rendererLabel.setBorder(null);
         this.renderer = new MigPanel("ins 0", "[grow,fill]0[]", "[grow,fill]") {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -2099450346231216292L;
+
             public void setForeground(Color fg) {
                 super.setForeground(fg);
                 rendererLabel.setForeground(fg);
@@ -110,6 +119,11 @@ public abstract class ExtFileBrowser<T> extends ExtComponentColumn<T> implements
         });
         editorLabel.setBorder(null);
         this.editor = new MigPanel("ins 0", "[grow,fill]0[]", "[grow,fill]") {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -8432598231289793141L;
+
             public void setForeground(Color fg) {
                 super.setForeground(fg);
                 editorLabel.setForeground(fg);

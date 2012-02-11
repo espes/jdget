@@ -1,10 +1,13 @@
 package org.appwork.remotecall.exceptions;
 
 import org.appwork.remotecall.server.RemoteCallException;
-import org.appwork.remotecall.server.Requestor;
 
 public class IPNotAllowedException extends RemoteCallException {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -5165495572484252835L;
     private String ip;
 
     public String getIp() {

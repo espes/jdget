@@ -5,6 +5,11 @@ public class TODOException extends RuntimeException {
     /**
      * 
      */
+    private static final long serialVersionUID = -4277315499969343085L;
+
+    /**
+     * 
+     */
     public TODOException() {
         super();
         // TODO Auto-generated constructor stub

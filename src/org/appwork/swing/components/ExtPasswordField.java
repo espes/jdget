@@ -18,6 +18,11 @@ import org.appwork.app.gui.MigPanel;
 
 public class ExtPasswordField extends MigPanel implements FocusListener, DocumentListener, TextComponentInterface {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 9035297840443317147L;
+
     public static void main(final String[] args) {
 
         new BasicGui("ExtPasswordField") {
@@ -44,6 +49,11 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
                 p.add(new JLabel("PW field setpw &helptext"));
                 p.add(pwhelptext);
                 p.add(new JButton(new AbstractAction() {
+                    /**
+                     * 
+                     */
+                    private static final long serialVersionUID = 7405750769257653425L;
+
                     {
                         this.putValue(Action.NAME, "Print");
                     }

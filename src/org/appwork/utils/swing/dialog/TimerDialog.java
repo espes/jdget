@@ -10,7 +10,6 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 
@@ -74,7 +73,6 @@ public abstract class TimerDialog {
         // }
     }
 
-    private static final long serialVersionUID = -7551772010164684078L;
     /**
      * Timer Thread to count down the {@link #counter}
      */
@@ -184,18 +182,6 @@ public abstract class TimerDialog {
     protected int getPreferredWidth() {
         // TODO Auto-generated method stub
         return -1;
-    }
-
-    /**
-     * @return
-     */
-    private Container getRoot() {
-        Container ret = this.getDialog().getParent();
-        Container p;
-        while ((p = ret.getParent()) != null) {
-            ret = p;
-        }
-        return ret;
     }
 
     protected void initTimer(final long time) {

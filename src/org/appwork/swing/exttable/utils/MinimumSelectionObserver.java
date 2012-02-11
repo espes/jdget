@@ -1,6 +1,5 @@
 package org.appwork.swing.exttable.utils;
 
-import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;

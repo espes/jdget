@@ -44,7 +44,6 @@ public class MethodHandler {
      * @throws IllegalArgumentException
      * @throws ClassNotFoundException
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public MethodHandler(final StorageHandler<?> storageHandler, final Type getter, final String key, final Method m) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
 
         this.type = getter;

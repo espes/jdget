@@ -95,6 +95,11 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
         super(name, extModel);
         this.determinatedRenderer = new CircledProgressBar() {
 
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -5119741526005648827L;
+
             @Override
             public boolean isVisible() {
                 return false;

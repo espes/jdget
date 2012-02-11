@@ -10,15 +10,12 @@
 package org.appwork.storage.config.test;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import org.appwork.storage.config.ConfigInterface;
-import org.appwork.storage.config.JsonConfig;
 import org.appwork.storage.config.handler.StorageHandler;
 
 /**

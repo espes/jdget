@@ -15,6 +15,11 @@ package org.appwork.utils.swing.dialog;
  */
 public class OffScreenException extends Exception {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 3210825501582580786L;
+
     public OffScreenException() {
         super();
         // TODO Auto-generated constructor stub

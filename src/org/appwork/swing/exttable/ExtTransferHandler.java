@@ -11,6 +11,11 @@ import javax.swing.TransferHandler;
 
 public class ExtTransferHandler<T> extends TransferHandler {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -6250155503485735869L;
+
     public ExtTransferHandler() {
 
     }

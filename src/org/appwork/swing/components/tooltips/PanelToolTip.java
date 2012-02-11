@@ -4,6 +4,11 @@ package org.appwork.swing.components.tooltips;
 public class PanelToolTip extends ExtTooltip {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 5839491704118559564L;
+
+    /**
      * @param comp
      */
     public PanelToolTip(final TooltipPanel comp) {

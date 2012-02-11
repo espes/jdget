@@ -55,8 +55,6 @@ import org.appwork.utils.swing.SwingUtils;
 
 public abstract class AbstractDialog<T> extends TimerDialog implements ActionListener, WindowListener {
 
-    private static final long                     serialVersionUID       = 1831761858087385862L;
-
     private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN = new HashMap<String, Integer>();
 
     public static Integer getSessionDontShowAgainValue(final String key) {

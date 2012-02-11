@@ -21,6 +21,11 @@ import org.appwork.storage.simplejson.Ignores;
 
 })
 public class RemoteCallException extends Exception implements Storable {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -2759172060515469671L;
+
     public RemoteCallException() {
         super();
 

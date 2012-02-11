@@ -24,6 +24,10 @@ import org.appwork.utils.locale._AWU;
  */
 public class ResetColumns extends AbstractAction {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5089651483570517886L;
     private final ExtTable<?> table;
 
     /**

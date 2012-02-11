@@ -32,7 +32,6 @@ import org.appwork.utils.swing.JTextFieldLimited;
  */
 public class InputDialogLimited extends AbstractDialog<String> implements KeyListener, MouseListener {
 
-    private static final long serialVersionUID = 9206575398715006581L;
     private String defaultMessage;
     private String message;
     private JTextPane messageArea;

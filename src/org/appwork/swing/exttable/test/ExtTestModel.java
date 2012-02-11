@@ -17,7 +17,6 @@ import org.appwork.resources.AWUTheme;
 import org.appwork.swing.exttable.ExtTableModel;
 import org.appwork.swing.exttable.columns.ExtFileBrowser;
 import org.appwork.swing.exttable.columns.ExtTextColumn;
-import org.appwork.utils.Application;
 import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.Dialog.FileChooserSelectionMode;
 import org.appwork.utils.swing.dialog.Dialog.FileChooserType;
@@ -98,6 +97,11 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
         // }
         // });
         addColumn(new ExtFileBrowser<TextObject>("Browse me") {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -7233073890074043200L;
 
             @Override
             public File getFile(TextObject o) {

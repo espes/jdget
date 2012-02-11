@@ -208,7 +208,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 }
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public void mouseReleased(final MouseEvent e) {
                 ExtTable.this.headerDragging = false;

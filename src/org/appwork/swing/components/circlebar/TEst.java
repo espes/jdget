@@ -51,10 +51,20 @@ public class TEst {
                     public ExtTooltip createTooltip() {
                         final ExtTooltip tt = new ExtTooltip() {
 
+                            /**
+                             * 
+                             */
+                            private static final long serialVersionUID = -1978297969679347066L;
+
                             @Override
                             public TooltipPanel createContent() {
                                 final TooltipPanel p = new TooltipPanel("ins 5,wrap 1", "[]", "[]");
                                 p.add(new JButton(new AbstractAction() {
+                                    /**
+                                     * 
+                                     */
+                                    private static final long serialVersionUID = 5385975776993345514L;
+
                                     {
                                         this.putValue(Action.NAME, "Drück mich alder!");
                                     }
@@ -103,6 +113,11 @@ public class TEst {
                 this.getFrame().getContentPane().add(test, "height 64!,width 64!");
 
                 this.getFrame().getContentPane().add(new JButton(new AbstractAction() {
+                    /**
+                     * 
+                     */
+                    private static final long serialVersionUID = -7967957296219315456L;
+
                     {
                         this.putValue(Action.NAME, "Toggle Indeterminated");
                     }
@@ -118,6 +133,11 @@ public class TEst {
 
                 JButton bt;
                 this.getFrame().getContentPane().add(bt = new JButton(new AbstractAction() {
+                    /**
+                     * 
+                     */
+                    private static final long serialVersionUID = -7726007502976853379L;
+
                     {
                         this.putValue(Action.NAME, "Toggle RUN");
                     }

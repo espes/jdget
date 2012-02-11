@@ -5,7 +5,6 @@ import javax.swing.SpinnerNumberModel;
 
 import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.SpinnerValidator;
-import org.appwork.storage.config.events.ConfigEventListener;
 import org.appwork.storage.config.events.GenericConfigEventListener;
 import org.appwork.storage.config.handler.ByteKeyHandler;
 import org.appwork.storage.config.handler.KeyHandler;
@@ -13,6 +12,10 @@ import org.appwork.utils.swing.EDTRunner;
 
 public class ConfigByteSpinnerModel extends SpinnerNumberModel implements GenericConfigEventListener<Byte> {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 8542048212034642953L;
     private ByteKeyHandler keyHandler;
 
     public ConfigByteSpinnerModel(ByteKeyHandler keyHandler) {

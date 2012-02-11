@@ -35,6 +35,11 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         super(name, extModel);
         this.determinatedRenderer = new JProgressBar() {
 
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -6791137194360509489L;
+
             @Override
             public boolean isVisible() {
                 return false;

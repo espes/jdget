@@ -33,7 +33,6 @@ import org.appwork.utils.logging.Log;
 
 public class InputDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
-    private static final long      serialVersionUID = 9206575398715006581L;
     protected String               defaultMessage;
     protected String               message;
 

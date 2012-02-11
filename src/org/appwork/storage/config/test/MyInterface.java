@@ -28,7 +28,6 @@ import org.appwork.storage.config.annotations.DefaultFloatArrayValue;
 import org.appwork.storage.config.annotations.DefaultFloatValue;
 import org.appwork.storage.config.annotations.DefaultIntArrayValue;
 import org.appwork.storage.config.annotations.DefaultIntValue;
-import org.appwork.storage.config.annotations.DefaultJsonObject;
 import org.appwork.storage.config.annotations.DefaultLongArrayValue;
 import org.appwork.storage.config.annotations.DefaultLongValue;
 import org.appwork.storage.config.annotations.DefaultStringArrayValue;

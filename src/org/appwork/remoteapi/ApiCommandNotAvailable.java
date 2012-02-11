@@ -15,6 +15,11 @@ package org.appwork.remoteapi;
  */
 public class ApiCommandNotAvailable extends Exception {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -6375479697981911029L;
+
     public ApiCommandNotAvailable() {
         super();
         // TODO Auto-generated constructor stub

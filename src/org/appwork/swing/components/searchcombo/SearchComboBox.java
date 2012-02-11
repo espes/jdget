@@ -43,7 +43,6 @@ import javax.swing.plaf.basic.ComboPopup;
 import org.appwork.app.gui.BasicGui;
 import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
-import org.appwork.swing.components.searchcombo.SearchComboBox.Editor;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.SwingUtils;
@@ -58,6 +57,11 @@ import org.appwork.utils.swing.SwingUtils;
  */
 public abstract class SearchComboBox<T> extends JComboBox {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 6475635443708682554L;
+
     class Editor implements ComboBoxEditor, FocusListener, DocumentListener {
         private final JTextField tf;
         private final MigPanel   panel;
@@ -69,6 +73,11 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
         public Editor() {
             this.tf = new JTextField() {
+
+                /**
+                 * 
+                 */
+                private static final long serialVersionUID = 8594276945732071594L;
 
                 @Override
                 public void setText(final String t) {
@@ -111,6 +120,11 @@ tf.addFocusListener(new FocusListener() {
             this.icon = new JLabel();
             // editor panel
             this.panel = new MigPanel("ins 0", "[][grow,fill]", "[grow,fill]") {
+
+                /**
+                 * 
+                 */
+                private static final long serialVersionUID = 3558783171884965102L;
 
                 @Override
                 public void requestFocus() {
@@ -393,6 +407,11 @@ tf.addFocusListener(new FocusListener() {
             protected void layoutPanel() {
                 try {
                     final SearchComboBox<String> box1 = new SearchComboBox<String>() {
+
+                        /**
+                         * 
+                         */
+                        private static final long serialVersionUID = 743905470697711746L;
 
                         @Override
                         protected Icon getIconForValue(final String value) {

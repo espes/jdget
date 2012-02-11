@@ -131,6 +131,11 @@ public class ShutdownController extends Thread {
             // Shutdowncontroller as a normal hook.
 
             final IdentityHashMap<Thread, Thread> hookDelegater = new IdentityHashMap<Thread, Thread>() {
+                /**
+                 * 
+                 */
+                private static final long serialVersionUID = 8334628124340671103L;
+
                 {
                     // SHutdowncontroller should be the only hook!!
                     super.put(ShutdownController.this, ShutdownController.this);

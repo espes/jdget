@@ -15,6 +15,11 @@ package org.appwork.remoteapi;
  */
 public class BadParameterException extends Exception {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -1276528269606559293L;
+
     public BadParameterException() {
         super();
         // TODO Auto-generated constructor stub

@@ -9,8 +9,6 @@
  */
 package org.appwork.storage.simplejson.mapper;
 
-import java.io.File;
-
 import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.JSonValue;
 

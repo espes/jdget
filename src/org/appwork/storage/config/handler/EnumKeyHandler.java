@@ -38,7 +38,7 @@ public class EnumKeyHandler extends KeyHandler<Enum> {
         return DefaultEnumValue.class;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     public Enum getDefaultValue() {
         return this.defaultValue;
 

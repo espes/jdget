@@ -39,6 +39,11 @@ import org.appwork.app.gui.MigPanel;
  */
 public class BallonPanel extends MigPanel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -2861583781039396792L;
+
     private final int           shadowSize = 3;
 
     private int                 topInset;

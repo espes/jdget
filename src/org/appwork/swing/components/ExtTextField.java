@@ -20,6 +20,10 @@ import org.appwork.app.gui.copycutpaste.PasteAction;
 import org.appwork.app.gui.copycutpaste.SelectAction;
 
 public class ExtTextField extends JTextField implements CaretListener, FocusListener, DocumentListener, ContextMenuAdapter, TextComponentInterface {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -3625278218179478516L;
     protected Color defaultColor;
     private Color   helpColor;
 

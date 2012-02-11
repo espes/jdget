@@ -5,7 +5,6 @@ import javax.swing.SpinnerNumberModel;
 
 import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.SpinnerValidator;
-import org.appwork.storage.config.events.ConfigEventListener;
 import org.appwork.storage.config.events.GenericConfigEventListener;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.storage.config.handler.LongKeyHandler;

@@ -24,10 +24,6 @@ import org.appwork.utils.logging.Log;
 
 public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxDialogInterface {
     /**
-     * 
-     */
-    private static final long      serialVersionUID = 3779238515088665521L;
-    /**
      * The Comboxbox to display the options
      */
     private JComboBox              box;

@@ -23,10 +23,6 @@ import javax.swing.JPanel;
  */
 public class ContainerDialog extends AbstractDialog<Integer> {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -8767494769584526940L;
     protected JPanel          panel;
     private final Image       frameIcon;
 

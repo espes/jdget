@@ -44,7 +44,6 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         public void run() throws Exception;
     }
 
-    private static final long    serialVersionUID   = -7420852517889843489L;
     private boolean              disposed;
 
     private Thread               executer;

@@ -19,7 +19,6 @@ import java.util.Iterator;
 import java.util.logging.Level;
 
 import org.appwork.storage.JSonStorage;
-import org.appwork.storage.config.annotations.DefaultStringValue;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
 
