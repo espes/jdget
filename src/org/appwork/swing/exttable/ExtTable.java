@@ -269,6 +269,8 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         if (Application.getJavaVersion() >= Application.JAVA16) {
             this.setFillsViewportHeight(true);
         }
+//table should always try to get the full available height
+        setPreferredScrollableViewportSize(new Dimension(450, 20000));
 
         this.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
 

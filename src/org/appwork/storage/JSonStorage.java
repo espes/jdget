@@ -366,8 +366,9 @@ public class JSonStorage {
                 }
             }
         } catch (final Exception e) {
+            Log.L.warning("Error parsing String: "+string);
             Log.exception(Level.WARNING, e);
-            Log.L.warning(string);
+        
             return def;
         }
     }
