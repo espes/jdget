@@ -396,7 +396,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             final int j = i;
 
             final TableColumn tableColumn = new TableColumn(i);
-
+       
             this.model.getExtColumnByModelIndex(j).setTableColumn(tableColumn);
 
             tableColumn.setHeaderRenderer(this.model.getExtColumnByModelIndex(j).getHeaderRenderer(this.getTableHeader()) != null ? this.model.getExtColumnByModelIndex(j).getHeaderRenderer(this.getTableHeader()) : new ExtTableHeaderRenderer(this.model.getExtColumnByModelIndex(j), this.getTableHeader()));
