@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -48,6 +49,7 @@ import jd.parser.Regex;
 import jd.parser.html.Form;
 import jd.parser.html.InputField;
 
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
 public class Browser {
@@ -540,6 +542,20 @@ public class Browser {
             throw new IOException("requestIntervalTime Exception");
         }
         request.connect();
+    }
+
+    public static void main(String[] args) {
+        Browser br = new Browser();
+        br.forceDebug(true);
+        br.setCookie("jdownloader.org", "bla", "Blub");
+        br.getHeaders().put("Accept-Language", "en");
+        try {
+            URLConnectionAdapter connection = br.openGetConnection("http://update3.jdownloader.org/speed.avi");
+            System.out.println(connection);
+        } catch (IOException e) {
+            Log.exception(Level.WARNING, e);
+
+        }
     }
 
     public boolean containsHTML(final String regex) {

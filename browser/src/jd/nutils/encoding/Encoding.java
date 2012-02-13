@@ -175,7 +175,10 @@ public class Encoding {
         return str;
     }
 
-    
+    public static void main(String[] args) {
+        String test=  "new encoding &#39";
+        System.out.println((test));
+    }
     public static boolean isUrlCoded(final String str) {
         if (str == null) { return false; }
         try {
