@@ -488,7 +488,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
             sb.append(key).append(": ").append(this.requestProperties.get(key)).append("\r\n");
         }
         sb.append("\r\n");
-        this.httpSocket.getOutputStream().write(sb.toString().getBytes("UTF-8"));
+        this.httpSocket.getOutputStream().write(sb.toString().getBytes("ISO-8859-1"));
         this.httpSocket.getOutputStream().flush();
         if (this.httpMethod != RequestMethod.POST) {
             this.outputStream = this.httpSocket.getOutputStream();
