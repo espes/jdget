@@ -73,10 +73,20 @@ public class HTMLParser {
         HTMLParser._getHttpLinksFinder(reversedata, url, results);
         reversedata = null;
         /* find base64'ed */
-        String base64Data = Encoding.urlDecode(data, true);
-        base64Data = Encoding.Base64Decode(base64Data);
+        String urlDecoded = Encoding.urlDecode(data, true);
+        String base64Data = Encoding.Base64Decode(urlDecoded);
+        urlDecoded = null;
         HTMLParser._getHttpLinksFinder(base64Data, url, results);
         base64Data = null;
+        /* parse escaped js stuff */
+        String unescaped[] = new Regex(data, "unescape\\(('|\")(.*?)('|\")").getColumn(1);
+        if (unescaped != null) {
+            for (String unescape : unescaped) {
+                unescape = Encoding.htmlDecode(unescape);
+                HTMLParser._getHttpLinksFinder(unescape, url, results);
+            }
+            unescaped = null;
+        }
         /* find hex'ed */
         String hex = new Regex(data, "(([0-9a-fA-F]{2}| )+)").getMatch(0);
         if (hex != null && hex.length() > 24) {
@@ -273,7 +283,10 @@ public class HTMLParser {
         if (!data.contains("://") || data.length() < 10) {
             /* data must contain at least the protocol seperator */
             /* a://b.c/d == minimum 10 length */
-            if (!data.contains("href")) { return results; }
+            if (!data.contains("href") && !data.contains("unescape")) {
+                /* maybe easy encrypted website or a href */
+                return results;
+            }
         }
         HTMLParser._getHttpLinksFinder(data, url, results);
         HTMLParser._getHttpLinksDeepWalker(data, url, results);
