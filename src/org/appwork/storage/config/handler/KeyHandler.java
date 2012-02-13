@@ -91,7 +91,7 @@ public abstract class KeyHandler<RawClass> {
         }
 
     }
-
+   
     /**
      * @param m
      * @param class1
@@ -394,12 +394,9 @@ public abstract class KeyHandler<RawClass> {
     }
 
     @Override
-    public String toString() {
-        try {
-            return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey() + " = " + this.getValue();
-        } catch (final Exception e) {
-            return "Keyhandler " + this.storageHandler.getConfigInterface() + "." + this.getKey();
-        }
+    public String toString() {        
+        RawClass ret = getValue();
+        return ret==null?null:ret.toString();
     }
 
     public void validateEncryptionKey(final byte[] key2) {

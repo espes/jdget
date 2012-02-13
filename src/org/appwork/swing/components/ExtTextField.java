@@ -106,8 +106,9 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
      * @param addLinksDialog_layoutDialogContent_input_help
      */
     public void setHelpText(final String helpText) {
+        String old = this.helpText;
         this.helpText = helpText;
-        if (this.getText().length() == 0) {
+        if (this.getText().length() == 0||getText().equals(old)) {
             this.setText(this.helpText);
             this.setForeground(this.helpColor);
         }

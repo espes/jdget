@@ -15,6 +15,7 @@ import java.lang.reflect.Field;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.KeyStroke;
 
@@ -45,12 +46,12 @@ public abstract class BasicAction extends AbstractAction {
     public BasicAction() {
         super();
     }
-    public void setSmallIcon(ImageIcon icon) {
+    public void setSmallIcon(Icon icon) {
         putValue(SMALL_ICON, icon);
     }
 
-    public ImageIcon getSmallIcon() {
-        return (ImageIcon) getValue(SMALL_ICON);
+    public Icon getSmallIcon() {
+        return (Icon) getValue(SMALL_ICON);
     }
 
     public String getName() {

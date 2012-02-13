@@ -75,6 +75,7 @@ public class JsonConfig {
 
                     ret = JsonConfig.CACHE.get(configInterface.getName());
                     if (ret == null) {
+                       
                         ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(Application.getResource("cfg/" + configInterface.getName()), configInterface));
                         JsonConfig.CACHE.put(configInterface.getName(), ret);
                     }
