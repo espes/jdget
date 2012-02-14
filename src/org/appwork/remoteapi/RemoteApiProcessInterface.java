@@ -9,6 +9,7 @@
  */
 package org.appwork.remoteapi;
 
+import org.appwork.remoteapi.RemoteAPIProcess.STATUS;
 
 /**
  * @author daniel
@@ -16,6 +17,8 @@ package org.appwork.remoteapi;
  */
 public interface RemoteApiProcessInterface extends RemoteAPIInterface {
 
-    public boolean isRunning();
+    public STATUS getStatus();
+
+    public boolean removeProcess();
 
 }

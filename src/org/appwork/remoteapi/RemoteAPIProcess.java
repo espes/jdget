@@ -17,13 +17,23 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class RemoteAPIProcess<T> implements Runnable, RemoteApiProcessInterface {
 
-    private boolean           isRunning  = false;
+    public static enum STATUS {
+        IDLE,
+        RUNNING,
+        FINISHD
+    }
+
+    private STATUS            status     = STATUS.IDLE;
     private boolean           isFinished = false;
 
     private static AtomicLong pid        = new AtomicLong();
 
     private final String      pidString  = this.getClass().getSimpleName() + "_" + RemoteAPIProcess.pid.incrementAndGet() + Math.abs((System.currentTimeMillis() + "_" + RemoteAPIProcess.pid.incrementAndGet()).hashCode());
     private RemoteAPI         remoteAPI;
+
+    protected boolean autoRemove() {
+        return true;
+    }
 
     /**
      * @return the pidString
@@ -34,29 +44,44 @@ public abstract class RemoteAPIProcess<T> implements Runnable, RemoteApiProcessI
 
     protected abstract T getResponse();
 
-    protected synchronized boolean isFinished() {
-        return this.isFinished;
+    public STATUS getStatus() {
+        return this.status;
     }
 
-    public boolean isRunning() {
-        return this.isRunning;
+    protected synchronized boolean isFinished() {
+        return this.isFinished;
     }
 
     public abstract void process();
 
     @Override
+    public boolean removeProcess() {
+        if (!this.autoRemove()) {
+            try {
+                this.remoteAPI.unregisterProcess(this);
+                return true;
+            } catch (final Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void run() {
-        this.isRunning = true;
+        this.status = STATUS.RUNNING;
         try {
             this.process();
         } finally {
+            this.status = STATUS.FINISHD;
             synchronized (this) {
-                this.isRunning = false;
                 this.isFinished = true;
-                try {
-                    this.remoteAPI.unregisterProcess(this);
-                } catch (final Throwable e) {
-                    e.printStackTrace();
+                if (this.autoRemove()) {
+                    try {
+                        this.remoteAPI.unregisterProcess(this);
+                    } catch (final Throwable e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

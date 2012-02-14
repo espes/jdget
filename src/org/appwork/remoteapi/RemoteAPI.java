@@ -423,11 +423,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             for (final Entry<String, RemoteAPIProcess<?>> next : this.processes.entrySet()) {
                 final HashMap<String, String> data = new HashMap<String, String>();
                 data.put("pid", next.getValue().getPID());
-                if (!next.getValue().isRunning()) {
-                    data.put("status", "idle");
-                } else {
-                    data.put("status", "running");
-                }
+                data.put("status", next.getValue().getStatus().name());
                 ret.add(data);
             }
         }
