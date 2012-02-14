@@ -1,5 +1,6 @@
 package org.appwork.swing.exttable.columns;
 
+import java.awt.Graphics;
 import java.text.DecimalFormat;
 import java.text.FieldPosition;
 
@@ -37,8 +38,13 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
              */
             private static final long serialVersionUID = 1045896241157027789L;
 
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+            }
+
             @Override
             public boolean isVisible() {
+
                 return false;
             }
         };

@@ -23,6 +23,8 @@ import org.appwork.swing.exttable.ExtTableModel;
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.renderer.RendererMigPanel;
 
+import sun.swing.SwingUtilities2;
+
 public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionListener, FocusListener {
 
     private static final long serialVersionUID = 2114805529462086691L;
@@ -160,24 +162,25 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorField.removeActionListener(this);
         this.fireEditingStopped();
     }
+
     protected void configureCurrentlyEditingComponent(E value, boolean isSelected, int row, int column) {
         this.editorIconLabel.setIcon(this.getIcon(value));
 
     }
+
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
 
-    
-            this.editorField.removeActionListener(this);
-            String str = this.getStringValue(value);
-            if (str == null) {
-                // under substance, setting setText(null) somehow sets the label
-                // opaque.
-                str = "";
-            }
-            this.editorField.setText(str);
-            this.editorField.addActionListener(this);
-        
+        this.editorField.removeActionListener(this);
+        String str = this.getStringValue(value);
+        if (str == null) {
+            // under substance, setting setText(null) somehow sets the label
+            // opaque.
+            str = "";
+        }
+        this.editorField.setText(str);
+        this.editorField.addActionListener(this);
+
         this.editorIconLabel.setIcon(this.getIcon(value));
 
     }
@@ -185,6 +188,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     @Override
     public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
 
+        this.rendererIcon.setIcon(this.getIcon(value));
         String str = this.getStringValue(value);
         if (str == null) {
             // under substance, setting setText(null) somehow sets the label
@@ -192,8 +196,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             str = "";
         }
 
-        this.rendererField.setText(str);
-        this.rendererIcon.setIcon(this.getIcon(value));
+        this.rendererField.setText(SwingUtilities2.clipStringIfNecessary(rendererField, rendererField.getFontMetrics(rendererField.getFont()), str, getTableColumn().getWidth() - rendererIcon.getPreferredSize().width - 5));
 
     }
 
@@ -205,7 +208,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     @Override
     public void focusLost(final FocusEvent e) {
         // TODO Auto-generated method stub
-System.out.println(2);
+        System.out.println(2);
     }
 
     @Override
