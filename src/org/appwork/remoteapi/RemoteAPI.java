@@ -28,6 +28,7 @@ import org.appwork.storage.TypeRef;
 import org.appwork.utils.Regex;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
@@ -196,11 +197,11 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
     }
 
     /* hashmap that holds all registered interfaces and their pathes */
-    private final HashMap<String, InterfaceHandler<?>> interfaces = new HashMap<String, InterfaceHandler<?>>();
+    private final HashMap<String, InterfaceHandler<RemoteAPIInterface>> interfaces = new HashMap<String, InterfaceHandler<RemoteAPIInterface>>();
 
-    private final HashMap<String, RemoteAPIProcess<?>> processes  = new HashMap<String, RemoteAPIProcess<?>>();
+    private final HashMap<String, RemoteAPIProcess<RemoteAPIInterface>> processes  = new HashMap<String, RemoteAPIProcess<RemoteAPIInterface>>();
 
-    private final Object                               LOCK       = new Object();
+    private final Object                                                LOCK       = new Object();
 
     public RemoteAPI() {
         try {
@@ -280,11 +281,12 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                 /* we wrap response object in data:object,pid:pid(optional) */
                 final HashMap<String, Object> responseJSON = new HashMap<String, Object>();
                 if (RemoteAPIProcess.class.isAssignableFrom(method.getReturnType())) {
-                    final RemoteAPIProcess<?> process = (RemoteAPIProcess<?>) responseData;
+                    final RemoteAPIProcess<RemoteAPIInterface> process = (RemoteAPIProcess<RemoteAPIInterface>) responseData;
                     responseJSON.putAll(this.remoteAPIProcessResponse(process));
                     try {
                         this.registerProcess(process);
                     } catch (final Throwable e) {
+                        Log.exception(e);
                         System.out.println("could not register process " + process.getPID());
                         responseJSON.put("error", "registererror");
                     }
@@ -420,7 +422,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
     public ArrayList<HashMap<String, String>> list() {
         final ArrayList<HashMap<String, String>> ret = new ArrayList<HashMap<String, String>>();
         synchronized (this.LOCK) {
-            for (final Entry<String, RemoteAPIProcess<?>> next : this.processes.entrySet()) {
+            for (final Entry<String, RemoteAPIProcess<RemoteAPIInterface>> next : this.processes.entrySet()) {
                 final HashMap<String, String> data = new HashMap<String, String>();
                 data.put("pid", next.getValue().getPID());
                 data.put("status", next.getValue().getStatus().name());
@@ -483,12 +485,26 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                         if (b != null) {
                             defaultAuthLevel = b.value();
                         }
-                        if (this.interfaces.containsKey(namespace)) { throw new IllegalStateException("Interface " + c.getName() + " with namespace " + namespace + " already has been registered by " + this.interfaces.get(namespace)); }
+                        // if (this.interfaces.containsKey(namespace)) { throw
+                        // new IllegalStateException("Interface " + c.getName()
+                        // + " with namespace " + namespace +
+                        // " already has been registered by " +
+                        // this.interfaces.get(namespace)); }
+                        // System.out.println("Register:   " + c.getName() +
+                        // "->" + namespace);
+                        // try {
+
                         System.out.println("Register:   " + c.getName() + "->" + namespace);
                         try {
-                            final InterfaceHandler<RemoteAPIInterface> intf = InterfaceHandler.create((Class<RemoteAPIInterface>) c, x, defaultAuthLevel);
-                            intf.setSessionRequired(c.getAnnotation(ApiSessionRequired.class) != null);
-                            this.interfaces.put(namespace, intf);
+                            InterfaceHandler<RemoteAPIInterface> handler = this.interfaces.get(namespace);
+                            if (handler == null) {
+                                handler = InterfaceHandler.create((Class<RemoteAPIInterface>) c, x, defaultAuthLevel);
+                                handler.setSessionRequired(c.getAnnotation(ApiSessionRequired.class) != null);
+                                this.interfaces.put(namespace, handler);
+                            } else {
+                                handler.add((Class<RemoteAPIInterface>) c, x, defaultAuthLevel);
+                            }
+
                         } catch (final SecurityException e) {
                             throw new ParseException(e);
                         } catch (final NoSuchMethodException e) {
@@ -502,7 +518,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
     }
 
     @SuppressWarnings("unchecked")
-    protected void registerProcess(final RemoteAPIProcess<?> process) throws ParseException {
+    protected void registerProcess(final RemoteAPIProcess<RemoteAPIInterface> process) throws ParseException {
         synchronized (this.LOCK) {
             if (process.isFinished()) { return; }
             process.setRemoteAPI(this);
@@ -525,12 +541,18 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                         if (b != null) {
                             defaultAuthLevel = b.value();
                         }
-                        if (this.interfaces.containsKey(namespace)) { throw new IllegalStateException("Interface " + c.getName() + " with namespace " + namespace + " already has been registered by " + this.interfaces.get(namespace)); }
+
                         System.out.println("Register:   " + c.getName() + "->" + namespace);
                         try {
-                            final InterfaceHandler<RemoteAPIInterface> intf = InterfaceHandler.create((Class<RemoteAPIInterface>) c, process, defaultAuthLevel);
-                            intf.setSessionRequired(c.getAnnotation(ApiSessionRequired.class) != null);
-                            this.interfaces.put(namespace, intf);
+                            InterfaceHandler<RemoteAPIInterface> handler = this.interfaces.get(namespace);
+                            if (handler == null) {
+                                handler = InterfaceHandler.create((Class<RemoteAPIInterface>) c, process, defaultAuthLevel);
+                                handler.setSessionRequired(c.getAnnotation(ApiSessionRequired.class) != null);
+                                this.interfaces.put(namespace, handler);
+                            } else {
+                                handler.add((Class<RemoteAPIInterface>) c, process, defaultAuthLevel);
+                            }
+
                         } catch (final SecurityException e) {
                             throw new ParseException(e);
                         } catch (final NoSuchMethodException e) {

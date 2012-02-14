@@ -23,6 +23,7 @@ import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.utils.Exceptions;
 import org.appwork.utils.Regex;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.HeaderCollection;
@@ -41,7 +42,7 @@ public class HttpConnection implements Runnable {
 
     public static LinkedList<String[]> parseParameterList(final String requestedParameters) throws IOException {
         final LinkedList<String[]> requestedURLParameters = new LinkedList<String[]>();
-        if (requestedParameters != null) {
+        if (!StringUtils.isEmpty(requestedParameters)) {
             /* build requestedParamters */
             final String[] parameters = requestedParameters.split("&(?!#)");
             for (final String parameter : parameters) {

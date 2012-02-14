@@ -34,7 +34,7 @@ public class HttpResponse implements HttpResponseInterface {
     public static final byte[]            _0           = "0".getBytes();
     private ResponseCode                  responseCode = ResponseCode.SUCCESS_NO_CONTENT;
     private final HttpConnection          connection;
-    private OutputStream                  outputStream = null;
+    protected OutputStream                  outputStream = null;
     private static final SimpleDateFormat date;
     static {
         date = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.UK);

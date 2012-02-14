@@ -14,6 +14,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -60,8 +61,25 @@ public class InterfaceHandler<T> {
         return ret;
     }
 
+    /**
+     * @param c
+     * @param defaultAuthLevel2
+     * @param process
+     * @throws ParseException
+     */
+    public void add(Class<T> c, RemoteAPIInterface process, int defaultAuthLevel) throws ParseException {
+
+        if (sessionRequired != (c.getAnnotation(ApiSessionRequired.class) != null)) { throw new ParseException("Check SessionRequired for " + this); }
+
+        if (defaultAuthLevel != getDefaultAuthLevel()) throw new ParseException("Check Authlevel " + c + " " + this);
+        if (process != this.impl) throw new ParseException(process + "!=" + impl);
+        interfaceClasses.add(c);
+        parse();
+
+    }
+
     private final RemoteAPIInterface                        impl;
-    private final Class<T>                                  interfaceClass;
+    private final ArrayList<Class<T>>                       interfaceClasses;
     private final TreeMap<String, TreeMap<Integer, Method>> methods;
     private final HashMap<Method, Integer>                  parameterCountMap;
     private final HashMap<Method, Integer>                  methodsAuthLevel;
@@ -78,18 +96,21 @@ public class InterfaceHandler<T> {
      * @throws SecurityException
      */
     private InterfaceHandler(final Class<T> c, final RemoteAPIInterface x, final int defaultAuthLevel) throws SecurityException, NoSuchMethodException {
-        this.interfaceClass = c;
+        this.interfaceClasses = new ArrayList<Class<T>>();
+        interfaceClasses.add(c);
         this.impl = x;
         this.methods = new TreeMap<String, TreeMap<Integer, Method>>();
-        TreeMap<Integer, Method> map;
-        this.methods.put("help", map = new TreeMap<Integer, Method>());
+   
+
         this.defaultAuthLevel = defaultAuthLevel;
-        map.put(0, InterfaceHandler.HELP);
-        this.parameterCountMap = new HashMap<Method, Integer>();
-        this.parameterCountMap.put(InterfaceHandler.HELP, 0);
+ 
         this.methodsAuthLevel = new HashMap<Method, Integer>();
-        this.methodsAuthLevel.put(InterfaceHandler.HELP, 0);
+        this.parameterCountMap = new HashMap<Method, Integer>();
         this.rawMethods = new HashMap<String, Method>();
+    }
+
+    public int getDefaultAuthLevel() {
+        return defaultAuthLevel;
     }
 
     public int getAuthLevel(final Method m) {
@@ -122,8 +143,11 @@ public class InterfaceHandler<T> {
 
     public void help(final RemoteAPIRequest request, final RemoteAPIResponse response) throws InstantiationException, IllegalAccessException, UnsupportedEncodingException, IOException {
         final StringBuilder sb = new StringBuilder();
-        sb.append(this.interfaceClass.getName());
-        sb.append("\r\n\r\n");
+        for (Class<T> interfaceClass : interfaceClasses) {
+            sb.append(interfaceClass.getName());
+            sb.append("\r\n");
+        }
+        sb.append("\r\n");
         Entry<String, TreeMap<Integer, Method>> next;
         for (final Iterator<Entry<String, TreeMap<Integer, Method>>> it = this.methods.entrySet().iterator(); it.hasNext();) {
             next = it.next();
@@ -180,6 +204,7 @@ public class InterfaceHandler<T> {
                 sb.append("\r\n");
             }
         }
+
         response.setResponseCode(ResponseCode.SUCCESS_OK);
         final String text = sb.toString();
 
@@ -217,37 +242,49 @@ public class InterfaceHandler<T> {
      * 
      */
     private void parse() throws ParseException {
-        for (final Method m : this.interfaceClass.getMethods()) {
-            final ApiHiddenMethod hidden = m.getAnnotation(ApiHiddenMethod.class);
-            if (hidden != null) {
-                continue;
-            }
-            this.validateMethod(m);
-            String name = m.getName();
-            final ApiMethodName methodname = m.getAnnotation(ApiMethodName.class);
-            if (methodname != null) {
-                name = methodname.value();
-            }
-            TreeMap<Integer, Method> methodsByName = this.methods.get(name);
-            if (methodsByName == null) {
-                methodsByName = new TreeMap<Integer, Method>();
-                this.methods.put(name, methodsByName);
-            }
-            if (m.getAnnotation(ApiRawMethod.class) != null) {
-                this.rawMethods.put(name, m);
-            }
-            int l = 0;
-            for (final Class<?> c : m.getParameterTypes()) {
-                if (c != RemoteAPIRequest.class && c != RemoteAPIResponse.class) {
-                    l++;
+        methods.clear();
+        rawMethods.clear();
+        parameterCountMap.clear();
+        methodsAuthLevel.clear();
+        TreeMap<Integer, Method> map;
+        this.methods.put("help", map = new TreeMap<Integer, Method>());
+        map.put(0, InterfaceHandler.HELP);
+        this.parameterCountMap.put(InterfaceHandler.HELP, 0);
+
+        this.methodsAuthLevel.put(InterfaceHandler.HELP, 0);
+        for (Class<T> interfaceClass : interfaceClasses) {
+            for (final Method m : interfaceClass.getMethods()) {
+                final ApiHiddenMethod hidden = m.getAnnotation(ApiHiddenMethod.class);
+                if (hidden != null) {
+                    continue;
                 }
-            }
-            this.parameterCountMap.put(m, l);
-            if (methodsByName.containsKey(l)) { throw new ParseException(this.interfaceClass + " Contains ambiguous methods: \r\n" + m + "\r\n" + methodsByName.get(l)); }
-            methodsByName.put(l, m);
-            final ApiAuthLevel auth = m.getAnnotation(ApiAuthLevel.class);
-            if (auth != null) {
-                this.methodsAuthLevel.put(m, auth.value());
+                this.validateMethod(m);
+                String name = m.getName();
+                final ApiMethodName methodname = m.getAnnotation(ApiMethodName.class);
+                if (methodname != null) {
+                    name = methodname.value();
+                }
+                TreeMap<Integer, Method> methodsByName = this.methods.get(name);
+                if (methodsByName == null) {
+                    methodsByName = new TreeMap<Integer, Method>();
+                    this.methods.put(name, methodsByName);
+                }
+                if (m.getAnnotation(ApiRawMethod.class) != null) {
+                    this.rawMethods.put(name, m);
+                }
+                int l = 0;
+                for (final Class<?> c : m.getParameterTypes()) {
+                    if (c != RemoteAPIRequest.class && c != RemoteAPIResponse.class) {
+                        l++;
+                    }
+                }
+                this.parameterCountMap.put(m, l);
+                if (methodsByName.containsKey(l)) { throw new ParseException(interfaceClass + " Contains ambiguous methods: \r\n" + m + "\r\n" + methodsByName.get(l)); }
+                methodsByName.put(l, m);
+                final ApiAuthLevel auth = m.getAnnotation(ApiAuthLevel.class);
+                if (auth != null) {
+                    this.methodsAuthLevel.put(m, auth.value());
+                }
             }
         }
     }
@@ -255,8 +292,10 @@ public class InterfaceHandler<T> {
     /**
      * @param sessionRequired
      *            the sessionRequired to set
+     * @throws ParseException
      */
-    protected void setSessionRequired(final boolean sessionRequired) {
+    protected void setSessionRequired(final boolean sessionRequired) throws ParseException {
+
         this.sessionRequired = sessionRequired;
     }
 

@@ -24,7 +24,7 @@ import org.appwork.utils.net.httpserver.HttpConnection;
  */
 public class PostRequest extends HttpRequest {
 
-    private InputStream          inputStream         = null;
+    protected InputStream          inputStream         = null;
     private final HttpConnection connection;
     private boolean              postParameterParsed = false;
     private LinkedList<String[]> postParameters      = null;
