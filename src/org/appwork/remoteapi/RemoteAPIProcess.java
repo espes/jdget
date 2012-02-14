@@ -20,7 +20,7 @@ public abstract class RemoteAPIProcess<T> implements Runnable, RemoteApiProcessI
     public static enum STATUS {
         IDLE,
         RUNNING,
-        FINISHD
+        FINISHED
     }
 
     private STATUS            status     = STATUS.IDLE;
@@ -73,7 +73,7 @@ public abstract class RemoteAPIProcess<T> implements Runnable, RemoteApiProcessI
         try {
             this.process();
         } finally {
-            this.status = STATUS.FINISHD;
+            this.status = STATUS.FINISHED;
             synchronized (this) {
                 this.isFinished = true;
                 if (this.autoRemove()) {
