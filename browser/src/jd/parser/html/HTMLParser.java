@@ -46,7 +46,7 @@ public class HTMLParser {
 
     final private static Httppattern[] linkAndFormPattern = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?['|\"](.*?)['|\"]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("src.*?=(.*?)[ |>]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)\\2", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/\\1\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
     final private static String        protocolPattern    = "(directhttp://https?://|flashget://|https?viajd://|https?://|ccf://|dlc://|ftp://|jd://|rsdf://|jdlist://|file://)";
-    final private static Pattern[]     basePattern        = new Pattern[] { Pattern.compile("href=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
+    final private static Pattern[]     basePattern        = new Pattern[] { Pattern.compile("href=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("src=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
     final private static Pattern       pat1               = Pattern.compile("(" + HTMLParser.protocolPattern + "|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern       protocols          = Pattern.compile("(" + HTMLParser.protocolPattern + ")");
     private static Pattern             mp                 = null;
@@ -113,7 +113,7 @@ public class HTMLParser {
         if (!data.matches(".*<.*>.*")) {
             final int c = new Regex(data, HTMLParser.pat1).count();
             if (c == 0) {
-                if (!data.contains("href")) {
+                if (!data.contains("href") && !data.contains("src=")) {
                     /* no href inside */
                     return results;
                 }
@@ -283,7 +283,7 @@ public class HTMLParser {
         if (!data.contains("://") || data.length() < 10) {
             /* data must contain at least the protocol seperator */
             /* a://b.c/d == minimum 10 length */
-            if (!data.contains("href") && !data.contains("unescape")) {
+            if (!data.contains("href") && !data.contains("unescape") && !data.contains("src=")) {
                 /* maybe easy encrypted website or a href */
                 return results;
             }
