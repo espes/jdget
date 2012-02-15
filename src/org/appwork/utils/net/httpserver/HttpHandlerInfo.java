@@ -29,7 +29,7 @@ public class HttpHandlerInfo {
         return this.handler;
     }
 
-    protected HttpServer getHttpServer() {
+    public HttpServer getHttpServer() {
         return this.server;
     }
 

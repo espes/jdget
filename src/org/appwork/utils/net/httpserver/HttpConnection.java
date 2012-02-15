@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -67,14 +66,22 @@ public class HttpConnection implements Runnable {
     }
 
     private final HttpServer server;
-    private final Socket     clientSocket;
-    private final Thread     thread;
+    private Socket           clientSocket        = null;
+    private Thread           thread              = null;
     private boolean          responseHeadersSent = false;
 
     private HttpResponse     response            = null;
+    private InputStream      is                  = null;
+    private OutputStream     os                  = null;
 
-    public HttpConnection(final HttpServer server, final Socket clientSocket) throws SocketException {
+    public HttpConnection(final HttpServer server, final InputStream is, final OutputStream os) {
         this.server = server;
+        this.is = is;
+        this.os = os;
+    }
+
+    public HttpConnection(final HttpServer server, final Socket clientSocket) throws IOException {
+        this(server, clientSocket.getInputStream(), clientSocket.getOutputStream());
         this.clientSocket = clientSocket;
         this.clientSocket.setSoTimeout(60 * 1000);
         this.thread = new Thread(server.getThreadGroup(), this) {
@@ -82,6 +89,7 @@ public class HttpConnection implements Runnable {
             public void interrupt() {
                 try {
                     HttpConnection.this.finishThis();
+                    HttpConnection.this.close();
                 } finally {
                     super.interrupt();
                 }
@@ -101,7 +109,7 @@ public class HttpConnection implements Runnable {
     private HttpRequest buildRequest() throws IOException {
         HttpRequest request = null;
         /* read request Method and Path */
-        ByteBuffer header = HTTPConnectionUtils.readheader(this.clientSocket.getInputStream(), true);
+        ByteBuffer header = HTTPConnectionUtils.readheader(this.is, true);
         byte[] bytesRequestLine = new byte[header.limit()];
         header.get(bytesRequestLine);
         String requestLine = new String(bytesRequestLine, "ISO-8859-1").trim();
@@ -111,7 +119,7 @@ public class HttpConnection implements Runnable {
         final String requestedParameters = new Regex(requestedURL, "\\?(.+)").getMatch(0);
         final LinkedList<String[]> requestedURLParameters = HttpConnection.parseParameterList(requestedParameters);
         /* read request Headers */
-        ByteBuffer headers = HTTPConnectionUtils.readheader(this.clientSocket.getInputStream(), false);
+        ByteBuffer headers = HTTPConnectionUtils.readheader(this.is, false);
         byte[] bytesHeaders = new byte[headers.limit()];
         headers.get(bytesHeaders);
         headers = null;
@@ -156,11 +164,15 @@ public class HttpConnection implements Runnable {
         return request;
     }
 
+    protected void close() {
+    }
+
     /**
      * closes the client socket and removes this connection from server
      * connection pool
      */
     private void finishThis() {
+        if (this.clientSocket == null) { return; }
         try {
             this.clientSocket.getOutputStream().flush();
         } catch (final Throwable nothing) {
@@ -176,7 +188,7 @@ public class HttpConnection implements Runnable {
      * @throws IOException
      */
     public InputStream getInputStream() throws IOException {
-        return this.clientSocket.getInputStream();
+        return this.is;
     }
 
     /**
@@ -188,16 +200,18 @@ public class HttpConnection implements Runnable {
      */
     public synchronized OutputStream getOutputStream() throws IOException {
         this.sendResponseHeaders();
-        return this.clientSocket.getOutputStream();
+        return this.os;
+    }
+
+    protected void requestReceived(final HttpRequest request) {
     }
 
     @Override
     public void run() {
         try {
             final HttpRequest request = this.buildRequest();
-            
-        
             this.response = new HttpResponse(this);
+            this.requestReceived(request);
             boolean handled = false;
             ArrayList<HttpRequestHandler> handlers = null;
             synchronized (this.server.getHandler()) {
@@ -236,6 +250,7 @@ public class HttpConnection implements Runnable {
             }
         } finally {
             this.finishThis();
+            this.close();
         }
     }
 
@@ -248,7 +263,7 @@ public class HttpConnection implements Runnable {
         try {
             if (this.responseHeadersSent == true) { throw new IOException("Headers already send!"); }
             if (this.response != null) {
-                final OutputStream out = this.clientSocket.getOutputStream();
+                final OutputStream out = this.os;
                 out.write(HttpResponse.HTTP11);
                 out.write(this.response.getResponseCode().getBytes());
                 out.write(HttpResponse.NEWLINE);
@@ -268,6 +283,11 @@ public class HttpConnection implements Runnable {
 
     @Override
     public String toString() {
-        return "HttpConnectionThread: " + this.clientSocket.toString();
+        if (this.clientSocket != null) {
+            return "HttpConnectionThread: " + this.clientSocket.toString();
+        } else {
+            return "HttpConnectionThread: IS and OS";
+        }
+
     }
 }
