@@ -121,6 +121,7 @@ public class HttpServer implements Runnable {
                 try {
                     final Socket clientSocket = socket.accept();
                     try {
+                       
                         new HttpConnection(this, clientSocket);
                     } catch (final IOException e) {
                         e.printStackTrace();

@@ -195,6 +195,8 @@ public class HttpConnection implements Runnable {
     public void run() {
         try {
             final HttpRequest request = this.buildRequest();
+            
+        
             this.response = new HttpResponse(this);
             boolean handled = false;
             ArrayList<HttpRequestHandler> handlers = null;
