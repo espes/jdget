@@ -105,7 +105,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
     public void hideTooltip() {
         if (handler != null)handler.hideTooltip();
         if (this.activePopup != null) {
-            activeToolTipPanel = null;
+            activeToolTipPanel = null;           
             this.activePopup.hide();
             // this.activePopup.removeMouseListener(this);
             this.activePopup = null;
@@ -326,7 +326,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
     /**
      * @param createExtTooltip
      */
-    private void show(final ExtTooltip tt) {
+    public void show(final ExtTooltip tt) {
 
         this.hideTooltip();
         // delayer.stop();
@@ -367,9 +367,9 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
             try {
                 final Method method = javax.swing.PopupFactory.class.getDeclaredMethod("setPopupType", new Class[] { Integer.TYPE });
                 method.setAccessible(true);
-                method.invoke(this, new Object[] { ToolTipController.MEDIUM_WEIGHT_POPUP });
+                method.invoke(popupFactory, new Object[] { ToolTipController.MEDIUM_WEIGHT_POPUP });
             } catch (final Exception exception) {
-                new RuntimeException(exception);
+               throw new RuntimeException(exception);
             }
 
             ToolTipController.this.activeToolTipPanel = tt;

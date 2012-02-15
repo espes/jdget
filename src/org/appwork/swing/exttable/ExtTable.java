@@ -7,6 +7,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -269,7 +270,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         if (Application.getJavaVersion() >= Application.JAVA16) {
             this.setFillsViewportHeight(true);
         }
-//table should always try to get the full available height
+        // table should always try to get the full available height
         setPreferredScrollableViewportSize(new Dimension(450, 20000));
 
         this.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
@@ -396,7 +397,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             final int j = i;
 
             final TableColumn tableColumn = new TableColumn(i);
-       
+
             this.model.getExtColumnByModelIndex(j).setTableColumn(tableColumn);
 
             tableColumn.setHeaderRenderer(this.model.getExtColumnByModelIndex(j).getHeaderRenderer(this.getTableHeader()) != null ? this.model.getExtColumnByModelIndex(j).getHeaderRenderer(this.getTableHeader()) : new ExtTableHeaderRenderer(this.model.getExtColumnByModelIndex(j), this.getTableHeader()));
@@ -478,7 +479,11 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * org.appwork.swing.components.tooltips.ToolTipHandler#createExtTooltip()
      */
     @Override
-    public ExtTooltip createExtTooltip(final Point position) {
+    public ExtTooltip createExtTooltip( Point position) {
+        if (position == null) {
+            position = MouseInfo.getPointerInfo().getLocation();
+            SwingUtilities.convertPointFromScreen(position, this);
+        }
         final int row = this.getRowIndexByPoint(position);
         final ExtColumn<E> col = this.getExtColumnAtPoint(position);
         this.lastTooltipCol = col;
