@@ -195,9 +195,13 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             // opaque.
             str = "";
         }
-     
-       if(getTableColumn()!=null)     this.rendererField.setText(SwingUtilities2.clipStringIfNecessary(rendererField, rendererField.getFontMetrics(rendererField.getFont()), str, getTableColumn().getWidth() - rendererIcon.getPreferredSize().width - 5));
-    
+
+        if (getTableColumn() != null) {
+            this.rendererField.setText(SwingUtilities2.clipStringIfNecessary(rendererField, rendererField.getFontMetrics(rendererField.getFont()), str, getTableColumn().getWidth() - rendererIcon.getPreferredSize().width - 5));
+        } else {
+            this.rendererField.setText(str);
+        }
+
     }
 
     @Override

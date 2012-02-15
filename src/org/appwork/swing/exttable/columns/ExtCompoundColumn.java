@@ -89,8 +89,10 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
         this.editing = value;
 
         this.editor = this.selectColumn(this.editing);
+        
         if (this.editor.getModel() != this.getModel()) {
             this.editor.setModel(this.getModel());
+            editor.setTableColumn(getTableColumn());
 
         }
 
@@ -104,6 +106,7 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
         this.renderer = this.selectColumn(value);
         if (this.renderer.getModel() != this.getModel()) {
             this.renderer.setModel(this.getModel());
+            renderer.setTableColumn(getTableColumn());
         }
         return this.renderer.getRendererComponent(value, isSelected, hasFocus, row, column);
     }
