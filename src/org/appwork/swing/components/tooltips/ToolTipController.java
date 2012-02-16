@@ -103,9 +103,9 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      * 
      */
     public void hideTooltip() {
-        if (handler != null)handler.hideTooltip();
+        if (handler != null) handler.hideTooltip();
         if (this.activePopup != null) {
-            activeToolTipPanel = null;           
+            activeToolTipPanel = null;
             this.activePopup.hide();
             // this.activePopup.removeMouseListener(this);
             this.activePopup = null;
@@ -139,7 +139,9 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
     @Override
     public void mouseClicked(final MouseEvent e) {
         this.hideTooltip();
-
+        // reset last Hidden. if we clicked to remove a tooltip it should not
+        // popup again immediatly after
+        lastHidden = 0;
     }
 
     /*
@@ -205,6 +207,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         if (!this.isTooltipVisible() && this.activeComponent != null) {
             this.mousePosition = e.getLocationOnScreen();
             if (System.currentTimeMillis() - this.lastHidden < this.getChangeDelay()) {
+                
                 this.showTooltip();
             } else {
                 this.delayer.resetAndStart();
@@ -331,9 +334,9 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         this.hideTooltip();
         // delayer.stop();
         if (tt != null) {
-            if (handler != null){
-              if(handler.showToolTip(tt))return;
-              
+            if (handler != null) {
+                if (handler.showToolTip(tt)) return;
+
             }
 
             final PopupFactory popupFactory = PopupFactory.getSharedInstance();
@@ -369,12 +372,13 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
                 method.setAccessible(true);
                 method.invoke(popupFactory, new Object[] { ToolTipController.MEDIUM_WEIGHT_POPUP });
             } catch (final Exception exception) {
-               throw new RuntimeException(exception);
+                throw new RuntimeException(exception);
             }
 
             ToolTipController.this.activeToolTipPanel = tt;
             tt.addMouseListener(ToolTipController.this);
             this.activePopup = popupFactory.getPopup(this.activeComponent, this.activeToolTipPanel, ttPosition.x, ttPosition.y);
+       
             final Window ownerWindow = SwingUtilities.getWindowAncestor(this.activeComponent);
             // if the components window is not the active any more, for exmaple
             // because we opened a dialog, don't show tooltip
@@ -406,6 +410,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         ToolTipController.this.hideTooltip();
         final JComponent aC = ToolTipController.this.activeComponent;
         if (aC != null && (!aC.isFocusable() || aC.hasFocus() || ((ToolTipHandler) aC).isTooltipWithoutFocusEnabled()) && !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
+
 
             final Window ownerWindow = SwingUtilities.getWindowAncestor(aC);
             // if the components window is not the active any more, for exmaple
