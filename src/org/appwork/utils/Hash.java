@@ -202,7 +202,7 @@ public class Hash {
     public static String getStringHash(final String arg, final String type) {
         try {
             final MessageDigest md = MessageDigest.getInstance(type);
-            final byte[] digest = md.digest(arg.getBytes());
+            final byte[] digest = md.digest(arg.getBytes("UTF-8"));
             return HexFormatter.byteArrayToHex(digest);
         } catch (final Throwable e) {
             e.printStackTrace();

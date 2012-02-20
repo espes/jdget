@@ -16,9 +16,7 @@ import java.lang.reflect.Field;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.KeyStroke;
-
 
 import org.appwork.swing.components.tooltips.TooltipFactory;
 import org.appwork.utils.Regex;
@@ -35,7 +33,8 @@ public abstract class BasicAction extends AbstractAction {
      * 
      */
     private static final long serialVersionUID = -198177718803470771L;
-    private TooltipFactory tooltipFactory;
+    private TooltipFactory    tooltipFactory;
+    private boolean           toggle           = false;
 
     /**
      * @param routerSendAction_RouterSendAction_
@@ -43,9 +42,15 @@ public abstract class BasicAction extends AbstractAction {
     public BasicAction(String name) {
         super(name);
     }
+
+    public boolean isToggle() {
+        return toggle;
+    }
+
     public BasicAction() {
         super();
     }
+
     public void setSmallIcon(Icon icon) {
         putValue(SMALL_ICON, icon);
     }
@@ -57,8 +62,6 @@ public abstract class BasicAction extends AbstractAction {
     public String getName() {
         return (String) getValue(NAME);
     }
-
-
 
     public void setName(String name) {
         putValue(NAME, name);
@@ -116,6 +119,7 @@ public abstract class BasicAction extends AbstractAction {
      */
     public void setSelected(final boolean selected) {
         putValue(SELECTED_KEY, selected);
+        toggle = true;
     }
 
     public String getShortCutString() {
@@ -166,22 +170,24 @@ public abstract class BasicAction extends AbstractAction {
                 putValue(AbstractAction.MNEMONIC_KEY, m);
                 putValue(AbstractAction.DISPLAYED_MNEMONIC_INDEX_KEY, getName().indexOf(m));
             } catch (Exception e) {
-              Log.exception(e);
+                Log.exception(e);
             }
         }
     }
+
     public void setTooltipText(String text) {
         putValue(SHORT_DESCRIPTION, text);
     }
+
     /**
      * @return
      */
     public TooltipFactory getTooltipFactory() {
         return tooltipFactory;
     }
-    public void setTooltipFactory(TooltipFactory factory){
-        this.tooltipFactory=factory;
-    }
 
+    public void setTooltipFactory(TooltipFactory factory) {
+        this.tooltipFactory = factory;
+    }
 
 }
