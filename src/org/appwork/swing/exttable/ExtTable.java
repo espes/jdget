@@ -33,6 +33,7 @@ import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
+import javax.swing.RepaintManager;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
@@ -642,7 +643,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         // update cell editor.
         if (this.getCellEditor() != null && this.getCellEditor() instanceof ExtColumn) {
             ((ExtColumn) this.getCellEditor()).getTableCellEditorComponent(this, this.getValueAt(this.getEditingRow(), this.getEditingColumn()), this.isCellSelected(this.getEditingRow(), this.getEditingColumn()), this.getEditingRow(), this.getEditingColumn(), true);
-        }
+        }        
         return this.editorComp;
     }
 
