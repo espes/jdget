@@ -81,7 +81,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
                         }
 
                         this.cleanupTimer = System.currentTimeMillis();
-                        if (ExtProgressColumn.this.map.size() == 0) {
+                        if (ExtProgressColumn.this.map.size() == 0 && ExtProgressColumn.this.indeterminatedRenderer.isIndeterminate()) {
                             ExtProgressColumn.this.indeterminatedRenderer.setIndeterminate(false);
                             return;
                         }
@@ -212,7 +212,9 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         if (this.isIndeterminated(value, isSelected, hasFocus, row, column)) {
             this.renderer = this.indeterminatedRenderer;
             if (this.map.size() == 0) {
-                this.indeterminatedRenderer.setIndeterminate(true);
+                if (!this.indeterminatedRenderer.isIndeterminate()) {
+                    this.indeterminatedRenderer.setIndeterminate(true);
+                }
             }
             this.map.put(value, System.currentTimeMillis());
 
@@ -220,7 +222,9 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
             this.renderer = this.determinatedRenderer;
             this.map.remove(value);
             if (this.map.size() == 0) {
-                this.indeterminatedRenderer.setIndeterminate(false);
+                if (this.indeterminatedRenderer.isIndeterminate()) {
+                    this.indeterminatedRenderer.setIndeterminate(false);
+                }
             }
         }
         return this.renderer;
