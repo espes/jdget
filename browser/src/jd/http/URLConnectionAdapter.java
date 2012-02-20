@@ -16,6 +16,9 @@
 
 package jd.http;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 public interface URLConnectionAdapter extends org.appwork.utils.net.httpconnection.HTTPConnection {
     /**
      * DO NOT USE in Plugins for old Stable <10000
@@ -31,4 +34,7 @@ public interface URLConnectionAdapter extends org.appwork.utils.net.httpconnecti
     public Request getRequest();
 
     void setRequest(Request request);
+
+    @Deprecated
+    public InputStream getErrorStream();
 }

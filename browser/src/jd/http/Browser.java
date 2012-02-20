@@ -674,7 +674,7 @@ public class Browser {
         }
 
         final GetRequest request = new GetRequest(string);
-        request.setCustomCharset(this.customCharset);
+        request.setCustomCharset(this.customCharset);       
         if (this.selectProxy() != null) {
             request.setProxy(this.selectProxy());
         }

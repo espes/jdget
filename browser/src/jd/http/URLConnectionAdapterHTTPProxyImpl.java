@@ -1,5 +1,7 @@
 package jd.http;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 import jd.http.requests.PostFormDataRequest;
@@ -52,5 +54,14 @@ public class URLConnectionAdapterHTTPProxyImpl extends HTTPProxyHTTPConnectionIm
         }
         sb.append(this.getResponseInfo());
         return sb.toString();
+    }
+    
+    @Override
+    public InputStream getErrorStream() {
+        try {
+            return super.getInputStream();
+        } catch (IOException e) {
+            return null;
+        }
     }
 }

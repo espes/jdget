@@ -456,7 +456,7 @@ public abstract class Request {
     private void openConnection() throws IOException {
 
         this.httpConnection = HTTPConnectionFactory.createHTTPConnection(this.orgURL, this.proxy);
-        this.httpConnection.setRequest(this);
+        this.httpConnection.setRequest(this);        
         this.httpConnection.setReadTimeout(this.readTimeout);
         this.httpConnection.setConnectTimeout(this.connectTimeout);
         this.httpConnection.setContentDecoded(this.contentDecoded);
