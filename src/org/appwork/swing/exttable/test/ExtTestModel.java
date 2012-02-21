@@ -112,7 +112,7 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             @Override
             protected void setFile(TextObject object, File newFile) {
                 object.setFile(newFile);
-                
+
             }
 
             @Override
@@ -130,8 +130,6 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
                 return null;
             }
 
-         
-
         });
         this.addColumn(new ExtTextColumn<TextObject>("EDIT ME") {
 
@@ -141,6 +139,11 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
             public int getDefaultWidth() {
 
                 return 40;
+            }
+
+            @Override
+            public boolean isEnabled(TextObject obj) {
+                return false;
             }
 
             @Override

@@ -14,6 +14,7 @@ import javax.swing.event.TableModelEvent;
 import org.appwork.swing.exttable.ExtColumn;
 import org.appwork.swing.exttable.ExtDefaultRowSorter;
 import org.appwork.swing.exttable.ExtTableModel;
+import org.appwork.swing.exttable.renderercomponents.RendererProgressBar;
 
 abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     private static final long serialVersionUID = -2473320164484034664L;
@@ -33,20 +34,9 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
     public ExtProgressColumn(final String name, final ExtTableModel<E> extModel) {
         super(name, extModel);
-        this.determinatedRenderer = new JProgressBar() {
+        this.determinatedRenderer = new RendererProgressBar();
 
-            /**
-             * 
-             */
-            private static final long serialVersionUID = -6791137194360509489L;
-
-            @Override
-            public boolean isVisible() {
-                return false;
-            }
-        };
-
-        this.indeterminatedRenderer = new JProgressBar() {
+        this.indeterminatedRenderer = new RendererProgressBar() {
             /**
              * 
              */

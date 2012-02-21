@@ -28,6 +28,8 @@ public class RenderLabel extends JLabel {
      * 
      */
     private static final long serialVersionUID = 1204940612879959884L;
+    private boolean _enabled=true;
+    private boolean _visible=true;
 
     /**
      * * Overridden for performance reasons.
@@ -48,7 +50,9 @@ public class RenderLabel extends JLabel {
     // public boolean isVisible() {
     // return true;
     // }
-
+    public boolean isEnabled() {
+        return _enabled;
+    }
     /**
      * * Overridden for performance reasons.
      */
@@ -93,7 +97,7 @@ public class RenderLabel extends JLabel {
     @Override
     public void setEnabled(final boolean b) {
         if(b==isEnabled())return;
-        super.setEnabled(b);
+       _enabled=b;
         if (!b && this.getIcon() != null) {
             this.setDisabledIcon(ImageProvider.getDisabledIcon(this.getIcon()));
         }
@@ -129,6 +133,14 @@ public class RenderLabel extends JLabel {
         // } else {
         // hide();
         // }
+        
+    }
+    public boolean isVisible() {
+        return _visible;
+    }
+    public void setVisible(boolean aFlag) {
+     
+        _visible=aFlag;
     }
 
     /**

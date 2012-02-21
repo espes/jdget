@@ -1,39 +1,23 @@
 /**
- * Copyright (c) 2009 - 2011 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
+ * Copyright (c) 2009 - 2012 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
  * 
- * This file is part of org.appwork.utils.swing.table.columns
+ * This file is part of org.appwork.swing.exttable.renderercomponents
  * 
  * This software is licensed under the Artistic License 2.0,
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.swing.renderer;
+package org.appwork.swing.exttable.renderercomponents;
 
-import java.awt.Component;
 import java.awt.Rectangle;
 
-import org.appwork.app.gui.MigPanel;
+import javax.swing.JTextField;
 
 /**
- * @author thomas
+ * @author Thomas
  * 
  */
-public class RendererMigPanel extends MigPanel {
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * @param constraints
-     * @param columns
-     * @param rows
-     */
-    public RendererMigPanel(final String constraints, final String columns, final String rows) {
-        super(constraints, columns, rows);
-
-    }
+public class RendererTextField extends JTextField {
 
     /**
      * Has to return false to avoid a drag&Drop cursor flicker bug <vr>
@@ -90,8 +74,5 @@ public class RendererMigPanel extends MigPanel {
     @Override
     public void setEnabled(final boolean enabled) {
         this._enabled = enabled;
-        for (final Component c : this.getComponents()) {
-            c.setEnabled(enabled);
-        }
     }
 }
