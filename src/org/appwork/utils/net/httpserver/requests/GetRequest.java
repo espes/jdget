@@ -10,7 +10,11 @@
 package org.appwork.utils.net.httpserver.requests;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.LinkedList;
+
+import org.appwork.utils.net.HTTPHeader;
 
 /**
  * @author daniel
@@ -27,6 +31,22 @@ public class GetRequest extends HttpRequest {
     @Override
     public LinkedList<String[]> getPostParameter() throws IOException {
         return null;
+    }
+    public String toString(){
+        final StringBuilder sb = new StringBuilder();
+      
+        sb.append("\r\n----------------Request-------------------------\r\n");
+
+        sb.append("GET ").append(getRequestedPath()).append(" HTTP/1.1\r\n");
+
+        for (final HTTPHeader key : this.getRequestHeaders()) {
+   
+            sb.append(key.getKey());
+            sb.append(": ");
+            sb.append(key.getValue());
+            sb.append("\r\n");
+        }
+        return sb.toString();
     }
 
 }

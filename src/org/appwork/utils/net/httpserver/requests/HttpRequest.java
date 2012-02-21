@@ -10,6 +10,7 @@
 package org.appwork.utils.net.httpserver.requests;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.LinkedList;
 
 import org.appwork.utils.net.HeaderCollection;
@@ -35,6 +36,8 @@ public abstract class HttpRequest implements HttpRequestInterface {
     public String getRequestedURL() {
         return this.requestedURL;
     }
+
+
 
     /**
      * @return the requestedURLParameters

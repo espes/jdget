@@ -105,6 +105,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
     public void hideTooltip() {
         if (handler != null) handler.hideTooltip();
         if (this.activePopup != null) {
+            activeToolTipPanel.onHide();
             activeToolTipPanel = null;
             this.activePopup.hide();
             // this.activePopup.removeMouseListener(this);
@@ -153,7 +154,8 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      */
     @Override
     public void mouseDragged(final MouseEvent e) {
-        this.hideTooltip();
+
+        mouseMoved(e);
 
     }
 
@@ -207,7 +209,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         if (!this.isTooltipVisible() && this.activeComponent != null) {
             this.mousePosition = e.getLocationOnScreen();
             if (System.currentTimeMillis() - this.lastHidden < this.getChangeDelay()) {
-                
+
                 this.showTooltip();
             } else {
                 this.delayer.resetAndStart();
@@ -378,7 +380,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
             ToolTipController.this.activeToolTipPanel = tt;
             tt.addMouseListener(ToolTipController.this);
             this.activePopup = popupFactory.getPopup(this.activeComponent, this.activeToolTipPanel, ttPosition.x, ttPosition.y);
-       
+
             final Window ownerWindow = SwingUtilities.getWindowAncestor(this.activeComponent);
             // if the components window is not the active any more, for exmaple
             // because we opened a dialog, don't show tooltip
@@ -387,7 +389,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
                 ownerWindow.removeWindowFocusListener(this);
                 ownerWindow.addWindowFocusListener(this);
             }
-
+tt.onShow();
             this.activePopup.show();
 
             // parentWindow =
@@ -410,7 +412,6 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         ToolTipController.this.hideTooltip();
         final JComponent aC = ToolTipController.this.activeComponent;
         if (aC != null && (!aC.isFocusable() || aC.hasFocus() || ((ToolTipHandler) aC).isTooltipWithoutFocusEnabled()) && !ToolTipController.this.isTooltipVisible() && ToolTipController.this.mouseOverComponent(MouseInfo.getPointerInfo().getLocation())) {
-
 
             final Window ownerWindow = SwingUtilities.getWindowAncestor(aC);
             // if the components window is not the active any more, for exmaple

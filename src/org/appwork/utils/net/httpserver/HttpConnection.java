@@ -17,6 +17,7 @@ import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.logging.Level;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
@@ -210,6 +211,7 @@ public class HttpConnection implements Runnable {
     public void run() {
         try {
             final HttpRequest request = this.buildRequest();
+//          if(Log.L.isLoggable(Level.FINER))  Log.L.finer(request+"");
             this.response = new HttpResponse(this);
             this.requestReceived(request);
             boolean handled = false;

@@ -87,7 +87,9 @@ public class AsynchImage extends JLabel {
                     final SimpleHTTP simple = new SimpleHTTP();
                     HttpURLConnection ret = null;
                     try {
+                        System.out.println("Call "+url);
                         ret = simple.openGetConnection(this.url, 30 * 1000);
+                        System.out.println("DONE");
                         image = ImageIO.read(ret.getInputStream());
                     } finally {
                         try {

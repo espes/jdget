@@ -16,6 +16,7 @@ import java.util.LinkedList;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.utils.Regex;
+import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.HttpConnection;
 
 /**
@@ -72,5 +73,35 @@ public class PostRequest extends HttpRequest {
         }
         this.postParameterParsed = true;
         return this.postParameters;
+    }
+    
+    
+    public String toString(){
+        final StringBuilder sb = new StringBuilder();
+      
+        sb.append("\r\n----------------Request-------------------------\r\n");
+
+        sb.append("POST ").append(getRequestedPath()).append(" HTTP/1.1\r\n");
+
+        for (final HTTPHeader key : this.getRequestHeaders()) {
+   
+            sb.append(key.getKey());
+            sb.append(": ");
+            sb.append(key.getValue());
+            sb.append("\r\n");
+        }
+        sb.append("\r\n");
+        try {
+            for(String[] s:getPostParameter()){
+                sb.append(s[0]);
+                sb.append(": ");
+                sb.append(s[1]);
+                sb.append("\r\n");
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return sb.toString();
     }
 }

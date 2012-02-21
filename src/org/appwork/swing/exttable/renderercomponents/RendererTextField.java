@@ -19,15 +19,20 @@ import javax.swing.JTextField;
  */
 public class RendererTextField extends JTextField {
 
+    private boolean _visible=true;
+
     /**
      * Has to return false to avoid a drag&Drop cursor flicker bug <vr>
      * http://bugs.sun.com/view_bug.do?bug_id=6700748
      */
     @Override
     public boolean isVisible() {
-        return false;
-    }
 
+        return _visible;
+    }
+    public void setVisible(boolean aFlag) {
+        this._visible=aFlag;
+    }
     // /**
     // * * Overridden for performance reasons.
     // */

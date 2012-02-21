@@ -251,4 +251,20 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
      * @return
      */
     abstract public String toText();
+
+    /**
+     * 
+     */
+    public void onShow() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * 
+     */
+    public void onHide() {
+        // TODO Auto-generated method stub
+        
+    }
 }
