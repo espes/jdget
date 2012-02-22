@@ -232,7 +232,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         };
     }
 
-    public void addAllElements(Collection<E> entries) {
+    public void addAllElements(final Collection<E> entries) {
 
         final ArrayList<E> newdata = new ArrayList<E>(this.getTableData());
         for (final E n : entries) {
@@ -513,12 +513,19 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @return
      */
     public ArrayList<E> getSelectedObjects() {
+        return this.getSelectedObjects(-1);
+    }
+
+    public ArrayList<E> getSelectedObjects(final int maxItems) {
         final ExtTable<E> ltable = this.getTable();
         if (ltable == null) { return new ArrayList<E>(0); }
         final int[] rows = ltable.getSelectedRows();
         final ArrayList<E> ret = new ArrayList<E>(rows.length);
         final ArrayList<E> data = this.getTableData();
         for (final int row : rows) {
+            if (maxItems >= 0 && ret.size() > maxItems) {
+                break;
+            }
             if (row >= data.size() || row < 0) {
                 continue;
             }
@@ -648,6 +655,33 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             Log.exception(e);
             return true;
         }
+    }
+
+    /**
+     * call this for drag&drop or cut&paste
+     * 
+     * @param transferData
+     * @param dropRow
+     * @return
+     */
+    public boolean move(final ArrayList<E> transferData, final int dropRow) {
+        try {
+            final ArrayList<E> newdata = new ArrayList<E>(this.getTableData().size());
+            final List<E> before = new ArrayList<E>(this.getTableData().subList(0, dropRow));
+            final List<E> after = new ArrayList<E>(this.getTableData().subList(dropRow, this.getTableData().size()));
+            before.removeAll(transferData);
+            after.removeAll(transferData);
+            newdata.addAll(before);
+            newdata.addAll(transferData);
+            newdata.addAll(after);
+
+            this._fireTableStructureChanged(newdata, true);
+            return true;
+        } catch (final Throwable t) {
+            t.printStackTrace();
+        }
+        return false;
+
     }
 
     /**
@@ -856,32 +890,5 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
             }
         }
         return data;
-    }
-
-    /**
-     * call this for drag&drop or cut&paste
-     * 
-     * @param transferData
-     * @param dropRow
-     * @return
-     */
-    public boolean move(ArrayList<E> transferData, int dropRow) {
-        try {
-            final ArrayList<E> newdata = new ArrayList<E>(this.getTableData().size());
-            List<E> before = new ArrayList<E>(getTableData().subList(0, dropRow));
-            List<E> after = new ArrayList<E>(getTableData().subList(dropRow, getTableData().size()));
-            before.removeAll(transferData);
-            after.removeAll(transferData);
-            newdata.addAll(before);
-            newdata.addAll(transferData);
-            newdata.addAll(after);
-
-            this._fireTableStructureChanged(newdata, true);
-            return true;
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        return false;
-
     }
 }
