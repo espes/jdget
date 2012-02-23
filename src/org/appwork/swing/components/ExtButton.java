@@ -25,63 +25,24 @@ public class ExtButton extends JButton implements ToolTipHandler {
     private MouseAdapter      rollOverlistener;
 
     /**
-     * @param autoDetectAction
-     */
-    public ExtButton(AbstractAction action) {
-        super(action);
-
-        this.tooltipFactory = new TooltipTextDelegateFactory(this);
-
-        if (getToolTipText() != null) setTooltipsEnabled(true);
-
-    }
-
-    /**
      * 
      */
     public ExtButton() {
-     this(null);
+        this(null);
         // TODO Auto-generated constructor stub
     }
-    @Override
-    public boolean isTooltipWithoutFocusEnabled() {
-        // TODO Auto-generated method stub
-        return true;
-    }
 
-    public ExtButton setTooltipsEnabled(boolean b) {
-        if (b) {
-            ToolTipController.getInstance().register(this);
-        } else {
-            ToolTipController.getInstance().unregister(this);
+    /**
+     * @param autoDetectAction
+     */
+    public ExtButton(final AbstractAction action) {
+        super(action);
+        this.tooltipFactory = new TooltipTextDelegateFactory(this);
 
+        if (this.getToolTipText() != null) {
+            this.setTooltipsEnabled(true);
         }
-        return this;
-    }
 
-    public String getToolTipText() {
-        String ret = super.getToolTipText();
-        if (ret == null || "".equals(ret)) {
-            if (getAction() instanceof BasicAction) {
-                ret = ((BasicAction) getAction()).getTooltipText();
-            }
-        }
-        return ret;
-
-    }
-
-    public TooltipFactory getTooltipFactory() {
-
-        if (getAction() instanceof BasicAction) {
-            TooltipFactory ret = ((BasicAction) getAction()).getTooltipFactory();
-            if (ret != null) return ret;
-        }
-        return tooltipFactory;
-    }
-
-    public void setTooltipFactory(TooltipFactory tooltipFactory) {
-        this.tooltipFactory = tooltipFactory;
-        ToolTipController.getInstance().register(this);
     }
 
     /*
@@ -92,9 +53,30 @@ public class ExtButton extends JButton implements ToolTipHandler {
      * (java.awt.Point)
      */
     @Override
-    public ExtTooltip createExtTooltip(Point mousePosition) {
+    public ExtTooltip createExtTooltip(final Point mousePosition) {
 
-        return getTooltipFactory().createTooltip();
+        return this.getTooltipFactory().createTooltip();
+    }
+
+    public TooltipFactory getTooltipFactory() {
+
+        if (this.getAction() instanceof BasicAction) {
+            final TooltipFactory ret = ((BasicAction) this.getAction()).getTooltipFactory();
+            if (ret != null) { return ret; }
+        }
+        return this.tooltipFactory;
+    }
+
+    @Override
+    public String getToolTipText() {
+        String ret = super.getToolTipText();
+        if (ret == null || "".equals(ret)) {
+            if (this.getAction() instanceof BasicAction) {
+                ret = ((BasicAction) this.getAction()).getTooltipText();
+            }
+        }
+        return ret;
+
     }
 
     /*
@@ -109,16 +91,74 @@ public class ExtButton extends JButton implements ToolTipHandler {
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.appwork.swing.components.tooltips.ToolTipHandler#updateTooltip(org
-     * .appwork.swing.components.tooltips.ExtTooltip, java.awt.event.MouseEvent)
-     */
     @Override
-    public boolean updateTooltip(ExtTooltip activeToolTip, MouseEvent e) {
-        return false;
+    public boolean isTooltipWithoutFocusEnabled() {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
+    /**
+     * 
+     */
+    protected void onRollOut() {
+        this.setContentAreaFilled(false);
+
+    }
+
+    /**
+     * 
+     */
+    protected void onRollOver() {
+        this.setContentAreaFilled(true);
+
+    }
+
+    /**
+     * @param b
+     */
+    public void setRolloverEffectEnabled(final boolean b) {
+        if (b) {
+            if (this.rollOverlistener == null) {
+                this.rollOverlistener = new MouseAdapter() {
+
+                    @Override
+                    public void mouseEntered(final MouseEvent e) {
+                        ExtButton.this.onRollOver();
+
+                    }
+
+                    @Override
+                    public void mouseExited(final MouseEvent e) {
+                        ExtButton.this.onRollOut();
+
+                    }
+
+                };
+            }
+            this.addMouseListener(this.rollOverlistener);
+            this.onRollOut();
+
+        } else {
+            if (this.rollOverlistener != null) {
+                this.removeMouseListener(this.rollOverlistener);
+                this.rollOverlistener = null;
+            }
+        }
+    }
+
+    public void setTooltipFactory(final TooltipFactory tooltipFactory) {
+        this.tooltipFactory = tooltipFactory;
+        ToolTipController.getInstance().register(this);
+    }
+
+    public ExtButton setTooltipsEnabled(final boolean b) {
+        if (b) {
+            ToolTipController.getInstance().register(this);
+        } else {
+            ToolTipController.getInstance().unregister(this);
+
+        }
+        return this;
     }
 
     @Override
@@ -133,52 +173,15 @@ public class ExtButton extends JButton implements ToolTipHandler {
         }
     }
 
-    /**
-     * @param b
-     */
-    public void setRolloverEffectEnabled(boolean b) {
-        if (b) {
-            if (rollOverlistener == null) {
-                rollOverlistener = new MouseAdapter() {
-
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        onRollOver();
-                   
-                    }
-
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        onRollOut();
-                  
-                    }
-
-                };
-            }
-            addMouseListener(rollOverlistener);
-            onRollOut();
-
-        } else {
-            if (rollOverlistener != null) {
-                removeMouseListener(rollOverlistener);
-                rollOverlistener = null;
-            }
-        }
-    }
-
-    /**
+    /*
+     * (non-Javadoc)
      * 
+     * @see
+     * org.appwork.swing.components.tooltips.ToolTipHandler#updateTooltip(org
+     * .appwork.swing.components.tooltips.ExtTooltip, java.awt.event.MouseEvent)
      */
-    protected void onRollOut() {
-        setContentAreaFilled(false);
-        
-    }
-
-    /**
-     * 
-     */
-    protected void onRollOver() {
-        setContentAreaFilled(true);
-        
+    @Override
+    public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
+        return false;
     }
 }

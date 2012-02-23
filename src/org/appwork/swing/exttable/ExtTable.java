@@ -33,7 +33,6 @@ import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
-import javax.swing.RepaintManager;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
@@ -134,7 +133,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         this.model = model;
         // workaround
         this.setColumnModel(new ExtColumnModel(this.getColumnModel()));
-
         model.setTable(this);
         final int suggestedRowHeight = UIManager.getInt(ExtTable.SUGGESTEDROWHEIGHTPROPERTY);
         if (suggestedRowHeight > 0) {
@@ -272,7 +270,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             this.setFillsViewportHeight(true);
         }
         // table should always try to get the full available height
-        setPreferredScrollableViewportSize(new Dimension(450, 20000));
+        this.setPreferredScrollableViewportSize(new Dimension(450, 20000));
 
         this.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
 
@@ -480,7 +478,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * org.appwork.swing.components.tooltips.ToolTipHandler#createExtTooltip()
      */
     @Override
-    public ExtTooltip createExtTooltip( Point position) {
+    public ExtTooltip createExtTooltip(Point position) {
         if (position == null) {
             position = MouseInfo.getPointerInfo().getLocation();
             SwingUtilities.convertPointFromScreen(position, this);
@@ -643,7 +641,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         // update cell editor.
         if (this.getCellEditor() != null && this.getCellEditor() instanceof ExtColumn) {
             ((ExtColumn) this.getCellEditor()).getTableCellEditorComponent(this, this.getValueAt(this.getEditingRow(), this.getEditingColumn()), this.isCellSelected(this.getEditingRow(), this.getEditingColumn()), this.getEditingRow(), this.getEditingColumn(), true);
-        }        
+        }
         return this.editorComp;
     }
 
