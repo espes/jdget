@@ -135,8 +135,8 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
     @Override
     public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+        this.prepareGetter(value);
         if (this.renderer == this.determinatedRenderer) {
-
             // Normalize value and maxvalue to fit in the integer range
             long v = this.getValue(value);
             long m = this.getMax(value);
@@ -280,6 +280,12 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     public boolean isSortable(final E obj) {
 
         return true;
+    }
+
+    /**
+     * @param value
+     */
+    protected void prepareGetter(final E value) {
     }
 
     @Override
