@@ -11,9 +11,11 @@ package org.appwork.utils.zip;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.CRC32;
@@ -88,7 +90,6 @@ public class ZipIOReader {
      * @throws IOException
      */
     public synchronized ArrayList<File> extract(final ZipEntry entry, final File output) throws ZipIOException, IOException {
-        if (entry.isDirectory()) { throw new ZipIOException("Cannot extract a directory", entry); }
         final ArrayList<File> ret = new ArrayList<File>();
         if (output.exists() && output.isDirectory()) {
             if (this.isOverwrite()) {
@@ -123,10 +124,24 @@ public class ZipIOReader {
                 return ret;
             }
         }
-        FileOutputStream stream = null;
+       extract(entry,new FileOutputStream(output));
+       ret.add(output);
+       return ret;
+    }
+
+    /**
+     * @param entry
+     * @param fileOutputStream
+     * @throws ZipIOException 
+     * @throws IOException 
+     */
+    public void extract(ZipEntry entry, OutputStream stream) throws ZipIOException, IOException {
+        if (entry.isDirectory()) { throw new ZipIOException("Cannot extract a directory", entry); } 
+        
+    
         CheckedInputStream in = null;
         try {
-            stream = new FileOutputStream(output);
+      
             final InputStream is = this.getInputStream(entry);
             in = new CheckedInputStream(is, new CRC32());
             final byte[] buffer = new byte[32767];
@@ -135,7 +150,7 @@ public class ZipIOReader {
                 stream.write(buffer, 0, len);
             }
             if (entry.getCrc() != -1 && entry.getCrc() != in.getChecksum().getValue()) { throw new ZipIOException("CRC32 Failed", entry); }
-            ret.add(output);
+       
         } finally {
             try {
                 in.close();
@@ -146,8 +161,10 @@ public class ZipIOReader {
             } catch (final Throwable e) {
             }
         }
-        return ret;
+
     }
+
+
 
     public synchronized ArrayList<File> extractTo(final File outputDirectory) throws ZipIOException, IOException {
         if (outputDirectory.exists() && outputDirectory.isFile()) { throw new IOException("cannot extract to a file " + outputDirectory); }
@@ -393,7 +410,7 @@ public class ZipIOReader {
     /**
      * @return
      */
-    private boolean isAutoCreateSubDirs() {
+    protected boolean isAutoCreateSubDirs() {
         // TODO Auto-generated method stub
         return this.autoCreateSubDirs;
     }
@@ -401,7 +418,7 @@ public class ZipIOReader {
     /**
      * @return
      */
-    private boolean isOverwrite() {
+    protected boolean isOverwrite() {
         // TODO Auto-generated method stub
         return this.overwrite;
     }

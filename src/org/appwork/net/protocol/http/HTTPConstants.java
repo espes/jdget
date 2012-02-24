@@ -84,7 +84,9 @@ public class HTTPConstants {
          * The server is currently unavailable (because it is overloaded or down
          * for maintenance).[2] Generally, this is a temporary state.
          */
-        SERVERERROR_SERVICE_UNAVAILABLE(503, "Service Unavailable");
+        SERVERERROR_SERVICE_UNAVAILABLE(503, "Service Unavailable"), 
+        
+        SUCCESS_PARTIAL_CONTENT(206,"Partial Content");
         private final int    code;
         private final String description;
         private final byte[] bytes;
