@@ -7,9 +7,9 @@ import org.appwork.utils.net.httpconnection.HTTPProxy;
 public class BrowserSettingsThread extends Thread implements BrowserSettings {
 
     private HTTPProxy proxy;
-    private boolean debug;
-    private boolean verbose;
-    protected Logger logger;
+    private boolean   debug;
+    private boolean   verbose;
+    protected Logger  logger;
 
     public BrowserSettingsThread(final Runnable r) {
         super(r);
