@@ -35,6 +35,10 @@ public class AWSign {
         }
     }
 
+    public static void main(String[] args) throws NoSuchAlgorithmException {
+        createKeyPair();
+    }
+
     public static void createKeyPair() throws NoSuchAlgorithmException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(2048);
