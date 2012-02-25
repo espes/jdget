@@ -144,7 +144,7 @@ public class TranslationHandler implements InvocationHandler {
                 for (final String d : ann.lngs()) {
                     if (d.equals(string)) {
                         // defaults
-                        Log.L.warning("Translation file missing:" + path + "Use Annotation Dev fallback");
+                        Log.L.info("Translation file missing:" + path + "Use Annotation Dev fallback");
                         break miss;
                     }
                 }
@@ -283,7 +283,7 @@ public class TranslationHandler implements InvocationHandler {
 
         }
         if (ret == null) {
-            ret = this.tInterface.getSimpleName() + "." + method.getName().substring(3);
+            ret = this.tInterface.getSimpleName() + "." + method.getName();
 
         }
 
