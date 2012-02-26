@@ -14,6 +14,7 @@ public class HTTPProxy {
     public static enum TYPE {
         NONE,
         DIRECT,
+        SOCKS4,
         SOCKS5,
         HTTP
     }
@@ -106,6 +107,9 @@ public class HTTPProxy {
             ret = new HTTPProxy(TYPE.HTTP);
             ret.host = storable.getAddress();
             break;
+        case SOCKS4:
+            ret = new HTTPProxy(TYPE.SOCKS4);
+            ret.host = storable.getAddress();
         case SOCKS5:
             ret = new HTTPProxy(TYPE.SOCKS5);
             ret.host = storable.getAddress();
@@ -160,6 +164,10 @@ public class HTTPProxy {
             ret.setType(HTTPProxyStorable.TYPE.HTTP);
             ret.setAddress(proxy.getHost());
             break;
+        case SOCKS4:
+            ret.setType(HTTPProxyStorable.TYPE.SOCKS4);
+            ret.setAddress(proxy.getHost());
+            break;
         case SOCKS5:
             ret.setType(HTTPProxyStorable.TYPE.SOCKS5);
             ret.setAddress(proxy.getHost());
@@ -173,7 +181,7 @@ public class HTTPProxy {
 
     public static HTTPProxy parseHTTPProxy(final String s) {
         if (StringUtils.isEmpty(s)) { return null; }
-        final String type = new Regex(s, "(https?|socks5)://").getMatch(0);
+        final String type = new Regex(s, "(https?|socks5|socks4)://").getMatch(0);
         final String auth = new Regex(s, "://(.*?)@").getMatch(0);
         final String host = new Regex(s, "://.*?@?(.*?)(/|$)").getMatch(0);
         HTTPProxy ret = null;
@@ -182,7 +190,10 @@ public class HTTPProxy {
             ret.port = 8080;
         } else if ("socks5".equalsIgnoreCase(type)) {
             ret = new HTTPProxy(TYPE.SOCKS5);
-            ret.port = 3128;
+            ret.port = 1080;
+        } else if ("socks4".equalsIgnoreCase(type)) {
+            ret = new HTTPProxy(TYPE.SOCKS4);
+            ret.port = 1080;
         }
         if (ret != null) {
             final String hostname = new Regex(host, "(.*?)(:|$)").getMatch(0);
@@ -354,7 +365,8 @@ public class HTTPProxy {
         if (this.type == TYPE.NONE) { return _AWU.T.proxy_none(); }
         if (this.type == TYPE.DIRECT) { return _AWU.T.proxy_direct(this.localIP.getHostAddress()); }
         if (this.type == TYPE.HTTP) { return _AWU.T.proxy_http(this.getHost(), this.getPort()); }
-        if (this.type == TYPE.SOCKS5) { return _AWU.T.proxy_socks(this.getHost(), this.getPort()); }
+        if (this.type == TYPE.SOCKS5) { return _AWU.T.proxy_socks5(this.getHost(), this.getPort()); }
+        if (this.type == TYPE.SOCKS4) { return _AWU.T.proxy_socks4(this.getHost(), this.getPort()); }
         return "UNKNOWN";
     }
 }

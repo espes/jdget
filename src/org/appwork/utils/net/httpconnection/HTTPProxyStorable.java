@@ -20,6 +20,7 @@ public class HTTPProxyStorable implements Storable {
     public static enum TYPE {
         NONE,
         DIRECT,
+        SOCKS4,
         SOCKS5,
         HTTP
     }
