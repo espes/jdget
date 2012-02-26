@@ -36,12 +36,12 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
     /**
      * 
      */
-    private static final long serialVersionUID = -2212735987320956801L;
+    private static final long  serialVersionUID = -2212735987320956801L;
 
     /**
      * 
      */
-    public static final String DEFAULT = "default";
+    public static final String DEFAULT          = "default";
 
     /**
      * @param id
@@ -81,8 +81,8 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
 
         // this.setUI(null);
 
-//        this.setOpaque(true);
-//        this.setBackground(null);
+        // this.setOpaque(true);
+        // this.setBackground(null);
 
         if (this.panel != null) {
             this.add(this.panel);
@@ -184,16 +184,19 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
         final int tw = this.panel.getPreferredSize().width + insets.left + insets.right;
         if (tw > this.w) {
             this.w = tw;
-            final Rectangle b = this.getParent().getBounds();
-            this.getParent().setBounds(b.x, b.y, this.w, this.h);
-
+            if (this.getParent() != null) {
+                final Rectangle b = this.getParent().getBounds();
+                this.getParent().setBounds(b.x, b.y, this.w, this.h);
+            }
             this.lastResize = System.currentTimeMillis();
 
         } else if (tw < this.w) {
             if (System.currentTimeMillis() - this.lastResize > 1000) {
                 this.w -= (this.w - tw) * (System.currentTimeMillis() - this.lastResize - 1000) / 10000;
-                final Rectangle b = this.getParent().getBounds();
-                this.getParent().setBounds(b.x, b.y, this.w, this.h);
+                if (this.getParent() != null) {
+                    final Rectangle b = this.getParent().getBounds();
+                    this.getParent().setBounds(b.x, b.y, this.w, this.h);
+                }
             }
         }
 
@@ -243,8 +246,8 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
      * @param black
      */
     public static void setForgroundColor(Color black) {
-       createConfig(DEFAULT).setForegroundColor(black.getRGB());
-        
+        createConfig(DEFAULT).setForegroundColor(black.getRGB());
+
     }
 
     /**
@@ -257,7 +260,7 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
      */
     public void onShow() {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -265,6 +268,6 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
      */
     public void onHide() {
         // TODO Auto-generated method stub
-        
+
     }
 }

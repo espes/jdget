@@ -15,6 +15,7 @@ import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.Hash;
 import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.SimpleHTTP;
 
 public class AsynchImage extends JLabel {
@@ -79,17 +80,17 @@ public class AsynchImage extends JLabel {
                             return;
                         }
                     }
-                    System.out.println("Update image " + this.cache);
+                    Log.L.finest("Update image " + this.cache);
                     if (this.url == null) {
-                        System.out.println("no url given");
+                        Log.L.finest("no url given");
                         return;
                     }
                     final SimpleHTTP simple = new SimpleHTTP();
                     HttpURLConnection ret = null;
                     try {
-                        System.out.println("Call "+url);
+                        Log.L.finest("Call " + url);
                         ret = simple.openGetConnection(this.url, 30 * 1000);
-                        System.out.println("DONE");
+                        Log.L.finest("DONE");
                         image = ImageIO.read(ret.getInputStream());
                     } finally {
                         try {
@@ -97,7 +98,7 @@ public class AsynchImage extends JLabel {
                         } catch (final Throwable e) {
                         }
                     }
-                    System.out.println("Scale image " + this.cache);
+                    Log.L.finest("Scale image " + this.cache);
                     image = ImageProvider.getScaledInstance(image, this.x, this.y, RenderingHints.VALUE_INTERPOLATION_BILINEAR, true);
                 }
                 synchronized (AsynchImage.LOCK) {
@@ -112,7 +113,7 @@ public class AsynchImage extends JLabel {
                         }
                         return;
                     }
-                    System.out.println("Cachewrite image " + this.cache + " " + this.x + " - " + image.getWidth());
+                    Log.L.finest("Cachewrite image " + this.cache + " " + this.x + " - " + image.getWidth());
                     this.cache.getParentFile().mkdirs();
                     ImageIO.write(image, Files.getExtension(this.cache.getName()), this.cache);
                     if (this.asynchImage != null) {
@@ -120,7 +121,7 @@ public class AsynchImage extends JLabel {
                     }
                 }
             } catch (final Throwable e) {
-                e.printStackTrace();
+                Log.exception(e);
             }
         }
     }
@@ -177,7 +178,7 @@ public class AsynchImage extends JLabel {
             new EDTRunner() {
                 @Override
                 protected void runInEDT() {
-                    System.out.println("Set image " + AsynchImage.this.cache);
+                    Log.L.finest("Set image " + AsynchImage.this.cache);
                     AsynchImage.this.setIcon(imageIcon);
                     AsynchImage.this.repaint();
                 }
@@ -206,7 +207,7 @@ public class AsynchImage extends JLabel {
                     this.setIcon(new ImageIcon(image));
                     if (!this.isSetIconAfterLoading()) {
                         if (image.getWidth() > 32) {
-                            // System.out.println(this.cache);
+                            // Log.L.finest(this.cache);
                         }
                     }
                     return;

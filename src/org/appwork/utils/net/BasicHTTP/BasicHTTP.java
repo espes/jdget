@@ -116,7 +116,7 @@ public class BasicHTTP {
     public void download(final URL url, final DownloadProgress progress, final long maxSize, final OutputStream baos, final long resumePosition) throws IOException, InterruptedException {
         InputStream input = null;
         try {
-System.out.println(url);
+
             this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
             this.connection.setConnectTimeout(this.connectTimeout);
             this.connection.setReadTimeout(this.readTimeout);
