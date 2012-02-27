@@ -239,7 +239,7 @@ public abstract class Request {
         return this.getHtmlCode() == null ? false : this.getHtmlCode().contains(html);
     }
 
-    protected void disconnect() {
+    public void disconnect() {
         try {
             this.httpConnection.disconnect();
         } catch (final Throwable e) {
