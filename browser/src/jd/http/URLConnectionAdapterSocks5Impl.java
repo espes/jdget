@@ -19,6 +19,15 @@ public class URLConnectionAdapterSocks5Impl extends Socks5HTTPConnectionImpl imp
     }
 
     @Override
+    public InputStream getErrorStream() {
+        try {
+            return super.getInputStream();
+        } catch (final IOException e) {
+            return null;
+        }
+    }
+
+    @Override
     public long getLongContentLength() {
         return this.getContentLength();
     }
@@ -40,8 +49,8 @@ public class URLConnectionAdapterSocks5Impl extends Socks5HTTPConnectionImpl imp
 
         if (this.getRequest() != null) {
             if (this.getRequest() instanceof PostRequest) {
-                if (((PostRequest) this.getRequest()).getPostDataString() != null) {
-                    sb.append(((PostRequest) this.getRequest()).getPostDataString());
+                if (((PostRequest) this.getRequest()).log() != null) {
+                    sb.append(((PostRequest) this.getRequest()).log());
                 }
 
             } else if (this.getRequest() instanceof PostFormDataRequest) {
@@ -55,14 +64,5 @@ public class URLConnectionAdapterSocks5Impl extends Socks5HTTPConnectionImpl imp
         sb.append(this.getResponseInfo());
 
         return sb.toString();
-    }
-    
-    @Override
-    public InputStream getErrorStream() {
-        try {
-            return super.getInputStream();
-        } catch (IOException e) {
-            return null;
-        }
     }
 }

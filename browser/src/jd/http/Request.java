@@ -181,6 +181,10 @@ public abstract class Request {
     public Request(final String url) throws MalformedURLException {
         this.orgURL = new URL(Browser.correctURL(url));
         this.initDefaultHeader();
+        final String basicAuth = Browser.getBasicAuthfromURL(url);
+        if (basicAuth != null) {
+            this.getHeaders().put("Authorization", "Basic " + basicAuth);
+        }
     }
 
     public Request(final URLConnectionAdapter con) {
@@ -214,7 +218,7 @@ public abstract class Request {
     protected Request connect() throws IOException {
         try {
             this.openConnection();
-            this.postRequest(this.httpConnection);
+            this.postRequest();
             /*
              * we connect to inputstream to make sure the response headers are
              * getting parsed first
@@ -454,9 +458,8 @@ public abstract class Request {
     }
 
     private void openConnection() throws IOException {
-
         this.httpConnection = HTTPConnectionFactory.createHTTPConnection(this.orgURL, this.proxy);
-        this.httpConnection.setRequest(this);        
+        this.httpConnection.setRequest(this);
         this.httpConnection.setReadTimeout(this.readTimeout);
         this.httpConnection.setConnectTimeout(this.connectTimeout);
         this.httpConnection.setContentDecoded(this.contentDecoded);
@@ -467,15 +470,15 @@ public abstract class Request {
                 this.httpConnection.setRequestProperty(this.headers.getKey(i), this.headers.getValue(i));
             }
         }
-        this.preRequest(this.httpConnection);
+        this.preRequest();
         if (this.hasCookies()) {
             this.httpConnection.setRequestProperty("Cookie", this.getCookieString());
         }
     }
 
-    public abstract long postRequest(URLConnectionAdapter httpConnection) throws IOException;
+    abstract public long postRequest() throws IOException;
 
-    abstract public void preRequest(URLConnectionAdapter httpConnection) throws IOException;
+    abstract public void preRequest() throws IOException;
 
     public String printHeaders() {
         return this.httpConnection.toString();

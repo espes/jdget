@@ -49,8 +49,8 @@ public class URLConnectionAdapterSocks4Impl extends Socks4HTTPConnectionImpl imp
 
         if (this.getRequest() != null) {
             if (this.getRequest() instanceof PostRequest) {
-                if (((PostRequest) this.getRequest()).getPostDataString() != null) {
-                    sb.append(((PostRequest) this.getRequest()).getPostDataString());
+                if (((PostRequest) this.getRequest()).log() != null) {
+                    sb.append(((PostRequest) this.getRequest()).log());
                 }
 
             } else if (this.getRequest() instanceof PostFormDataRequest) {

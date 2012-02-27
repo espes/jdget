@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -49,7 +48,6 @@ import jd.parser.Regex;
 import jd.parser.html.Form;
 import jd.parser.html.InputField;
 
-import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
 public class Browser {
@@ -421,6 +419,7 @@ public class Browser {
     }
 
     private String                   acceptLanguage      = "de, en-gb;q=0.9, en;q=0.8";
+
     /*
      * -1 means use default Timeouts
      * 
@@ -429,7 +428,6 @@ public class Browser {
     private int                      connectTimeout      = -1;
 
     private HashMap<String, Cookies> cookies             = new HashMap<String, Cookies>();
-
     private boolean                  cookiesExclusive    = true;
     private URL                      currentURL          = null;
     private String                   customCharset       = null;
@@ -440,6 +438,7 @@ public class Browser {
     private Logger                   logger              = null;
     private HTTPProxy                proxy;
     private int                      readTimeout         = -1;
+
     private int                      redirectLoopCounter = 0;
 
     private Request                  request;
@@ -542,20 +541,6 @@ public class Browser {
             throw new IOException("requestIntervalTime Exception");
         }
         request.connect();
-    }
-
-    public static void main(String[] args) {
-        Browser br = new Browser();
-        br.forceDebug(true);
-        br.setCookie("jdownloader.org", "bla", "Blub");
-        br.getHeaders().put("Accept-Language", "en");
-        try {
-            URLConnectionAdapter connection = br.openGetConnection("http://update3.jdownloader.org/speed.avi");
-            System.out.println(connection);
-        } catch (IOException e) {
-            Log.exception(Level.WARNING, e);
-
-        }
     }
 
     public boolean containsHTML(final String regex) {
@@ -674,7 +659,7 @@ public class Browser {
         }
 
         final GetRequest request = new GetRequest(string);
-        request.setCustomCharset(this.customCharset);       
+        request.setCustomCharset(this.customCharset);
         if (this.selectProxy() != null) {
             request.setProxy(this.selectProxy());
         }
@@ -1214,18 +1199,14 @@ public class Browser {
             requ = this.request;
         } else {
             requ = new Request(con) {
-
                 @Override
-                public long postRequest(final URLConnectionAdapter httpConnection) throws IOException {
+                public long postRequest() throws IOException {
                     return 0;
                 }
 
                 @Override
-                public void preRequest(final URLConnectionAdapter httpConnection) throws IOException {
-                    // TODO Auto-generated method stub
-
+                public void preRequest() throws IOException {
                 }
-
             };
         }
         try {
@@ -1360,6 +1341,16 @@ public class Browser {
      */
     public String postPage(final String url, final String post) throws IOException {
         return this.postPage(url, Request.parseQuery(post));
+    }
+
+    public String postPageRaw(final String url, final byte[] post) throws IOException {
+        final PostRequest request = (PostRequest) this.createPostRequest(url, new ArrayList<RequestVariable>(), null);
+        request.setCustomCharset(this.customCharset);
+        if (post != null) {
+            request.setPostBytes(post);
+        }
+        this.openRequestConnection(request);
+        return this.loadConnection(null).getHtmlCode();
     }
 
     /**

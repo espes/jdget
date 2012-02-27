@@ -39,9 +39,9 @@ import org.appwork.utils.net.httpconnection.HTTPConnection.RequestMethod;
  */
 public class PostFormDataRequest extends Request {
 
-    private String boundary;
+    private String                    boundary;
     private final ArrayList<FormData> formDatas;
-    private String encodeType = "multipart/form-data";
+    private String                    encodeType = "multipart/form-data";
 
     public PostFormDataRequest(final String url) throws MalformedURLException {
         super(Browser.correctURL(url));
@@ -73,12 +73,7 @@ public class PostFormDataRequest extends Request {
         return sb.toString();
     }
 
-    /**
-     * send the postData of the Request. in case httpConnection is null, it
-     * outputs the data to a NullOutputStream
-     */
-    @Override
-    public long postRequest(final URLConnectionAdapter httpConnection) throws IOException {
+    private long postContent(final URLConnectionAdapter httpConnection) throws IOException {
         CountingOutputStream output = null;
         if (httpConnection != null && httpConnection.getOutputStream() != null) {
             output = new CountingOutputStream(httpConnection.getOutputStream());
@@ -99,11 +94,20 @@ public class PostFormDataRequest extends Request {
         return output.transferedBytes();
     }
 
+    /**
+     * send the postData of the Request. in case httpConnection is null, it
+     * outputs the data to a NullOutputStream
+     */
     @Override
-    public void preRequest(final URLConnectionAdapter httpConnection) throws IOException {
-        httpConnection.setRequestMethod(RequestMethod.POST);
-        httpConnection.setRequestProperty("Content-Type", this.encodeType + "; boundary=" + this.boundary.substring(2));
-        httpConnection.setRequestProperty("Content-Length", this.postRequest(null) + "");
+    public long postRequest() throws IOException {
+        return this.postContent(this.httpConnection);
+    }
+
+    @Override
+    public void preRequest() throws IOException {
+        this.httpConnection.setRequestMethod(RequestMethod.POST);
+        this.httpConnection.setRequestProperty("Content-Type", this.encodeType + "; boundary=" + this.boundary.substring(2));
+        this.httpConnection.setRequestProperty("Content-Length", this.postContent(null) + "");
     }
 
     public void setEncodeType(final String encodeType) {
