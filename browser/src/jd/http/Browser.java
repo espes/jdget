@@ -1220,7 +1220,10 @@ public class Browser {
         } catch (final IOException e) {
             throw new BrowserException(e.getMessage(), con, e);
         } finally {
-            con.disconnect();
+            try {
+                con.disconnect();
+            } catch (final Throwable e) {
+            }
         }
         if (this.isVerbose()) {
             if (this.getLogger() != null) {

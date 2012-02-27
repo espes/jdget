@@ -52,7 +52,7 @@ public class URLConnectionAdapterHTTPProxyImpl extends HTTPProxyHTTPConnectionIm
                 if (((PostRequest) this.getRequest()).log() != null) {
                     sb.append(((PostRequest) this.getRequest()).log());
                 }
-
+                sb.append(new char[] { '\r', '\n' });
             } else if (this.getRequest() instanceof PostFormDataRequest) {
                 if (((PostFormDataRequest) this.getRequest()).getPostDataString() != null) {
                     sb.append(((PostFormDataRequest) this.getRequest()).getPostDataString());
