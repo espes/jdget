@@ -70,7 +70,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @param configInterface2
      * @throws URISyntaxException 
      */
-    public StorageHandler(String classPath, Class<T> configInterface) throws URISyntaxException   {
+    public StorageHandler(String classPath, final Class<T> configInterface) throws URISyntaxException   {
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 
@@ -105,6 +105,24 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         } catch (final Throwable e) {
             throw new InterfaceParseException(e);
         }
+        Log.L.finer("Load Storage: "+path);
+        ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
+
+            @Override
+            public int getHookPriority() {
+                return 0;
+            }
+
+            @Override
+            public void run() {
+                StorageHandler.this.primitiveStorage.save();
+            }
+
+            @Override
+            public String toString() {
+                return "Save " + StorageHandler.this.path + "[" + configInterface.getName() + "]";
+            }
+        });
        
     }
 
@@ -150,6 +168,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         } catch (final Throwable e) {
             throw new InterfaceParseException(e);
         }
+        Log.L.finer("Load Storage: "+path);
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
 
             @Override

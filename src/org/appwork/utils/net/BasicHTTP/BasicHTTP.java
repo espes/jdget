@@ -132,6 +132,7 @@ public class BasicHTTP {
             this.connection.connect();
 
             input = this.connection.getInputStream();
+
             if (maxSize > 0 && this.connection.getCompleteContentLength() > maxSize) { throw new IOException("Max size exeeded!"); }
             if (progress != null) {
                 progress.setTotal(this.connection.getCompleteContentLength());
@@ -154,6 +155,8 @@ public class BasicHTTP {
                 }
             }
             if (loaded != this.connection.getCompleteContentLength()) { throw new IOException("Incomplete download!"); }
+        } catch (IOException e) {
+            throw new BasicHTTPException(connection, e);
         } finally {
             try {
                 input.close();
@@ -216,7 +219,8 @@ public class BasicHTTP {
                 }
 
                 return sb.toString();
-
+            } catch (IOException e) {
+                throw new BasicHTTPException(connection, e);
             } finally {
                 try {
                     in.close();
@@ -412,6 +416,8 @@ public class BasicHTTP {
                     sb.append(str);
                 }
                 return sb.toString();
+            } catch (IOException e) {
+                throw new BasicHTTPException(connection, e);
             } finally {
                 try {
                     reader.close();

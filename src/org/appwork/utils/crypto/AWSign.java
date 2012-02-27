@@ -143,4 +143,24 @@ public class AWSign {
         }
     }
 
+    /**
+     * @param decode
+     * @param decode2
+     * @throws SignatureViolation
+     */
+    public static void verifyFile(byte[] dataToVerify, PublicKey pub, byte[] signature) throws SignatureViolation {
+        try {
+
+            Signature sig = Signature.getInstance("Sha256WithRSA");
+            sig.initVerify(pub);
+            sig.update(dataToVerify);
+            if (!sig.verify(signature)) {
+                new SignatureViolation("Signatur Check Failed");
+            }
+        } catch (Throwable e) {
+
+            throw new SignatureViolation(e);
+        }
+    }
+
 }

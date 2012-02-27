@@ -11,6 +11,8 @@ package org.appwork.utils.zip;
 
 import java.util.zip.ZipEntry;
 
+import org.appwork.utils.crypto.SignatureViolation;
+
 /**
  * @author daniel
  * 
@@ -18,11 +20,12 @@ import java.util.zip.ZipEntry;
 public class ZipIOException extends Exception {
 
     private static final long serialVersionUID = 3395166938053581997L;
-    private ZipEntry entry = null;
+    private ZipEntry          entry            = null;
 
     public ZipIOException(String message, Throwable cause) {
-        super(message,cause);
+        super(message, cause);
     }
+
     public ZipIOException(String message) {
         super(message);
     }
@@ -30,6 +33,22 @@ public class ZipIOException extends Exception {
     public ZipIOException(String message, ZipEntry entry) {
         super(message);
         this.entry = entry;
+    }
+
+    /**
+     * @param signatureViolation
+     */
+    public ZipIOException(Throwable e) {
+        super(e);
+    }
+
+    /**
+     * @param signatureViolation
+     * @param entry2
+     */
+    public ZipIOException(Throwable e, ZipEntry entry) {
+    super(e);
+    this.entry=entry;
     }
 
     public ZipEntry getZipEntry() {
