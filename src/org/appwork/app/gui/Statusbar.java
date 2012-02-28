@@ -34,13 +34,13 @@ public class Statusbar extends JMenuBar {
      */
     private static final long  serialVersionUID = 1L;
 
-    private final JLabel       tip;
+    protected final JLabel       tip;
 
-    private JLabel             help;
+    protected JLabel             help;
 
-    private final JLabel       contextLabel;
-    private JLabel             url;
-    private JLabel             urlLabel;
+    protected final JLabel       contextLabel;
+    protected JLabel             url;
+    protected JLabel             urlLabel;
     private final MouseAdapter mouseHoverAdapter;
 
     private String             manufactorUrl;
@@ -70,9 +70,8 @@ public class Statusbar extends JMenuBar {
                 }
             }
         };
-        this.removeAll();
-        this.setLayout(new MigLayout("ins 2", "[][][grow,fill][]", "[]"));
-        this.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker().darker()));
+//        this.removeAll();
+    
         // ToolTipManager.sharedInstance().setEnabled(false);
         // ToolTipManager.sharedInstance().setDismissDelay(0);
         ToolTipManager.sharedInstance().setReshowDelay(2000);
@@ -81,18 +80,16 @@ public class Statusbar extends JMenuBar {
         this.help = new JLabel(AWUTheme.I().getIcon("info", 16));
 
         this.help.setToolTipText(_AWU.T.Statusbar_Statusbar_visiturl_tooltip());
-        this.add(this.help);
+
 
         this.tip = new JLabel("");
         this.tip.setForeground(Color.GRAY);
-        this.add(this.tip);
+  
 
         this.contextLabel = new JLabel("");
         this.contextLabel.setForeground(Color.GRAY);
         this.contextLabel.setHorizontalTextPosition(SwingConstants.RIGHT);
 
-        this.add(Box.createHorizontalGlue(), "pushx,growx");
-        this.add(this.contextLabel);
 
         this.urlLabel = new JLabel(manufactor);
 
@@ -136,9 +133,24 @@ public class Statusbar extends JMenuBar {
             }
 
         });
+       initLayout();
+    }
+
+    /**
+     * 
+     */
+    protected void initLayout() {
+        removeAll();
+        this.setLayout(new MigLayout("ins 2", "[][][grow,fill][]", "[]"));
+        this.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker().darker()));
+        
+        this.add(this.help);
+        this.add(this.tip);
+        this.add(Box.createHorizontalGlue(), "pushx,growx");
+        this.add(this.contextLabel);
         this.add(this.urlLabel);
 
-        this.registerAllToolTip(this);
+        this.registerAllToolTip(this);  
     }
 
     public void registerAllToolTip(final JComponent component) {
