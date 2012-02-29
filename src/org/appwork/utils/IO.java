@@ -5,9 +5,11 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,6 +17,7 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 
@@ -23,6 +26,27 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
 public class IO {
+public static void moveTo(File source,File dest,FileFilter filter) throws IOException{
+    ArrayList<File> files = Files.getFiles(filter,source);
+//TODO Proper delete
+    for(File src:files){
+        String rel = Files.getRelativePath(source, src);
+        File file = new File(dest,rel);
+        if(src.isDirectory()){
+            file.mkdirs();
+        }else{
+            file.getParentFile().mkdirs();
+            System.out.println(src+ " -> "+file);
+            if(!src.renameTo(file)){
+                throw new IOException("Could not move file "+src+" to "+file);
+            }
+        }
+    }
+    
+    
+    
+}
+
 
     public static void copyFile(final File in, final File out) throws IOException {
         FileInputStream fis = null;

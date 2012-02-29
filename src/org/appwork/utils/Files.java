@@ -10,6 +10,7 @@
 package org.appwork.utils;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
@@ -118,23 +119,15 @@ public class Files {
      * @return
      */
     public static ArrayList<File> getFiles(final boolean includeDirectories, final boolean includeFiles, final File... files) {
-        final ArrayList<File> ret = new ArrayList<File>();
-        if (files != null) {
-            for (final File f : files) {
-                if (!f.exists()) {
-                    continue;
-                }
-                if (f.isDirectory()) {
-                    if (includeDirectories) {
-                        ret.add(f);
-                    }
-                    ret.addAll(Files.getFiles(includeDirectories, includeFiles, f.listFiles()));
-                } else if (includeFiles) {
-                    ret.add(f);
-                }
+        return getFiles(new FileFilter() {
+
+            @Override
+            public boolean accept(File pathname) {
+                if (includeDirectories && pathname.isDirectory()) return true;
+                if (includeFiles && pathname.isFile()) return true;
+                return false;
             }
-        }
-        return ret;
+        }, files);
     }
 
     /**
@@ -178,5 +171,32 @@ public class Files {
 
     public static void main(final String[] args) {
         System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/test/eins/zwei/drei.vier")));
+    }
+
+    /**
+     * @param b
+     * @param c
+     * @param filter
+     * @param source
+     * @return
+     */
+    public static ArrayList<File> getFiles(FileFilter filter, final File... files) {
+        final ArrayList<File> ret = new ArrayList<File>();
+        if (files != null) {
+            for (final File f : files) {
+                if (!f.exists()) {
+                    continue;
+                }
+                if (filter == null || filter.accept(f)) {
+                    ret.add(f);
+                }
+
+                if (f.isDirectory()) {
+
+                    ret.addAll(Files.getFiles(filter, f.listFiles()));
+                }
+            }
+        }
+        return ret;
     }
 }

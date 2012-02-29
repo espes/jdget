@@ -1,9 +1,14 @@
 package org.appwork.app.launcher.parameterparser;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.appwork.utils.Application;
+import org.appwork.utils.IO;
 import org.appwork.utils.event.Eventsender;
+import org.appwork.utils.logging.Log;
+import org.appwork.utils.parser.ShellParser;
 
 /**
  * This class is used to parse and evaluate Startparameters
@@ -46,11 +51,33 @@ public class ParameterParser {
     /**
      * parses the command row. and fires {@link CommandSwitch} for each switch
      * command
+     * 
+     * @param commandFilePath
+     *            TODO
      */
-    public void parse() {
-        ArrayList<String> params = new ArrayList<String>();
-        String switchCommand = null;
+    public void parse(String commandFilePath) {
+
         map = new HashMap<String, CommandSwitch>();
+
+        if (commandFilePath != null && Application.getResource(commandFilePath).exists()) {
+
+            try {
+                parse(ShellParser.splitCommandString(IO.readFileToString(Application.getResource(commandFilePath)).replaceAll("[\r\n]", " ")).toArray(new String[] {}));
+            } catch (IOException e) {
+                Log.exception(e);
+            }
+        }
+
+        parse(startArguments);
+    }
+
+    /**
+     * @param startArguments2
+     */
+    private void parse(String[] startArguments) {
+
+        String switchCommand = null;
+        ArrayList<String> params = new ArrayList<String>();
         for (String var : startArguments) {
             if (var.startsWith("-")) {
                 while (var.length() > 0 && var.startsWith("-")) {
@@ -73,7 +100,6 @@ public class ParameterParser {
             getEventSender().fireEvent(cs = new CommandSwitch(switchCommand, params.toArray(new String[] {})));
             map.put(switchCommand, cs);
         }
-
     }
 
     /**
@@ -90,7 +116,7 @@ public class ParameterParser {
      * @return
      */
     public boolean hasCommandSwitch(String string) {
-   
+
         return map.containsKey(string);
     }
 
