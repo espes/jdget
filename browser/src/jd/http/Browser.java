@@ -412,12 +412,6 @@ public class Browser {
         return Browser.LOGGER;
     }
 
-    /* do not remove, needed for backward comp. to 09581 stable */
-    @Deprecated
-    public static JDProxy getGlobalProxy() {
-        return null;
-    }
-
     private String                   acceptLanguage      = "de, en-gb;q=0.9, en;q=0.8";
 
     /*
