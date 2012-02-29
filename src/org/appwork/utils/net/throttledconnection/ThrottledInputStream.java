@@ -272,4 +272,9 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
         this.transferedCounter2 = this.transferedCounter;
         return this.ret;
     }
+
+    @Override
+    public int getManagedLimit() {
+        return limitManaged;
+    }
 }

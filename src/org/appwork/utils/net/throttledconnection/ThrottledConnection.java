@@ -21,6 +21,8 @@ public interface ThrottledConnection {
      */
     public int getCustomLimit();
 
+    public int getManagedLimit();
+
     /**
      * sets custom speed limit -1 : no limit 0 : use managed limit >0: use
      * custom limit

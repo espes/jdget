@@ -255,5 +255,9 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
             this.lastTimeWrite = System.currentTimeMillis();
         }
     }
+    @Override
+    public int getManagedLimit() {
+        return limitManaged;
+    }
 
 }

@@ -12,6 +12,8 @@ package org.appwork.utils.net.throttledconnection;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.appwork.utils.speedmeter.AverageSpeedMeter;
 import org.appwork.utils.speedmeter.SpeedMeterInterface;
@@ -22,6 +24,12 @@ import org.appwork.utils.speedmeter.SpeedMeterInterface;
  */
 public class ThrottledConnectionManager {
 
+    private static class BalanceSpeed {
+        protected long lastManaged    = 0;
+        protected long lastDifference = 0;
+        protected long lastSpeed      = 0;
+    }
+
     private final ArrayList<ThrottledConnection> managedIn               = new ArrayList<ThrottledConnection>();
     private final ArrayList<ThrottledConnection> managedOut              = new ArrayList<ThrottledConnection>();
     private final Object                         LOCK                    = new Object();
@@ -29,6 +37,7 @@ public class ThrottledConnectionManager {
      * how fast do we want to update and check current status
      */
     private final static int                     updateSpeed             = 2000;
+    private final static int                     balanceStep             = 1024 * 25;
 
     private Thread                               watchDog                = null;
 
@@ -176,11 +185,12 @@ public class ThrottledConnectionManager {
         return this.OutgoingTraffic;
     }
 
-    private int manageConnections(final ArrayList<ThrottledConnection> managed, final int limit) {
+    private int manageConnections(final ArrayList<ThrottledConnection> managed, int limit) {
         synchronized (this.LOCK) {
             int managedConnections = 0;
             int currentRealSpeed = 0;
             long ret;
+            HashMap<ThrottledConnection, BalanceSpeed> difference = new HashMap<ThrottledConnection, BalanceSpeed>();
             for (final ThrottledConnection in : managed) {
                 ret = in.transferedSinceLastCall();
                 currentRealSpeed += ret;
@@ -191,6 +201,12 @@ public class ThrottledConnectionManager {
                      * ones
                      */
                     if (ret != 0) {
+                        int lastSpeed = (int) ((long) ret * 1000 / Math.max(1000, ThrottledConnectionManager.updateSpeed));
+                        BalanceSpeed bs = new BalanceSpeed();
+                        bs.lastManaged = in.getManagedLimit();
+                        bs.lastDifference = in.getManagedLimit() - lastSpeed;
+                        bs.lastSpeed = lastSpeed;
+                        difference.put(in, bs);
                         managedConnections++;
                     }
                 }
@@ -199,18 +215,39 @@ public class ThrottledConnectionManager {
              * calculate new input limit based on current input bandwidth usage
              */
             currentRealSpeed = (int) ((long) currentRealSpeed * 1000 / Math.max(1000, ThrottledConnectionManager.updateSpeed));
-            int newLimit = 0;
-            if (managedConnections == 0) {
-                newLimit = limit;
-            } else {
-                newLimit = limit / managedConnections;
-            }
+
             for (final ThrottledConnection in : managed) {
-                if (newLimit == 0) {
+                if (managedConnections == 0) {
                     /* we do not have a limit set */
                     in.setManagedLimit(0);
                 } else {
                     /* set new limit */
+                    int newLimit = limit;
+                    BalanceSpeed bs = difference.remove(in);
+                    if (bs != null) {
+                        /* this connection was managed before */
+                        newLimit = limit / (difference.size() + 1);
+                        if (bs.lastSpeed <= newLimit) {
+                            /* last round was slower than minimum */
+                            System.out.println("last round was slower");
+                            int limit2 = Math.min((int) bs.lastManaged, newLimit);                            
+                            if (bs.lastSpeed + balanceStep <= limit2) {
+                                System.out.println("last round was slower: we can decrease minimum");
+                                newLimit = limit2 - balanceStep;
+                            } else {
+                                if (bs.lastSpeed > newLimit) {
+                                    System.out.println("speed is fine, no need to increase");
+                                } else {
+                                    System.out.println("last round was slower: increase maybe it can be faster");
+                                    newLimit = limit2 + balanceStep;
+                                }
+                            }
+                        } else {
+                            newLimit = Math.min((int) bs.lastManaged, newLimit);
+                        }
+                        limit = limit - newLimit;
+                    }
+                    System.out.println(newLimit);
                     in.setManagedLimit(newLimit);
                 }
             }
