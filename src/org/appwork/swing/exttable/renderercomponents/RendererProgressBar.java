@@ -29,6 +29,13 @@ public class RendererProgressBar extends JProgressBar {
     @Override
     public void firePropertyChange(final String propertyName, final boolean oldValue, final boolean newValue) {
         /* we dont need propertychange events */
+        if ("indeterminate".equals(propertyName)) {
+            // this is required to forward indeterminate changes to the ui. This
+            // would cfreate nullpointers in the uis because progresbar might
+            // try to paint indeterminate states, but the ui has not been
+            // initialized due to the missing event
+            super.firePropertyChange(propertyName, oldValue, newValue);
+        }
     }
 
     /**
