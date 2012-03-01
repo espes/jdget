@@ -14,49 +14,35 @@ package org.appwork.utils.net.throttledconnection;
  * 
  */
 public interface ThrottledConnection {
+
+    public ThrottledConnectionHandler getHandler();
+
     /**
-     * get custom set limit
+     * get current limit
      * 
      * @return
      */
-    public int getCustomLimit();
-
-    public int getManagedLimit();
+    public int getLimit();
 
     /**
-     * sets custom speed limit -1 : no limit 0 : use managed limit >0: use
-     * custom limit
-     * 
-     * @param kpsLimit
-     */
-    public void setCustomLimit(int kpsLimit);
-
-    /**
-     * sets managed limit 0: no limit >0: use managed limit
-     * 
-     * @param kpsLimit
-     */
-    public void setManagedLimit(int kpsLimit);
-
-    /**
-     * set a new ThrottledConnectionManager
+     * set a new ThrottledConnectionHandler
      * 
      * @param manager
      */
-    public void setManager(ThrottledConnectionManager manager);
+    public void setHandler(ThrottledConnectionHandler manager);
 
     /**
-     * return how many bytes this ThrottledConnection had transfered
+     * sets limit 0: no limit >0: use limit
+     * 
+     * @param kpsLimit
+     */
+    public void setLimit(int kpsLimit);
+
+    /**
+     * return how many bytes this ThrottledConnection has transfered
      * 
      * @return
      */
     public long transfered();
-
-    /**
-     * return how many bytes got transfered since last call of the function
-     * 
-     * @return transfered bytes
-     */
-    public long transferedSinceLastCall();
 
 }

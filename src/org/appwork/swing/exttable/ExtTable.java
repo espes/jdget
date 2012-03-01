@@ -872,9 +872,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     @Override
     public void paintComponent(final Graphics g) {
-
         super.paintComponent(g);
-
         this.paintHighlighters(g);
     }
 

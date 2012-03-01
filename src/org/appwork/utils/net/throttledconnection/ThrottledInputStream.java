@@ -18,17 +18,13 @@ import java.io.InputStream;
  */
 public class ThrottledInputStream extends InputStream implements ThrottledConnection {
 
-    private ThrottledConnectionManager manager;
+    private ThrottledConnectionHandler handler;
     private final InputStream          in;
     protected volatile long            transferedCounter  = 0;
     protected volatile long            transferedCounter2 = 0;
     private volatile int               limitCurrent       = 0;
-    private int                        limitManaged       = 0;
-    private int                        limitCustom        = 0;
     private int                        limitCounter       = 0;
     private int                        lastRead2;
-
-    private long                       ret;
 
     private long                       slotTimeLeft       = 0;
     private long                       lastTimeRead       = 0;
@@ -42,43 +38,9 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
         this.in = in;
     }
 
-    /**
-     * constructor for not managed ThrottledInputStream with given limit(see
-     * setCustomLimit)
-     * 
-     * @param in
-     * @param kpsLimit
-     */
-    public ThrottledInputStream(final InputStream in, final int kpsLimit) {
-        this(in);
-        this.setCustomLimit(kpsLimit);
-    }
-
-    /**
-     * constructor for managed ThrottledInputStream
-     * 
-     * @param in
-     * @param manager
-     */
-    protected ThrottledInputStream(final InputStream in, final ThrottledConnectionManager manager) {
-        this.manager = manager;
-        this.in = in;
-    }
-
     @Override
     public int available() throws IOException {
         return this.in.available();
-    }
-
-    /**
-     * change current limit
-     * 
-     * @param kpsLimit
-     */
-    private void changeCurrentLimit(final int kpsLimit) {
-        if (kpsLimit == this.limitCurrent) { return; }
-        /* TODO: maybe allow little jitter here */
-        this.limitCurrent = Math.max(0, kpsLimit);
     }
 
     /**
@@ -86,21 +48,25 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
      */
     @Override
     public void close() throws IOException {
-        /* remove this stream from manager */
-        if (this.manager != null) {
-            this.manager.removeManagedThrottledInputStream(this);
-            this.manager = null;
+        /* remove this stream from handler */
+        if (this.handler != null) {
+            this.handler.removeThrottledConnection(this);
+            this.handler = null;
+        }
+        synchronized (this) {
+            this.notify();
         }
         this.in.close();
     }
 
-    /**
-     * get custom set limit
-     * 
-     * @return
-     */
-    public int getCustomLimit() {
-        return this.limitCustom;
+    @Override
+    public ThrottledConnectionHandler getHandler() {
+        return this.handler;
+    }
+
+    @Override
+    public int getLimit() {
+        return this.limitCurrent;
     }
 
     @Override
@@ -199,58 +165,29 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
     }
 
     /**
-     * sets custom speed limit -1 : no limit 0 : use managed limit >0: use
-     * custom limit
-     * 
-     * @param kpsLimit
-     */
-    public void setCustomLimit(final int kpsLimit) {
-        if (this.limitCustom == kpsLimit) { return; }
-        if (kpsLimit < 0) {
-            this.limitCustom = -1;
-            this.changeCurrentLimit(0);
-        } else if (kpsLimit == 0) {
-            this.limitCustom = 0;
-            this.changeCurrentLimit(this.limitManaged);
-        } else {
-            this.limitCustom = kpsLimit;
-            this.changeCurrentLimit(kpsLimit);
-        }
-    }
-
-    /**
-     * sets managed limit 0: no limit >0: use managed limit
-     * 
-     * @param kpsLimit
-     */
-    public void setManagedLimit(final int kpsLimit) {
-        if (kpsLimit == this.limitManaged) { return; }
-        if (kpsLimit <= 0) {
-            this.limitManaged = 0;
-            if (this.limitCustom == 0) {
-                this.changeCurrentLimit(0);
-            }
-        } else {
-            this.limitManaged = kpsLimit;
-            if (this.limitCustom == 0) {
-                this.changeCurrentLimit(kpsLimit);
-            }
-        }
-    }
-
-    /**
-     * set a new ThrottledConnectionManager
+     * set a new ThrottledConnectionHandler
      * 
      * @param manager
      */
-    public void setManager(final ThrottledConnectionManager manager) {
-        if (this.manager != null && this.manager != manager) {
-            this.manager.removeManagedThrottledInputStream(this);
+    public void setHandler(final ThrottledConnectionHandler manager) {
+        if (this.handler != null && this.handler != manager) {
+            this.handler.removeThrottledConnection(this);
         }
-        this.manager = manager;
-        if (this.manager != null) {
-            this.manager.addManagedThrottledInputStream(this);
+        this.handler = manager;
+        if (this.handler != null) {
+            this.handler.addThrottledConnection(this);
         }
+    }
+
+    /**
+     * sets limit 0: no limit >0: use limit
+     * 
+     * @param kpsLimit
+     */
+    public void setLimit(final int kpsLimit) {
+        if (kpsLimit == this.limitCurrent) { return; }
+        /* TODO: maybe allow little jitter here */
+        this.limitCurrent = Math.max(0, kpsLimit);
     }
 
     @Override
@@ -262,19 +199,4 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
         return this.transferedCounter;
     }
 
-    /**
-     * return how many bytes got transfered till now and reset counter
-     * 
-     * @return
-     */
-    public synchronized long transferedSinceLastCall() {
-        this.ret = this.transferedCounter - this.transferedCounter2;
-        this.transferedCounter2 = this.transferedCounter;
-        return this.ret;
-    }
-
-    @Override
-    public int getManagedLimit() {
-        return limitManaged;
-    }
 }
