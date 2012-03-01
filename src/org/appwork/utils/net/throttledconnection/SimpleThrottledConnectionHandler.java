@@ -41,6 +41,11 @@ public class SimpleThrottledConnectionHandler implements ThrottledConnectionHand
     protected volatile long                  traffic      = 0;
 
     private final Object                     watchDogLOCK = new Object();
+    private final String                     name;
+
+    public SimpleThrottledConnectionHandler(final String name) {
+        this.name = name;
+    }
 
     @Override
     public void addThrottledConnection(final ThrottledConnection con) {
@@ -111,7 +116,7 @@ public class SimpleThrottledConnectionHandler implements ThrottledConnectionHand
             this.watchDog = new Thread() {
                 @Override
                 public void run() {
-                    this.setName("ThrottlecConnectionManager");
+                    this.setName(SimpleThrottledConnectionHandler.this.name);
                     /* reset SpeedMeter */
                     SimpleThrottledConnectionHandler.this.speedMeter.resetSpeedMeter();
                     final HashMap<ThrottledConnection, SpeedAssignHelp> speedAssignHelpMap = new HashMap<ThrottledConnection, SpeedAssignHelp>();
