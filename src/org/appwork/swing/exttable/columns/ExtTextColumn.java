@@ -20,7 +20,6 @@ import org.appwork.app.gui.MigPanel;
 import org.appwork.swing.exttable.ExtColumn;
 import org.appwork.swing.exttable.ExtDefaultRowSorter;
 import org.appwork.swing.exttable.ExtTableModel;
-import org.appwork.swing.exttable.renderercomponents.RendererTextField;
 import org.appwork.utils.swing.renderer.RenderLabel;
 import org.appwork.utils.swing.renderer.RendererMigPanel;
 
@@ -54,7 +53,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     public ExtTextColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
-        this.editorField = new RendererTextField();
+        this.editorField = new JTextField();
         this.editorField.addFocusListener(this);
         this.editorField.setBorder(null);
         this.rendererIcon = new RenderLabel() {
