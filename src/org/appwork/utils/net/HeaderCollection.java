@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import org.appwork.storage.JSonStorage;
+
 /**
  * @author daniel
  * 
@@ -29,7 +31,10 @@ public class HeaderCollection implements Iterable<HTTPHeader> {
         this.headers = new LinkedList<HTTPHeader>();
         this.headersMap = new HashMap<String, HTTPHeader>();
     }
-
+    public String toString(){
+      return headers.toString();
+        
+    }
     public void add(final HTTPHeader header) {
         if (!HeaderCollection.DUPES_ALLOWED.containsKey(header.getKey()) && this.headersMap.containsKey(header.getKey())) {
             // overwrite
