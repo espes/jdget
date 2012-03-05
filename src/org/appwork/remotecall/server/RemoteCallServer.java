@@ -55,17 +55,20 @@ public class RemoteCallServer {
             try {
                 for (int i = 0; i < types.length; i++) {
                     // parameters should already be urldecoded here
-
-                    if (types[i].getType() == String.class && !"null".equals(parameters[i])) {
-                        // fix if there is no " around strings
-                        if (!parameters[i].startsWith("\"")) {
-                            parameters[i] = "\"" + parameters[i];
+                    if (types[i].getType() == Requestor.class) {
+                        params[i] = requestor;
+                    } else {
+                        if (types[i].getType() == String.class && !"null".equals(parameters[i])) {
+                            // fix if there is no " around strings
+                            if (!parameters[i].startsWith("\"")) {
+                                parameters[i] = "\"" + parameters[i];
+                            }
+                            if (!parameters[i].endsWith("\"") || parameters[i].length() == 1) {
+                                parameters[i] += "\"";
+                            }
                         }
-                        if (!parameters[i].endsWith("\"") || parameters[i].length() == 1) {
-                            parameters[i] += "\"";
-                        }
+                        params[i] = Utils.convert(JSonStorage.restoreFromString(parameters[i], types[i]), types[i].getType());
                     }
-                    params[i] = Utils.convert(JSonStorage.restoreFromString(parameters[i], types[i]), types[i].getType());
                 }
 
             } catch (final Exception e) {
@@ -78,6 +81,7 @@ public class RemoteCallServer {
             return JSonStorage.serializeToJson(answer);
 
         } catch (final InvocationTargetException e1) {
+            Log.exception(e1);
             final Throwable cause = e1.getCause();
             if (cause != null) {
                 if (cause instanceof ResponseAlreadySentException) { throw (ResponseAlreadySentException) cause; }
