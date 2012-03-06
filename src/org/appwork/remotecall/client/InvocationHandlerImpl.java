@@ -34,7 +34,7 @@ import org.appwork.utils.logging.Log;
 public class InvocationHandlerImpl<T extends RemoteCallInterface> implements InvocationHandler {
 
     private final RemoteCallClient         client;
- 
+
     private final String                   name;
     private Class<T>                       interfaceClass;
     private HashMap<String, MethodHandler> handler;
@@ -54,7 +54,7 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
         this.client = client;
         this.name = class1.getSimpleName();
         interfaceClass = class1;
-      
+
         parse();
 
     }
@@ -72,7 +72,7 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
 
                 if (!dupe.add(m.getName())) { throw new InterfaceParseException("Method " + m.getName() + " is avlailable twice in " + clazz); }
                 try {
-                  if(m.getGenericReturnType()!=void.class)  JSonStorage.canStore(m.getGenericReturnType());
+                    if (m.getGenericReturnType() != void.class) JSonStorage.canStore(m.getGenericReturnType());
                     for (Type t : m.getGenericParameterTypes()) {
                         JSonStorage.canStore(t);
                     }
@@ -101,19 +101,23 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
 
     }
 
-   
     public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
 
         String returnValue;
         Object obj;
 
         try {
-          
+
             returnValue = this.client.call(this.name, method.getName(), args);
-            TypeRef<Object> tr = new TypeRef<Object>(method.getGenericReturnType()) {
-            };
-            obj = JSonStorage.restoreFromString(returnValue, tr, null);
-            return Utils.convert(obj,tr.getType());
+            if (method.getGenericReturnType() == Void.class) {
+                return null;
+            } else {
+                TypeRef<Object> tr = new TypeRef<Object>(method.getGenericReturnType()) {
+                };
+
+                obj = JSonStorage.restoreFromString(returnValue, tr, null);
+                return Utils.convert(obj, tr.getType());
+            }
 
         } catch (final ServerInvokationException e) {
 
@@ -121,9 +125,9 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
             final Throwable ex = exception.deserialiseException();
             // search to add the local cause
             final StackTraceElement[] localStack = new Exception().getStackTrace();
-            final StackTraceElement[] newStack = new StackTraceElement[localStack.length -1];
-            System.arraycopy(localStack, 2, newStack, 0, localStack.length-2);
-            newStack[newStack.length-1] = new StackTraceElement("RemoteCallClient via", e.getRemoteID()+"", null, 0);
+            final StackTraceElement[] newStack = new StackTraceElement[localStack.length - 1];
+            System.arraycopy(localStack, 2, newStack, 0, localStack.length - 2);
+            newStack[newStack.length - 1] = new StackTraceElement("RemoteCallClient via", e.getRemoteID() + "", null, 0);
             ex.setStackTrace(newStack);
 
             throw ex;
@@ -132,11 +136,11 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
     }
 
     /**
-     * @return 
+     * @return
      * 
      */
     public HashMap<String, MethodHandler> getHandler() {
         return handler;
-        
+
     }
 }
