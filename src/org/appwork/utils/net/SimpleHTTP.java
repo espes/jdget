@@ -14,6 +14,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.zip.GZIPInputStream;
@@ -35,6 +37,7 @@ public class SimpleHTTP {
     private int                           readTimeout     = 30000;
 
     private boolean                       followRedirects = true;
+    private boolean                       headerDebug     = false;
 
     public SimpleHTTP() {
         this.requestHeader = new HashMap<String, String>();
@@ -193,8 +196,8 @@ public class SimpleHTTP {
         synchronized (SimpleHTTP.CALL_LOCK) {
             BufferedReader in = null;
             InputStreamReader isr = null;
+            final StringBuilder sb = new StringBuilder();
             try {
-
                 this.connection = (HttpURLConnection) url.openConnection();
                 this.connection.setInstanceFollowRedirects(this.followRedirects);
                 this.connection.setConnectTimeout(this.connectTimeout);
@@ -212,6 +215,18 @@ public class SimpleHTTP {
                 for (final Entry<String, String> next : this.requestHeader.entrySet()) {
                     this.connection.setRequestProperty(next.getKey(), next.getValue());
                 }
+                if (this.headerDebug) {
+                    final Iterator<Entry<String, List<String>>> it = this.connection.getRequestProperties().entrySet().iterator();
+                    while (it.hasNext()) {
+                        final Entry<String, List<String>> next = it.next();
+                        for (final String value : next.getValue()) {
+                            if (sb.length() > 0) {
+                                sb.append("\r\n");
+                            }
+                            sb.append("REQUEST: " + next.getKey() + " = " + value);
+                        }
+                    }
+                }
                 int lookupTry = 0;
                 while (true) {
                     try {
@@ -227,16 +242,28 @@ public class SimpleHTTP {
                 in = new BufferedReader(isr = new InputStreamReader(this.connection.getInputStream(), "UTF-8"));
 
                 String str;
-                final StringBuilder sb = new StringBuilder();
+                final StringBuilder sb2 = new StringBuilder();
                 while ((str = in.readLine()) != null) {
-                    if (sb.length() > 0) {
-                        sb.append("\r\n");
+                    if (sb2.length() > 0) {
+                        sb2.append("\r\n");
                     }
-                    sb.append(str);
+                    sb2.append(str);
 
                 }
-
-                return sb.toString();
+                if (this.headerDebug) {
+                    final Iterator<Entry<String, List<String>>> it = this.connection.getHeaderFields().entrySet().iterator();
+                    while (it.hasNext()) {
+                        final Entry<String, List<String>> next = it.next();
+                        for (final String value : next.getValue()) {
+                            if (sb.length() > 0) {
+                                sb.append("\r\n");
+                            }
+                            sb.append("RESPONSE: " + next.getKey() + " = " + value);
+                        }
+                    }
+                    Log.L.info(sb.toString());
+                }
+                return sb2.toString();
 
             } finally {
                 try {
@@ -283,6 +310,13 @@ public class SimpleHTTP {
         return this.followRedirects;
     }
 
+    /**
+     * @return the headerDebug
+     */
+    public boolean isHeaderDebug() {
+        return this.headerDebug;
+    }
+
     public HttpURLConnection openGetConnection(final URL url) throws IOException, InterruptedException {
         return this.openGetConnection(url, this.readTimeout);
     }
@@ -290,6 +324,7 @@ public class SimpleHTTP {
     public HttpURLConnection openGetConnection(final URL url, final int readTimeout) throws IOException, InterruptedException {
         boolean close = true;
         synchronized (SimpleHTTP.CALL_LOCK) {
+            final StringBuilder sb = new StringBuilder();
             try {
                 this.connection = (HttpURLConnection) url.openConnection();
                 this.connection.setConnectTimeout(this.connectTimeout);
@@ -307,6 +342,18 @@ public class SimpleHTTP {
                 for (final Entry<String, String> next : this.requestHeader.entrySet()) {
                     this.connection.setRequestProperty(next.getKey(), next.getValue());
                 }
+                if (this.headerDebug) {
+                    final Iterator<Entry<String, List<String>>> it = this.connection.getRequestProperties().entrySet().iterator();
+                    while (it.hasNext()) {
+                        final Entry<String, List<String>> next = it.next();
+                        for (final String value : next.getValue()) {
+                            if (sb.length() > 0) {
+                                sb.append("\r\n");
+                            }
+                            sb.append("REQUEST: " + next.getKey() + " = " + value);
+                        }
+                    }
+                }
                 int lookupTry = 0;
                 while (true) {
                     try {
@@ -319,6 +366,19 @@ public class SimpleHTTP {
                     }
                 }
                 close = false;
+                if (this.headerDebug) {
+                    final Iterator<Entry<String, List<String>>> it = this.connection.getHeaderFields().entrySet().iterator();
+                    while (it.hasNext()) {
+                        final Entry<String, List<String>> next = it.next();
+                        for (final String value : next.getValue()) {
+                            if (sb.length() > 0) {
+                                sb.append("\r\n");
+                            }
+                            sb.append("RESPONSE: " + next.getKey() + " = " + value);
+                        }
+                    }
+                    Log.L.info(sb.toString());
+                }
                 return this.connection;
             } finally {
                 try {
@@ -337,6 +397,7 @@ public class SimpleHTTP {
         synchronized (SimpleHTTP.CALL_LOCK) {
             OutputStreamWriter writer = null;
             OutputStream outputStream = null;
+            final StringBuilder sb = new StringBuilder();
             try {
                 this.connection = (HttpURLConnection) url.openConnection();
                 this.connection.setInstanceFollowRedirects(this.followRedirects);
@@ -365,7 +426,18 @@ public class SimpleHTTP {
                 for (final Entry<String, String> next : this.requestHeader.entrySet()) {
                     this.connection.setRequestProperty(next.getKey(), next.getValue());
                 }
-
+                if (this.headerDebug) {
+                    final Iterator<Entry<String, List<String>>> it = this.connection.getRequestProperties().entrySet().iterator();
+                    while (it.hasNext()) {
+                        final Entry<String, List<String>> next = it.next();
+                        for (final String value : next.getValue()) {
+                            if (sb.length() > 0) {
+                                sb.append("\r\n");
+                            }
+                            sb.append("REQUEST: " + next.getKey() + " = " + value);
+                        }
+                    }
+                }
                 int lookupTry = 0;
                 while (true) {
                     try {
@@ -382,6 +454,19 @@ public class SimpleHTTP {
                 writer.write(postData);
                 writer.flush();
                 close = false;
+                if (this.headerDebug) {
+                    final Iterator<Entry<String, List<String>>> it = this.connection.getHeaderFields().entrySet().iterator();
+                    while (it.hasNext()) {
+                        final Entry<String, List<String>> next = it.next();
+                        for (final String value : next.getValue()) {
+                            if (sb.length() > 0) {
+                                sb.append("\r\n");
+                            }
+                            sb.append("RESPONSE: " + next.getKey() + " = " + value);
+                        }
+                    }
+                    Log.L.info(sb.toString());
+                }
                 return this.connection;
 
             } finally {
@@ -494,6 +579,14 @@ public class SimpleHTTP {
 
     public void setFollowRedirects(final boolean followRedirects) {
         this.followRedirects = followRedirects;
+    }
+
+    /**
+     * @param headerDebug
+     *            the headerDebug to set
+     */
+    public void setHeaderDebug(final boolean headerDebug) {
+        this.headerDebug = headerDebug;
     }
 
     public void setReadTimeout(final int readTimeout) {
