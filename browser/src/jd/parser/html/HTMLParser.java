@@ -428,6 +428,7 @@ public class HTMLParser {
         return HTMLParser.ArrayToString(links);
     }
 
+    /* do not use in 09581 stable */
     public static String[] getHttpLinks(final String data) {
         return HTMLParser.getHttpLinks(data, null);
     }
