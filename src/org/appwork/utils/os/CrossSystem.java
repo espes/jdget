@@ -29,7 +29,6 @@ import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
 import org.appwork.utils.Application;
-import org.appwork.utils.IO;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.mime.Mime;
@@ -353,10 +352,11 @@ public class CrossSystem {
     /**
      * @param class1
      */
-    public static void restartApplication(Class<?> class1) {
+    public static void restartApplication(Class<?> class1, String... parameters) {
 
         try {
             ArrayList<String> nativeParameters = new ArrayList<String>();
+            File runin = null;
             if (isMac()) {
 
                 // find .app
@@ -377,6 +377,7 @@ public class CrossSystem {
                     nativeParameters.add("open");
                     nativeParameters.add("-n");
                     nativeParameters.add(rootpath.getAbsolutePath());
+                    runin = rootpath.getParentFile();
 
                 }
 
@@ -388,6 +389,7 @@ public class CrossSystem {
                     throw new WTFException("REstart works only in Jared mode");
                 } else {
                     File jarFile = new File(new URI(root.getPath().substring(0, index)));
+                    runin = jarFile.getParentFile();
                     if (CrossSystem.isWindows()) {
                         File exeFile = new File(jarFile.getParentFile(), jarFile.getName().substring(0, jarFile.getName().length() - 4) + ".exe");
                         if (exeFile.exists()) {
@@ -405,50 +407,19 @@ public class CrossSystem {
 
                 }
             }
-            StringBuilder sb = new StringBuilder();
-            for (String s : nativeParameters) {
-                if (sb.length() > 0) sb.append(" ");
-                if (s.contains(" ")) {
-                    sb.append("\\\"");
-                    sb.append(s);
-                    sb.append("\\\"");
-                } else {
-                    sb.append(s);
+            if (parameters != null) {
+                for (String s : parameters) {
+                    nativeParameters.add(s);
                 }
-
             }
 
-            File jar = Application.getResource("tbs.jar");
-            URL tbsUrl = CrossSystem.class.getResource("tbs.jar");
-            if (tbsUrl != null) {
-                byte[] tbsData = IO.readURL(tbsUrl);
-                jar.delete();
-                IO.writeToFile(jar, tbsData);
-            }
-
-            final String tiny[] = new String[] { CrossSystem.getJavaBinary(), "-jar", jar.getName(), "-noupdate", "-guiless", "-restart", "\"" + sb.toString() + "\"" };
-
-            /*
-             * build complete call arguments for tinybootstrap
-             */
-            sb = new StringBuilder();
-
-            for (final String arg : tiny) {
-                sb.append(arg + " ");
-            }
-
-            System.out.println("Call: " + sb.toString());
-
-            final ProcessBuilder pb = new ProcessBuilder(tiny);
+            final ProcessBuilder pb = new ProcessBuilder(nativeParameters.toArray(new String[] {}));
             /*
              * needed because the root is different for jre/class version
              */
-            File pbroot = null;
 
-            pbroot = jar.getParentFile();
-
-            System.out.println("Root: " + pbroot);
-            pb.directory(pbroot);
+            System.out.println("Root: " + runin);
+            if (runin != null) pb.directory(runin);
 
             ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
                 {
