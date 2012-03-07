@@ -47,8 +47,8 @@ public class SingleAppInstance {
         }
 
         public void run() {
-            if (instance != null) {
-                instance.exit();
+            if (this.instance != null) {
+                this.instance.exit();
             }
         }
     }
@@ -73,47 +73,46 @@ public class SingleAppInstance {
     public SingleAppInstance(final String appID, final File directory) {
         this.appID = appID;
         directory.mkdirs();
-        lockFile = new File(directory, appID + ".lock");
-        portFile = new File(directory, appID + ".port");
+        this.lockFile = new File(directory, appID + ".lock");
+        this.portFile = new File(directory, appID + ".port");
         ShutdownController.getInstance().addShutdownEvent(new ShutdownRunableEvent(new ShutdownHook(this)));
-
     }
 
     private synchronized void cannotStart(final String cause) throws UncheckableInstanceException {
-        alreadyUsed = true;
-        lockChannel = null;
-        fileLock = null;
+        this.alreadyUsed = true;
+        this.lockChannel = null;
+        this.fileLock = null;
         throw new UncheckableInstanceException(cause);
     }
 
     public synchronized void exit() {
-        if (fileLock == null) { return; }
-        daemonRunning = false;
-        if (daemon != null) {
-            daemon.interrupt();
+        if (this.fileLock == null) { return; }
+        this.daemonRunning = false;
+        if (this.daemon != null) {
+            this.daemon.interrupt();
         }
         try {
             try {
-                fileLock.release();
+                this.fileLock.release();
             } catch (final IOException e) {
             }
             try {
-                lockChannel.close();
+                this.lockChannel.close();
             } catch (final IOException e) {
             }
         } finally {
-            lockChannel = null;
-            fileLock = null;
-            lockFile.delete();
-            portFile.delete();
+            this.lockChannel = null;
+            this.fileLock = null;
+            this.lockFile.delete();
+            this.portFile.delete();
         }
     }
 
     private synchronized void foundRunningInstance() throws AnotherInstanceRunningException {
-        alreadyUsed = true;
-        lockChannel = null;
-        fileLock = null;
-        throw new AnotherInstanceRunningException(appID);
+        this.alreadyUsed = true;
+        this.lockChannel = null;
+        this.fileLock = null;
+        throw new AnotherInstanceRunningException(this.appID);
     }
 
     private InetAddress getLocalHost() {
@@ -164,9 +163,9 @@ public class SingleAppInstance {
     }
 
     private int readPortFromPortFile() {
-        if (!portFile.exists()) { return 0; }
+        if (!this.portFile.exists()) { return 0; }
         try {
-            final String port = IO.readFileToString(portFile);
+            final String port = IO.readFileToString(this.portFile);
             return Integer.parseInt(String.valueOf(port).trim());
         } catch (final Exception e) {
             return 0;
@@ -174,31 +173,31 @@ public class SingleAppInstance {
     }
 
     public synchronized boolean sendToRunningInstance(final String[] message) {
-        if (portFile.exists()) {
-            final int port = readPortFromPortFile();
+        if (this.portFile.exists()) {
+            final int port = this.readPortFromPortFile();
             Socket runninginstance = null;
             if (port != 0) {
                 try {
                     runninginstance = new Socket();
-                    InetSocketAddress con = new InetSocketAddress(getLocalHost(), port);
+                    final InetSocketAddress con = new InetSocketAddress(this.getLocalHost(), port);
                     runninginstance.connect(con, 1000);
                     runninginstance.setSoTimeout(2000);/* set Timeout */
                     final BufferedInputStream in = new BufferedInputStream(runninginstance.getInputStream());
                     final OutputStream out = runninginstance.getOutputStream();
-                    final String response = readLine(in);
-                    if (response == null || !response.equalsIgnoreCase(SINGLEAPP)) {
+                    final String response = this.readLine(in);
+                    if (response == null || !response.equalsIgnoreCase(this.SINGLEAPP)) {
                         /* invalid server response */
                         return false;
                     }
                     if (message == null || message.length == 0) {
-                        writeLine(out, "0");
+                        this.writeLine(out, "0");
                     } else {
-                        writeLine(out, message.length + "");
+                        this.writeLine(out, message.length + "");
                         for (final String msg : message) {
-                            writeLine(out, msg);
+                            this.writeLine(out, msg);
                         }
-                    }                
-                } catch (final IOException e) {                    
+                    }
+                } catch (final IOException e) {
                     return false;
                 } finally {
                     if (runninginstance != null) {
@@ -230,35 +229,35 @@ public class SingleAppInstance {
 
     public synchronized void start() throws AnotherInstanceRunningException, UncheckableInstanceException {
 
-        if (fileLock != null) { return; }
-        if (alreadyUsed) {
-            cannotStart("create new instance!");
+        if (this.fileLock != null) { return; }
+        if (this.alreadyUsed) {
+            this.cannotStart("create new instance!");
         }
         try {
-            if (sendToRunningInstance(null)) {
-                foundRunningInstance();
+            if (this.sendToRunningInstance(null)) {
+                this.foundRunningInstance();
             }
-            lockChannel = new RandomAccessFile(lockFile, "rw").getChannel();
+            this.lockChannel = new RandomAccessFile(this.lockFile, "rw").getChannel();
             try {
-                fileLock = lockChannel.tryLock();
-                if (fileLock == null) {
-                    foundRunningInstance();
+                this.fileLock = this.lockChannel.tryLock();
+                if (this.fileLock == null) {
+                    this.foundRunningInstance();
                 }
             } catch (final OverlappingFileLockException e) {
-                foundRunningInstance();
+                this.foundRunningInstance();
             } catch (final IOException e) {
-                foundRunningInstance();
+                this.foundRunningInstance();
             }
-            portFile.delete();
-            serverSocket = new ServerSocket();
-            final SocketAddress socketAddress = new InetSocketAddress(getLocalHost(), 0);
-            serverSocket.bind(socketAddress);
+            this.portFile.delete();
+            this.serverSocket = new ServerSocket();
+            final SocketAddress socketAddress = new InetSocketAddress(this.getLocalHost(), 0);
+            this.serverSocket.bind(socketAddress);
             FileOutputStream portWriter = null;
             try {
-                portWriter = new FileOutputStream(portFile);
-                portWriter.write((serverSocket.getLocalPort() + "").getBytes());
+                portWriter = new FileOutputStream(this.portFile);
+                portWriter.write((this.serverSocket.getLocalPort() + "").getBytes());
                 portWriter.flush();
-                startDaemon();
+                this.startDaemon();
                 return;
             } catch (final Throwable t) {
                 /* network communication not possible */
@@ -268,36 +267,36 @@ public class SingleAppInstance {
                 } catch (final Throwable t) {
                 }
             }
-            cannotStart("could not create instance!");
+            this.cannotStart("could not create instance!");
         } catch (final FileNotFoundException e) {
-            cannotStart(e.getMessage());
+            this.cannotStart(e.getMessage());
         } catch (final IOException e) {
             try {
-                serverSocket.close();
+                this.serverSocket.close();
             } catch (final Throwable t) {
             }
-            cannotStart(e.getMessage());
+            this.cannotStart(e.getMessage());
         }
     }
 
     private synchronized void startDaemon() {
-        if (daemon != null) { return; }
-        daemon = new Thread(new Runnable() {
+        if (this.daemon != null) { return; }
+        this.daemon = new Thread(new Runnable() {
 
             public void run() {
-                daemonRunning = true;
-                while (daemonRunning) {
-                    if (daemon.isInterrupted()) {
+                SingleAppInstance.this.daemonRunning = true;
+                while (SingleAppInstance.this.daemonRunning) {
+                    if (SingleAppInstance.this.daemon.isInterrupted()) {
                         break;
                     }
                     Socket client = null;
                     try {
                         /* accept new request */
-                        client = serverSocket.accept();
+                        client = SingleAppInstance.this.serverSocket.accept();
                         client.setSoTimeout(10000);/* set Timeout */
                         final BufferedInputStream in = new BufferedInputStream(client.getInputStream());
                         final OutputStream out = client.getOutputStream();
-                        SingleAppInstance.this.writeLine(out, SINGLEAPP);
+                        SingleAppInstance.this.writeLine(out, SingleAppInstance.this.SINGLEAPP);
                         final String line = SingleAppInstance.this.readLine(in);
                         if (line != null && line.length() > 0) {
                             final int lines = Integer.parseInt(line);
@@ -306,9 +305,9 @@ public class SingleAppInstance {
                                 for (int index = 0; index < lines; index++) {
                                     message[index] = SingleAppInstance.this.readLine(in);
                                 }
-                                if (listener != null) {
+                                if (SingleAppInstance.this.listener != null) {
                                     try {
-                                        listener.parseMessage(message);
+                                        SingleAppInstance.this.listener.parseMessage(message);
                                     } catch (final Throwable e) {
                                     }
                                 }
@@ -335,16 +334,16 @@ public class SingleAppInstance {
                     }
                 }
                 try {
-                    serverSocket.close();
+                    SingleAppInstance.this.serverSocket.close();
                 } catch (final Throwable e) {
                     org.appwork.utils.logging.Log.exception(e);
                 }
             }
         });
-        daemon.setName("SingleAppInstance: " + appID);
+        this.daemon.setName("SingleAppInstance: " + this.appID);
         /* set daemonmode so java does not wait for this thread */
-        daemon.setDaemon(true);
-        daemon.start();
+        this.daemon.setDaemon(true);
+        this.daemon.start();
     }
 
     private void writeLine(final OutputStream outputStream, final String line) {
