@@ -15,12 +15,21 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.logging.Level;
 
 import javax.swing.filechooser.FileFilter;
 
+import net.miginfocom.swing.MigLayout;
+
+import org.appwork.exceptions.WTFException;
+import org.appwork.shutdown.ShutdownController;
+import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
+import org.appwork.utils.Application;
+import org.appwork.utils.IO;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.mime.Mime;
@@ -292,7 +301,7 @@ public class CrossSystem {
     }
 
     public static void main(final String[] args) {
-        System.out.println(CrossSystem.getJavaBinary());
+        restartApplication(MigLayout.class);
     }
 
     /**
@@ -339,5 +348,129 @@ public class CrossSystem {
             } catch (final DialogNoAnswerException donothing) {
             }
         }
+    }
+
+    /**
+     * @param class1
+     */
+    public static void restartApplication(Class<?> class1) {
+
+        try {
+            ArrayList<String> nativeParameters = new ArrayList<String>();
+            if (isMac()) {
+
+                // find .app
+                File rootpath = Application.getRootByClass(class1, null);
+                HashSet<File> loopMap = new HashSet<File>();
+                while (rootpath != null && loopMap.add(rootpath)) {
+                    if (rootpath.getName().endsWith(".app")) {
+                        break;
+
+                    }
+                    rootpath = rootpath.getParentFile();
+
+                }
+                if (rootpath.getName().endsWith(".app")) {
+
+                    // found app.- restart it.
+
+                    nativeParameters.add("open");
+                    nativeParameters.add("-n");
+                    nativeParameters.add(rootpath.getAbsolutePath());
+
+                }
+
+            }
+            if (nativeParameters.isEmpty()) {
+                URL root = class1.getClassLoader().getResource(class1.getName().replace(".", "/") + ".class");
+                int index = root.getPath().indexOf("!");
+                if (index <= 0 || !"jar".equalsIgnoreCase(root.getProtocol())) {
+                    throw new WTFException("REstart works only in Jared mode");
+                } else {
+                    File jarFile = new File(new URI(root.getPath().substring(0, index)));
+                    if (CrossSystem.isWindows()) {
+                        File exeFile = new File(jarFile.getParentFile(), jarFile.getName().substring(0, jarFile.getName().length() - 4) + ".exe");
+                        if (exeFile.exists()) {
+                            nativeParameters.add(exeFile.getAbsolutePath());
+                        } else {
+                            nativeParameters.add(CrossSystem.getJavaBinary());
+                            nativeParameters.add("-jar");
+                            nativeParameters.add(jarFile.getAbsolutePath());
+                        }
+                    } else {
+                        nativeParameters.add(CrossSystem.getJavaBinary());
+                        nativeParameters.add("-jar");
+                        nativeParameters.add(jarFile.getAbsolutePath());
+                    }
+
+                }
+            }
+            StringBuilder sb = new StringBuilder();
+            for (String s : nativeParameters) {
+                if (sb.length() > 0) sb.append(" ");
+                if (s.contains(" ")) {
+                    sb.append("\\\"");
+                    sb.append(s);
+                    sb.append("\\\"");
+                } else {
+                    sb.append(s);
+                }
+
+            }
+
+            File jar = Application.getResource("tbs.jar");
+            URL tbsUrl = CrossSystem.class.getResource("tbs.jar");
+            if (tbsUrl != null) {
+                byte[] tbsData = IO.readURL(tbsUrl);
+                jar.delete();
+                IO.writeToFile(jar, tbsData);
+            }
+
+            final String tiny[] = new String[] { CrossSystem.getJavaBinary(), "-jar", jar.getName(), "-noupdate", "-guiless", "-restart", "\"" + sb.toString() + "\"" };
+
+            /*
+             * build complete call arguments for tinybootstrap
+             */
+            sb = new StringBuilder();
+
+            for (final String arg : tiny) {
+                sb.append(arg + " ");
+            }
+
+            System.out.println("Call: " + sb.toString());
+
+            final ProcessBuilder pb = new ProcessBuilder(tiny);
+            /*
+             * needed because the root is different for jre/class version
+             */
+            File pbroot = null;
+
+            pbroot = jar.getParentFile();
+
+            System.out.println("Root: " + pbroot);
+            pb.directory(pbroot);
+
+            ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
+                {
+                    setHookPriority(Integer.MIN_VALUE);
+                }
+
+                @Override
+                public void run() {
+                    try {
+                        pb.start();
+                    } catch (final IOException e) {
+                        Log.exception(e);
+                    }
+
+                }
+            });
+
+            ShutdownController.getInstance().requestShutdown();
+
+        } catch (Throwable e) {
+            throw new WTFException(e);
+        }
+
     }
 }
