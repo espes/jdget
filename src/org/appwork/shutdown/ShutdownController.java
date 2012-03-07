@@ -217,7 +217,7 @@ public class ShutdownController extends Thread {
         synchronized (this.vetoListeners) {
             for (final ShutdownVetoListener v : this.vetoListeners) {
                 try {
-                    v.onShutdownRequest();
+                    v.onShutdownRequest(vetos.size());
                 } catch (final ShutdownVetoException e) {
                     vetos.add(e);
                 } catch (final Throwable e) {

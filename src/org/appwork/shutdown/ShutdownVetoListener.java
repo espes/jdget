@@ -31,7 +31,7 @@ public interface ShutdownVetoListener {
      * @return
      * @throws ShutdownVetoException
      */
-    public void onShutdownRequest() throws ShutdownVetoException;
+    public void onShutdownRequest(int vetos) throws ShutdownVetoException;
 
     /**
      * step 2b: If one or more listeners in step 1 answered with true(veto) all
