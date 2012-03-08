@@ -296,7 +296,7 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
     @Override
     public String getText() {
 
-        return new String(this.getPassword());
+        return getPassword()==null?null:new String(this.getPassword());
     }
 
     /*
@@ -308,15 +308,18 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
      */
     @Override
     public void setText(String text) {
-        this.setPassword(text.toCharArray());
+
+        this.setPassword(text == null ? null : text.toCharArray());
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.swing.components.TextComponentInterface#selectAll()
      */
     @Override
     public void selectAll() {
-      editor.selectAll();
+        editor.selectAll();
     }
 
 }

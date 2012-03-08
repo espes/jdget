@@ -10,7 +10,7 @@ import org.appwork.storage.config.handler.BooleanKeyHandler;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.swing.EDTRunner;
 
-public class ConfigToggleButtonModel extends ToggleButtonModel implements GenericConfigEventListener<Boolean>   {
+public class ConfigToggleButtonModel extends ToggleButtonModel implements GenericConfigEventListener<Boolean> {
 
     /**
      * 
@@ -33,13 +33,9 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Generi
         keyHandler.setValue(b);
 
     }
-    
-    private void fireItemStateChanged(){
-        fireItemStateChanged(
-                new ItemEvent(ConfigToggleButtonModel.this,
-                              ItemEvent.ITEM_STATE_CHANGED,
-                              ConfigToggleButtonModel.this,
-                              ConfigToggleButtonModel.this.isSelected() ?  ItemEvent.SELECTED : ItemEvent.DESELECTED));
+
+    private void fireItemStateChanged() {
+        fireItemStateChanged(new ItemEvent(ConfigToggleButtonModel.this, ItemEvent.ITEM_STATE_CHANGED, ConfigToggleButtonModel.this, ConfigToggleButtonModel.this.isSelected() ? ItemEvent.SELECTED : ItemEvent.DESELECTED));
     }
 
     public void onConfigValidatorError(KeyHandler<Boolean> keyHandler, Boolean invalidValue, ValidationException validateException) {
