@@ -13,6 +13,8 @@ import java.util.logging.Level;
 
 import javax.swing.SwingUtilities;
 
+import org.appwork.utils.logging.Log;
+
 /**
  * This class should be used to run gui code in the edt and return the generic
  * datatype to the parent thread.
@@ -73,8 +75,8 @@ public abstract class EDTHelper<T> implements Runnable {
         try {
             this.returnValue = this.edtRun();
         } catch (final RuntimeException e) {
-            this.exception=e;
-            org.appwork.utils.logging.Log.exception(e);
+            this.exception = e;
+            Log.exception(e);
         } finally {
             synchronized (this.lock) {
                 this.done = true;
@@ -108,20 +110,20 @@ public abstract class EDTHelper<T> implements Runnable {
      * not started yet, it gets started.
      */
     public void waitForEDT() {
-        try{
-        if (this.done) { return; }
-        this.start(false);
-        if (this.done) { return; }
-        synchronized (this.lock) {
+        try {
             if (this.done) { return; }
-            try {
-                this.lock.wait();
-            } catch (final InterruptedException e) {
-                org.appwork.utils.logging.Log.exception(Level.WARNING,e);
+            this.start(false);
+            if (this.done) { return; }
+            synchronized (this.lock) {
+                if (this.done) { return; }
+                try {
+                    this.lock.wait();
+                } catch (final InterruptedException e) {
+                    org.appwork.utils.logging.Log.exception(Level.WARNING, e);
+                }
             }
-        }
-        }finally{
-            if(   exception!=null)throw exception;
+        } finally {
+            if (exception != null) throw exception;
         }
     }
 
