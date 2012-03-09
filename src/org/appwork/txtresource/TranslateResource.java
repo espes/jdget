@@ -28,10 +28,10 @@ public class TranslateResource {
     /**
      * 
      */
-  
-    private final URL         url;
-    private TranslateData     data;
-    private final String      name;
+
+    private final URL     url;
+    private TranslateData data;
+    private final String  name;
 
     /**
      * @param url
@@ -42,18 +42,23 @@ public class TranslateResource {
 
     }
 
-    public TranslateData getData() throws UnsupportedEncodingException, IOException {
-  
-    
-            if (this.data == null) {
-                if (this.url != null) {
+    public TranslateData getData() {
+
+        if (this.data == null) {
+            if (this.url != null) {
+                try {
                     final String txt = this.read(this.url);
+
                     this.data = JSonStorage.restoreFromString(txt, TranslateData.class);
+                } catch (Throwable e) {
+                    Log.L.severe("Error in Translation File: " + url);
+                    Log.exception(e);
+                    data = new TranslateData();
                 }
             }
-            return this.data;
+        }
+        return this.data;
 
-        
     }
 
     /**
@@ -67,7 +72,8 @@ public class TranslateResource {
         // if we have no translation files, but only defaults, read them
         // directly
         if (this.url == null) { return this.readDefaults(method); }
-        final String ret = this.getData().get(method.getName());
+        String ret = null;
+        ret = this.getData().get(method.getName());
         if (ret == null) { return this.readDefaults(method); }
         return ret;
 
