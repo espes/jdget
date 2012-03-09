@@ -270,7 +270,6 @@ public class TranslationHandler implements InvocationHandler {
         String ret = null;
         TranslateResource res;
 
-        ArrayList<TranslateResource> remove = new ArrayList<TranslateResource>();
         for (final Iterator<TranslateResource> it = lookup.iterator(); it.hasNext();) {
             res = it.next();
             try {
@@ -279,17 +278,10 @@ public class TranslationHandler implements InvocationHandler {
             } catch (final Throwable e) {
                 Log.L.warning("Exception in translation: " + this.tInterface.getName() + "." + res.getName());
                 Log.exception(Level.WARNING, e);
-                // it.remove();
-                remove.add(res);
             }
 
         }
-        try {
-            lookup.removeAll(remove);
-        } catch (Throwable e) {
-            // SHOULD NEVER HAPPEN!!
-            Log.exception(e);
-        }
+
         if (ret == null) {
             ret = this.tInterface.getSimpleName() + "." + method.getName();
 
