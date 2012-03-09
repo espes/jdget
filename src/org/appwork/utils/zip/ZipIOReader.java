@@ -11,7 +11,6 @@ package org.appwork.utils.zip;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,7 +93,13 @@ public class ZipIOReader {
         if (output.exists() && output.isDirectory()) {
             if (this.isOverwrite()) {
                 Files.deleteRecursiv(output);
-                if (output.exists()) { throw new IOException("Cannot extract File to Directory " + output); }
+                if (output.exists()) {
+                    if (isBreakOnError()) {
+                        throw new IOException("Cannot extract File to Directory " + output);
+                    } else {
+                        Log.L.severe("Cannot extract File to Directory " + output);
+                    }
+                }
             }
             if (output.exists() && output.isDirectory()) {
                 Log.L.finer("Skipped extraction: directory exists: " + output);
@@ -105,7 +110,15 @@ public class ZipIOReader {
         if (output.exists()) {
             if (this.isOverwrite()) {
                 output.delete();
-                if (output.exists()) { throw new IOException("Cannot overwrite File " + output); }
+                if (output.exists()) {
+
+                    if (isBreakOnError()) {
+                        throw new IOException("Cannot overwrite File " + output);
+                    } else {
+                        Log.L.severe("Cannot overwrite File " + output);
+                    }
+
+                }
             }
             if (output.exists()) {
                 Log.L.finer("Skipped extraction: file exists: " + output);
@@ -117,31 +130,45 @@ public class ZipIOReader {
             if (this.isAutoCreateSubDirs()) {
                 output.getParentFile().mkdirs();
                 ret.add(output.getParentFile());
-                if (!output.getParentFile().exists()) { throw new IOException("Cannot create folder for File " + output); }
+                if (!output.getParentFile().exists()) {
+
+                    if (isBreakOnError()) {
+                        throw new IOException("Cannot create folder for File " + output);
+                    } else {
+                        Log.L.severe("Cannot create folder for File " + output);
+                    }
+
+                }
             }
             if (!output.getParentFile().exists()) {
                 Log.L.finer("Skipped extraction: cannot create dir: " + output);
                 return ret;
             }
         }
-       extract(entry,new FileOutputStream(output));
-       ret.add(output);
-       return ret;
+        extract(entry, new FileOutputStream(output));
+        ret.add(output);
+        return ret;
     }
 
     /**
      * @param entry
      * @param fileOutputStream
-     * @throws ZipIOException 
-     * @throws IOException 
+     * @throws ZipIOException
+     * @throws IOException
      */
     public void extract(ZipEntry entry, OutputStream stream) throws ZipIOException, IOException {
-        if (entry.isDirectory()) { throw new ZipIOException("Cannot extract a directory", entry); } 
-        
-    
+        if (entry.isDirectory()) {
+
+            if (isBreakOnError()) {
+                throw new ZipIOException("Cannot extract a directory", entry);
+            } else {
+                Log.L.severe("Cannot extract a directory " + entry.getName());
+            }
+        }
+
         CheckedInputStream in = null;
         try {
-      
+
             final InputStream is = this.getInputStream(entry);
             in = new CheckedInputStream(is, new CRC32());
             final byte[] buffer = new byte[32767];
@@ -149,8 +176,15 @@ public class ZipIOReader {
             while ((len = in.read(buffer)) != -1) {
                 stream.write(buffer, 0, len);
             }
-            if (entry.getCrc() != -1 && entry.getCrc() != in.getChecksum().getValue()) { throw new ZipIOException("CRC32 Failed", entry); }
-       
+            if (entry.getCrc() != -1 && entry.getCrc() != in.getChecksum().getValue()) {
+                if (isBreakOnError()) {
+                    throw new ZipIOException("CRC32 Failed", entry);
+                } else {
+                    Log.L.severe("CRC32 Failed " + entry);
+                }
+
+            }
+
         } finally {
             try {
                 in.close();
@@ -164,11 +198,22 @@ public class ZipIOReader {
 
     }
 
-
-
     public synchronized ArrayList<File> extractTo(final File outputDirectory) throws ZipIOException, IOException {
-        if (outputDirectory.exists() && outputDirectory.isFile()) { throw new IOException("cannot extract to a file " + outputDirectory); }
-        if (!outputDirectory.exists() && !(this.autoCreateExtractPath && outputDirectory.mkdirs())) { throw new IOException("could not create outputDirectory " + outputDirectory); }
+        if (outputDirectory.exists() && outputDirectory.isFile()) {
+
+            if (isBreakOnError()) {
+                throw new IOException("cannot extract to a file " + outputDirectory);
+            } else {
+                Log.L.severe("cannot extract to a file " + outputDirectory);
+            }
+        }
+        if (!outputDirectory.exists() && !(this.autoCreateExtractPath && outputDirectory.mkdirs())) {
+            if (isBreakOnError()) {
+                throw new IOException("could not create outputDirectory " + outputDirectory);
+            } else {
+                Log.L.severe("could not create outputDirectory " + outputDirectory);
+            }
+        }
 
         final ArrayList<File> ret = new ArrayList<File>();
 
@@ -177,7 +222,14 @@ public class ZipIOReader {
             if (entry.isDirectory()) {
                 if (!out.exists()) {
                     if (this.isAutoCreateSubDirs()) {
-                        if (!out.mkdir()) { throw new IOException("could not create outputDirectory " + out); }
+                        if (!out.mkdir()) {
+                            if (isBreakOnError()) {
+                                throw new IOException("could not create outputDirectory " + out);
+                            } else {
+                                Log.L.severe("could not create outputDirectory " + out);
+                            }
+
+                        }
                         ret.add(out);
                     } else {
                         Log.L.finer("SKipped creatzion of: " + out);
@@ -189,6 +241,22 @@ public class ZipIOReader {
             }
         }
         return ret;
+    }
+
+    private boolean breakOnError = true;
+
+    public boolean isBreakOnError() {
+        return breakOnError;
+    }
+
+    /**
+     * Set to true of you want to extract as many files as possible. if false,
+     * the first error throws an exception and interrupts the process
+     * 
+     * @param breakOnError
+     */
+    public void setBreakOnError(boolean breakOnError) {
+        this.breakOnError = breakOnError;
     }
 
     /**
@@ -224,7 +292,11 @@ public class ZipIOReader {
      * @throws IOException
      */
     public synchronized InputStream getInputStream(final ZipEntry entry) throws ZipIOException, IOException {
-        if (entry == null) { throw new ZipIOException("invalid zipEntry"); }
+        if (entry == null) {
+
+        throw new ZipIOException("invalid zipEntry");
+
+        }
         if (this.zip != null) {
             return this.zip.getInputStream(entry);
         } else {
