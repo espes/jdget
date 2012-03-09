@@ -129,14 +129,14 @@ public class TranslationHandler implements InvocationHandler {
      * @param string
      * @return
      * @throws IOException
-     * @throws IllegalAccessException 
-     * @throws InstantiationException 
+     * @throws IllegalAccessException
+     * @throws InstantiationException
      */
     private TranslateResource createTranslationResource(final String string) throws IOException, InstantiationException, IllegalAccessException {
         TranslateResource ret = this.resourceCache.get(string);
         if (ret != null) { return ret; }
-        DynamicResourcePath rPath= tInterface.getAnnotation(DynamicResourcePath.class);
-        final String path = rPath!=null?rPath.value().newInstance().getPath()+ "." + string + ".lng":this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
+        DynamicResourcePath rPath = tInterface.getAnnotation(DynamicResourcePath.class);
+        final String path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
         final URL url = Application.getRessourceURL(path, false);
         miss: if (url == null) {
             final Defaults ann = this.tInterface.getAnnotation(Defaults.class);
@@ -150,7 +150,7 @@ public class TranslationHandler implements InvocationHandler {
                 }
 
             }
-//            throw new NullPointerException("Missing Translation: " + path);
+            // throw new NullPointerException("Missing Translation: " + path);
         }
         ret = new TranslateResource(url, string);
         this.resourceCache.put(string, ret);
@@ -270,6 +270,7 @@ public class TranslationHandler implements InvocationHandler {
         String ret = null;
         TranslateResource res;
 
+        ArrayList<TranslateResource> remove = new ArrayList<TranslateResource>();
         for (final Iterator<TranslateResource> it = lookup.iterator(); it.hasNext();) {
             res = it.next();
             try {
@@ -278,9 +279,16 @@ public class TranslationHandler implements InvocationHandler {
             } catch (final Throwable e) {
                 Log.L.warning("Exception in translation: " + this.tInterface.getName() + "." + res.getName());
                 Log.exception(Level.WARNING, e);
-                it.remove();
+                // it.remove();
+                remove.add(res);
             }
 
+        }
+        try {
+            lookup.removeAll(remove);
+        } catch (Throwable e) {
+            // SHOULD NEVER HAPPEN!!
+            Log.exception(e);
         }
         if (ret == null) {
             ret = this.tInterface.getSimpleName() + "." + method.getName();
