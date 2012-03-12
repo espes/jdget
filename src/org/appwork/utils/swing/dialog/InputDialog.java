@@ -118,9 +118,8 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
             this.input = getSmallInputComponent();
             // this.input.setBorder(BorderFactory.createEtchedBorder());
             this.input.setText(this.defaultMessage);
-            ((JTextComponent) this.input).addKeyListener(this);
-            ((JTextComponent) this.input).addMouseListener(this);
-            contentpane.add(((JTextComponent) this.input), "w 450");
+
+            contentpane.add((JComponent)this.input, "w 450");
         }
 
         return contentpane;
@@ -131,10 +130,16 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
      */
     private TextComponentInterface getSmallInputComponent() {
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_PASSWORD)) {
-            return new ExtPasswordField();
-
+            ExtPasswordField pw = new ExtPasswordField();
+            pw.addKeyListener(this);
+            pw.addMouseListener(this);
+            return pw;
         } else {
-            return new ExtTextField();
+            ExtTextField ttx = new ExtTextField();
+
+            ttx.addKeyListener(this);
+            ttx.addMouseListener(this);
+            return ttx;
         }
     }
 

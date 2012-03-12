@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -92,6 +94,33 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
     }
 
     public static String MASK = "••••••••••";
+
+    public synchronized void addMouseListener(MouseListener l) {
+
+        renderer.addMouseListener(l);
+        editor.addMouseListener(l);
+    }
+
+    @Override
+    public synchronized void addKeyListener(KeyListener l) {
+
+        renderer.addKeyListener(l);
+        editor.addKeyListener(l);
+    }
+
+    @Override
+    public synchronized void removeKeyListener(KeyListener l) {
+
+        renderer.removeKeyListener(l);
+        editor.removeKeyListener(l);
+    }
+
+    @Override
+    public synchronized void removeMouseListener(MouseListener l) {
+
+        renderer.removeMouseListener(l);
+        editor.removeMouseListener(l);
+    }
 
     /**
      * @param constraints
@@ -296,7 +325,7 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
     @Override
     public String getText() {
 
-        return getPassword()==null?null:new String(this.getPassword());
+        return getPassword() == null ? null : new String(this.getPassword());
     }
 
     /*
