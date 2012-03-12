@@ -58,10 +58,12 @@ public class Log {
     public static void exception(final Level level, final Throwable e) {
         try {
             StackTraceElement[] st = new Exception().getStackTrace();
+            int i=0;
+            while(st[i].getClassName().equals(Log.class.getName())){i++;}
             LogRecord lr = new LogRecord(level, level.getName() + " Exception occurred");
             lr.setThrown(e);
-            lr.setSourceClassName(st[1].getClassName()+"."+st[1].getMethodName());
-            lr.setSourceMethodName(st[1].getFileName() + ":" + st[1].getLineNumber() );
+            lr.setSourceClassName(st[i].getClassName()+"."+st[i].getMethodName());
+            lr.setSourceMethodName(st[i].getFileName() + ":" + st[i].getLineNumber() );
             Log.getLogger().log(lr);
         } catch (Throwable a1) {
             Log.L.log(level, level.getName() + " Exception occurred", e);

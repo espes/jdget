@@ -19,6 +19,8 @@ import java.util.LinkedList;
 
 import org.appwork.utils.os.CrossSystem;
 
+import com.sun.corba.se.spi.legacy.connection.GetEndPointInfoAgainException;
+
 public class Files {
     /**
      * delete all files/folders that are given
@@ -99,7 +101,7 @@ public class Files {
 
     /**
      * Returns the fileextension for a file with the given name
-     * 
+     * @see #getFileNameWithoutExtension(String)
      * @param name
      * @return
      */
@@ -198,5 +200,17 @@ public class Files {
             }
         }
         return ret;
+    }
+
+    /**
+     * @see #getExtension(String)
+     * @param jar
+     * @return
+     */
+    public static String getFileNameWithoutExtension(String filename) {
+
+        int index = filename.lastIndexOf(".");
+        if (index < 0) return filename;
+        return filename.substring(0, index);
     }
 }

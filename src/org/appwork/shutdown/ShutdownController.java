@@ -184,7 +184,10 @@ public class ShutdownController extends Thread {
     }
 
     public void addShutdownEvent(final ShutdownEvent event) {
-        if (this.isAlive()) { throw new IllegalStateException("Cannot add hooks during shutdown"); }
+        if (this.isAlive()) {
+            Log.exception(new IllegalStateException("Cannot add hooks during shutdown"));
+            return;
+        }
         synchronized (this.hooks) {
             ShutdownEvent next;
             int i = 0;
@@ -204,6 +207,7 @@ public class ShutdownController extends Thread {
 
     public void addShutdownVetoListener(final ShutdownVetoListener listener) {
         synchronized (this.vetoListeners) {
+            Log.L.finest("ADD " + listener);
             this.vetoListeners.remove(listener);
             this.vetoListeners.add(listener);
         }
@@ -287,6 +291,7 @@ public class ShutdownController extends Thread {
 
     public void removeShutdownVetoListener(final ShutdownVetoListener listener) {
         synchronized (this.vetoListeners) {
+            Log.L.finest("Remove " + listener);
             this.vetoListeners.remove(listener);
         }
     }
@@ -299,8 +304,10 @@ public class ShutdownController extends Thread {
         try {
             final ArrayList<ShutdownVetoException> vetos = this.collectVetos();
             if (vetos.size() == 0) {
+
                 synchronized (this.vetoListeners) {
-                    for (final ShutdownVetoListener v : this.vetoListeners) {
+                    ShutdownVetoListener[] localList = vetoListeners.toArray(new ShutdownVetoListener[] {});
+                    for (final ShutdownVetoListener v : localList) {
                         try {
                             v.onShutdown();
                         } catch (final Throwable e) {
@@ -325,8 +332,10 @@ public class ShutdownController extends Thread {
                 }
                 Log.L.finest("DONE");
             } else {
+
                 synchronized (this.vetoListeners) {
-                    for (final ShutdownVetoListener v : this.vetoListeners) {
+                    ShutdownVetoListener[] localList = vetoListeners.toArray(new ShutdownVetoListener[] {});
+                    for (final ShutdownVetoListener v : localList) {
                         v.onShutdownVeto(vetos);
                     }
                 }

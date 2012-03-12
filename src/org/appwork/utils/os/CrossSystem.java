@@ -384,6 +384,8 @@ public class CrossSystem {
             }
             if (nativeParameters.isEmpty()) {
                 URL root = class1.getClassLoader().getResource(class1.getName().replace(".", "/") + ".class");
+                
+                //Filenames may contain ! !!
                 int index = root.getPath().indexOf("!");
                 if (index <= 0 || !"jar".equalsIgnoreCase(root.getProtocol())) {
                     throw new WTFException("REstart works only in Jared mode");
