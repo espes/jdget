@@ -210,7 +210,7 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
     @Override
     public void focusLost(final FocusEvent e) {
 
-        if (e.getSource() == this.editor) {
+        if (e.getSource() == this.editor || e == null) {
             final char[] pw = this.editor.getPassword();
             final char[] ca = getMask().toCharArray();
 
@@ -237,6 +237,14 @@ public class ExtPasswordField extends MigPanel implements FocusListener, Documen
     }
 
     public char[] getPassword() {
+        if (editor.isVisible()) {
+            final char[] pw = this.editor.getPassword();
+            final char[] ca = getMask().toCharArray();
+
+            if (!this.equal(pw, ca)) {
+                password = pw;
+            }
+        }
         return this.password;
     }
 

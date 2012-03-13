@@ -26,6 +26,7 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.storage.config.InterfaceParseException;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.reflection.Clazz;
 
 /**
  * @author thomas
@@ -109,7 +110,8 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
         try {
 
             returnValue = this.client.call(this.name, method.getName(), args);
-            if (method.getGenericReturnType() == Void.class) {
+
+            if (Clazz.isVoid(method.getGenericReturnType())) {
                 return null;
             } else {
                 TypeRef<Object> tr = new TypeRef<Object>(method.getGenericReturnType()) {
