@@ -35,7 +35,7 @@ public abstract class DelayedRunnable implements Runnable {
         this.service = service;
         this.nextDelay = this.delayInMS = minDelayInMS;
         this.maxInMS = maxDelayInMS;
-        if (this.delayInMS <= 0) { throw new IllegalArgumentException("minDelay must be >=0"); }
+        if (this.delayInMS <= 0) { throw new IllegalArgumentException("minDelay must be >0"); }
         if (this.maxInMS == 0) { throw new IllegalArgumentException("maxDelay must be !=0"); }
     }
 

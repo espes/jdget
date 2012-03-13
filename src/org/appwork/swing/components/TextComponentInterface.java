@@ -34,4 +34,6 @@ public interface TextComponentInterface {
      * 
      */
     public boolean requestFocusInWindow();
+    
+    
 }

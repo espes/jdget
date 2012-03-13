@@ -31,7 +31,7 @@ public class RendererMigPanel extends MigPanel {
      * @param rows
      */
     public RendererMigPanel(final String constraints, final String columns, final String rows) {
-        super(constraints, columns, rows);
+        super(constraints, columns, rows); 
 
     }
 
