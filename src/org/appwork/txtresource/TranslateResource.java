@@ -43,17 +43,15 @@ public class TranslateResource {
     }
 
     public TranslateData getData() {
-
         if (this.data == null) {
             if (this.url != null) {
                 try {
                     final String txt = this.read(this.url);
-
                     this.data = JSonStorage.restoreFromString(txt, TranslateData.class);
-                } catch (Throwable e) {
-                    Log.L.severe("Error in Translation File: " + url);
+                } catch (final Throwable e) {
+                    Log.L.severe("Error in Translation File: " + this.url);
                     Log.exception(e);
-                    data = new TranslateData();
+                    this.data = new TranslateData();
                 }
             }
         }

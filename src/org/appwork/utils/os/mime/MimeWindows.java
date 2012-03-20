@@ -27,7 +27,6 @@ public class MimeWindows extends MimeDefault {
     @Override
     public ImageIcon getFileIcon(final String extension, final int width, final int height) throws IOException {
         final String iconKey = super.getIconKey(extension, width, height);
-
         ImageIcon ret = super.getCacheIcon(iconKey);
         if (ret == null) {
             final File path = Application.getResource("tmp/images/" + extension + ".png");
@@ -44,7 +43,6 @@ public class MimeWindows extends MimeDefault {
                         ImageIO.write((RenderedImage) ret.getImage(), "png", path);
                     } catch (final Throwable e) {
                         ret = ImageProvider.toImageIcon(FileSystemView.getFileSystemView().getSystemIcon(file));
-
                     } finally {
                         if (file != null) {
                             file.delete();
@@ -59,9 +57,7 @@ public class MimeWindows extends MimeDefault {
             }
         }
         ret = ImageProvider.scaleImageIcon(ret, width, height);
-
         super.saveIconCache(iconKey, ret);
-
         return ret;
     }
 }

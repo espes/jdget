@@ -135,7 +135,7 @@ public class TranslationHandler implements InvocationHandler {
     private TranslateResource createTranslationResource(final String string) throws IOException, InstantiationException, IllegalAccessException {
         TranslateResource ret = this.resourceCache.get(string);
         if (ret != null) { return ret; }
-        DynamicResourcePath rPath = tInterface.getAnnotation(DynamicResourcePath.class);
+        final DynamicResourcePath rPath = this.tInterface.getAnnotation(DynamicResourcePath.class);
         final String path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
         final URL url = Application.getRessourceURL(path, false);
         miss: if (url == null) {
@@ -266,10 +266,8 @@ public class TranslationHandler implements InvocationHandler {
     }
 
     public String getValue(final Method method, final ArrayList<TranslateResource> lookup) {
-
         String ret = null;
         TranslateResource res;
-
         for (final Iterator<TranslateResource> it = lookup.iterator(); it.hasNext();) {
             res = it.next();
             try {
@@ -279,14 +277,10 @@ public class TranslationHandler implements InvocationHandler {
                 Log.L.warning("Exception in translation: " + this.tInterface.getName() + "." + res.getName());
                 Log.exception(Level.WARNING, e);
             }
-
         }
-
         if (ret == null) {
             ret = this.tInterface.getSimpleName() + "." + method.getName();
-
         }
-
         return ret;
     }
 

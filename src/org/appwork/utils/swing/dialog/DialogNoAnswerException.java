@@ -18,7 +18,7 @@ import org.appwork.utils.logging.ExceptionDefaultLogLevel;
  * @author thomas
  * 
  */
-public class DialogNoAnswerException extends Exception implements ExceptionDefaultLogLevel{
+public class DialogNoAnswerException extends Exception implements ExceptionDefaultLogLevel {
     /**
      * 
      */
@@ -27,28 +27,26 @@ public class DialogNoAnswerException extends Exception implements ExceptionDefau
     private final boolean     causedByTimeout;
 
     public DialogNoAnswerException(final int mask) {
-        causedByDontShowAgain = BinaryLogic.containsSome(mask, Dialog.RETURN_SKIPPED_BY_DONT_SHOW);
-        causedByTimeout = BinaryLogic.containsSome(mask, Dialog.RETURN_TIMEOUT);
-        setStackTrace(new StackTraceElement[] {});
+        this.causedByDontShowAgain = BinaryLogic.containsSome(mask, Dialog.RETURN_SKIPPED_BY_DONT_SHOW);
+        this.causedByTimeout = BinaryLogic.containsSome(mask, Dialog.RETURN_TIMEOUT);
+        this.setStackTrace(new StackTraceElement[] {});
+    }
+
+    public Level getDefaultLogLevel() {
+        // TODO Auto-generated method stub
+        return Level.WARNING;
     }
 
     @Override
     public String getMessage() {
-        return "DontShowAgain: " + causedByDontShowAgain + " Timeout: " + causedByTimeout;
+        return "DontShowAgain: " + this.causedByDontShowAgain + " Timeout: " + this.causedByTimeout;
     }
 
     public boolean isCausedByDontShowAgain() {
-
-        return causedByDontShowAgain;
+        return this.causedByDontShowAgain;
     }
 
     public boolean isCausedByTimeout() {
-        return causedByTimeout;
-    }
-    
- 
-    public Level getDefaultLogLevel() {
-        // TODO Auto-generated method stub
-        return Level.WARNING;
+        return this.causedByTimeout;
     }
 }
