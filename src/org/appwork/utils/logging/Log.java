@@ -18,7 +18,8 @@ import org.appwork.utils.Application;
 
 public class Log {
 
-    private static Logger LOGGER;
+    private static Logger           LOGGER;
+    private static LogToFileHandler fh;
 
     /**
      * Create the singleton logger instance
@@ -32,11 +33,10 @@ public class Log {
         cHandler.setFormatter(new LogFormatter());
         Log.LOGGER.addHandler(cHandler);
         try {
-
-            final LogToFileHandler fh = new LogToFileHandler();
-            fh.setFormatter(new FileLogFormatter());
-            Log.LOGGER.addHandler(fh);
-        } catch (final Exception e) {
+            Log.fh = new LogToFileHandler();
+            Log.fh.setFormatter(new FileLogFormatter());
+            Log.LOGGER.addHandler(Log.fh);
+        } catch (final Throwable e) {
             Log.exception(e);
         }
 
@@ -46,7 +46,16 @@ public class Log {
     /**
      * For shorter access
      */
-    public static Logger  L = Log.LOGGER;
+    public static Logger            L = Log.LOGGER;
+
+    public synchronized static void closeLogfile() {
+        if (Log.fh != null) {
+            Log.fh.flush();
+            Log.fh.close();
+            Log.LOGGER.removeHandler(Log.fh);
+            Log.fh = null;
+        }
+    }
 
     /**
      * Adds an exception to the logger. USe this instead of e.printStackTrace if
@@ -57,15 +66,17 @@ public class Log {
      */
     public static void exception(final Level level, final Throwable e) {
         try {
-            StackTraceElement[] st = new Exception().getStackTrace();
-            int i=0;
-            while(st[i].getClassName().equals(Log.class.getName())){i++;}
-            LogRecord lr = new LogRecord(level, level.getName() + " Exception occurred");
+            final StackTraceElement[] st = new Exception().getStackTrace();
+            int i = 0;
+            while (st[i].getClassName().equals(Log.class.getName())) {
+                i++;
+            }
+            final LogRecord lr = new LogRecord(level, level.getName() + " Exception occurred");
             lr.setThrown(e);
-            lr.setSourceClassName(st[i].getClassName()+"."+st[i].getMethodName());
-            lr.setSourceMethodName(st[i].getFileName() + ":" + st[i].getLineNumber() );
+            lr.setSourceClassName(st[i].getClassName() + "." + st[i].getMethodName());
+            lr.setSourceMethodName(st[i].getFileName() + ":" + st[i].getLineNumber());
             Log.getLogger().log(lr);
-        } catch (Throwable a1) {
+        } catch (final Throwable a1) {
             Log.L.log(level, level.getName() + " Exception occurred", e);
         }
     }
@@ -88,6 +99,12 @@ public class Log {
             lvl = Level.SEVERE;
         }
         Log.exception(lvl, e);
+    }
+
+    public synchronized static void flushLogFile() {
+        if (Log.fh != null) {
+            Log.fh.flush();
+        }
     }
 
     /**

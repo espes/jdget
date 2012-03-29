@@ -866,8 +866,8 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @param e
      * @param obj
      */
-    protected void onSingleClick(final MouseEvent e, final E obj) {
-
+    protected boolean onSingleClick(final MouseEvent e, final E obj) {
+        return false;
     }
 
     @Override
@@ -1036,8 +1036,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     @Override
     protected void processMouseEvent(final MouseEvent e) {
 
-        super.processMouseEvent(e);
-
         if (e.getID() == MouseEvent.MOUSE_RELEASED) {
             if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
                 final int row = this.rowAtPoint(e.getPoint());
@@ -1065,8 +1063,8 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                     if (popup != null && popup.getComponentCount() > 0) {
                         popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
                     }
+                    return;
                 }
-
             } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
@@ -1074,30 +1072,33 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 if (col != null) {
                     col.onDoubleClick(e, obj);
                 }
-
                 if (obj != null) {
                     this.onDoubleClick(e, obj);
-
                     this.eventSender.fireEvent(new ExtTableEvent<E>(this, ExtTableEvent.Types.DOUBLECLICK, obj));
                 }
             } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 1) {
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
                 final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
+                boolean ret = false;
                 if (col != null) {
-                    col.onSingleClick(e, obj);
+                    ret = col.onSingleClick(e, obj);
                 }
-
-                if (obj != null) {
-                    this.onSingleClick(e, obj);
+                if (obj != null && ret == false) {
+                    ret = this.onSingleClick(e, obj);
                 }
+                if (ret == true) { return; }
             }
         } else if (e.getID() == MouseEvent.MOUSE_PRESSED) {
             if (this.rowAtPoint(e.getPoint()) < 0) {
                 this.clearSelection();
-
             }
         }
+        /*
+         * moved this at the end of this function so it does not pre-interfere
+         * with customized click handling (eg changing selection)
+         */
+        super.processMouseEvent(e);
     }
 
     /**

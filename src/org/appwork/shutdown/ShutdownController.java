@@ -180,7 +180,14 @@ public class ShutdownController extends Thread {
         // do not remove the Log call here. we have to be sure that Log.class is
         // already loaded
         Log.L.finest("Init ShutdownController");
+        this.addShutdownEvent(new ShutdownEvent() {
 
+            @Override
+            public void run() {
+                Log.closeLogfile();
+
+            }
+        });
     }
 
     public void addShutdownEvent(final ShutdownEvent event) {
@@ -306,7 +313,7 @@ public class ShutdownController extends Thread {
             if (vetos.size() == 0) {
 
                 synchronized (this.vetoListeners) {
-                    ShutdownVetoListener[] localList = vetoListeners.toArray(new ShutdownVetoListener[] {});
+                    final ShutdownVetoListener[] localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
                     for (final ShutdownVetoListener v : localList) {
                         try {
                             v.onShutdown();
@@ -334,7 +341,7 @@ public class ShutdownController extends Thread {
             } else {
 
                 synchronized (this.vetoListeners) {
-                    ShutdownVetoListener[] localList = vetoListeners.toArray(new ShutdownVetoListener[] {});
+                    final ShutdownVetoListener[] localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
                     for (final ShutdownVetoListener v : localList) {
                         v.onShutdownVeto(vetos);
                     }

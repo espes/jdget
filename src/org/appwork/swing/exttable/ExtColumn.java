@@ -113,6 +113,17 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         }
     }
 
+    /**
+     * @param value
+     * @param isSelected
+     * @param row
+     * @param column
+     */
+    protected void configureCurrentlyEditingComponent(final E value, final boolean isSelected, final int row, final int column) {
+        // TODO Auto-generated method stub
+
+    }
+
     abstract public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column);
 
     public void configureEditorHighlighters(final JComponent component, final E value, final boolean isSelected, final int row) {
@@ -352,13 +363,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return this.sortOrderIdentifier;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    final public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
-        return this.getTableCellEditorComponent(table, (E) value, isSelected, row, column, false);
-
-    }
-
     /**
      * @param table
      * @param value
@@ -371,7 +375,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      *            the renderer only updates the rest. colors, borders...
      * @return
      */
-    public Component getTableCellEditorComponent(JTable table, E value, boolean isSelected, int row, int column, boolean editing) {
+    public Component getTableCellEditorComponent(final JTable table, final E value, final boolean isSelected, final int row, final int column, final boolean editing) {
         final JComponent ret = this.getEditorComponent(value, isSelected, row, column);
         this.resetEditor();
         this.configureEditorHighlighters(ret, value, isSelected, row);
@@ -388,14 +392,10 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return ret;
     }
 
-    /**
-     * @param value
-     * @param isSelected
-     * @param row
-     * @param column
-     */
-    protected void configureCurrentlyEditingComponent(E value, boolean isSelected, int row, int column) {
-        // TODO Auto-generated method stub
+    @SuppressWarnings("unchecked")
+    @Override
+    final public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected, final int row, final int column) {
+        return this.getTableCellEditorComponent(table, (E) value, isSelected, row, column, false);
 
     }
 
@@ -537,6 +537,14 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     abstract public boolean isSortable(E obj);
 
+    /**
+     * @param boolean1
+     * @return true if the column is visible
+     */
+    public boolean isVisible(final boolean savedValue) {
+        return savedValue;
+    }
+
     public boolean matchSearch(final E object, final Pattern pattern) {
         return false;
     }
@@ -555,8 +563,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @param e
      * @param obj
      */
-    protected void onSingleClick(final MouseEvent e, final E obj) {
-
+    protected boolean onSingleClick(final MouseEvent e, final E obj) {
+        return false;
     }
 
     /**
@@ -695,14 +703,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             }
         };
 
-    }
-
-    /**
-     * @param boolean1
-     * @return true if the column is visible
-     */
-    public boolean isVisible(boolean savedValue) {
-        return savedValue;
     }
 
 }

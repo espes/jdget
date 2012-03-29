@@ -183,7 +183,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     protected void _replaceTableData(final ArrayList<E> newtableData, final ArrayList<E> selection, final boolean checkEditing) {
         if (newtableData == null) { return; }
-
         new EDTRunner() {
             @Override
             protected void runInEDT() {
