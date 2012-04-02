@@ -1049,8 +1049,9 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                     this.eventSender.fireEvent(new ExtTableEvent<JPopupMenu>(this, ExtTableEvent.Types.CONTEXTMENU, popup));
                     if (popup != null && popup.getComponentCount() > 0) {
                         popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
+                        return;
                     }
-                    return;
+        
                 } else {
                     /* check if we need to select object */
                     if (!this.isRowSelected(row)) {
@@ -1062,8 +1063,9 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
                     if (popup != null && popup.getComponentCount() > 0) {
                         popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
+                        return;
                     }
-                    return;
+              
                 }
             } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
                 final int row = this.rowAtPoint(e.getPoint());
