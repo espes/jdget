@@ -335,7 +335,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
 
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
         final String[] intf = new Regex(request.getRequestedPath(), "/((.+)/)?(.+)$").getRow(0);
-        if (intf == null || intf.length != 3) { return null; }
+       if (intf == null || intf.length != 3) { return null; }
         /* intf=unimportant,namespace,method */
         if (intf[2] != null && intf[2].endsWith("/")) {
             /* special handling for commands without name */

@@ -45,7 +45,7 @@ public class IconIO {
     public static BufferedImage getImage(final URL resource) {
         if (resource != null) {
             try {
-                return ImageIO.read(resource);
+                return (ImageIO.read(resource));
             } catch (final IOException e) {
                 Log.exception(Level.WARNING, e);
             }
@@ -352,6 +352,7 @@ public class IconIO {
         Graphics2D g2 = paintTo.createGraphics();
         g2.drawImage(image, xoffset, yoffset, null);
         g2.dispose();
+        debug(paintTo);
         return paintTo;
 
     }
