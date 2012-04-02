@@ -2,6 +2,9 @@ package org.appwork.utils.images;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -290,7 +293,9 @@ public class IconIO {
     }
 
     /**
-     * This function removes the major color of the image and replaces it with transparency. 
+     * This function removes the major color of the image and replaces it with
+     * transparency.
+     * 
      * @param image
      * @return
      */
@@ -299,7 +304,7 @@ public class IconIO {
         HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
         int biggestValue = 0;
         int color = -1;
-        for (int rgb : image.getRGB(0, 0, image.getWidth()-1, image.getHeight()-1, null, 0, image.getWidth())) {
+        for (int rgb : image.getRGB(0, 0, image.getWidth() - 1, image.getHeight() - 1, null, 0, image.getWidth())) {
             Integer v = map.get(rgb);
             if (v == null) v = 0;
             v++;
@@ -310,11 +315,44 @@ public class IconIO {
             }
         }
         Color col = new Color(color);
-  
+
         int r = col.getRed();
         int g = col.getGreen();
         int b = col.getBlue();
         int a = col.getAlpha();
-        return colorRangeToTransparency(image, new Color(Math.max((int) (r * (1d - tollerance)),0), Math.max((int) (g * (1d - tollerance)),0),Math.max((int) (b * (1d - tollerance)),0), a), new Color(Math.min(255,(int) (r * (1d + tollerance))), Math.min(255,(int) (g * (1d + tollerance))),Math.min(255,(int) (b * (1d + tollerance))), a));
+        return colorRangeToTransparency(image, new Color(Math.max((int) (r * (1d - tollerance)), 0), Math.max((int) (g * (1d - tollerance)), 0), Math.max((int) (b * (1d - tollerance)), 0), a), new Color(Math.min(255, (int) (r * (1d + tollerance))), Math.min(255, (int) (g * (1d + tollerance))), Math.min(255, (int) (b * (1d + tollerance))), a));
+    }
+
+    public static BufferedImage createEmptyImage(int w, int h) {
+
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice gd = ge.getDefaultScreenDevice();
+        final GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.BITMASK);
+        return image;
+    }
+
+    public static BufferedImage debug(BufferedImage img) {
+        Graphics2D g2 = img.createGraphics();
+        g2.setColor(Color.RED);
+        g2.drawRect(0, 0, img.getWidth() - 1, img.getHeight() - 1);
+        return img;
+    }
+
+    /**
+     * @param object
+     * @param image
+     * @param i
+     * @param j
+     * @return
+     * @return
+     */
+    public static BufferedImage paint(BufferedImage paintTo, Image image, int xoffset, int yoffset) {
+
+        Graphics2D g2 = paintTo.createGraphics();
+        g2.drawImage(image, xoffset, yoffset, null);
+        g2.dispose();
+        return paintTo;
+
     }
 }

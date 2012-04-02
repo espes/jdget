@@ -385,7 +385,11 @@ public class ImageProvider {
         final Graphics2D g2 = dest.createGraphics();
         g2.drawImage(back, xoffsetBack, yoffsetBack, null);
         g2.drawImage(front, xoffsetFront, yoffsetFront, null);
+        g2.setColor(Color.RED);
+       
         g2.dispose();
+        
+        
         return dest;
     }
 
