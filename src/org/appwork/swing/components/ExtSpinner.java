@@ -48,5 +48,9 @@ public class ExtSpinner extends JSpinner {
         // TODO Auto-generated method stub
         return ((Number) getValue()).intValue();
     }
+    public long getLongValue() {
+        // TODO Auto-generated method stub
+        return ((Number) getValue()).longValue();
+    }
 
 }
