@@ -450,7 +450,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public boolean isCellEditable(final int rowIndex, final int columnIndex) {
         final E obj = this.model.getValueAt(rowIndex, columnIndex);
         if (obj == null) { return false; }
-
         return this.isEditable(obj, this.isEnabled(obj));
     }
 

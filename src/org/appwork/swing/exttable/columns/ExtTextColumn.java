@@ -63,7 +63,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             public void setIcon(final Icon icon) {
 
                 this.setVisible(icon != null);
-                if (icon != getIcon()) {
+                if (icon != this.getIcon()) {
                     super.setIcon(icon);
                 }
             }
@@ -109,16 +109,17 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
              */
             private static final long serialVersionUID = 1L;
 
-            public void setText(String text) {
-                if (text != getText()) {
-                    super.setText(text);
-                }
-            }
-
             @Override
             public void setIcon(final Icon icon) {
 
                 ExtTextColumn.this.rendererIcon.setIcon(icon);
+            }
+
+            @Override
+            public void setText(final String text) {
+                if (text != this.getText()) {
+                    super.setText(text);
+                }
             }
 
         };
@@ -163,7 +164,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.fireEditingStopped();
     }
 
-    protected void configureCurrentlyEditingComponent(E value, boolean isSelected, int row, int column) {
+    @Override
+    protected void configureCurrentlyEditingComponent(final E value, final boolean isSelected, final int row, final int column) {
         this.editorIconLabel.setIcon(this.getIcon(value));
 
     }
@@ -196,8 +198,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             str = "";
         }
 
-        if (getTableColumn() != null) {
-            this.rendererField.setText(SwingUtilities2.clipStringIfNecessary(rendererField, rendererField.getFontMetrics(rendererField.getFont()), str, getTableColumn().getWidth() - rendererIcon.getPreferredSize().width - 5));
+        if (this.getTableColumn() != null) {
+            this.rendererField.setText(SwingUtilities2.clipStringIfNecessary(this.rendererField, this.rendererField.getFontMetrics(this.rendererField.getFont()), str, this.getTableColumn().getWidth() - this.rendererIcon.getPreferredSize().width - 5));
         } else {
             this.rendererField.setText(str);
         }
@@ -211,8 +213,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void focusLost(final FocusEvent e) {
-        // TODO Auto-generated method stub
-        System.out.println(2);
     }
 
     @Override
@@ -296,7 +296,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void resetEditor() {
-        editor.setEnabled(true);
+        this.editor.setEnabled(true);
         this.editorField.setFont(this.editorFont);
         this.editorField.setForeground(this.editorForeground);
         this.editorField.setOpaque(false);
@@ -307,7 +307,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void resetRenderer() {
-        renderer.setEnabled(true);
+        this.renderer.setEnabled(true);
 
         this.rendererField.setBorder(this.defaultBorder);
         this.rendererField.setOpaque(false);
