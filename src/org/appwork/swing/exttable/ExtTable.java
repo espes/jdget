@@ -270,6 +270,8 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             this.setFillsViewportHeight(true);
         }
         // table should always try to get the full available height
+        // this will cause Problems in dialogs. decrease this value if tables
+        // are layouted too height
         this.setPreferredScrollableViewportSize(new Dimension(450, 20000));
 
         this.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
@@ -1051,7 +1053,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                         popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
                         return;
                     }
-        
+
                 } else {
                     /* check if we need to select object */
                     if (!this.isRowSelected(row)) {
@@ -1065,7 +1067,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                         popup.show(ExtTable.this, e.getPoint().x, e.getPoint().y);
                         return;
                     }
-              
+
                 }
             } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
                 final int row = this.rowAtPoint(e.getPoint());
