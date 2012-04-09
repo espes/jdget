@@ -100,39 +100,39 @@ public class Cookies {
     }
 
     public Cookies(final Cookies cookies) {
-        add(cookies);
+        this.add(cookies);
     }
 
     public void add(final Cookie cookie) {
-        synchronized (cookies) {
-            for (final Cookie cookie2 : cookies) {
+        synchronized (this.cookies) {
+            for (final Cookie cookie2 : this.cookies) {
                 if (cookie2.equals(cookie)) {
                     cookie2.update(cookie);
                     return;
                 }
             }
-            cookies.add(cookie);
+            this.cookies.add(cookie);
         }
     }
 
     public void add(final Cookies newcookies) {
-        synchronized (cookies) {
+        synchronized (this.cookies) {
             for (final Cookie cookie : newcookies.getCookies()) {
-                add(cookie);
+                this.add(cookie);
             }
         }
     }
 
     public void clear() {
-        synchronized (cookies) {
-            cookies.clear();
+        synchronized (this.cookies) {
+            this.cookies.clear();
         }
     }
 
     public Cookie get(final String key) {
         if (key == null) { return null; }
-        synchronized (cookies) {
-            for (final Cookie cookie : cookies) {
+        synchronized (this.cookies) {
+            for (final Cookie cookie : this.cookies) {
                 if (cookie.getKey().equalsIgnoreCase(key)) { return cookie; }
             }
             return null;
@@ -140,25 +140,25 @@ public class Cookies {
     }
 
     public LinkedList<Cookie> getCookies() {
-        return cookies;
+        return this.cookies;
     }
 
     public boolean isEmpty() {
-        return cookies.isEmpty();
+        return this.cookies.isEmpty();
     }
 
     public void remove(final Cookie cookie) {
-        synchronized (cookies) {
-            if (!cookies.remove(cookie)) {
+        synchronized (this.cookies) {
+            if (!this.cookies.remove(cookie)) {
                 Cookie del = null;
-                for (final Cookie cookie2 : cookies) {
+                for (final Cookie cookie2 : this.cookies) {
                     if (cookie2.equals(cookie)) {
                         del = cookie2;
                         break;
                     }
                 }
                 if (del != null) {
-                    cookies.remove(del);
+                    this.cookies.remove(del);
                 }
             }
         }
@@ -167,7 +167,7 @@ public class Cookies {
     @Override
     public String toString() {
         final StringBuilder ret = new StringBuilder();
-        for (final Cookie el : cookies) {
+        for (final Cookie el : this.cookies) {
             ret.append(el.toString() + "\r\n");
         }
         return ret.toString();

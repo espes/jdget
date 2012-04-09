@@ -201,8 +201,8 @@ public class Browser {
     }
 
     private static synchronized void waitForPageAccess(final Browser browser, final Request request) throws InterruptedException {
+        final String host = Browser.getHost(request.getUrl().getHost());
         try {
-            final String host = Browser.getHost(request.getUrl().getHost());
             Integer localLimit = null;
             Integer globalLimit = null;
             Long localLastRequest = null;
@@ -243,7 +243,6 @@ public class Browser {
                 // waitForPageAccess(request);
             }
         } finally {
-            final String host = Browser.getHost(request.getUrl().getHost());
             if (browser.requestTimeMap != null) {
                 browser.requestTimeMap.put(host, System.currentTimeMillis());
             }
@@ -659,7 +658,7 @@ public class Browser {
         }
 
         // if old request is set, use it's cookies for the new request
-        if (oldRequest != null) {
+        if (oldRequest != null && oldRequest.hasCookies()) {
             request.setCookies(oldRequest.getCookies());
         }
 
@@ -808,7 +807,9 @@ public class Browser {
         if (this.selectProxy() != null) {
             request.setProxy(this.selectProxy());
         }
-        request.setCookies(oldrequest.getCookies());
+        if (oldrequest.hasCookies()) {
+            request.setCookies(oldrequest.getCookies());
+        }
         // doAuth(request);
         request.getHeaders().put("Accept-Language", this.acceptLanguage);
         // request.setFollowRedirects(doRedirects);
@@ -834,6 +835,13 @@ public class Browser {
 
     public Request createRequest(final String downloadURL) throws Exception {
         return this.createGetRequest(downloadURL);
+    }
+
+    public void disconnect() {
+        try {
+            this.getRequest().getHttpConnection().disconnect();
+        } catch (final Throwable e) {
+        }
     }
 
     /**

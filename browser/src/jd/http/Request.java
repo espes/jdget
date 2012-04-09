@@ -46,7 +46,7 @@ public abstract class Request {
     // public static int MAX_REDIRECTS = 30;
 
     public static String getCookieString(final Cookies cookies) {
-        if (cookies == null) { return null; }
+        if (cookies == null || cookies.isEmpty()) { return null; }
 
         final StringBuilder buffer = new StringBuilder();
         boolean first = true;
@@ -198,17 +198,12 @@ public abstract class Request {
 
     private void collectCookiesFromConnection() {
         final List<String> cookieHeaders = this.httpConnection.getHeaderFields("Set-Cookie");
+        if (cookieHeaders == null || cookieHeaders.size() == 0) { return; }
         final String date = this.httpConnection.getHeaderField("Date");
-        if (cookieHeaders == null) { return; }
-        if (this.cookies == null) {
-            this.cookies = new Cookies();
-        }
-
         final String host = Browser.getHost(this.httpConnection.getURL());
-
         for (int i = 0; i < cookieHeaders.size(); i++) {
             final String header = cookieHeaders.get(i);
-            this.cookies.add(Cookies.parseCookies(header, host, date));
+            this.getCookies().add(Cookies.parseCookies(header, host, date));
         }
     }
 
@@ -421,7 +416,7 @@ public abstract class Request {
         return this.orgURL;
     }
 
-    private boolean hasCookies() {
+    protected boolean hasCookies() {
         return this.cookies != null && !this.cookies.isEmpty();
     }
 
@@ -472,7 +467,10 @@ public abstract class Request {
         }
         this.preRequest();
         if (this.hasCookies()) {
-            this.httpConnection.setRequestProperty("Cookie", this.getCookieString());
+            final String cookieString = this.getCookieString();
+            if (cookieString != null) {
+                this.httpConnection.setRequestProperty("Cookie", cookieString);
+            }
         }
     }
 
