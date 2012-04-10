@@ -69,7 +69,7 @@ public class AutoScroller extends Thread {
                                 int x = wLoc.x;
                                 int y = wLoc.y;
 
-                                if (screen.getX() + screen.getWidth() - m.x > 0 && screen.getX() + screen.getWidth() - m.x < getActiveBorder() + screen.getInsets().right) {
+                                if (screen.getX() + screen.getWidth() - m.x >= 0 && screen.getX() + screen.getWidth() - m.x < getActiveBorder() + screen.getInsets().right) {
                                     // right
 
                                     // move to left;
@@ -86,7 +86,7 @@ public class AutoScroller extends Thread {
 
                                     }
 
-                                } else if (m.x - screen.getX() > 0 && m.x - screen.getX() < getActiveBorder() + screen.getInsets().left) {
+                                } else if (m.x - screen.getX() >= 0 && m.x - screen.getX() < getActiveBorder() + screen.getInsets().left) {
                                     // left
 
                                     if (rec.x - insets.left < screen.getX() + screen.getInsets().left) {
@@ -99,7 +99,7 @@ public class AutoScroller extends Thread {
                                     }
                                 }
 
-                                if (screen.getY() + screen.getHeight() - m.y > 0 && screen.getY() + screen.getHeight() - m.y < getActiveBorder() + screen.getInsets().bottom) {
+                                if (screen.getY() + screen.getHeight() - m.y >= 0 && screen.getY() + screen.getHeight() - m.y < getActiveBorder() + screen.getInsets().bottom) {
                                     // bottom
                                     if (rec.y + rec.height > screen.getY() + screen.getHeight() - screen.getInsets().bottom) {
                                         int dest = screen.getY() + screen.getHeight() - rec.height - screen.getInsets().bottom;
@@ -112,7 +112,7 @@ public class AutoScroller extends Thread {
                                         }
                                         // y=dest;
                                     }
-                                } else if (m.y - screen.getY() > 0 && m.y - screen.getY() < getActiveBorder() + screen.getInsets().top) {
+                                } else if (m.y - screen.getY() >= 0 && m.y - screen.getY() < getActiveBorder() + screen.getInsets().top) {
                                     // top
                                     if (rec.y < screen.getY() + screen.getInsets().top) {
                                         int dest = screen.getY() + screen.getInsets().top;
@@ -127,7 +127,7 @@ public class AutoScroller extends Thread {
                                 }
 
                                 if (x != wLoc.x || y != wLoc.y) {
-                                    window.setLocation(x, y);
+                                    window.setBounds(x, y, rec.width, rec.height);
                                     editing = true;
                                     break;
                                 }
@@ -148,16 +148,16 @@ public class AutoScroller extends Thread {
      * @return
      */
     protected int getActiveBorder() {
-        // TODO Auto-generated method stub
-        return 32;
+
+        return 64;
     }
 
     /**
      * @return
      */
     private long getDelay() {
-        // TODO Auto-generated method stub
-        return 1000;
+      
+        return 200;
     }
 
 

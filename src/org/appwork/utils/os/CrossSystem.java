@@ -76,6 +76,10 @@ public class CrossSystem {
      * Cache to store the Mime Class in
      */
     private static final Mime   MIME;
+    private static String[]     BROWSER_COMMANDLINE    = null;
+    static {
+
+    }
     static {
         OS_STRING = System.getProperty("os.name");
         final String OS = CrossSystem.OS_STRING.toLowerCase();
@@ -107,6 +111,18 @@ public class CrossSystem {
         } else {
             MIME = new MimeDefault();
         }
+        if (isWindows()) {
+            BROWSER_COMMANDLINE = new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", "%s" };
+        }
+    }
+
+    /**
+     * Set commandline to open the browser use %s as wildcard for the url
+     * 
+     * @param commands
+     */
+    public static void setBrowserCommandLine(String[] commands) {
+        BROWSER_COMMANDLINE = commands;
     }
 
     private static boolean _isOpenBrowserSupported() {
@@ -162,8 +178,13 @@ public class CrossSystem {
      */
     private static void _openURL(final String _url) throws IOException, URISyntaxException {
         final URL url = new URL(_url);
-        if (CrossSystem.isWindows()) {
-            Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", _url });
+        if (CrossSystem.isWindows()||BROWSER_COMMANDLINE!=null||BROWSER_COMMANDLINE.length>0) {
+
+            ArrayList<String> commands = new ArrayList<String>();
+            for (String s : BROWSER_COMMANDLINE) {
+                commands.add(s.replace("%s", _url));
+            }
+            Runtime.getRuntime().exec(commands.toArray(new String[] {}));
         } else {
             final Desktop desktop = Desktop.getDesktop();
             desktop.browse(url.toURI());
@@ -384,8 +405,8 @@ public class CrossSystem {
             }
             if (nativeParameters.isEmpty()) {
                 URL root = class1.getClassLoader().getResource(class1.getName().replace(".", "/") + ".class");
-                
-                //Filenames may contain ! !!
+
+                // Filenames may contain ! !!
                 int index = root.getPath().indexOf("!");
                 if (index <= 0 || !"jar".equalsIgnoreCase(root.getProtocol())) {
                     throw new WTFException("REstart works only in Jared mode");
