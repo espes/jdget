@@ -88,7 +88,7 @@ public abstract class TimerDialog {
 
     protected InternDialog    dialog;
 
-    private Dimension         preferredSize;
+    protected Dimension         preferredSize;
     private int               countdownTime    = 0;
 
     public TimerDialog() {
