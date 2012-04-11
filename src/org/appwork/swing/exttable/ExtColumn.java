@@ -639,8 +639,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * 
      * @param tableColumn
      */
-    public void setTableColumn(final TableColumn tableColumn) {
+    public void setTableColumn(final TableColumn tableColumn,boolean updateSize) {
         this.tableColumn = tableColumn;
+        if(updateSize){
         // Set stored columnwidth
         int w = ExtColumn.this.getDefaultWidth();
         try {
@@ -652,6 +653,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             tableColumn.setWidth(w);
         }
         this.updateColumnGui();
+        }
 
     }
 
