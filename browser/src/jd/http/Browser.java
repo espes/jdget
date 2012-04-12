@@ -1128,6 +1128,18 @@ public class Browser {
         return this.request;
     }
 
+    public HTTPProxy getThreadProxy() {
+        final Thread currentThread = Thread.currentThread();
+        /**
+         * return BrowserSettings from current thread if available
+         */
+        if (currentThread != null && currentThread instanceof BrowserSettings) {
+            final BrowserSettings settings = (BrowserSettings) currentThread;
+            return settings.getCurrentProxy();
+        }
+        return null;
+    }
+
     public String getURL() {
         return this.request == null ? null : this.request.getUrl().toString();
     }
@@ -1486,13 +1498,17 @@ public class Browser {
         this.logger = logger;
     }
 
-    public void setProxy(final HTTPProxy proxy) {
-        if (this.debug) {
-            if (Browser.LOGGER != null) {
-                Browser.LOGGER.info("Use local proxy: " + proxy);
-            }
+    public void setProxy(HTTPProxy proxy) {
+        final HTTPProxy wished = proxy;
+        if (proxy == null) {
+            proxy = this.getThreadProxy();
         }
         this.proxy = proxy;
+        if (this.debug) {
+            if (Browser.LOGGER != null) {
+                Browser.LOGGER.info("Use local proxy: " + proxy + " wished: " + wished);
+            }
+        }
     }
 
     public void setReadTimeout(final int readTimeout) {
