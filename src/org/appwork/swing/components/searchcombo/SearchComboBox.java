@@ -15,6 +15,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxEditor;
@@ -57,11 +58,6 @@ import org.appwork.utils.swing.SwingUtils;
  */
 public abstract class SearchComboBox<T> extends JComboBox {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 6475635443708682554L;
-
     class Editor implements ComboBoxEditor, FocusListener, DocumentListener {
         private final JTextField tf;
         private final MigPanel   panel;
@@ -103,20 +99,20 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
             };
             this.tf.getDocument().addDocumentListener(this);
-tf.addFocusListener(new FocusListener() {
+            this.tf.addFocusListener(new FocusListener() {
 
-            @Override
-            public void focusGained(final FocusEvent e) {
-//                SearchComboBox.this.getEditor().getEditorComponent().requestFocus();
-            }
+                @Override
+                public void focusGained(final FocusEvent e) {
+                    // SearchComboBox.this.getEditor().getEditorComponent().requestFocus();
+                }
 
-            @Override
-            public void focusLost(final FocusEvent e) {
-                // TODO Auto-generated method stub
-              hidePopup();
+                @Override
+                public void focusLost(final FocusEvent e) {
+                    // TODO Auto-generated method stub
+                    SearchComboBox.this.hidePopup();
 
-            }
-        });
+                }
+            });
             this.icon = new JLabel();
             // editor panel
             this.panel = new MigPanel("ins 0", "[][grow,fill]", "[grow,fill]") {
@@ -400,6 +396,11 @@ tf.addFocusListener(new FocusListener() {
 
     }
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 6475635443708682554L;
+
     public static void main(final String[] args) {
         final BasicGui gui = new BasicGui(SearchComboBox.class.getSimpleName()) {
 
@@ -524,7 +525,7 @@ tf.addFocusListener(new FocusListener() {
             @Override
             public void focusLost(final FocusEvent e) {
                 // TODO Auto-generated method stub
-              hidePopup();
+                SearchComboBox.this.hidePopup();
 
             }
         });
@@ -532,9 +533,8 @@ tf.addFocusListener(new FocusListener() {
             this.setList(plugins);
         }
 
-   
         this.setEditor(new Editor());
-        
+
         this.setEditable(true);
 
         // we extends the existing renderer. this avoids LAF incompatibilities
@@ -790,14 +790,14 @@ tf.addFocusListener(new FocusListener() {
      * @param txt
      * @return
      */
-    private boolean textMatchesEntry(final String txt) {
+    private boolean textMatchesEntry(String txt) {
         if (txt == null) { return false; }
-
+        txt = txt.toLowerCase(Locale.ENGLISH);
         String text;
 
         for (int i = 0; i < SearchComboBox.this.getModel().getSize(); i++) {
             text = SearchComboBox.this.getTextForValue((T) SearchComboBox.this.getModel().getElementAt(i));
-            if (text != null && text.startsWith(txt)) { return true; }
+            if (text != null && text.toLowerCase(Locale.ENGLISH).startsWith(txt)) { return true; }
         }
         return false;
     }
