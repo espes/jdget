@@ -9,6 +9,7 @@
  */
 package org.appwork.txtresource;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -34,6 +35,7 @@ public class TranslationHandler implements InvocationHandler {
     private final HashMap<Method, String>             cache;
     private final Method[]                            methods;
     private final HashMap<String, TranslateResource>  resourceCache;
+    private boolean                                   tryCustom;
 
     public static final String                        DEFAULT = "en";
 
@@ -44,6 +46,7 @@ public class TranslationHandler implements InvocationHandler {
      */
     public TranslationHandler(final Class<? extends TranslateInterface> class1, final String[] lookup) {
         this.tInterface = class1;
+        tryCustom = Application.getResource("translations/custom").exists();
         this.methods = this.tInterface.getDeclaredMethods();
         this.cache = new HashMap<Method, String>();
         this.resourceCache = new HashMap<String, TranslateResource>();
@@ -136,8 +139,24 @@ public class TranslationHandler implements InvocationHandler {
         TranslateResource ret = this.resourceCache.get(string);
         if (ret != null) { return ret; }
         final DynamicResourcePath rPath = this.tInterface.getAnnotation(DynamicResourcePath.class);
-        final String path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
-        final URL url = Application.getRessourceURL(path, false);
+        String path = null;
+        URL url = null;
+        // check custom path
+        
+        if (tryCustom) {
+            path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : "translations/custom/" + this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
+            url = Application.getRessourceURL(path, false);
+        }
+        if (url == null) {
+            path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : "translations/" + this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
+            url = Application.getRessourceURL(path, false);
+        }
+        if (url == null) {
+            // translations files may either be located in the same path as the
+            // interface is located, or in a translations/namespace
+            path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
+            url = Application.getRessourceURL(path, false);
+        }
         miss: if (url == null) {
             final Defaults ann = this.tInterface.getAnnotation(Defaults.class);
             if (ann != null) {
