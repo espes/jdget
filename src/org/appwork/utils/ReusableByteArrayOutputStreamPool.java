@@ -24,9 +24,14 @@ public class ReusableByteArrayOutputStreamPool {
             return this.buf;
         }
 
+        public synchronized void increaseUsed(final int increase) {
+            this.count = this.count + increase;
+        }
+
         public synchronized void setUsed(final int used) {
             this.count = used;
         }
+
     }
 
     private static final LinkedList<SoftReference<ReusableByteArrayOutputStream>> pool = new LinkedList<SoftReference<ReusableByteArrayOutputStream>>();
