@@ -170,7 +170,7 @@ public abstract class Request {
 
     private boolean                requested      = false;
     private HTTPProxy              proxy;
-    private URL                    orgURL;
+    private String                 orgURL;
     private String                 customCharset  = null;
     private byte[]                 byteArray      = null;
 
@@ -179,7 +179,7 @@ public abstract class Request {
     private boolean                contentDecoded = true;
 
     public Request(final String url) throws MalformedURLException {
-        this.orgURL = new URL(Browser.correctURL(url));
+        this.orgURL = Browser.correctURL(url);
         this.initDefaultHeader();
         final String basicAuth = Browser.getBasicAuthfromURL(url);
         if (basicAuth != null) {
@@ -241,6 +241,21 @@ public abstract class Request {
         }
     }
 
+    public String getCharsetFromMetaTags() {
+        String parseFrom = null;
+        if (this.htmlCode == null && this.byteArray != null) {
+            parseFrom = new String(this.byteArray);
+        } else if (this.htmlCode != null) {
+            parseFrom = this.htmlCode;
+        }
+        if (parseFrom == null) { return null; }
+        String charSetMetaTag = new Regex(parseFrom, "http-equiv=\"Content-Type\"[^<>]+content=\"[^\"]+charset=(.*?)\"").getMatch(0);
+        if (charSetMetaTag == null) {
+            charSetMetaTag = new Regex(parseFrom, "meta charset=\"(.*?)\"").getMatch(0);
+        }
+        return charSetMetaTag;
+    }
+
     public int getConnectTimeout() {
         return this.connectTimeout;
     }
@@ -270,7 +285,10 @@ public abstract class Request {
         if (ct != null && Pattern.compile("images?/\\w*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(ct).matches()) { throw new IllegalStateException("Content-Type: " + ct); }
         if (this.htmlCode == null && this.byteArray != null) {
             /* use custom charset or charset from httpconnection */
-            final String useCS = this.customCharset == null ? this.httpConnection.getCharset() : this.customCharset;
+            String useCS = this.customCharset == null ? this.httpConnection.getCharset() : this.customCharset;
+            if (useCS == null) {
+                useCS = this.getCharsetFromMetaTags();
+            }
             try {
                 try {
                     try {
@@ -412,7 +430,7 @@ public abstract class Request {
         return this.getHtmlCode();
     }
 
-    public URL getUrl() {
+    public String getUrl() {
         return this.orgURL;
     }
 
@@ -453,7 +471,7 @@ public abstract class Request {
     }
 
     private void openConnection() throws IOException {
-        this.httpConnection = HTTPConnectionFactory.createHTTPConnection(this.orgURL, this.proxy);
+        this.httpConnection = HTTPConnectionFactory.createHTTPConnection(new URL(this.orgURL), this.proxy);
         this.httpConnection.setRequest(this);
         this.httpConnection.setReadTimeout(this.readTimeout);
         this.httpConnection.setConnectTimeout(this.connectTimeout);

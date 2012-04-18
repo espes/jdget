@@ -201,7 +201,7 @@ public class Browser {
     }
 
     private static synchronized void waitForPageAccess(final Browser browser, final Request request) throws InterruptedException {
-        final String host = Browser.getHost(request.getUrl().getHost());
+        final String host = Browser.getHost(request.getUrl());
         try {
             Integer localLimit = null;
             Integer globalLimit = null;
@@ -422,7 +422,7 @@ public class Browser {
 
     private HashMap<String, Cookies> cookies             = new HashMap<String, Cookies>();
     private boolean                  cookiesExclusive    = true;
-    private URL                      currentURL          = null;
+    private String                   currentURL          = null;
     private String                   customCharset       = null;
     private boolean                  debug               = false;
     private boolean                  doRedirects         = false;
@@ -648,7 +648,7 @@ public class Browser {
         boolean sendref = true;
         if (this.currentURL == null) {
             sendref = false;
-            this.currentURL = new URL(string);
+            this.currentURL = string;
         }
 
         final GetRequest request = new GetRequest(string);
@@ -707,7 +707,7 @@ public class Browser {
         boolean sendref = true;
         if (this.currentURL == null) {
             sendref = false;
-            this.currentURL = new URL(url);
+            this.currentURL = url;
         }
 
         final PostFormDataRequest request = new PostFormDataRequest(url);
@@ -740,7 +740,7 @@ public class Browser {
         boolean sendref = true;
         if (this.currentURL == null) {
             sendref = false;
-            this.currentURL = new URL(url);
+            this.currentURL = url;
         }
 
         final PostRequest request = new PostRequest(url);
@@ -798,7 +798,7 @@ public class Browser {
         boolean sendref = true;
         if (this.currentURL == null) {
             sendref = false;
-            this.currentURL = new URL(url);
+            this.currentURL = url;
         }
         final HashMap<String, String> post = Request.parseQuery(postdata);
 
@@ -1061,7 +1061,7 @@ public class Browser {
     }
 
     public String getHost() {
-        return this.request == null ? null : this.request.getUrl().getHost();
+        return this.request == null ? null : Browser.getHost(this.request.getUrl(), false);
     }
 
     public URLConnectionAdapter getHttpConnection() {
@@ -1318,7 +1318,7 @@ public class Browser {
         this.request = request;
         if (this.doRedirects && request.getLocation() != null) {
             if (request.getLocation().toLowerCase().startsWith("ftp://")) { throw new BrowserException("Cannot redirect to FTP"); }
-            final String org = request.getUrl().toExternalForm();
+            final String org = request.getUrl();
             final String red = request.getLocation();
             if (org.equalsIgnoreCase(red) && this.redirectLoopCounter >= 20) {
                 if (this.getLogger() != null) {
@@ -1465,7 +1465,7 @@ public class Browser {
         if (string == null || string.length() == 0) {
             this.currentURL = null;
         } else {
-            this.currentURL = new URL(string);
+            this.currentURL = string;
         }
     }
 
