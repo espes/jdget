@@ -66,18 +66,19 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
-            private long a = 0;
-            private long b = 0;
+            private long       a    = 0;
+            private long       b    = 0;
+            private final Date date = new Date();
 
             @Override
             public int compare(final E o1, final E o2) {
-                Date tmp = ExtDateColumn.this.getDate(o1, null);
+                Date tmp = ExtDateColumn.this.getDate(o1, this.date);
                 if (tmp != null) {
                     this.a = tmp.getTime();
                 } else {
                     this.a = 0;
                 }
-                tmp = ExtDateColumn.this.getDate(o2, null);
+                tmp = ExtDateColumn.this.getDate(o2, this.date);
                 if (tmp != null) {
                     this.b = tmp.getTime();
                 } else {
