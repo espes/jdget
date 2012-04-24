@@ -41,15 +41,22 @@ public class ExtSpinner extends JSpinner {
 
     }
 
+    @Override
+    public Object getNextValue() { 
+        return super.getNextValue();
+    }
+
     /**
      * @return
      */
     public int getIntValue() {
         // TODO Auto-generated method stub
+      
         return ((Number) getValue()).intValue();
     }
     public long getLongValue() {
         // TODO Auto-generated method stub
+
         return ((Number) getValue()).longValue();
     }
 
