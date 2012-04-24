@@ -549,16 +549,22 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     /**
+     * return true if you dont want to forward to following onDoubleClick
+     * listener
+     * 
      * This method will be called when a doubleclick is performed on the object
      * <code>obj</code>
      * 
      * @param obj
      */
-    protected void onDoubleClick(final MouseEvent e, final E obj) {
-
+    protected boolean onDoubleClick(final MouseEvent e, final E obj) {
+        return false;
     }
 
     /**
+     * return true if you dont want to forward to following onSingleClick
+     * listener
+     * 
      * @param e
      * @param obj
      */
@@ -639,20 +645,20 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * 
      * @param tableColumn
      */
-    public void setTableColumn(final TableColumn tableColumn,boolean updateSize) {
+    public void setTableColumn(final TableColumn tableColumn, final boolean updateSize) {
         this.tableColumn = tableColumn;
-        if(updateSize){
-        // Set stored columnwidth
-        int w = ExtColumn.this.getDefaultWidth();
-        try {
-            w = ExtColumn.this.getModel().getStorage().get("WIDTH_COL_" + ExtColumn.this.getID(), w);
-        } catch (final Exception e) {
-            Log.exception(e);
-        } finally {
-            ExtColumn.this.tableColumn.setPreferredWidth(w);
-            tableColumn.setWidth(w);
-        }
-        this.updateColumnGui();
+        if (updateSize) {
+            // Set stored columnwidth
+            int w = ExtColumn.this.getDefaultWidth();
+            try {
+                w = ExtColumn.this.getModel().getStorage().get("WIDTH_COL_" + ExtColumn.this.getID(), w);
+            } catch (final Exception e) {
+                Log.exception(e);
+            } finally {
+                ExtColumn.this.tableColumn.setPreferredWidth(w);
+                tableColumn.setWidth(w);
+            }
+            this.updateColumnGui();
         }
 
     }

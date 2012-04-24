@@ -399,7 +399,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
             final TableColumn tableColumn = new TableColumn(i);
 
-            this.model.getExtColumnByModelIndex(j).setTableColumn(tableColumn,true);
+            this.model.getExtColumnByModelIndex(j).setTableColumn(tableColumn, true);
 
             tableColumn.setHeaderRenderer(this.model.getExtColumnByModelIndex(j).getHeaderRenderer(this.getTableHeader()) != null ? this.model.getExtColumnByModelIndex(j).getHeaderRenderer(this.getTableHeader()) : new ExtTableHeaderRenderer(this.model.getExtColumnByModelIndex(j), this.getTableHeader()));
             // Save column width
@@ -789,8 +789,8 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * 
      * @param obj
      */
-    protected void onDoubleClick(final MouseEvent e, final E obj) {
-
+    protected boolean onDoubleClick(final MouseEvent e, final E obj) {
+        return false;
     }
 
     /**
@@ -1073,13 +1073,15 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
                 final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
+                boolean ret = false;
                 if (col != null) {
-                    col.onDoubleClick(e, obj);
+                    ret = col.onDoubleClick(e, obj);
                 }
-                if (obj != null) {
-                    this.onDoubleClick(e, obj);
+                if (obj != null && ret == false) {
+                    ret = this.onDoubleClick(e, obj);
                     this.eventSender.fireEvent(new ExtTableEvent<E>(this, ExtTableEvent.Types.DOUBLECLICK, obj));
                 }
+                if (ret == true) { return; }
             } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 1) {
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);

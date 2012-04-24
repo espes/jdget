@@ -29,6 +29,7 @@ import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
 import org.appwork.utils.Application;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.mime.Mime;
@@ -111,18 +112,9 @@ public class CrossSystem {
         } else {
             MIME = new MimeDefault();
         }
-        if (isWindows()) {
-            BROWSER_COMMANDLINE = new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", "%s" };
+        if (CrossSystem.isWindows()) {
+            CrossSystem.BROWSER_COMMANDLINE = new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", "%s" };
         }
-    }
-
-    /**
-     * Set commandline to open the browser use %s as wildcard for the url
-     * 
-     * @param commands
-     */
-    public static void setBrowserCommandLine(String[] commands) {
-        BROWSER_COMMANDLINE = commands;
     }
 
     private static boolean _isOpenBrowserSupported() {
@@ -178,10 +170,10 @@ public class CrossSystem {
      */
     private static void _openURL(final String _url) throws IOException, URISyntaxException {
         final URL url = new URL(_url);
-        if (CrossSystem.isWindows()||BROWSER_COMMANDLINE!=null||BROWSER_COMMANDLINE.length>0) {
+        if (CrossSystem.isWindows() || CrossSystem.BROWSER_COMMANDLINE != null || CrossSystem.BROWSER_COMMANDLINE.length > 0) {
 
-            ArrayList<String> commands = new ArrayList<String>();
-            for (String s : BROWSER_COMMANDLINE) {
+            final ArrayList<String> commands = new ArrayList<String>();
+            for (final String s : CrossSystem.BROWSER_COMMANDLINE) {
                 commands.add(s.replace("%s", _url));
             }
             Runtime.getRuntime().exec(commands.toArray(new String[] {}));
@@ -260,6 +252,14 @@ public class CrossSystem {
         return CrossSystem.OS_STRING;
     }
 
+    public static boolean isAbsolutePath(final String path) {
+        if (StringUtils.isEmpty(path)) { return false; }
+        if (CrossSystem.isWindows() && path.matches(".:/.*")) { return true; }
+        if (CrossSystem.isWindows() && path.matches(".:\\\\.*")) { return true; }
+        if (path.startsWith("/")) { return true; }
+        return false;
+    }
+
     /**
      * Returns true if the OS is a linux system
      * 
@@ -321,7 +321,7 @@ public class CrossSystem {
     }
 
     public static void main(final String[] args) {
-        restartApplication(MigLayout.class);
+        CrossSystem.restartApplication(MigLayout.class);
     }
 
     /**
@@ -373,16 +373,16 @@ public class CrossSystem {
     /**
      * @param class1
      */
-    public static void restartApplication(Class<?> class1, String... parameters) {
+    public static void restartApplication(final Class<?> class1, final String... parameters) {
 
         try {
-            ArrayList<String> nativeParameters = new ArrayList<String>();
+            final ArrayList<String> nativeParameters = new ArrayList<String>();
             File runin = null;
-            if (isMac()) {
+            if (CrossSystem.isMac()) {
 
                 // find .app
                 File rootpath = Application.getRootByClass(class1, null);
-                HashSet<File> loopMap = new HashSet<File>();
+                final HashSet<File> loopMap = new HashSet<File>();
                 while (rootpath != null && loopMap.add(rootpath)) {
                     if (rootpath.getName().endsWith(".app")) {
                         break;
@@ -404,17 +404,17 @@ public class CrossSystem {
 
             }
             if (nativeParameters.isEmpty()) {
-                URL root = class1.getClassLoader().getResource(class1.getName().replace(".", "/") + ".class");
+                final URL root = class1.getClassLoader().getResource(class1.getName().replace(".", "/") + ".class");
 
                 // Filenames may contain ! !!
-                int index = root.getPath().indexOf("!");
+                final int index = root.getPath().indexOf("!");
                 if (index <= 0 || !"jar".equalsIgnoreCase(root.getProtocol())) {
                     throw new WTFException("REstart works only in Jared mode");
                 } else {
-                    File jarFile = new File(new URI(root.getPath().substring(0, index)));
+                    final File jarFile = new File(new URI(root.getPath().substring(0, index)));
                     runin = jarFile.getParentFile();
                     if (CrossSystem.isWindows()) {
-                        File exeFile = new File(jarFile.getParentFile(), jarFile.getName().substring(0, jarFile.getName().length() - 4) + ".exe");
+                        final File exeFile = new File(jarFile.getParentFile(), jarFile.getName().substring(0, jarFile.getName().length() - 4) + ".exe");
                         if (exeFile.exists()) {
                             nativeParameters.add(exeFile.getAbsolutePath());
                         } else {
@@ -431,7 +431,7 @@ public class CrossSystem {
                 }
             }
             if (parameters != null) {
-                for (String s : parameters) {
+                for (final String s : parameters) {
                     nativeParameters.add(s);
                 }
             }
@@ -442,11 +442,13 @@ public class CrossSystem {
              */
 
             System.out.println("Root: " + runin);
-            if (runin != null) pb.directory(runin);
+            if (runin != null) {
+                pb.directory(runin);
+            }
 
             ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
                 {
-                    setHookPriority(Integer.MIN_VALUE);
+                    this.setHookPriority(Integer.MIN_VALUE);
                 }
 
                 @Override
@@ -462,9 +464,18 @@ public class CrossSystem {
 
             ShutdownController.getInstance().requestShutdown();
 
-        } catch (Throwable e) {
+        } catch (final Throwable e) {
             throw new WTFException(e);
         }
 
+    }
+
+    /**
+     * Set commandline to open the browser use %s as wildcard for the url
+     * 
+     * @param commands
+     */
+    public static void setBrowserCommandLine(final String[] commands) {
+        CrossSystem.BROWSER_COMMANDLINE = commands;
     }
 }
