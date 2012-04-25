@@ -45,7 +45,7 @@ import org.appwork.utils.swing.EDTRunner;
  */
 public class ToolTipController implements MouseListener, MouseMotionListener, WindowFocusListener, PropertyChangeListener {
 
-    private static final ScheduledExecutorService EXECUTER            = Executors.newSingleThreadScheduledExecutor();
+    public static final ScheduledExecutorService EXECUTER            = Executors.newSingleThreadScheduledExecutor();
     // order is important. EXECUTER has to be available
     private static final ToolTipController        INSTANCE            = new ToolTipController();
     private static final int                      MEDIUM_WEIGHT_POPUP = 1;

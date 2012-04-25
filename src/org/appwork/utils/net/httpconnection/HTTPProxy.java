@@ -326,8 +326,8 @@ public class HTTPProxy {
         } else {
             if (!proxy.getHost().equalsIgnoreCase(this.host)) { return false; }
         }
-        if (!proxy.getPass().equalsIgnoreCase(this.pass)) { return false; }
-        if (!proxy.getUser().equalsIgnoreCase(this.user)) { return false; }
+        if (!StringUtils.equals(proxy.getPass(),this.pass)) { return false; }
+        if (!StringUtils.equals(proxy.getUser(),this.user)) { return false; }
         if (proxy.getPort() != this.port) { return false; }
         return true;
     }
