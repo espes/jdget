@@ -36,7 +36,12 @@ public class TrustALLSSLFactory {
 
                                                     @Override
                                                     public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                                                        return null;
+                                                        /*
+                                                         * returning null here
+                                                         * can cause a NPE in
+                                                         * some java versions!
+                                                         */
+                                                        return new java.security.cert.X509Certificate[0];
                                                     }
                                                 } };
 
