@@ -81,12 +81,14 @@ public class RemoteCallServer {
             return JSonStorage.serializeToJson(answer);
 
         } catch (final InvocationTargetException e1) {
-            Log.exception(e1);
+      
             final Throwable cause = e1.getCause();
             if (cause != null) {
                 if (cause instanceof ResponseAlreadySentException) { throw (ResponseAlreadySentException) cause; }
+                Log.exception(e1);
                 throw new ServerInvokationException(this.handleRequestError(requestor, cause), requestor);
             }
+            Log.exception(e1);
             throw new ServerInvokationException(this.handleRequestError(requestor, new RuntimeException(e1)), requestor);
         } catch (final ServerInvokationException e) {
             throw e;
