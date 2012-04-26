@@ -171,10 +171,11 @@ public class CrossSystem {
      */
     private static void _openURL(final String _url) throws IOException, URISyntaxException {
         final URL url = new URL(_url);
-        if (CrossSystem.isWindows() || CrossSystem.BROWSER_COMMANDLINE != null || CrossSystem.BROWSER_COMMANDLINE.length > 0) {
+        final String custom[] = CrossSystem.BROWSER_COMMANDLINE;
+        if (custom != null && custom.length > 0) {
 
             final ArrayList<String> commands = new ArrayList<String>();
-            for (final String s : CrossSystem.BROWSER_COMMANDLINE) {
+            for (final String s : custom) {
                 commands.add(s.replace("%s", _url));
             }
             Runtime.getRuntime().exec(commands.toArray(new String[] {}));
