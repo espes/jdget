@@ -9,7 +9,6 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,34 +25,14 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
 public class IO {
-public static void moveTo(File source,File dest,FileFilter filter) throws IOException{
-    ArrayList<File> files = Files.getFiles(filter,source);
-//TODO Proper delete
-    for(File src:files){
-        String rel = Files.getRelativePath(source, src);
-        File file = new File(dest,rel);
-        if(src.isDirectory()){
-            file.mkdirs();
-        }else{
-            file.getParentFile().mkdirs();
-            System.out.println(src+ " -> "+file);
-            if(!src.renameTo(file)){
-                throw new IOException("Could not move file "+src+" to "+file);
-            }
-        }
-    }
-    
-    
-    
-}
-
-
     public static void copyFile(final File in, final File out) throws IOException {
         FileInputStream fis = null;
         FileOutputStream fos = null;
         FileChannel inChannel = null;
         FileChannel outChannel = null;
-        if(Log.L.isLoggable(Level.FINEST))Log.L.finest("Copy " + in+" to "+out);
+        if (Log.L.isLoggable(Level.FINEST)) {
+            Log.L.finest("Copy " + in + " to " + out);
+        }
         try {
             inChannel = (fis = new FileInputStream(in)).getChannel();
             outChannel = (fos = new FileOutputStream(out)).getChannel();
@@ -109,6 +88,23 @@ public static void moveTo(File source,File dest,FileFilter filter) throws IOExce
         return new String(bytes, "UTF-8");
     }
 
+    public static void moveTo(final File source, final File dest, final FileFilter filter) throws IOException {
+        final ArrayList<File> files = Files.getFiles(filter, source);
+        // TODO Proper delete
+        for (final File src : files) {
+            final String rel = Files.getRelativePath(source, src);
+            final File file = new File(dest, rel);
+            if (src.isDirectory()) {
+                file.mkdirs();
+            } else {
+                file.getParentFile().mkdirs();
+                System.out.println(src + " -> " + file);
+                if (!src.renameTo(file)) { throw new IOException("Could not move file " + src + " to " + file); }
+            }
+        }
+
+    }
+
     public static byte[] readFile(final File ressource) throws IOException {
         return IO.readFile(ressource, -1);
     }
@@ -123,7 +119,7 @@ public static void moveTo(File source,File dest,FileFilter filter) throws IOExce
 
     public static String readInputStreamToString(final InputStream fis) throws UnsupportedEncodingException, IOException {
         BufferedReader f = null;
-           try {
+        try {
             f = new BufferedReader(new InputStreamReader(fis, "UTF8"));
             String line;
             final StringBuilder ret = new StringBuilder();
@@ -140,7 +136,6 @@ public static void moveTo(File source,File dest,FileFilter filter) throws IOExce
                 f.close();
             } catch (final Throwable e) {
             }
-          
         }
     }
 
@@ -232,7 +227,9 @@ public static void moveTo(File source,File dest,FileFilter filter) throws IOExce
     public static byte[] readURL(final URL url, final int maxSize) throws IOException {
         InputStream input = null;
         try {
-            if(Log.L.isLoggable(Level.FINEST))Log.L.finest("Read " + url+" max size: "+maxSize);
+            if (Log.L.isLoggable(Level.FINEST)) {
+                Log.L.finest("Read " + url + " max size: " + maxSize);
+            }
             input = url.openStream();
             return IO.readStream(maxSize, input);
         } finally {
@@ -253,7 +250,9 @@ public static void moveTo(File source,File dest,FileFilter filter) throws IOExce
 
         InputStream fis = null;
         try {
-            if(Log.L.isLoggable(Level.FINEST))Log.L.finest("Read " + ressourceURL);
+            if (Log.L.isLoggable(Level.FINEST)) {
+                Log.L.finest("Read " + ressourceURL);
+            }
             fis = ressourceURL.openStream();
             return IO.readInputStreamToString(fis);
         } finally {
@@ -271,7 +270,9 @@ public static void moveTo(File source,File dest,FileFilter filter) throws IOExce
         if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
         if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
         FileWriter fw = null;
-        if(Log.L.isLoggable(Level.FINEST))Log.L.finest("Write " + file);
+        if (Log.L.isLoggable(Level.FINEST)) {
+            Log.L.finest("Write " + file);
+        }
         final Writer output = new BufferedWriter(fw = new FileWriter(file));
 
         try {
@@ -303,7 +304,9 @@ public static void moveTo(File source,File dest,FileFilter filter) throws IOExce
         file.createNewFile();
         if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
         if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
-        if(Log.L.isLoggable(Level.FINEST))Log.L.finest("Write " + file);
+        if (Log.L.isLoggable(Level.FINEST)) {
+            Log.L.finest("Write " + file);
+        }
         final FileOutputStream out = new FileOutputStream(file);
         try {
             out.write(data);

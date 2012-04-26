@@ -29,6 +29,7 @@ import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
 import org.appwork.utils.Application;
+import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
@@ -183,6 +184,27 @@ public class CrossSystem {
         }
     }
 
+    /**
+     * use this method to make pathPart safe to use in a full absoluePath.
+     * 
+     * it will remove driveletters/path seperators and all known chars that are
+     * forbidden in a path
+     * 
+     * @param pathPart
+     * @return
+     */
+    public static String alleviatePathParts(String pathPart) {
+        if (StringUtils.isEmpty(pathPart)) { return null; }
+        /* remove invalid chars */
+        pathPart = pathPart.replaceAll("([\\\\|<|>|\\||\"|:|\\*|\\?|/|\\x00])+", "_");
+        /*
+         * remove ending points, not allowed under windows and others os maybe
+         * too
+         */
+        pathPart = pathPart.replaceFirst("\\.+$", "");
+        return pathPart;
+    }
+
     public static String[] getEditor(final String extension) throws DialogCanceledException, DialogClosedException, StorageException {
         final File[] ret = Dialog.getInstance().showFileChooser("FILE_EDIT_CONTROLLER_" + extension, _AWU.T.fileditcontroller_geteditor_for(extension), Dialog.FileChooserSelectionMode.FILES_ONLY, new FileFilter() {
 
@@ -212,6 +234,13 @@ public class CrossSystem {
         } else {
             return null;
         }
+    }
+
+    public static String getFileExtension(final String str) {
+        if (StringUtils.isEmpty(str)) { return null; }
+        final int lastPoint = str.lastIndexOf(".");
+        if (lastPoint > 0 && lastPoint != str.length()) { return str.substring(lastPoint + 1); }
+        return null;
     }
 
     public static byte getID() {
@@ -252,12 +281,18 @@ public class CrossSystem {
         return CrossSystem.OS_STRING;
     }
 
+    /**
+     * checks if given path is absolute or relative
+     * 
+     * @param path
+     * @return
+     */
     public static boolean isAbsolutePath(final String path) {
         if (StringUtils.isEmpty(path)) { return false; }
         if (CrossSystem.isWindows() && path.matches(".:/.*")) { return true; }
         if (CrossSystem.isWindows() && path.matches(".:\\\\.*")) { return true; }
         if (path.startsWith("/")) { return true; }
-    
+
         return false;
     }
 
@@ -478,5 +513,17 @@ public class CrossSystem {
      */
     public static void setBrowserCommandLine(final String[] commands) {
         CrossSystem.BROWSER_COMMANDLINE = commands;
+    }
+
+    /**
+     * splits filename into name,extension
+     * 
+     * @param filename
+     * @return
+     */
+    public static String[] splitFileName(final String filename) {
+        final String extension = new Regex(filename, "\\.+([^\\.]*$)").getMatch(0);
+        final String name = new Regex(filename, "(.*?)(\\.+[^\\.]*$|$)").getMatch(0);
+        return new String[] { name, extension };
     }
 }
