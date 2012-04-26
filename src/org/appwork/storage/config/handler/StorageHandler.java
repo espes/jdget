@@ -512,8 +512,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             final KeyHandler<?> handler = this.methodMap.get(m);
             if (handler != null) {
                 if (handler.isGetter(m)) {
-                             
-                    
+                  
                     return handler.getValue();
 
                 } else {
@@ -581,8 +580,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     // different cases. this only confuses the user when editing
                     // the
                     // later config file
-                    if (keyGetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.containsKey(key) + "<-->" + m); }
-
+                    if (keyGetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.get(key) + "<-->" + m); }
+                    keyGetterMap.put(key,m);
                     if (m.getParameterTypes().length > 0) { throw new InterfaceParseException("Getter " + m + " has parameters."); }
                     try {
                         JSonStorage.canStore(m.getGenericReturnType());
@@ -617,8 +616,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     // different cases. this only confuses the user when editing
                     // the
                     // later config file
-                    if (keyGetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.containsKey(key) + "<-->" + m); }
-
+                    if (keyGetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.get(key) + "<-->" + m); }
+                    keyGetterMap.put(key,m);
                     if (m.getParameterTypes().length > 0) { throw new InterfaceParseException("Getter " + m + " has parameters."); }
                     try {
                         JSonStorage.canStore(m.getGenericReturnType());
@@ -637,7 +636,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     this.methodMap.put(m, kh);
                 } else if (m.getName().startsWith("set")) {
                     key = m.getName().substring(3).toLowerCase(Locale.ENGLISH);
-                    if (keySetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keySetterMap.containsKey(key) + "<-->" + m); }
+                    if (keySetterMap.containsKey(key)) { throw new InterfaceParseException("Key " + key + " Dupe found! " + keySetterMap.get(key) + "<-->" + m); }
+                    keySetterMap.put(key,m);
                     if (m.getParameterTypes().length != 1) { throw new InterfaceParseException("Setter " + m + " has !=1 parameters."); }
                     if (m.getReturnType() != void.class) { throw new InterfaceParseException("Setter " + m + " has a returntype != void"); }
                     try {
