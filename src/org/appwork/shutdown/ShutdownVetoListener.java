@@ -24,14 +24,14 @@ public interface ShutdownVetoListener {
     public void onShutdown();
 
     /**
-     * step 1:<br>
+     * step 1b:<br>
      * Application requests shutdown. throws ShutdownVetoException if shutdown
      * currently not possible/wanted
      * 
      * @return
      * @throws ShutdownVetoException
      */
-    public void onShutdownRequest(int vetos) throws ShutdownVetoException;
+    public void onShutdownVetoRequest(ShutdownVetoException[] shutdownVetoExceptions) throws ShutdownVetoException;
 
     /**
      * step 2b: If one or more listeners in step 1 answered with true(veto) all
@@ -40,4 +40,14 @@ public interface ShutdownVetoListener {
      * @param vetos
      */
     public void onShutdownVeto(ArrayList<ShutdownVetoException> vetos);
+    /**
+     * step 1a:<br>
+     * Application requests shutdown. throws ShutdownVetoException if shutdown
+     * currently not possible/wanted
+     * 
+     * @return
+     * @throws ShutdownVetoException
+     */
+    public void onSilentShutdownVetoRequest(ShutdownVetoException[] shutdownVetoExceptions) throws ShutdownVetoException;
+
 }
