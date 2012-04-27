@@ -203,7 +203,7 @@ public class CrossSystem {
          * too
          */
         pathPart = pathPart.replaceFirst("\\.+$", "");
-        return pathPart;
+        return pathPart.trim();
     }
 
     public static String[] getEditor(final String extension) throws DialogCanceledException, DialogClosedException, StorageException {

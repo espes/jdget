@@ -16,6 +16,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxEditor;
@@ -44,6 +45,7 @@ import javax.swing.plaf.basic.ComboPopup;
 import org.appwork.app.gui.BasicGui;
 import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.SwingUtils;
@@ -59,13 +61,13 @@ import org.appwork.utils.swing.SwingUtils;
 public abstract class SearchComboBox<T> extends JComboBox {
 
     class Editor implements ComboBoxEditor, FocusListener, DocumentListener {
-        private final JTextField tf;
-        private final MigPanel   panel;
+        private final JTextField       tf;
+        private final MigPanel         panel;
 
-        private final JLabel     icon;
-        private T                value;
+        private final JLabel           icon;
+        private T                      value;
 
-        private boolean          setting;
+        private volatile AtomicInteger valueSetter = new AtomicInteger(0);
 
         public Editor() {
             this.tf = new JTextField() {
@@ -157,14 +159,14 @@ public abstract class SearchComboBox<T> extends JComboBox {
         }
 
         private void auto() {
-            if (this.setting) { return; }
-            System.out.println("auto");
+            if (this.valueSetter.get() > 0) { return; }
             // scheduler executes at least 50 ms after this submit.
             // this.sheduler.run();
             SwingUtilities.invokeLater(new Runnable() {
 
                 @Override
                 public void run() {
+                    if (Editor.this.valueSetter.get() > 0) { return; }
                     Editor.this.autoComplete(true);
                 }
             });
@@ -176,17 +178,19 @@ public abstract class SearchComboBox<T> extends JComboBox {
          * object
          */
         protected boolean autoComplete(final boolean showPopup) {
-
             final String txt = Editor.this.tf.getText();
-            if (this.value != null && SearchComboBox.this.getTextForValue(this.value).equals(txt)) { return true; }
+            if (StringUtils.isEmpty(txt)) {
+                /* every string will begin with "" so we return here */
+                return false;
+            }
+            final T lValue = this.value;
+            if (lValue != null && SearchComboBox.this.getTextForValue(lValue).equals(txt)) { return true; }
             String text = null;
             final ArrayList<T> found = new ArrayList<T>();
-
             for (int i = 0; i < SearchComboBox.this.getModel().getSize(); i++) {
                 text = SearchComboBox.this.getTextForValue((T) SearchComboBox.this.getModel().getElementAt(i));
                 if (text != null && text.startsWith(txt)) {
                     found.add((T) SearchComboBox.this.getModel().getElementAt(i));
-
                 }
             }
 
@@ -195,16 +199,12 @@ public abstract class SearchComboBox<T> extends JComboBox {
                 @Override
                 protected void runInEDT() {
                     final int pos = Editor.this.tf.getCaretPosition();
-
                     if (found.size() == 0) {
-
                         SearchComboBox.this.hidePopup();
-
                         if (SearchComboBox.this.getSelectedIndex() != -1) {
                             SearchComboBox.this.setSelectedIndex(-1);
-                            Editor.this.tf.setText(txt);
+                            Editor.this.safeSet(txt);
                         }
-
                         // javax.swing.plaf.synth.SynthComboPopup
                     } else {
                         Editor.this.tf.setForeground(SearchComboBox.this.getForeground());
@@ -218,7 +218,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
                         if (found.size() > 1 && showPopup) {
                             // limit popup rows
-                            SearchComboBox.this.setMaximumRowCount(found.size());
+                            SearchComboBox.this.setMaximumRowCount(Math.min(8, found.size()));
                             SearchComboBox.this.setPopupVisible(true);
 
                             // Scroll popup list, so that found[0] is the first
@@ -272,9 +272,8 @@ public abstract class SearchComboBox<T> extends JComboBox {
         }
 
         public void focusGained(final FocusEvent arg0) {
-
             if (this.tf.getText().equals(SearchComboBox.this.helptext)) {
-                this.tf.setText("");
+                this.safeSet("");
                 SearchComboBox.this.updateColorByContent();
             } else {
                 Editor.this.tf.selectAll();
@@ -283,17 +282,13 @@ public abstract class SearchComboBox<T> extends JComboBox {
         }
 
         public void focusLost(final FocusEvent arg0) {
-
             if (!SearchComboBox.this.isUnkownTextInputAllowed() && !Editor.this.autoComplete(false)) {
                 // reset text after modifications to a valid value
-
-                Editor.this.tf.setText(SearchComboBox.this.getTextForValue(Editor.this.value));
-
-                // Editor.this.autoComplete(false);
+                final String ret = SearchComboBox.this.getTextForValue(Editor.this.value);
+                this.safeSet(ret);
             } else {
                 SearchComboBox.this.updateHelpText();
             }
-
             SearchComboBox.this.updateColorByContent();
 
         }
@@ -365,6 +360,19 @@ public abstract class SearchComboBox<T> extends JComboBox {
             SearchComboBox.this.onChanged();
         }
 
+        /**
+         * use this to set a Text to tf, we don't want action listeners to react
+         * on this
+         */
+        protected void safeSet(final String txt) {
+            this.valueSetter.incrementAndGet();
+            try {
+                Editor.this.tf.setText(txt);
+            } finally {
+                this.valueSetter.decrementAndGet();
+            }
+        }
+
         /*
          * (non-Javadoc)
          * 
@@ -384,13 +392,16 @@ public abstract class SearchComboBox<T> extends JComboBox {
         @Override
         public void setItem(final Object anObject) {
             // if (this.value == anObject) { return; }
-            this.setting = true;
-            this.tf.setText(SearchComboBox.this.getTextForValue((T) anObject));
-            this.icon.setIcon(SearchComboBox.this.getIconForValue((T) anObject));
-            this.value = (T) anObject;
-            SearchComboBox.this.updateHelpText();
-            SearchComboBox.this.updateColorByContent();
-            this.setting = false;
+            this.valueSetter.incrementAndGet();
+            try {
+                this.safeSet(SearchComboBox.this.getTextForValue((T) anObject));
+                this.icon.setIcon(SearchComboBox.this.getIconForValue((T) anObject));
+                this.value = (T) anObject;
+                SearchComboBox.this.updateHelpText();
+                SearchComboBox.this.updateColorByContent();
+            } finally {
+                this.valueSetter.decrementAndGet();
+            }
 
         }
 
@@ -549,13 +560,13 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
             @Override
             public void popupMenuWillBecomeInvisible(final PopupMenuEvent e) {
-                SearchComboBox.this.setMaximumRowCount(8);
 
             }
 
             @Override
             public void popupMenuWillBecomeVisible(final PopupMenuEvent e) {
-
+                /* limit max row to 8 */
+                SearchComboBox.this.setMaximumRowCount(8);
             }
         });
         this.setRenderer(new ListCellRenderer() {

@@ -9,7 +9,6 @@
  */
 package org.appwork.shutdown;
 
-import java.util.ArrayList;
 
 /**
  * @author thomas
@@ -24,6 +23,14 @@ public interface ShutdownVetoListener {
     public void onShutdown();
 
     /**
+     * step 2b: If one or more listeners in step 1 answered with true(veto) all
+     * listeners will be informed afterwards that shutdown has been canceled
+     * 
+     * @param vetos
+     */
+    public void onShutdownVeto(ShutdownVetoException[] shutdownVetoExceptions);
+
+    /**
      * step 1b:<br>
      * Application requests shutdown. throws ShutdownVetoException if shutdown
      * currently not possible/wanted
@@ -33,13 +40,6 @@ public interface ShutdownVetoListener {
      */
     public void onShutdownVetoRequest(ShutdownVetoException[] shutdownVetoExceptions) throws ShutdownVetoException;
 
-    /**
-     * step 2b: If one or more listeners in step 1 answered with true(veto) all
-     * listeners will be informed afterwards that shutdown has been canceled
-     * 
-     * @param vetos
-     */
-    public void onShutdownVeto(ArrayList<ShutdownVetoException> vetos);
     /**
      * step 1a:<br>
      * Application requests shutdown. throws ShutdownVetoException if shutdown

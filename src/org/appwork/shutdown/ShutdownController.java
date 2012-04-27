@@ -223,14 +223,22 @@ public class ShutdownController extends Thread {
     /**
      * @return
      */
-    public ArrayList<ShutdownVetoException> collectVetos(boolean silent) {
+    public ArrayList<ShutdownVetoException> collectVetos(final boolean silent) {
         final ArrayList<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
         synchronized (this.vetoListeners) {
             for (final ShutdownVetoListener v : this.vetoListeners) {
                 try {
                     if (silent) {
+                        /*
+                         * make sure noone changes content of vetos,so create
+                         * new copy of it
+                         */
                         v.onSilentShutdownVetoRequest(vetos.toArray(new ShutdownVetoException[] {}));
                     } else {
+                        /*
+                         * make sure noone changes content of vetos, so create
+                         * new copy of it
+                         */
                         v.onShutdownVetoRequest(vetos.toArray(new ShutdownVetoException[] {}));
                     }
                 } catch (final ShutdownVetoException e) {
@@ -300,10 +308,6 @@ public class ShutdownController extends Thread {
         }
     }
 
-    public boolean canShutdownWithoutVeto() {
-        return collectVetos(true).size() == 0;
-    }
-
     public void removeShutdownVetoListener(final ShutdownVetoListener listener) {
         synchronized (this.vetoListeners) {
             Log.L.finest("Remove " + listener);
@@ -312,13 +316,13 @@ public class ShutdownController extends Thread {
     }
 
     public boolean requestShutdown() {
-        return requestShutdown(false);
+        return this.requestShutdown(false);
     }
 
     /**
      * 
      */
-    public boolean requestShutdown(boolean silent) {
+    public boolean requestShutdown(final boolean silent) {
         this.requestedShutDowns.incrementAndGet();
         try {
             ArrayList<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
@@ -360,8 +364,9 @@ public class ShutdownController extends Thread {
                     final ShutdownVetoListener[] localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
                     for (final ShutdownVetoListener v : localList) {
                         try {
-                            v.onShutdownVeto(vetos);
-                        } catch (Throwable e) {
+                            /* make sure noone changes content of vetos */
+                            v.onShutdownVeto(vetos.toArray(new ShutdownVetoException[] {}));
+                        } catch (final Throwable e) {
                             Log.exception(e);
                         }
                     }
