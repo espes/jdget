@@ -27,6 +27,7 @@ public class CopyCutPasteHandler extends EventQueue {
 
     @Override
     protected void dispatchEvent(AWTEvent event) {
+    
         super.dispatchEvent(event);
         if (!(event instanceof MouseEvent)) return;
 
