@@ -114,6 +114,11 @@ public class ShutdownController extends Thread {
 
     private int                                   exitCode           = 0;
     private final AtomicInteger                   requestedShutDowns = new AtomicInteger(0);
+    private boolean                               silentShutDown     = false;
+
+    public boolean isSilentShutDown() {
+        return silentShutDown;
+    }
 
     /**
      * Create a new instance of ShutdownController. This is a singleton class.
@@ -335,7 +340,7 @@ public class ShutdownController extends Thread {
                     final ShutdownVetoListener[] localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
                     for (final ShutdownVetoListener v : localList) {
                         try {
-                            v.onShutdown();
+                            v.onShutdown(silent);
                         } catch (final Throwable e) {
                             e.printStackTrace();
                         }
@@ -349,6 +354,7 @@ public class ShutdownController extends Thread {
                 };
 
                 th.start();
+                this.silentShutDown = silent;
                 while (th.isAlive()) {
                     try {
                         Thread.sleep(500);

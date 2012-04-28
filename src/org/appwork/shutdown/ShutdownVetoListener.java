@@ -19,8 +19,9 @@ public interface ShutdownVetoListener {
      * Step 2a:<br>
      * Informs listener, that shutdown will be done for sure now. Shutdown will
      * happen immediatelly after this call
+     * @param silent TODO
      */
-    public void onShutdown();
+    public void onShutdown(boolean silent);
 
     /**
      * step 2b: If one or more listeners in step 1 answered with true(veto) all
