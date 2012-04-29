@@ -363,7 +363,7 @@ public abstract class KeyHandler<RawClass> {
             } else if (oldValue != null && newValue == null) {
                 /* new is null, but old is not */
                 changed = true;
-            } else if (!Clazz.isPrimitive(this.getRawClass())) {
+            } else if (!Clazz.isPrimitive(this.getRawClass())&&getRawClass()!=String.class) {
                 /* no primitive, we cannot detect changes 100% */
                 changed = true;
             } else if (!newValue.equals(oldValue)) {
