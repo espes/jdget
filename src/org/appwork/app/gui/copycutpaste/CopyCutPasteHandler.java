@@ -20,17 +20,28 @@ import javax.swing.text.JTextComponent;
  * @author $Author: unknown$
  */
 public class CopyCutPasteHandler extends EventQueue {
+    private static final CopyCutPasteHandler INSTANCE = new CopyCutPasteHandler();
 
-    public CopyCutPasteHandler() {
+    public static CopyCutPasteHandler getInstance() {
+        return INSTANCE;
+    }
+
+    private long lastMouseEvent;
+
+    public long getLastMouseEvent() {
+        return lastMouseEvent;
+    }
+
+    private CopyCutPasteHandler() {
         super();
     }
 
     @Override
     protected void dispatchEvent(AWTEvent event) {
-    
+
         super.dispatchEvent(event);
         if (!(event instanceof MouseEvent)) return;
-
+        lastMouseEvent = System.currentTimeMillis();
         MouseEvent mouseEvent = (MouseEvent) event;
         if (!mouseEvent.isPopupTrigger() && mouseEvent.getButton() != MouseEvent.BUTTON3) return;
         if (mouseEvent.getComponent() == null) return;
@@ -57,10 +68,9 @@ public class CopyCutPasteHandler extends EventQueue {
         JPopupMenu menu;
         final JTextComponent t = (JTextComponent) c;
         if (c instanceof ContextMenuAdapter) {
-            menu = ((ContextMenuAdapter) c).getPopupMenu(new CutAction(t),new CopyAction(t),new PasteAction(t),new DeleteAction(t),new SelectAction(t));
+            menu = ((ContextMenuAdapter) c).getPopupMenu(new CutAction(t), new CopyAction(t), new PasteAction(t), new DeleteAction(t), new SelectAction(t));
             if (menu == null) return;
         } else {
-
 
             // create menu
             menu = new JPopupMenu();

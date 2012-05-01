@@ -169,7 +169,7 @@ public abstract class BasicGui {
         this.frame.pack();
 
         this.frame.setVisible(true);
-        Toolkit.getDefaultToolkit().getSystemEventQueue().push(new CopyCutPasteHandler());
+        Toolkit.getDefaultToolkit().getSystemEventQueue().push( CopyCutPasteHandler.getInstance());
 
     }
 
