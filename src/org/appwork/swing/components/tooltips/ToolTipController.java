@@ -47,8 +47,8 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
 
     public static final ScheduledExecutorService EXECUTER            = Executors.newSingleThreadScheduledExecutor();
     // order is important. EXECUTER has to be available
-    private static final ToolTipController        INSTANCE            = new ToolTipController();
-    private static final int                      MEDIUM_WEIGHT_POPUP = 1;
+    private static final ToolTipController       INSTANCE            = new ToolTipController();
+    private static final int                     MEDIUM_WEIGHT_POPUP = 1;
 
     /**
      * get the only existing instance of ToolTipManager. This is a singleton
@@ -348,6 +348,16 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         this.handler = handler;
     }
 
+    private boolean classicToolstipsEnabled = true;
+
+    public boolean isClassicToolstipsEnabled() {
+        return classicToolstipsEnabled;
+    }
+
+    public void setClassicToolstipsEnabled(boolean classicToolstipsEnabled) {
+        this.classicToolstipsEnabled = classicToolstipsEnabled;
+    }
+
     /**
      * @param createExtTooltip
      */
@@ -360,58 +370,60 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
                 if (this.handler.showToolTip(tt)) { return; }
 
             }
+            if (isClassicToolstipsEnabled()) {
+                final PopupFactory popupFactory = PopupFactory.getSharedInstance();
+                final GraphicsConfiguration gc = this.activeComponent.getGraphicsConfiguration();
+                final Rectangle screenBounds = gc.getBounds();
+                final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+                final Point ttPosition = new Point(this.mousePosition.x, this.mousePosition.y);
 
-            final PopupFactory popupFactory = PopupFactory.getSharedInstance();
-            final GraphicsConfiguration gc = this.activeComponent.getGraphicsConfiguration();
-            final Rectangle screenBounds = gc.getBounds();
-            final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
-            final Point ttPosition = new Point(this.mousePosition.x, this.mousePosition.y);
+                // if screen has insets, we have to deacrease the available
+                // space
+                screenBounds.x += screenInsets.left;
+                screenBounds.y += screenInsets.top;
+                screenBounds.width -= screenInsets.left + screenInsets.right;
+                screenBounds.height -= screenInsets.top + screenInsets.bottom;
 
-            // if screen has insets, we have to deacrease the available space
-            screenBounds.x += screenInsets.left;
-            screenBounds.y += screenInsets.top;
-            screenBounds.width -= screenInsets.left + screenInsets.right;
-            screenBounds.height -= screenInsets.top + screenInsets.bottom;
+                if (ttPosition.x > screenBounds.x + screenBounds.width / 2) {
+                    // move to left on right screen size
+                    ttPosition.x = this.mousePosition.x - tt.getPreferredSize().width;
 
-            if (ttPosition.x > screenBounds.x + screenBounds.width / 2) {
-                // move to left on right screen size
-                ttPosition.x = this.mousePosition.x - tt.getPreferredSize().width;
+                } else {
+                    ttPosition.x = this.mousePosition.x + 15;
+                }
 
-            } else {
-                ttPosition.x = this.mousePosition.x + 15;
+                if (ttPosition.y > screenBounds.y + screenBounds.height / 2) {
+                    // move tt to top if we are in bottom part of screen
+                    ttPosition.y = this.mousePosition.y - tt.getPreferredSize().height;
+                } else {
+                    ttPosition.y = this.mousePosition.y + 15;
+                }
+
+                // wtf...fu%&inaccessable methods!
+                try {
+                    final Method method = javax.swing.PopupFactory.class.getDeclaredMethod("setPopupType", new Class[] { Integer.TYPE });
+                    method.setAccessible(true);
+                    method.invoke(popupFactory, new Object[] { ToolTipController.MEDIUM_WEIGHT_POPUP });
+                } catch (final Exception exception) {
+                    throw new RuntimeException(exception);
+                }
+
+                ToolTipController.this.activeToolTipPanel = tt;
+                tt.addMouseListener(ToolTipController.this);
+                this.activePopup = popupFactory.getPopup(this.activeComponent, this.activeToolTipPanel, ttPosition.x, ttPosition.y);
+
+                final Window ownerWindow = SwingUtilities.getWindowAncestor(this.activeComponent);
+                // if the components window is not the active any more, for
+                // exmaple
+                // because we opened a dialog, don't show tooltip
+
+                if (ownerWindow != null) {
+                    ownerWindow.removeWindowFocusListener(this);
+                    ownerWindow.addWindowFocusListener(this);
+                }
+                tt.onShow();
+                this.activePopup.show();
             }
-
-            if (ttPosition.y > screenBounds.y + screenBounds.height / 2) {
-                // move tt to top if we are in bottom part of screen
-                ttPosition.y = this.mousePosition.y - tt.getPreferredSize().height;
-            } else {
-                ttPosition.y = this.mousePosition.y + 15;
-            }
-
-            // wtf...fu%&inaccessable methods!
-            try {
-                final Method method = javax.swing.PopupFactory.class.getDeclaredMethod("setPopupType", new Class[] { Integer.TYPE });
-                method.setAccessible(true);
-                method.invoke(popupFactory, new Object[] { ToolTipController.MEDIUM_WEIGHT_POPUP });
-            } catch (final Exception exception) {
-                throw new RuntimeException(exception);
-            }
-
-            ToolTipController.this.activeToolTipPanel = tt;
-            tt.addMouseListener(ToolTipController.this);
-            this.activePopup = popupFactory.getPopup(this.activeComponent, this.activeToolTipPanel, ttPosition.x, ttPosition.y);
-
-            final Window ownerWindow = SwingUtilities.getWindowAncestor(this.activeComponent);
-            // if the components window is not the active any more, for exmaple
-            // because we opened a dialog, don't show tooltip
-
-            if (ownerWindow != null) {
-                ownerWindow.removeWindowFocusListener(this);
-                ownerWindow.addWindowFocusListener(this);
-            }
-            tt.onShow();
-            this.activePopup.show();
-
             // parentWindow =
             // SwingUtilities.windowForComponent(this.activeToolTipPanel);
             //
