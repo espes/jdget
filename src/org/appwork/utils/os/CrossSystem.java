@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.os;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -49,40 +48,41 @@ import org.appwork.utils.swing.dialog.DialogNoAnswerException;
  */
 
 public class CrossSystem {
-    public static final byte    OS_LINUX_OTHER         = 6;
-    public static final byte    OS_MAC_OTHER           = 5;
-    public static final byte    OS_WINDOWS_OTHER       = 4;
-    public static final byte    OS_WINDOWS_NT          = 3;
-    public static final byte    OS_WINDOWS_2000        = 2;
-    public static final byte    OS_WINDOWS_XP          = 0;
-    public static final byte    OS_WINDOWS_2003        = 7;
-    public static final byte    OS_WINDOWS_VISTA       = 1;
-    public static final byte    OS_WINDOWS_7           = 8;
-    public static final byte    OS_WINDOWS_SERVER_2008 = 9;
+    public static final byte      OS_LINUX_OTHER         = 6;
+    public static final byte      OS_MAC_OTHER           = 5;
+    public static final byte      OS_WINDOWS_OTHER       = 4;
+    public static final byte      OS_WINDOWS_NT          = 3;
+    public static final byte      OS_WINDOWS_2000        = 2;
+    public static final byte      OS_WINDOWS_XP          = 0;
+    public static final byte      OS_WINDOWS_2003        = 7;
+    public static final byte      OS_WINDOWS_VISTA       = 1;
+    public static final byte      OS_WINDOWS_7           = 8;
+    public static final byte      OS_WINDOWS_SERVER_2008 = 9;
 
-    private static Boolean      openURLSupport         = null;
-    private static Boolean      openFILESupport        = null;
-    private static String       JAVAINT                = null;
+    private static String         JAVAINT                = null;
+    private static DesktopSupport desktopSupport         = null;
 
     /**
      * Cache to store the OS string in
      */
-    private final static String OS_STRING;
+    private final static String   OS_STRING;
 
     /**
      * Cache to store the OS ID in
      */
-    private final static byte   OS_ID;
+    private final static byte     OS_ID;
 
     /**
      * Cache to store the Mime Class in
      */
-    private static final Mime   MIME;
-    private static String[]     BROWSER_COMMANDLINE    = null;
+    private static final Mime     MIME;
+    private static String[]       BROWSER_COMMANDLINE    = null;
+    private static String[]       FILE_COMMANDLINE       = null;
     static {
 
     }
     static {
+        /* Init OS_ID */
         OS_STRING = System.getProperty("os.name");
         final String OS = CrossSystem.OS_STRING.toLowerCase();
         if (OS.contains("windows 7")) {
@@ -106,42 +106,17 @@ public class CrossSystem {
         } else {
             OS_ID = CrossSystem.OS_LINUX_OTHER;
         }
+        /* Init MIME */
         if (CrossSystem.isWindows()) {
             MIME = new MimeWindows();
+            CrossSystem.desktopSupport = new DesktopSupportWindows();
         } else if (CrossSystem.isLinux()) {
+            CrossSystem.desktopSupport = new DesktopSupportLinux();
             MIME = new MimeLinux();
         } else {
+            CrossSystem.desktopSupport = new DesktopSupportJavaDesktop();
             MIME = new MimeDefault();
         }
-        if (CrossSystem.isWindows()) {
-            CrossSystem.BROWSER_COMMANDLINE = new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", "%s" };
-        }
-    }
-
-    private static boolean _isOpenBrowserSupported() {
-        if (CrossSystem.isWindows()) { return true; }
-        try {
-            if (!Desktop.isDesktopSupported()) { return false; }
-            final Desktop desktop = Desktop.getDesktop();
-            if (!desktop.isSupported(Desktop.Action.BROWSE)) { return false; }
-            return true;
-        } catch (final Throwable e) {
-            Log.exception(Level.WARNING, e);
-        }
-        return false;
-    }
-
-    private static boolean _isOpenFileSupported() {
-        if (CrossSystem.isWindows()) { return true; }
-        try {
-            if (!Desktop.isDesktopSupported()) { return false; }
-            final Desktop desktop = Desktop.getDesktop();
-            if (!desktop.isSupported(Desktop.Action.OPEN)) { return false; }
-            return true;
-        } catch (final Throwable e) {
-            Log.exception(Level.WARNING, e);
-        }
-        return false;
     }
 
     /**
@@ -151,14 +126,15 @@ public class CrossSystem {
      * @throws IOException
      */
     private static void _openFILE(final File file) throws IOException {
-        if (CrossSystem.isWindows()) {
-            // workaround for windows
-            // see http://bugs.sun.com/view_bug.do?bug_id=6599987
-            Runtime.getRuntime().exec(new String[] { "rundll32.exe", "url.dll,FileProtocolHandler", file.getAbsolutePath() });
+        final String custom[] = CrossSystem.FILE_COMMANDLINE;
+        if (custom != null && custom.length > 0) {
+            final ArrayList<String> commands = new ArrayList<String>();
+            for (final String s : custom) {
+                commands.add(s.replace("%s", file.getAbsolutePath()));
+            }
+            Runtime.getRuntime().exec(commands.toArray(new String[] {}));
         } else {
-            final Desktop desktop = Desktop.getDesktop();
-            final URI uri = file.getCanonicalFile().toURI();
-            desktop.open(new File(uri));
+            CrossSystem.desktopSupport.openFile(file);
         }
     }
 
@@ -170,18 +146,15 @@ public class CrossSystem {
      * @throws URISyntaxException
      */
     private static void _openURL(final String _url) throws IOException, URISyntaxException {
-        final URL url = new URL(_url);
         final String custom[] = CrossSystem.BROWSER_COMMANDLINE;
         if (custom != null && custom.length > 0) {
-
             final ArrayList<String> commands = new ArrayList<String>();
             for (final String s : custom) {
                 commands.add(s.replace("%s", _url));
             }
             Runtime.getRuntime().exec(commands.toArray(new String[] {}));
         } else {
-            final Desktop desktop = Desktop.getDesktop();
-            desktop.browse(url.toURI());
+            CrossSystem.desktopSupport.browseURL(new URL(_url));
         }
     }
 
@@ -204,6 +177,10 @@ public class CrossSystem {
          */
         pathPart = pathPart.replaceFirst("\\.+$", "");
         return pathPart.trim();
+    }
+
+    public static String[] getBrowserCommandLine() {
+        return CrossSystem.BROWSER_COMMANDLINE;
     }
 
     public static String[] getEditor(final String extension) throws DialogCanceledException, DialogClosedException, StorageException {
@@ -235,6 +212,10 @@ public class CrossSystem {
         } else {
             return null;
         }
+    }
+
+    public static String[] getFileCommandLine() {
+        return CrossSystem.FILE_COMMANDLINE;
     }
 
     public static String getFileExtension(final String str) {
@@ -321,9 +302,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isOpenBrowserSupported() {
-        if (CrossSystem.openURLSupport != null) { return CrossSystem.openURLSupport; }
-        CrossSystem.openURLSupport = CrossSystem._isOpenBrowserSupported();
-        return CrossSystem.openURLSupport;
+        return CrossSystem.desktopSupport.isBrowseURLSupported();
     }
 
     /**
@@ -332,9 +311,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isOpenFileSupported() {
-        if (CrossSystem.openFILESupport != null) { return CrossSystem.openFILESupport; }
-        CrossSystem.openFILESupport = CrossSystem._isOpenFileSupported();
-        return CrossSystem.openFILESupport;
+        return CrossSystem.desktopSupport.isOpenFileSupported();
     }
 
     /**
@@ -514,6 +491,10 @@ public class CrossSystem {
      */
     public static void setBrowserCommandLine(final String[] commands) {
         CrossSystem.BROWSER_COMMANDLINE = commands;
+    }
+
+    public static void setFileCommandLine(final String[] fILE_COMMANDLINE) {
+        CrossSystem.FILE_COMMANDLINE = fILE_COMMANDLINE;
     }
 
     /**
