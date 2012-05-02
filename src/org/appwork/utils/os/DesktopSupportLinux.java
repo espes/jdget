@@ -64,10 +64,18 @@ public class DesktopSupportLinux implements DesktopSupport {
     }
 
     private boolean openCustom(final String[] custom, final String what) throws IOException {
-        if (custom == null || custom.length < 2) { return false; }
+        if (custom == null || custom.length < 1) { return false; }
+        boolean added = false;
         final ArrayList<String> commands = new ArrayList<String>();
         for (final String s : custom) {
-            commands.add(s.replace("%s", what));
+            final String add = s.replace("%s", what);
+            if (!add.equals(s)) {
+                added = true;
+            }
+            commands.add(add);
+        }
+        if (added == false) {
+            commands.add(what);
         }
         Runtime.getRuntime().exec(commands.toArray(new String[] {}));
         return true;

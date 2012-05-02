@@ -126,14 +126,7 @@ public class CrossSystem {
      * @throws IOException
      */
     private static void _openFILE(final File file) throws IOException {
-        final String custom[] = CrossSystem.FILE_COMMANDLINE;
-        if (custom != null && custom.length > 0) {
-            final ArrayList<String> commands = new ArrayList<String>();
-            for (final String s : custom) {
-                commands.add(s.replace("%s", file.getAbsolutePath()));
-            }
-            Runtime.getRuntime().exec(commands.toArray(new String[] {}));
-        } else {
+        if (!CrossSystem.openCustom(CrossSystem.FILE_COMMANDLINE, file.getAbsolutePath())) {
             CrossSystem.desktopSupport.openFile(file);
         }
     }
@@ -146,14 +139,7 @@ public class CrossSystem {
      * @throws URISyntaxException
      */
     private static void _openURL(final String _url) throws IOException, URISyntaxException {
-        final String custom[] = CrossSystem.BROWSER_COMMANDLINE;
-        if (custom != null && custom.length > 0) {
-            final ArrayList<String> commands = new ArrayList<String>();
-            for (final String s : custom) {
-                commands.add(s.replace("%s", _url));
-            }
-            Runtime.getRuntime().exec(commands.toArray(new String[] {}));
-        } else {
+        if (!CrossSystem.openCustom(CrossSystem.BROWSER_COMMANDLINE, _url)) {
             CrossSystem.desktopSupport.browseURL(new URL(_url));
         }
     }
@@ -336,6 +322,24 @@ public class CrossSystem {
 
     public static void main(final String[] args) {
         CrossSystem.restartApplication(MigLayout.class);
+    }
+
+    private static boolean openCustom(final String[] custom, final String what) throws IOException {
+        if (custom == null || custom.length < 1) { return false; }
+        boolean added = false;
+        final ArrayList<String> commands = new ArrayList<String>();
+        for (final String s : custom) {
+            final String add = s.replace("%s", what);
+            if (!add.equals(s)) {
+                added = true;
+            }
+            commands.add(add);
+        }
+        if (added == false) {
+            commands.add(what);
+        }
+        Runtime.getRuntime().exec(commands.toArray(new String[] {}));
+        return true;
     }
 
     /**
