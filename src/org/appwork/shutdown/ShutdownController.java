@@ -116,10 +116,6 @@ public class ShutdownController extends Thread {
     private final AtomicInteger                   requestedShutDowns = new AtomicInteger(0);
     private boolean                               silentShutDown     = false;
 
-    public boolean isSilentShutDown() {
-        return silentShutDown;
-    }
-
     /**
      * Create a new instance of ShutdownController. This is a singleton class.
      * Access the only existing instance by using {@link #getInstance()}.
@@ -219,8 +215,8 @@ public class ShutdownController extends Thread {
 
     public void addShutdownVetoListener(final ShutdownVetoListener listener) {
         synchronized (this.vetoListeners) {
+            if (this.vetoListeners.contains(listener)) { return; }
             Log.L.finest("ADD " + listener);
-            this.vetoListeners.remove(listener);
             this.vetoListeners.add(listener);
         }
     }
@@ -295,6 +291,10 @@ public class ShutdownController extends Thread {
 
     public boolean isShutDownRequested() {
         return this.requestedShutDowns.get() > 0;
+    }
+
+    public boolean isSilentShutDown() {
+        return this.silentShutDown;
     }
 
     public void removeShutdownEvent(final ShutdownEvent event) {

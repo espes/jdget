@@ -30,16 +30,19 @@ public abstract class EDTHelper<T> implements Runnable {
     /**
      * flag. If Runnable has terminated yet
      */
-    private volatile boolean done    = false;
+    private volatile boolean done                  = false;
 
     /**
      * flag, has runnable already started, invoked in edt
      */
-    private volatile boolean started = false;
+    private volatile boolean started               = false;
     /**
      * lock used for EDT waiting
      */
-    private final Object     lock    = new Object();
+    private final Object     lock                  = new Object();
+
+    private volatile boolean callThreadInterrupted = false;
+    private Thread           callThread            = null;
 
     /**
      * Stores The returnvalue. This Value if of the Generic Datatype T
@@ -79,8 +82,14 @@ public abstract class EDTHelper<T> implements Runnable {
             Log.exception(e);
         } finally {
             synchronized (this.lock) {
+                final Thread lcallThread = this.callThread;
+                if (lcallThread != null) {
+                    this.callThreadInterrupted = true;
+                }
                 this.done = true;
-                this.lock.notify();
+                if (lcallThread != null) {
+                    lcallThread.interrupt();
+                }
             }
         }
 
@@ -110,20 +119,45 @@ public abstract class EDTHelper<T> implements Runnable {
      * not started yet, it gets started.
      */
     public void waitForEDT() {
+        // long c = -1;
         try {
-            if (this.done) { return; }
-            this.start(false);
-            if (this.done) { return; }
             synchronized (this.lock) {
                 if (this.done) { return; }
+            }
+            this.start(false);
+            synchronized (this.lock) {
+                if (this.done) { return; }
+                if (!SwingUtilities.isEventDispatchThread()) {
+                    this.callThread = Thread.currentThread();
+                }
+            }
+            // c = System.currentTimeMillis();
+            while (this.done == false) {
                 try {
-                    this.lock.wait();
+                    Thread.sleep(1000);
                 } catch (final InterruptedException e) {
-                    org.appwork.utils.logging.Log.exception(Level.WARNING, e);
+                    if (!this.done && !this.callThreadInterrupted) {
+                        org.appwork.utils.logging.Log.exception(Level.WARNING, e);
+                    }
+                    return;
+
                 }
             }
         } finally {
-            if (exception != null) throw exception;
+            // if (c != -1 && System.currentTimeMillis() - c > 1000) {
+            // new
+            // WTFException("EDT blocked longer than 1sec!").printStackTrace();
+            // }
+            /* make sure we remove the interrupted flag */
+            synchronized (this.lock) {
+                if (this.callThreadInterrupted) {
+                    Thread.interrupted();
+                } else {
+                    // System.out.println("not interrupted");
+                }
+                this.callThread = null;
+            }
+            if (this.exception != null) { throw this.exception; }
         }
     }
 

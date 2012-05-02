@@ -18,11 +18,19 @@ public class ShutdownVetoException extends Exception {
     /**
      * 
      */
-    private static final long serialVersionUID = 1L;
+    private static final long    serialVersionUID = 1L;
+    private ShutdownVetoListener source           = null;
 
-    public ShutdownVetoException(final String localizedCause) {
+    public ShutdownVetoException(final String localizedCause, final ShutdownVetoListener source) {
         super(localizedCause);
+        this.source = source;
+    }
 
+    /**
+     * @return the source
+     */
+    public ShutdownVetoListener getSource() {
+        return this.source;
     }
 
 }

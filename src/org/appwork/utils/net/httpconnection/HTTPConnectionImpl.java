@@ -336,17 +336,40 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     public long[] getRange() {
-        String range;
         if (this.ranges != null) { return this.ranges; }
-        if ((range = this.getHeaderField("Content-Range")) == null) { return null; }
-        // bytes 174239-735270911/735270912
-        final String[] ranges = new Regex(range, ".*?(\\d+).*?-.*?(\\d+).*?/.*?(\\d+)").getRow(0);
-        if (ranges == null) {
-            System.err.print(this + "");
-            return null;
+        String contentRange = this.getHeaderField("Content-Range");
+        if ((contentRange = this.getHeaderField("Content-Range")) == null) { return null; }
+        String[] range = null;
+        if (contentRange != null) {
+            if ((range = new Regex(contentRange, ".*?(\\d+).*?-.*?(\\d+).*?/.*?(\\d+)").getRow(0)) != null) {
+                /* RFC-2616 */
+                /* START-STOP/SIZE */
+                /* Content-Range=[133333332-199999999/200000000] */
+                final long gotSB = Long.parseLong(range[0]);
+                final long gotEB = Long.parseLong(range[1]);
+                final long gotS = Long.parseLong(range[2]);
+                this.ranges = new long[] { gotSB, gotEB, gotS };
+                return this.ranges;
+            } else if ((range = new Regex(contentRange, ".*?(\\d+).*?-/.*?(\\d+)").getRow(0)) != null && this.getResponseCode() != 416) {
+                /* only parse this when we have NO 416 (invalid range request) */
+                /* NON RFC-2616! STOP is missing */
+                /*
+                 * this happend for some stupid servers, seems to happen when
+                 * request is bytes=9500- (x till end)
+                 */
+                /* START-/SIZE */
+                /* content-range: bytes 1020054729-/1073741824 */
+                final long gotSB = Long.parseLong(range[0]);
+                final long gotS = Long.parseLong(range[1]);
+                final long guessEB = gotSB + this.getContentLength();
+                this.ranges = new long[] { gotSB, guessEB, gotS };
+                return this.ranges;
+            } else {
+                /* unknown range header format! */
+                System.out.println(contentRange + " format is unknown!");
+            }
         }
-        this.ranges = new long[] { Long.parseLong(ranges[0]), Long.parseLong(ranges[1]), Long.parseLong(ranges[2]) };
-        return this.ranges;
+        return null;
     }
 
     protected String getRequestInfo() {
@@ -450,7 +473,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     public boolean isOK() {
-        if (this.getResponseCode() > -2 && this.getResponseCode() < 400) { return true; }
+        if (this.getResponseCode() >= 200 && this.getResponseCode() < 400) { return true; }
         return false;
     }
 

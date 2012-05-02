@@ -765,7 +765,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param b
      */
     public void setColumnVisible(final ExtColumn<E> column, final boolean visible) {
-
         try {
             this.getStorage().put("VISABLE_COL_" + column.getID(), visible);
         } catch (final Exception e) {
