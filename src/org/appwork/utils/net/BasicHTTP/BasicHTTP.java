@@ -71,6 +71,10 @@ public class BasicHTTP {
             fos = new FileOutputStream(file, true);
             try {
                 this.download(url, progress, 0, fos, file.length());
+            } catch (final BasicHTTPException e) {
+                throw e;
+            } catch (final WriteIOException e) {
+                throw e;
             } catch (final IOException e) {
                 final IOException ex = new BasicHTTPException(this.connection, e);
                 throw ex;
@@ -87,7 +91,12 @@ public class BasicHTTP {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             this.download(url, progress, maxSize, baos, -1);
+        } catch (final BasicHTTPException e) {
+            throw e;
+        } catch (final WriteIOException e) {
+            throw e;
         } catch (final IOException e) {
+         
             if (baos.size() > 0) {
                 throw new BasicHTTPException(this.connection, e);
             } else {
@@ -138,15 +147,24 @@ public class BasicHTTP {
                 progress.setTotal(this.connection.getCompleteContentLength());
             }
             final byte[] b = new byte[32767];
-            int len;
+            int len = 0;
             long loaded = Math.max(0, resumePosition);
             if (progress != null) {
                 progress.setLoaded(loaded);
             }
-            while ((len = input.read(b)) != -1) {
+            while (true) {
+                try {
+                    if ((len = input.read(b)) == -1) break;
+                } catch (IOException e) {
+                    throw new ReadIOException(e);
+                }
                 if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
                 if (len > 0) {
-                    baos.write(b, 0, len);
+                    try {
+                        baos.write(b, 0, len);                      
+                    } catch (IOException e) {
+                        throw new WriteIOException(e);
+                    }
                     loaded += len;
                     if (maxSize > 0 && loaded > maxSize) { throw new IOException("Max size exeeded!"); }
                     if (progress != null) {
@@ -155,6 +173,8 @@ public class BasicHTTP {
                 }
             }
             if (loaded != this.connection.getCompleteContentLength()) { throw new IOException("Incomplete download!"); }
+        } catch (WriteIOException e) {
+            throw e;
         } catch (IOException e) {
             throw new BasicHTTPException(connection, e);
         } finally {
@@ -220,7 +240,7 @@ public class BasicHTTP {
 
                 return sb.toString();
             } catch (IOException e) {
-                throw new BasicHTTPException(connection, e);
+                throw new BasicHTTPException(connection, new ReadIOException(e));
             } finally {
                 try {
                     in.close();
@@ -285,15 +305,19 @@ public class BasicHTTP {
                 }
                 this.connection.setRequestProperty("Connection", "Close");
                 int lookupTry = 0;
-                while (true) {
-                    try {
-                        this.connection.connect();
-                        break;
-                    } catch (final UnknownHostException e) {
-                        if (++lookupTry > 3) { throw e; }
-                        /* dns lookup failed, short wait and try again */
-                        Thread.sleep(200);
+                try {
+                    while (true) {
+                        try {
+                            this.connection.connect();
+                            break;
+                        } catch (final UnknownHostException e) {
+                            if (++lookupTry > 3) { throw e; }
+                            /* dns lookup failed, short wait and try again */
+                            Thread.sleep(200);
+                        }
                     }
+                } catch (IOException e) {
+                    throw new ReadIOException(e);
                 }
                 close = false;
                 return this.connection;
@@ -336,15 +360,19 @@ public class BasicHTTP {
                 }
 
                 int lookupTry = 0;
-                while (true) {
-                    try {
-                        this.connection.connect();
-                        break;
-                    } catch (final UnknownHostException e) {
-                        if (++lookupTry > 3) { throw e; }
-                        /* dns lookup failed, short wait and try again */
-                        Thread.sleep(200);
+                try {
+                    while (true) {
+                        try {
+                            this.connection.connect();
+                            break;
+                        } catch (final UnknownHostException e) {
+                            if (++lookupTry > 3) { throw e; }
+                            /* dns lookup failed, short wait and try again */
+                            Thread.sleep(200);
+                        }
                     }
+                } catch (IOException e) {
+                    throw new ReadIOException(e);
                 }
                 outputStream = this.connection.getOutputStream();
                 writer = new OutputStreamWriter(outputStream);
@@ -417,7 +445,7 @@ public class BasicHTTP {
                 }
                 return sb.toString();
             } catch (IOException e) {
-                throw new BasicHTTPException(connection, e);
+                throw new BasicHTTPException(connection, new ReadIOException(e));
             } finally {
                 try {
                     reader.close();
