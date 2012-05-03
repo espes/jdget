@@ -159,7 +159,11 @@ public abstract class KeyHandler<RawClass> {
             ret = this.setter.getMethod().getAnnotation(class1);
         } else if (this.setter != null && this.setter.getMethod().getAnnotation(class1) != null) {
 
-            if (KeyHandler.ANNOTATION_PACKAGE_NAME.equals(class1.getPackage().getName())) { throw new InterfaceParseException("Dupe Annotation in  " + this + " (" + class1 + ")"); }
+            if (KeyHandler.ANNOTATION_PACKAGE_NAME.equals(class1.getPackage().getName())) { 
+                
+                //
+                
+                throw new InterfaceParseException("Dupe Annotation in  " + this + " (" + class1 + ") "+this.setter.getMethod()); }
         }
         return ret;
     }
