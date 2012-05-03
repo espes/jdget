@@ -82,7 +82,10 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
                     throw new InterfaceParseException("Json Serialize not possible for " + m);
                 }
                 for (Class<?> e : m.getExceptionTypes()) {
-                    if (e.isAssignableFrom(RemoteCallException.class)) { throw new InterfaceParseException(m + " exceptions do not extend RemoteCallException"); }
+                    if (!RemoteCallException.class.isAssignableFrom(e)) { 
+                        //
+                        
+                        throw new InterfaceParseException(m + " exceptions do not extend RemoteCallException"); }
                     try {
                         e.getConstructors();
 
