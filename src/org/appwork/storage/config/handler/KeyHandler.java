@@ -249,6 +249,10 @@ public abstract class KeyHandler<RawClass> {
     @SuppressWarnings("unchecked")
     protected void init() throws Throwable {
 
+        if(getter==null){
+            throw new InterfaceParseException("Getter Method is Missing for "+setter.getMethod());
+        }
+     
         // read local cryptinfos
         this.primitive = JSonStorage.canStorePrimitive(this.getter.getMethod().getReturnType());
         final CryptedStorage an = this.getAnnotation(CryptedStorage.class);

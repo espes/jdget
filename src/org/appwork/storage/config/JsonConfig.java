@@ -13,12 +13,14 @@ import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.handler.StorageHandler;
 import org.appwork.utils.Application;
+import org.appwork.utils.swing.dialog.Dialog;
 
 /**
  * @author thomas
@@ -41,47 +43,54 @@ public class JsonConfig {
              * we first lock on Cache to access it and check for existence of
              * the configInterface
              */
-            synchronized (JSonStorage.LOCK) {
-                ret = JsonConfig.CACHE.get(configInterface.getName());
-                if (ret == null) {
-                    /*
-                     * see GraphicalUserInterface, a static inside the
-                     * configInterface itself
-                     */
-                    // a static referenze in the interface itself would bypass
-                    // the
-                    // cache and create to storagehandler. let's create a dummy
-                    // proxy here. and check again afterwards
-                    Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new InvocationHandler() {
-
-                        @Override
-                        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                            // TODO Auto-generated method stub
-                            return null;
-                        }
-                    });
-                    /* check if the cache now has this configInterface */
-                    ret = JsonConfig.CACHE.get(configInterface.getName());
-                }
-
-                if (ret == null) {
-                    /*
-                     * WARNING: as the JSonConfig uses JSonStorage in Background
-                     * we FIRST get JSonStorage Lock AND then JSonStorage Lock.
-                     * This avoids deadlocks that could happen if we restore an
-                     * Json Object which needs to create a JSonConfig during the
-                     * restore procress
-                     */
-
+            try {
+                synchronized (JSonStorage.LOCK) {
                     ret = JsonConfig.CACHE.get(configInterface.getName());
                     if (ret == null) {
-                       
-                        ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(Application.getResource("cfg/" + configInterface.getName()), configInterface));
-                        JsonConfig.CACHE.put(configInterface.getName(), ret);
+                        /*
+                         * see GraphicalUserInterface, a static inside the
+                         * configInterface itself
+                         */
+                        // a static referenze in the interface itself would
+                        // bypass
+                        // the
+                        // cache and create to storagehandler. let's create a
+                        // dummy
+                        // proxy here. and check again afterwards
+                        Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new InvocationHandler() {
+
+                            @Override
+                            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                                // TODO Auto-generated method stub
+                                return null;
+                            }
+                        });
+                        /* check if the cache now has this configInterface */
+                        ret = JsonConfig.CACHE.get(configInterface.getName());
+                    }
+
+                    if (ret == null) {
+                        /*
+                         * WARNING: as the JSonConfig uses JSonStorage in
+                         * Background we FIRST get JSonStorage Lock AND then
+                         * JSonStorage Lock. This avoids deadlocks that could
+                         * happen if we restore an Json Object which needs to
+                         * create a JSonConfig during the restore procress
+                         */
+
+                        ret = JsonConfig.CACHE.get(configInterface.getName());
+                        if (ret == null) {
+
+                            ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(Application.getResource("cfg/" + configInterface.getName()), configInterface));
+
+                            JsonConfig.CACHE.put(configInterface.getName(), ret);
+                        }
                     }
                 }
+            } catch (RuntimeException e) {
+                Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
+                throw e;
             }
-
         }
         return (T) ret;
     }
@@ -98,30 +107,36 @@ public class JsonConfig {
          * get JSonStorage Lock AND then JSonStorage Lock. This avoids deadlocks
          * that could happen if we restore an Json Object which needs to create
          * a JSonConfig during the restore procress
-         */
-        synchronized (JSonStorage.LOCK) {
+         */try {
+            synchronized (JSonStorage.LOCK) {
 
-            ConfigInterface ret = JsonConfig.CACHE.get(id);
-            if (ret == null) {
+                ConfigInterface ret = JsonConfig.CACHE.get(id);
+                if (ret == null) {
 
-                ret = (T) Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(path, configInterface));
-                JsonConfig.CACHE.put(id, ret);
+                    ret = (T) Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(path, configInterface));
+
+                    JsonConfig.CACHE.put(id, ret);
+                }
+                return (T) ret;
+
             }
-            return (T) ret;
-
+        } catch (RuntimeException e) {
+            Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
+            throw e;
         }
 
     }
 
+    @SuppressWarnings("unchecked")
     public static <T extends ConfigInterface> T create(final String urlPath, final Class<T> configInterface) {
-        try {
-            final String id = urlPath + configInterface.getName();
-            /*
-             * WARNING: as the JSonConfig uses JSonStorage in Background we
-             * FIRST get JSonStorage Lock AND then JSonStorage Lock. This avoids
-             * deadlocks that could happen if we restore an Json Object which
-             * needs to create a JSonConfig during the restore procress
-             */
+
+        final String id = urlPath + configInterface.getName();
+        /*
+         * WARNING: as the JSonConfig uses JSonStorage in Background we FIRST
+         * get JSonStorage Lock AND then JSonStorage Lock. This avoids deadlocks
+         * that could happen if we restore an Json Object which needs to create
+         * a JSonConfig during the restore procress
+         */try {
             synchronized (JSonStorage.LOCK) {
 
                 ConfigInterface ret = JsonConfig.CACHE.get(id);
@@ -134,10 +149,13 @@ public class JsonConfig {
                 return (T) ret;
 
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
+            throw e;
+        } catch (URISyntaxException e) {
+            Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
             throw new WTFException(e);
         }
-
     }
 
     public static HashMap<String, ConfigInterface> getCache() {
