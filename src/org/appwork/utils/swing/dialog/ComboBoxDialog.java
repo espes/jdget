@@ -137,7 +137,7 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
         // this.box.setBounds(0, 0, 450, 600);
         // this.box.setMaximumSize(new Dimension(450, 600));
         // }
-        contentpane.add(this.box, "pushy,growy, width n:n:850,height 24!");
+        contentpane.add(this.box, "pushy,growy, width n:850:n,height 24!");
 
         return contentpane;
     }
