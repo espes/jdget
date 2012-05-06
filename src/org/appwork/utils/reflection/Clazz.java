@@ -145,4 +145,13 @@ public class Clazz {
         return type == Void.class || type == void.class;
     }
 
+    /**
+     * @param type
+     * @return
+     */
+    public static boolean isString(Type type) {
+  
+        return type==String.class;
+    }
+
 }

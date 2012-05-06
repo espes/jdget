@@ -58,6 +58,8 @@ public class SimpleMapper implements JSONMapper {
             return (T) this.mapper.jsonToObject(new JSonFactory(jsonString).parse(), clazz);
         } catch (final ParserException e) {
             throw new JSonMapperException(e);
+        } catch (MapperException e) {
+            throw new JSonMapperException(e);
         }
 
     }
@@ -76,6 +78,8 @@ public class SimpleMapper implements JSONMapper {
         } catch (final ParserException e) {
             throw new JSonMapperException(e);
 
+        } catch (MapperException e) {
+            throw new JSonMapperException(e);
         }
     }
 

@@ -27,6 +27,7 @@ import org.appwork.storage.simplejson.JSonArray;
 import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.JSonObject;
 import org.appwork.storage.simplejson.JSonValue;
+import org.appwork.utils.reflection.Clazz;
 
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
@@ -237,7 +238,7 @@ public class JSonMapper {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public Object jsonToObject(final JSonNode json, final Type type) {
+    public Object jsonToObject(final JSonNode json, final Type type) throws MapperException {
         final ClassCache cc;
         try {
             Class<?> clazz = null;
@@ -254,6 +255,7 @@ public class JSonMapper {
               
                 }
             if (json instanceof JSonValue) {
+                if(!Clazz.isPrimitive(type)&&!Clazz.isString(type))throw new MapperException(json+" cannot be mapped to "+type);
                 switch (((JSonValue) json).getType()) {
                 case BOOLEAN:
                 case DOUBLE:
@@ -420,9 +422,10 @@ public class JSonMapper {
      * @param <T>
      * @param json
      * @param typeRef
+     * @throws MapperException 
      */
     @SuppressWarnings("unchecked")
-    public <T> T jsonToObject(final JSonNode json, final TypeRef<T> type) {
+    public <T> T jsonToObject(final JSonNode json, final TypeRef<T> type) throws MapperException {
 
         return (T) this.jsonToObject(json, type.getType());
     }
