@@ -88,7 +88,7 @@ public class JSonFactory {
                         case 'u':
                             this.sb2.delete(0, this.sb2.length());
 
-                            this.global++;
+//                            this.global++;
                             this.counter = this.global + 4;
                             for (; this.global < this.counter; this.global++) {
                                 this.c = this.getChar();
@@ -96,7 +96,7 @@ public class JSonFactory {
                                     this.sb2.append(this.c);
                                 }
                             }
-                            this.global--;
+//                            this.global--;
                             this.sb.append((char) Short.parseShort(this.sb2.toString(), 16));
                             continue;
                         default:
@@ -116,7 +116,7 @@ public class JSonFactory {
         }
     }
 
-    private char getChar() {
+    private char getChar() throws ParserException {
         if (JSonFactory.DEBUG) {
             final String pos = this.str.substring(0, this.global);
             this.debug = pos + this.str.substring(this.global) + "\r\n";
@@ -125,6 +125,9 @@ public class JSonFactory {
             }
             this.debug += '\u2934';
             System.err.println(this.debug);
+        }
+        if(global>=str.length()){
+            throw this.bam("Ended unexpected");
         }
         return this.str.charAt(this.global);
     }
@@ -228,6 +231,9 @@ public class JSonFactory {
                 this.skipWhiteSpace();
                 ret.put(key, this.parseValue());
                 this.skipWhiteSpace();
+                if(global>=str.length()){
+                    throw this.bam("} or , expected");
+                }
                 this.c = this.getChar();
                 switch (this.c) {
                 case ',':
