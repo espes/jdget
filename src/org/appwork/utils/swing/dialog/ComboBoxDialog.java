@@ -20,6 +20,7 @@ import javax.swing.ListCellRenderer;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.app.gui.MigPanel;
 import org.appwork.utils.logging.Log;
 
 public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxDialogInterface {
@@ -115,7 +116,7 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
      */
     @Override
     public JComponent layoutDialogContent() {
-        final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
+        final JPanel contentpane = new MigPanel("ins 0,wrap 1", "[fill,grow]","[][]");
         this.textpane = new JTextPane();
         this.textpane.setBorder(null);
         this.textpane.setBackground(null);
@@ -137,7 +138,7 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
         // this.box.setBounds(0, 0, 450, 600);
         // this.box.setMaximumSize(new Dimension(450, 600));
         // }
-        contentpane.add(this.box, "pushy,growy, width n:850:n,height 24!");
+        contentpane.add(this.box, "pushy,growy,height 24!");
 
         return contentpane;
     }
