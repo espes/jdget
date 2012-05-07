@@ -5,8 +5,9 @@ import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 
-import org.apache.commons.lang.StringUtils;
+
 import org.appwork.utils.Regex;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.encoding.Base64;
 import org.appwork.utils.logging.Log;
 
