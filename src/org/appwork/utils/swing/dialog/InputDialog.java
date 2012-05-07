@@ -24,6 +24,7 @@ import javax.swing.text.JTextComponent;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.app.gui.MigPanel;
 import org.appwork.swing.components.ExtPasswordField;
 import org.appwork.swing.components.ExtTextField;
 import org.appwork.swing.components.TextComponentInterface;
@@ -93,7 +94,7 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
 
     @Override
     public JComponent layoutDialogContent() {
-        final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[grow,fill]"));
+        final JPanel contentpane = new MigPanel("ins 0,wrap 1", "[grow,fill]","[][]");
         if (!StringUtils.isEmpty(this.message)) {
             this.messageArea = new JTextPane();
             this.messageArea.setBorder(null);
@@ -105,7 +106,7 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
                 this.messageArea.setContentType("text/html");
             }
-            contentpane.add(this.messageArea, "hmin 19,growy,pushy");
+            contentpane.add(this.messageArea, "hmin 19");
         }
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
             this.bigInput = new JTextPane();
