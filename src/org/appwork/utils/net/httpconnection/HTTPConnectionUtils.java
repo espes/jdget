@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 
+import org.apache.commons.lang.StringUtils;
 import org.appwork.utils.Regex;
 import org.appwork.utils.encoding.Base64;
 import org.appwork.utils.logging.Log;
@@ -16,7 +17,7 @@ public class HTTPConnectionUtils {
 
     public static String getFileNameFromDispositionHeader(String header) {
         // http://greenbytes.de/tech/tc2231/
-        if (header == null) { return null; }
+        if (StringUtils.isEmpty(header)) { return null; }
         final String orgheader = header;
         String contentdisposition = header;
 
@@ -122,7 +123,7 @@ public class HTTPConnectionUtils {
         boolean complete = false;
         while ((c = in.read(minibuffer)) >= 0) {
             if (bigbuffer.remaining() < 1) {
-                final ByteBuffer newbuffer = ByteBuffer.allocate((bigbuffer.capacity() * 2));
+                final ByteBuffer newbuffer = ByteBuffer.allocate(bigbuffer.capacity() * 2);
                 bigbuffer.flip();
                 newbuffer.put(bigbuffer);
                 bigbuffer = newbuffer;
