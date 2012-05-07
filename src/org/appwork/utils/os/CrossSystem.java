@@ -84,7 +84,7 @@ public class CrossSystem {
     static {
         /* Init OS_ID */
         OS_STRING = System.getProperty("os.name");
-        OS_ID = getOSID(OS_STRING);
+        OS_ID = CrossSystem.getOSID(CrossSystem.OS_STRING);
         /* Init MIME */
         if (CrossSystem.isWindows()) {
             MIME = new MimeWindows();
@@ -111,36 +111,6 @@ public class CrossSystem {
     }
 
     /**
-     * @param osString
-     * @return
-     */
-    public static byte getOSID(String osString) {
-        final String OS = osString.toLowerCase();
-        if (OS.contains("windows 7")) {
-            return CrossSystem.OS_WINDOWS_7;
-        } else if (OS.contains("windows xp")) {
-            return CrossSystem.OS_WINDOWS_XP;
-        } else if (OS.contains("windows vista")) {
-            return CrossSystem.OS_WINDOWS_VISTA;
-        } else if (OS.contains("windows 2000")) {
-            return CrossSystem.OS_WINDOWS_2000;
-        } else if (OS.contains("windows 2003")) {
-            return CrossSystem.OS_WINDOWS_2003;
-        } else if (OS.contains("windows server 2008")) {
-            return CrossSystem.OS_WINDOWS_SERVER_2008;
-        } else if (OS.contains("nt")) {
-            return CrossSystem.OS_WINDOWS_NT;
-        } else if (OS.contains("windows")) {
-            return CrossSystem.OS_WINDOWS_OTHER;
-        } else if (OS.contains("mac")) {
-            return CrossSystem.OS_MAC_OTHER;
-        } else {
-            return CrossSystem.OS_LINUX_OTHER;
-        }
-
-    }
-
-    /**
      * internal function to open an URL in a browser
      * 
      * @param _url
@@ -163,7 +133,10 @@ public class CrossSystem {
      * @return
      */
     public static String alleviatePathParts(String pathPart) {
-        if (StringUtils.isEmpty(pathPart)) { return null; }
+        if (StringUtils.isEmpty(pathPart)) {
+            if (pathPart != null) { return pathPart; }
+            return null;
+        }
         /* remove invalid chars */
         pathPart = pathPart.replaceAll("([\\\\|<|>|\\||\"|:|\\*|\\?|/|\\x00])+", "_");
         /*
@@ -254,6 +227,36 @@ public class CrossSystem {
         return CrossSystem.MIME;
     }
 
+    /**
+     * @param osString
+     * @return
+     */
+    public static byte getOSID(final String osString) {
+        final String OS = osString.toLowerCase();
+        if (OS.contains("windows 7")) {
+            return CrossSystem.OS_WINDOWS_7;
+        } else if (OS.contains("windows xp")) {
+            return CrossSystem.OS_WINDOWS_XP;
+        } else if (OS.contains("windows vista")) {
+            return CrossSystem.OS_WINDOWS_VISTA;
+        } else if (OS.contains("windows 2000")) {
+            return CrossSystem.OS_WINDOWS_2000;
+        } else if (OS.contains("windows 2003")) {
+            return CrossSystem.OS_WINDOWS_2003;
+        } else if (OS.contains("windows server 2008")) {
+            return CrossSystem.OS_WINDOWS_SERVER_2008;
+        } else if (OS.contains("nt")) {
+            return CrossSystem.OS_WINDOWS_NT;
+        } else if (OS.contains("windows")) {
+            return CrossSystem.OS_WINDOWS_OTHER;
+        } else if (OS.contains("mac")) {
+            return CrossSystem.OS_MAC_OTHER;
+        } else {
+            return CrossSystem.OS_LINUX_OTHER;
+        }
+
+    }
+
     public static String getOSString() {
         return CrossSystem.OS_STRING;
     }
@@ -279,10 +282,10 @@ public class CrossSystem {
      * @return
      */
     public static boolean isLinux() {
-        return isLinux(CrossSystem.OS_ID);
+        return CrossSystem.isLinux(CrossSystem.OS_ID);
     }
 
-    public static boolean isLinux(byte osID) {
+    public static boolean isLinux(final byte osID) {
         return osID == CrossSystem.OS_LINUX_OTHER;
     }
 
@@ -292,10 +295,10 @@ public class CrossSystem {
      * @return
      */
     public static boolean isMac() {
-        return isMac(CrossSystem.OS_ID);
+        return CrossSystem.isMac(CrossSystem.OS_ID);
     }
 
-    public static boolean isMac(byte osID) {
+    public static boolean isMac(final byte osID) {
         return osID == CrossSystem.OS_MAC_OTHER;
     }
 
@@ -323,14 +326,14 @@ public class CrossSystem {
      * @return
      */
     public static boolean isWindows() {
-        return isWindows(OS_ID);
+        return CrossSystem.isWindows(CrossSystem.OS_ID);
     }
 
     /**
      * @param osId
      * @return
      */
-    public static boolean isWindows(byte osId) {
+    public static boolean isWindows(final byte osId) {
         switch (osId) {
         case OS_WINDOWS_XP:
         case OS_WINDOWS_VISTA:
