@@ -328,7 +328,7 @@ public class HTMLParser {
         final ArrayList<String> ret = new ArrayList<String>();
         data = data.replaceAll("(?s)<!-- .*? -->", "").replaceAll("(?s)<script .*?>.*?</script>", "").replaceAll("(?s)<.*?>", "").replaceAll("Spoiler:", "").replaceAll("(no.{0,2}|kein.{0,8}|ohne.{0,8}|nicht.{0,8})(pw|passwort|password|pass)", "").replaceAll("(pw|passwort|password|pass).{0,12}(nicht|falsch|wrong)", "");
 
-        Pattern pattern = Pattern.compile("(Ð¿Ð°Ñ€Ð¾Ð»ÑŒ|Ð¿Ð°Ñ�Ñ�|pa?s?w|passwort|password|passw?)[\\s][\\s]*?[\"']([[^\\:\"'\\s]][^\"'\\s]*)[\"']?", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("(пароль|пасс|pa?s?w|passwort|password|passw?)[\\s][\\s]*?[\"']([[^\\:\"'\\s]][^\"'\\s]*)[\"']?", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(data);
         while (matcher.find()) {
             final String pass = matcher.group(2);
@@ -336,7 +336,7 @@ public class HTMLParser {
                 ret.add(pass);
             }
         }
-        pattern = Pattern.compile("(Ð¿Ð°Ñ€Ð¾Ð»ÑŒ|Ð¿Ð°Ñ�Ñ�|pa?s?w|passwort|password|passw?)[\\s][\\s]*?([[^\\:\"'\\s]][^\"'\\s]*)[\\s]?", Pattern.CASE_INSENSITIVE);
+        pattern = Pattern.compile("(пароль|пасс|pa?s?w|passwort|password|passw?)[\\s][\\s]*?([[^\\:\"'\\s]][^\"'\\s]*)[\\s]?", Pattern.CASE_INSENSITIVE);
         matcher = pattern.matcher(data);
         while (matcher.find()) {
             final String pass = matcher.group(2);
@@ -344,7 +344,7 @@ public class HTMLParser {
                 ret.add(pass);
             }
         }
-        pattern = Pattern.compile("(Ð¿Ð°Ñ€Ð¾Ð»ÑŒ|Ð¿Ð°Ñ�Ñ�|pa?s?w|passwort|password|passw?)[\\s]?(\\:|=)[\\s]*?[\"']([^\"']+)[\"']?", Pattern.CASE_INSENSITIVE);
+        pattern = Pattern.compile("(пароль|пасс|pa?s?w|passwort|password|passw?)[\\s]?(\\:|=)[\\s]*?[\"']([^\"']+)[\"']?", Pattern.CASE_INSENSITIVE);
         matcher = pattern.matcher(data);
         while (matcher.find()) {
             final String pass = matcher.group(2);
@@ -352,7 +352,7 @@ public class HTMLParser {
                 ret.add(pass);
             }
         }
-        pattern = Pattern.compile("(Ð¿Ð°Ñ€Ð¾Ð»ÑŒ|Ð¿Ð°Ñ�Ñ�|pa?s?w|passwort|password|passw?)[\\s]?(\\:|=[\\s]*?)([^\"'\\s]+)[\\s]?", Pattern.CASE_INSENSITIVE);
+        pattern = Pattern.compile("(пароль|пасс|pa?s?w|passwort|password|passw?)[\\s]?(\\:|=[\\s]*?)([^\"'\\s]+)[\\s]?", Pattern.CASE_INSENSITIVE);
         matcher = pattern.matcher(data);
         while (matcher.find()) {
             final String pass = matcher.group(3);
@@ -360,7 +360,6 @@ public class HTMLParser {
                 ret.add(pass);
             }
         }
-
         return ret;
     }
 
