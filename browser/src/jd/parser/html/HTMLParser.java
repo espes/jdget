@@ -147,7 +147,7 @@ public class HTMLParser {
         if (baseUrl != null && url != null && (url.startsWith("./") || pro == null)) {
             /* combine baseURL and href url */
             if (pro == null) {
-                if (url.startsWith("/") || url.startsWith("./")) {
+                if (url.startsWith("/")) {
                     /* absolut from root url */
                     final String base = new Regex(baseUrl, "(.*?\\..*?/)").getMatch(0);
                     if (base != null) {
@@ -155,7 +155,7 @@ public class HTMLParser {
                     } else {
                         url = Browser.correctURL(baseUrl + "/" + url);
                     }
-                } else {
+                } else if (url.startsWith("./")) {
                     /* relativ url */
                     url = Browser.correctURL(baseUrl + "/" + url);
                 }
@@ -205,8 +205,7 @@ public class HTMLParser {
                 final Matcher mlinks = HTMLParser.protocols.matcher(link);
                 int start = -1;
                 /*
-                 * special handling if we have multiple links without newline
-                 * seperation
+                 * special handling if we have multiple links without newline seperation
                  */
                 while (mlinks.find()) {
                     if (start == -1) {
@@ -248,8 +247,7 @@ public class HTMLParser {
                     final int tagOpen = data.indexOf('<');
                     if (tagOpen > 0 && tagOpen < tagClose) {
                         /*
-                         * there might be some data left before the tag, do not
-                         * remove that data
+                         * there might be some data left before the tag, do not remove that data
                          */
                         String dataLeft = data.substring(0, tagOpen);
                         StringBuilder sb = new StringBuilder();
@@ -300,8 +298,7 @@ public class HTMLParser {
     }
 
     /**
-     * converts a String array into a string which is parsable by
-     * getHttpLinksIntern
+     * converts a String array into a string which is parsable by getHttpLinksIntern
      */
     private static String ArrayToString(final String[] links) {
         if (links == null || links.length == 0) { return ""; }
@@ -368,33 +365,28 @@ public class HTMLParser {
     }
 
     /**
-     * Diese Methode sucht die vordefinierten input type="hidden" und formatiert
-     * sie zu einem poststring z.b. wÃ¼rde bei:
+     * Diese Methode sucht die vordefinierten input type="hidden" und formatiert sie zu einem poststring z.b. wÃ¼rde bei:
      * 
-     * <input type="hidden" name="f" value="f50b0f" /> <input type="hidden"
-     * name="h" value="390b4be0182b85b0" /> <input type="hidden" name="b"
-     * value="9" />
+     * <input type="hidden" name="f" value="f50b0f" /> <input type="hidden" name="h" value="390b4be0182b85b0" /> <input type="hidden"
+     * name="b" value="9" />
      * 
      * f=f50b0f&h=390b4be0182b85b0&b=9 ausgegeben werden
      * 
      * @param data
      *            Der zu durchsuchende Text
      * 
-     * @return ein String, der als POST Parameter genutzt werden kann und alle
-     *         Parameter des Formulars enthÃ¤lt
+     * @return ein String, der als POST Parameter genutzt werden kann und alle Parameter des Formulars enthÃ¤lt
      */
     public static String getFormInputHidden(final String data) {
         return HTMLParser.joinMap(HTMLParser.getInputHiddenFields(data), "=", "&");
     }
 
     /**
-     * Diese Methode sucht die vordefinierten input type="hidden" zwischen
-     * startpattern und lastpattern und formatiert sie zu einem poststring z.b.
-     * wÃ¼rde bei:
+     * Diese Methode sucht die vordefinierten input type="hidden" zwischen startpattern und lastpattern und formatiert sie zu einem
+     * poststring z.b. wÃ¼rde bei:
      * 
-     * <input type="hidden" name="f" value="f50b0f" /> <input type="hidden"
-     * name="h" value="390b4be0182b85b0" /> <input type="hidden" name="b"
-     * value="9" />
+     * <input type="hidden" name="f" value="f50b0f" /> <input type="hidden" name="h" value="390b4be0182b85b0" /> <input type="hidden"
+     * name="b" value="9" />
      * 
      * f=f50b0f&h=390b4be0182b85b0&b=9 rauskommen
      * 
@@ -404,8 +396,7 @@ public class HTMLParser {
      *            der Pattern, bei dem die Suche beginnt
      * @param lastPattern
      *            der Pattern, bei dem die Suche endet
-     * @return ein String, der als POST Parameter genutzt werden kann und alle
-     *         Parameter des Formulars enthÃ¤lt
+     * @return ein String, der als POST Parameter genutzt werden kann und alle Parameter des Formulars enthÃ¤lt
      */
     public static String getFormInputHidden(final String data, final String startPattern, final String lastPattern) {
         final String pat = new Regex(data, startPattern + "(.*?)" + lastPattern).getMatch(0);
@@ -437,8 +428,7 @@ public class HTMLParser {
         final String[] links = HTMLParser.getHttpLinksIntern(data, url);
         if (links == null || links.length == 0) { return links; }
         /*
-         * in case we have valid and invalid (...) urls for the same link, we
-         * only use the valid one
+         * in case we have valid and invalid (...) urls for the same link, we only use the valid one
          */
 
         final HashSet<String> tmplinks = new HashSet<String>(links.length);
@@ -461,15 +451,13 @@ public class HTMLParser {
     }
 
     /*
-     * parses data for available links and returns a stringarray which does not
-     * contain any duplicates
+     * parses data for available links and returns a stringarray which does not contain any duplicates
      */
     public static String[] getHttpLinksIntern(String data, final String url) {
         data = data.trim();
         if (data.length() == 0) { return new String[] {}; }
         /*
-         * replace urlencoded br tags, so we can find all links seperated by
-         * those
+         * replace urlencoded br tags, so we can find all links seperated by those
          */
         /* find a better solution for this html codings */
         data = data.replaceAll("&lt;", ">");
@@ -485,8 +473,7 @@ public class HTMLParser {
         /* remove HTML Tags */
         data = data.replaceAll("</?(i|b|u|s)>", "");
         /*
-         * remove all span because they can break url parsing (eg when
-         * google-code-prettify is used)
+         * remove all span because they can break url parsing (eg when google-code-prettify is used)
          */
         // not needed here because our filter below will take care of them
         // data = data.replaceAll("(?i)<span.*?>", "");
@@ -550,15 +537,13 @@ public class HTMLParser {
     }
 
     /**
-     * Ermittelt alle hidden input felder in einem HTML Text und gibt die hidden
-     * variables als hashmap zurÃ¼ck es wird dabei nur der text zwischen start
-     * dun endpattern ausgewertet
+     * Ermittelt alle hidden input felder in einem HTML Text und gibt die hidden variables als hashmap zurÃ¼ck es wird dabei nur der text
+     * zwischen start dun endpattern ausgewertet
      * 
      * @param data
      * @param startPattern
      * @param lastPattern
-     * @return hashmap mit hidden input variablen zwischen startPattern und
-     *         endPattern
+     * @return hashmap mit hidden input variablen zwischen startPattern und endPattern
      */
     public static HashMap<String, String> getInputHiddenFields(final String data, final String startPattern, final String lastPattern) {
         return HTMLParser.getInputHiddenFields(new Regex(data, startPattern + "(.*?)" + lastPattern).getMatch(0));
@@ -592,8 +577,7 @@ public class HTMLParser {
     }
 
     /**
-     * @author olimex FÃ¼gt Map als String mit Trennzeichen zusammen TODO:
-     *         auslagern
+     * @author olimex FÃ¼gt Map als String mit Trennzeichen zusammen TODO: auslagern
      * @param map
      *            Map
      * @param delPair
