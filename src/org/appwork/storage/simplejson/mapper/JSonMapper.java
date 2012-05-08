@@ -255,7 +255,10 @@ public class JSonMapper {
               
                 }
             if (json instanceof JSonValue) {
-                if(!Clazz.isPrimitive(type)&&!Clazz.isString(type))throw new MapperException(json+" cannot be mapped to "+type);
+                if(!Clazz.isPrimitive(type)&&!Clazz.isString(type)&&type!=Object.class){
+                    //
+                    throw new MapperException(json+" cannot be mapped to "+type); 
+                }
                 switch (((JSonValue) json).getType()) {
                 case BOOLEAN:
                 case DOUBLE:
