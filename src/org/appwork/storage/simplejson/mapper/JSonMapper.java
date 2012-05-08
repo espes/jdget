@@ -28,6 +28,7 @@ import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.JSonObject;
 import org.appwork.storage.simplejson.JSonValue;
 import org.appwork.utils.reflection.Clazz;
+import org.codehaus.jackson.annotate.JsonValue;
 
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
@@ -255,7 +256,7 @@ public class JSonMapper {
               
                 }
             if (json instanceof JSonValue) {
-                if(!Clazz.isPrimitive(type)&&!Clazz.isString(type)&&type!=Object.class){
+                if(!Clazz.isPrimitive(type)&&!Clazz.isString(type)&&type!=Object.class&&((JSonValue)json).getValue()!=null){
                     //
                     throw new MapperException(json+" cannot be mapped to "+type); 
                 }
