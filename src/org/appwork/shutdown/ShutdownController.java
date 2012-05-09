@@ -393,34 +393,38 @@ public class ShutdownController extends Thread {
          */
 
         try {
-            synchronized (this.hooks) {
-                int i = 0;
-                for (final ShutdownEvent e : this.hooks) {
+            ArrayList<ShutdownEvent> list;
+            synchronized (hooks) {
+                list = new ArrayList<ShutdownEvent>(hooks);
+            }
+
+            int i = 0;
+            for (final ShutdownEvent e : list) {
+                try {
+                    i++;
+                    final long started = System.currentTimeMillis();
+
+                    Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: start item->" + e);
+                    final Thread thread = new Thread(e);
+                    thread.setName("ShutdownHook [" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]");
+                    thread.start();
                     try {
-                        i++;
-                        final long started = System.currentTimeMillis();
-
-                        Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: start item->" + e);
-                        final Thread thread = new Thread(e);
-                        thread.setName("ShutdownHook [" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]");
-                        thread.start();
-                        try {
-                            thread.join(e.getMaxDuration());
-                        } catch (final Throwable e1) {
-                            e1.printStackTrace();
-
-                        }
-                        if (thread.isAlive()) {
-                            Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->is still running after " + e.getMaxDuration() + " ms");
-                            Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->StackTrace:\r\n" + this.getStackTrace(thread));
-                        } else {
-                            Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: item ended after->" + (System.currentTimeMillis() - started));
-                        }
+                        thread.join(e.getMaxDuration());
                     } catch (final Throwable e1) {
                         e1.printStackTrace();
+
                     }
+                    if (thread.isAlive()) {
+                        Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->is still running after " + e.getMaxDuration() + " ms");
+                        Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->StackTrace:\r\n" + this.getStackTrace(thread));
+                    } else {
+                        Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: item ended after->" + (System.currentTimeMillis() - started));
+                    }
+                } catch (final Throwable e1) {
+                    e1.printStackTrace();
                 }
             }
+
         } catch (final Throwable e1) {
             // do not use Log here. If Log.exception(e1); throws an exception,
             // we have to catch it here without the risk of another exception.
