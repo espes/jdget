@@ -12,6 +12,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         if (usedPort != -1 && defaultPort != -1 && usedPort != defaultPort) {
             port = ":" + usedPort;
         }
+
         this.requestProperties.put("Host", this.httpURL.getHost() + port);
     }
 
@@ -208,6 +210,12 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 key = null;
                 value = line;
             }
+            if (key != null) {
+                key = key.trim();
+            }
+            if (value != null) {
+                value = value.trim();
+            }
             List<String> list = this.headers.get(key);
             if (list == null) {
                 list = new ArrayList<String>();
@@ -265,7 +273,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     public long getContentLength() {
         final String length = this.getHeaderField("Content-Length");
-        if (length != null) { return Long.parseLong(length); }
+        if (length != null) { return Long.parseLong(length.trim()); }
         return -1;
     }
 
@@ -385,14 +393,15 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
         sb.append(this.httpMethod.toString()).append(' ').append(this.httpPath).append(" HTTP/1.1\r\n");
 
-        for (final String key : this.getRequestProperties().keySet()) {
-            final String v = this.getRequestProperties().get(key);
-            if (v == null) {
+        final Iterator<Entry<String, String>> it = this.getRequestProperties().entrySet().iterator();
+        while (it.hasNext()) {
+            final Entry<String, String> next = it.next();
+            if (next.getValue() == null) {
                 continue;
             }
-            sb.append(key);
+            sb.append(next.getKey());
             sb.append(": ");
-            sb.append(v);
+            sb.append(next.getValue());
             sb.append("\r\n");
         }
         return sb.toString();
@@ -484,6 +493,16 @@ public class HTTPConnectionImpl implements HTTPConnection {
         return false;
     }
 
+    protected LinkedHashMap<String, String> putHostToTop(final LinkedHashMap<String, String> oldRequestProperties) {
+        final LinkedHashMap<String, String> newRet = new LinkedHashMap<String, String>();
+        final String host = oldRequestProperties.remove("Host");
+        if (host != null) {
+            newRet.put("Host", host);
+        }
+        newRet.putAll(oldRequestProperties);
+        return newRet;
+    }
+
     protected void sendRequest() throws UnsupportedEncodingException, IOException {
         /* now send Request */
         final StringBuilder sb = new StringBuilder();
@@ -497,18 +516,21 @@ public class HTTPConnectionImpl implements HTTPConnection {
             }
         }
         if (hostSet == false) {
-            /* host entry does not exist, lets add it as first entry */
+            /* host entry does not exist,lets add it */
             this.addHostHeader();
         }
-        for (final String key : this.requestProperties.keySet()) {
-            if (this.requestProperties.get(key) == null) {
+        this.requestProperties = this.putHostToTop(this.requestProperties);
+        final Iterator<Entry<String, String>> it = this.requestProperties.entrySet().iterator();
+        while (it.hasNext()) {
+            final Entry<String, String> next = it.next();
+            if (next.getValue() == null) {
                 continue;
             }
-            if ("Content-Length".equalsIgnoreCase(key)) {
+            if ("Content-Length".equalsIgnoreCase(next.getKey())) {
                 /* content length to check if we send out all data */
-                this.postTodoLength = Long.parseLong(this.requestProperties.get(key));
+                this.postTodoLength = Long.parseLong(next.getValue().trim());
             }
-            sb.append(key).append(": ").append(this.requestProperties.get(key)).append("\r\n");
+            sb.append(next.getKey()).append(": ").append(next.getValue()).append("\r\n");
         }
         sb.append("\r\n");
         this.httpSocket.getOutputStream().write(sb.toString().getBytes("ISO-8859-1"));
