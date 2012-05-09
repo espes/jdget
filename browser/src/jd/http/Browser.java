@@ -135,8 +135,7 @@ public class Browser {
     }
 
     /**
-     * Returns the host for url. input: http://srv2.bluehost.to/dsdsf ->out
-     * bluehost.to
+     * Returns the host for url. input: http://srv2.bluehost.to/dsdsf ->out bluehost.to
      * 
      * @param url
      * @return
@@ -463,9 +462,10 @@ public class Browser {
      * @throws BrowserException
      */
     private void checkContentLengthLimit(final Request request) throws BrowserException {
-        if (request == null || request.getHttpConnection() == null || request.getHttpConnection().getHeaderField("Content-Length") == null) {
+        long length = -1;
+        if (request == null || request.getHttpConnection() == null || (length = request.getHttpConnection().getLongContentLength()) < 0) {
             return;
-        } else if (Long.parseLong(request.getHttpConnection().getHeaderField("Content-Length")) > this.limit) {
+        } else if (length > this.limit) {
             if (this.getLogger() != null) {
                 this.getLogger().severe(request.printHeaders());
             }
@@ -474,8 +474,7 @@ public class Browser {
     }
 
     /**
-     * Clears all cookies for the given url. URL has to be a valid url if
-     * url==null,all cookies were cleared
+     * Clears all cookies for the given url. URL has to be a valid url if url==null,all cookies were cleared
      * 
      * @param url
      */
@@ -635,8 +634,7 @@ public class Browser {
      * @param string
      *            a string including an url
      * @param oldRequest
-     *            the old request for forwarding cookies to the new request. Can
-     *            be null, to ignore old cookies.
+     *            the old request for forwarding cookies to the new request. Can be null, to ignore old cookies.
      * 
      * @return the created GET request
      * 
@@ -845,8 +843,7 @@ public class Browser {
     }
 
     /**
-     * Downloads the contents behind con to file. if(con ==null), the latest
-     * request is downloaded. Usefull for redirects
+     * Downloads the contents behind con to file. if(con ==null), the latest request is downloaded. Usefull for redirects
      * 
      * @param file
      * @param con
@@ -1101,8 +1098,7 @@ public class Browser {
     }
 
     /**
-     * If automatic redirectfollowing is disabled, you can get the redirect url
-     * if there is any.
+     * If automatic redirectfollowing is disabled, you can get the redirect url if there is any.
      * 
      * @return
      */
@@ -1198,9 +1194,8 @@ public class Browser {
     }
 
     /**
-     * Reads the content behind a con and returns them. Note: if con==null, the
-     * current request is read. This is usefull for redirects. Note #2: if a
-     * connection is loaded, data is not stored in the browser instance.
+     * Reads the content behind a con and returns them. Note: if con==null, the current request is read. This is usefull for redirects. Note
+     * #2: if a connection is loaded, data is not stored in the browser instance.
      * 
      * @param con
      * @return
@@ -1371,8 +1366,7 @@ public class Browser {
     }
 
     /**
-     * loads a new page (post) the postdata is given by the poststring. it wiull
-     * be send as it is
+     * loads a new page (post) the postdata is given by the poststring. it wiull be send as it is
      */
     public String postPageRaw(final String url, final String post) throws IOException {
         final PostRequest request = (PostRequest) this.createPostRequest(url, new ArrayList<RequestVariable>(), null);
