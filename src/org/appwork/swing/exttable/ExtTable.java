@@ -1037,7 +1037,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     @SuppressWarnings("unchecked")
     @Override
     protected void processMouseEvent(final MouseEvent e) {
-
+        
         if (e.getID() == MouseEvent.MOUSE_RELEASED) {
             if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
                 final int row = this.rowAtPoint(e.getPoint());
@@ -1069,7 +1069,10 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                     }
 
                 }
-            } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
+            }
+        } else if (e.getID() == MouseEvent.MOUSE_CLICKED) {
+            
+            if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
                 final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());

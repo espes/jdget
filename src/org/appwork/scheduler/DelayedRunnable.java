@@ -104,13 +104,15 @@ public abstract class DelayedRunnable implements Runnable {
         }
     }
 
-    public void stop() {
+    public boolean stop() {
         synchronized (this) {
             if (this.delayer != null) {
                 this.delayer.cancel(false);
                 this.delayer = null;
+                return true;
             }
         }
+        return false;
     }
 
 }
