@@ -8,10 +8,13 @@ import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
+
+import net.miginfocom.swing.MigLayout;
 
 import org.appwork.app.gui.MigPanel;
 import org.appwork.app.gui.copycutpaste.CopyAction;
@@ -96,7 +99,7 @@ public class PathChooser extends MigPanel {
     }
 
     public PathChooser(String id, boolean useQuickLIst) {
-        super("ins 0", "[grow,fill][]", "[grow,fill]");
+        super("ins 0,debug", "[grow,fill][]", "[grow,fill]");
         this.id = id;
 
         txt = new ExtTextField() {
@@ -144,7 +147,7 @@ public class PathChooser extends MigPanel {
 
                 @Override
                 public void onChanged() {
-
+                    PathChooser.this.onChanged(txt);
                 }
 
             };
@@ -175,6 +178,14 @@ public class PathChooser extends MigPanel {
         if (preSelection != null) {
             setFile(new File(preSelection));
         }
+
+    }
+
+    /**
+     * @param txt2
+     */
+    protected void onChanged(ExtTextField txt2) {
+        // TODO Auto-generated method stub
 
     }
 
@@ -380,6 +391,17 @@ public class PathChooser extends MigPanel {
     public void setHelpText(String helpText) {
         txt.setHelpText(helpText);
 
+    }
+
+    /**
+     * removes the button from the component to place it externaly
+     * 
+     * @return
+     */
+    public JButton getButton() {
+        remove(bt);
+        setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
+        return bt;
     }
 
 }
