@@ -232,6 +232,10 @@ public class CrossSystem {
      * @return
      */
     public static byte getOSID(final String osString) {
+        if (osString == null) {
+            /* fallback to latest Windows */
+            return CrossSystem.OS_WINDOWS_7;
+        }
         final String OS = osString.toLowerCase();
         if (OS.contains("windows 7")) {
             return CrossSystem.OS_WINDOWS_7;
