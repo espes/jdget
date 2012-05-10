@@ -60,6 +60,16 @@ import org.appwork.utils.swing.SwingUtils;
  */
 public abstract class SearchComboBox<T> extends JComboBox {
 
+    public boolean autoCompletionEnabled=true;
+
+    public boolean isAutoCompletionEnabled() {
+        return autoCompletionEnabled;
+    }
+
+    public void setAutoCompletionEnabled(boolean autoCompletionEnabled) {
+        this.autoCompletionEnabled = autoCompletionEnabled;
+    }
+
     class Editor implements ComboBoxEditor, FocusListener, DocumentListener {
         private final JTextField       tf;
         private final MigPanel         panel;
@@ -70,36 +80,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         private volatile AtomicInteger valueSetter = new AtomicInteger(0);
 
         public Editor() {
-            this.tf = new JTextField() {
-
-                /**
-                 * 
-                 */
-                private static final long serialVersionUID = 8594276945732071594L;
-
-                @Override
-                public void setText(final String t) {
-                    super.setText(t);
-                }
-                //
-                // super.setText(t);
-                // if (SearchComboBox.this.helptext != null) {
-                // if (SearchComboBox.this.helptext.equals(t)) {
-                // SearchComboBox.this.setColorState(SearchComboBox.this.helpColorSet);
-                //
-                // } else {
-                // // if (!Editor.this.autoComplete(false)) {
-                // // this.setForeground(SearchComboBox.this.foregroundBad);
-                // // } else {
-                // // this.setForeground(Editor.this.defaultForeground);
-                // // }
-                //
-                // this.setForeground(SearchComboBox.this.getForeground());
-                // }
-                // }
-                // }
-
-            };
+            this.tf = createTextField();
             this.tf.getDocument().addDocumentListener(this);
             this.tf.addFocusListener(new FocusListener() {
 
@@ -159,6 +140,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         }
 
         private void auto() {
+            if (!isAutoCompletionEnabled()) return;
             if (this.valueSetter.get() > 0) { return; }
             // scheduler executes at least 50 ms after this submit.
             // this.sheduler.run();
@@ -178,6 +160,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
          * object
          */
         protected boolean autoComplete(final boolean showPopup) {
+            if (!isAutoCompletionEnabled()) return false;
             final String txt = Editor.this.tf.getText();
             if (StringUtils.isEmpty(txt)) {
                 /* every string will begin with "" so we return here */
@@ -491,6 +474,43 @@ public abstract class SearchComboBox<T> extends JComboBox {
             }
         };
 
+    }
+
+    /**
+     * @return
+     */
+    public JTextField createTextField() {
+
+        return new JTextField() {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 8594276945732071594L;
+
+            @Override
+            public void setText(final String t) {
+                super.setText(t);
+            }
+            //
+            // super.setText(t);
+            // if (SearchComboBox.this.helptext != null) {
+            // if (SearchComboBox.this.helptext.equals(t)) {
+            // SearchComboBox.this.setColorState(SearchComboBox.this.helpColorSet);
+            //
+            // } else {
+            // // if (!Editor.this.autoComplete(false)) {
+            // // this.setForeground(SearchComboBox.this.foregroundBad);
+            // // } else {
+            // // this.setForeground(Editor.this.defaultForeground);
+            // // }
+            //
+            // this.setForeground(SearchComboBox.this.getForeground());
+            // }
+            // }
+            // }
+
+        };
     }
 
     private final ColorState helpColorSet           = new ColorState(Color.LIGHT_GRAY);

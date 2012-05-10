@@ -105,4 +105,31 @@ public class SwingUtils {
         label.setFont(f.deriveFont(f.getStyle() ^ Font.BOLD));
         return label;
     }
+
+    /**
+     * @param fc
+     */
+    public static void printComponentTree(JComponent fc) {
+        printComponentTree(fc, "");
+
+    }
+
+    /**
+     * @param fc
+     * @param string
+     */
+    private static void printComponentTree(JComponent fc, String string) {
+
+        // c.setVisible(false);
+        for (int i = 0; i < fc.getComponentCount(); i++) {
+            Component cc = fc.getComponent(i);
+            System.out.println( string + "[" + i + "]"+cc.getClass().getSuperclass().getSimpleName()+":" + cc);
+            
+         
+            if (cc instanceof JComponent) {
+                printComponentTree((JComponent) cc, string + "[" + i + "]");
+            }
+
+        }
+    }
 }
