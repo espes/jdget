@@ -208,6 +208,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void focusGained(final FocusEvent e) {
+        
         this.editorField.selectAll();
     }
 

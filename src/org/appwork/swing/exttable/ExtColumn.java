@@ -37,19 +37,19 @@ import org.appwork.utils.swing.EDTRunner;
  */
 public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCellEditor, TableCellRenderer {
 
-    protected static Color           background         = null;
-    protected static Color           backgroundselected = null;
+    protected static Color           background             = null;
+    protected static Color           backgroundselected     = null;
 
-    protected static Color           foreground         = null;
-    protected static Color           foregroundselected = null;
+    protected static Color           foreground             = null;
+    protected static Color           foregroundselected     = null;
 
-    private static final long        serialVersionUID   = -2662459732650363059L;
-    protected static final Border    DEFAULT_BORDER     = BorderFactory.createEmptyBorder(0, 5, 0, 5);
+    private static final long        serialVersionUID       = -2662459732650363059L;
+    protected static final Border    DEFAULT_BORDER         = BorderFactory.createEmptyBorder(0, 5, 0, 5);
     /**
      * If this colum is editable, this parameter says how many clicks are
      * required to start edit mode
      */
-    private int                      clickcount         = 2;
+    private int                      clickcount             = 2;
 
     /**
      * The model this column belongs to
@@ -63,8 +63,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     /**
      * Sorting algorithms run in an own thread
      */
-    private static Thread            sortThread         = null;
-    private static Object            sortLOCK           = new Object();
+    private static Thread            sortThread             = null;
+    private static Object            sortLOCK               = new Object();
 
     protected ExtDefaultRowSorter<E> rowSorter;
     private String                   id;
@@ -72,9 +72,10 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     private String                   sortOrderIdentifier;
     private final ToolTip            tooltip;
+    private boolean                  editableProgrammaticly = false;
 
-    public static final String       SORT_DESC          = "DESC";
-    public static final String       SORT_ASC           = "ASC";
+    public static final String       SORT_DESC              = "DESC";
+    public static final String       SORT_ASC               = "ASC";
 
     /**
      * Create a new ExtColum.
@@ -435,6 +436,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     @Override
     public boolean isCellEditable(final EventObject evt) {
+        if (editableProgrammaticly) return true;
         if (evt instanceof MouseEvent) { return ((MouseEvent) evt).getClickCount() >= this.getClickcount() && this.getClickcount() > 0; }
         return true;
     }
@@ -558,6 +560,35 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @param obj
      */
     protected boolean onDoubleClick(final MouseEvent e, final E obj) {
+        return false;
+    }
+
+    public void startEditing(final E obj) {
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                editableProgrammaticly = true;
+                try {
+                    getModel().getTable().editCellAt(getModel().getTable().getExtTableModel().getRowforObject(obj), getIndex());
+           
+                } finally {
+                    editableProgrammaticly = false;
+                }
+            }
+        };
+
+    }
+
+    /**
+     * This method will be called if the user does a windows typic rename click
+     * order. Means: click on a already selected single row
+     * 
+     * @param e
+     * @param obj
+     * @return
+     */
+    protected boolean onRenameClick(final MouseEvent e, final E obj) {
         return false;
     }
 

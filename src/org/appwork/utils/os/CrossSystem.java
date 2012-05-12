@@ -379,13 +379,16 @@ public class CrossSystem {
      * 
      * @see java.awt.Desktop#open(File)
      * @param file
+     * @throws IOException 
      */
-    public static void openFile(final File file) {
-        try {
-            CrossSystem._openFILE(file);
-        } catch (final Throwable e) {
-            Log.exception(Level.WARNING, e);
-        }
+    public static void openFile(final File file){
+   
+            try {
+                CrossSystem._openFILE(file);
+            } catch (IOException e) {
+               Log.exception(e);
+            }
+       
     }
 
     /**
