@@ -154,7 +154,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             public void delayedrun() {
                 if (clickDelayerRunable != null) {
                     clickDelayerRunable.run();
-                    clickDelayerRunable=null;
+                    clickDelayerRunable = null;
                 }
             }
         };
@@ -1187,12 +1187,14 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     private void setDispatchComponent(MouseEvent e) {
         Component editorComponent = getEditorComponent();
-        Point p = e.getPoint();
-        Point p2 = SwingUtilities.convertPoint(this, p, editorComponent);
-        Component dispatchComponent = SwingUtilities.getDeepestComponentAt(editorComponent, p2.x, p2.y);
-        SwingUtilities2.setSkipClickCount(dispatchComponent, e.getClickCount() - 1);
-        MouseEvent e2 = SwingUtilities.convertMouseEvent(this, e, dispatchComponent);
-        dispatchComponent.dispatchEvent(e2);
+        if (editorComponent != null) {
+            Point p = e.getPoint();
+            Point p2 = SwingUtilities.convertPoint(this, p, editorComponent);
+            Component dispatchComponent = SwingUtilities.getDeepestComponentAt(editorComponent, p2.x, p2.y);
+            SwingUtilities2.setSkipClickCount(dispatchComponent, e.getClickCount() - 1);
+            MouseEvent e2 = SwingUtilities.convertMouseEvent(this, e, dispatchComponent);
+            dispatchComponent.dispatchEvent(e2);
+        }
     }
 
     /**
