@@ -121,11 +121,11 @@ public class Browser {
     public static String getHost(final String url, final boolean includeSubDomains) {
         if (url == null) { return null; }
         /* direct ip */
-        String ret = new Regex(url, "(.*?://)?(\\d+\\.\\d+\\.\\d+\\.\\d+)(/|$|:)").getMatch(1);
+        String ret = new Regex(url, "(^[a-z0-9]+://|^)(\\d+\\.\\d+\\.\\d+\\.\\d+)(/|$|:)").getMatch(1);
         if (ret != null) { return ret; }
         /* normal url */
         if (includeSubDomains) {
-            ret = new Regex(url, ".*?://(.*?@)?(.*?)(/|$|:)").getMatch(1);
+            ret = new Regex(url, "^[a-z0-9]+://(.*?@)?(.*?)(/|$|:)").getMatch(1);
         }
         if (ret == null) {
             ret = new Regex(url, ".*?([^.:/]+\\.[^.:/]+)(/|$|:)").getMatch(0);
