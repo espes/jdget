@@ -21,7 +21,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.CookieHandler;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -33,10 +32,6 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
 
 import jd.http.requests.FormData;
 import jd.http.requests.GetRequest;
@@ -144,19 +139,6 @@ public class Browser {
 
     public static String getHost(final URL url) {
         return Browser.getHost(url.getHost());
-    }
-
-    public static void init() {
-        CookieHandler.setDefault(null);
-        XTrustProvider.install();
-        // Now you are telling the JRE to ignore the hostname
-        final HostnameVerifier hv = new HostnameVerifier() {
-            public boolean verify(final String arg0, final SSLSession arg1) {
-                return true;
-            }
-        };
-        HttpsURLConnection.setDefaultHostnameVerifier(hv);
-
     }
 
     /**
