@@ -12,6 +12,7 @@ package org.appwork.storage.config;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 import org.appwork.scheduler.DelayedRunnable;
 
@@ -20,13 +21,21 @@ import org.appwork.scheduler.DelayedRunnable;
  * 
  */
 public class MinTimeWeakReference<T> extends WeakReference<T> {
+    static class DaemonThreadFactory implements ThreadFactory {
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r, "org.appwork.storage.config.MinTimeWeakReference.EXECUTER");
+            thread.setDaemon(true);
+            return thread;
+        }
+    }
 
-    private static final ScheduledExecutorService EXECUTER = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService EXECUTER = Executors.newSingleThreadScheduledExecutor(new DaemonThreadFactory());
 
     // private static final ReferenceQueue<? super Object> QUEUE = new
     // ReferenceQueue<Object>();
 
     static {
+
         // new Thread() {
         // @Override
         // public void run() {
