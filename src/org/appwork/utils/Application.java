@@ -203,11 +203,9 @@ public class Application {
      */
     public static URL getRessourceURL(final String relative, final boolean preferClasspath) {
         try {
-            
+
             if (relative == null) { return null; }
-            if(relative.startsWith("/")||relative.startsWith("\\")){
-                throw new WTFException("getRessourceURL only works with relative pathes.");
-            }
+            if (relative.startsWith("/") || relative.startsWith("\\")) { throw new WTFException("getRessourceURL only works with relative pathes."); }
             if (preferClasspath) {
 
                 final URL res = Application.class.getClassLoader().getResource(relative);
@@ -251,13 +249,15 @@ public class Application {
                     appRoot = appRoot.getParentFile();
                 }
                 Application.ROOT = appRoot.getAbsolutePath();
+                System.out.println("Application Root: " + ROOT + " (jared) " + rootOfClazz);
             } catch (final URISyntaxException e) {
                 Log.exception(e);
                 Application.ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + Application.APP_FOLDER + System.getProperty("file.separator");
-
+                System.out.println("Application Root: " + ROOT + " (jared but error) " + rootOfClazz);
             }
         } else {
             Application.ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + Application.APP_FOLDER + System.getProperty("file.separator");
+            System.out.println("Application Root: " + ROOT + " (DEV) " + rootOfClazz);
         }
         // do not use Log.L here. this might be null
         return Application.ROOT;
@@ -314,14 +314,16 @@ public class Application {
      * @return
      */
     public static boolean isJared(final Class<?> rootOfClazz) {
+     
         final String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";
-        final ClassLoader cll = Thread.currentThread().getContextClassLoader();
+        final ClassLoader cll = Application.class.getClassLoader();     
         if (cll == null) {
             Log.L.severe("getContextClassLoader() is null");
             return true;
         }
         // System.out.println(name);
         final URL caller = cll.getResource(name);
+   
         // System.out.println(caller);
         /*
          * caller is null in case the ressource is not found or not enough
