@@ -150,8 +150,17 @@ public class Clazz {
      * @return
      */
     public static boolean isString(Type type) {
-  
-        return type==String.class;
+
+        return type == String.class;
+    }
+
+    /**
+     * @param type
+     * @return
+     */
+    public static boolean isEnum(Type type) {
+
+        return type instanceof Class && ((Class<?>) type).isEnum();
     }
 
 }

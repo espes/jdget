@@ -28,7 +28,6 @@ import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.JSonObject;
 import org.appwork.storage.simplejson.JSonValue;
 import org.appwork.utils.reflection.Clazz;
-import org.codehaus.jackson.annotate.JsonValue;
 
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
@@ -251,14 +250,14 @@ public class JSonMapper {
 
             TypeMapper<?> tm = typeMapper.get(clazz);
             if (tm != null) {
-              
-                return tm.reverseMap(json); 
-              
-                }
+
+            return tm.reverseMap(json);
+
+            }
             if (json instanceof JSonValue) {
-                if(!Clazz.isPrimitive(type)&&!Clazz.isString(type)&&type!=Object.class&&((JSonValue)json).getValue()!=null){
+                if (!Clazz.isPrimitive(type) && !Clazz.isString(type) && type != Object.class && ((JSonValue) json).getValue() != null && !Clazz.isEnum(type)) {
                     //
-                    throw new MapperException(json+" cannot be mapped to "+type); 
+                    throw new MapperException(json + " cannot be mapped to " + type);
                 }
                 switch (((JSonValue) json).getType()) {
                 case BOOLEAN:
@@ -426,7 +425,7 @@ public class JSonMapper {
      * @param <T>
      * @param json
      * @param typeRef
-     * @throws MapperException 
+     * @throws MapperException
      */
     @SuppressWarnings("unchecked")
     public <T> T jsonToObject(final JSonNode json, final TypeRef<T> type) throws MapperException {
