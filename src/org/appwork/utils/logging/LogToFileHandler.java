@@ -27,56 +27,73 @@ import org.appwork.utils.Application;
  */
 public class LogToFileHandler extends java.util.logging.Handler {
 
-    private File               file;
+    private final File         file;
     private BufferedWriter     writer;
     private OutputStreamWriter osw = null;
     private FileOutputStream   fos = null;
 
     public LogToFileHandler() throws IOException {
         super();
-        Calendar cal = Calendar.getInstance();
+        final Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(new Date().getTime());
-
-        file = Application.getResource("logs/" + cal.get(Calendar.YEAR) + "-" + (1 + cal.get(Calendar.MONTH)) + "-" + cal.get(Calendar.DATE) + ".log");
-        file.getParentFile().mkdirs();
-        file.deleteOnExit();
-        if (!file.isFile()) file.createNewFile();
+        this.file = Application.getResource("logs/" + cal.get(Calendar.YEAR) + "-" + (1 + cal.get(Calendar.MONTH)) + "-" + cal.get(Calendar.DATE) + ".log");
+        this.file.getParentFile().mkdirs();
+        this.file.deleteOnExit();
+        if (!this.file.isFile()) {
+            this.file.createNewFile();
+        }
         try {
-            writer = new BufferedWriter(osw = new OutputStreamWriter(fos = new FileOutputStream(file, true), "UTF8"));
-        } catch (Throwable e) {
+            this.writer = new BufferedWriter(this.osw = new OutputStreamWriter(this.fos = new FileOutputStream(this.file, true), "UTF8"));
+        } catch (final IOException e) {
             e.printStackTrace();
-            close();
+            this.close();
+            throw e;
         }
     }
 
+    @Override
     public void close() {
         try {
-            writer.close();
-        } catch (Throwable e) {
+            this.writer.close();
+        } catch (final Throwable e) {
+        } finally {
+            this.writer = null;
         }
         try {
-            osw.close();
-        } catch (Throwable e) {
+            this.osw.close();
+        } catch (final Throwable e) {
+        } finally {
+            this.osw = null;
         }
         try {
-            fos.close();
-        } catch (Throwable e) {
+            this.fos.close();
+        } catch (final Throwable e) {
+        } finally {
+            this.fos = null;
         }
     }
 
+    @Override
     public void flush() {
         try {
-            writer.flush();
-        } catch (IOException e) {
+            final BufferedWriter lwriter = this.writer;
+            if (lwriter != null) {
+                lwriter.flush();
+            }
+        } catch (final IOException e) {
             org.appwork.utils.logging.Log.exception(e);
         }
     }
 
-    public void publish(LogRecord logRecord) {
+    @Override
+    public void publish(final LogRecord logRecord) {
         if (logRecord.getLevel() == Level.INFO) {
             try {
-                writer.write(this.getFormatter().format(logRecord));
-            } catch (IOException e) {
+                final BufferedWriter lwriter = this.writer;
+                if (lwriter != null) {
+                    lwriter.write(this.getFormatter().format(logRecord));
+                }
+            } catch (final IOException e) {
                 if (e.getMessage().contains("not enough")) {
                     org.appwork.utils.logging.Log.L.severe("Cannot write log, Disk is full!");
                 } else {
