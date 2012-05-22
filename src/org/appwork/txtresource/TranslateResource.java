@@ -10,13 +10,18 @@
 package org.appwork.txtresource;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
-import org.appwork.storage.JSonStorage;
+import org.appwork.utils.Files;
+import org.appwork.utils.IO;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -42,12 +47,68 @@ public class TranslateResource {
 
     }
 
+    public static void main(String[] args) {
+        // speedCheck();
+        convert();
+
+    }
+
+    /**
+     * 
+     */
+    private static void convert() {
+        File root = new File("C:/workspace/");
+        ArrayList<File> lngFiles = Files.getFiles(new FileFilter() {
+
+            @Override
+            public boolean accept(File pathname) {
+
+                return pathname.getName().endsWith("lng");
+            }
+        }, root);
+
+        for (File file : lngFiles) {
+            try {
+                String txt = IO.readFileToString(file);
+                if (txt.trim().startsWith("{")) {
+                    TranslateData d = TranslationUtils.restoreFromString(txt, TranslateData.class);
+                    file.delete();
+                    IO.writeStringToFile(file, TranslationUtils.serialize(d));
+                }
+
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+
+    protected static void speedCheck() {
+        URL u;
+        try {
+            u = new URL("file:/C:/workspace/JDownloader/bin/translations/org/jdownloader/gui/translate/GuiTranslation.de.lng");
+
+            String txt = IO.readURLToString(u);
+            long t = System.currentTimeMillis();
+            for (int i = 0; i < 10000; i++) {
+                TranslationUtils.restoreFromString(txt, TranslateData.class);
+            }
+            System.out.println(System.currentTimeMillis() - t);
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
     public TranslateData getData() {
         if (this.data == null) {
             if (this.url != null) {
                 try {
                     final String txt = this.read(this.url);
-                    this.data = JSonStorage.restoreFromString(txt, TranslateData.class);
+                    this.data = TranslationUtils.restoreFromString(txt, TranslateData.class);
                 } catch (final Throwable e) {
                     Log.L.severe("Error in Translation File: " + this.url);
                     Log.exception(e);
@@ -100,6 +161,17 @@ public class TranslateResource {
             final StringBuilder ret = new StringBuilder();
             final String sep = System.getProperty("line.separator");
             while ((line = f.readLine()) != null) {
+
+                if (ret.length() == 0 && line.startsWith("\uFEFF")) {
+                    /*
+                     * Workaround for this bug:
+                     * http://bugs.sun.com/view_bug.do?bug_id=4508058
+                     * http://bugs.sun.com/view_bug.do?bug_id=6378911
+                     */
+                    Log.L.warning(url + " is UTF-8 with BOM. Please remove BOM");
+                    line = line.substring(1);
+                }
+
                 // ignore comments
                 if (line.trim().startsWith("//")) {
                     continue;

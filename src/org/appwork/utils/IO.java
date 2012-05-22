@@ -127,9 +127,18 @@ public class IO {
             while ((line = f.readLine()) != null) {
                 if (ret.length() > 0) {
                     ret.append(sep);
+                } else if (line.startsWith("\uFEFF")) {
+                    /*
+                     * Workaround for this bug:
+                     * http://bugs.sun.com/view_bug.do?bug_id=4508058
+                     * http://bugs.sun.com/view_bug.do?bug_id=6378911
+                     */
+
+                    line = line.substring(1);
                 }
                 ret.append(line);
             }
+
             return ret.toString();
         } finally {
             try {

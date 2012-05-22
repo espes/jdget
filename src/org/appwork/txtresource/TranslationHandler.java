@@ -100,7 +100,7 @@ public class TranslationHandler implements InvocationHandler {
             }
         }
 
-        String ret = JSonStorage.serializeToJson(map);
+        String ret = TranslationUtils.serialize(map);
         if (addComments) {
             for (final Method m : this.tInterface.getDeclaredMethods()) {
                 final Default def = m.getAnnotation(Default.class);
