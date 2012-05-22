@@ -85,7 +85,11 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                     this.proxyRequest.append("User-Agent: " + this.requestProperties.get("User-Agent") + "\r\n");
                 }
                 if (this.requestProperties.get("Host") != null) {
+                    /* use existing host header */
                     this.proxyRequest.append("Host: " + this.requestProperties.get("Host") + "\r\n");
+                } else {
+                    /* add host from url as fallback */
+                    this.proxyRequest.append("Host: " + this.httpURL.getHost() + "\r\n");
                 }
                 if (this.requestProperties.get("Proxy-Authorization") != null) {
                     this.proxyRequest.append("Proxy-Authorization: " + this.requestProperties.get("Proxy-Authorization") + "\r\n");
@@ -132,14 +136,14 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                      * seperator
                      */
                     header = HTTPConnectionUtils.readheader(this.httpSocket.getInputStream(), true);
-                    if (header.position() == 0) {
-                        /* empty line */
+                    if (header.limit() <= 2) {
+                        /* empty line, <=2, as it may contains \r and/or \n */
                         break;
                     }
                     bytes = new byte[header.limit()];
                     header.get(bytes);
-                    final String temp = new String(bytes, "UTF-8");
-                    this.proxyRequest.append(temp);
+                    final String temp = new String(bytes, "UTF-8").trim();
+                    this.proxyRequest.append(temp + "\r\n");
                 }
                 SSLSocket sslSocket = null;
                 this.httpPort = this.httpURL.getPort();

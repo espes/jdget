@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 
-
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.encoding.Base64;
@@ -117,14 +116,14 @@ public class HTTPConnectionUtils {
     }
 
     public static ByteBuffer readheader(final InputStream in, final boolean readSingleLine) throws IOException {
-        ByteBuffer bigbuffer = ByteBuffer.allocate(4096);
+        ByteBuffer bigbuffer = ByteBuffer.wrap(new byte[4096]);
         final byte[] minibuffer = new byte[1];
         int position;
         int c;
         boolean complete = false;
         while ((c = in.read(minibuffer)) >= 0) {
             if (bigbuffer.remaining() < 1) {
-                final ByteBuffer newbuffer = ByteBuffer.allocate(bigbuffer.capacity() * 2);
+                final ByteBuffer newbuffer = ByteBuffer.wrap(new byte[bigbuffer.capacity() * 2]);
                 bigbuffer.flip();
                 newbuffer.put(bigbuffer);
                 bigbuffer = newbuffer;
