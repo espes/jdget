@@ -1,19 +1,30 @@
 package org.appwork.utils.swing.dialog;
 
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
@@ -43,7 +54,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     private File                     preSelection;
 
-    protected JFileChooser             fc;
+    protected JFileChooser           fc;
 
     private BasicFileChooserUI       fcUI;
 
@@ -287,7 +298,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 namePanel.remove(1);
 
                 final String text = oldTextField.getText();
-                SearchComboBox<String> destination = new SearchComboBox<String>() {
+                final SearchComboBox<String> destination = new SearchComboBox<String>() {
 
                     @Override
                     protected Icon getIconForValue(String value) {
@@ -373,12 +384,65 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 destination.setText(text);
                 namePanel.add(destination);
                 modifiyNamePanel(namePanel);
+
+                // [2][0][0][0][0]
+                JComponent c = (JComponent) fc.getComponent(2);
+                c = (JComponent) c.getComponent(0);
+                c = (JComponent) c.getComponent(0);
+                c = (JComponent) c.getComponent(0);
+                // sun.swing.FilePane
+                final JList list = (JList) c.getComponent(0);
+                list.addMouseListener(new MouseAdapter() {
+
+                    // mouselistener sets directory back if we click in empty
+                    // list spaces
+                    public int loc2IndexFileList(JList jlist, Point point) {
+                        int i = jlist.locationToIndex(point);
+                        if (i != -1) {
+
+                            if (!pointIsInActualBounds(jlist, i, point)) {
+                                i = -1;
+                            }
+                        }
+                        return i;
+                    }
+
+                    private boolean pointIsInActualBounds(JList jlist, int i, Point point) {
+                        ListCellRenderer listcellrenderer = jlist.getCellRenderer();
+                        ListModel listmodel = jlist.getModel();
+                        Object obj = listmodel.getElementAt(i);
+                        Component component = listcellrenderer.getListCellRendererComponent(jlist, obj, i, false, false);
+                        Dimension dimension = component.getPreferredSize();
+                        Rectangle rectangle = jlist.getCellBounds(i, i);
+                        if (!component.getComponentOrientation().isLeftToRight()) rectangle.x += rectangle.width - dimension.width;
+                        rectangle.width = dimension.width;
+                        return rectangle.contains(point);
+                    }
+
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        int index = loc2IndexFileList(list, e.getPoint());
+                        if (index < 0) {
+                            File dir = fc.getSelectedFile();
+
+                            if (dir != null) {
+                                destination.setText(dir.getParent() + File.separator);
+                                ListSelectionModel listSelectionModel = list.getSelectionModel();
+                                if (listSelectionModel != null) {
+                                    listSelectionModel.clearSelection();
+                                    ((DefaultListSelectionModel) listSelectionModel).moveLeadSelectionIndex(0);
+                                    listSelectionModel.setAnchorSelectionIndex(0);
+
+                                }
+                            }
+                        }
+                    }
+                });
+
             } catch (Throwable e) {
                 Log.exception(e);
             }
-
         }
-        // [3][0][1]
 
         return fc;
     }
@@ -388,7 +452,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     protected void modifiyNamePanel(JPanel namePanel) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**

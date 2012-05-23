@@ -152,8 +152,11 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         renameClickDelayer = new DelayedRunnable(EXECUTER, setupRenameClickInterval()) {
             @Override
             public void delayedrun() {
+
                 if (clickDelayerRunable != null) {
-                    clickDelayerRunable.run();
+                    if (getDropLocation() == null) {
+                        clickDelayerRunable.run();
+                    }
                     clickDelayerRunable = null;
                 }
             }
