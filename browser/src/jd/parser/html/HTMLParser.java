@@ -147,9 +147,9 @@ public class HTMLParser {
         if (baseUrl != null && url != null && (url.startsWith("./") || pro == null)) {
             /* combine baseURL and href url */
             if (pro == null) {
-                if (url.startsWith("/")) {
-                    /* absolut from root url */
-                    final String base = new Regex(baseUrl, "(.*?\\..*?(/|$))").getMatch(0);
+                final String base = new Regex(baseUrl, "(.*?\\..*?(/|$))").getMatch(0);
+                if (url.startsWith("/") || url.startsWith("#")) {
+                    /* absolut from root url or anchor from root */
                     if (base != null) {
                         url = Browser.correctURL(base + "/" + url);
                     } else {
@@ -157,9 +157,6 @@ public class HTMLParser {
                     }
                 } else if (url.startsWith("./")) {
                     /* relativ url */
-                    url = Browser.correctURL(baseUrl + "/" + url);
-                } else if (url.startsWith("#")) {
-                    /* anchor */
                     url = Browser.correctURL(baseUrl + "/" + url);
                 }
             }
