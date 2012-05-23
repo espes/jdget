@@ -1515,14 +1515,7 @@ public class Browser {
 
     public String submitForm(final Form form) throws Exception {
         this.openFormConnection(form);
-        this.checkContentLengthLimit(this.request);
-        /* we update allowedResponseCodes here */
-        this.request.getHttpConnection().setAllowedResponseCodes(this.allowedResponseCodes);
-        return this.request.read().getHtmlCode();
-    }
-
-    public String submitForm(final String formname) throws Exception {
-        return this.submitForm(this.getFormBySubmitvalue(formname));
+        return this.followConnection();
     }
 
     @Override
