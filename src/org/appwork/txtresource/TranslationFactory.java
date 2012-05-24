@@ -1,20 +1,23 @@
 package org.appwork.txtresource;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
 import org.appwork.utils.Application;
+import org.appwork.utils.Files;
 import org.appwork.utils.logging.Log;
 
 public class TranslationFactory {
@@ -42,8 +45,8 @@ public class TranslationFactory {
             final String id = sb.toString();
             T ret = (T) TranslationFactory.CACHE.get(id);
             if (ret == null) {
-               
-                ret = (T) Proxy.newProxyInstance( class1.getClassLoader(), new Class[] { class1 }, new TranslationHandler(class1, lookup));
+
+                ret = (T) Proxy.newProxyInstance(class1.getClassLoader(), new Class[] { class1 }, new TranslationHandler(class1, lookup));
                 TranslationFactory.CACHE.put(id, ret);
             }
 
@@ -81,38 +84,65 @@ public class TranslationFactory {
 
     }
 
-    public static ArrayList<String> listAvailableTranslations(final Class<? extends TranslateInterface> class1) {
+    public static List<String> listAvailableTranslations(final Class<? extends TranslateInterface>... classes) {
 
-        final String path = class1.getPackage().getName().replace(".", "/");
+        final HashSet<String> ret = new HashSet<String>();
 
-        final ArrayList<String> ret = new ArrayList<String>();
-        final Defaults defs = class1.getAnnotation(Defaults.class);
-        if (defs != null) {
-            for (final String s : defs.lngs()) {
-                ret.add(s);
+      
+        collectByPath(Application.getResource("translations"), ret);
+        findInClassPath("translations", ret);
+        for (Class<? extends TranslateInterface> clazz : classes) {
+            collectByPath(Application.getResource(clazz.getPackage().getName().replace(".", "/")), ret);
+            findInClassPath(clazz.getPackage().getName().replace(".", "/"), ret);
+            final Defaults defs = clazz.getAnnotation(Defaults.class);
+            if (defs != null) {
+                for (final String s : defs.lngs()) {
+                    ret.remove(s);
+                    ret.add(s);
+                }
             }
+
         }
+       
+        return new ArrayList<String>(ret);
+    }
 
-        // first look out for all translations in filesystem
-        String[] files;
-        final FilenameFilter namefilter = new FilenameFilter() {
+    /**
+     * @param string
+     * @param ret
+     */
+    private static void collectByPath(File path, HashSet<String> ret) {
+        ArrayList<File> files = Files.getFiles(new FileFilter() {
 
-            public boolean accept(final File dir, final String name) {
-                return name.startsWith(class1.getSimpleName() + ".") && name.endsWith(".lng");
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.getName().endsWith(".lng");
             }
+        }, path);
+        String name;
 
-        };
-
-        files = Application.getResource(path).list(namefilter);
-        String name, jarPath, internPath, p;
-        int index;
         if (files != null) {
-            for (final String file : files) {
-                name = file.substring(class1.getSimpleName().length() + 1, file.length() - 4);
-                ret.remove(name);
-                ret.add(name);
+            for (final File file : files) {
+                try {
+                    name = file.getName();
+                    int index = name.indexOf(".");
+                    if (index < 0 || index >= name.length() - 4) continue;
+                    name = name.substring(index + 1, name.length() - 4);
+                   
+                    ret.add(name);
+                } catch (Throwable e) {
+                    // Invalid LanguageFile nameing
+                }
             }
         }
+    }
+
+    /**
+     * @param ret2
+     * @param string
+     * @return
+     */
+    private static void findInClassPath(String path, HashSet<String> ret) {
 
         // Search in jar:
         try {
@@ -120,13 +150,13 @@ public class TranslationFactory {
             Enumeration<URL> resources;
 
             resources = Thread.currentThread().getContextClassLoader().getResources(path);
-
+            String name, p, jarPath, internPath;
             while (resources.hasMoreElements()) {
 
                 final URL url = resources.nextElement();
                 if (url.getProtocol().equalsIgnoreCase("jar")) {
                     p = url.getPath();
-                    index = p.lastIndexOf('!');
+                    int index = p.lastIndexOf('!');
                     jarPath = p.substring(0, index);
                     internPath = p.substring(index + 2);
 
@@ -136,30 +166,25 @@ public class TranslationFactory {
                     String jarName;
                     while ((e = jarFile.getNextJarEntry()) != null) {
                         jarName = e.getName();
-                        if (jarName.startsWith(internPath) && jarName.endsWith(".loc")) {
+                        if (jarName.startsWith(internPath) && jarName.endsWith(".lng")) {
                             name = new File(jarName).getName();
-                            name = name.substring(0, name.length() - 4);
-                            ret.remove(name);
+                            index = name.indexOf(".");
+                            if (index < 0 || index >= name.length() - 4) continue;
+                            name = name.substring(index + 1, name.length() - 4);
+
                             ret.add(name);
                         }
                     }
                 } else {
-                    files = new File(url.toURI()).list(namefilter);
-
-                    if (files != null) {
-                        for (final String file : files) {
-                            name = file.substring(class1.getSimpleName().length() + 1, file.length() - 4);
-                            ret.remove(name);
-                            ret.add(name);
-                        }
-                    }
+                    collectByPath(new File(url.toURI()), ret);
+             
                 }
 
             }
         } catch (final Exception e) {
             Log.exception(e);
         }
-        return ret;
+
     }
 
     /**
