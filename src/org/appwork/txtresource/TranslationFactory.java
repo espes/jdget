@@ -88,7 +88,6 @@ public class TranslationFactory {
 
         final HashSet<String> ret = new HashSet<String>();
 
-      
         collectByPath(Application.getResource("translations"), ret);
         findInClassPath("translations", ret);
         for (Class<? extends TranslateInterface> clazz : classes) {
@@ -97,13 +96,15 @@ public class TranslationFactory {
             final Defaults defs = clazz.getAnnotation(Defaults.class);
             if (defs != null) {
                 for (final String s : defs.lngs()) {
-                    ret.remove(s);
-                    ret.add(s);
+
+                    if (ret.add(s)) {
+                        Log.L.finer(s + " src: " + clazz + " Defaults");
+                    }
                 }
             }
 
         }
-       
+
         return new ArrayList<String>(ret);
     }
 
@@ -128,8 +129,10 @@ public class TranslationFactory {
                     int index = name.indexOf(".");
                     if (index < 0 || index >= name.length() - 4) continue;
                     name = name.substring(index + 1, name.length() - 4);
-                   
-                    ret.add(name);
+
+                    if (ret.add(name)) {
+                        Log.L.info(name + " found in " + file);
+                    }
                 } catch (Throwable e) {
                     // Invalid LanguageFile nameing
                 }
@@ -172,12 +175,14 @@ public class TranslationFactory {
                             if (index < 0 || index >= name.length() - 4) continue;
                             name = name.substring(index + 1, name.length() - 4);
 
-                            ret.add(name);
+                            if (ret.add(name)) {
+                                Log.L.finer(name + " found in " + new File(jarName));
+                            }
                         }
                     }
                 } else {
                     collectByPath(new File(url.toURI()), ret);
-             
+
                 }
 
             }
@@ -240,6 +245,7 @@ public class TranslationFactory {
         case 1:
             return new Locale(split[0]);
         case 2:
+
             return new Locale(split[0], split[1]);
 
         default:
