@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.logging.Level;
+import java.util.List;
 
 import org.appwork.utils.Files;
 import org.appwork.utils.IO;
@@ -33,7 +33,6 @@ import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.ISVNCommitParameters;
 import org.tmatesoft.svn.core.wc.ISVNEventHandler;
 import org.tmatesoft.svn.core.wc.ISVNInfoHandler;
-import org.tmatesoft.svn.core.wc.ISVNStatusHandler;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNCommitClient;
 import org.tmatesoft.svn.core.wc.SVNCommitPacket;
@@ -41,7 +40,6 @@ import org.tmatesoft.svn.core.wc.SVNEvent;
 import org.tmatesoft.svn.core.wc.SVNEventAction;
 import org.tmatesoft.svn.core.wc.SVNInfo;
 import org.tmatesoft.svn.core.wc.SVNRevision;
-import org.tmatesoft.svn.core.wc.SVNStatus;
 import org.tmatesoft.svn.core.wc.SVNStatusClient;
 import org.tmatesoft.svn.core.wc.SVNStatusType;
 import org.tmatesoft.svn.core.wc.SVNUpdateClient;
@@ -76,7 +74,7 @@ public class Subversion implements ISVNEventHandler {
 
     private SVNWCClient               wcClient;
     private SVNStatusClient           statusClient;
- 
+
     public Subversion(final String url) throws SVNException {
         this.setupType(url);
         this.checkRoot();
@@ -104,16 +102,10 @@ public class Subversion implements ISVNEventHandler {
         return ret[0];
     }
 
-
-
-
-
     public long getRemoteRevision(final String resource) throws SVNException {
 
-            SVNDirEntry de = getRepository().getDir("", -1, false, null);
-            return de.getRevision();
-
-       
+        SVNDirEntry de = getRepository().getDir("", -1, false, null);
+        return de.getRevision();
 
     }
 
@@ -671,6 +663,32 @@ public class Subversion implements ISVNEventHandler {
         }
 
         return updateClient.doCheckout(this.svnurl, file, revision, revision, i, true);
+    }
+
+    /**
+     * @param filePathFilter
+     * @return
+     * @throws SVNException
+     */
+    public List<SVNDirEntry> listFiles(FilePathFilter filePathFilter, String path) throws SVNException {
+        ArrayList<SVNDirEntry> ret = new ArrayList<SVNDirEntry>();
+        Collection entries = repository.getDir(path, -1, null, (Collection) null);
+        Iterator iterator = entries.iterator();
+        while (iterator.hasNext()) {
+            SVNDirEntry entry = (SVNDirEntry) iterator.next();
+
+            if (filePathFilter.accept(entry)) {
+                entry.setRelativePath((path.equals("") ? "" : path + "/") + entry.getName());
+                ret.add(entry);
+                System.out.println("/" + (path.equals("") ? "" : path + "/") + entry.getName() + " ( author: '" + entry.getAuthor() + "'; revision: " + entry.getRevision() + "; date: " + entry.getDate() + ")");
+
+            }
+            ;
+            if (entry.getKind() == SVNNodeKind.DIR) {
+                ret.addAll(listFiles(filePathFilter, (path.equals("")) ? entry.getName() : path + "/" + entry.getName()));
+            }
+        }
+        return ret;
     }
 
 }
