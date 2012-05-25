@@ -13,5 +13,7 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="dev_libs/commons-lang-2.6.jar"/>
+	<classpathentry kind="lib" path="libs/sequence-library-1.0.0.jar"/>
+	<classpathentry kind="lib" path="libs/svnkit.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
