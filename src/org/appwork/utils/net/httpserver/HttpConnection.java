@@ -67,7 +67,6 @@ public class HttpConnection implements Runnable {
 
     private final HttpServer server;
     private Socket           clientSocket        = null;
-    private Thread           thread              = null;
     private boolean          responseHeadersSent = false;
 
     private HttpResponse     response            = null;
@@ -84,19 +83,6 @@ public class HttpConnection implements Runnable {
         this(server, clientSocket.getInputStream(), clientSocket.getOutputStream());
         this.clientSocket = clientSocket;
         this.clientSocket.setSoTimeout(60 * 1000);
-        this.thread = new Thread(server.getThreadGroup(), this) {
-            @Override
-            public void interrupt() {
-                try {
-                    HttpConnection.this.finishThis();
-                    HttpConnection.this.close();
-                } finally {
-                    super.interrupt();
-                }
-            }
-        };
-        this.thread.setName("" + this);
-        this.thread.start();
     }
 
     /**
@@ -171,7 +157,7 @@ public class HttpConnection implements Runnable {
      * closes the client socket and removes this connection from server
      * connection pool
      */
-    private void finishThis() {
+    protected void closeConnection() {
         if (this.clientSocket == null) { return; }
         try {
             this.clientSocket.getOutputStream().flush();
@@ -250,7 +236,7 @@ public class HttpConnection implements Runnable {
             } catch (final Throwable nothing) {
             }
         } finally {
-            this.finishThis();
+            this.closeConnection();
             this.close();
         }
     }

@@ -19,6 +19,12 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 
@@ -31,15 +37,48 @@ public class HttpServer implements Runnable {
     private final int                     port;
     private ServerSocket                  controlSocket;
     private Thread                        controlThread = null;
-    private ThreadGroup                   threadGroup   = null;
     private boolean                       localhostOnly = false;
     private boolean                       debug         = false;
     private ArrayList<HttpRequestHandler> handler       = null;
+    private ThreadPoolExecutor            threadPool    = null;
 
     public HttpServer(final int port) {
         this.port = port;
-        this.threadGroup = new ThreadGroup("HttpServer");
         this.handler = new ArrayList<HttpRequestHandler>();
+        this.threadPool = new ThreadPoolExecutor(0, 20, 10000l, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(100), new ThreadFactory() {
+
+            public Thread newThread(final Runnable r) {
+                return new HttpConnectionThread(HttpServer.this, r);
+            }
+
+        }, new ThreadPoolExecutor.AbortPolicy()) {
+
+            @Override
+            protected void beforeExecute(final Thread t, final Runnable r) {
+                /*
+                 * WORKAROUND for stupid SUN /ORACLE way of
+                 * "how a threadpool should work" !
+                 */
+                final int active = HttpServer.this.threadPool.getPoolSize();
+                final int max = HttpServer.this.threadPool.getMaximumPoolSize();
+                if (active < max) {
+                    final int working = HttpServer.this.threadPool.getActiveCount();
+                    if (working == active) {
+                        /*
+                         * we can increase max pool size so new threads get
+                         * started
+                         */
+                        HttpServer.this.threadPool.setCorePoolSize(Math.min(max, active + 1));
+                    }
+                }
+                if (t instanceof HttpConnectionThread && r instanceof HttpConnection) {
+                    ((HttpConnectionThread) t).setCurrentConnection((HttpConnection) r);
+                }
+                super.beforeExecute(t, r);
+            }
+
+        };
+        this.threadPool.allowCoreThreadTimeOut(true);
     }
 
     public ArrayList<HttpRequestHandler> getHandler() {
@@ -65,13 +104,6 @@ public class HttpServer implements Runnable {
      */
     public int getPort() {
         return this.port;
-    }
-
-    /**
-     * @return the clientThreadGroup
-     */
-    protected ThreadGroup getThreadGroup() {
-        return this.threadGroup;
     }
 
     /**
@@ -120,11 +152,21 @@ public class HttpServer implements Runnable {
             while (true) {
                 try {
                     final Socket clientSocket = socket.accept();
+
                     try {
-                       
-                        new HttpConnection(this, clientSocket);
+                        this.threadPool.execute(new HttpConnection(this, clientSocket));
                     } catch (final IOException e) {
                         e.printStackTrace();
+                        try {
+                            clientSocket.close();
+                        } catch (final Throwable e2) {
+                        }
+                    } catch (final RejectedExecutionException e) {
+                        e.printStackTrace();
+                        try {
+                            clientSocket.close();
+                        } catch (final Throwable e2) {
+                        }
                     }
                 } catch (final SocketTimeoutException e) {
                     /*
@@ -185,7 +227,7 @@ public class HttpServer implements Runnable {
         } else {
             this.controlSocket = new ServerSocket(this.port);
         }
-        this.controlThread = new Thread(this.threadGroup, this);
+        this.controlThread = new Thread(this);
         this.controlThread.setName("HttpServerThread:" + this.port + ":" + this.localhostOnly);
         this.controlThread.start();
     }
@@ -194,9 +236,18 @@ public class HttpServer implements Runnable {
         try {
             this.controlSocket.close();
         } catch (final Throwable e) {
+        } finally {
+            this.controlThread = null;
         }
-        this.threadGroup.interrupt();
-        this.controlThread = null;
+        final List<Runnable> waiting = this.threadPool.shutdownNow();
+        if (waiting != null) {
+            /* close all waiting HttpConnections */
+            for (final Runnable runnable : waiting) {
+                if (runnable instanceof HttpConnection) {
+                    ((HttpConnection) runnable).closeConnection();
+                }
+            }
+        }
     }
 
     /*
