@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Map.Entry;
 
 import org.appwork.utils.Files;
 import org.appwork.utils.IO;
@@ -48,8 +49,8 @@ public class TranslateResource {
     }
 
     public static void main(String[] args) {
-        // speedCheck();
-        convert();
+//         speedCheck();
+//        convert();
 
     }
 

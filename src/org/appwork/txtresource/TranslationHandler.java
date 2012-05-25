@@ -44,7 +44,7 @@ public class TranslationHandler implements InvocationHandler {
      * @param lookup
      * @throws IOException
      */
-    public TranslationHandler(final Class<? extends TranslateInterface> class1, final String[] lookup) {
+    public TranslationHandler(final Class<? extends TranslateInterface> class1, final String... lookup) {
         this.tInterface = class1;
         tryCustom = Application.getResource("translations/custom").exists();
         this.methods = this.tInterface.getDeclaredMethods();
@@ -146,20 +146,31 @@ public class TranslationHandler implements InvocationHandler {
         if (tryCustom) {
             path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : "translations/custom/" + this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
             url = Application.getRessourceURL(path, false);
+            if(url!=null){
+                Log.L.finer("Load Custom Translation "+url);
+            }
         }
         if (url == null) {
             path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : "translations/" + this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
             url = Application.getRessourceURL(path, false);
+            if(url!=null){
+                Log.L.finer("Load Translation "+url);
+            }
         }
         if (url == null) {
             // translations files may either be located in the same path as the
             // interface is located, or in a translations/namespace
             path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
             url = Application.getRessourceURL(path, false);
+            
+            if(url!=null){
+                Log.L.finer("Load Neighbour Translation "+url);
+            }
         }
         miss: if (url == null) {
             final Defaults ann = this.tInterface.getAnnotation(Defaults.class);
             if (ann != null) {
+           
                 for (final String d : ann.lngs()) {
                     if (d.equals(string)) {
                         // defaults
@@ -290,6 +301,7 @@ public class TranslationHandler implements InvocationHandler {
         for (final Iterator<TranslateResource> it = lookup.iterator(); it.hasNext();) {
             res = it.next();
             try {
+           
                 ret = res.getEntry(method);
                 if (ret != null) { return ret; }
             } catch (final Throwable e) {

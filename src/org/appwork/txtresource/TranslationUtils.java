@@ -56,17 +56,17 @@ public class TranslationUtils {
             while (true) {
                 found = txt.indexOf("=", index);
                 if (found < 0) break;
-                key = txt.substring(index, found);
+                key = txt.substring(index, found).trim();
                 found2 = txt.indexOf("\r", found + 1);
                 found3 = txt.indexOf("\n", found + 1);
                 if (found2 < 0 && found3 < 0) break;
                 if ((found2 < found3 && found2 >= 0) || found3 < 0) {
-                    value = txt.substring(found + 1, found2);
+                    value = txt.substring(found + 1, found2).trim();
                 } else {
-                    value = txt.substring(found + 1, found3);
+                    value = txt.substring(found + 1, found3).trim();
                 }
                 ret.put(key, value);
-                index = Math.max(found2, found3);
+                index = Math.max(found2, found3)+1;
 
             }
             return ret;

@@ -1,5 +1,6 @@
 package org.appwork.utils.svn;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.IO;
 import org.appwork.utils.logging.Log;
@@ -30,6 +32,7 @@ import org.tmatesoft.svn.core.io.ISVNEditor;
 import org.tmatesoft.svn.core.io.ISVNReporterBaton;
 import org.tmatesoft.svn.core.io.SVNRepository;
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
+import org.tmatesoft.svn.core.io.diff.SVNDeltaGenerator;
 import org.tmatesoft.svn.core.wc.ISVNCommitParameters;
 import org.tmatesoft.svn.core.wc.ISVNEventHandler;
 import org.tmatesoft.svn.core.wc.ISVNInfoHandler;
@@ -689,6 +692,46 @@ public class Subversion implements ISVNEventHandler {
             }
         }
         return ret;
+    }
+
+    public SVNCommitInfo write(String path, String commitmessage, ByteArrayInputStream is) throws SVNException, IOException {
+
+        File file = new File(Application.getResource("tmp/svnwrite_" + System.currentTimeMillis()), path);
+        downloadFile(svnurl + (svnurl.toString().endsWith("/") ? "" : "/") + path, file, SVNRevision.HEAD);
+
+        SVNDeltaGenerator generator = new SVNDeltaGenerator();
+
+        ISVNEditor commitEditor = getRepository().getCommitEditor(commitmessage, null);
+        try {
+            commitEditor.openRoot(-1);
+            commitEditor.openFile(path, -1);
+            commitEditor.applyTextDelta(path, null);
+            String checksum = generator.sendDelta(path, is, commitEditor, true);
+            commitEditor.closeFile(path, checksum);
+            commitEditor.closeDir();
+            SVNCommitInfo info = commitEditor.closeEdit();
+            return info;
+        } finally {
+            if (commitEditor != null) {
+                commitEditor.abortEdit();
+            }
+
+            Files.deleteRecursiv(file.getParentFile());
+
+        }
+
+    }
+
+    /**
+     * @param string
+     * @param string2
+     * @param bs
+     * @throws IOException
+     * @throws SVNException
+     */
+    public void write(String path, String commitmessage, byte[] content) throws SVNException, IOException {
+        write(path, commitmessage, new ByteArrayInputStream(content));
+
     }
 
 }
