@@ -19,7 +19,6 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Map.Entry;
 
 import org.appwork.utils.Files;
 import org.appwork.utils.IO;
@@ -36,6 +35,10 @@ public class TranslateResource {
      */
 
     private final URL     url;
+    public URL getUrl() {
+        return url;
+    }
+
     private TranslateData data;
     private final String  name;
 
@@ -49,8 +52,8 @@ public class TranslateResource {
     }
 
     public static void main(String[] args) {
-//         speedCheck();
-//        convert();
+        // speedCheck();
+        // convert();
 
     }
 
@@ -140,6 +143,34 @@ public class TranslateResource {
     }
 
     /**
+     * Use this method to check the origin of the translation. the method
+     * returns null (not found) or a TranslationSource object.
+     * 
+     * @param method
+     * @return
+     */
+    public TranslationSource getSource(Method method) {
+        if (url == null) {
+            final Default lngAn = method.getAnnotation(Default.class);
+            if (lngAn != null) {
+                for (int i = 0; i < lngAn.lngs().length; i++) {
+                    if (lngAn.lngs()[i].equals(this.name)) { return new TranslationSource(this,method, false); }
+                }
+            }
+            return null;
+
+        }
+        if (this.getData().containsKey(method.getName())) { return new TranslationSource(this,method, true); }
+        final Default lngAn = method.getAnnotation(Default.class);
+        if (lngAn != null) {
+            for (int i = 0; i < lngAn.lngs().length; i++) {
+                if (lngAn.lngs()[i].equals(this.name)) { return new TranslationSource(this, method,false); }
+            }
+        }
+        return null;
+    }
+
+    /**
      * @return
      */
     public String getName() {
@@ -214,4 +245,5 @@ public class TranslateResource {
         }
         return null;
     }
+
 }

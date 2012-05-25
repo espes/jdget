@@ -11,7 +11,7 @@ package org.appwork.swing.exttable;
 
 import java.awt.Color;
 
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 
 import org.appwork.swing.components.tooltips.ExtTooltip;
 import org.appwork.swing.components.tooltips.TooltipPanel;
@@ -27,10 +27,18 @@ public class ToolTip extends ExtTooltip {
      * 
      */
     private static final long serialVersionUID = -7756738003708525595L;
-    private JTextArea tf;
+    private JTextPane         tf;
 
     public ToolTip() {
         super();
+    }
+
+    @Override
+    public void onShow() {
+        // TODO Auto-generated method stub
+        super.onShow();
+        
+    
     }
 
     /*
@@ -41,11 +49,12 @@ public class ToolTip extends ExtTooltip {
     @Override
     public TooltipPanel createContent() {
         final TooltipPanel p = new TooltipPanel("ins 2,wrap 1", "[]", "[]");
-        this.tf = new JTextArea();
+        this.tf = new JTextPane();
         // this.tf.setEnabled(false);
         this.tf.setForeground(new Color(this.getConfig().getForegroundColor()));
         this.tf.setBackground(null);
         this.tf.setEditable(false);
+     
         SwingUtils.setOpaque(this.tf, false);
 
         p.add(this.tf);
@@ -57,15 +66,25 @@ public class ToolTip extends ExtTooltip {
      */
 
     public void setTipText(final String txt) {
+        System.out.println("Set "+txt);
+        if (txt.startsWith("<html>")) {
+            tf.setContentType("text/html");
+        } else {
+            tf.setContentType("text/plain");
+        }
         this.tf.setText(txt);
+     
+    
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.appwork.swing.components.tooltips.ExtTooltip#toText()
      */
     @Override
     public String toText() {
-       
+
         return tf.getText();
     }
 

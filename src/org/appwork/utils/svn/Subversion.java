@@ -531,7 +531,7 @@ public class Subversion implements ISVNEventHandler {
             if (solve == null) { throw new Exception("Could not resolve"); }
             txt = pre + solve.trim() + post;
         }
-
+file.delete();
         IO.writeStringToFile(file, txt);
 
     }
@@ -546,7 +546,7 @@ public class Subversion implements ISVNEventHandler {
                     try {
                         Subversion.this.resolveConflictedFile(info, info.getFile(), handler);
                         Subversion.this.getWCClient().doResolve(info.getFile(), SVNDepth.INFINITY, null);
-                        Log.L.fine(file + "");
+                        Log.L.fine(file + " resolved");
                     } catch (final Exception e) {
                         e.printStackTrace();
                     }
@@ -672,14 +672,15 @@ public class Subversion implements ISVNEventHandler {
      * @param filePathFilter
      * @return
      * @throws SVNException
+     * @throws InterruptedException 
      */
-    public List<SVNDirEntry> listFiles(FilePathFilter filePathFilter, String path) throws SVNException {
+    public List<SVNDirEntry> listFiles(FilePathFilter filePathFilter, String path) throws SVNException, InterruptedException {
         ArrayList<SVNDirEntry> ret = new ArrayList<SVNDirEntry>();
         Collection entries = repository.getDir(path, -1, null, (Collection) null);
         Iterator iterator = entries.iterator();
         while (iterator.hasNext()) {
             SVNDirEntry entry = (SVNDirEntry) iterator.next();
-
+            if(Thread.currentThread().isInterrupted())throw new InterruptedException();
             if (filePathFilter.accept(entry)) {
                 entry.setRelativePath((path.equals("") ? "" : path + "/") + entry.getName());
                 ret.add(entry);

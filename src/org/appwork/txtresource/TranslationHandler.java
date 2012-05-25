@@ -358,4 +358,33 @@ public class TranslationHandler implements InvocationHandler {
         this.lookup = this.fillLookup(loc);
 
     }
+
+    /**
+     * @param method
+     * @return
+     */
+    public TranslationSource getSource(Method method) {
+        TranslationSource ret = null;
+        TranslateResource res;
+        for (final Iterator<TranslateResource> it = lookup.iterator(); it.hasNext();) {
+            res = it.next();
+            try {
+           
+                ret = res.getSource(method);
+                if (ret != null) { return ret; }
+            } catch (final Throwable e) {
+                Log.L.warning("Exception in translation: " + this.tInterface.getName() + "." + res.getName());
+                Log.exception(Level.WARNING, e);
+            }
+        }
+   
+        return ret;
+    }
+
+    /**
+     * @return
+     */
+    public String getID() {  
+        return lookup.get(0).getName();
+    }
 }
