@@ -66,7 +66,7 @@ public class ToolTip extends ExtTooltip {
      */
 
     public void setTipText(final String txt) {
-        System.out.println("Set "+txt);
+ 
         if (txt.startsWith("<html>")) {
             tf.setContentType("text/html");
         } else {

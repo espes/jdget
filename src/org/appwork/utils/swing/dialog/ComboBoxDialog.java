@@ -60,7 +60,7 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
 
         this.message = question;
         this.renderer = renderer;
-        this.defaultAnswer = defaultSelection;
+        this.defaultAnswer = defaultSelection<0?0:defaultSelection;
         this.options = options;
     }
 

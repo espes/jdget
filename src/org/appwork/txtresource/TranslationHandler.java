@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 
-import org.appwork.storage.JSonStorage;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
 
@@ -142,19 +141,19 @@ public class TranslationHandler implements InvocationHandler {
         String path = null;
         URL url = null;
         // check custom path
-        
+
         if (tryCustom) {
             path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : "translations/custom/" + this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
             url = Application.getRessourceURL(path, false);
-            if(url!=null){
-                Log.L.finer("Load Custom Translation "+url);
+            if (url != null) {
+                Log.L.finer("Load Custom Translation " + url);
             }
         }
         if (url == null) {
             path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : "translations/" + this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
             url = Application.getRessourceURL(path, false);
-            if(url!=null){
-                Log.L.finer("Load Translation "+url);
+            if (url != null) {
+                Log.L.finer("Load Translation " + url);
             }
         }
         if (url == null) {
@@ -162,15 +161,15 @@ public class TranslationHandler implements InvocationHandler {
             // interface is located, or in a translations/namespace
             path = rPath != null ? rPath.value().newInstance().getPath() + "." + string + ".lng" : this.tInterface.getName().replace(".", "/") + "." + string + ".lng";
             url = Application.getRessourceURL(path, false);
-            
-            if(url!=null){
-                Log.L.finer("Load Neighbour Translation "+url);
+
+            if (url != null) {
+                Log.L.finer("Load Neighbour Translation " + url);
             }
         }
         miss: if (url == null) {
             final Defaults ann = this.tInterface.getAnnotation(Defaults.class);
             if (ann != null) {
-           
+
                 for (final String d : ann.lngs()) {
                     if (d.equals(string)) {
                         // defaults
@@ -301,7 +300,7 @@ public class TranslationHandler implements InvocationHandler {
         for (final Iterator<TranslateResource> it = lookup.iterator(); it.hasNext();) {
             res = it.next();
             try {
-           
+
                 ret = res.getEntry(method);
                 if (ret != null) { return ret; }
             } catch (final Throwable e) {
@@ -369,7 +368,7 @@ public class TranslationHandler implements InvocationHandler {
         for (final Iterator<TranslateResource> it = lookup.iterator(); it.hasNext();) {
             res = it.next();
             try {
-           
+
                 ret = res.getSource(method);
                 if (ret != null) { return ret; }
             } catch (final Throwable e) {
@@ -377,14 +376,33 @@ public class TranslationHandler implements InvocationHandler {
                 Log.exception(Level.WARNING, e);
             }
         }
-   
+
         return ret;
     }
 
     /**
      * @return
      */
-    public String getID() {  
+    public String getID() {
         return lookup.get(0).getName();
+    }
+
+    /**
+     * @param id
+     * @return
+     */
+    public TranslateResource getResource(String id) {
+ 
+        for (TranslateResource tr : lookup) {
+            if (tr.getName().equals(id)) return tr;
+        }
+        return null;
+    }
+
+    /**
+     * @return
+     */
+    public Class<? extends TranslateInterface> getInterfaceClass() {
+        return tInterface;
     }
 }

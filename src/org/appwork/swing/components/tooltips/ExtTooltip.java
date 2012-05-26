@@ -270,4 +270,14 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
         // TODO Auto-generated method stub
 
     }
+
+    /**
+     * normal behaviour is, that a new tooltip will be shown immediately if we move the mouse to a new tooltip component within a short time.
+     * if this method is false, this behaviour will not be active after this tooltip.
+     * @return
+     */
+    public boolean isLastHiddenEnabled() {
+        // TODO Auto-generated method stub
+        return true;
+    }
 }

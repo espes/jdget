@@ -3,6 +3,8 @@ package org.appwork.txtresource;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map.Entry;
 
 import org.appwork.storage.JSonStorage;
@@ -66,7 +68,7 @@ public class TranslationUtils {
                     value = txt.substring(found + 1, found3).trim();
                 }
                 ret.put(key, value);
-                index = Math.max(found2, found3)+1;
+                index = Math.max(found2, found3) + 1;
 
             }
             return ret;
@@ -82,11 +84,17 @@ public class TranslationUtils {
         // return JSonStorage.serializeToJson(map);
 
         StringBuilder ret = new StringBuilder();
+        ArrayList<String> keys = new ArrayList<String>();
 
         for (Entry<String, String> entry : map.entrySet()) {
-            ret.append(entry.getKey());
+            keys.add(entry.getKey());
+
+        }
+       Collections.sort(keys);
+        for(String key:keys){
+            ret.append(key);
             ret.append("=");
-            ret.append(entry.getValue().replace("\r", "\\r").replace("\n", "\\n"));
+            ret.append(map.get(key).replace("\r", "\\r").replace("\n", "\\n"));
             ret.append("\r\n");
         }
 

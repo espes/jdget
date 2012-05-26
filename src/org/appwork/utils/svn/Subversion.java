@@ -225,7 +225,7 @@ public class Subversion implements ISVNEventHandler {
         return this.clientManager;
     }
 
-    private SVNCommitClient getCommitClient() {
+    public SVNCommitClient getCommitClient() {
 
         if (this.commitClient == null) {
             this.commitClient = this.getClientManager().getCommitClient();

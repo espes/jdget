@@ -25,25 +25,41 @@ public class TranslationSource {
     public boolean isFromLngFile() {
         return fromLngFile;
     }
-public String toString(){
-    if(!isFromLngFile()){
-        return "["+resource.getName()+"] "+"Default Annotations: "+method.getName();
-    }else{
-        return "["+resource.getName()+"] "+resource.getUrl();   
+
+    public String toString() {
+        if (id != null) { return "[" + id + "] Set By User"; }
+        if (!isFromLngFile()) {
+            return "[" + resource.getName() + "] " + "Default Annotations: " + method.getName();
+        } else {
+            return "[" + resource.getName() + "] " + resource.getUrl();
+        }
     }
-}
+
     private boolean fromLngFile;
-    private Method method;
+    private Method  method;
+    private String  id;
 
     /**
      * @param translateResource
-     * @param method 
+     * @param method
      * @param b
      */
     public TranslationSource(TranslateResource translateResource, Method method, boolean fromLngFile) {
         resource = translateResource;
-        this.method=method;
+        this.method = method;
         this.fromLngFile = fromLngFile;
+    }
+
+    /**
+     * @param id
+     * @param method2
+     * @param fromLngFile2
+     */
+    public TranslationSource(String id, Method method) {
+
+        this.method = method;
+        this.fromLngFile = false;
+        this.id = id;
     }
 
     /**
@@ -51,7 +67,7 @@ public String toString(){
      */
     public String getID() {
         // TODO Auto-generated method stub
-        return resource.getName();
+        return id != null ? id : resource.getName();
     }
 
 }

@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.awt.TextComponent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -20,9 +21,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.text.JTextComponent;
-
-import net.miginfocom.swing.MigLayout;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
 import org.appwork.app.gui.MigPanel;
 import org.appwork.swing.components.ExtPasswordField;
@@ -31,16 +31,16 @@ import org.appwork.swing.components.TextComponentInterface;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.os.CrossSystem;
 
 public class InputDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
 
     protected String               defaultMessage;
     protected String               message;
 
-    private JTextPane              messageArea;
-
     private TextComponentInterface input;
-    private JTextPane              bigInput;
+    private JTextPane          bigInput;
+    private JTextPane              textField;
 
     public InputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
@@ -96,20 +96,50 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
     public JComponent layoutDialogContent() {
         final JPanel contentpane = new MigPanel("ins 0,wrap 1", "[grow,fill]","[][]");
         if (!StringUtils.isEmpty(this.message)) {
-            this.messageArea = new JTextPane();
-            this.messageArea.setBorder(null);
-            this.messageArea.setBackground(null);
-            this.messageArea.setOpaque(false);
-            this.messageArea.setText(this.message);
-            this.messageArea.setEditable(false);
-            this.messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+            this.textField = new JTextPane() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean getScrollableTracksViewportWidth() {
+
+                    return !BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE);
+                }
+            };
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
-                this.messageArea.setContentType("text/html");
+                this.textField.setContentType("text/html");
+                this.textField.addHyperlinkListener(new HyperlinkListener() {
+
+                    public void hyperlinkUpdate(final HyperlinkEvent e) {
+                        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                            CrossSystem.openURL(e.getURL());
+                        }
+                    }
+
+                });
+            } else {
+                this.textField.setContentType("text");
+                // this.textField.setMaximumSize(new Dimension(450, 600));
             }
-            contentpane.add(this.messageArea, "hmin 19");
+
+            this.textField.setText(this.message);
+            this.textField.setEditable(false);
+            this.textField.setBackground(null);
+            this.textField.setOpaque(false);
+            this.textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+            this.textField.setCaretPosition(0);
+
+            if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
+
+                contentpane.add(new JScrollPane(this.textField));
+            } else {
+
+                contentpane.add(textField);
+
+            }
+          
         }
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
-            this.bigInput = new JTextPane();
+            this.bigInput = getLargeInputComponent();
 
             this.bigInput.setText(this.defaultMessage);
             this.bigInput.addKeyListener(this);
@@ -129,7 +159,15 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
     /**
      * @return
      */
-    private TextComponentInterface getSmallInputComponent() {
+    protected JTextPane getLargeInputComponent() {
+        // TODO Auto-generated method stub
+        return new JTextPane();
+    }
+
+    /**
+     * @return
+     */
+    protected TextComponentInterface getSmallInputComponent() {
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_PASSWORD)) {
             ExtPasswordField pw = new ExtPasswordField();
             pw.addKeyListener(this);

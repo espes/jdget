@@ -92,7 +92,7 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
     @Override
     public String getText() {
         String ret = super.getText();
-        if (ret.equals(this.helpText)) {
+        if (ret.equals(this.helpText)&&getForeground()==helpColor) {
             ret = "";
         }
         return ret;

@@ -159,6 +159,10 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     }
 
+    public JTextField getEditorField() {
+        return editorField;
+    }
+
     public void actionPerformed(final ActionEvent e) {
         this.editorField.removeActionListener(this);
         this.fireEditingStopped();

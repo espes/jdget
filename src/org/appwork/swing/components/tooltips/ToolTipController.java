@@ -108,11 +108,15 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         }
         if (this.activePopup != null) {
             this.activeToolTipPanel.onHide();
+            if (activeToolTipPanel.isLastHiddenEnabled()) {
+
+                this.lastHidden = System.currentTimeMillis();
+            }
             this.activeToolTipPanel = null;
             this.activePopup.hide();
             // this.activePopup.removeMouseListener(this);
             this.activePopup = null;
-            this.lastHidden = System.currentTimeMillis();
+
             if (this.activeComponent != null) {
                 final Window ownerWindow = SwingUtilities.getWindowAncestor(this.activeComponent);
                 if (ownerWindow != null) {
@@ -222,8 +226,12 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         } else if (this.activeComponent != null) {
 
             if (((ToolTipHandler) this.activeComponent).updateTooltip(this.activeToolTipPanel, e)) {
-                this.mousePosition = e.getLocationOnScreen();
-                this.showTooltip();
+                if (activeToolTipPanel == null || activeToolTipPanel.isLastHiddenEnabled()) {
+                    this.mousePosition = e.getLocationOnScreen();
+                    this.showTooltip();
+                }else{
+                    hideTooltip();
+                }
 
             }
         }
