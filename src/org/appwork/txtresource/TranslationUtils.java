@@ -61,7 +61,11 @@ public class TranslationUtils {
                 key = txt.substring(index, found).trim();
                 found2 = txt.indexOf("\r", found + 1);
                 found3 = txt.indexOf("\n", found + 1);
-                if (found2 < 0 && found3 < 0) break;
+                if (found2 < 0 && found3 < 0){
+                    value=txt.substring(found + 1).trim();
+                    ret.put(key, value);
+                    break;
+                }
                 if ((found2 < found3 && found2 >= 0) || found3 < 0) {
                     value = txt.substring(found + 1, found2).trim();
                 } else {
