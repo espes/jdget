@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URL;
@@ -282,7 +283,8 @@ public class IO {
         if (Log.L.isLoggable(Level.FINEST)) {
             Log.L.finest("Write " + file);
         }
-        final Writer output = new BufferedWriter(fw = new FileWriter(file));
+        
+        final Writer output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),"UTF-8"));
 
         try {
             output.write(string);
