@@ -122,8 +122,7 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Error details", "Fehlerdetails" })
     String ExceptionDialog_layoutDialogContent_more_button();
 
-    @Default(lngs = { "en", "de" }, values = { "Enter Password", "Passwort eingeben" })
-    String extpasswordeditorcolumn_help();
+    
 
     @Default(lngs = { "en", "de" }, values = { "Your Password", "Ihr Passwort" })
     String extpasswordeditorcolumn_tooltip();
@@ -140,11 +139,9 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Choose editor for Filetype '%s1'", "Editor für %s1-Dateien wählen" })
     String fileditcontroller_geteditor_for(String fileType);
 
-    @Default(lngs = { "en", "de" }, values = { "Do you want to open the '%s1'-file in your default editor?", "Wollen Sie die '%s1'-Datei im Standard Editor bearbeiten?" })
-    String fileeditcontroller_dialog_message(String extension);
+    
 
-    @Default(lngs = { "en", "de" }, values = { "Use default editor?", "Standard Programm nutzen?" })
-    String fileeditcontroller_dialog_title();
+    
 
     @Default(lngs = { "en", "de" }, values = { "%s1-Editor (Application)", "%s1-Editor (Anwendung)" })
     String fileeditcontroller_exechooser_description(String type);
@@ -191,8 +188,7 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Login", "Benutzername" })
     String LOGINDIALOG_LABEL_USERNAME();
 
-    @Default(lngs = { "en", "de" }, values = { "No", "Nein" })
-    String NO();
+    
 
     @Default(lngs = { "en", "de" }, values = { "New Password:", "Neues Passwort" })
     String PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD();
@@ -236,8 +232,7 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Reset Columns", "Spalten zurücksetzen" })
     String ResetColumnsAction();
 
-    @Default(lngs = { "en", "de" }, values = { "No options available", "Keine Auswahl verfügbar" })
-    String searchbox_model_empty();
+    
 
     @Default(lngs = { "en", "de" }, values = { "Search Table", "Tabelle durchsuchen" })
     String SearchContextAction();
@@ -275,8 +270,7 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "shift", "Shift" })
     String ShortCuts_key_shift();
 
-    @Default(lngs = { "en", "de" }, values = { "Move your mouse over interactive buttons to get help here", "Bewegen Sie die Maus über Schaltflächen um hier Hilfe zu sehen" })
-    String Statusbar_Statusbar_tooltip();
+    
 
     @Default(lngs = { "en", "de" }, values = { "Visit our Homepage", "Besuchen Sie unsere Homepage" })
     String Statusbar_Statusbar_visiturl_tooltip();
@@ -284,7 +278,6 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "This dialog has a countdown and closes after a few seconds. Click to cancel the countdown", "Dieser Dialog hat einen Countdown und schließt sich in einigen Sekunden. Klicken Sie hier um den Countdown abzubrechen." })
     String TIMERDIALOG_TOOLTIP_TIMERLABEL();
 
-    @Default(lngs = { "en", "de" }, values = { "Yes", "Ja" })
-    String YES();
+    
 
 }
