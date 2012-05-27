@@ -61,22 +61,63 @@ public class TranslationUtils {
                 key = txt.substring(index, found).trim();
                 found2 = txt.indexOf("\r", found + 1);
                 found3 = txt.indexOf("\n", found + 1);
-                if (found2 < 0 && found3 < 0){
-                    value=txt.substring(found + 1).trim();
-                    ret.put(key, value);
-                    break;
-                }
-                if ((found2 < found3 && found2 >= 0) || found3 < 0) {
-                    value = txt.substring(found + 1, found2).trim();
-                } else {
-                    value = txt.substring(found + 1, found3).trim();
-                }
-                ret.put(key, value);
-                index = Math.max(found2, found3) + 1;
+                if (found2 < 0 && found3 < 0) {
+                    value = txt.substring(found + 1);
 
+                } else if ((found2 < found3 && found2 >= 0) || found3 < 0) {
+                    value = txt.substring(found + 1, found2);
+                } else {
+                    value = txt.substring(found + 1, found3);
+                }
+                // Slow!!
+
+                ret.put(key, clean(value));
+                index = Math.max(found2, found3) + 1;
+                if (index <= 0) break;
             }
             return ret;
         }
+    }
+
+    /**
+     * this method does a .trim() and replace("\\r","\r").replace("\\n","\n").replace("\\t","\t")
+     * TODO:Speed this up!
+     * @param value
+     * @return
+     */
+    private static String clean(String value) {
+        StringBuilder sb = new StringBuilder();
+        char c, c2;
+       value=value.trim();
+        for (int i = 0; i < value.length(); i++) {
+            switch (c = value.charAt(i)) {
+            case '\\':
+                i++;
+                if (i == value.length()) {
+                    sb.append(c);
+                    continue;
+                }
+                switch (c2 = value.charAt(i)) {
+                case 'n':
+                    sb.append('\n');
+                    break;
+                case 'r':
+                    sb.append('\n');
+                    break;
+                case 't':
+                    sb.append('\t');
+                    break;
+                default:
+                    sb.append(c);
+                    sb.append(c2);
+                    break;
+                }
+                break;
+            default:
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 
     /**
@@ -94,8 +135,8 @@ public class TranslationUtils {
             keys.add(entry.getKey());
 
         }
-       Collections.sort(keys);
-        for(String key:keys){
+        Collections.sort(keys);
+        for (String key : keys) {
             ret.append(key);
             ret.append("=");
             ret.append(map.get(key).replace("\r", "\\r").replace("\n", "\\n"));
