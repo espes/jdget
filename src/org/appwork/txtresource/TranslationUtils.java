@@ -102,7 +102,7 @@ public class TranslationUtils {
                     sb.append('\n');
                     break;
                 case 'r':
-                    sb.append('\n');
+                    sb.append('\r');
                     break;
                 case 't':
                     sb.append('\t');
@@ -117,6 +117,7 @@ public class TranslationUtils {
                 sb.append(c);
             }
         }
+  
         return sb.toString();
     }
 
