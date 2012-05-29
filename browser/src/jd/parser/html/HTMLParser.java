@@ -481,6 +481,8 @@ public class HTMLParser {
         data = data.replaceAll("(?s)\\[(url|link)\\].*?\\[/(url|link)\\]", "");
         final HashSet<String> results = new HashSet<String>();
         HTMLParser._getHttpLinksWalker(data, url, results);
+        /* we dont want baseurl to be included in result set */
+        results.remove(url);
         data = null;
         if (results.isEmpty()) {
             return new String[] {};

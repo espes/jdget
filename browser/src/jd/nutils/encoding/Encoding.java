@@ -75,7 +75,7 @@ public class Encoding {
                 System.err.println("Max Decodeingloop 50 reached!!!");
                 return tmp;
             }
-        }
+        } 
         return tmp;
     }
 
@@ -308,7 +308,7 @@ public class Encoding {
         } catch (final Exception e) {
             Log.exception(e);
             return null;
-        }
+        } 
     }
 
 }
