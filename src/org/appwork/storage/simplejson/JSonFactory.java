@@ -30,8 +30,9 @@ public class JSonFactory {
         this.counter = 0;
     }
 
-    private ParserException bam(final String expected) {
-        final String pre = this.str.substring(Math.max(this.global - 20, 0), this.global);
+    private ParserException bam( String expected) {
+         String pre = this.str.substring(Math.max(this.global - 20, 0), this.global);
+        pre=pre.replace("\r", "\\r").replace("\n", "\\n");
         final StringBuilder sb = new StringBuilder();
         sb.append(expected);
         sb.append("\r\n\t");
@@ -41,7 +42,7 @@ public class JSonFactory {
         for (int i = 1; i < pre.length(); i++) {
             sb.append("-");
         }
-        sb.append('\u2934');
+        sb.append('|');
         return new ParserException(sb.toString());
     }
 

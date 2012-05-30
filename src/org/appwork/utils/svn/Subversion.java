@@ -87,16 +87,22 @@ public class Subversion implements ISVNEventHandler {
     }
 
     public Subversion(final String url, final String user, final String pass) throws SVNException {
-        this.setupType(url);
-        this.authManager = SVNWCUtil.createDefaultAuthenticationManager(user, pass);
-        ((DefaultSVNAuthenticationManager) this.authManager).setAuthenticationForced(true);
-        this.repository.setAuthenticationManager(this.authManager);
-        this.checkRoot();
+        try {
+            this.setupType(url);
+            this.authManager = SVNWCUtil.createDefaultAuthenticationManager(user, pass);
+            ((DefaultSVNAuthenticationManager) this.authManager).setAuthenticationForced(true);
+            this.repository.setAuthenticationManager(this.authManager);
+            this.checkRoot();
+        } catch (final SVNException e) {
+            this.dispose();
+            throw e;
+        }
     }
 
     /**
      * WCClient
      */
+    @Override
     public void checkCancelled() throws SVNCancelException {
     }
 
@@ -193,7 +199,7 @@ public class Subversion implements ISVNEventHandler {
      * @throws SVNException
      */
     @SuppressWarnings("unchecked")
-    public ArrayList<SVNLogEntry> getChangeset(final int start, final int end) throws SVNException {
+    public ArrayList<SVNLogEntry> getChangeset(final long start, final long end) throws SVNException {
         final Collection<SVNLogEntry> log = this.repository.log(new String[] { "" }, null, start, end, true, true);
 
         final ArrayList<SVNLogEntry> list = new ArrayList<SVNLogEntry>();
@@ -215,18 +221,22 @@ public class Subversion implements ISVNEventHandler {
             this.commitClient.setEventHandler(this);
             this.commitClient.setCommitParameters(new ISVNCommitParameters() {
 
+                @Override
                 public boolean onDirectoryDeletion(final File directory) {
                     return false;
                 }
 
+                @Override
                 public boolean onFileDeletion(final File file) {
                     return false;
                 }
 
+                @Override
                 public Action onMissingDirectory(final File file) {
                     return ISVNCommitParameters.DELETE;
                 }
 
+                @Override
                 public Action onMissingFile(final File file) {
                     return ISVNCommitParameters.DELETE;
                 }
@@ -247,6 +257,7 @@ public class Subversion implements ISVNEventHandler {
         try {
             this.getWCClient().doInfo(file, SVNRevision.UNDEFINED, SVNRevision.WORKING, SVNDepth.getInfinityOrEmptyDepth(true), null, new ISVNInfoHandler() {
 
+                @Override
                 public void handleInfo(final SVNInfo info) {
                     ret.add(info);
                 }
@@ -261,7 +272,7 @@ public class Subversion implements ISVNEventHandler {
 
     public long getRemoteRevision(final String resource) throws SVNException {
 
-        final SVNDirEntry de = this.getRepository().getDir("", -1, false, null);
+        final SVNDirEntry de = this.getRepository().getDir(resource, -1, false, null);
         return de.getRevision();
 
     }
@@ -282,6 +293,7 @@ public class Subversion implements ISVNEventHandler {
 
             this.getWCClient().doInfo(resource, SVNRevision.UNDEFINED, SVNRevision.WORKING, SVNDepth.EMPTY, null, new ISVNInfoHandler() {
 
+                @Override
                 public void handleInfo(final SVNInfo info) {
                     final long rev = info.getCommittedRevision().getNumber();
                     if (rev > ret[0]) {
@@ -333,6 +345,7 @@ public class Subversion implements ISVNEventHandler {
      * @param progress
      * @throws SVNException
      */
+    @Override
     public void handleEvent(final SVNEvent event, final double progress) throws SVNException {
         /* WCCLient */
         final String nullString = " ";
@@ -590,6 +603,7 @@ public class Subversion implements ISVNEventHandler {
 
         this.getWCClient().doInfo(file, SVNRevision.UNDEFINED, SVNRevision.WORKING, SVNDepth.getInfinityOrEmptyDepth(true), null, new ISVNInfoHandler() {
 
+            @Override
             public void handleInfo(final SVNInfo info) {
                 final File file = info.getConflictWrkFile();
                 if (file != null) {
