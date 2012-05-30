@@ -514,7 +514,15 @@ public class Browser {
         } catch (final InterruptedException e) {
             throw new IOException("requestIntervalTime Exception");
         }
-        request.connect();
+        try {
+            request.connect();
+        } finally {
+            if (this.isDebug()) {
+                if (this.getLogger() != null) {
+                    this.getLogger().finest("\r\n" + request.printHeaders());
+                }
+            }
+        }
     }
 
     public boolean containsHTML(final String regex) {
@@ -1286,11 +1294,6 @@ public class Browser {
      */
     public URLConnectionAdapter openRequestConnection(final Request request) throws IOException {
         this.connect(request);
-        if (this.isDebug()) {
-            if (this.getLogger() != null) {
-                this.getLogger().finest("\r\n" + request.printHeaders());
-            }
-        }
         this.updateCookies(request);
         this.request = request;
         if (this.doRedirects && request.getLocation() != null) {

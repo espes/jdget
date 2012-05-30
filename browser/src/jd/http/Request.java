@@ -105,7 +105,7 @@ public abstract class Request {
         }
         ReusableByteArrayOutputStream tmpOut;
         ReusableByteArrayOutputStream tmpOut2 = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(1048);
-        final long contentLength = con.getContentLength();
+        final long contentLength = con.getLongContentLength();
         if (contentLength != -1) {
             final int length = contentLength > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) contentLength;
             tmpOut = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(length);
@@ -154,8 +154,7 @@ public abstract class Request {
     }
 
     /*
-     * default timeouts, because 0 is infinite and BAD, if we need 0 then we
-     * have to set it manually
+     * default timeouts, because 0 is infinite and BAD, if we need 0 then we have to set it manually
      */
     private int                    connectTimeout = 30000;
 
@@ -215,8 +214,7 @@ public abstract class Request {
             this.openConnection();
             this.postRequest();
             /*
-             * we connect to inputstream to make sure the response headers are
-             * getting parsed first
+             * we connect to inputstream to make sure the response headers are getting parsed first
              */
             this.httpConnection.finalizeConnect();
             try {
@@ -465,11 +463,6 @@ public abstract class Request {
         return this.requested;
     }
 
-    public String load() throws IOException {
-        this.requestConnection();
-        return this.getHtmlCode();
-    }
-
     private void openConnection() throws IOException {
         this.httpConnection = HTTPConnectionFactory.createHTTPConnection(new URL(this.orgURL), this.proxy);
         this.httpConnection.setRequest(this);
@@ -506,11 +499,6 @@ public abstract class Request {
         this.byteArray = Request.read(this.httpConnection);
         this.readTime = System.currentTimeMillis() - tima;
         return this;
-    }
-
-    private void requestConnection() throws IOException {
-        this.connect();
-        this.read();
     }
 
     public void setConnectTimeout(final int connectTimeout) {
