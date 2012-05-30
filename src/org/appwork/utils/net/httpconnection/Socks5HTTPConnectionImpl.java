@@ -6,6 +6,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
 
+import org.appwork.utils.StringUtils;
+
 public class Socks5HTTPConnectionImpl extends SocksHTTPconnection {
 
     public Socks5HTTPConnectionImpl(final URL url, final HTTPProxy proxy) {
@@ -82,6 +84,7 @@ public class Socks5HTTPConnectionImpl extends SocksHTTPconnection {
                 throw new ConnectException("Connection refused");
             case 1:
             case 2:
+                throw new ProxyConnectException("Socks5HTTPConnection: connection not allowed by ruleset", this.proxy);
             case 6:
             case 7:
             case 8:
@@ -110,36 +113,31 @@ public class Socks5HTTPConnectionImpl extends SocksHTTPconnection {
     }
 
     @Override
-    protected String getRequestInfo() {
-        if (this.proxyRequest != null) {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("-->Socks5Proxy:").append(this.proxy.getHost() + ":" + this.proxy.getPort()).append("\r\n");
-            if (this.proxyInetSocketAddress != null && this.proxyInetSocketAddress.getAddress() != null) {
-                sb.append("-->Socks5ProxyIP:").append(this.proxyInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
-            }
-            sb.append("----------------CONNECTRequest(SOCKS5)----------\r\n");
-            sb.append(this.proxyRequest.toString());
-            sb.append("------------------------------------------------\r\n");
-            sb.append(super.getRequestInfo());
-            return sb.toString();
-        }
-        return super.getRequestInfo();
-    }
-
-    @Override
     protected AUTH sayHello() throws IOException {
         try {
             this.proxyRequest.append("->SOCKS5 Hello\r\n");
             /* socks5 */
             this.socksoutputstream.write((byte) 5);
             /* only none ans password/username auth method */
-            this.socksoutputstream.write((byte) 2);
-            this.proxyRequest.append("->SOCKS5 Offer None&Plain Authentication\r\n");
-            /* none */
-            this.socksoutputstream.write((byte) 2);
-            /* username/password */
-            this.socksoutputstream.write((byte) 0);
-            this.socksoutputstream.flush();
+            boolean plainAuthPossible = false;
+            if (!StringUtils.isEmpty(this.proxy.getUser()) || !StringUtils.isEmpty(this.proxy.getPass())) {
+                plainAuthPossible = true;
+            }
+            if (plainAuthPossible) {
+                this.socksoutputstream.write((byte) 2);
+                this.proxyRequest.append("->SOCKS5 Offer None&Plain Authentication\r\n");
+                /* none */
+                this.socksoutputstream.write((byte) 0);
+                /* username/password */
+                this.socksoutputstream.write((byte) 2);
+                this.socksoutputstream.flush();
+            } else {
+                this.socksoutputstream.write((byte) 1);
+                this.proxyRequest.append("->SOCKS5 Offer None Authentication\r\n");
+                /* none */
+                this.socksoutputstream.write((byte) 0);
+                this.socksoutputstream.flush();
+            }
             /* read response, 2 bytes */
             final byte[] resp = this.readResponse(2);
             if (resp[0] != 5) { throw new ProxyConnectException("Socks5HTTPConnection: invalid Socks5 response", this.proxy); }
@@ -147,7 +145,12 @@ public class Socks5HTTPConnectionImpl extends SocksHTTPconnection {
                 this.proxyRequest.append("<-SOCKS5 Authentication Denied\r\n");
                 throw new ProxyConnectException("Socks5HTTPConnection: no acceptable authentication method found", this.proxy);
             }
-            if (resp[1] == 2) { return AUTH.PLAIN; }
+            if (resp[1] == 2) {
+                if (plainAuthPossible == false) {
+                    this.proxyRequest.append("->SOCKS5 Plain auth required but not offered!\r\n");
+                }
+                return AUTH.PLAIN;
+            }
             if (resp[1] == 0) { return AUTH.NONE; }
             throw new IOException("Unsupported auth " + resp[1]);
         } catch (final IOException e) {
