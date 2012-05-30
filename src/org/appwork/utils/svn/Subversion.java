@@ -60,10 +60,16 @@ public class Subversion implements ISVNEventHandler {
      * @return
      */
     public static boolean checkLogin(final String url, final String user, final String pass) {
+        Subversion subversion = null;
         try {
-            new Subversion(url, user, pass);
+            subversion = new Subversion(url, user, pass);
             return true;
         } catch (final SVNException e) {
+        } finally {
+            try {
+                subversion.dispose();
+            } catch (final Throwable e) {
+            }
         }
         return false;
     }
@@ -82,8 +88,13 @@ public class Subversion implements ISVNEventHandler {
     }
 
     public Subversion(final String url) throws SVNException {
-        this.setupType(url);
-        this.checkRoot();
+        try {
+            this.setupType(url);
+            this.checkRoot();
+        } catch (final SVNException e) {
+            this.dispose();
+            throw e;
+        }
     }
 
     public Subversion(final String url, final String user, final String pass) throws SVNException {
