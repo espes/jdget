@@ -149,15 +149,15 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             this.setRowHeight(suggestedRowHeight);
         }
 
-        renameClickDelayer = new DelayedRunnable(EXECUTER, setupRenameClickInterval()) {
+        this.renameClickDelayer = new DelayedRunnable(ExtTable.EXECUTER, this.setupRenameClickInterval()) {
             @Override
             public void delayedrun() {
 
-                if (clickDelayerRunable != null) {
-                    if (getDropLocation() == null) {
-                        clickDelayerRunable.run();
+                if (ExtTable.this.clickDelayerRunable != null) {
+                    if (ExtTable.this.getDropLocation() == null) {
+                        ExtTable.this.clickDelayerRunable.run();
                     }
-                    clickDelayerRunable = null;
+                    ExtTable.this.clickDelayerRunable = null;
                 }
             }
         };
@@ -329,13 +329,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     }
 
-    /**
-     * @return
-     */
-    protected long setupRenameClickInterval() {
-        return 500;
-    }
-
     protected void accommodateColumnDelta(final int index, final int delta) {
         // System.out.println(delta);
     }
@@ -400,6 +393,12 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return popup;
     }
 
+    @Override
+    protected void configureEnclosingScrollPane() {
+        super.configureEnclosingScrollPane();
+        this.reconfigureColumnButton();
+    }
+
     // public boolean editCellAt(int row, int column, EventObject e){
     // if( super.editCellAt(row, column, e)){
     //
@@ -407,12 +406,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     // }
     // return false;
     // }
-
-    @Override
-    protected void configureEnclosingScrollPane() {
-        super.configureEnclosingScrollPane();
-        this.reconfigureColumnButton();
-    }
 
     /**
      * Creates the columns based on the model
@@ -743,12 +736,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return this.rowHighlighters;
     }
 
-    // @Override
-    // public Point getToolTipLocation(final MouseEvent event) {
-    // // this.toolTipPosition = event.getPoint();
-    // return super.getToolTipLocation(event);
-    // }
-
     /**
      * @param point
      * @return
@@ -757,6 +744,12 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return this.rowAtPoint(point);
 
     }
+
+    // @Override
+    // public Point getToolTipLocation(final MouseEvent event) {
+    // // this.toolTipPosition = event.getPoint();
+    // return super.getToolTipLocation(event);
+    // }
 
     /**
      * @return
@@ -833,6 +826,18 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     protected void onHeaderSortClick(final MouseEvent e, final ExtColumn<E> oldColumn, final String oldIdentifier) {
         // TODO Auto-generated method stub
 
+    }
+
+    /**
+     * This method will be called if the user does a windows typic rename click
+     * order. Means: click on a already selected single row
+     * 
+     * @param e
+     * @param obj
+     * @return
+     */
+    protected boolean onRenameClick(final MouseEvent e, final E obj) {
+        return false;
     }
 
     /**
@@ -1106,7 +1111,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);
                 final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
-                renameClickDelayer.stop();
+                this.renameClickDelayer.stop();
                 boolean ret = false;
                 if (col != null) {
                     ret = col.onDoubleClick(e, obj);
@@ -1134,8 +1139,8 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             if (this.rowAtPoint(e.getPoint()) < 0) {
                 this.clearSelection();
             } else if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
-                int[] slRows = this.getSelectedRows();
-                int row = this.rowAtPoint(e.getPoint());
+                final int[] slRows = this.getSelectedRows();
+                final int row = this.rowAtPoint(e.getPoint());
                 if (slRows.length == 1 && row == slRows[0]) {
                     // rename
                     final E obj = this.getExtTableModel().getObjectbyRow(row);
@@ -1143,7 +1148,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
                     if (col != null) {
 
-                        clickDelayerRunable = new Runnable() {
+                        this.clickDelayerRunable = new Runnable() {
 
                             @Override
                             public void run() {
@@ -1152,7 +1157,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                                     @Override
                                     protected void runInEDT() {
                                         if (!col.onRenameClick(e, obj)) {
-                                            onRenameClick(e, obj);
+                                            ExtTable.this.onRenameClick(e, obj);
 
                                         }
                                         // we have to dispatch this event. the
@@ -1162,9 +1167,9 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                                         // textfields
                                         // for
                                         // example will get focused
-                                        setDispatchComponent(e);
+                                        ExtTable.this.setDispatchComponent(e);
 
-                                        CellEditor ce = getCellEditor();
+                                        final CellEditor ce = ExtTable.this.getCellEditor();
                                         if (ce != null) {
                                             ce.shouldSelectCell(e);
 
@@ -1174,7 +1179,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
                             }
                         };
-                        renameClickDelayer.resetAndStart();
+                        this.renameClickDelayer.resetAndStart();
 
                     }
 
@@ -1186,30 +1191,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
          * with customized click handling (eg changing selection)
          */
         super.processMouseEvent(e);
-    }
-
-    private void setDispatchComponent(MouseEvent e) {
-        Component editorComponent = getEditorComponent();
-        if (editorComponent != null) {
-            Point p = e.getPoint();
-            Point p2 = SwingUtilities.convertPoint(this, p, editorComponent);
-            Component dispatchComponent = SwingUtilities.getDeepestComponentAt(editorComponent, p2.x, p2.y);
-            SwingUtilities2.setSkipClickCount(dispatchComponent, e.getClickCount() - 1);
-            MouseEvent e2 = SwingUtilities.convertMouseEvent(this, e, dispatchComponent);
-            dispatchComponent.dispatchEvent(e2);
-        }
-    }
-
-    /**
-     * This method will be called if the user does a windows typic rename click
-     * order. Means: click on a already selected single row
-     * 
-     * @param e
-     * @param obj
-     * @return
-     */
-    protected boolean onRenameClick(final MouseEvent e, final E obj) {
-        return false;
     }
 
     /**
@@ -1288,6 +1269,36 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     }
 
+    /**
+     * Resets the column locks to their default value. If their is empty space
+     * afterwards, the table will distribute the DELTA to all columns PLease
+     * make sure to call {@link #updateColumns()} afterwards
+     */
+    public void resetColumnLocks() {
+        for (final ExtColumn<E> col : this.getExtTableModel().getColumns()) {
+            // col.getTableColumn().setPreferredWidth(col.getDefaultWidth());
+            this.getStorage().put("ColumnWidthLocked_" + col.getID(), !col.isDefaultResizable());
+
+        }
+    }
+
+    /**
+     * Resets the Order of the columns to their default PLease make sure to call
+     * {@link #updateColumns()} afterwards
+     */
+    public void resetColumnOrder() {
+        for (int i = 0; i < this.getExtTableModel().getColumns().size(); i++) {
+            // col.getTableColumn().setPreferredWidth(col.getDefaultWidth());
+            final ExtColumn<E> col = this.getExtTableModel().getColumns().get(i);
+            try {
+                this.getStorage().put("POS_COL_" + i, col.getID());
+            } catch (final Exception e1) {
+                Log.exception(e1);
+            }
+        }
+
+    }
+
     // /**
     // * @param b
     // */
@@ -1322,36 +1333,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     // }
     //
     // }
-
-    /**
-     * Resets the column locks to their default value. If their is empty space
-     * afterwards, the table will distribute the DELTA to all columns PLease
-     * make sure to call {@link #updateColumns()} afterwards
-     */
-    public void resetColumnLocks() {
-        for (final ExtColumn<E> col : this.getExtTableModel().getColumns()) {
-            // col.getTableColumn().setPreferredWidth(col.getDefaultWidth());
-            this.getStorage().put("ColumnWidthLocked_" + col.getID(), !col.isDefaultResizable());
-
-        }
-    }
-
-    /**
-     * Resets the Order of the columns to their default PLease make sure to call
-     * {@link #updateColumns()} afterwards
-     */
-    public void resetColumnOrder() {
-        for (int i = 0; i < this.getExtTableModel().getColumns().size(); i++) {
-            // col.getTableColumn().setPreferredWidth(col.getDefaultWidth());
-            final ExtColumn<E> col = this.getExtTableModel().getColumns().get(i);
-            try {
-                this.getStorage().put("POS_COL_" + i, col.getID());
-            } catch (final Exception e1) {
-                Log.exception(e1);
-            }
-        }
-
-    }
 
     /**
      * Resets the Visibility of all columns to their Default value. PLease make
@@ -1437,6 +1418,20 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         this.reconfigureColumnButton();
     }
 
+    private void setDispatchComponent(final MouseEvent e) {
+        final Component editorComponent = this.getEditorComponent();
+        if (editorComponent != null) {
+            final Point p = e.getPoint();
+            final Point p2 = SwingUtilities.convertPoint(this, p, editorComponent);
+            final Component dispatchComponent = SwingUtilities.getDeepestComponentAt(editorComponent, p2.x, p2.y);
+            if (dispatchComponent != null) {
+                SwingUtilities2.setSkipClickCount(dispatchComponent, e.getClickCount() - 1);
+                final MouseEvent e2 = SwingUtilities.convertMouseEvent(this, e, dispatchComponent);
+                dispatchComponent.dispatchEvent(e2);
+            }
+        }
+    }
+
     @Override
     public void setRowHeight(final int rowHeight) {
         int suggestedRowHeight = UIManager.getInt(ExtTable.SUGGESTEDROWHEIGHTPROPERTY);
@@ -1452,6 +1447,14 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         }
     }
 
+    /**
+     * @param searchEnabled
+     *            the searchEnabled to set
+     */
+    public void setSearchEnabled(final boolean searchEnabled) {
+        this.searchEnabled = searchEnabled;
+    }
+
     //
     // private int viewIndexForColumn(final TableColumn aColumn) {
     // final TableColumnModel cm = this.getColumnModel();
@@ -1461,19 +1464,18 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     // return -1;
     // }
 
-    /**
-     * @param searchEnabled
-     *            the searchEnabled to set
-     */
-    public void setSearchEnabled(final boolean searchEnabled) {
-        this.searchEnabled = searchEnabled;
-    }
-
     public void setTransferHandler(final ExtTransferHandler<E> newHandler) {
 
         newHandler.setTable(this);
         super.setTransferHandler(newHandler);
 
+    }
+
+    /**
+     * @return
+     */
+    protected long setupRenameClickInterval() {
+        return 500;
     }
 
     /**

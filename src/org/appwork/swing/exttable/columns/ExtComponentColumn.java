@@ -28,21 +28,43 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
         this.listener = new MouseAdapter() {
 
             private int col = -1;
-            private int row = -1;           
+            private int row = -1;
+
             @Override
             public void mouseMoved(final MouseEvent e) {
-           
+
                 final ExtTable<T> table = ExtComponentColumn.this.getModel().getTable();
                 final int col = table.columnAtPoint(e.getPoint());
                 final int row = table.getRowIndexByPoint(e.getPoint());
 
-                final int modelIndex = table.getColumnModel().getColumn(col).getModelIndex();
+                int modelIndex = table.getColumnModel().getColumn(col).getModelIndex();
                 if (col != this.col || row != this.row) {
                     if (ExtComponentColumn.this.getModel().getExtColumnByModelIndex(modelIndex) == ExtComponentColumn.this) {
-                       
-                        ExtComponentColumn.this.onCellUpdate(col, row);
-                    } else {
                         if (table.getEditingColumn() == col && table.getEditingRow() == row) {
+                            /*
+                             * we are still in same cell, no need to change
+                             * anything
+                             */
+                        } else {
+                            final int editing = table.getEditingColumn();
+                            modelIndex = table.getColumnModel().getColumn(editing).getModelIndex();
+                            if (ExtComponentColumn.this.getModel().getExtColumnByModelIndex(modelIndex) == ExtComponentColumn.this) {
+                                /*
+                                 * we are no longer in our editing column, stop
+                                 * cell editing
+                                 */
+                                ExtComponentColumn.this.stopCellEditing();
+                            }
+                            ExtComponentColumn.this.onCellUpdate(col, row);
+                        }
+                    } else {
+                        final int editing = table.getEditingColumn();
+                        modelIndex = table.getColumnModel().getColumn(editing).getModelIndex();
+                        if (ExtComponentColumn.this.getModel().getExtColumnByModelIndex(modelIndex) == ExtComponentColumn.this) {
+                            /*
+                             * we are no longer in our editing column, stop cell
+                             * editing
+                             */
                             ExtComponentColumn.this.stopCellEditing();
                         }
                     }
@@ -150,7 +172,6 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
      * @param row
      */
     protected void onCellUpdate(final int col, final int row) {
-        this.stopCellEditing();
         this.getModel().getTable().editCellAt(row, col);
 
     }
