@@ -297,26 +297,32 @@ public class Subversion implements ISVNEventHandler {
         return this.repository;
     }
 
-    public long getRevision(final File resource) throws SVNException {
+    public long getRevisionNoException(final File resource) throws SVNException {
 
-        final long[] ret = new long[] { -1 };
+      
         try {
+            return getRevision(resource);
+        } catch (final SVNException e) {
+          Log.exception(e);
+        }
+        return -1;
 
-            this.getWCClient().doInfo(resource, SVNRevision.UNDEFINED, SVNRevision.WORKING, SVNDepth.EMPTY, null, new ISVNInfoHandler() {
+    }
 
-                @Override
-                public void handleInfo(final SVNInfo info) {
-                    final long rev = info.getCommittedRevision().getNumber();
-                    if (rev > ret[0]) {
-                        ret[0] = rev;
-                    }
+    public long getRevision(final File resource) throws SVNException {
+        final long[] ret = new long[] { -1 };
+        this.getWCClient().doInfo(resource, SVNRevision.UNDEFINED, SVNRevision.WORKING, SVNDepth.EMPTY, null, new ISVNInfoHandler() {
 
+            @Override
+            public void handleInfo(final SVNInfo info) {
+                final long rev = info.getCommittedRevision().getNumber();
+                if (rev > ret[0]) {
+                    ret[0] = rev;
                 }
 
-            });
-        } catch (final SVNException e) {
-            e.printStackTrace();
-        }
+            }
+
+        });
         return ret[0];
     }
 
