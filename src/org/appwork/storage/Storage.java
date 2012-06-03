@@ -21,7 +21,7 @@ public abstract class Storage {
     abstract public <E> E get(String key, E def) throws StorageException;
 
     /**
-     * @return the eventSender 
+     * @return the eventSender  
      */
     public DefaultEventSender<StorageEvent<?>> getEventSender() {
         if (this.eventSender != null) { return this.eventSender; }
