@@ -22,8 +22,8 @@ import javax.swing.event.AncestorListener;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.appwork.app.gui.MigPanel;
 import org.appwork.storage.config.JsonConfig;
+import org.appwork.swing.MigPanel;
 import org.appwork.swing.components.tooltips.config.ExtTooltipSettings;
 import org.appwork.utils.Application;
 

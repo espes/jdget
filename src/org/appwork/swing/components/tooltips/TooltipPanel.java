@@ -19,7 +19,7 @@ import javax.swing.JComponent;
 import javax.swing.RepaintManager;
 import javax.swing.SwingUtilities;
 
-import org.appwork.app.gui.MigPanel;
+import org.appwork.swing.MigPanel;
 
 import com.sun.java.swing.SwingUtilities3;
 

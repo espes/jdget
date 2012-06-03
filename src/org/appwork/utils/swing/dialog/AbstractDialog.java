@@ -43,9 +43,9 @@ import javax.swing.WindowConstants;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
+import org.appwork.swing.MigPanel;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;

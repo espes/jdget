@@ -16,7 +16,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
-import org.appwork.app.gui.MigPanel;
+import org.appwork.swing.MigPanel;
 import org.appwork.swing.exttable.ExtColumn;
 import org.appwork.swing.exttable.ExtDefaultRowSorter;
 import org.appwork.swing.exttable.ExtTableModel;

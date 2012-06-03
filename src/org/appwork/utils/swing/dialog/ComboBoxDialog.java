@@ -20,7 +20,7 @@ import javax.swing.ListCellRenderer;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.appwork.app.gui.MigPanel;
+import org.appwork.swing.MigPanel;
 import org.appwork.utils.logging.Log;
 
 public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxDialogInterface {

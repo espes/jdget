@@ -43,8 +43,8 @@ import javax.swing.plaf.basic.BasicComboBoxUI;
 import javax.swing.plaf.basic.ComboPopup;
 
 import org.appwork.app.gui.BasicGui;
-import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
+import org.appwork.swing.MigPanel;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTRunner;

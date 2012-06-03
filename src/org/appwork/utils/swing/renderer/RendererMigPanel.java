@@ -12,7 +12,7 @@ package org.appwork.utils.swing.renderer;
 import java.awt.Component;
 import java.awt.Rectangle;
 
-import org.appwork.app.gui.MigPanel;
+import org.appwork.swing.MigPanel;
 
 /**
  * @author thomas

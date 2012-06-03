@@ -17,7 +17,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.appwork.app.gui.BasicGui;
-import org.appwork.app.gui.MigPanel;
+import org.appwork.swing.MigPanel;
 
 public class ExtPasswordField extends MigPanel implements FocusListener, DocumentListener, TextComponentInterface {
 

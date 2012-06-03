@@ -16,13 +16,13 @@ import javax.swing.filechooser.FileFilter;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.appwork.app.gui.MigPanel;
 import org.appwork.app.gui.copycutpaste.CopyAction;
 import org.appwork.app.gui.copycutpaste.CutAction;
 import org.appwork.app.gui.copycutpaste.DeleteAction;
 import org.appwork.app.gui.copycutpaste.PasteAction;
 import org.appwork.app.gui.copycutpaste.SelectAction;
 import org.appwork.storage.JSonStorage;
+import org.appwork.swing.MigPanel;
 import org.appwork.swing.components.ExtButton;
 import org.appwork.swing.components.ExtTextField;
 import org.appwork.swing.components.searchcombo.SearchComboBox;

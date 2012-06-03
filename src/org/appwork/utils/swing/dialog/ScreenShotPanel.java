@@ -12,7 +12,7 @@ package org.appwork.utils.swing.dialog;
 import java.awt.Graphics;
 import java.awt.Image;
 
-import org.appwork.app.gui.MigPanel;
+import org.appwork.swing.MigPanel;
 
 /**
  * @author thomas

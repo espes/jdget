@@ -1,4 +1,4 @@
-package org.appwork.app.gui;
+package org.appwork.swing;
 
 import javax.swing.JPanel;
 

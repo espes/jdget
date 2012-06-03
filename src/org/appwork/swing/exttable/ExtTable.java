@@ -51,10 +51,10 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
 import org.appwork.scheduler.DelayedRunnable;
 import org.appwork.storage.Storage;
+import org.appwork.swing.MigPanel;
 import org.appwork.swing.components.tooltips.ExtTooltip;
 import org.appwork.swing.components.tooltips.ToolTipController;
 import org.appwork.swing.components.tooltips.ToolTipHandler;

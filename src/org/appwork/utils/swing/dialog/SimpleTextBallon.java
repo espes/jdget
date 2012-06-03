@@ -16,8 +16,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
-import org.appwork.app.gui.MigPanel;
 import org.appwork.resources.AWUTheme;
+import org.appwork.swing.MigPanel;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.SwingUtils;
