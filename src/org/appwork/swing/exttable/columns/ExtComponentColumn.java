@@ -88,7 +88,6 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
 
     @Override
     public JComponent getEditorComponent(final T value, final boolean isSelected, final int row, final int column) {
-
         return this.getInternalEditorComponent(value, isSelected, row, column);
     }
 

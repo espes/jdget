@@ -25,23 +25,16 @@ public class RendererMigPanel extends MigPanel {
      */
     private static final long serialVersionUID = 1L;
 
+    protected boolean         _enabled         = true;
+
     /**
      * @param constraints
      * @param columns
      * @param rows
      */
     public RendererMigPanel(final String constraints, final String columns, final String rows) {
-        super(constraints, columns, rows); 
+        super(constraints, columns, rows);
 
-    }
-
-    /**
-     * Has to return false to avoid a drag&Drop cursor flicker bug <vr>
-     * http://bugs.sun.com/view_bug.do?bug_id=6700748
-     */
-    @Override
-    public boolean isVisible() {
-        return false;
     }
 
     // /**
@@ -53,11 +46,26 @@ public class RendererMigPanel extends MigPanel {
     // /* we dont need propertychange events */
     // }
 
+    @Override
+    public boolean isEnabled() {
+        return this._enabled;
+    }
+
+    /**
+     * Has to return false to avoid a drag&Drop cursor flicker bug <vr>
+     * http://bugs.sun.com/view_bug.do?bug_id=6700748
+     */
+    @Override
+    public boolean isVisible() {
+        return false;
+    }
+
     /**
      * * Overridden for performance reasons.
      */
     @Override
     public void repaint() {
+
     }
 
     /**
@@ -65,6 +73,7 @@ public class RendererMigPanel extends MigPanel {
      */
     @Override
     public void repaint(final long tm, final int x, final int y, final int width, final int height) {
+
     }
 
     /**
@@ -72,6 +81,7 @@ public class RendererMigPanel extends MigPanel {
      */
     @Override
     public void repaint(final Rectangle r) {
+
     }
 
     /**
@@ -79,12 +89,7 @@ public class RendererMigPanel extends MigPanel {
      */
     @Override
     public void revalidate() {
-    }
 
-    protected boolean _enabled = true;
-
-    public boolean isEnabled() {
-        return _enabled;
     }
 
     @Override
@@ -94,4 +99,5 @@ public class RendererMigPanel extends MigPanel {
             c.setEnabled(enabled);
         }
     }
+
 }
