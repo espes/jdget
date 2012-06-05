@@ -587,7 +587,7 @@ public class Subversion implements ISVNEventHandler {
             final int delimStart = txt.indexOf(delim, mineStart);
             final int theirsEnd = txt.indexOf(theirs, delimStart + delim.length());
             int end = theirsEnd + theirs.length();
-            while (txt.charAt(end) != '\r' && txt.charAt(end) != '\n') {
+            while (end<txt.length()&&txt.charAt(end) != '\r' && txt.charAt(end) != '\n') {
                 end++;
             }
 
