@@ -57,79 +57,15 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     protected final JsonKeyValueStorage    primitiveStorage;
     private boolean                        crypted;
+
     private byte[]                         key                  = JSonStorage.KEY;
     private File                           path;
     private ConfigEventSender<Object>      eventSender;
     private String                         relativCPPath;
-
     // set externaly to start profiling
     public static HashMap<String, Long>    PROFILER_MAP         = null;
+
     public static HashMap<String, Long>    PROFILER_CALLNUM_MAP = null;
-
-    /**
-     * @param path2
-     * @param configInterface2
-     * @throws URISyntaxException
-     */
-    public StorageHandler(String classPath, final Class<T> configInterface) throws URISyntaxException {
-        this.configInterface = configInterface;
-        this.eventSender = new ConfigEventSender<Object>();
-
-        this.relativCPPath = classPath;
-        this.path = Application.getResource(classPath);
-
-        if (path.getName().endsWith(".json") || path.getName().endsWith(".ejs")) {
-            Log.L.warning(classPath + " should not have an extension!!");
-        }
-        final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
-        if (crypted != null) {
-            this.crypted = true;
-            if (crypted.key() != null) {
-                path = new File(Application.class.getClassLoader().getResource(classPath + ".ejs").toURI());
-                this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath + ".ejs"), Application.class.getClassLoader().getResource(classPath + ".ejs"), false, crypted.key());
-
-                this.key = crypted.key();
-                if (this.key.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + configInterface + " is invalid"); }
-
-            } else {
-                path = new File(Application.class.getClassLoader().getResource(classPath + ".ejs").toURI());
-                this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath + ".ejs"), Application.class.getClassLoader().getResource(classPath + ".ejs"), false, this.key = JSonStorage.KEY);
-
-            }
-        } else {
-            this.crypted = false;
-            this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath + ".json"), Application.class.getClassLoader().getResource(classPath + ".json"), true, null);
-        }
-
-        try {
-            this.parseInterface();
-        } catch (final Throwable e) {
-            throw new InterfaceParseException(e);
-        }
-        Log.L.finer("Load Storage: " + path);
-        ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
-
-            @Override
-            public int getHookPriority() {
-                return 0;
-            }
-
-            @Override
-            public void run() {
-                StorageHandler.this.primitiveStorage.save();
-            }
-
-            @Override
-            public String toString() {
-                return "Save " + StorageHandler.this.path + "[" + configInterface.getName() + "]";
-            }
-        });
-
-    }
-
-    public String getRelativCPPath() {
-        return relativCPPath;
-    }
 
     /**
      * @param name
@@ -164,12 +100,73 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
         try {
             this.parseInterface();
-        } catch (InterfaceParseException e) {
+        } catch (final InterfaceParseException e) {
             throw e;
         } catch (final Throwable e) {
             throw new InterfaceParseException(e);
         }
-        Log.L.finer("Load Storage: " + path);
+        Log.L.finer("Load Storage: " + this.path);
+        ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
+
+            @Override
+            public int getHookPriority() {
+                return 0;
+            }
+
+            @Override
+            public void run() {
+                StorageHandler.this.primitiveStorage.save();
+            }
+
+            @Override
+            public String toString() {
+                return "Save " + StorageHandler.this.path + "[" + configInterface.getName() + "]";
+            }
+        });
+
+    }
+
+    /**
+     * @param path2
+     * @param configInterface2
+     * @throws URISyntaxException
+     */
+    public StorageHandler(final String classPath, final Class<T> configInterface) throws URISyntaxException {
+        this.configInterface = configInterface;
+        this.eventSender = new ConfigEventSender<Object>();
+
+        this.relativCPPath = classPath;
+        this.path = Application.getResource(classPath);
+
+        if (this.path.getName().endsWith(".json") || this.path.getName().endsWith(".ejs")) {
+            Log.L.warning(classPath + " should not have an extension!!");
+        }
+        final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
+        if (crypted != null) {
+            this.crypted = true;
+            if (crypted.key() != null) {
+                this.path = new File(Application.class.getClassLoader().getResource(classPath + ".ejs").toURI());
+                this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath + ".ejs"), Application.class.getClassLoader().getResource(classPath + ".ejs"), false, crypted.key());
+
+                this.key = crypted.key();
+                if (this.key.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + configInterface + " is invalid"); }
+
+            } else {
+                this.path = new File(Application.class.getClassLoader().getResource(classPath + ".ejs").toURI());
+                this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath + ".ejs"), Application.class.getClassLoader().getResource(classPath + ".ejs"), false, this.key = JSonStorage.KEY);
+
+            }
+        } else {
+            this.crypted = false;
+            this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath + ".json"), Application.class.getClassLoader().getResource(classPath + ".json"), true, null);
+        }
+
+        try {
+            this.parseInterface();
+        } catch (final Throwable e) {
+            throw new InterfaceParseException(e);
+        }
+        Log.L.finer("Load Storage: " + this.path);
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
 
             @Override
@@ -357,6 +354,21 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         }
     }
 
+    /**
+     * @param e
+     */
+    private void error(final Throwable e) {
+        new Thread("ERROR THROWER") {
+            @Override
+            public void run() {
+                Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
+            }
+        }.start();
+        // we could throw the exception here, but this would kill the whole
+        // interface. So we just show a a dialog for the developer and let the
+        // rest of the interface work.
+    }
+
     protected void fireEvent(final ConfigEvent.Types type, final KeyHandler<?> keyHandler, final Object parameter) {
         this.eventSender.fireEvent(new ConfigEvent(type, keyHandler, parameter));
     }
@@ -486,6 +498,14 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.primitiveStorage.get(key, def);
     }
 
+    public JsonKeyValueStorage getPrimitiveStorage() {
+        return this.primitiveStorage;
+    }
+
+    public String getRelativCPPath() {
+        return this.relativCPPath;
+    }
+
     /**
      * @throws NullPointerException
      *             if there is no keyhandler for key
@@ -583,13 +603,13 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     // later config file
                     if (keyGetterMap.containsKey(key)) {
 
-                        error(new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.get(key) + "<-->" + m));
+                        this.error(new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.get(key) + "<-->" + m));
                         continue;
                     }
                     keyGetterMap.put(key, m);
                     if (m.getParameterTypes().length > 0) {
 
-                        error(new InterfaceParseException("Getter " + m + " has parameters."));
+                        this.error(new InterfaceParseException("Getter " + m + " has parameters."));
                         keyGetterMap.remove(key);
                         continue;
                     }
@@ -608,7 +628,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         }
                         if (!found) {
 
-                            error(new InterfaceParseException(e));
+                            this.error(new InterfaceParseException(e));
                             keyGetterMap.remove(key);
                             continue;
                         }
@@ -632,21 +652,21 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     // the
                     // later config file
                     if (keyGetterMap.containsKey(key)) {
-                        error(new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.get(key) + "<-->" + m));
+                        this.error(new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.get(key) + "<-->" + m));
                         continue;
 
                     }
                     keyGetterMap.put(key, m);
                     if (m.getParameterTypes().length > 0) {
 
-                        error(new InterfaceParseException("Getter " + m + " has parameters."));
+                        this.error(new InterfaceParseException("Getter " + m + " has parameters."));
                         keyGetterMap.remove(key);
                         continue;
                     }
                     try {
                         JSonStorage.canStore(m.getGenericReturnType());
                     } catch (final InvalidTypeException e) {
-                        error(new InterfaceParseException(e));
+                        this.error(new InterfaceParseException(e));
                         keyGetterMap.remove(key);
                         continue;
                     }
@@ -664,19 +684,19 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     key = m.getName().substring(3).toLowerCase(Locale.ENGLISH);
                     if (keySetterMap.containsKey(key)) {
 
-                        error(new InterfaceParseException("Key " + key + " Dupe found! " + keySetterMap.get(key) + "<-->" + m));
+                        this.error(new InterfaceParseException("Key " + key + " Dupe found! " + keySetterMap.get(key) + "<-->" + m));
                         continue;
 
                     }
                     keySetterMap.put(key, m);
                     if (m.getParameterTypes().length != 1) {
-                        error(new InterfaceParseException("Setter " + m + " has !=1 parameters."));
+                        this.error(new InterfaceParseException("Setter " + m + " has !=1 parameters."));
                         keySetterMap.remove(key);
                         continue;
 
                     }
                     if (m.getReturnType() != void.class) {
-                        error(new InterfaceParseException("Setter " + m + " has a returntype != void"));
+                        this.error(new InterfaceParseException("Setter " + m + " has a returntype != void"));
                         keySetterMap.remove(key);
                         continue;
                     }
@@ -695,7 +715,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         }
                         if (!found) {
 
-                            error(new InterfaceParseException(e));
+                            this.error(new InterfaceParseException(e));
                             keySetterMap.remove(key);
                             continue;
 
@@ -714,7 +734,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
                 } else {
 
-                    error(new InterfaceParseException("Only getter and setter allowed:" + m));
+                    this.error(new InterfaceParseException("Only getter and setter allowed:" + m));
                     continue;
                 }
             }
@@ -725,13 +745,13 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
         }
 
-        ArrayList<Method> methodsToRemove = new ArrayList<Method>();
+        final ArrayList<Method> methodsToRemove = new ArrayList<Method>();
         for (final KeyHandler<?> kh : this.methodMap.values()) {
             try {
                 kh.init();
-            } catch (Throwable e) {
-                error(e);
-                keyHandlerMap.remove(kh.getKey());
+            } catch (final Throwable e) {
+                this.error(e);
+                this.keyHandlerMap.remove(kh.getKey());
                 if (kh.getGetter() != null) {
                     methodsToRemove.add(kh.getGetter().getMethod());
 
@@ -742,23 +762,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
             }
         }
-        for (Method m : methodsToRemove) {
-            methodMap.remove(m);
+        for (final Method m : methodsToRemove) {
+            this.methodMap.remove(m);
         }
-    }
-
-    /**
-     * @param e
-     */
-    private void error(final Throwable e) {
-        new Thread("ERROR THROWER") {
-            public void run() {
-                Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
-            }
-        }.start();
-        // we could throw the exception here, but this would kill the whole
-        // interface. So we just show a a dialog for the developer and let the
-        // rest of the interface work.
     }
 
     /**

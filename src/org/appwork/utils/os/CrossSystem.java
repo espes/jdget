@@ -48,6 +48,7 @@ import org.appwork.utils.swing.dialog.DialogNoAnswerException;
  */
 
 public class CrossSystem {
+
     public static final byte      OS_LINUX_OTHER         = 6;
     public static final byte      OS_MAC_OTHER           = 5;
     public static final byte      OS_WINDOWS_OTHER       = 4;
@@ -58,6 +59,7 @@ public class CrossSystem {
     public static final byte      OS_WINDOWS_VISTA       = 1;
     public static final byte      OS_WINDOWS_7           = 8;
     public static final byte      OS_WINDOWS_SERVER_2008 = 9;
+    public static final byte      OS_WINDOWS_8           = 10;
 
     private static String         JAVAINT                = null;
     private static DesktopSupport desktopSupport         = null;
@@ -237,7 +239,9 @@ public class CrossSystem {
             return CrossSystem.OS_WINDOWS_7;
         }
         final String OS = osString.toLowerCase();
-        if (OS.contains("windows 7")) {
+        if (OS.contains("windows 8")) {
+            return CrossSystem.OS_WINDOWS_8;
+        } else if (OS.contains("windows 7")) {
             return CrossSystem.OS_WINDOWS_7;
         } else if (OS.contains("windows xp")) {
             return CrossSystem.OS_WINDOWS_XP;
@@ -339,6 +343,7 @@ public class CrossSystem {
      */
     public static boolean isWindows(final byte osId) {
         switch (osId) {
+        case OS_WINDOWS_8:
         case OS_WINDOWS_XP:
         case OS_WINDOWS_VISTA:
         case OS_WINDOWS_2000:
@@ -379,16 +384,16 @@ public class CrossSystem {
      * 
      * @see java.awt.Desktop#open(File)
      * @param file
-     * @throws IOException 
+     * @throws IOException
      */
-    public static void openFile(final File file){
-   
-            try {
-                CrossSystem._openFILE(file);
-            } catch (IOException e) {
-               Log.exception(e);
-            }
-       
+    public static void openFile(final File file) {
+
+        try {
+            CrossSystem._openFILE(file);
+        } catch (final IOException e) {
+            Log.exception(e);
+        }
+
     }
 
     /**
