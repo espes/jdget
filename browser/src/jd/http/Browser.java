@@ -1007,6 +1007,22 @@ public class Browser {
         return null;
     }
 
+    /**
+     * Returns the first form that has a 'key' that equals 'value'.
+     * 
+     * NOTE: JDownloader 2 dependent
+     * 
+     * @param key
+     * @param value
+     * @return
+     */
+    public Form getFormbyKey(final String key, final String value) {
+        for (final Form f : this.getForms()) {
+            if (f.hasInputFieldByName(key) == f.getVarsMap().containsValue(value)) { return f; }
+        }
+        return null;
+    }
+    
     public Form getFormbyProperty(final String property, final String name) {
         for (final Form form : this.getForms()) {
             if (form.getStringProperty(property) != null && form.getStringProperty(property).equalsIgnoreCase(name)) { return form; }
