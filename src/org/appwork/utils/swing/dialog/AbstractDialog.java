@@ -115,12 +115,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.cancelOption = cancelOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
     }
 
-    public boolean isHiddenByDontShowAgain() {
-        if (dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) { return false; }
-        final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
-        return i >= 0;
-    }
-
     /**
      * this function will init and show the dialog
      */
@@ -192,31 +186,31 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // Dispose dialog on close
             this.getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
             this.getDialog().addWindowListener(this);
-            defaultButton = new FocusListener() {
+            this.defaultButton = new FocusListener() {
 
                 @Override
-                public void focusLost(FocusEvent e) {
-
-                    final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
-                    if (root != null) {
-                        root.setDefaultButton(null);
-                    }
-                }
-
-                @Override
-                public void focusGained(FocusEvent e) {
+                public void focusGained(final FocusEvent e) {
 
                     final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
                     if (root != null && e.getComponent() instanceof JButton) {
                         root.setDefaultButton((JButton) e.getComponent());
                     }
                 }
+
+                @Override
+                public void focusLost(final FocusEvent e) {
+
+                    final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
+                    if (root != null) {
+                        root.setDefaultButton(null);
+                    }
+                }
             };
             // create panel for the dialog's buttons
             this.okButton = new JButton(this.okOption);
             this.cancelButton = new JButton(this.cancelOption);
-            cancelButton.addFocusListener(defaultButton);
-            okButton.addFocusListener(defaultButton);
+            this.cancelButton.addFocusListener(this.defaultButton);
+            this.okButton.addFocusListener(this.defaultButton);
             this.defaultButtons = this.getDefaultButtonPanel();
 
             /*
@@ -232,7 +226,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // add icon if available
             if (this.icon != null) {
                 this.getDialog().setLayout(new MigLayout("ins 5,wrap 2", "[][grow,fill]", "[grow,fill][]"));
-                this.getDialog().add(getIconComponent(), getIconConstraints());
+                this.getDialog().add(this.getIconComponent(), this.getIconConstraints());
             } else {
                 this.getDialog().setLayout(new MigLayout("ins 5,wrap 1", "[grow,fill]", "[grow,fill][]"));
             }
@@ -242,13 +236,13 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             this.getDialog().add(this.panel, "");
 
             // add the countdown timer
-            final MigPanel bottom = createBottomPanel();
+            final MigPanel bottom = this.createBottomPanel();
             bottom.setOpaque(false);
 
             bottom.add(this.timerLbl);
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
-                this.dontshowagain = new JCheckBox(getDontShowAgainLabelText());
+                this.dontshowagain = new JCheckBox(this.getDontShowAgainLabelText());
                 this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
                 this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
                 this.dontshowagain.setSelected(this.doNotShowAgainSelected);
@@ -321,7 +315,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // if (this.getDesiredSize() != null) {
             // this.setSize(this.getDesiredSize());
             // }
-            Point forcedLocation = getForcedLocation();
+            final Point forcedLocation = this.getForcedLocation();
             if (forcedLocation != null) {
                 this.getDialog().setLocation(forcedLocation);
             } else {
@@ -336,7 +330,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
                     this.getDialog().setLocation(new Point((int) (screenSize.getWidth() - this.getDialog().getWidth() - 20), (int) (screenSize.getHeight() - this.getDialog().getHeight() - 60)));
                 } else {
-                    this.getDialog().setLocation(getDesiredLocation());
+                    this.getDialog().setLocation(this.getDesiredLocation());
                 }
             }
             // register an escape listener to cancel the dialog
@@ -385,55 +379,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         }
     }
 
-    /**
-     * @return
-     */
-    protected Point getForcedLocation() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @return
-     */
-    protected MigPanel createBottomPanel() {
-        // TODO Auto-generated method stub
-        return new MigPanel("ins 0", "[]20[grow,fill][]", "[]");
-    }
-
-    /**
-     * @return
-     */
-    protected String getDontShowAgainLabelText() {
-
-        return _AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN();
-    }
-
-    /**
-     * @return
-     */
-    protected Point getDesiredLocation() {
-
-        return SwingUtils.getCenter(this.getDialog().getParent(), this.getDialog());
-    }
-
-    /**
-     * @return
-     */
-    protected JComponent getIconComponent() {
-        this.iconLabel = new JLabel(this.icon);
-        // iconLabel.setVerticalAlignment(JLabel.TOP);
-        return iconLabel;
-    }
-
-    /**
-     * @return
-     */
-    protected String getIconConstraints() {
-        // TODO Auto-generated method stub
-        return "gapright 10,gaptop 2";
-    }
-
     public void actionPerformed(final ActionEvent e) {
 
         if (e.getSource() == this.okButton) {
@@ -459,6 +404,22 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      **/
     public boolean closeAllowed() {
         return true;
+    }
+
+    /**
+     * @return
+     */
+    protected JPanel createBottomButtonPanel() {
+        // TODO Auto-generated method stub
+        return new JPanel(new MigLayout("ins 0", "[]", "0[]0"));
+    }
+
+    /**
+     * @return
+     */
+    protected MigPanel createBottomPanel() {
+        // TODO Auto-generated method stub
+        return new MigPanel("ins 0", "[]20[grow,fill][]", "[]");
     }
 
     protected abstract T createReturnValue();
@@ -497,7 +458,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @return
      */
     protected JPanel getDefaultButtonPanel() {
-        final JPanel ret = createBottomButtonPanel();
+        final JPanel ret = this.createBottomButtonPanel();
         if (this.actions != null) {
             for (final AbstractAction a : this.actions) {
                 String tag = (String) a.getValue("tag");
@@ -506,7 +467,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 }
                 JButton bt;
                 ret.add(bt = new JButton(a), "tag " + tag + ",sizegroup confirms");
-                bt.addFocusListener(defaultButton);
+                bt.addFocusListener(this.defaultButton);
             }
         }
         return ret;
@@ -516,9 +477,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     /**
      * @return
      */
-    protected JPanel createBottomButtonPanel() {
-        // TODO Auto-generated method stub
-        return new JPanel(new MigLayout("ins 0", "[]", "0[]0"));
+    protected Point getDesiredLocation() {
+
+        return SwingUtils.getCenter(this.getDialog().getParent(), this.getDialog());
     }
 
     /**
@@ -532,8 +493,41 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         return "ABSTRACTDIALOG_DONT_SHOW_AGAIN_" + this.getClass().getSimpleName() + "_" + this.toString();
     }
 
+    /**
+     * @return
+     */
+    protected String getDontShowAgainLabelText() {
+
+        return _AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN();
+    }
+
+    /**
+     * @return
+     */
+    protected Point getForcedLocation() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     public ImageIcon getIcon() {
         return this.icon;
+    }
+
+    /**
+     * @return
+     */
+    protected JComponent getIconComponent() {
+        this.iconLabel = new JLabel(this.icon);
+        // iconLabel.setVerticalAlignment(JLabel.TOP);
+        return this.iconLabel;
+    }
+
+    /**
+     * @return
+     */
+    protected String getIconConstraints() {
+        // TODO Auto-generated method stub
+        return "gapright 10,gaptop 2";
     }
 
     /**
@@ -563,6 +557,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             return this.title;
         }
 
+    }
+
+    public boolean isHiddenByDontShowAgain() {
+        if (this.dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) { return false; }
+        final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
+        return i >= 0;
     }
 
     /**
@@ -631,6 +631,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 public void actionPerformed(final ActionEvent e) {
                     Log.L.fine("Answer: Key<ESCAPE>");
                     AbstractDialog.this.setReturnmask(false);
+                    AbstractDialog.this.returnBitMask |= Dialog.RETURN_ESC;
                     AbstractDialog.this.dispose();
                 }
             });

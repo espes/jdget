@@ -25,10 +25,14 @@ public class DialogNoAnswerException extends Exception implements ExceptionDefau
     private static final long serialVersionUID = 1L;
     private final boolean     causedByDontShowAgain;
     private final boolean     causedByTimeout;
+    private final boolean     causedByESC;
+    private final boolean     causedByClosed;
 
     public DialogNoAnswerException(final int mask) {
         this.causedByDontShowAgain = BinaryLogic.containsSome(mask, Dialog.RETURN_SKIPPED_BY_DONT_SHOW);
         this.causedByTimeout = BinaryLogic.containsSome(mask, Dialog.RETURN_TIMEOUT);
+        this.causedByESC = BinaryLogic.containsSome(mask, Dialog.RETURN_ESC);
+        this.causedByClosed = BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED);
         this.setStackTrace(new StackTraceElement[] {});
     }
 
@@ -42,8 +46,16 @@ public class DialogNoAnswerException extends Exception implements ExceptionDefau
         return "DontShowAgain: " + this.causedByDontShowAgain + " Timeout: " + this.causedByTimeout;
     }
 
+    public boolean isCausedByClosed() {
+        return this.causedByClosed;
+    }
+
     public boolean isCausedByDontShowAgain() {
         return this.causedByDontShowAgain;
+    }
+
+    public boolean isCausedbyESC() {
+        return this.causedByESC;
     }
 
     public boolean isCausedByTimeout() {

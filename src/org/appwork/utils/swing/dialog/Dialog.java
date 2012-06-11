@@ -38,16 +38,6 @@ import org.appwork.utils.swing.EDTHelper;
  */
 public class Dialog implements WindowFocusListener {
     /**
-     * 
-     */
-    public static final String LASTSELECTION = "LASTSELECTION_";
-
-    /**
-     * 
-     */
-    public static final String FILECHOOSER = "FILECHOOSER";
-
-    /**
      * Requests a FileChooserDialog.
      * 
      * @param id
@@ -102,6 +92,16 @@ public class Dialog implements WindowFocusListener {
             return this.id;
         }
     }
+
+    /**
+     * 
+     */
+    public static final String  LASTSELECTION                        = "LASTSELECTION_";
+
+    /**
+     * 
+     */
+    public static final String  FILECHOOSER                          = "FILECHOOSER";
 
     static {
 
@@ -215,7 +215,21 @@ public class Dialog implements WindowFocusListener {
      */
     public static final int     RETURN_TIMEOUT                       = 1 << 5;
 
+    /**
+     * If the dialog has been skiped/closed by ESC key
+     */
+    public static final int     RETURN_ESC                           = 1 << 7;
+
     private static boolean      ShellFolderIDWorkaround              = false;
+
+    /**
+     * @return
+     * 
+     */
+    public static Dialog I() {
+        return Dialog.INSTANCE;
+
+    }
 
     public static boolean isClosed(final Object value) {
         if (!(value instanceof Integer)) { return false; }
@@ -228,7 +242,6 @@ public class Dialog implements WindowFocusListener {
     }
 
     private List<? extends Image> iconList                        = null;
-
     /**
      * Do Not use an Icon. By default dialogs have an Icon
      */
@@ -237,6 +250,7 @@ public class Dialog implements WindowFocusListener {
      * Some dialogs are able to render HTML. Use this switch to enable html
      */
     public static final int       STYLE_HTML                      = 1 << 7;
+
     /**
      * Some dialogs are able to layout themselves in a large mode. E:g. to
      * display a huge text.
@@ -633,9 +647,9 @@ public class Dialog implements WindowFocusListener {
 
                         /* preSelection */
                         File preSelection = preSelect;
-                        if (preSelection == null && JSonStorage.getStorage(FILECHOOSER).get(LASTSELECTION + id, (String) null) != null) {
-                            preSelection = new File(JSonStorage.getStorage(FILECHOOSER).get(LASTSELECTION + id, (String) null));
-                            Log.L.info("Preselection: " + id + ": " + JSonStorage.getStorage(FILECHOOSER).get(LASTSELECTION + id, (String) null));
+                        if (preSelection == null && JSonStorage.getStorage(Dialog.FILECHOOSER).get(Dialog.LASTSELECTION + id, (String) null) != null) {
+                            preSelection = new File(JSonStorage.getStorage(Dialog.FILECHOOSER).get(Dialog.LASTSELECTION + id, (String) null));
+                            Log.L.info("Preselection: " + id + ": " + JSonStorage.getStorage(Dialog.FILECHOOSER).get(Dialog.LASTSELECTION + id, (String) null));
                         } else {
                             Log.L.info("Given Preselection: " + preSelection);
                         }
@@ -678,7 +692,7 @@ public class Dialog implements WindowFocusListener {
                             case JFileChooser.APPROVE_OPTION:
                                 if (multiSelection) {
                                     final ArrayList<File> rets = new ArrayList<File>();
-                                    File[] sfiles = fc.getSelectedFiles();
+                                    final File[] sfiles = fc.getSelectedFiles();
                                     File sfile = fc.getSelectedFile();
                                     for (File ret : sfiles) {
                                         ret = Dialog.this.validateFileType(ret, fileSelectionMode.getId(), false);
@@ -686,8 +700,8 @@ public class Dialog implements WindowFocusListener {
                                             rets.add(ret);
                                         }
                                     }
-                                    
-                                    if(rets.size()==0){
+
+                                    if (rets.size() == 0) {
                                         sfile = Dialog.this.validateFileType(sfile, fileSelectionMode.getId(), false);
                                         if (sfile != null) {
                                             rets.add(sfile);
@@ -698,7 +712,7 @@ public class Dialog implements WindowFocusListener {
                                         final File[] files = rets.toArray(new File[rets.size()]);
                                         final File first = files[0];
                                         if (first != null) {
-                                            JSonStorage.getStorage(FILECHOOSER).put(LASTSELECTION + id, first.getAbsolutePath());
+                                            JSonStorage.getStorage(Dialog.FILECHOOSER).put(Dialog.LASTSELECTION + id, first.getAbsolutePath());
                                         }
                                         return files;
                                     } else {
@@ -713,7 +727,7 @@ public class Dialog implements WindowFocusListener {
                                  */
                                 ret = Dialog.this.validateFileType(ret, fileSelectionMode.getId(), false);
                                 if (ret != null) {
-                                    JSonStorage.getStorage(FILECHOOSER).put(LASTSELECTION + id, ret.getAbsolutePath());
+                                    JSonStorage.getStorage(Dialog.FILECHOOSER).put(Dialog.LASTSELECTION + id, ret.getAbsolutePath());
                                     return new File[] { ret };
                                 } else {
                                     return null;
@@ -729,7 +743,7 @@ public class Dialog implements WindowFocusListener {
                                  */
                                 ret = Dialog.this.validateFileType(ret, fileSelectionMode.getId(), true);
                                 if (ret != null) {
-                                    JSonStorage.getStorage(FILECHOOSER).put(LASTSELECTION + id, ret.getAbsolutePath());
+                                    JSonStorage.getStorage(Dialog.FILECHOOSER).put(Dialog.LASTSELECTION + id, ret.getAbsolutePath());
                                     return new File[] { ret };
                                 } else {
                                     return null;
@@ -1110,15 +1124,6 @@ public class Dialog implements WindowFocusListener {
     public void windowLostFocus(final WindowEvent e) {
         // TODO Auto-generated method stub
 
-    }
-
-    /**
-     * @return 
-     * 
-     */
-    public static Dialog I() {
-      return INSTANCE;
-        
     }
 
 }
