@@ -383,6 +383,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     protected String getRequestInfo() {
         final StringBuilder sb = new StringBuilder();
         sb.append("-->Host:").append(this.getURL().getHost()).append("\r\n");
+        sb.append("-->Url:").append(this.getURL()).append("\r\n");
         if (this.connectedInetSocketAddress != null && this.connectedInetSocketAddress.getAddress() != null) {
             sb.append("-->HostIP:").append(this.connectedInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
         }
@@ -390,19 +391,22 @@ public class HTTPConnectionImpl implements HTTPConnection {
             sb.append("-->LocalIP:").append(this.proxyInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
         }
         sb.append("----------------Request-------------------------\r\n");
+        if (this.isConnected()) {
+            sb.append(this.httpMethod.toString()).append(' ').append(this.httpPath).append(" HTTP/1.1\r\n");
 
-        sb.append(this.httpMethod.toString()).append(' ').append(this.httpPath).append(" HTTP/1.1\r\n");
-
-        final Iterator<Entry<String, String>> it = this.getRequestProperties().entrySet().iterator();
-        while (it.hasNext()) {
-            final Entry<String, String> next = it.next();
-            if (next.getValue() == null) {
-                continue;
+            final Iterator<Entry<String, String>> it = this.getRequestProperties().entrySet().iterator();
+            while (it.hasNext()) {
+                final Entry<String, String> next = it.next();
+                if (next.getValue() == null) {
+                    continue;
+                }
+                sb.append(next.getKey());
+                sb.append(": ");
+                sb.append(next.getValue());
+                sb.append("\r\n");
             }
-            sb.append(next.getKey());
-            sb.append(": ");
-            sb.append(next.getValue());
-            sb.append("\r\n");
+        } else {
+            sb.append("-------------not connected yet------------------\r\n");
         }
         return sb.toString();
     }
