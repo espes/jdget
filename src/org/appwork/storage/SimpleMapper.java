@@ -36,7 +36,6 @@ public class SimpleMapper implements JSONMapper {
      */
     @Override
     public String objectToString(final Object o) throws JSonMapperException {
-
         try {
             return this.mapper.create(o).toString();
         } catch (final MapperException e) {
@@ -58,7 +57,7 @@ public class SimpleMapper implements JSONMapper {
             return (T) this.mapper.jsonToObject(new JSonFactory(jsonString).parse(), clazz);
         } catch (final ParserException e) {
             throw new JSonMapperException(e);
-        } catch (MapperException e) {
+        } catch (final MapperException e) {
             throw new JSonMapperException(e);
         }
 
@@ -71,14 +70,14 @@ public class SimpleMapper implements JSONMapper {
      * org.appwork.storage.TypeRef)
      */
     @Override
-    public <T> T stringToObject( String jsonString, final TypeRef<T> type) throws JSonMapperException {
+    public <T> T stringToObject(final String jsonString, final TypeRef<T> type) throws JSonMapperException {
         try {
-           
+
             return this.mapper.jsonToObject(new JSonFactory(jsonString).parse(), type);
         } catch (final ParserException e) {
             throw new JSonMapperException(e);
 
-        } catch (MapperException e) {
+        } catch (final MapperException e) {
             throw new JSonMapperException(e);
         }
     }

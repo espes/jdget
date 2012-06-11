@@ -10,9 +10,13 @@
 package org.appwork.utils.swing;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.beans.PropertyChangeListener;
 
+import javax.swing.Action;
+import javax.swing.TransferHandler;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.JTextComponent;
@@ -43,6 +47,53 @@ public class HelpNotifier implements FocusListener, CaretListener {
         this.caretUpdate(null);
         this.field.addCaretListener(this);
         this.field.addFocusListener(this);
+        this.field.getActionMap().put("paste", new Action() {
+
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+                if (field.getText().equals(HelpNotifier.this.infoTxt)) {
+                    field.setText("");
+                    field.setForeground(HelpNotifier.this.defaultColor);
+                }
+                TransferHandler.getPasteAction().actionPerformed(e);
+            }
+
+            @Override
+            public void addPropertyChangeListener(final PropertyChangeListener listener) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public Object getValue(final String key) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return TransferHandler.getPasteAction().isEnabled();
+            }
+
+            @Override
+            public void putValue(final String key, final Object value) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void removePropertyChangeListener(final PropertyChangeListener listener) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void setEnabled(final boolean b) {
+                // TODO Auto-generated method stub
+
+            }
+
+        });
     }
 
     public void caretUpdate(final CaretEvent arg0) {

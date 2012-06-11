@@ -59,7 +59,6 @@ public class ImageProvider {
     // stringbuilder die concat strings fast
 
     static {
-
         /* we dont want images to get cached on disk */
         ImageIO.setUseCache(false);
     }
@@ -386,10 +385,9 @@ public class ImageProvider {
         g2.drawImage(back, xoffsetBack, yoffsetBack, null);
         g2.drawImage(front, xoffsetFront, yoffsetFront, null);
         g2.setColor(Color.RED);
-       
+
         g2.dispose();
-        
-        
+
         return dest;
     }
 
