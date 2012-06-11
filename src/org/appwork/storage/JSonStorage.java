@@ -18,9 +18,7 @@ import org.appwork.utils.Regex;
 import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.reflection.Clazz;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
+
 
 import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
@@ -307,8 +305,6 @@ public class JSonStorage {
      * @param string
      * @param class1
      * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
      */
     public static <T> T restoreFromString(final String string, final Class<T> class1) throws StorageException {
         synchronized (JSonStorage.LOCK) {
@@ -366,9 +362,9 @@ public class JSonStorage {
                 }
             }
         } catch (final Exception e) {
-            Log.L.warning("Error parsing String: "+string);
+            Log.L.warning("Error parsing String: " + string);
             Log.exception(Level.WARNING, e);
-        
+
             return def;
         }
     }

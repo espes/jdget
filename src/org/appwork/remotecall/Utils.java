@@ -27,10 +27,6 @@ import org.codehaus.jackson.map.JsonMappingException;
  */
 public class Utils {
 
-
-
- 
-
     /**
      * @param m
      * @return
@@ -80,27 +76,22 @@ public class Utils {
      * @param types
      * @return
      * @throws IOException
-     * @throws JsonMappingException
-     * @throws JsonParseException
      */
-    public  static Object convert(final Object obj, Type type) throws JsonParseException, JsonMappingException, IOException {
-   
-        if(Clazz.isPrimitive(type)){
-            if(Clazz.isByte(type)){
-                return ((Number)obj).byteValue();
-            }else if(Clazz.isDouble(type)){
-                return ((Number)obj).doubleValue();
-            }else if(Clazz.isFloat(type)){
-                return ((Number)obj).floatValue();
-            }else if(Clazz.isLong(type)){
-                return ((Number)obj).longValue();
-            }else if(Clazz.isInteger(type)){
-                return ((Number)obj).intValue();
-            }
-            
+    public static Object convert(final Object obj, Type type) throws IOException {
+
+        if (Clazz.isPrimitive(type)) {
+            if (Clazz.isByte(type)) {
+                return ((Number) obj).byteValue();
+            } else if (Clazz.isDouble(type)) {
+                return ((Number) obj).doubleValue();
+            } else if (Clazz.isFloat(type)) {
+                return ((Number) obj).floatValue();
+            } else if (Clazz.isLong(type)) {
+                return ((Number) obj).longValue();
+            } else if (Clazz.isInteger(type)) { return ((Number) obj).intValue(); }
+
         }
         return obj;
-        
 
     }
 

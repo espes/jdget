@@ -16,8 +16,7 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.storage.SimpleMapper;
 import org.appwork.storage.Storable;
 import org.appwork.storage.simplejson.Ignores;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
+
 
 /**
  * @author thomas
@@ -59,7 +58,7 @@ public class ExceptionWrapper implements Storable {
         this.name = e.getClass().getName();
     }
 
-    public Throwable deserialiseException() throws ClassNotFoundException, JsonParseException, JsonMappingException, IOException {
+    public Throwable deserialiseException() throws ClassNotFoundException, IOException {
         // tries to cast to the correct exception
         final Class<?> clazz = Class.forName(this.name);
         if (_exception != null) {
