@@ -82,10 +82,11 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
                     throw new InterfaceParseException("Json Serialize not possible for " + m);
                 }
                 for (Class<?> e : m.getExceptionTypes()) {
-                    if (!RemoteCallException.class.isAssignableFrom(e)) { 
+                    if (!RemoteCallException.class.isAssignableFrom(e)) {
                         //
-                        
-                        throw new InterfaceParseException(m + " exceptions do not extend RemoteCallException"); }
+
+                        throw new InterfaceParseException(m + " exceptions do not extend RemoteCallException");
+                    }
                     try {
                         e.getConstructors();
 
@@ -107,20 +108,22 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
 
     public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
 
-        String returnValue;
+        Object returnValue;
         Object obj;
 
         try {
 
-            returnValue = this.client.call(this.name, method.getName(), args);
+            returnValue = this.client.call(this.name, method, args);
 
             if (Clazz.isVoid(method.getGenericReturnType())) {
                 return null;
+            } else if (returnValue instanceof byte[] && Clazz.isByteArray(method.getGenericReturnType())) {
+                return returnValue;
             } else {
                 TypeRef<Object> tr = new TypeRef<Object>(method.getGenericReturnType()) {
                 };
 
-                obj = JSonStorage.restoreFromString(returnValue, tr, null);
+                obj = JSonStorage.restoreFromString((String) returnValue, tr, null);
                 return Utils.convert(obj, tr.getType());
             }
 

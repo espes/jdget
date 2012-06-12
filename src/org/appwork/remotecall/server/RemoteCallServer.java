@@ -36,7 +36,7 @@ public class RemoteCallServer {
      * @return
      * @throws ServerInvokationException
      */
-    protected String handleRequest(final Requestor requestor, final String clazz, final String method, final String[] parameters) throws ServerInvokationException {
+    protected Object handleRequestReturnData(final Requestor requestor, final String clazz, final String method, final String[] parameters) throws ServerInvokationException {
         try {
             final RemoteCallServiceWrapper service = this.servicesMap.get(new String(clazz));
             if (service == null) { //
@@ -78,10 +78,10 @@ public class RemoteCallServer {
             Object answer;
 
             answer = service.call(m.getMethod(), params);
-            return JSonStorage.serializeToJson(answer);
+            return answer;
 
         } catch (final InvocationTargetException e1) {
-      
+
             final Throwable cause = e1.getCause();
             if (cause != null) {
                 if (cause instanceof ResponseAlreadySentException) { throw (ResponseAlreadySentException) cause; }
@@ -95,6 +95,12 @@ public class RemoteCallServer {
         } catch (final Throwable e) {
             throw new ServerInvokationException(this.handleRequestError(requestor, e), requestor);
         }
+
+    }
+
+    protected String handleRequest(final Requestor requestor, final String clazz, final String method, final String[] parameters) throws ServerInvokationException {
+
+        return JSonStorage.serializeToJson(handleRequestReturnData(requestor, clazz, method, parameters));
 
     }
 

@@ -1,6 +1,7 @@
 package org.appwork.remotecall.client;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 
 import org.appwork.remotecall.Utils;
 import org.appwork.remotecall.server.ServerInvokationException;
@@ -15,10 +16,16 @@ public abstract class RemoteCallClient {
 
     }
 
-    public String call(final String serviceName, final String routine, final Object[] args) throws ServerInvokationException {
-
+    
+    /**
+     * @param name
+     * @param method
+     * @param args
+     * @return
+     */
+    public Object call(String serviceName, Method method, Object[] args)  throws ServerInvokationException {
         try {
-            return send(serviceName, routine, Utils.serialise(args));
+            return send(serviceName, method, Utils.serialise(args));
         } catch (final SerialiseException e) {
             throw new RuntimeException(e);
         } catch (UnsupportedEncodingException e) {
@@ -26,6 +33,7 @@ public abstract class RemoteCallClient {
         }
 
     }
+   
 
     /**
      * @param serviceName
@@ -46,6 +54,8 @@ public abstract class RemoteCallClient {
      * @throws ServerInvokationException
      * @throws Exception
      */
-    protected abstract String send(String serviceName, String routine, String serialise) throws ServerInvokationException;
+    protected abstract Object send(String serviceName, Method routine, String serialise) throws ServerInvokationException;
+
+
 
 }

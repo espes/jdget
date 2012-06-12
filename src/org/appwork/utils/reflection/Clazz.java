@@ -163,4 +163,13 @@ public class Clazz {
         return type instanceof Class && ((Class<?>) type).isEnum();
     }
 
+    /**
+     * @param genericReturnType
+     * @return
+     */
+    public static boolean isByteArray(Type genericReturnType) {
+        // TODO Auto-generated method stub
+        return genericReturnType == byte[].class;
+    }
+
 }
