@@ -526,7 +526,7 @@ public class Browser {
     }
 
     public boolean containsHTML(final String regex) {
-        return new Regex(this, regex).matches();
+        return new Regex(this.getHTMLSource(), regex).matches();
     }
 
     /**
@@ -1022,7 +1022,7 @@ public class Browser {
         }
         return null;
     }
-    
+
     public Form getFormbyProperty(final String property, final String name) {
         for (final Form form : this.getForms()) {
             if (form.getStringProperty(property) != null && form.getStringProperty(property).equalsIgnoreCase(name)) { return form; }
@@ -1065,6 +1065,20 @@ public class Browser {
 
     public String getHost() {
         return this.request == null ? null : Browser.getHost(this.request.getUrl(), false);
+    }
+
+    protected String getHTMLSource() {
+        if (this.request == null) { return "Browser. no request yet"; }
+        try {
+            final String html = this.request.getHtmlCode();
+            if (html == null || html.length() == 0) {
+                if (this.request.getLocation() != null) { return "Not HTML Code. Redirect to: " + this.request.getLocation(); }
+            }
+            return html;
+        } catch (final Throwable e) {
+            e.printStackTrace();
+        }
+        return "No htmlCode read";
     }
 
     public URLConnectionAdapter getHttpConnection() {
@@ -1114,11 +1128,11 @@ public class Browser {
     }
 
     public Regex getRegex(final Pattern compile) {
-        return new Regex(this, compile);
+        return new Regex(this.getHTMLSource(), compile);
     }
 
     public Regex getRegex(final String string) {
-        return new Regex(this, string);
+        return new Regex(this.getHTMLSource(), string);
     }
 
     /**

@@ -545,16 +545,24 @@ public abstract class Request {
     @Override
     public String toString() {
         if (!this.requested) { return "Request not sent yet"; }
+        final StringBuilder sb = new StringBuilder();
         try {
+            sb.append(this.httpConnection.toString());
+            sb.append("\r\n");
             this.getHtmlCode();
             if (this.htmlCode == null || this.htmlCode.length() == 0) {
-                if (this.getLocation() != null) { return "Not HTML Code. Redirect to: " + this.getLocation(); }
-                return "No htmlCode read";
+                if (this.getLocation() != null) {
+                    sb.append("Not HTML Code. Redirect to: " + this.getLocation());
+                } else {
+                    sb.append("No htmlCode read");
+                }
+            } else {
+                sb.append(this.htmlCode);
             }
         } catch (final Exception e) {
             return "NOTEXT: " + e.getMessage();
         }
-        return this.htmlCode;
+        return sb.toString();
     }
 
 }
