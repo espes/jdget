@@ -11,9 +11,7 @@ package org.appwork.utils.swing.dialog;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.Point;
-import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -51,11 +49,12 @@ import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
-import org.appwork.utils.swing.SwingUtils;
 
 public abstract class AbstractDialog<T> extends TimerDialog implements ActionListener, WindowListener {
 
-    private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN = new HashMap<String, Integer>();
+    private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN  = new HashMap<String, Integer>();
+
+    public static final Locator                   LOCATE_CENTER_OF_SCREEN = new CenterOfScreenLocator();
 
     public static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
@@ -104,15 +103,46 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private FocusListener      defaultButton;
 
+    private Locator            locator;
+
+    public Locator getLocator() {
+        if (locator == null) return LOCATE_CENTER_OF_SCREEN;
+        return locator;
+    }
+
+    public void onSetVisible(boolean b) {
+
+        if (!b && getDialog().isVisible()) {
+            getLocator().onClose(AbstractDialog.this);
+        }
+
+    }
+
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
-
+        setLocator(LOCATE_CENTER_OF_SCREEN);
+        setDimensor(null);
         this.title = title;
         this.flagMask = flag;
 
         this.icon = BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON) ? null : icon;
         this.okOption = okOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_OK() : okOption;
         this.cancelOption = cancelOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
+    }
+
+    /**
+     * @param object
+     */
+    public void setDimensor(Dimensor dimensor) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param locateCenterOfScreen
+     */
+    public void setLocator(Locator locator) {
+        this.locator = locator;
     }
 
     /**
@@ -315,23 +345,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // if (this.getDesiredSize() != null) {
             // this.setSize(this.getDesiredSize());
             // }
-            final Point forcedLocation = this.getForcedLocation();
-            if (forcedLocation != null) {
-                this.getDialog().setLocation(forcedLocation);
+
+            Point loc = getLocator().getLocationOnScreen(this);
+            if (loc != null) {
+                this.getDialog().setLocation(loc);
             } else {
-                if (!this.getDialog().getParent().isDisplayable() || !this.getDialog().getParent().isVisible()) {
-                    final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-                    this.getDialog().setLocation(new Point((int) (screenSize.getWidth() - this.getDialog().getWidth()) / 2, (int) (screenSize.getHeight() - this.getDialog().getHeight()) / 2));
-
-                } else if (this.getDialog().getParent() instanceof Frame && ((Frame) this.getDialog().getParent()).getExtendedState() == Frame.ICONIFIED) {
-                    // dock dialog at bottom right if mainframe is not visible
-                    final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-                    this.getDialog().setLocation(new Point((int) (screenSize.getWidth() - this.getDialog().getWidth() - 20), (int) (screenSize.getHeight() - this.getDialog().getHeight() - 60)));
-                } else {
-                    this.getDialog().setLocation(this.getDesiredLocation());
-                }
+                this.getDialog().setLocation(LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(this));
             }
             // register an escape listener to cancel the dialog
             this.registerEscape(focus);
@@ -444,6 +463,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
             @Override
             protected void runInEDT() {
+                if (getDialog().isVisible()) {
+                    getLocator().onClose(AbstractDialog.this);
+                }
                 AbstractDialog.super.dispose();
                 if (AbstractDialog.this.timer != null) {
                     AbstractDialog.this.timer.interrupt();
@@ -475,14 +497,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     /**
-     * @return
-     */
-    protected Point getDesiredLocation() {
-
-        return SwingUtils.getCenter(this.getDialog().getParent(), this.getDialog());
-    }
-
-    /**
      * Create the key to save the don't showmagain state in database. should be
      * overwritten in same dialogs. by default, the dialogs get differed by
      * their title and their classname
@@ -499,14 +513,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     protected String getDontShowAgainLabelText() {
 
         return _AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN();
-    }
-
-    /**
-     * @return
-     */
-    protected Point getForcedLocation() {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     public ImageIcon getIcon() {

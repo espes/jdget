@@ -41,7 +41,10 @@ public abstract class TimerDialog {
             }
 
         }
-
+        public void setVisible(boolean b) {
+            TimerDialog.this.onSetVisible(b);
+            super.setVisible(b);
+        }
         @Override
         public void dispose() {
             TimerDialog.this.dispose();
@@ -94,6 +97,14 @@ public abstract class TimerDialog {
     public TimerDialog() {
         // super(parentframe, ModalityType.TOOLKIT_MODAL);
 
+    }
+
+    /**
+     * @param b
+     */
+    public void onSetVisible(boolean b) {
+        // TODO Auto-generated method stub
+        
     }
 
     /**
