@@ -1379,29 +1379,6 @@ public class Browser {
         return this.loadConnection(null).getHtmlCode();
     }
 
-    /**
-     * resets browser to default values
-     */
-    public void reset() {
-        this.currentURL = null;
-        this.request = null;
-        this.setCustomCharset(null);
-        this.doRedirects = false;
-        this.cookies = new HashMap<String, Cookies>();
-        this.connectTimeout = -1;
-        this.readTimeout = -1;
-        this.headers = null;
-        this.limit = 1 * 1024 * 1024;
-        this.proxy = null;
-        this.debug = false;
-        this.requestIntervalLimitMap = null;
-        this.requestTimeMap = null;
-        this.cookiesExclusive = true;
-        this.verbose = false;
-        this.allowedResponseCodes = new int[0];
-        this.acceptLanguage = "de, en-gb;q=0.9, en;q=0.8";
-    }
-
     private HTTPProxy selectProxy() {
         if (this.proxy != null) {
             if (this.proxy == HTTPProxy.NONE) { return HTTPProxy.NONE; }
