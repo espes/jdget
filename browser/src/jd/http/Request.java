@@ -312,19 +312,23 @@ public abstract class Request {
         return this.htmlCode;
     }
 
+    protected String getHTMLSource() {
+        if (!this.requested) { return "Request not sent yet"; }
+        try {
+            this.getHtmlCode();
+            if (this.htmlCode == null || this.htmlCode.length() == 0) {
+                if (this.getLocation() != null) { return "Not HTML Code. Redirect to: " + this.getLocation(); }
+                return "No htmlCode read";
+            }
+        } catch (final Exception e) {
+            return "NOTEXT: " + e.getMessage();
+        }
+        return this.htmlCode;
+    }
+
     public URLConnectionAdapter getHttpConnection() {
         return this.httpConnection;
     }
-
-    // public static boolean isExpired(String cookie) {
-    // if (cookie == null) return false;
-    //
-    // try {
-    // return (new Date().compareTo()) > 0;
-    // } catch (Exception e) {
-    // return false;
-    // }
-    // }
 
     public String getLocation() {
         if (this.httpConnection == null) { return null; }
@@ -550,15 +554,7 @@ public abstract class Request {
             sb.append(this.httpConnection.toString());
             sb.append("\r\n");
             this.getHtmlCode();
-            if (this.htmlCode == null || this.htmlCode.length() == 0) {
-                if (this.getLocation() != null) {
-                    sb.append("Not HTML Code. Redirect to: " + this.getLocation());
-                } else {
-                    sb.append("No htmlCode read");
-                }
-            } else {
-                sb.append(this.htmlCode);
-            }
+            sb.append(this.getHTMLSource());
         } catch (final Exception e) {
             return "NOTEXT: " + e.getMessage();
         }

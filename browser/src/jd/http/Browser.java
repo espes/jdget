@@ -526,7 +526,7 @@ public class Browser {
     }
 
     public boolean containsHTML(final String regex) {
-        return new Regex(this.getHTMLSource(), regex).matches();
+        return new Regex(this, regex).matches();
     }
 
     /**
@@ -1067,20 +1067,6 @@ public class Browser {
         return this.request == null ? null : Browser.getHost(this.request.getUrl(), false);
     }
 
-    protected String getHTMLSource() {
-        if (this.request == null) { return "Browser. no request yet"; }
-        try {
-            final String html = this.request.getHtmlCode();
-            if (html == null || html.length() == 0) {
-                if (this.request.getLocation() != null) { return "Not HTML Code. Redirect to: " + this.request.getLocation(); }
-            }
-            return html;
-        } catch (final Throwable e) {
-            e.printStackTrace();
-        }
-        return "No htmlCode read";
-    }
-
     public URLConnectionAdapter getHttpConnection() {
         if (this.request == null) { return null; }
         return this.request.getHttpConnection();
@@ -1128,11 +1114,11 @@ public class Browser {
     }
 
     public Regex getRegex(final Pattern compile) {
-        return new Regex(this.getHTMLSource(), compile);
+        return new Regex(this, compile);
     }
 
     public Regex getRegex(final String string) {
-        return new Regex(this.getHTMLSource(), string);
+        return new Regex(this, string);
     }
 
     /**
@@ -1554,7 +1540,7 @@ public class Browser {
     @Override
     public String toString() {
         if (this.request == null) { return "Browser. no request yet"; }
-        return this.request.toString();
+        return this.request.getHTMLSource();
     }
 
     public void updateCookies(final Request request) {
