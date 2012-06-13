@@ -141,7 +141,8 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
         g2gray.dispose();
         g2 = null;
         g2gray = null;
-        final ScreenShooter layover = new ScreenShooter();
+        final ScreenShooter layover = new ScreenShooter(xMin,yMin,xMax,yMax);
+        
         layover.setImage(complete, completeGrayed);
         return layover;
     }
@@ -195,10 +196,17 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
 
     private Point             mouse;
     private boolean           disposed   = false;
+    private int xMin;
+    private int xMax;
+    private int yMin;
+    private int yMax;
 
-    public ScreenShooter() {
+    public ScreenShooter(int xMin, int yMin, int xMax, int yMax) {
         super();
-
+this.xMin=xMin;
+this.xMax=xMax;
+this.yMin=yMin;
+this.yMax=yMax;
         // we extends from a JFrame because JWindow cannot get focus and this
         // cannot listen on key events
         // this.setUndecorated(true);
@@ -609,7 +617,7 @@ public class ScreenShooter extends JWindow implements MouseListener, MouseMotion
                 ScreenShooter.this.frame.setVisible(true);
                 ScreenShooter.this.frame.requestFocus();
                 ScreenShooter.this.setVisible(true);
-                ScreenShooter.this.setLocation(0, 0);
+                ScreenShooter.this.setLocation(xMin , yMin);
                 ScreenShooter.this.setAlwaysOnTop(false);
                 ScreenShooter.this.requestFocus();
                 ScreenShooter.this.requestFocusInWindow();
