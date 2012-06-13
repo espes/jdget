@@ -80,7 +80,7 @@ public class RememberRelativeLocator implements Locator {
             }
         }
 
-        return SwingUtils.getCenter(dialog.getDialog().getParent(), dialog.getDialog());
+        return AbstractDialog.LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(dialog);
 
     }
 
