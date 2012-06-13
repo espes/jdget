@@ -36,7 +36,7 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
         }
     }
     private String      helpText = null;
-    protected ImageIcon badgeIcon;
+
 
     /*
      * (non-Javadoc)
@@ -107,29 +107,9 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
 
     }
 
-    public void paintBadge(final Graphics g) {
-        if (this.badgeIcon != null) {
-            if (this.getParent().getParent() instanceof JScrollPane) {
-                final Point rec = SwingUtilities.convertPoint(this, new Point(0, 0), this.getParent().getParent());
-                g.translate(-rec.x, -rec.y);
-                g.drawImage(this.badgeIcon.getImage(), (int) (this.getParent().getParent().getWidth() - this.badgeIcon.getIconWidth() / 1.5), (int) (this.getParent().getParent().getHeight() - this.badgeIcon.getIconHeight() / 1.5), null);
-                g.translate(rec.x, rec.y);
-            } else {
-                g.drawImage(this.badgeIcon.getImage(), (int) (this.getWidth() - this.badgeIcon.getIconWidth() / 1.5), (int) (this.getHeight() - this.badgeIcon.getIconHeight() / 1.5), null);
 
-            }
-        }
-    }
 
-    @Override
-    public void paintComponent(final Graphics g) {
-        super.paintComponent(g);
-        final Shape clp = g.getClip();
-        g.setClip(null);
-        this.paintBadge(g);
-        g.setClip(clp);
-
-    }
+   
 
     /*
      * (non-Javadoc)
@@ -142,14 +122,7 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
         this.onChanged();
     }
 
-    /**
-     * @param icon
-     */
-    public void setBadgeIcon(final ImageIcon icon) {
-        this.badgeIcon = icon;
-        this.repaint();
-
-    }
+  
 
     public void setHelpColor(final Color helpColor) {
         this.helpColor = helpColor;
