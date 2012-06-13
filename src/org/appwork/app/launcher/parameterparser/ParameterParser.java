@@ -3,6 +3,7 @@ package org.appwork.app.launcher.parameterparser;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
@@ -20,19 +21,19 @@ public class ParameterParser {
     /**
      * Stores the Applications startParameters
      */
-    private String[]                                          startArguments;
+    private final String[]                                          startArguments;
     /**
      * The eventsenderobjekt is used to add Listenersupport to this class.
      */
-    private Eventsender<CommandSwitchListener, CommandSwitch> eventSender;
-    private HashMap<String, CommandSwitch>                    map;
+    private final Eventsender<CommandSwitchListener, CommandSwitch> eventSender;
+    private HashMap<String, CommandSwitch>                          map;
 
-    public ParameterParser(String[] args) {
+    public ParameterParser(final String[] args) {
         this.startArguments = args;
         this.eventSender = new Eventsender<CommandSwitchListener, CommandSwitch>() {
 
             @Override
-            protected void fireEvent(CommandSwitchListener listener, CommandSwitch event) {
+            protected void fireEvent(final CommandSwitchListener listener, final CommandSwitch event) {
                 listener.executeCommandSwitch(event);
 
             }
@@ -41,11 +42,36 @@ public class ParameterParser {
     }
 
     /**
+     * @param string
+     * @return
+     */
+    public CommandSwitch getCommandSwitch(final String string) {
+
+        return this.map.get(string);
+    }
+
+    /**
      * @return the {@link ParameterParser#eventSender}
      * @see ParameterParser#eventSender
      */
     public Eventsender<CommandSwitchListener, CommandSwitch> getEventSender() {
-        return eventSender;
+        return this.eventSender;
+    }
+
+    /**
+     * @return
+     */
+    public String[] getRawArguments() {
+        // TODO Auto-generated method stub
+        return this.startArguments;
+    }
+
+    /**
+     * @param string
+     * @return
+     */
+    public boolean hasCommandSwitch(final String string) {
+        return this.map.containsKey(string);
     }
 
     /**
@@ -55,29 +81,29 @@ public class ParameterParser {
      * @param commandFilePath
      *            TODO
      */
-    public void parse(String commandFilePath) {
+    public void parse(final String commandFilePath) {
 
-        map = new HashMap<String, CommandSwitch>();
+        this.map = new HashMap<String, CommandSwitch>();
 
         if (commandFilePath != null && Application.getResource(commandFilePath).exists()) {
 
             try {
-                parse(ShellParser.splitCommandString(IO.readFileToString(Application.getResource(commandFilePath)).replaceAll("[\r\n]", " ")).toArray(new String[] {}));
-            } catch (IOException e) {
+                this.parse(ShellParser.splitCommandString(IO.readFileToString(Application.getResource(commandFilePath)).replaceAll("[\r\n]", " ")).toArray(new String[] {}));
+            } catch (final IOException e) {
                 Log.exception(e);
             }
         }
 
-        parse(startArguments);
+        this.parse(this.startArguments);
     }
 
     /**
      * @param startArguments2
      */
-    private void parse(String[] startArguments) {
+    private void parse(final String[] startArguments) {
 
         String switchCommand = null;
-        ArrayList<String> params = new ArrayList<String>();
+        final ArrayList<String> params = new ArrayList<String>();
         for (String var : startArguments) {
             if (var.startsWith("-")) {
                 while (var.length() > 0 && var.startsWith("-")) {
@@ -85,8 +111,9 @@ public class ParameterParser {
                 }
                 if (switchCommand != null) {
                     CommandSwitch cs;
-                    getEventSender().fireEvent(cs = new CommandSwitch(switchCommand, params.toArray(new String[] {})));
-                    map.put(switchCommand, cs);
+                    switchCommand = switchCommand.toLowerCase(Locale.ENGLISH);
+                    this.getEventSender().fireEvent(cs = new CommandSwitch(switchCommand, params.toArray(new String[] {})));
+                    this.map.put(switchCommand, cs);
                 }
                 switchCommand = var;
 
@@ -97,35 +124,10 @@ public class ParameterParser {
         }
         if (switchCommand != null) {
             CommandSwitch cs;
-            getEventSender().fireEvent(cs = new CommandSwitch(switchCommand, params.toArray(new String[] {})));
-            map.put(switchCommand, cs);
+            switchCommand = switchCommand.toLowerCase(Locale.ENGLISH);
+            this.getEventSender().fireEvent(cs = new CommandSwitch(switchCommand, params.toArray(new String[] {})));
+            this.map.put(switchCommand, cs);
         }
-    }
-
-    /**
-     * @param string
-     * @return
-     */
-    public CommandSwitch getCommandSwitch(String string) {
-
-        return map.get(string);
-    }
-
-    /**
-     * @param string
-     * @return
-     */
-    public boolean hasCommandSwitch(String string) {
-
-        return map.containsKey(string);
-    }
-
-    /**
-     * @return
-     */
-    public String[] getRawArguments() {
-        // TODO Auto-generated method stub
-        return startArguments;
     }
 
 }
