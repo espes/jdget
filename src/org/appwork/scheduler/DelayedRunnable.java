@@ -26,6 +26,7 @@ public abstract class DelayedRunnable implements Runnable {
     private volatile long                  firstRunRequest = 0;
     private ScheduledFuture<?>             delayer;
     private final long                     maxInMS;
+    private boolean                        delayerEnabled  = true;
 
     public DelayedRunnable(final ScheduledExecutorService service, final long delayInMS) {
         this(service, delayInMS, -1);
@@ -41,12 +42,20 @@ public abstract class DelayedRunnable implements Runnable {
 
     abstract public void delayedrun();
 
+    public boolean isDelayerEnabled() {
+        return this.delayerEnabled;
+    }
+
     public void resetAndStart() {
         this.run();
     }
 
     @Override
     public void run() {
+        if (this.delayerEnabled == false) {
+            DelayedRunnable.this.delayedrun();
+            return;
+        }
         synchronized (this) {
             /* lastRunRequest is updated every time */
             this.lastRunRequest = System.currentTimeMillis();
@@ -101,6 +110,16 @@ public abstract class DelayedRunnable implements Runnable {
                 }, DelayedRunnable.this.nextDelay, TimeUnit.MILLISECONDS);
 
             }
+        }
+    }
+
+    public void setDelayerEnabled(final boolean b) {
+        if (this.delayerEnabled == b) { return; }
+        synchronized (this) {
+            if (b == false) {
+                this.stop();
+            }
+            this.delayerEnabled = b;
         }
     }
 
