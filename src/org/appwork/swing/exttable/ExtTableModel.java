@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 
@@ -198,9 +199,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         ExtTableModel.this.delayedSelection = null;
                         ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
                         /* replace TableData and set Selection */
+
                         final boolean adjusting = ltable.getSelectionModel().getValueIsAdjusting();
                         final int anchor = ltable.getSelectionModel().getAnchorSelectionIndex();
                         final int lead = ltable.getSelectionModel().getLeadSelectionIndex();
+                        int minIndex = ltable.getSelectionModel().getMinSelectionIndex();
+                        int maxIndex = ltable.getSelectionModel().getMaxSelectionIndex();
+                        E minObject = minIndex < 0 ? null : getObjectbyRow(minIndex);
+                        E maxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
                         ExtTableModel.this.setTableData(newtableData);
 
                         ExtTableModel.this.fireTableStructureChanged();
@@ -208,10 +214,28 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                             if (selection != null) {
                                 ExtTableModel.this.setSelectedObjects(selection);
                             }
+
                             if (adjusting) {
+                                ListSelectionModel s = ltable.getSelectionModel();
+                                ltable.getSelectionModel().setValueIsAdjusting(adjusting);
                                 ltable.getSelectionModel().setAnchorSelectionIndex(anchor);
                                 ltable.getSelectionModel().setLeadSelectionIndex(lead);
-                                ltable.getSelectionModel().setValueIsAdjusting(adjusting);
+
+                                E newMinObject = minIndex < 0 ? null : getObjectbyRow(minIndex);
+                                E newMaxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
+
+                                if (newMinObject != minObject) {
+                                    // we have to adjust minINdex
+
+                                    minIndex = getRowforObject(minObject);
+                                }
+
+                                if (newMaxObject != maxObject) {
+                                    // we have to adjust maxIndex
+                                    maxIndex = getRowforObject(maxObject);
+                                }
+                                ltable.getSelectionModel().setSelectionInterval(minIndex, maxIndex);
+
                             }
                         }
                     } else {

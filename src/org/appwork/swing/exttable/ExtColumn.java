@@ -571,7 +571,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                 editableProgrammaticly = true;
                 try {
                     getModel().getTable().editCellAt(getModel().getTable().getExtTableModel().getRowforObject(obj), getIndex());
-           
+
                 } finally {
                     editableProgrammaticly = false;
                 }
@@ -710,8 +710,23 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         this.setValue(value, obj);
     }
 
+    /**
+     * By default. if we start an editor, the row will be selected. If you want
+     * the framework not to select the current editing row, overwrite this
+     * method to return false
+     */
+
     @Override
     public boolean shouldSelectCell(final EventObject anEvent) {
+        return isSelectRowWhenEditing(anEvent);
+    }
+
+    /**
+     * @see #shouldSelectCell(EventObject)
+     * @param anEvent
+     * @return
+     */
+    public boolean isSelectRowWhenEditing(EventObject anEvent) {
         return true;
     }
 
