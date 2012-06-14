@@ -277,6 +277,7 @@ public class CrossSystem {
      */
     public static boolean isAbsolutePath(final String path) {
         if (StringUtils.isEmpty(path)) { return false; }
+        if (CrossSystem.isWindows() && path.matches("\\\\\\\\.+\\\\.+")) { return true; }
         if (CrossSystem.isWindows() && path.matches(".:/.*")) { return true; }
         if (CrossSystem.isWindows() && path.matches(".:\\\\.*")) { return true; }
         if (path.startsWith("/")) { return true; }

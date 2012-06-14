@@ -11,6 +11,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 
 import javax.swing.AbstractAction;
@@ -61,6 +62,10 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     private ArrayList<String>        quickSelectionList;
 
     protected boolean                selecting;
+
+    private File                     windowsNetworkFolder;
+
+    private HashMap<String, File>    sambaFolders               = new HashMap<String, File>();
 
     public ArrayList<String> getQuickSelectionList() {
         return quickSelectionList;
@@ -216,6 +221,23 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             }
 
         };
+
+        // find samba library
+        main: for (File r : fc.getFileSystemView().getRoots()) {
+            for (File mybenetwork : r.listFiles()) {
+                // works a least on windows7
+                if (mybenetwork.getName().equalsIgnoreCase("::{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}")) {
+                    windowsNetworkFolder = mybenetwork;
+                    // File[] list = windowsNetworkFolder.listFiles();
+
+                    for (File f : windowsNetworkFolder.listFiles()) {
+                        sambaFolders.put(f.getPath(), f);
+                    }
+                    break main;
+                }
+
+            }
+        }
         fc.addActionListener(new ActionListener() {
 
             @Override
@@ -328,11 +350,13 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                             @Override
                             public void run() {
                                 String txt = getText();
-                                File f = new File(txt);
+
+                                File f = getFile(txt);
+
                                 boolean parent = false;
                                 while (f != null && f.getParentFile() != f) {
-                                    if (f.exists()) {
-                                        if (f.getParentFile() == null || parent) {
+                                    if (exists(f)) {
+                                        if (f.getParentFile() == null||!f.getParentFile().exists() || parent) {
                                             fc.setCurrentDirectory(f);
                                             selecting = true;
                                             setText(txt);
@@ -357,6 +381,19 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                                         f = f.getParentFile();
                                     }
                                 }
+                            }
+
+                            private File getFile(String txt) {
+                                if (windowsNetworkFolder != null && "\\".equals(txt)) { return windowsNetworkFolder; }
+                                File ret = sambaFolders.get(new File(txt).getAbsolutePath());
+
+                                return ret != null ? ret : new File(txt);
+                            }
+
+                            private boolean exists(File f) {
+                                if (f.exists()) return true;
+                                if (sambaFolders.containsKey(f.getName())) return true;
+                                return false;
                             }
                         });
 
