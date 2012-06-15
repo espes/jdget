@@ -18,8 +18,6 @@ import java.net.URLEncoder;
 import org.appwork.remotecall.client.SerialiseException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.reflection.Clazz;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
 
 /**
  * @author thomas

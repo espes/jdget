@@ -71,6 +71,9 @@ public class LogToFileHandler extends java.util.logging.Handler {
         } finally {
             this.fos = null;
         }
+        if (this.file.length() == 0) {
+            this.file.delete();
+        }
     }
 
     @Override

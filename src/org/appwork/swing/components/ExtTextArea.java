@@ -1,16 +1,10 @@
 package org.appwork.swing.components;
 
 import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Point;
-import java.awt.Shape;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-import javax.swing.ImageIcon;
-import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -22,8 +16,8 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
      * 
      */
     private static final long serialVersionUID = -2215616004852131754L;
-    private Color       defaultColor;
-    private Color       helpColor;
+    private Color             defaultColor;
+    private Color             helpColor;
 
     {
 
@@ -35,8 +29,7 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
             this.helpColor = Color.LIGHT_GRAY;
         }
     }
-    private String      helpText = null;
-
+    private String            helpText         = null;
 
     /*
      * (non-Javadoc)
@@ -53,7 +46,7 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
 
         if (super.getText().equals(this.helpText)) {
             this.setText("");
-          
+
         }
         this.setForeground(this.defaultColor);
     }
@@ -107,10 +100,6 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
 
     }
 
-
-
-   
-
     /*
      * (non-Javadoc)
      * 
@@ -121,8 +110,6 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
     public void removeUpdate(final DocumentEvent e) {
         this.onChanged();
     }
-
-  
 
     public void setHelpColor(final Color helpColor) {
         this.helpColor = helpColor;

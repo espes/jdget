@@ -8,7 +8,6 @@ import java.awt.Rectangle;
 
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.Application;
-import org.appwork.utils.swing.SwingUtils;
 
 public class RememberAbsoluteLocator implements Locator {
 

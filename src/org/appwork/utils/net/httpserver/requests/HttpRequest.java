@@ -10,7 +10,6 @@
 package org.appwork.utils.net.httpserver.requests;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.LinkedList;
 
 import org.appwork.utils.net.HeaderCollection;

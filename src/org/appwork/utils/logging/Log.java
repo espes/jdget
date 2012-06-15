@@ -39,7 +39,6 @@ public class Log {
         } catch (final Throwable e) {
             Log.exception(e);
         }
-
         Log.LOGGER.addHandler(LogEventHandler.getInstance());
         Log.LOGGER.setLevel(Level.WARNING);
     }

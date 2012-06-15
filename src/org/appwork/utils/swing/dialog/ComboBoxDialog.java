@@ -18,8 +18,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.appwork.swing.MigPanel;
 import org.appwork.utils.logging.Log;
 

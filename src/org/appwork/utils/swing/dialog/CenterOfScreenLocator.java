@@ -14,8 +14,6 @@ import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
 
-import javax.swing.JDialog;
-
 import org.appwork.utils.swing.SwingUtils;
 import org.appwork.utils.swing.dialog.TimerDialog.InternDialog;
 

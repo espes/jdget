@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import java.awt.TextComponent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;

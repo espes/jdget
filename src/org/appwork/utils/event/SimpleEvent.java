@@ -9,8 +9,6 @@
  */
 package org.appwork.utils.event;
 
-import org.appwork.swing.components.multiprogressbar.MultiProgressModel;
-
 /**
  * @author thomas Callerclass,Parameterclass,Eventclass
  */

@@ -11,8 +11,6 @@ package org.appwork.utils.zip;
 
 import java.util.zip.ZipEntry;
 
-import org.appwork.utils.crypto.SignatureViolation;
-
 /**
  * @author daniel
  * 

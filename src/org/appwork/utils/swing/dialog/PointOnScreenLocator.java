@@ -2,8 +2,6 @@ package org.appwork.utils.swing.dialog;
 
 import java.awt.Point;
 
-import javax.swing.JDialog;
-
 public class PointOnScreenLocator implements Locator {
 
     private Point point;

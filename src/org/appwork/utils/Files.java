@@ -19,8 +19,6 @@ import java.util.LinkedList;
 
 import org.appwork.utils.os.CrossSystem;
 
-import com.sun.corba.se.spi.legacy.connection.GetEndPointInfoAgainException;
-
 public class Files {
     /**
      * delete all files/folders that are given

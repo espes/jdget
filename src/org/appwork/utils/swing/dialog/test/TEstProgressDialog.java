@@ -15,7 +15,6 @@ import org.appwork.resources.AWUTheme;
 import org.appwork.utils.formatter.SizeFormatter;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.net.DownloadProgress;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
