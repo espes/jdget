@@ -39,7 +39,6 @@ import jd.parser.Regex;
 import org.appwork.utils.Application;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
-import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
 public abstract class Request {
@@ -123,11 +122,11 @@ public abstract class Request {
             }
             okay = true;
         } catch (final EOFException e) {
-            Log.L.log(java.util.logging.Level.SEVERE, "Try workaround for ", e);
+            e.printStackTrace();
             okay = true;
         } catch (final IOException e) {
             if (e.toString().contains("end of ZLIB") || e.toString().contains("Premature") || e.toString().contains("Corrupt GZIP trailer")) {
-                Log.L.log(java.util.logging.Level.SEVERE, "Try workaround for ", e);
+                System.out.println("Try workaround for " + e);
                 okay = true;
             } else {
                 throw e;
@@ -300,7 +299,7 @@ public abstract class Request {
                     this.htmlCode = new String(this.byteArray, "ISO-8859-1");
                     return this.htmlCode;
                 } catch (final Exception e) {
-                    Log.getLogger().severe("could neither charset: " + useCS + " nor default charset");
+                    System.out.println("could neither charset: " + useCS + " nor default charset");
                     /* fallback to default charset in error case */
                     this.htmlCode = new String(this.byteArray);
                     return this.htmlCode;
@@ -419,7 +418,7 @@ public abstract class Request {
             try {
                 this.image = ImageIO.read(fake);
             } catch (final Exception e) {
-                Log.exception(e);
+                e.printStackTrace();
             }
         }
         return this.image;

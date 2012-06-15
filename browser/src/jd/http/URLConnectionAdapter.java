@@ -16,7 +16,6 @@
 
 package jd.http;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 public interface URLConnectionAdapter extends org.appwork.utils.net.httpconnection.HTTPConnection {
