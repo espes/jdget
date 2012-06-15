@@ -15,10 +15,12 @@ import java.awt.event.ActionListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.event.HyperlinkEvent;
@@ -42,6 +44,11 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         public String getString();
 
         public void run() throws Exception;
+
+        /**
+         * @return
+         */
+        public String getLabelString();
     }
 
     private boolean              disposed;
@@ -54,6 +61,8 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     private Timer                updater;
     private long                 waitForTermination = 20000;
     protected Throwable          throwable          = null;
+
+    private JLabel               lbl;
 
     /**
      * @param progressGetter
@@ -155,12 +164,17 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     @Override
     public JComponent layoutDialogContent() {
         this.getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        final JPanel p = new JPanel(new MigLayout("ins 0"));
+        final JPanel p = new JPanel(new MigLayout("ins 0,wrap 2", "[grow,fill][]", "[]"));
 
-        p.add(this.getTextfield(), "growx,pushx");
+        p.add(this.getTextfield(), "growx,pushx,spanx");
         final JProgressBar bar;
-        p.add(bar = new JProgressBar(0, 100), "growx,pushx,newline");
+        p.add(bar = new JProgressBar(0, 100), "growx,pushx" + (isLabelEnabled() ? "" : ",spanx"));
         bar.setStringPainted(true);
+        if (isLabelEnabled()) {
+            lbl = new JLabel();
+            lbl.setHorizontalAlignment(SwingConstants.RIGHT);
+            p.add(lbl, "wmin 30");
+        }
 
         this.updater = new Timer(50, new ActionListener() {
 
@@ -183,7 +197,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
                         bar.setStringPainted(true);
                         bar.setString(text);
                     }
-
+                  if(lbl!=null)  lbl.setText(getter.getLabelString());
                     if (prg >= 100) {
                         ProgressDialog.this.updater.stop();
                         ProgressDialog.this.dispose();
@@ -224,6 +238,14 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         this.executer.start();
 
         return p;
+    }
+
+    /**
+     * @return
+     */
+    protected boolean isLabelEnabled() {
+        // TODO Auto-generated method stub
+        return false;
     }
 
     public void setWaitForTermination(final long waitForTermination) {

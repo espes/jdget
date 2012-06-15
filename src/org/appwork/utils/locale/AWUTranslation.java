@@ -211,7 +211,7 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Please wait tuntil download has finished", "Bitte warten bis der Download beendet ist" })
     String please_wait();
 
-    @Default(lngs = { "en", "de" }, values = { "%s3 %s1/%s2", "%s3 %s1/%s2" })
+    @Default(lngs = { "en", "de" }, values = { "%s3% %s1/%s2", "%s3% %s1/%s2" })
     String progress(String loaded, String total, double d);
 
     @Default(lngs = { "en", "de" }, values = { "Direct %s1", "Direkt %s1" })

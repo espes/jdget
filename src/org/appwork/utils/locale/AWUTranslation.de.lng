@@ -1,4 +1,4 @@
-progress=%s3 %s1/%s2
+progress=%s3% %s1/%s2
 fileeditcontroller_dialog_message=Wollen Sie die '%s1'-Datei im Standard Editor bearbeiten?
 LOGINDIALOG_BUTTON_REGISTER=Neuen Benutzer anlegen
 LockColumnWidthAction=Spaltenbreite festsetzen

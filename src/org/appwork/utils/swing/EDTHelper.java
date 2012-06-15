@@ -51,6 +51,8 @@ public abstract class EDTHelper<T> implements Runnable {
 
     private RuntimeException exception;
 
+    private Error            error;
+
     /**
      * Implement this method. Gui code should be used ONLY in this Method.
      * 
@@ -79,6 +81,9 @@ public abstract class EDTHelper<T> implements Runnable {
             this.returnValue = this.edtRun();
         } catch (final RuntimeException e) {
             this.exception = e;
+            Log.exception(e);
+        } catch (final Error e) {
+            this.error = e;
             Log.exception(e);
         } finally {
             synchronized (this.lock) {
@@ -158,6 +163,7 @@ public abstract class EDTHelper<T> implements Runnable {
                 this.callThread = null;
             }
             if (this.exception != null) { throw this.exception; }
+            if (error != null) throw error;
         }
     }
 

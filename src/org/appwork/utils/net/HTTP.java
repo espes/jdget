@@ -163,6 +163,12 @@ public class HTTP {
                             HTTP.download(new URL(url), file, progress);
                         }
 
+                        @Override
+                        public String getLabelString() {
+                            // TODO Auto-generated method stub
+                            return null;
+                        }
+
                     };
                     final ProgressDialog dialog = new ProgressDialog(pg, Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK, _AWU.T.download_title(), _AWU.T.download_msg(), AWUTheme.I().getIcon("download", 32)) {
                         /**

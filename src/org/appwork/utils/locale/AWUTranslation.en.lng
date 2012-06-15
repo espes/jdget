@@ -1,4 +1,4 @@
-progress=%s3 %s1/%s2
+progress=%s3% %s1/%s2
 fileeditcontroller_dialog_message=Do you want to open the '%s1'-file in your default editor?
 LOGINDIALOG_BUTTON_REGISTER=Create new User
 LockColumnWidthAction=Lock Columnwidth
