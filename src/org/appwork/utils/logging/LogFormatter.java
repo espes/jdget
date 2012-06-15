@@ -76,6 +76,7 @@ public class LogFormatter extends SimpleFormatter {
         sb.append("\r\n");
         if (record.getThrown() != null) {
             sb.append(Exceptions.getStackTrace(record.getThrown()));
+            sb.append("\r\n");
         }
         return sb.toString();
     }
