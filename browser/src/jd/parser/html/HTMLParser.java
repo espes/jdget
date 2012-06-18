@@ -16,8 +16,6 @@
 
 package jd.parser.html;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -119,11 +117,11 @@ public class HTMLParser {
                 }
             } else if (c == 1 && data.length() < 100 && data.matches("^\"?(" + HTMLParser.protocolPattern + "://|www\\.).*")) {
                 if (data.startsWith("file://")) {
-                    results.add(data.replaceAll("\\s", "%20"));
+                    results.add(new String(data.replaceAll("\\s", "%20")));
                 } else {
                     final String link = data.replaceFirst("h.{2,3}://", "http://").replaceFirst("^www\\.", "http://www.").replaceAll("[<>\"]*", "");
                     if (!link.matches(".*\\s.*")) {
-                        results.add(HTMLParser.correctURL(link));
+                        results.add(new String(HTMLParser.correctURL(link)));
                     }
                 }
             }
@@ -164,7 +162,7 @@ public class HTMLParser {
         }
 
         if (url != null && url.trim().length() > 0) {
-            results.add(HTMLParser.correctURL(url));
+            results.add(new String(HTMLParser.correctURL(url)));
         } else {
             url = "";
         }
@@ -187,14 +185,7 @@ public class HTMLParser {
                     }
                 }
                 link = link.trim();
-
-                try {
-                    new URL(link);
-                    results.add(HTMLParser.correctURL(link));
-                } catch (final MalformedURLException e) {
-
-                }
-
+                results.add(new String(HTMLParser.correctURL(link)));
             }
         }
         if (HTMLParser.mp != null) {
@@ -211,16 +202,16 @@ public class HTMLParser {
                     if (start == -1) {
                         start = mlinks.start();
                     } else {
-                        results.add(HTMLParser.correctURL(link.substring(start, mlinks.start())));
+                        results.add(new String(HTMLParser.correctURL(link.substring(start, mlinks.start()))));
                         start = mlinks.start();
                     }
                 }
                 if (start != -1) {
-                    results.add(HTMLParser.correctURL(link.substring(start)));
+                    results.add(new String(HTMLParser.correctURL(link.substring(start))));
                 }
                 link = link.replaceAll("^h.{2,3}://", "http://");
                 link = link.replaceFirst("^www\\.", "http://www\\.");
-                results.add(HTMLParser.correctURL(link));
+                results.add(new String(HTMLParser.correctURL(link)));
 
             }
         }
@@ -259,11 +250,13 @@ public class HTMLParser {
                             sb.append(dataLeft);
                             sb.append(">");
                         }
+                        dataLeft = null;
                         sb.append(" ");
                         sb.append(data.substring(tagClose + 1));
+                        data = null;
+                        System.out.println(sb.length());
                         data = sb.toString();
                         sb = null;
-                        dataLeft = null;
                     } else {
                         /* remove tag at begin of data */
                         data = data.substring(tagClose + 1);
@@ -295,21 +288,6 @@ public class HTMLParser {
         newdata = new Regex(data, "://[^\r\n]*?/[^\r\n]*?\\?(.*?)($|\r|\n)").setMemoryOptimized(false).getMatch(0);
         HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
         return results;
-    }
-
-    /**
-     * converts a String array into a string which is parsable by getHttpLinksIntern
-     */
-    private static String ArrayToString(final String[] links) {
-        if (links == null || links.length == 0) { return ""; }
-        final StringBuilder ret = new StringBuilder();
-        final char tmp[] = new char[] { '"', '\r', '\n' };
-        for (final String element : links) {
-            ret.append('\"');
-            ret.append(element.trim());
-            ret.append(tmp);
-        }
-        return ret.toString();
     }
 
     private static String correctURL(final String input) {
@@ -401,21 +379,6 @@ public class HTMLParser {
         final String pat = new Regex(data, startPattern + "(.*?)" + lastPattern).getMatch(0);
         if (pat == null) { return null; }
         return HTMLParser.getFormInputHidden(pat);
-    }
-
-    public static String getHttpLinkList(final String data) {
-        return HTMLParser.getHttpLinkList(data, null);
-    }
-
-    /**
-     * Gibt alle links die in data gefunden wurden als Stringliste zurÃ¼ck
-     * 
-     * @param data
-     * @return STringliste
-     */
-    public static String getHttpLinkList(final String data, final String url) {
-        final String[] links = HTMLParser.getHttpLinks(data, url);
-        return HTMLParser.ArrayToString(links);
     }
 
     /* do not use in 09581 stable */
