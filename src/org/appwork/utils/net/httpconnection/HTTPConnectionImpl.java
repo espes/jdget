@@ -372,6 +372,10 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 final long guessEB = gotSB + this.getContentLength();
                 this.ranges = new long[] { gotSB, guessEB, gotS };
                 return this.ranges;
+            } else if (this.getResponseCode() == 416 && (range = new Regex(contentRange, ".*?\\*/.*?(\\d+)").getRow(0)) != null) {
+                /* a 416 may respond with content-range * | content.size answer */
+                this.ranges = new long[] { -1, -1, Long.parseLong(range[0]) };
+                return this.ranges;
             } else {
                 /* unknown range header format! */
                 System.out.println(contentRange + " format is unknown!");
