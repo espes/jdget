@@ -1134,6 +1134,9 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                     ret = this.onSingleClick(e, obj);
                 }
                 if (ret == true) { return; }
+                if(clickDelayerRunable!=null){
+                    this.renameClickDelayer.resetAndStart();
+                }
             }
         } else if (e.getID() == MouseEvent.MOUSE_PRESSED) {
             if (this.rowAtPoint(e.getPoint()) < 0) {
@@ -1179,7 +1182,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
                             }
                         };
-                        this.renameClickDelayer.resetAndStart();
+             
 
                     }
 
