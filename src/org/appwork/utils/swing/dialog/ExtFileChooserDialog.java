@@ -27,7 +27,6 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.basic.BasicFileChooserUI;
 
@@ -42,16 +41,16 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     /**
      * 
      */
-    public static final String       LASTSELECTION              = "LASTSELECTION_";
+    public static final String       LASTSELECTION     = "LASTSELECTION_";
 
     /**
      * 
      */
-    public static final String       FILECHOOSER                = "FILECHOOSER";
-    private static boolean           SHELL_FOLDER_ID_WORKAROUND = false;
-    private FileChooserSelectionMode fileSelectionMode          = FileChooserSelectionMode.FILES_AND_DIRECTORIES;
+    public static final String       FILECHOOSER       = "FILECHOOSER";
+
+    private FileChooserSelectionMode fileSelectionMode = FileChooserSelectionMode.FILES_AND_DIRECTORIES;
     private FileFilter               fileFilter;
-    private boolean                  multiSelection             = false;
+    private boolean                  multiSelection    = false;
 
     private File                     preSelection;
 
@@ -65,7 +64,9 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     private File                     windowsNetworkFolder;
 
-    private HashMap<String, File>    sambaFolders               = new HashMap<String, File>();
+    private HashMap<String, File>    sambaFolders      = new HashMap<String, File>();
+
+    private SearchComboBox<String>   destination;
 
     public ArrayList<String> getQuickSelectionList() {
         return quickSelectionList;
@@ -124,7 +125,15 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             return files;
         } else {
             File f = fc.getSelectedFile();
+            if (f == null) {
+                String path = getText();
+                if (path != null) {
+                    f = new File(path);
 
+                } else {
+                    return null;
+                }
+            }
             return new File[] { f };
         }
 
@@ -132,7 +141,18 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     public static void main(String[] args) {
         try {
-            System.out.println(Dialog.getInstance().showDialog(new ExtFileChooserDialog(0, "Title", null, null)));
+
+            // FileDialog dd = new FileDialog((java.awt.Dialog) null, "TEST",
+            // FileDialog.LOAD);
+            // dd.show(true);
+            ExtFileChooserDialog d;
+            d = new ExtFileChooserDialog(0, "Title", null, null);
+
+            d.setFileSelectionMode(FileChooserSelectionMode.FILES_AND_DIRECTORIES);
+
+            Dialog.getInstance().showDialog(d);
+            File[] sel = d.getSelection();
+            System.out.println(d.getSelection()[0].getAbsolutePath());
         } catch (DialogClosedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -169,6 +189,14 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         this.dispose();
     }
 
+    public String getText() {
+        try {
+            return destination != null ? destination.getText() : fc.getSelectedFile().getAbsolutePath();
+        } catch (Throwable e) {
+            return null;
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -176,26 +204,33 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     @Override
     public JComponent layoutDialogContent() {
-        // TODO Auto-generated method stub
-        if (SHELL_FOLDER_ID_WORKAROUND) {
-            UIManager.put("FileChooser.useShellFolder", false);
-        } else {
-            UIManager.put("FileChooser.useShellFolder", true);
-        }
-        UIManager.put("FileChooser.homeFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER());
-        UIManager.put("FileChooser.newFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER());
-        UIManager.put("FileChooser.upFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER());
-        UIManager.put("FileChooser.detailsViewButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_DETAILS());
-        UIManager.put("FileChooser.listViewButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_LIST());
 
-        fc = new JFileChooser() {
+        fc = new JFileChooser(new ExtFileSystemView()) {
             private Insets nullInsets;
             {
                 nullInsets = new Insets(0, 0, 0, 0);
             }
 
+            public Icon getIcon(File f) {
+                Icon ret = super.getIcon(f);
+
+                return getDirectoryIcon(ret,f);
+            }
+
             public Insets getInsets() {
                 return nullInsets;
+            }
+
+            @Override
+            public void updateUI() {
+
+                putClientProperty("FileChooser.useShellFolder", false);
+                putClientProperty("FileChooser.homeFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER());
+                putClientProperty("FileChooser.newFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER());
+                putClientProperty("FileChooser.upFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER());
+                putClientProperty("FileChooser.detailsViewButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_DETAILS());
+                putClientProperty("FileChooser.listViewButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_LIST());
+                super.updateUI();
             }
 
             @Override
@@ -225,15 +260,15 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         // find samba library
         main: for (File r : fc.getFileSystemView().getRoots()) {
             for (File mybenetwork : r.listFiles()) {
+
                 // works a least on windows7
-                if (mybenetwork.getName().equalsIgnoreCase("::{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}")) {
+                if (mybenetwork.getName().equalsIgnoreCase(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
                     windowsNetworkFolder = mybenetwork;
                     // File[] list = windowsNetworkFolder.listFiles();
-
                     for (File f : windowsNetworkFolder.listFiles()) {
                         sambaFolders.put(f.getPath(), f);
                     }
-                    break main;
+                    // break main;
                 }
 
             }
@@ -320,7 +355,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 namePanel.remove(1);
 
                 final String text = oldTextField.getText();
-                final SearchComboBox<String> destination = new SearchComboBox<String>() {
+                destination = new SearchComboBox<String>() {
 
                     @Override
                     protected Icon getIconForValue(String value) {
@@ -344,41 +379,69 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
                     @Override
                     public void onChanged() {
-                        if (selecting) return;
+                        if (selecting) {
+                            SwingUtilities.invokeLater(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    File[] ret = createReturnValue();
+                                    if (ret == null || ret.length == 0) {
+                                        okButton.setEnabled(false);
+                                    } else {
+                                        okButton.setEnabled(true);
+                                    }
+
+                                }
+
+                            });
+
+                            return;
+                        }
                         SwingUtilities.invokeLater(new Runnable() {
 
                             @Override
                             public void run() {
-                                String txt = getText();
+                                try {
+                                    String txt = getText();
 
-                                File f = getFile(txt);
+                                    File f = getFile(txt);
 
-                                boolean parent = false;
-                                while (f != null && f.getParentFile() != f) {
-                                    if (exists(f)) {
-                                        if (f.getParentFile() == null||!f.getParentFile().exists() || parent) {
-                                            fc.setCurrentDirectory(f);
-                                            selecting = true;
-                                            setText(txt);
-                                            selecting = false;
-                                        } else {
-                                            if (getText().endsWith("\\") || getText().endsWith("/") && f.isDirectory()) {
+                                    boolean parent = false;
+                                    while (f != null && f.getParentFile() != f) {
+                                        if (exists(f)) {
+                                            if (f.getParentFile() == null || !f.getParentFile().exists() || parent) {
                                                 fc.setCurrentDirectory(f);
+                                                fc.setSelectedFile(null);
                                                 selecting = true;
                                                 setText(txt);
                                                 selecting = false;
                                             } else {
+                                                if (getText().endsWith("\\") || getText().endsWith("/") && f.isDirectory()) {
+                                                    fc.setCurrentDirectory(f);
+                                                    fc.setSelectedFile(null);
+                                                    selecting = true;
+                                                    setText(txt);
+                                                    selecting = false;
+                                                } else {
 
-                                                fc.setSelectedFile(f);
-                                                selecting = true;
-                                                setText(txt);
-                                                selecting = false;
+                                                    fc.setSelectedFile(f);
+                                                    selecting = true;
+                                                    setText(txt);
+                                                    selecting = false;
+                                                }
                                             }
+                                            return;
+                                        } else {
+                                            parent = true;
+                                            f = f.getParentFile();
                                         }
-                                        return;
+                                    }
+                                } finally {
+                                    File[] ret = createReturnValue();
+                                    if (ret == null || ret.length == 0) {
+                                        okButton.setEnabled(false);
                                     } else {
-                                        parent = true;
-                                        f = f.getParentFile();
+                                        okButton.setEnabled(true);
                                     }
                                 }
                             }
@@ -390,11 +453,6 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                                 return ret != null ? ret : new File(txt);
                             }
 
-                            private boolean exists(File f) {
-                                if (f.exists()) return true;
-                                if (sambaFolders.containsKey(f.getName())) return true;
-                                return false;
-                            }
                         });
 
                     }
@@ -482,6 +540,30 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         }
 
         return fc;
+    }
+
+    /**
+     * @param ret
+     * @param f
+     * @return
+     */
+    protected Icon getDirectoryIcon(Icon ret, File f) {
+
+        return ret;
+    }
+
+    protected boolean exists(File f) {
+        if (f.exists()) return true;
+        if (isSambaFolder(f)) return true;
+        return false;
+    }
+
+    /**
+     * @param f
+     * @return
+     */
+    protected boolean isSambaFolder(File f) {
+        return sambaFolders.containsKey(f.getPath());
     }
 
     /**
