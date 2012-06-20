@@ -961,20 +961,19 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             this.clearSelection();
             return true;
         case KeyEvent.VK_X:
-            if (evt.isControlDown() || evt.isMetaDown()) {
+            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_CUT, this.getExtTableModel().getSelectedObjects()));
                 return this.onShortcutCut(this.getExtTableModel().getSelectedObjects(), evt);
             }
             break;
         case KeyEvent.VK_V:
-
-            if (evt.isControlDown() || evt.isMetaDown()) {
+            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_PASTE, this.getExtTableModel().getSelectedObjects()));
                 return this.onShortcutPaste(this.getExtTableModel().getSelectedObjects(), evt);
             }
             break;
         case KeyEvent.VK_C:
-            if (evt.isControlDown() || evt.isMetaDown()) {
+            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_COPY, this.getExtTableModel().getSelectedObjects()));
                 return this.onShortcutCopy(this.getExtTableModel().getSelectedObjects(), evt);
 
@@ -988,7 +987,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             }
             break;
         case KeyEvent.VK_BACK_SPACE:
-            if ((evt.isControlDown() || evt.isMetaDown()) && !evt.isAltDown()) {
+            if ((evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) && !evt.isAltDown()) {
                 /* no ctrl+alt+backspace = unix desktop restart */
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getExtTableModel().getSelectedObjects(), false));
 
@@ -996,7 +995,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             }
             break;
         case KeyEvent.VK_F:
-            if (evt.isControlDown() || evt.isMetaDown()) {
+            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_SEARCH, this.getExtTableModel().getSelectedObjects()));
 
                 return this.onShortcutSearch(this.getExtTableModel().getSelectedObjects(), evt);
@@ -1021,7 +1020,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             }
             break;
         case KeyEvent.VK_A:
-            if (evt.isControlDown() || evt.isMetaDown()) {
+            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
                 }
@@ -1030,7 +1029,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             }
             break;
         case KeyEvent.VK_HOME:
-            if (evt.isControlDown() || evt.isMetaDown() || evt.isShiftDown()) {
+            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown() || evt.isShiftDown()) {
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
                 }
@@ -1047,7 +1046,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             }
             break;
         case KeyEvent.VK_END:
-            if (evt.isControlDown() || evt.isMetaDown() || evt.isShiftDown()) {
+            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown() || evt.isShiftDown()) {
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
                 }
@@ -1134,7 +1133,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                     ret = this.onSingleClick(e, obj);
                 }
                 if (ret == true) { return; }
-                if(clickDelayerRunable!=null){
+                if (this.clickDelayerRunable != null) {
                     this.renameClickDelayer.resetAndStart();
                 }
             }
@@ -1182,7 +1181,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
                             }
                         };
-             
 
                     }
 
