@@ -14,7 +14,10 @@ package org.appwork.javaexe;
  *
  */
 public interface SystemEventHandler {
-
+ 
+    
+    
+    
     /**
      * @param logOffTyp
      * @return
