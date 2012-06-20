@@ -10,6 +10,7 @@
 package org.appwork.swing.components.tooltips;
 
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -50,6 +51,14 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
     public static ExtTooltipSettings createConfig(final String id) {
 
         return JsonConfig.create(Application.getResource("cfg/ExtTooltipSettings_" + id), ExtTooltipSettings.class);
+    }
+
+    /**
+     * @param black
+     */
+    public static void setForgroundColor(final Color black) {
+        ExtTooltip.createConfig(ExtTooltip.DEFAULT).setForegroundColor(black.getRGB());
+
     }
 
     private final ExtTooltipSettings config;
@@ -146,14 +155,20 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
         final int th = this.panel.getPreferredSize().height + insets.top + insets.bottom;
         if (th > this.h) {
             this.h = th;
-            final Rectangle b = this.getParent().getBounds();
-            this.getParent().setBounds(b.x, b.y, this.w, this.h);
+            final Container parent = this.getParent();
+            if (parent != null) {
+                final Rectangle b = parent.getBounds();
+                parent.setBounds(b.x, b.y, this.w, this.h);
+            }
 
         } else if (th < this.h) {
             if (System.currentTimeMillis() - this.lastResizeH > 1000) {
                 this.h -= (this.h - th) * (System.currentTimeMillis() - this.lastResizeH - 1000) / 10000;
-                final Rectangle b = this.getParent().getBounds();
-                this.getParent().setBounds(b.x, b.y, this.w, this.h);
+                final Container parent = this.getParent();
+                if (parent != null) {
+                    final Rectangle b = parent.getBounds();
+                    parent.setBounds(b.x, b.y, this.w, this.h);
+                }
             }
         }
 
@@ -184,23 +199,53 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
         final int tw = this.panel.getPreferredSize().width + insets.left + insets.right;
         if (tw > this.w) {
             this.w = tw;
-            if (this.getParent() != null) {
-                final Rectangle b = this.getParent().getBounds();
-                this.getParent().setBounds(b.x, b.y, this.w, this.h);
+            final Container parent = this.getParent();
+            if (parent != null) {
+                final Rectangle b = parent.getBounds();
+                parent.setBounds(b.x, b.y, this.w, this.h);
             }
             this.lastResize = System.currentTimeMillis();
 
         } else if (tw < this.w) {
             if (System.currentTimeMillis() - this.lastResize > 1000) {
                 this.w -= (this.w - tw) * (System.currentTimeMillis() - this.lastResize - 1000) / 10000;
-                if (this.getParent() != null) {
-                    final Rectangle b = this.getParent().getBounds();
-                    this.getParent().setBounds(b.x, b.y, this.w, this.h);
+                final Container parent = this.getParent();
+                if (parent != null) {
+                    final Rectangle b = parent.getBounds();
+                    parent.setBounds(b.x, b.y, this.w, this.h);
                 }
             }
         }
 
         return this.w;
+
+    }
+
+    /**
+     * normal behaviour is, that a new tooltip will be shown immediately if we
+     * move the mouse to a new tooltip component within a short time. if this
+     * method is false, this behaviour will not be active after this tooltip.
+     * 
+     * @return
+     */
+    public boolean isLastHiddenEnabled() {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
+    /**
+     * 
+     */
+    public void onHide() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * 
+     */
+    public void onShow() {
+        // TODO Auto-generated method stub
 
     }
 
@@ -243,41 +288,7 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
     }
 
     /**
-     * @param black
-     */
-    public static void setForgroundColor(Color black) {
-        createConfig(DEFAULT).setForegroundColor(black.getRGB());
-
-    }
-
-    /**
      * @return
      */
     abstract public String toText();
-
-    /**
-     * 
-     */
-    public void onShow() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * 
-     */
-    public void onHide() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * normal behaviour is, that a new tooltip will be shown immediately if we move the mouse to a new tooltip component within a short time.
-     * if this method is false, this behaviour will not be active after this tooltip.
-     * @return
-     */
-    public boolean isLastHiddenEnabled() {
-        // TODO Auto-generated method stub
-        return true;
-    }
 }

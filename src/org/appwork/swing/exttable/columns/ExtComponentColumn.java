@@ -8,6 +8,7 @@ import javax.swing.JComponent;
 
 import org.appwork.swing.exttable.ExtColumn;
 import org.appwork.swing.exttable.ExtTable;
+import org.appwork.utils.swing.EDTHelper;
 
 public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
 
@@ -38,15 +39,15 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
                 final int row = table.getRowIndexByPoint(e.getPoint());
 
                 int modelIndex = table.getColumnModel().getColumn(col).getModelIndex();
+                final int editing = table.getEditingColumn();
                 if (col != this.col || row != this.row) {
                     if (ExtComponentColumn.this.getModel().getExtColumnByModelIndex(modelIndex) == ExtComponentColumn.this) {
-                        if (table.getEditingColumn() == col && table.getEditingRow() == row) {
+                        if (editing == col && table.getEditingRow() == row) {
                             /*
                              * we are still in same cell, no need to change
                              * anything
                              */
                         } else {
-                            final int editing = table.getEditingColumn();
                             modelIndex = table.getColumnModel().getColumn(editing).getModelIndex();
                             if (ExtComponentColumn.this.getModel().getExtColumnByModelIndex(modelIndex) == ExtComponentColumn.this) {
                                 /*
@@ -54,11 +55,25 @@ public abstract class ExtComponentColumn<T> extends ExtColumn<T> {
                                  * cell editing
                                  */
                                 ExtComponentColumn.this.stopCellEditing();
+                            } else if (editing > 0) {
+                                /* stop another column from editing */
+                                ExtComponentColumn.this.getModel().getExtColumnByModelIndex(modelIndex).stopCellEditing();
                             }
-                            ExtComponentColumn.this.onCellUpdate(col, row);
+                            /*
+                             * invoke later is important as we first have to
+                             * stopCellEditing and then put new cell into
+                             * editing mode
+                             */
+                            new EDTHelper<Void>() {
+
+                                @Override
+                                public Void edtRun() {
+                                    ExtComponentColumn.this.onCellUpdate(col, row);
+                                    return null;
+                                }
+                            }.start(true);
                         }
                     } else {
-                        final int editing = table.getEditingColumn();
                         modelIndex = table.getColumnModel().getColumn(editing).getModelIndex();
                         if (ExtComponentColumn.this.getModel().getExtColumnByModelIndex(modelIndex) == ExtComponentColumn.this) {
                             /*
