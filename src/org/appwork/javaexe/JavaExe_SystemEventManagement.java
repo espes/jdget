@@ -1,17 +1,10 @@
 package org.appwork.javaexe;
 
-import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.exceptions.WTFException;
+import org.appwork.utils.logging.Log;
 
-public class JavaExe_SystemEventManagement {
-    /*
-     * WM_QUERYENDSESSION : This event is started when the session will be
-     * stopped. A confirmation is initially requested from the user and if
-     * notifyEvent returns 0 the session will not be stopped. Another message,
-     * WM_ENDSESSION, will be automatically sent in all the cases, after this
-     * one with the result of notifyEvent. This message is not received if the
-     * Java application is launched in console mode. The arguments used are : o
-     * val2 : even significance that for message WM_ENDSESSION.
-     */
+public abstract class JavaExe_SystemEventManagement {
+
     static final int WM_QUERYENDSESSION          = 0x0011;
     static final int WM_ENDSESSION               = 0x0016;
     static final int WM_DEVMODECHANGE            = 0x001B;
@@ -75,48 +68,38 @@ public class JavaExe_SystemEventManagement {
     static final int CTRL_LOGOFF_EVENT           = 5;
     static final int CTRL_SHUTDOWN_EVENT         = 6;
 
-    public static String getStatusPowerBattery(byte flag) {
-        String ret = "";
-
-        if (flag == 255)
-            ret = "?";
-        else {
-            if ((flag & 1) != 0) ret = "High ";
-            if ((flag & 2) != 0) ret += "Low ";
-            if ((flag & 4) != 0) ret += "Critical ";
-            if ((flag & 8) != 0) ret += "Charging ";
-            if ((flag & 128) != 0) ret += "No system battery ";
-        }
-
-        return ret.trim();
-    }
-
     protected int onEvent(int msg, int val1, int val2, String val3, int[] arr1, byte[] arr2) {
+
         switch (msg) {
         case WM_QUERYENDSESSION:
-            return onQueryEndSession((val2 & ENDSESSION_LOGOFF) == 0 ? LogOffTyp.SHUTDOWN : LogOffTyp.LOGOUT) ? 1 : 0;
+            if (getHandler() == null) return 1;
+            return getHandler().onQueryEndSession((val2 & ENDSESSION_LOGOFF) == 0 ? LogOffTyp.SHUTDOWN : LogOffTyp.LOGOUT) ? 1 : 0;
         case WM_ENDSESSION:
-            onSessionEnd(val1 != 0, (val2 & ENDSESSION_LOGOFF) == 0 ? LogOffTyp.SHUTDOWN : LogOffTyp.LOGOUT);
+            if (getHandler() == null) return 0;
+            getHandler().onSessionEnd(val1 != 0, (val2 & ENDSESSION_LOGOFF) == 0 ? LogOffTyp.SHUTDOWN : LogOffTyp.LOGOUT);
             return 0;
         case WM_DISPLAYCHANGE:
+            if (getHandler() == null) return 0;
             int w = (val2 & 0x0000FFFF);
             int h = ((val2 >> 16) & 0x0000FFFF);
-            onDisplayChange(w, h, val1);
+            getHandler().onDisplayChange(w, h, val1);
             return 0;
         case WM_SYSCOMMAND:
+            if (getHandler() == null) return 0;
             // currently only SCREENSAVE supported
-            onScreenSaverState(val2 == 1);
+            getHandler().onScreenSaverState(val2 == 1);
             return 0;
         case WM_COMPACTING:
+            if (getHandler() == null) return 0;
             double percent = (100.0 * ((double) val1)) / 65536.0;
-            onCompacting(percent);
+            getHandler().onCompacting(percent);
             return 0;
         case WM_POWERBROADCAST:
-
+            if (getHandler() == null) return 1;
             PowerBroadcastEvent ev = PowerBroadcastEvent.get(val1);
             switch (ev) {
             case OEMEVENT:
-                onOEMEvent(val2);
+                getHandler().onOEMEvent(val2);
                 break;
             case POWERSTATUSCHANGE:
                 boolean ac = arr2[0] == 1;
@@ -124,160 +107,27 @@ public class JavaExe_SystemEventManagement {
                 String percentageCharging = (arr2[2] == 255 ? "?" : "" + arr2[2]);
                 int secondsLeft = arr1[0];
                 int secondsTotal = arr1[1];
-                onPowerStatusChanged(ac, chargingStatus, percentageCharging, secondsLeft, secondsTotal);
+                getHandler().onPowerStatusChanged(ac, chargingStatus, percentageCharging, secondsLeft, secondsTotal);
                 break;
             case QUERYSUSPEND:
-                return onQuerySuspend((val2 & 1) != 0) ? 1 : 0;
+                return getHandler().onQuerySuspend((val2 & 1) != 0) ? 1 : 0;
             default:
 
-                onPowerBroadcast(ev);
+                getHandler().onPowerBroadcast(ev);
                 break;
             }
             return 1;
-            // case WM_ENDSESSION:
-            // return notifyEvent_ENDSESSION(objLog, val1, val2);
-            // case WM_DISPLAYCHANGE:
-            // return notifyEvent_DISPLAYCHANGE(objLog, val1, val2);
-            // case WM_SYSCOMMAND:
-            // return notifyEvent_SYSCOMMAND(objLog, val1, val2);
-            // case WM_COMPACTING:
-            // return notifyEvent_COMPACTING(objLog, val1);
-            // case WM_POWERBROADCAST:
-            // return notifyEvent_POWERBROADCAST(objLog, isPrompt, val1, val2,
-            // arr1, arr2);
-            // case WM_DEVICECHANGE:
-            // return notifyEvent_DEVICECHANGE(objLog, isPrompt, val1, val3,
-            // arr1);
-            // case WM_NETWORK:
-            // return notifyEvent_NETWORK(objLog, val1, val3, arr1);
-            // case WM_SESSION_CHANGE:
-            // return notifyEvent_SESSION(objLog, val1, val2, val3, arr1);
-            // case WM_CONSOLE:
-            // return notifyEvent_CONSOLE(objLog, isPrompt, val1);
+        default:
+            Log.exception(new WTFException("Not supported " + msg));
+            return 0;
+
         }
-        return 0;
-    }
-
-    /**
-     * @param val2
-     */
-    private void onOEMEvent(int val2) {
-        // TODO Auto-generated method stub
 
     }
 
     /**
-     * @param b
      * @return
      */
-    private boolean onQuerySuspend(boolean askAllowed) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
-    /**
-     * @param ac
-     * @param chargingStatus
-     * @param percentageCharging
-     * @param secondsLeft
-     * @param secondsTotal
-     */
-    private void onPowerStatusChanged(boolean ac, byte chargingStatus, String percentageCharging, int secondsLeft, int secondsTotal) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * @param ev
-     */
-    private void onPowerBroadcast(PowerBroadcastEvent ev) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * This message is received when the system starts to saturate.
-     * 
-     * @param percent
-     */
-    private void onCompacting(double percent) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * @param b
-     */
-    private void onScreenSaverState(boolean b) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * @param w
-     * @param h
-     * @param val1
-     */
-    private void onDisplayChange(int w, int h, int bitsPerPixel) {
-        Dialog.getInstance().showMessageDialog(w + " - " + h + " " + bitsPerPixel);
-    }
-
-    /**
-     * @param b
-     * @param logOffTyp
-     */
-    private void onSessionEnd(boolean queryResult, LogOffTyp logOffTyp) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * This event is started when the session will be stopped. A confirmation is
-     * initially requested from the user and if notifyEvent returns 0 the
-     * session will not be stopped. Another message, WM_ENDSESSION, will be
-     * automatically sent in all the cases, after this one with the result of
-     * notifyEvent. This message is not received if the Java application is
-     * launched in console mode. The arguments used are
-     * 
-     * @param val2
-     * @return
-     */
-    private boolean onQueryEndSession(LogOffTyp logOffTyp) {
-        // TODO Auto-generated method stub
-        return true;
-    }
-
-    // public static int notifyEvent(Examples_I_LogEvent objLog, boolean
-    // isPrompt, int msg, int val1, int val2, String val3, int[] arr1, byte[]
-    // arr2) {
-    // switch (msg) {
-    // case WM_QUERYENDSESSION:
-    // return notifyEvent_QUERYENDSESSION(objLog, isPrompt, val2);
-    // case WM_ENDSESSION:
-    // return notifyEvent_ENDSESSION(objLog, val1, val2);
-    // case WM_DISPLAYCHANGE:
-    // return notifyEvent_DISPLAYCHANGE(objLog, val1, val2);
-    // case WM_SYSCOMMAND:
-    // return notifyEvent_SYSCOMMAND(objLog, val1, val2);
-    // case WM_COMPACTING:
-    // return notifyEvent_COMPACTING(objLog, val1);
-    // case WM_POWERBROADCAST:
-    // return notifyEvent_POWERBROADCAST(objLog, isPrompt, val1, val2, arr1,
-    // arr2);
-    // case WM_DEVICECHANGE:
-    // return notifyEvent_DEVICECHANGE(objLog, isPrompt, val1, val3, arr1);
-    // case WM_NETWORK:
-    // return notifyEvent_NETWORK(objLog, val1, val3, arr1);
-    // case WM_SESSION_CHANGE:
-    // return notifyEvent_SESSION(objLog, val1, val2, val3, arr1);
-    // case WM_CONSOLE:
-    // return notifyEvent_CONSOLE(objLog, isPrompt, val1);
-    // }
-    //
-    // if (objLog != null) objLog.logEvent(Examples_UtilsEvent.getMsgText(msg),
-    // "" + val1 + " ; " + val2 + " ; " + val3);
-    //
-    // return 1;
-    // }
+    protected abstract SystemEventHandler getHandler();
 
 }
