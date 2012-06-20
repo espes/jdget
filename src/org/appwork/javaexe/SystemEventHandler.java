@@ -37,7 +37,7 @@ public interface SystemEventHandler {
      */
     void onDisplayChange(int w, int h, int val1);
 
-    /**
+    /** 
      * @param b
      */
     void onScreenSaverState(boolean b);
