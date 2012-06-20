@@ -26,16 +26,6 @@ public class JavaExe_SystemEventManagement {
     static final int WM_NETWORK                  = 0x0401;
     static final int WM_CONSOLE                  = 0x0402;
 
-    static final int PBT_APMQUERYSUSPEND         = 0x0000;
-    static final int PBT_APMQUERYSUSPENDFAILED   = 0x0002;
-    static final int PBT_APMSUSPEND              = 0x0004;
-    static final int PBT_APMRESUMECRITICAL       = 0x0006;
-    static final int PBT_APMRESUMESUSPEND        = 0x0007;
-    static final int PBT_APMBATTERYLOW           = 0x0009;
-    static final int PBT_APMPOWERSTATUSCHANGE    = 0x000A;
-    static final int PBT_APMOEMEVENT             = 0x000B;
-    static final int PBT_APMRESUMEAUTOMATIC      = 0x0012;
-
     static final int DBT_QUERYCHANGECONFIG       = 0x0017;
     static final int DBT_CONFIGCHANGED           = 0x0018;
     static final int DBT_CONFIGCHANGECANCELED    = 0x0019;
@@ -85,18 +75,65 @@ public class JavaExe_SystemEventManagement {
     static final int CTRL_LOGOFF_EVENT           = 5;
     static final int CTRL_SHUTDOWN_EVENT         = 6;
 
+    public static String getStatusPowerBattery(byte flag) {
+        String ret = "";
+
+        if (flag == 255)
+            ret = "?";
+        else {
+            if ((flag & 1) != 0) ret = "High ";
+            if ((flag & 2) != 0) ret += "Low ";
+            if ((flag & 4) != 0) ret += "Critical ";
+            if ((flag & 8) != 0) ret += "Charging ";
+            if ((flag & 128) != 0) ret += "No system battery ";
+        }
+
+        return ret.trim();
+    }
+
     protected int onEvent(int msg, int val1, int val2, String val3, int[] arr1, byte[] arr2) {
         switch (msg) {
         case WM_QUERYENDSESSION:
-            return onQueryEndSession((val2 & ENDSESSION_LOGOFF)==0?LogOffTyp.SHUTDOWN:LogOffTyp.LOGOUT)?1:0;
+            return onQueryEndSession((val2 & ENDSESSION_LOGOFF) == 0 ? LogOffTyp.SHUTDOWN : LogOffTyp.LOGOUT) ? 1 : 0;
         case WM_ENDSESSION:
-            onSessionEnd(val1!=0,(val2 & ENDSESSION_LOGOFF)==0?LogOffTyp.SHUTDOWN:LogOffTyp.LOGOUT);
+            onSessionEnd(val1 != 0, (val2 & ENDSESSION_LOGOFF) == 0 ? LogOffTyp.SHUTDOWN : LogOffTyp.LOGOUT);
             return 0;
         case WM_DISPLAYCHANGE:
             int w = (val2 & 0x0000FFFF);
-            int h = ((val2>>16) & 0x0000FFFF);
-            onDisplayChange(w,h,val1);
+            int h = ((val2 >> 16) & 0x0000FFFF);
+            onDisplayChange(w, h, val1);
             return 0;
+        case WM_SYSCOMMAND:
+            // currently only SCREENSAVE supported
+            onScreenSaverState(val2 == 1);
+            return 0;
+        case WM_COMPACTING:
+            double percent = (100.0 * ((double) val1)) / 65536.0;
+            onCompacting(percent);
+            return 0;
+        case WM_POWERBROADCAST:
+
+            PowerBroadcastEvent ev = PowerBroadcastEvent.get(val1);
+            switch (ev) {
+            case OEMEVENT:
+                onOEMEvent(val2);
+                break;
+            case POWERSTATUSCHANGE:
+                boolean ac = arr2[0] == 1;
+                byte chargingStatus = arr2[1];
+                String percentageCharging = (arr2[2] == 255 ? "?" : "" + arr2[2]);
+                int secondsLeft = arr1[0];
+                int secondsTotal = arr1[1];
+                onPowerStatusChanged(ac, chargingStatus, percentageCharging, secondsLeft, secondsTotal);
+                break;
+            case QUERYSUSPEND:
+                return onQuerySuspend((val2 & 1) != 0) ? 1 : 0;
+            default:
+
+                onPowerBroadcast(ev);
+                break;
+            }
+            return 1;
             // case WM_ENDSESSION:
             // return notifyEvent_ENDSESSION(objLog, val1, val2);
             // case WM_DISPLAYCHANGE:
@@ -122,12 +159,67 @@ public class JavaExe_SystemEventManagement {
     }
 
     /**
+     * @param val2
+     */
+    private void onOEMEvent(int val2) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param b
+     * @return
+     */
+    private boolean onQuerySuspend(boolean askAllowed) {
+        // TODO Auto-generated method stub
+        return true;
+    }
+
+    /**
+     * @param ac
+     * @param chargingStatus
+     * @param percentageCharging
+     * @param secondsLeft
+     * @param secondsTotal
+     */
+    private void onPowerStatusChanged(boolean ac, byte chargingStatus, String percentageCharging, int secondsLeft, int secondsTotal) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param ev
+     */
+    private void onPowerBroadcast(PowerBroadcastEvent ev) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * This message is received when the system starts to saturate.
+     * 
+     * @param percent
+     */
+    private void onCompacting(double percent) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * @param b
+     */
+    private void onScreenSaverState(boolean b) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
      * @param w
      * @param h
      * @param val1
      */
     private void onDisplayChange(int w, int h, int bitsPerPixel) {
-        Dialog.getInstance().showMessageDialog(w+" - "+h+" "+bitsPerPixel);
+        Dialog.getInstance().showMessageDialog(w + " - " + h + " " + bitsPerPixel);
     }
 
     /**
@@ -136,7 +228,7 @@ public class JavaExe_SystemEventManagement {
      */
     private void onSessionEnd(boolean queryResult, LogOffTyp logOffTyp) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
