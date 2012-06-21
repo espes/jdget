@@ -5,68 +5,27 @@ import org.appwork.utils.logging.Log;
 
 public abstract class JavaExe_SystemEventManagement {
 
-    static final int WM_QUERYENDSESSION          = 0x0011;
-    static final int WM_ENDSESSION               = 0x0016;
-    static final int WM_DEVMODECHANGE            = 0x001B;
-    static final int WM_TIMECHANGE               = 0x001E;
-    static final int WM_COMPACTING               = 0x0041;
-    static final int WM_USERCHANGED              = 0x0054;
-    static final int WM_DISPLAYCHANGE            = 0x007E;
-    static final int WM_SYSCOMMAND               = 0x0112;
-    static final int WM_POWERBROADCAST           = 0x0218;
-    static final int WM_DEVICECHANGE             = 0x0219;
-    static final int WM_SESSION_CHANGE           = 0x02B1;
-    static final int WM_NETWORK                  = 0x0401;
-    static final int WM_CONSOLE                  = 0x0402;
+    static final int WM_QUERYENDSESSION = 0x0011;
+    static final int WM_ENDSESSION      = 0x0016;
+    static final int WM_DEVMODECHANGE   = 0x001B;
+    static final int WM_TIMECHANGE      = 0x001E;
+    static final int WM_COMPACTING      = 0x0041;
+    static final int WM_USERCHANGED     = 0x0054;
+    static final int WM_DISPLAYCHANGE   = 0x007E;
+    static final int WM_SYSCOMMAND      = 0x0112;
+    static final int WM_POWERBROADCAST  = 0x0218;
+    static final int WM_DEVICECHANGE    = 0x0219;
+    static final int WM_SESSION_CHANGE  = 0x02B1;
+    static final int WM_NETWORK         = 0x0401;
+    static final int WM_CONSOLE         = 0x0402;
 
-    static final int DBT_QUERYCHANGECONFIG       = 0x0017;
-    static final int DBT_CONFIGCHANGED           = 0x0018;
-    static final int DBT_CONFIGCHANGECANCELED    = 0x0019;
-    static final int DBT_DEVICEARRIVAL           = 0x8000;
-    static final int DBT_DEVICEQUERYREMOVE       = 0x8001;
-    static final int DBT_DEVICEQUERYREMOVEFAILED = 0x8002;
-    static final int DBT_DEVICEREMOVECOMPLETE    = 0x8004;
-    static final int DBT_DEVICEREMOVEPENDING     = 0x8003;
-    static final int DBT_DEVICETYPESPECIFIC      = 0x8005;
-    static final int DBT_CUSTOMEVENT             = 0x8006;
-    static final int DBT_USERDEFINED             = 0xFFFF;
+    static final int ENDSESSION_LOGOFF  = 0x80000000;
 
-    static final int DBT_DEVTYP_OEM              = 0x00000000;
-    static final int DBT_DEVTYP_VOLUME           = 0x00000002;
-    static final int DBT_DEVTYP_PORT             = 0x00000003;
+    static final int SC_SCREENSAVE      = 0xF140;
 
-    static final int ENDSESSION_LOGOFF           = 0x80000000;
-
-    static final int SC_SCREENSAVE               = 0xF140;
-
-    static final int NET_DISCONNECT              = 0;
-    static final int NET_CONNECTING              = 1;
-    static final int NET_CONNECTED               = 2;
-
-    static final int MIB_IF_TYPE_OTHER           = 1;
-    static final int MIB_IF_TYPE_ETHERNET        = 6;
-    static final int MIB_IF_TYPE_TOKENRING       = 9;
-    static final int MIB_IF_TYPE_FDDI            = 15;
-    static final int MIB_IF_TYPE_PPP             = 23;
-    static final int MIB_IF_TYPE_LOOPBACK        = 24;
-    static final int MIB_IF_TYPE_SLIP            = 28;
-
-    static final int WTS_SESSION_LOGGED          = 0;
-    static final int WTS_CONSOLE_CONNECT         = 1;
-    static final int WTS_CONSOLE_DISCONNECT      = 2;
-    static final int WTS_REMOTE_CONNECT          = 3;
-    static final int WTS_REMOTE_DISCONNECT       = 4;
-    static final int WTS_SESSION_LOGON           = 5;
-    static final int WTS_SESSION_LOGOFF          = 6;
-    static final int WTS_SESSION_LOCK            = 7;
-    static final int WTS_SESSION_UNLOCK          = 8;
-    static final int WTS_SESSION_REMOTE_CONTROL  = 9;
-
-    static final int CTRL_C_EVENT                = 0;
-    static final int CTRL_BREAK_EVENT            = 1;
-    static final int CTRL_CLOSE_EVENT            = 2;
-    static final int CTRL_LOGOFF_EVENT           = 5;
-    static final int CTRL_SHUTDOWN_EVENT         = 6;
+    final static String getIPstr(int[] bufIP, int offset) {
+        return "" + bufIP[offset] + "." + bufIP[offset + 1] + "." + bufIP[offset + 2] + "." + bufIP[offset + 3];
+    }
 
     protected int onEvent(int msg, int val1, int val2, String val3, int[] arr1, byte[] arr2) {
 
@@ -117,11 +76,95 @@ public abstract class JavaExe_SystemEventManagement {
                 break;
             }
             return 1;
+        case WM_CONSOLE:
+            if (getHandler() == null) return 1;
+            ConsoleEventType ctrlType = ConsoleEventType.get(val1);
+            return getHandler().onConsoleEvent(ctrlType) ? 1 : 0;
+
+        case WM_NETWORK:
+            if (getHandler() == null) return 0;
+            NetworkStatus status = NetworkStatus.get(val1);
+            String device = val3;
+
+            switch (status) {
+            case CONNECTED:
+                NetworkType networkType = NetworkType.get(arr1[0]);
+                String ip = getIPstr(arr1, 1);
+                String gateway = getIPstr(arr1, 5);
+                String mask = getIPstr(arr1, 9);
+                getHandler().onNetworkConnected(device, networkType, ip, gateway, mask);
+                break;
+            case CONNECTING:
+                getHandler().onNetworkConnecting(device);
+                break;
+            case DISCONNECT:
+                getHandler().onNetworkDisconnect(device);
+                break;
+            }
+            return 0;
+        case WM_DEVICECHANGE:
+
+            DeviceChangeType deviceChangeType = DeviceChangeType.get(val1);
+
+            switch (deviceChangeType) {
+            case CONFIGCHANGECANCELED:
+                getHandler().onDeviceConfigChangeCanceled();
+                break;
+            case CONFIGCHANGED:
+                getHandler().onDeviceConfigChange();
+                break;
+            case QUERYCHANGECONFIG:
+                // if (isPrompt) ret =
+                // Examples_UtilsGUI.showConfirmDialog("System Event",
+                // "The system has requested to dock or undock this computer.\nDo you accept ?");
+                if (getHandler() == null) return 1;
+                return getHandler().onDeviceConfigChangeQuery() ? 1 : 0;
+
+            case DEVICEQUERYREMOVE:
+                if (getHandler() == null) return 1;
+                DeviceType deviceType = getDevice(val3, arr1);
+                return getHandler().onDeviceRemoveQuery(deviceType) ? 1 : 0;
+
+            default:
+                if (getHandler() == null) return 0;
+                deviceType = getDevice(val3, arr1);
+                getHandler().onDeviceChangeEvent(deviceChangeType, deviceType);
+
+            }
+            return 0;
+        case WM_SESSION_CHANGE:
+            if (getHandler() == null) return 0;
+            getHandler().onSessionChange(SessionEvent.get(val1), val2, val3, ((arr1 != null && arr1.length > 0 && arr1[0] != 0)));
+            return 0;
+
         default:
             Log.exception(new WTFException("Not supported " + msg));
             return 0;
 
         }
+    }
+
+    /**
+     * @param i
+     * @return
+     */
+    private DeviceType getDevice(String val3, int[] arr1) {
+
+        switch (arr1[1]) {
+        case DeviceType.OEM:
+
+            return new OEMDevice(arr1[3], arr1[4]);
+
+        case DeviceType.PORT:
+
+            return new PortDevice(val3);
+
+        case DeviceType.VOLUME:
+            return VolumeDevice.create(arr1[3], arr1[4]);
+
+        }
+
+        return null;
 
     }
 

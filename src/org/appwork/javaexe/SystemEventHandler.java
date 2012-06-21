@@ -28,7 +28,7 @@ public interface SystemEventHandler {
      * @param b
      * @param logOffTyp
      */
-    void onSessionEnd(boolean b, LogOffTyp logOffTyp);
+    void onSessionEnd(boolean queryResponse, LogOffTyp logOffTyp);
 
     /**
      * @param w
@@ -71,6 +71,69 @@ public interface SystemEventHandler {
      * @param percent
      */
     void onCompacting(double percent);
+    
+    /**
+     * @param sessionEvent
+     * @param val2
+     * @param val3
+     * @param b
+     */
+    public  void onSessionChange(SessionEvent sessionEvent, int sessionid, String username, boolean current);
+
+    /**
+     * @param deviceChangeType
+     * @param deviceType
+     */
+    public  void onDeviceChangeEvent(DeviceChangeType deviceChangeType, DeviceType deviceType);
+
+    /**
+     * @param deviceType
+     * @return
+     */
+    public  boolean onDeviceRemoveQuery(DeviceType deviceType);
+
+    /**
+     * @return
+     */
+    public  boolean onDeviceConfigChangeQuery();
+
+    /**
+     * 
+     */
+    public  void onDeviceConfigChange();
+
+    /**
+     * 
+     */
+    public  void onDeviceConfigChangeCanceled();
+
+    /**
+     * @param device
+     * @param networkType
+     * @param ip
+     * @param gateway
+     * @param mask
+     */
+    public  void onNetworkConnected(String device, NetworkType networkType, String ip, String gateway, String mask);
+
+    /**
+     * @param device
+     * 
+     */
+    public  void onNetworkDisconnect(String device);
+
+    /**
+     * @param device
+     * 
+     */
+    public  void onNetworkConnecting(String device);
+
+    /**
+     * @param type
+     * @return
+     */
+    public  boolean onConsoleEvent(ConsoleEventType type);
+
 
 
 }
