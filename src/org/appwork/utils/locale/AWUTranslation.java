@@ -122,8 +122,6 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Error details", "Fehlerdetails" })
     String ExceptionDialog_layoutDialogContent_more_button();
 
-    
-
     @Default(lngs = { "en", "de" }, values = { "Your Password", "Ihr Passwort" })
     String extpasswordeditorcolumn_tooltip();
 
@@ -138,10 +136,6 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "Choose editor for Filetype '%s1'", "Editor für %s1-Dateien wählen" })
     String fileditcontroller_geteditor_for(String fileType);
-
-    
-
-    
 
     @Default(lngs = { "en", "de" }, values = { "%s1-Editor (Application)", "%s1-Editor (Anwendung)" })
     String fileeditcontroller_exechooser_description(String type);
@@ -188,8 +182,6 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Login", "Benutzername" })
     String LOGINDIALOG_LABEL_USERNAME();
 
-    
-
     @Default(lngs = { "en", "de" }, values = { "New Password:", "Neues Passwort" })
     String PASSWORDDIALOG_PASSWORDCHANGE_NEWPASSWORD();
 
@@ -208,7 +200,7 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Enter a path...", "Bitte Pfad eingeben..." })
     String pathchooser_helptext();
 
-    @Default(lngs = { "en", "de" }, values = { "Please wait tuntil download has finished", "Bitte warten bis der Download beendet ist" })
+    @Default(lngs = { "en", "de" }, values = { "Please wait until download has finished", "Bitte warten bis der Download beendet ist" })
     String please_wait();
 
     @Default(lngs = { "en", "de" }, values = { "%s3% %s1/%s2", "%s3% %s1/%s2" })
@@ -231,8 +223,6 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en", "de" }, values = { "Reset Columns", "Spalten zurücksetzen" })
     String ResetColumnsAction();
-
-    
 
     @Default(lngs = { "en", "de" }, values = { "Search Table", "Tabelle durchsuchen" })
     String SearchContextAction();
@@ -270,14 +260,10 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "shift", "Shift" })
     String ShortCuts_key_shift();
 
-    
-
     @Default(lngs = { "en", "de" }, values = { "Visit our Homepage", "Besuchen Sie unsere Homepage" })
     String Statusbar_Statusbar_visiturl_tooltip();
 
     @Default(lngs = { "en", "de" }, values = { "This dialog has a countdown and closes after a few seconds. Click to cancel the countdown", "Dieser Dialog hat einen Countdown und schließt sich in einigen Sekunden. Klicken Sie hier um den Countdown abzubrechen." })
     String TIMERDIALOG_TOOLTIP_TIMERLABEL();
-
-    
 
 }
