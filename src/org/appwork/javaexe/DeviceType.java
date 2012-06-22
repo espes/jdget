@@ -9,8 +9,6 @@
  */
 package org.appwork.javaexe;
 
-import java.util.HashMap;
-
 /**
  * @author Thomas
  * 
