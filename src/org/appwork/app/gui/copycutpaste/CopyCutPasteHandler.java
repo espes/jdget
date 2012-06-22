@@ -26,7 +26,13 @@ public class CopyCutPasteHandler extends EventQueue {
         return INSTANCE;
     }
 
-    private long lastMouseEvent=System.currentTimeMillis();
+    private long startupTime = System.currentTimeMillis();
+
+    public long getStartupTime() {
+        return startupTime;
+    }
+
+    private long lastMouseEvent = -1;
 
     public long getLastMouseEvent() {
         return lastMouseEvent;
