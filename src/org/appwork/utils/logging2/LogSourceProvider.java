@@ -15,6 +15,7 @@ package org.appwork.utils.logging2;
  */
 
 import java.io.File;
+import java.lang.reflect.Modifier;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -114,7 +115,16 @@ public abstract class LogSourceProvider {
             for (final StackTraceElement element : stackTrace.getStackTrace()) {
                 final String currentClassName = element.getClassName();
                 final Class<?> currentClass = Class.forName(currentClassName);
+                if (Modifier.isAbstract(currentClass.getModifiers())) {
+                    /* we dont want the abstract class to be used */
+                    continue;
+                }
+                if (Modifier.isInterface(currentClass.getModifiers())) {
+                    /* we dont want the interface class to be used */
+                    continue;
+                }
                 if (LogSourceProvider.class.isAssignableFrom(currentClass)) {
+                    /* we dont want the logging class itself to be used */
                     continue;
                 }
                 return this.getLogger(currentClassName);
