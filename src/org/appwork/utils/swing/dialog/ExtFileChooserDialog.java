@@ -1,6 +1,7 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Point;
@@ -42,7 +43,8 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * 
      */
     public static final String       LASTSELECTION     = "LASTSELECTION_";
-
+    private final static Cursor      BUSY_CURSOR       = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+    private final static Cursor      DEFAULT_CURSOR    = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     /**
      * 
      */
@@ -67,6 +69,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     private SearchComboBox<String>   destination;
 
     private ExtFileSystemView        fileSystemView;
+    private Component                parentGlassPane;
 
     public ArrayList<String> getQuickSelectionList() {
         return quickSelectionList;
@@ -197,6 +200,24 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         }
     }
 
+    protected void _init() {
+
+        super._init();
+
+    }
+
+    @Override
+    protected void packed() {
+        // TODO Auto-generated method stub
+        super.packed();
+        if (parentGlassPane != null) {
+
+            parentGlassPane.setCursor(DEFAULT_CURSOR);
+
+            parentGlassPane.setVisible(false);
+        }
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -204,7 +225,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     @Override
     public JComponent layoutDialogContent() {
-
+        parentGlassPane = SwingUtilities.getRootPane(getDialog().getParent()).getGlassPane();
+        if (parentGlassPane != null) {
+            parentGlassPane.setCursor(BUSY_CURSOR);
+            parentGlassPane.setVisible(true);
+        }
         fc = new JFileChooser(fileSystemView = new ExtFileSystemView()) {
             private Insets nullInsets;
             {
