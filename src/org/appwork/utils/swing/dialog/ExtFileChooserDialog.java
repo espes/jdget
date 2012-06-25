@@ -62,11 +62,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     protected boolean                selecting;
 
-    private File                     windowsNetworkFolder;
-
     private HashMap<String, File>    sambaFolders      = new HashMap<String, File>();
 
     private SearchComboBox<String>   destination;
+
+    private ExtFileSystemView        fileSystemView;
 
     public ArrayList<String> getQuickSelectionList() {
         return quickSelectionList;
@@ -205,7 +205,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     @Override
     public JComponent layoutDialogContent() {
 
-        fc = new JFileChooser(new ExtFileSystemView()) {
+        fc = new JFileChooser(fileSystemView = new ExtFileSystemView()) {
             private Insets nullInsets;
             {
                 nullInsets = new Insets(0, 0, 0, 0);
@@ -258,39 +258,43 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         };
 
         // find samba library
-        long t = System.currentTimeMillis();
-        try {
-            main: for (File r : fc.getFileSystemView().getRoots()) {
-                for (File mybenetwork : r.listFiles()) {
-                    // 20D04FE0-3AEA-1069-A2D8-08002B30309D my coputer winxp
-                    // network winxp
-                    // works a least on windows7
 
-                    if (mybenetwork.getName().equalsIgnoreCase(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
+        if (fileSystemView.getSambaFolders() != null) {
 
-                        // win7
-                        windowsNetworkFolder = mybenetwork;
-                        // File[] list = windowsNetworkFolder.listFiles();
-                        for (File f : windowsNetworkFolder.listFiles()) {
-                            sambaFolders.put(f.getPath(), f);
-                        }
-                         break main;
-                    } else if (mybenetwork.getName().equalsIgnoreCase(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP)) {
-
-                        // winXP
-                        windowsNetworkFolder = mybenetwork;
-                        // File[] list = windowsNetworkFolder.listFiles();
-                        for (File f : windowsNetworkFolder.listFiles()) {
-                            sambaFolders.put(f.getPath(), f);
-                        }
-                         break main;
-                    }
-
-                }
+            // File[] list = windowsNetworkFolder.listFiles();
+            for (File f : fileSystemView.getSambaFolders()) {
+                sambaFolders.put(f.getPath(), f);
             }
-        } finally {
-            Log.L.info("List samba " + (System.currentTimeMillis() - t));
+
         }
+        // main: for (File r : fc.getFileSystemView().getRoots()) {
+        // System.out.println(r.getPath());
+        //
+        // for (File mybenetwork : r.listFiles()) {
+        //
+        // // works a least on windows7
+        // switch(CrossSystem.getID()){
+        // case CrossSystem.OS_WINDOWS_7:
+        // case CrossSystem.OS_WINDOWS_8:
+        // case CrossSystem.OS_WINDOWS_VISTA:
+        // if
+        // (mybenetwork.getName().equalsIgnoreCase(ExtFileSystemView.VIRTUAL_NETWORKFOLDER))
+        // {
+        //
+        // // break main;
+        // }
+        // break;
+        // case CrossSystem.OS_WINDOWS_2000:
+        // case CrossSystem.OS_WINDOWS_2003:
+        // case CrossSystem.OS_WINDOWS_NT:
+        // case CrossSystem.OS_WINDOWS_OTHER:
+        // case CrossSystem.OS_WINDOWS_SERVER_2008:
+        // case CrossSystem.OS_WINDOWS_XP:
+        // }
+        //
+        //
+        // }
+        // }
         fc.addActionListener(new ActionListener() {
 
             @Override
@@ -465,7 +469,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                             }
 
                             private File getFile(String txt) {
-                                if (windowsNetworkFolder != null && "\\".equals(txt)) { return windowsNetworkFolder; }
+                                if (fileSystemView.getNetworkFolder() != null && "\\".equals(txt)) { return fileSystemView.getNetworkFolder(); }
                                 File ret = sambaFolders.get(new File(txt).getAbsolutePath());
 
                                 return ret != null ? ret : new File(txt);

@@ -19,6 +19,7 @@ import javax.swing.Icon;
 import javax.swing.filechooser.FileSystemView;
 
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.os.CrossSystem;
 
 import sun.awt.shell.ShellFolder;
 
@@ -36,6 +37,8 @@ public class ExtFileSystemView extends FileSystemView {
 
     private FileSystemView     org;
     private File[]             roots;
+    private File               networkFolder;
+    private File[]             sambaFolders;
     /**
      * 
      */
@@ -138,7 +141,7 @@ public class ExtFileSystemView extends FileSystemView {
                 }
             });
             ArrayList<File> newRoots = new ArrayList<File>();
-            File net = null;
+
             File home = getHomeDirectory();
             for (File f : baseFolders) {
                 // Win32ShellFolder2.class
@@ -146,10 +149,11 @@ public class ExtFileSystemView extends FileSystemView {
                 if (f.getParentFile() == null || !f.getParentFile().equals(home)) {
                     newRoots.add(f);
                 } else if (f.getName().equals(VIRTUAL_NETWORKFOLDER)) {
-                    net = f;
+                    networkFolder = f;
                 } else if (f.getName().equals(VIRTUAL_NETWORKFOLDER_XP)) {
-                    net = f;
+                    networkFolder = f;
                 }
+                Log.L.info("Basefolder: " + f.getName() + " - " + CrossSystem.getOSString());
             }
 
             HomeFolder[] homeFolders = new HomeFolder[] { new HomeFolder(HomeFolder.PICTURES, "images"), new HomeFolder(HomeFolder.VIDEOS, "images"), new HomeFolder(HomeFolder.DOWNLOADS, "downloads"), new HomeFolder(HomeFolder.MUSIC, "music") };
@@ -157,10 +161,11 @@ public class ExtFileSystemView extends FileSystemView {
             for (HomeFolder hf : homeFolders) {
                 if (hf.exists()) newRoots.add(hf);
             }
-            if (net != null) {
-                File[] netList = net.listFiles();
-                if (netList != null && netList.length > 0) {
-                    newRoots.add(net);
+            if (networkFolder != null) {
+
+                sambaFolders = networkFolder.listFiles();
+                if (sambaFolders != null && sambaFolders.length > 0) {
+                    newRoots.add(networkFolder);
                 }
             }
             roots = newRoots.toArray(new File[] {});
@@ -169,6 +174,10 @@ public class ExtFileSystemView extends FileSystemView {
             Log.L.info("Roots: " + (System.currentTimeMillis() - t));
 
         }
+    }
+
+    public File[] getSambaFolders() {
+        return sambaFolders;
     }
 
     @Override
@@ -234,6 +243,14 @@ public class ExtFileSystemView extends FileSystemView {
     @Override
     public File createNewFolder(File containingDir) throws IOException {
         return org.createNewFolder(containingDir);
+    }
+
+    /**
+     * @return
+     */
+    public File getNetworkFolder() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
