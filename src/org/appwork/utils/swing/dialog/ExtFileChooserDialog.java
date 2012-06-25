@@ -214,7 +214,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             public Icon getIcon(File f) {
                 Icon ret = super.getIcon(f);
 
-                return getDirectoryIcon(ret,f);
+                return getDirectoryIcon(ret, f);
             }
 
             public Insets getInsets() {
@@ -258,20 +258,38 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         };
 
         // find samba library
-        main: for (File r : fc.getFileSystemView().getRoots()) {
-            for (File mybenetwork : r.listFiles()) {
+        long t = System.currentTimeMillis();
+        try {
+            main: for (File r : fc.getFileSystemView().getRoots()) {
+                for (File mybenetwork : r.listFiles()) {
+                    // 20D04FE0-3AEA-1069-A2D8-08002B30309D my coputer winxp
+                    // network winxp
+                    // works a least on windows7
 
-                // works a least on windows7
-                if (mybenetwork.getName().equalsIgnoreCase(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
-                    windowsNetworkFolder = mybenetwork;
-                    // File[] list = windowsNetworkFolder.listFiles();
-                    for (File f : windowsNetworkFolder.listFiles()) {
-                        sambaFolders.put(f.getPath(), f);
+                    if (mybenetwork.getName().equalsIgnoreCase(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
+
+                        // win7
+                        windowsNetworkFolder = mybenetwork;
+                        // File[] list = windowsNetworkFolder.listFiles();
+                        for (File f : windowsNetworkFolder.listFiles()) {
+                            sambaFolders.put(f.getPath(), f);
+                        }
+                         break main;
+                    } else if (mybenetwork.getName().equalsIgnoreCase(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP)) {
+
+                        // winXP
+                        windowsNetworkFolder = mybenetwork;
+                        // File[] list = windowsNetworkFolder.listFiles();
+                        for (File f : windowsNetworkFolder.listFiles()) {
+                            sambaFolders.put(f.getPath(), f);
+                        }
+                         break main;
                     }
-                    // break main;
-                }
 
+                }
             }
+        } finally {
+            Log.L.info("List samba " + (System.currentTimeMillis() - t));
         }
         fc.addActionListener(new ActionListener() {
 

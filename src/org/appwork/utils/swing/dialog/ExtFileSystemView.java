@@ -39,7 +39,8 @@ public class ExtFileSystemView extends FileSystemView {
     /**
      * 
      */
-    public static final String VIRTUAL_NETWORKFOLDER = "::{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}";
+    public static final String VIRTUAL_NETWORKFOLDER    = "::{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}";
+    public static final String VIRTUAL_NETWORKFOLDER_XP = "::{208D2C60-3AEA-1069-A2D7-08002B30309D}";
 
     /**
      */
@@ -146,6 +147,8 @@ public class ExtFileSystemView extends FileSystemView {
                     newRoots.add(f);
                 } else if (f.getName().equals(VIRTUAL_NETWORKFOLDER)) {
                     net = f;
+                } else if (f.getName().equals(VIRTUAL_NETWORKFOLDER_XP)) {
+                    net = f;
                 }
             }
 
@@ -200,6 +203,9 @@ public class ExtFileSystemView extends FileSystemView {
             ArrayList<File> filtered = new ArrayList<File>();
             for (File f : ret) {
                 if (f.getName().equals(VIRTUAL_NETWORKFOLDER)) {
+                    filtered.add(f);
+                    continue;
+                } else if (f.getName().equals(VIRTUAL_NETWORKFOLDER_XP)) {
                     filtered.add(f);
                     continue;
                 } else if (f.getName().startsWith("::{")) {
