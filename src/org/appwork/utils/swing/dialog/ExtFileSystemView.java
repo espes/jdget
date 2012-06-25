@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import javax.swing.Icon;
 import javax.swing.filechooser.FileSystemView;
 
+import org.appwork.utils.logging.Log;
+
 import sun.awt.shell.ShellFolder;
 
 /**
@@ -33,6 +35,7 @@ import sun.awt.shell.ShellFolder;
 public class ExtFileSystemView extends FileSystemView {
 
     private FileSystemView     org;
+    private File[]             roots;
     /**
      * 
      */
@@ -42,6 +45,7 @@ public class ExtFileSystemView extends FileSystemView {
      */
     public ExtFileSystemView() {
         org = FileSystemView.getFileSystemView();
+
     }
 
     @Override
@@ -124,37 +128,44 @@ public class ExtFileSystemView extends FileSystemView {
 
     @Override
     public File[] getRoots() {
-
-        File[] baseFolders = AccessController.doPrivileged(new PrivilegedAction<File[]>() {
-            public File[] run() {
-                return (File[]) ShellFolder.get("fileChooserComboBoxFolders");
+        long t = System.currentTimeMillis();
+        if (roots != null) return roots;
+        try {
+            File[] baseFolders = AccessController.doPrivileged(new PrivilegedAction<File[]>() {
+                public File[] run() {
+                    return (File[]) ShellFolder.get("fileChooserComboBoxFolders");
+                }
+            });
+            ArrayList<File> newRoots = new ArrayList<File>();
+            File net = null;
+            File home = getHomeDirectory();
+            for (File f : baseFolders) {
+                // Win32ShellFolder2.class
+                if (f.getName().equals("Recent")) continue;
+                if (f.getParentFile() == null || !f.getParentFile().equals(home)) {
+                    newRoots.add(f);
+                } else if (f.getName().equals(VIRTUAL_NETWORKFOLDER)) {
+                    net = f;
+                }
             }
-        });
-        ArrayList<File> newRoots = new ArrayList<File>();
-        File net = null;
-        File home = getHomeDirectory();
-        for (File f : baseFolders) {
-            // Win32ShellFolder2.class
-            if (f.getName().equals("Recent")) continue;
-            if (f.getParentFile() == null || !f.getParentFile().equals(home)) {
-                newRoots.add(f);
-            } else if (f.getName().equals(VIRTUAL_NETWORKFOLDER)) {
-                net = f;
-            }
-        }
 
-        HomeFolder[] homeFolders = new HomeFolder[] { new HomeFolder(HomeFolder.PICTURES, "images"), new HomeFolder(HomeFolder.VIDEOS, "images"), new HomeFolder(HomeFolder.DOWNLOADS, "downloads"), new HomeFolder(HomeFolder.MUSIC, "music") };
+            HomeFolder[] homeFolders = new HomeFolder[] { new HomeFolder(HomeFolder.PICTURES, "images"), new HomeFolder(HomeFolder.VIDEOS, "images"), new HomeFolder(HomeFolder.DOWNLOADS, "downloads"), new HomeFolder(HomeFolder.MUSIC, "music") };
 
-        for (HomeFolder hf : homeFolders) {
-            if (hf.exists()) newRoots.add(hf);
-        }
-        if (net != null) {
-            File[] netList = net.listFiles();
-            if (netList != null && netList.length > 0) {
-                newRoots.add(net);
+            for (HomeFolder hf : homeFolders) {
+                if (hf.exists()) newRoots.add(hf);
             }
+            if (net != null) {
+                File[] netList = net.listFiles();
+                if (netList != null && netList.length > 0) {
+                    newRoots.add(net);
+                }
+            }
+            roots = newRoots.toArray(new File[] {});
+            return roots;
+        } finally {
+            Log.L.info("Roots: " + (System.currentTimeMillis() - t));
+
         }
-        return newRoots.toArray(new File[] {});
     }
 
     @Override
@@ -183,20 +194,24 @@ public class ExtFileSystemView extends FileSystemView {
 
     @Override
     public File[] getFiles(File dir, boolean useFileHiding) {
-
-        File[] ret = org.getFiles(dir, useFileHiding);
-        ArrayList<File> filtered = new ArrayList<File>();
-        for (File f : ret) {
-            if (f.getName().equals(VIRTUAL_NETWORKFOLDER)) {
+        long t = System.currentTimeMillis();
+        try {
+            File[] ret = org.getFiles(dir, useFileHiding);
+            ArrayList<File> filtered = new ArrayList<File>();
+            for (File f : ret) {
+                if (f.getName().equals(VIRTUAL_NETWORKFOLDER)) {
+                    filtered.add(f);
+                    continue;
+                } else if (f.getName().startsWith("::{")) {
+                    continue;
+                }
                 filtered.add(f);
-                continue;
-            } else if (f.getName().startsWith("::{")) {
-                continue;
             }
-            filtered.add(f);
-        }
-        return filtered.toArray(new File[] {});
+            return filtered.toArray(new File[] {});
+        } finally {
+            Log.L.info("getFiles: " + (System.currentTimeMillis() - t) + " " + dir);
 
+        }
     }
 
     @Override
