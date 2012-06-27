@@ -10,6 +10,7 @@
 package org.appwork.storage.config.test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.JsonConfig;
@@ -50,6 +51,11 @@ public class Test {
         }
         try {
             final MyInterface jc = JsonConfig.create(MyInterface.class);
+
+            HashSet<String> storedSet = jc.getSet();
+            if (storedSet == null) storedSet = new HashSet<String>();
+            storedSet.add(System.currentTimeMillis() + "");
+            jc.setSet(storedSet);
             //
             jc.getStorageHandler().getEventSender().addListener(new ConfigEventListener() {
 
@@ -99,7 +105,7 @@ public class Test {
             list.add(o);
             list.add(new TestObject());
             jc.setGenericList(list);
-jc.setObject(o);
+            jc.setObject(o);
             System.out.println(JSonStorage.toString(jc.getIntArray()));
             System.out.println(JSonStorage.toString(jc.getObject()));
             System.out.println(JSonStorage.toString(jc.getGenericList()));
@@ -109,7 +115,7 @@ jc.setObject(o);
             /*
              * 4. get values by key
              */
-            
+
             StorageHandler<?> storageHandler = MyInterface.CFG.getStorageHandler();
             System.out.println(storageHandler.getValue("Float"));
             System.out.println(MyInterface.CFG.getInt());

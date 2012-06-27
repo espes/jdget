@@ -21,5 +21,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD })
 public @interface DefaultEnumArrayValue {
+    //format: org.appwork.storage.config.test.Type.A
     String[] value();
 }

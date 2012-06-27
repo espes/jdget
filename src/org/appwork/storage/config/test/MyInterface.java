@@ -10,6 +10,7 @@
 package org.appwork.storage.config.test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.JsonConfig;
@@ -99,8 +100,12 @@ public interface MyInterface extends ConfigInterface {
     @DefaultLongArrayValue(value = { 1, 2, 3 })
     public long[] getLongArray();
 
-//    @DefaultJsonObject(value = "{\"a\":5}")
+    // @DefaultJsonObject(value = "{\"a\":5}")
     public TestObject getObject();
+
+    public HashSet<String> getSet();
+
+    public void setSet(HashSet<String> set);
 
     public ArrayList<TestObject[]> getStorableArrayList();
 
@@ -126,28 +131,33 @@ public interface MyInterface extends ConfigInterface {
      * @param is
      */
     public void setIntArray(int[] is);
-    class DefFac extends AbstractDefaultFactory<TestObject>{
+
+    class DefFac extends AbstractDefaultFactory<TestObject> {
 
         @Override
         public TestObject getDefaultValue() {
             // TODO Auto-generated method stub
             return null;
         }
-            
-        }
-    class DefValid extends AbstractValidator<TestObject>{
 
-        /* (non-Javadoc)
-         * @see org.appwork.storage.config.annotations.AbstractValidator#validate(java.lang.Object)
+    }
+
+    class DefValid extends AbstractValidator<TestObject> {
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * org.appwork.storage.config.annotations.AbstractValidator#validate
+         * (java.lang.Object)
          */
         @Override
         public void validate(TestObject object) throws ValidationException {
-           System.out.println("CHECK "+object);
+            System.out.println("CHECK " + object);
         }
 
-      
-            
-        }
+    }
+
     /**
      * @param o
      */

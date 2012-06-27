@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -177,9 +178,9 @@ public class JSonMapper {
                     ret.put(next.getKey().toString(), this.create(next.getValue()));
                 }
                 return ret;
-            } else if (obj instanceof List) {
+            } else if (obj instanceof Collection) {
                 final JSonArray ret = new JSonArray();
-                for (final Object o : (List<?>) obj) {
+                for (final Object o : (Collection<?>) obj) {
                     ret.add(this.create(o));
                 }
                 return ret;
@@ -291,8 +292,8 @@ public class JSonMapper {
 
             if (type instanceof Class) {
                 clazz = (Class<?>) type;
-                if (List.class.isAssignableFrom(clazz)) {
-                    final List<Object> inst = (List<Object>) clazz.newInstance();
+                if (Collection.class.isAssignableFrom(clazz)) {
+                    final Collection<Object> inst = (Collection<Object>) clazz.newInstance();
                     final JSonArray obj = (JSonArray) json;
                     final Type gs = clazz.getGenericSuperclass();
                     final Type gType;
@@ -383,8 +384,8 @@ public class JSonMapper {
                 }
             } else if (type instanceof ParameterizedTypeImpl) {
                 final ParameterizedTypeImpl pType = (ParameterizedTypeImpl) type;
-                if (List.class.isAssignableFrom(pType.getRawType())) {
-                    final List<Object> inst = (List<Object>) pType.getRawType().newInstance();
+                if (Collection.class.isAssignableFrom(pType.getRawType())) {
+                    final Collection<Object> inst = (Collection<Object>) pType.getRawType().newInstance();
                     final JSonArray obj = (JSonArray) json;
                     for (final JSonNode n : obj) {
                         inst.add(this.jsonToObject(n, pType.getActualTypeArguments()[0]));
