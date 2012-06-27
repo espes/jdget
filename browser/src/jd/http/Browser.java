@@ -1018,7 +1018,12 @@ public class Browser {
      */
     public Form getFormbyKey(final String key, final String value) {
         for (final Form f : this.getForms()) {
-            if (f.hasInputFieldByName(key) == f.getVarsMap().containsValue(value)) { return f; }
+            for (InputField field : f.getInputFields()) {
+                if (key != null && key.equals(field.getKey())) {
+                    if (value == null && field.getValue() == null) return f;
+                    if (value != null && value.equals(field.getValue())) return f;
+                }
+            }
         }
         return null;
     }
