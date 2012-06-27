@@ -39,6 +39,7 @@ import jd.parser.Regex;
 import org.appwork.utils.Application;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
 public abstract class Request {
@@ -332,16 +333,14 @@ public abstract class Request {
     public String getLocation() {
         if (this.httpConnection == null) { return null; }
         String red = this.httpConnection.getHeaderField("Location");
-        if (red == null || red.length() == 0) { 
-            // only supported in JD2 and beyond!
-            red = this.httpConnection.getHeaderField("refresh"); 
+        if (StringUtils.isEmpty(red)) {
+            /* check if we have an old-school refresh header */
+            red = this.httpConnection.getHeaderField("refresh");
             if (red != null) {
-             // we need to filter the time count from the url
-                red = new Regex(red, ";?url=(.+);?").getMatch(0);
+                // we need to filter the time count from the url
+                red = new Regex(red, "url=(.+);?").getMatch(0);
             }
-            if (red == null || red.length() == 0) { 
-                return null; 
-            }
+            if (StringUtils.isEmpty(red)) return null;
         }
         final String encoding = this.httpConnection.getHeaderField("Content-Type");
         if (encoding != null && encoding.contains("UTF-8")) {
