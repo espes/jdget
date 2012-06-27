@@ -133,13 +133,26 @@ public class ExtFileSystemView extends FileSystemView {
     @Override
     public File[] getRoots() {
         long t = System.currentTimeMillis();
+        Log.L.info("Get Roots");
         if (roots != null) return roots;
         try {
+            
+            //this may take a long time on some systems.
+            
+            
+            File desktopPath = new File(System.getProperty("user.home") + "/Desktop");
+          File[] rootFiles = File.listRoots();
+          Log.L.info("Listed roots " + (System.currentTimeMillis() - t));
+          File[] desktopList = desktopPath.listFiles();
+          Log.L.info("Listed desktop " + (System.currentTimeMillis() - t));
+       
             File[] baseFolders = AccessController.doPrivileged(new PrivilegedAction<File[]>() {
                 public File[] run() {
                     return (File[]) ShellFolder.get("fileChooserComboBoxFolders");
                 }
             });
+
+            Log.L.info("Listed Base folders " + (System.currentTimeMillis() - t));
             ArrayList<File> newRoots = new ArrayList<File>();
 
             File home = getHomeDirectory();
@@ -154,6 +167,7 @@ public class ExtFileSystemView extends FileSystemView {
                     networkFolder = f;
                 }
                 Log.L.info("Basefolder: " + f.getName() + " - " + CrossSystem.getOSString());
+
             }
 
             HomeFolder[] homeFolders = new HomeFolder[] { new HomeFolder(HomeFolder.PICTURES, "images"), new HomeFolder(HomeFolder.VIDEOS, "images"), new HomeFolder(HomeFolder.DOWNLOADS, "downloads"), new HomeFolder(HomeFolder.MUSIC, "music") };
@@ -163,7 +177,9 @@ public class ExtFileSystemView extends FileSystemView {
             }
             if (networkFolder != null) {
 
+                Log.L.info("List Networkfolder " + (System.currentTimeMillis() - t));
                 sambaFolders = networkFolder.listFiles();
+                Log.L.info("List Networkfolder done " + (System.currentTimeMillis() - t));
                 if (sambaFolders != null && sambaFolders.length > 0) {
                     newRoots.add(networkFolder);
                 }
