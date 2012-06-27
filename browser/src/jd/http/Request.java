@@ -332,7 +332,17 @@ public abstract class Request {
     public String getLocation() {
         if (this.httpConnection == null) { return null; }
         String red = this.httpConnection.getHeaderField("Location");
-        if (red == null || red.length() == 0) { return null; }
+        if (red == null || red.length() == 0) { 
+            // only supported in JD2 and beyond!
+            red = this.httpConnection.getHeaderField("refresh"); 
+            if (red != null) {
+             // we need to filter the time count from the url
+                red = new Regex(red, ";?url=(.+);?").getMatch(0);
+            }
+            if (red == null || red.length() == 0) { 
+                return null; 
+            }
+        }
         final String encoding = this.httpConnection.getHeaderField("Content-Type");
         if (encoding != null && encoding.contains("UTF-8")) {
             red = Encoding.UTF8Decode(red, "ISO-8859-1");
