@@ -38,7 +38,7 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
     protected String               message;
 
     private TextComponentInterface input;
-    private JTextPane          bigInput;
+    private JTextPane              bigInput;
     private JTextPane              textField;
 
     public InputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
@@ -93,7 +93,7 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
 
     @Override
     public JComponent layoutDialogContent() {
-        final JPanel contentpane = new MigPanel("ins 0,wrap 1", "[grow,fill]","[][]");
+        final JPanel contentpane = new MigPanel("ins 0,wrap 1", "[grow,fill]", "[][]");
         if (!StringUtils.isEmpty(this.message)) {
             this.textField = new JTextPane() {
                 private static final long serialVersionUID = 1L;
@@ -103,7 +103,12 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
 
                     return !BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE);
                 }
+
+                public boolean getScrollableTracksViewportHeight() {
+                    return true;
+                }
             };
+
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_HTML)) {
                 this.textField.setContentType("text/html");
                 this.textField.addHyperlinkListener(new HyperlinkListener() {
@@ -135,8 +140,12 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
                 contentpane.add(textField);
 
             }
-          
+            // inout dialog can become too large(height) if we do not limit the
+            // prefered textFIled size here.
+            textField.setPreferredSize(textField.getPreferredSize());
+
         }
+
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
             this.bigInput = getLargeInputComponent();
 
@@ -149,7 +158,7 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
             // this.input.setBorder(BorderFactory.createEtchedBorder());
             this.input.setText(this.defaultMessage);
 
-            contentpane.add((JComponent)this.input, "w 450");
+            contentpane.add((JComponent) this.input, "w 450");
         }
 
         return contentpane;

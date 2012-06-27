@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -125,6 +126,11 @@ public class JSonStorage {
             if (Map.class.isAssignableFrom(type)) { return;
 
             }
+            
+            if (HashSet.class.isAssignableFrom(type)) { return;
+
+            }
+            
 
         } else if (gType instanceof ParameterizedTypeImpl) {
             final ParameterizedTypeImpl ptype = (ParameterizedTypeImpl) gType;

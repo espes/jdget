@@ -136,16 +136,15 @@ public class ExtFileSystemView extends FileSystemView {
         Log.L.info("Get Roots");
         if (roots != null) return roots;
         try {
-            
-            //this may take a long time on some systems.
-            
-            
+
+            // this may take a long time on some systems.
+
             File desktopPath = new File(System.getProperty("user.home") + "/Desktop");
-          File[] rootFiles = File.listRoots();
-          Log.L.info("Listed roots " + (System.currentTimeMillis() - t));
-          File[] desktopList = desktopPath.listFiles();
-          Log.L.info("Listed desktop " + (System.currentTimeMillis() - t));
-       
+            File[] rootFiles = File.listRoots();
+            Log.L.info("Listed roots " + (System.currentTimeMillis() - t));
+            File[] desktopList = desktopPath.listFiles();
+            Log.L.info("Listed desktop " + (System.currentTimeMillis() - t));
+
             File[] baseFolders = AccessController.doPrivileged(new PrivilegedAction<File[]>() {
                 public File[] run() {
                     return (File[]) ShellFolder.get("fileChooserComboBoxFolders");
