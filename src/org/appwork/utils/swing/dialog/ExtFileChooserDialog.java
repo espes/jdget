@@ -419,13 +419,13 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             // detailsview thingy is part of the ui/LAF
             Log.exception(t);
         }
-        fc.addPropertyChangeListener(new PropertyChangeListener() {
-
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                System.out.println(evt);
-            }
-        });
+//        fc.addPropertyChangeListener(new PropertyChangeListener() {
+//
+//            @Override
+//            public void propertyChange(PropertyChangeEvent evt) {
+//                System.out.println(evt);
+//            }
+//        });
         if (quickSelectionList != null && multiSelection == false) {
             try {
                 // wraps the textfield to enter a path in a SearchCombobox
@@ -564,7 +564,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 destination.setText(text);
                 namePanel.add(destination);
                 modifiyNamePanel(namePanel);
-                SwingUtils.printComponentTree(fc);
+//                SwingUtils.printComponentTree(fc);
                 // [2][0][0][0][0]
                 JComponent c = (JComponent) fc.getComponent(2);
                 c = (JComponent) c.getComponent(0);
