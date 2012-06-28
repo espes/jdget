@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +25,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
@@ -35,6 +38,8 @@ import org.appwork.swing.components.searchcombo.SearchComboBox;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
+import org.appwork.utils.swing.EDTRunner;
+import org.appwork.utils.swing.SwingUtils;
 import org.appwork.utils.swing.dialog.Dialog.FileChooserSelectionMode;
 
 public class ExtFileChooserDialog extends AbstractDialog<File[]> {
@@ -70,6 +75,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     private ExtFileSystemView        fileSystemView;
     private Component                parentGlassPane;
+    protected View                   view              = View.DETAILS;                                      ;
 
     public ArrayList<String> getQuickSelectionList() {
         return quickSelectionList;
@@ -387,7 +393,39 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             }
 
         }
+        updateView();
 
+        try {
+            JToggleButton detailsButton = (JToggleButton) SwingUtils.getParent(fc, 0, 0, 7);
+            detailsButton.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    view = View.DETAILS;
+                }
+            });
+
+            JToggleButton listButton = (JToggleButton) SwingUtils.getParent(fc, 0, 0, 6);
+            listButton.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    view = View.LIST;
+                }
+            });
+        } catch (Throwable t) {
+
+            // might throw exceptions, because the path, and the whole
+            // detailsview thingy is part of the ui/LAF
+            Log.exception(t);
+        }
+        fc.addPropertyChangeListener(new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                System.out.println(evt);
+            }
+        });
         if (quickSelectionList != null && multiSelection == false) {
             try {
                 // wraps the textfield to enter a path in a SearchCombobox
@@ -526,60 +564,67 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 destination.setText(text);
                 namePanel.add(destination);
                 modifiyNamePanel(namePanel);
-
+                SwingUtils.printComponentTree(fc);
                 // [2][0][0][0][0]
                 JComponent c = (JComponent) fc.getComponent(2);
                 c = (JComponent) c.getComponent(0);
                 c = (JComponent) c.getComponent(0);
                 c = (JComponent) c.getComponent(0);
                 // sun.swing.FilePane
-                final JList list = (JList) c.getComponent(0);
-                list.addMouseListener(new MouseAdapter() {
 
-                    // mouselistener sets directory back if we click in empty
-                    // list spaces
-                    public int loc2IndexFileList(JList jlist, Point point) {
-                        int i = jlist.locationToIndex(point);
-                        if (i != -1) {
+                // this is only a list in list view. else a jtable or something
+                // else
+                c = (JComponent) c.getComponent(0);
+                if (c instanceof JList) {
+                    final JList list = (JList) c;
+                    list.addMouseListener(new MouseAdapter() {
 
-                            if (!pointIsInActualBounds(jlist, i, point)) {
-                                i = -1;
+                        // mouselistener sets directory back if we click in
+                        // empty
+                        // list spaces
+                        public int loc2IndexFileList(JList jlist, Point point) {
+                            int i = jlist.locationToIndex(point);
+                            if (i != -1) {
+
+                                if (!pointIsInActualBounds(jlist, i, point)) {
+                                    i = -1;
+                                }
                             }
+                            return i;
                         }
-                        return i;
-                    }
 
-                    private boolean pointIsInActualBounds(JList jlist, int i, Point point) {
-                        ListCellRenderer listcellrenderer = jlist.getCellRenderer();
-                        ListModel listmodel = jlist.getModel();
-                        Object obj = listmodel.getElementAt(i);
-                        Component component = listcellrenderer.getListCellRendererComponent(jlist, obj, i, false, false);
-                        Dimension dimension = component.getPreferredSize();
-                        Rectangle rectangle = jlist.getCellBounds(i, i);
-                        if (!component.getComponentOrientation().isLeftToRight()) rectangle.x += rectangle.width - dimension.width;
-                        rectangle.width = dimension.width;
-                        return rectangle.contains(point);
-                    }
+                        private boolean pointIsInActualBounds(JList jlist, int i, Point point) {
+                            ListCellRenderer listcellrenderer = jlist.getCellRenderer();
+                            ListModel listmodel = jlist.getModel();
+                            Object obj = listmodel.getElementAt(i);
+                            Component component = listcellrenderer.getListCellRendererComponent(jlist, obj, i, false, false);
+                            Dimension dimension = component.getPreferredSize();
+                            Rectangle rectangle = jlist.getCellBounds(i, i);
+                            if (!component.getComponentOrientation().isLeftToRight()) rectangle.x += rectangle.width - dimension.width;
+                            rectangle.width = dimension.width;
+                            return rectangle.contains(point);
+                        }
 
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        int index = loc2IndexFileList(list, e.getPoint());
-                        if (index < 0) {
-                            File dir = fc.getSelectedFile();
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            int index = loc2IndexFileList(list, e.getPoint());
+                            if (index < 0) {
+                                File dir = fc.getSelectedFile();
 
-                            if (dir != null) {
-                                destination.setText(dir.getParent() + File.separator);
-                                ListSelectionModel listSelectionModel = list.getSelectionModel();
-                                if (listSelectionModel != null) {
-                                    listSelectionModel.clearSelection();
-                                    ((DefaultListSelectionModel) listSelectionModel).moveLeadSelectionIndex(0);
-                                    listSelectionModel.setAnchorSelectionIndex(0);
+                                if (dir != null) {
+                                    destination.setText(dir.getParent() + File.separator);
+                                    ListSelectionModel listSelectionModel = list.getSelectionModel();
+                                    if (listSelectionModel != null) {
+                                        listSelectionModel.clearSelection();
+                                        ((DefaultListSelectionModel) listSelectionModel).moveLeadSelectionIndex(0);
+                                        listSelectionModel.setAnchorSelectionIndex(0);
 
+                                    }
                                 }
                             }
                         }
-                    }
-                });
+                    });
+                }
 
             } catch (Throwable e) {
                 Log.exception(e);
@@ -587,6 +632,58 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         }
 
         return fc;
+    }
+
+    /**
+     * 
+     */
+    private void updateView() {
+        if (fc == null) return;
+        switch (getView()) {
+        case DETAILS:
+            try {
+                JToggleButton detailsButton = (JToggleButton) SwingUtils.getParent(fc, 0, 0, 7);
+                detailsButton.doClick();
+            } catch (Throwable t) {
+
+                // might throw exceptions, because the path, and the whole
+                // detailsview thingy is part of the ui/LAF
+                Log.exception(t);
+            }
+            break;
+
+        case LIST:
+            try {
+                JToggleButton detailsButton = (JToggleButton) SwingUtils.getParent(fc, 0, 0, 6);
+                detailsButton.doClick();
+            } catch (Throwable t) {
+
+                // might throw exceptions, because the path, and the whole
+                // detailsview thingy is part of the ui/LAF
+                Log.exception(t);
+            }
+            break;
+
+        }
+    }
+
+    /**
+     * @return
+     */
+    public View getView() {
+        return view;
+    }
+
+    public void setView(View view) {
+        if (view == null) view = View.DETAILS;
+        this.view = view;
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                updateView();
+            }
+        };
     }
 
     /**

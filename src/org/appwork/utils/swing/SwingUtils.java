@@ -123,13 +123,27 @@ public class SwingUtils {
         // c.setVisible(false);
         for (int i = 0; i < fc.getComponentCount(); i++) {
             Component cc = fc.getComponent(i);
-            System.out.println( string + "[" + i + "]"+cc.getClass().getSuperclass().getSimpleName()+":" + cc);
-            
-         
+            System.out.println(string + "[" + i + "]" + cc.getClass().getSuperclass().getSimpleName() + ":" + cc);
+
             if (cc instanceof JComponent) {
                 printComponentTree((JComponent) cc, string + "[" + i + "]");
             }
 
         }
+    }
+
+    /**
+     * @param fc
+     * @param i
+     * @param j
+     * @param k
+     */
+    public static JComponent getParent(JComponent parent, int... path) {
+
+        for (int i : path) {
+            parent = (JComponent) parent.getComponent(i);
+        }
+        return parent;
+
     }
 }
