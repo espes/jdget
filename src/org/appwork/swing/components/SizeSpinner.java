@@ -23,14 +23,10 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
     /**
      * 
      */
-    private static final long serialVersionUID = -3983659343629867162L;
+    private static final long  serialVersionUID = -3983659343629867162L;
     private SpinnerNumberModel nm;
 
-    public void setModel(SpinnerModel model) {
-        throw new IllegalStateException("Not available");
-    }
-
-    public SizeSpinner(long min, long max, long steps) {
+    public SizeSpinner(final long min, final long max, final long steps) {
         this(new SpinnerNumberModel(min, min, max, steps));
 
     }
@@ -38,98 +34,80 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
     /**
      * @param model
      */
-    public SizeSpinner(SpinnerNumberModel model) {
+    public SizeSpinner(final SpinnerNumberModel model) {
         super(model);
 
         // this.addFocusListener(this);
-        nm = (SpinnerNumberModel) super.getModel();
+        this.nm = (SpinnerNumberModel) super.getModel();
 
         final DefaultFormatterFactory factory = new DefaultFormatterFactory(new AbstractFormatter() {
 
             private static final long serialVersionUID = 7808117078307243989L;
 
             @Override
-            public Object stringToValue(String text) throws ParseException {
-                return SizeFormatter.getSize(text,true,true);
+            public Object stringToValue(final String text) throws ParseException {
+                return SizeSpinner.this.textToObject(text);
             }
 
             @Override
             public String valueToString(final Object value) throws ParseException {
 
-                return longToText(((Number) value).longValue());
+                return SizeSpinner.this.longToText(((Number) value).longValue());
             }
 
         });
-        ((JSpinner.DefaultEditor) getEditor()).getTextField().setFormatterFactory(factory);
-        ((JSpinner.DefaultEditor) getEditor()).getTextField().addFocusListener(this);
-        ((JSpinner.DefaultEditor) getEditor()).getTextField().addActionListener(this);
+        ((JSpinner.DefaultEditor) this.getEditor()).getTextField().setFormatterFactory(factory);
+        ((JSpinner.DefaultEditor) this.getEditor()).getTextField().addFocusListener(this);
+        ((JSpinner.DefaultEditor) this.getEditor()).getTextField().addActionListener(this);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    @Override
+    public void actionPerformed(final ActionEvent e) {
+        this.correct();
+
     }
 
     /**
-     * @param longValue
-     * @return
+     * 
      */
-    protected String longToText(long longValue) {
+    private void beep() {
+        Toolkit.getDefaultToolkit().beep();
+        final Color bg = ((JSpinner.DefaultEditor) this.getEditor()).getTextField().getForeground();
+        ((JSpinner.DefaultEditor) this.getEditor()).getTextField().setForeground(Color.RED);
 
-        return SizeFormatter.formatBytes(longValue);
+        new Timer(100, new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+                ((JSpinner.DefaultEditor) SizeSpinner.this.getEditor()).getTextField().setForeground(bg);
+
+            }
+        }).start();
     }
 
-    public Object getNextValue() {
-        Object ret = getValue();
-        long num = ((Number) ret).longValue();
+    /**
+     * 
+     */
+    private void correct() {
 
-        Unit unit = SizeFormatter.getBestUnit(num);
-
-        int c = (int) (num == 0 ? 0 : Math.log10(num / unit.getBytes()));
-        c = Math.max(0, c - 1);
-        long newV;
-        if (nm.getMaximum() != null) {
-            newV = (long) Math.min(((Number) nm.getMaximum()).longValue(), num + unit.getBytes() * Math.pow(10, c));
-        } else {
-            newV = (long) (num + unit.getBytes() * Math.pow(10, c));
+        final long v = ((Number) this.getValue()).longValue();
+        long newValue = v;
+        if (this.nm.getMinimum() != null) {
+            newValue = Math.max(v, ((Number) this.nm.getMinimum()).longValue());
         }
-        Unit newUnit = SizeFormatter.getBestUnit((long) newV);
-        if (newUnit == unit) {
-            if (newV == num) {
-                beep();
-            }
-            return newV;
+        if (this.nm.getMaximum() != null) {
+            newValue = Math.min(((Number) this.nm.getMaximum()).longValue(), newValue);
         }
-
-        newV = (int) (newV / newUnit.getBytes()) * newUnit.getBytes();
-        if (newV == num) {
-            beep();
+        if (newValue != v) {
+            this.beep();
+            this.setValue(newValue);
         }
-        return newV;
-
-    }
-
-    public Object getPreviousValue() {
-        Object ret = getValue();
-        long num = ((Number) ret).longValue();
-        Unit unit = SizeFormatter.getBestUnit(num);
-        int c = (int) (num == 0 ? 0 : Math.log10(num / unit.getBytes()));
-        c = Math.max(0, c - 1);
-        long nv;
-        if (nm.getMinimum() != null) {
-            nv = (long) Math.max(((Number) nm.getMinimum()).longValue(), num - unit.getBytes() * Math.pow(10, c));
-        } else {
-            nv = (long) (num - unit.getBytes() * Math.pow(10, c));
-        }
-        Unit nunit = SizeFormatter.getBestUnit(nv);
-        if (nunit == unit) {
-            if (nv == num) {
-                beep();
-            }
-            return nv;
-        }
-
-        nv = Math.max(((Number) nm.getMinimum()).longValue(), num - unit.getBytes() / 1024);
-
-        if (nv == num) {
-            beep();
-        }
-        return nv;
     }
 
     /*
@@ -138,7 +116,7 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
      * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
      */
     @Override
-    public void focusGained(FocusEvent e) {
+    public void focusGained(final FocusEvent e) {
         // TODO Auto-generated method stub
 
     }
@@ -149,57 +127,8 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
      * @see java.awt.event.FocusListener#focusLost(java.awt.event.FocusEvent)
      */
     @Override
-    public void focusLost(FocusEvent e) {
-        correct();
-
-    }
-
-    /**
-     * 
-     */
-    private void correct() {
-
-        long v = ((Number) getValue()).longValue();
-        long newValue = v;
-        if (nm.getMinimum() != null) {
-            newValue = Math.max(v, ((Number) nm.getMinimum()).longValue());
-        }
-        if (nm.getMaximum() != null) {
-            newValue = Math.min(((Number) nm.getMaximum()).longValue(), newValue);
-        }
-        if (newValue != v) {
-            beep();
-            setValue(newValue);
-        }
-    }
-
-    /**
-     * 
-     */
-    private void beep() {
-        Toolkit.getDefaultToolkit().beep();
-        final Color bg = ((JSpinner.DefaultEditor) getEditor()).getTextField().getForeground();
-        ((JSpinner.DefaultEditor) getEditor()).getTextField().setForeground(Color.RED);
-
-        new Timer(100, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                ((JSpinner.DefaultEditor) getEditor()).getTextField().setForeground(bg);
-
-            }
-        }).start();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        correct();
+    public void focusLost(final FocusEvent e) {
+        this.correct();
 
     }
 
@@ -208,7 +137,84 @@ public class SizeSpinner extends ExtSpinner implements FocusListener, ActionList
      */
     public long getBytes() {
 
-        return ((Number) getValue()).longValue();
+        return ((Number) this.getValue()).longValue();
+    }
+
+    @Override
+    public Object getNextValue() {
+        final Object ret = this.getValue();
+        final long num = ((Number) ret).longValue();
+
+        final Unit unit = SizeFormatter.getBestUnit(num);
+
+        int c = (int) (num == 0 ? 0 : Math.log10(num / unit.getBytes()));
+        c = Math.max(0, c - 1);
+        long newV;
+        if (this.nm.getMaximum() != null) {
+            newV = (long) Math.min(((Number) this.nm.getMaximum()).longValue(), num + unit.getBytes() * Math.pow(10, c));
+        } else {
+            newV = (long) (num + unit.getBytes() * Math.pow(10, c));
+        }
+        final Unit newUnit = SizeFormatter.getBestUnit(newV);
+        if (newUnit == unit) {
+            if (newV == num) {
+                this.beep();
+            }
+            return newV;
+        }
+
+        newV = (int) (newV / newUnit.getBytes()) * newUnit.getBytes();
+        if (newV == num) {
+            this.beep();
+        }
+        return newV;
+
+    }
+
+    @Override
+    public Object getPreviousValue() {
+        final Object ret = this.getValue();
+        final long num = ((Number) ret).longValue();
+        final Unit unit = SizeFormatter.getBestUnit(num);
+        int c = (int) (num == 0 ? 0 : Math.log10(num / unit.getBytes()));
+        c = Math.max(0, c - 1);
+        long nv;
+        if (this.nm.getMinimum() != null) {
+            nv = (long) Math.max(((Number) this.nm.getMinimum()).longValue(), num - unit.getBytes() * Math.pow(10, c));
+        } else {
+            nv = (long) (num - unit.getBytes() * Math.pow(10, c));
+        }
+        final Unit nunit = SizeFormatter.getBestUnit(nv);
+        if (nunit == unit) {
+            if (nv == num) {
+                this.beep();
+            }
+            return nv;
+        }
+
+        nv = Math.max(((Number) this.nm.getMinimum()).longValue(), num - unit.getBytes() / 1024);
+
+        if (nv == num) {
+            this.beep();
+        }
+        return nv;
+    }
+
+    /**
+     * @param longValue
+     * @return
+     */
+    protected String longToText(final long longValue) {
+        return SizeFormatter.formatBytes(longValue);
+    }
+
+    @Override
+    public void setModel(final SpinnerModel model) {
+        throw new IllegalStateException("Not available");
+    }
+
+    protected Object textToObject(final String text) {
+        return SizeFormatter.getSize(text, true, true);
     }
 
 }
