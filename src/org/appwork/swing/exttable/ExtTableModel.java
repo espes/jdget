@@ -194,7 +194,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
                     if (ltable != null) {
 
-           
                         /* replace now */
                         /* clear delayed TableData and Selection */
                         ExtTableModel.this.delayedNewTableData = null;
@@ -207,7 +206,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         final int lead = s.getLeadSelectionIndex();
                         int minIndex = s.getMinSelectionIndex();
                         int maxIndex = s.getMaxSelectionIndex();
-                      
+
                         E minObject = minIndex < 0 ? null : getObjectbyRow(minIndex);
                         E maxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
                         ExtTableModel.this.setTableData(newtableData);
@@ -218,10 +217,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                                 ExtTableModel.this.setSelectedObjects(selection);
                             }
 
-                            if (adjusting||true) {
-                              
-                                s.setValueIsAdjusting(adjusting);
-                              
+                            if (adjusting || true) {
+
                                 E newMinObject = minIndex < 0 ? null : getObjectbyRow(minIndex);
                                 E newMaxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
 
@@ -235,12 +232,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                                     // we have to adjust maxIndex
                                     maxIndex = getRowforObject(maxObject);
                                 }
-                              s.setSelectionInterval(minIndex, maxIndex);
-                              
-                              s.setAnchorSelectionIndex(anchor);
-                              s.setLeadSelectionIndex(lead);
-                           
-                                
+                                // The execution order is important.
+                                s.setValueIsAdjusting(adjusting);
+                                // first set interval - this sets anchor and
+                                // lead as well
+                                s.setSelectionInterval(minIndex, maxIndex);
+                                // then correct anchor and lead
+                                s.setAnchorSelectionIndex(anchor);
+                                s.setLeadSelectionIndex(lead);
 
                             }
                         }
@@ -261,7 +260,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
             private String toString(ListSelectionModel s) {
                 // TODO Auto-generated method stub
-                return "Anchor "+s.getAnchorSelectionIndex()+" lead "+s.getLeadSelectionIndex()+" min: "+s.getMinSelectionIndex()+" max: "+s.getMaxSelectionIndex();
+                return "Anchor " + s.getAnchorSelectionIndex() + " lead " + s.getLeadSelectionIndex() + " min: " + s.getMinSelectionIndex() + " max: " + s.getMaxSelectionIndex();
             }
         };
     }
