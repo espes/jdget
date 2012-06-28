@@ -183,6 +183,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param checkEditing
      */
     protected void _replaceTableData(final ArrayList<E> newtableData, final ArrayList<E> selection, final boolean checkEditing) {
+
         if (newtableData == null) { return; }
         new EDTRunner() {
             @Override
@@ -193,18 +194,20 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
                     if (ltable != null) {
 
+           
                         /* replace now */
                         /* clear delayed TableData and Selection */
                         ExtTableModel.this.delayedNewTableData = null;
                         ExtTableModel.this.delayedSelection = null;
                         ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
                         /* replace TableData and set Selection */
-
-                        final boolean adjusting = ltable.getSelectionModel().getValueIsAdjusting();
-                        final int anchor = ltable.getSelectionModel().getAnchorSelectionIndex();
-                        final int lead = ltable.getSelectionModel().getLeadSelectionIndex();
-                        int minIndex = ltable.getSelectionModel().getMinSelectionIndex();
-                        int maxIndex = ltable.getSelectionModel().getMaxSelectionIndex();
+                        ListSelectionModel s = ltable.getSelectionModel();
+                        final boolean adjusting = s.getValueIsAdjusting();
+                        final int anchor = s.getAnchorSelectionIndex();
+                        final int lead = s.getLeadSelectionIndex();
+                        int minIndex = s.getMinSelectionIndex();
+                        int maxIndex = s.getMaxSelectionIndex();
+                      
                         E minObject = minIndex < 0 ? null : getObjectbyRow(minIndex);
                         E maxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
                         ExtTableModel.this.setTableData(newtableData);
@@ -215,12 +218,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                                 ExtTableModel.this.setSelectedObjects(selection);
                             }
 
-                            if (adjusting) {
-                                ListSelectionModel s = ltable.getSelectionModel();
-                                ltable.getSelectionModel().setValueIsAdjusting(adjusting);
-                                ltable.getSelectionModel().setAnchorSelectionIndex(anchor);
-                                ltable.getSelectionModel().setLeadSelectionIndex(lead);
-
+                            if (adjusting||true) {
+                              
+                                s.setValueIsAdjusting(adjusting);
+                              
                                 E newMinObject = minIndex < 0 ? null : getObjectbyRow(minIndex);
                                 E newMaxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
 
@@ -234,7 +235,12 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                                     // we have to adjust maxIndex
                                     maxIndex = getRowforObject(maxObject);
                                 }
-                                ltable.getSelectionModel().setSelectionInterval(minIndex, maxIndex);
+                              s.setSelectionInterval(minIndex, maxIndex);
+                              
+                              s.setAnchorSelectionIndex(anchor);
+                              s.setLeadSelectionIndex(lead);
+                           
+                                
 
                             }
                         }
@@ -251,6 +257,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                     ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
                     ltable.addPropertyChangeListener(ExtTableModel.this.replaceDelayer);
                 }
+            }
+
+            private String toString(ListSelectionModel s) {
+                // TODO Auto-generated method stub
+                return "Anchor "+s.getAnchorSelectionIndex()+" lead "+s.getLeadSelectionIndex()+" min: "+s.getMinSelectionIndex()+" max: "+s.getMaxSelectionIndex();
             }
         };
     }
