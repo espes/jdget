@@ -23,4 +23,9 @@ public interface TranslateInterface {
 
     public TranslationHandler _getHandler();
 
+    /**
+     * @return
+     */
+
+
 }

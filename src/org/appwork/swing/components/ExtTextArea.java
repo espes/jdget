@@ -16,7 +16,7 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
      * 
      */
     private static final long serialVersionUID = -2215616004852131754L;
-    private Color             defaultColor;
+    protected Color             defaultColor;
     private Color             helpColor;
 
     {
@@ -96,8 +96,7 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
      * 
      */
     public void onChanged() {
-        // TODO Auto-generated method stub
-
+       
     }
 
     /*
