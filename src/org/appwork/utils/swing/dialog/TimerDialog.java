@@ -41,10 +41,12 @@ public abstract class TimerDialog {
             }
 
         }
+
         public void setVisible(boolean b) {
             TimerDialog.this.onSetVisible(b);
             super.setVisible(b);
         }
+
         @Override
         public void dispose() {
             TimerDialog.this.dispose();
@@ -57,7 +59,7 @@ public abstract class TimerDialog {
 
         }
 
-        public Dimension getRealPreferredSize() {
+        public Dimension getRawPreferredSize() {
             return super.getPreferredSize();
 
         }
@@ -79,20 +81,20 @@ public abstract class TimerDialog {
     /**
      * Timer Thread to count down the {@link #counter}
      */
-    protected Thread          timer;
+    protected Thread       timer;
     /**
      * Current timer value
      */
-    protected long            counter;
+    protected long         counter;
     /**
      * Label to display the timervalue
      */
-    protected JLabel          timerLbl;
+    protected JLabel       timerLbl;
 
-    protected InternDialog    dialog;
+    protected InternDialog dialog;
 
-    protected Dimension         preferredSize;
-    private int               countdownTime    = 0;
+    protected Dimension    preferredSize;
+    private int            countdownTime = 0;
 
     public TimerDialog() {
         // super(parentframe, ModalityType.TOOLKIT_MODAL);
@@ -104,7 +106,7 @@ public abstract class TimerDialog {
      */
     public void onSetVisible(boolean b) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -164,7 +166,7 @@ public abstract class TimerDialog {
      * @return
      */
     public Dimension getPreferredSize() {
-        final Dimension pref = this.getDialog().getRealPreferredSize();
+        final Dimension pref = getRawPreferredSize();
 
         int w = this.getPreferredWidth();
         int h = this.getPreferredHeight();
@@ -183,6 +185,14 @@ public abstract class TimerDialog {
         } catch (final Throwable e) {
             return pref;
         }
+    }
+
+    /**
+     * @return
+     */
+    public Dimension getRawPreferredSize() {
+
+        return this.getDialog().getRawPreferredSize();
     }
 
     /**
