@@ -24,6 +24,13 @@ import org.appwork.storage.config.annotations.SpinnerValidator;
 public interface LogConfig extends ConfigInterface {
 
     @AboutConfig
+    @DefaultIntValue(2)
+    @SpinnerValidator(min = 0, max = Integer.MAX_VALUE)
+    @Description("Automatic remove logs older than x days")
+    @RequiresRestart
+    int getCleanupLogsOlderThanXDays();
+
+    @AboutConfig
     @DefaultIntValue(60)
     @SpinnerValidator(min = 30, max = Integer.MAX_VALUE)
     @Description("Timeout in secs after which the logger will be flushed/closed")
@@ -49,6 +56,8 @@ public interface LogConfig extends ConfigInterface {
     @Description("Enable debug mode, nearly everything will be logged!")
     @RequiresRestart
     boolean isDebugModeEnabled();
+
+    void setCleanupLogsOlderThanXDays(int x);
 
     void setDebugModeEnabled(boolean b);
 

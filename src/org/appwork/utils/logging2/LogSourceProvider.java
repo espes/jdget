@@ -15,6 +15,8 @@ package org.appwork.utils.logging2;
  */
 
 import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
@@ -30,6 +32,8 @@ import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.Application;
+import org.appwork.utils.Files;
+import org.appwork.utils.Regex;
 import org.appwork.utils.logging.LogFormatter;
 
 public abstract class LogSourceProvider {
@@ -71,6 +75,35 @@ public abstract class LogSourceProvider {
             }
 
         });
+        new Thread("LogsCleanup") {
+
+            @Override
+            public void run() {
+                final File oldLogs[] = Application.getResource("logs/").listFiles(new FilenameFilter() {
+
+                    long removeTimeStamp = timeStamp - JsonConfig.create(LogConfig.class).getCleanupLogsOlderThanXDays() * 24 * 60 * 60 * 1000l;
+
+                    @Override
+                    public boolean accept(final File dir, final String name) {
+                        if (dir.exists() && dir.isDirectory() && name.matches("^\\d+_\\d+\\.\\d+(\\.\\d+)?$")) {
+                            final String timeStamp = new Regex(name, "^(\\d+)_").getMatch(0);
+                            if (timeStamp != null && Long.parseLong(timeStamp) < this.removeTimeStamp) { return true; }
+                        }
+                        return false;
+                    }
+                });
+                if (oldLogs != null) {
+                    for (final File oldLog : oldLogs) {
+                        try {
+                            Files.deleteRecursiv(oldLog);
+                        } catch (final IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
+        }.start();
     }
 
     protected synchronized void flushSinks() {
