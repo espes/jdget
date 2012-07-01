@@ -169,7 +169,7 @@ public class Form {
                 }
             } else {
                 final String base = baseurl.toString();
-                if (base.matches("http://.*/.*")) {
+                if (base.matches("https?://.*/.*")) {
                     ret = base.substring(0, base.lastIndexOf("/")) + "/" + ret;
                 } else {
                     ret = base + "/" + ret;
