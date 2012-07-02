@@ -150,10 +150,10 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
             this.renderer.setMaximum((int) m);
             this.renderer.setValue((int) v);
 
-            this.renderer.setString(this.getString(value));
+            this.renderer.setString(this.getString(value, v, m));
 
         } else {
-            this.renderer.setString(this.getString(value));
+            this.renderer.setString(this.getString(value, -1, -1));
             if (!this.renderer.isIndeterminate()) {
                 this.renderer.setIndeterminate(true);
             }
@@ -220,12 +220,24 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         return this.renderer;
     }
 
-    abstract protected String getString(E value);
+    abstract protected String getString(E value, long current, long total);
+
+    protected double getPercentString(long current, long total) {
+        if (total == 0) return 0.00d ;
+        return ((current * 10000 / total) / 100.0d);
+    }
 
     @Override
     protected String getTooltipText(final E value) {
+        long v = this.getValue(value);
+        long m = this.getMax(value);
+        final double factor = Math.max(v / (double) Integer.MAX_VALUE, m / (double) Integer.MAX_VALUE);
 
-        return this.getString(value);
+        if (factor >= 1.0) {
+            v /= factor;
+            m /= factor;
+        }
+        return this.getString(value, v, m);
     }
 
     abstract protected long getValue(E value);
