@@ -42,7 +42,7 @@ public class HTMLParser {
         }
     }
 
-    final private static Httppattern[] linkAndFormPattern = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?['|\"](.*?)['|\"]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("src.*?=(.*?)[ |>]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)\\2", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/\\1\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
+    final private static Httppattern[] linkAndFormPattern = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("src.*?=(.*?)[ |>]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/(link|url)\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
     final private static String        protocolPattern    = "(directhttp://https?://|flashget://|https?viajd://|https?://|ccf://|dlc://|ftp://|jd://|rsdf://|jdlist://|file://)";
     final private static Pattern[]     basePattern        = new Pattern[] { Pattern.compile("href=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("src=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
     final private static Pattern       pat1               = Pattern.compile("(" + HTMLParser.protocolPattern + "|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -73,6 +73,10 @@ public class HTMLParser {
         /* find base64'ed */
         String urlDecoded = Encoding.urlDecode(data, true);
         String base64Data = Encoding.Base64Decode(urlDecoded);
+        if (base64Data.equals(urlDecoded)) {
+            /* no base64 content found */
+            base64Data = null;
+        }
         urlDecoded = null;
         HTMLParser._getHttpLinksFinder(base64Data, url, results);
         base64Data = null;
@@ -162,7 +166,9 @@ public class HTMLParser {
         }
 
         if (url != null && url.trim().length() > 0) {
-            results.add(new String(HTMLParser.correctURL(url)));
+            if (pro != null) {
+                results.add(new String(HTMLParser.correctURL(url)));
+            }
         } else {
             url = "";
         }
@@ -241,7 +247,9 @@ public class HTMLParser {
                          * there might be some data left before the tag, do not remove that data
                          */
                         String dataLeft = data.substring(0, tagOpen);
-                        StringBuilder sb = new StringBuilder();
+                        String dataLeft2 = data.substring(tagClose + 1);
+                        data = null;
+                        StringBuilder sb = new StringBuilder(dataLeft.length() + dataLeft2.length() + 10);
                         if (dataLeft.contains(">")) {
                             sb.append("<");
                             sb.append(dataLeft);
@@ -252,9 +260,8 @@ public class HTMLParser {
                         }
                         dataLeft = null;
                         sb.append(" ");
-                        sb.append(data.substring(tagClose + 1));
-                        data = null;
-                        System.out.println(sb.length());
+                        sb.append(dataLeft2);
+                        dataLeft2 = null;
                         data = sb.toString();
                         sb = null;
                     } else {
@@ -292,7 +299,7 @@ public class HTMLParser {
 
     private static String correctURL(final String input) {
         /* spaces must be %20 encoded */
-        return input.replaceAll("\\s", "%20");
+        return input.replaceAll(" ", "%20");
     }
 
     /**
@@ -358,42 +365,18 @@ public class HTMLParser {
         return HTMLParser.joinMap(HTMLParser.getInputHiddenFields(data), "=", "&");
     }
 
-    /**
-     * Diese Methode sucht die vordefinierten input type="hidden" zwischen startpattern und lastpattern und formatiert sie zu einem
-     * poststring z.b. wÃ¼rde bei:
-     * 
-     * <input type="hidden" name="f" value="f50b0f" /> <input type="hidden" name="h" value="390b4be0182b85b0" /> <input type="hidden"
-     * name="b" value="9" />
-     * 
-     * f=f50b0f&h=390b4be0182b85b0&b=9 rauskommen
-     * 
-     * @param data
-     *            Der zu durchsuchende Text
-     * @param startPattern
-     *            der Pattern, bei dem die Suche beginnt
-     * @param lastPattern
-     *            der Pattern, bei dem die Suche endet
-     * @return ein String, der als POST Parameter genutzt werden kann und alle Parameter des Formulars enthÃ¤lt
-     */
-    public static String getFormInputHidden(final String data, final String startPattern, final String lastPattern) {
-        final String pat = new Regex(data, startPattern + "(.*?)" + lastPattern).getMatch(0);
-        if (pat == null) { return null; }
-        return HTMLParser.getFormInputHidden(pat);
-    }
-
     /* do not use in 09581 stable */
     public static String[] getHttpLinks(final String data) {
         return HTMLParser.getHttpLinks(data, null);
     }
 
     public static String[] getHttpLinks(final String data, final String url) {
-        final String[] links = HTMLParser.getHttpLinksIntern(data, url);
-        if (links == null || links.length == 0) { return links; }
+        HashSet<String> links = HTMLParser.getHttpLinksIntern(data, url);
+        if (links == null || links.size() == 0) { return new String[0]; }
         /*
          * in case we have valid and invalid (...) urls for the same link, we only use the valid one
          */
-
-        final HashSet<String> tmplinks = new HashSet<String>(links.length);
+        final ArrayList<String> tmplinks = new ArrayList<String>(links.size());
         for (final String link : links) {
             if (link.contains("...")) {
                 final String check = link.substring(0, link.indexOf("..."));
@@ -409,15 +392,18 @@ public class HTMLParser {
                 tmplinks.add(link);
             }
         }
+        links = null;
         return tmplinks.toArray(new String[tmplinks.size()]);
     }
 
     /*
-     * parses data for available links and returns a stringarray which does not contain any duplicates
+     * return tmplinks.toArray(new String[tmplinks.size()]); }
+     * 
+     * /* parses data for available links and returns a stringarray which does not contain any duplicates
      */
-    public static String[] getHttpLinksIntern(String data, final String url) {
+    public static HashSet<String> getHttpLinksIntern(String data, final String url) {
         data = data.trim();
-        if (data.length() == 0) { return new String[] {}; }
+        if (data.length() == 0) { return null; }
         /*
          * replace urlencoded br tags, so we can find all links seperated by those
          */
@@ -442,16 +428,34 @@ public class HTMLParser {
         // data = data.replaceAll("(?i)</span.*?>", "");
         /* CHECKME: why remove url/link tags? */
         data = data.replaceAll("(?s)\\[(url|link)\\].*?\\[/(url|link)\\]", "");
-        final HashSet<String> results = new HashSet<String>();
+        final HashSet<String> results = new HashSet<String>() {
+
+            @Override
+            public boolean add(String e) {
+                if (e != null) {
+                    int index = e.indexOf("\r");
+                    if (index < 0) {
+                        index = e.indexOf("\n");
+                    }
+                    if (index < 0) {
+                        index = e.indexOf("\t");
+                    }
+                    if (index > 0) {
+                        e = e.substring(0, index);
+                    }
+                    if (e.contains("\"")) {
+                        e = e.replaceAll("\"", "");
+                    }
+                }
+                return super.add(e);
+            }
+
+        };
         HTMLParser._getHttpLinksWalker(data, url, results);
         /* we dont want baseurl to be included in result set */
         results.remove(url);
-        data = null;
-        if (results.isEmpty()) {
-            return new String[] {};
-        } else {
-            return results.toArray(new String[results.size()]);
-        }
+        if (results.isEmpty()) { return null; }
+        return results;
     }
 
     /**
@@ -498,19 +502,6 @@ public class HTMLParser {
             ret.put(key, value);
         }
         return ret;
-    }
-
-    /**
-     * Ermittelt alle hidden input felder in einem HTML Text und gibt die hidden variables als hashmap zurÃ¼ck es wird dabei nur der text
-     * zwischen start dun endpattern ausgewertet
-     * 
-     * @param data
-     * @param startPattern
-     * @param lastPattern
-     * @return hashmap mit hidden input variablen zwischen startPattern und endPattern
-     */
-    public static HashMap<String, String> getInputHiddenFields(final String data, final String startPattern, final String lastPattern) {
-        return HTMLParser.getInputHiddenFields(new Regex(data, startPattern + "(.*?)" + lastPattern).getMatch(0));
     }
 
     private static String getProtocol(final String url) {
