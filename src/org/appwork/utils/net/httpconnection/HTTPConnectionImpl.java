@@ -96,6 +96,24 @@ public class HTTPConnectionImpl implements HTTPConnection {
             if (this.httpURL.getProtocol().startsWith("https")) {
                 /* https */
                 this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
+                /*
+                 * http://twelve-programmers.blogspot.de/2010/01/limitations-in-jsse
+                 * -tls-implementation.html
+                 */
+                /*
+                 * http://stackoverflow.com/questions/6851461/java-why-does-ssl-
+                 * handshake-give-could-not-generate-dh-keypair-exception
+                 */
+                // final List<String> limited = new LinkedList<String>();
+                // for (final String suite : ((SSLSocket)
+                // this.httpSocket).getEnabledCipherSuites()) {
+                // if (!suite.contains("_DHE_")) {
+                // limited.add(suite);
+                // }
+                // }
+                // ((SSLSocket)
+                // this.httpSocket).setEnabledCipherSuites(limited.toArray(new
+                // String[limited.size()]));
             } else {
                 /* http */
                 this.httpSocket = new Socket();

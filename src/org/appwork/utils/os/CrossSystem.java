@@ -280,7 +280,7 @@ public class CrossSystem {
         if (CrossSystem.isWindows() && path.matches("\\\\\\\\.+\\\\.+")) { return true; }
         if (CrossSystem.isWindows() && path.matches(".:/.*")) { return true; }
         if (CrossSystem.isWindows() && path.matches(".:\\\\.*")) { return true; }
-        if (path.startsWith("/")) { return true; }
+        if (!CrossSystem.isWindows() && path.startsWith("/")) { return true; }
 
         return false;
     }

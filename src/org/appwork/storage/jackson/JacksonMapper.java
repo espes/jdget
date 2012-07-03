@@ -54,9 +54,7 @@ public class JacksonMapper implements JSONMapper {
     public String objectToString(final Object o) throws JSonMapperException {
 
         try {
-
             return this.mapper.writeValueAsString(o);
-
         } catch (final JsonGenerationException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {

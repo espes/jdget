@@ -29,7 +29,7 @@ public class ExtJsonFactory extends MappingJsonFactory {
      * specified file, overwriting contents it might have (or creating it if
      * such file does not yet exist). Encoding to use must be specified, and
      * needs to be one of available types (as per JSON specification).
-     *<p>
+     * <p>
      * Underlying stream <b>is owned</b> by the generator constructed, i.e.
      * generator will handle closing of file when {@link JsonGenerator#close} is
      * called.
@@ -39,6 +39,7 @@ public class ExtJsonFactory extends MappingJsonFactory {
      * @param enc
      *            Character encoding to use
      */
+    @Override
     public JsonGenerator createJsonGenerator(final File f, final JsonEncoding enc) throws IOException {
         final JsonGenerator ret = super.createJsonGenerator(f, enc);
         ret.useDefaultPrettyPrinter();
@@ -49,7 +50,7 @@ public class ExtJsonFactory extends MappingJsonFactory {
      * Method for constructing JSON generator for writing JSON content using
      * specified output stream. Encoding to use must be specified, and needs to
      * be one of available types (as per JSON specification).
-     *<p>
+     * <p>
      * Underlying stream <b>is NOT owned</b> by the generator constructed, so
      * that generator will NOT close the output stream when
      * {@link JsonGenerator#close} is called (unless auto-closing feature,
@@ -62,6 +63,7 @@ public class ExtJsonFactory extends MappingJsonFactory {
      * @param enc
      *            Character encoding to use
      */
+    @Override
     public JsonGenerator createJsonGenerator(final OutputStream out, final JsonEncoding enc) throws IOException {
         final JsonGenerator ret = super.createJsonGenerator(out, enc);
         ret.useDefaultPrettyPrinter();
@@ -71,7 +73,7 @@ public class ExtJsonFactory extends MappingJsonFactory {
     /**
      * Method for constructing JSON generator for writing JSON content using
      * specified Writer.
-     *<p>
+     * <p>
      * Underlying stream <b>is NOT owned</b> by the generator constructed, so
      * that generator will NOT close the Reader when {@link JsonGenerator#close}
      * is called (unless auto-closing feature,
@@ -81,6 +83,7 @@ public class ExtJsonFactory extends MappingJsonFactory {
      * @param out
      *            Writer to use for writing JSON content
      */
+    @Override
     public JsonGenerator createJsonGenerator(final Writer out) throws IOException {
         final JsonGenerator ret = super.createJsonGenerator(out);
         ret.useDefaultPrettyPrinter();
