@@ -9,7 +9,7 @@
  */
 package org.appwork.utils.logging2;
 
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.ConsoleHandler;
@@ -20,9 +20,10 @@ import java.util.logging.Logger;
 
 public class LogSink extends Logger {
 
-    protected ArrayList<SoftReference<LogSource>> logSources     = new ArrayList<SoftReference<LogSource>>();
+    protected ArrayList<WeakReference<LogSource>> logSources     = new ArrayList<WeakReference<LogSource>>();
     protected FileHandler                         fileHandler    = null;
     protected ConsoleHandler                      consoleHandler = null;
+    protected Logger                              parent         = null;
 
     protected LogSink(final String name) {
         this(name, (String) null);
@@ -50,7 +51,7 @@ public class LogSink extends Logger {
 
     protected void addLogSource(final LogSource source) {
         synchronized (this.logSources) {
-            this.logSources.add(new SoftReference<LogSource>(source));
+            this.logSources.add(new WeakReference<LogSource>(source));
             source.setParent(this);
             if (this.consoleHandler != null) {
                 source.removeHandler(this.consoleHandler);
@@ -60,15 +61,18 @@ public class LogSink extends Logger {
     }
 
     protected synchronized void close() {
-        this.flushSources();
-        if (this.fileHandler != null) {
-            super.removeHandler(this.fileHandler);
-        }
         try {
-            this.fileHandler.close();
-        } catch (final Throwable e) {
+            this.flushSources();
+            if (this.fileHandler != null) {
+                super.removeHandler(this.fileHandler);
+            }
         } finally {
-            this.fileHandler = null;
+            try {
+                this.fileHandler.close();
+            } catch (final Throwable e) {
+            } finally {
+                this.fileHandler = null;
+            }
         }
     }
 
@@ -80,12 +84,12 @@ public class LogSink extends Logger {
         }
     }
 
-    private ArrayList<LogSource> getLogSources() {
+    protected ArrayList<LogSource> getLogSources() {
         final ArrayList<LogSource> sources = new ArrayList<LogSource>();
         synchronized (this.logSources) {
-            final Iterator<SoftReference<LogSource>> it = this.logSources.iterator();
+            final Iterator<WeakReference<LogSource>> it = this.logSources.iterator();
             while (it.hasNext()) {
-                final SoftReference<LogSource> next = it.next();
+                final WeakReference<LogSource> next = it.next();
                 final LogSource item = next.get();
                 if (item == null || item.isClosed()) {
                     it.remove();
@@ -96,6 +100,11 @@ public class LogSink extends Logger {
             }
         }
         return sources;
+    }
+
+    @Override
+    public Logger getParent() {
+        return this.parent;
     }
 
     protected boolean hasLogSources() {
@@ -116,6 +125,11 @@ public class LogSink extends Logger {
                 source.removeHandler(this.consoleHandler);
             }
         }
+    }
+
+    @Override
+    public void setParent(final Logger parent) {
+        this.parent = parent;
     }
 
 }

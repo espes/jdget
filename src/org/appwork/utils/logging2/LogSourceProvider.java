@@ -27,6 +27,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
@@ -37,6 +38,32 @@ import org.appwork.utils.Regex;
 import org.appwork.utils.logging.LogFormatter;
 
 public abstract class LogSourceProvider {
+    public static void main(final String[] args) {
+        final LogSourceProvider test = new LogSourceProvider(System.currentTimeMillis()) {
+        };
+        for (int i = 0; i < 20000; i++) {
+            final LogSource logger = test.getLogger("test");
+            final Logger parent = logger.getParent();
+            if (parent != null) {
+                System.out.println(i + " " + ((LogSink) logger.getParent()).getLogSources().size());
+            }
+            logger.info(i + "");
+        }
+        for (int i = 0; i < 100; i++) {
+            System.gc();
+            System.gc();
+            System.gc();
+            System.gc();
+            System.gc();
+            System.gc();
+        }
+        final LogSource logger = test.getLogger("test");
+        final Logger parent = logger.getParent();
+        if (parent != null) {
+            System.out.println(((LogSink) logger.getParent()).getLogSources().size());
+        }
+    }
+
     private final HashMap<String, LogSink> logSinks    = new HashMap<String, LogSink>();
     private final int                      maxSize;
     private final int                      maxLogs;
@@ -44,6 +71,7 @@ public abstract class LogSourceProvider {
     private Thread                         flushThread = null;
     private final File                     logFolder;
     private ConsoleHandler                 consoleHandler;
+
     private final boolean                  instantFlushDefault;
 
     public LogSourceProvider(final long timeStamp) {
@@ -119,9 +147,6 @@ public abstract class LogSourceProvider {
                     next.close();
                     it.remove();
                 }
-            }
-            if (this.logSinks.size() == 0) {
-                this.flushThread = null;
             }
         }
         for (final LogSink sink : logSinks2Flush) {
@@ -232,24 +257,23 @@ public abstract class LogSourceProvider {
 
             @Override
             public void run() {
-                try {
-                    while (Thread.currentThread() == LogSourceProvider.this.flushThread) {
+                while (true) {
+                    synchronized (LogSourceProvider.this.logSinks) {
+                        if (LogSourceProvider.this.logSinks.size() == 0) {
+                            LogSourceProvider.this.flushThread = null;
+                            return;
+                        }
+                    }
+                    try {
                         try {
                             Thread.sleep(LogSourceProvider.this.logTimeout);
                         } catch (final InterruptedException e) {
-                            return;
                         }
-                        if (Thread.currentThread() == LogSourceProvider.this.flushThread) {
-                            LogSourceProvider.this.flushSinks();
-                        }
-                    }
-                } finally {
-                    synchronized (LogSourceProvider.this) {
-                        if (Thread.currentThread() == LogSourceProvider.this.flushThread) {
-                            LogSourceProvider.this.flushThread = null;
-                        }
+                        LogSourceProvider.this.flushSinks();
+                    } catch (final Throwable e) {
                     }
                 }
+
             }
 
         };

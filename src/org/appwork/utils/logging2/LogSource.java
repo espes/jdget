@@ -39,6 +39,7 @@ public class LogSource extends Logger {
     private boolean              allowTimeoutFlush = true;
 
     private boolean              instantFlush      = false;
+    private Logger               parent            = null;
 
     public LogSource(final String name) {
         this(name, -1);
@@ -76,6 +77,17 @@ public class LogSource extends Logger {
         this.closed = true;
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            if (this.allowTimeoutFlush) {
+                this.flush();
+            }
+        } finally {
+            super.finalize();
+        }
+    }
+
     public synchronized void flush() {
         if (this.closed) { return; }
         if (this.records == null || this.records.size() == 0) {
@@ -102,6 +114,11 @@ public class LogSource extends Logger {
 
     public int getMaxLogRecordsInMemory() {
         return this.maxLogRecordsInMemory;
+    }
+
+    @Override
+    public Logger getParent() {
+        return this.parent;
     }
 
     public boolean isAllowTimeoutFlush() {
@@ -184,6 +201,11 @@ public class LogSource extends Logger {
         if (this.maxLogRecordsInMemory == newMax) { return; }
         this.flush();
         this.maxLogRecordsInMemory = newMax;
+    }
+
+    @Override
+    public void setParent(final Logger parent) {
+        this.parent = parent;
     }
 
     @Override
