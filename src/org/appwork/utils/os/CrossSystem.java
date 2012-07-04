@@ -146,6 +146,11 @@ public class CrossSystem {
          * too
          */
         pathPart = pathPart.replaceFirst("\\.+$", "");
+        if (CrossSystem.isWindows()) {
+            if (new Regex(pathPart, "^(CON|PRN|AUX|NUL|COM\\d+|LPT\\d+|CLOCK\\$)$").matches()) {
+                pathPart = "_" + pathPart;
+            }
+        }
         return pathPart.trim();
     }
 
