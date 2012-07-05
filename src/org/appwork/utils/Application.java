@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
+import java.util.logging.Level;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.utils.logging.Log;
@@ -67,6 +68,29 @@ public class Application {
             throw new IOException("Error, could not add URL to system classloader");
         }
 
+    }
+
+    // returns the jar filename of clazz
+    public static File getJarFile(Class<?> clazz) {
+        final String name = clazz.getName().replaceAll("\\.", "/") + ".class";
+        final URL url = Application.getRessourceURL(name);
+        String prot = url.getProtocol();
+        String path = url.getPath();
+        if(!"jar".equals(prot)){
+            throw new WTFException("Works in Jared mode only");
+        }
+        final int index = path.indexOf(".jar!");
+        if (index < 0) { throw new WTFException("Works in Jared mode only");}
+        try {
+            return new File(new URL(path.substring(0,index + 4)).toURI());
+        } catch (final MalformedURLException e) {
+            Log.exception(Level.WARNING, e);
+
+        } catch (final URISyntaxException e) {
+            Log.exception(Level.WARNING, e);
+
+        }
+        return null;
     }
 
     /**
@@ -314,16 +338,16 @@ public class Application {
      * @return
      */
     public static boolean isJared(final Class<?> rootOfClazz) {
-     
+
         final String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";
-        final ClassLoader cll = Application.class.getClassLoader();     
+        final ClassLoader cll = Application.class.getClassLoader();
         if (cll == null) {
             Log.L.severe("getContextClassLoader() is null");
             return true;
         }
         // System.out.println(name);
         final URL caller = cll.getResource(name);
-   
+
         // System.out.println(caller);
         /*
          * caller is null in case the ressource is not found or not enough

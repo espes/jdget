@@ -11,7 +11,6 @@ package org.appwork.utils.os;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -468,44 +467,38 @@ public class CrossSystem {
 
             }
             if (nativeParameters.isEmpty()) {
-                final URL root = class1.getClassLoader().getResource(class1.getName().replace(".", "/") + ".class");
 
-                // Filenames may contain ! !!
-                final int index = root.getPath().indexOf("!");
-                if (index <= 0 || !"jar".equalsIgnoreCase(root.getProtocol())) {
-                    throw new WTFException("REstart works only in Jared mode");
-                } else {
-                    final File jarFile = new File(new URI(root.getPath().substring(0, index)));
-                    runin = jarFile.getParentFile();
-                    if (CrossSystem.isWindows()) {
-                        final File exeFile = new File(jarFile.getParentFile(), jarFile.getName().substring(0, jarFile.getName().length() - 4) + ".exe");
-                        if (exeFile.exists()) {
-                            nativeParameters.add(exeFile.getAbsolutePath());
-                        } else {
-                            nativeParameters.add(CrossSystem.getJavaBinary());
-                            nativeParameters.add("-jar");
-                            nativeParameters.add(jarFile.getAbsolutePath());
-                        }
+                final File jarFile = Application.getJarFile(class1);
+                runin = jarFile.getParentFile();
+                if (CrossSystem.isWindows()) {
+                    final File exeFile = new File(jarFile.getParentFile(), jarFile.getName().substring(0, jarFile.getName().length() - 4) + ".exe");
+                    if (exeFile.exists()) {
+                        nativeParameters.add(exeFile.getAbsolutePath());
                     } else {
                         nativeParameters.add(CrossSystem.getJavaBinary());
                         nativeParameters.add("-jar");
                         nativeParameters.add(jarFile.getAbsolutePath());
                     }
-
+                } else {
+                    nativeParameters.add(CrossSystem.getJavaBinary());
+                    nativeParameters.add("-jar");
+                    nativeParameters.add(jarFile.getAbsolutePath());
                 }
+
             }
+
             if (parameters != null) {
                 for (final String s : parameters) {
                     nativeParameters.add(s);
                 }
             }
-
+            Log.L.info("Start " + nativeParameters);
             final ProcessBuilder pb = new ProcessBuilder(nativeParameters.toArray(new String[] {}));
             /*
              * needed because the root is different for jre/class version
              */
 
-            System.out.println("Root: " + runin);
+            Log.L.info("Root: " + runin);
             if (runin != null) {
                 pb.directory(runin);
             }
@@ -526,7 +519,7 @@ public class CrossSystem {
                 }
             });
 
-            ShutdownController.getInstance().requestShutdown();
+            Log.L.info("Start " + ShutdownController.getInstance().requestShutdown(true));
 
         } catch (final Throwable e) {
             throw new WTFException(e);

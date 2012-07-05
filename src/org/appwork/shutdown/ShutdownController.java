@@ -337,6 +337,7 @@ public class ShutdownController extends Thread {
             vetos = this.collectVetos(silent);
 
             if (vetos.size() == 0) {
+                Log.L.info("No Vetos");
                 ShutdownVetoListener[] localList = null;
                 synchronized (this.vetoListeners) {
                     localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
@@ -351,6 +352,7 @@ public class ShutdownController extends Thread {
                 final Thread th = new Thread("ShutdownThread") {
                     @Override
                     public void run() {
+                        Log.L.info("Exit Now");
                         System.exit(ShutdownController.this.getExitCode());
                     }
                 };
@@ -367,6 +369,7 @@ public class ShutdownController extends Thread {
                 Log.L.finest("DONE");
                 return true;
             } else {
+                Log.L.info("Vetos found");
                 ShutdownVetoListener[] localList = null;
                 synchronized (this.vetoListeners) {
                     localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
