@@ -406,6 +406,8 @@ public class HTTPConnectionImpl implements HTTPConnection {
         final StringBuilder sb = new StringBuilder();
         sb.append("-->Host:").append(this.getURL().getHost()).append("\r\n");
         sb.append("-->Url:").append(this.getURL()).append("\r\n");
+        sb.append("-->Connect-Timeout:").append(this.connectTimeout).append("\r\n");
+        sb.append("-->Read-Timeout:").append(this.readTimeout).append("\r\n");
         if (this.connectedInetSocketAddress != null && this.connectedInetSocketAddress.getAddress() != null) {
             sb.append("-->HostIP:").append(this.connectedInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
         }
@@ -458,6 +460,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         sb.append("----------------Response------------------------\r\n");
         try {
             if (this.isConnected()) {
+                sb.append("-->Connect-Time:").append(this.requestTime).append("\r\n");
                 this.connectInputStream();
                 sb.append(this.httpHeader).append("\r\n");
                 for (final Entry<String, List<String>> next : this.getHeaderFields().entrySet()) {

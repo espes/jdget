@@ -19,7 +19,7 @@ import java.io.OutputStream;
 public class ThrottledOutputStream extends OutputStream implements ThrottledConnection {
 
     private ThrottledConnectionHandler handler;
-    private final OutputStream         out;
+    private OutputStream               out;
 
     protected volatile long            transferedCounter  = 0;
     protected volatile long            transferedCounter2 = 0;
@@ -72,6 +72,10 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
         return this.limitCurrent;
     }
 
+    public OutputStream getOutputStream() {
+        return this.out;
+    }
+
     /**
      * set a new ThrottledConnectionManager
      * 
@@ -96,6 +100,12 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
         if (kpsLimit == this.limitCurrent) { return; }
         /* TODO: maybe allow little jitter here */
         this.limitCurrent = Math.max(0, kpsLimit);
+    }
+
+    public void setOutputStream(final OutputStream os) {
+        if (os == null) { throw new IllegalArgumentException("Outputstream is null"); }
+        if (os == this) { throw new IllegalArgumentException("Outputstream loop!"); }
+        this.out = os;
     }
 
     @Override

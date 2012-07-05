@@ -19,7 +19,7 @@ import java.io.InputStream;
 public class ThrottledInputStream extends InputStream implements ThrottledConnection {
 
     private ThrottledConnectionHandler handler;
-    private final InputStream          in;
+    private InputStream                in;
     protected volatile long            transferedCounter  = 0;
     protected volatile long            transferedCounter2 = 0;
     private volatile int               limitCurrent       = 0;
@@ -62,6 +62,10 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
     @Override
     public ThrottledConnectionHandler getHandler() {
         return this.handler;
+    }
+
+    public InputStream getInputStream() {
+        return this.in;
     }
 
     @Override
@@ -177,6 +181,12 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
         if (this.handler != null) {
             this.handler.addThrottledConnection(this);
         }
+    }
+
+    public void setInputStream(final InputStream is) {
+        if (is == null) { throw new IllegalArgumentException("InputStream is null"); }
+        if (is == this) { throw new IllegalArgumentException("InputStream loop!"); }
+        this.in = is;
     }
 
     /**
