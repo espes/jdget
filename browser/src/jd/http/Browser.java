@@ -448,8 +448,9 @@ public class Browser {
         if (request == null || request.getHttpConnection() == null || (length = request.getHttpConnection().getLongContentLength()) < 0) {
             return;
         } else if (length > this.limit) {
-            if (this.getLogger() != null) {
-                this.getLogger().severe(request.printHeaders());
+            final Logger llogger = this.getLogger();
+            if (llogger != null) {
+                llogger.severe(request.printHeaders());
             }
             throw new BrowserException("Content-length too big", request.getHttpConnection());
         }
@@ -518,8 +519,9 @@ public class Browser {
             request.connect();
         } finally {
             if (this.isDebug()) {
-                if (this.getLogger() != null) {
-                    this.getLogger().finest("\r\n" + request.printHeaders());
+                final Logger llogger = this.getLogger();
+                if (llogger != null) {
+                    llogger.finest("\r\n" + request.printHeaders());
                 }
             }
         }
@@ -847,9 +849,10 @@ public class Browser {
     }
 
     public String followConnection() throws IOException {
+        final Logger llogger = this.getLogger();
         if (this.request.getHtmlCode() != null) {
-            if (this.getLogger() != null) {
-                this.getLogger().warning("Request has already been read");
+            if (llogger != null) {
+                llogger.warning("Request has already been read");
             }
             return null;
         }
@@ -866,8 +869,8 @@ public class Browser {
             this.request.disconnect();
         }
         if (this.isVerbose()) {
-            if (this.getLogger() != null) {
-                this.getLogger().finest("\r\n" + this.request + "\r\n");
+            if (llogger != null) {
+                llogger.finest("\r\n" + this.request + "\r\n");
             }
         }
         return this.request.getHtmlCode();
@@ -1018,10 +1021,10 @@ public class Browser {
      */
     public Form getFormbyKey(final String key, final String value) {
         for (final Form f : this.getForms()) {
-            for (InputField field : f.getInputFields()) {
+            for (final InputField field : f.getInputFields()) {
                 if (key != null && key.equals(field.getKey())) {
-                    if (value == null && field.getValue() == null) return f;
-                    if (value != null && value.equals(field.getValue())) return f;
+                    if (value == null && field.getValue() == null) { return f; }
+                    if (value != null && value.equals(field.getValue())) { return f; }
                 }
             }
         }
@@ -1078,7 +1081,8 @@ public class Browser {
     }
 
     public Logger getLogger() {
-        if (this.logger != null) { return this.logger; }
+        final Logger llogger = this.logger;
+        if (llogger != null) { return llogger; }
         return Browser.LOGGER;
     }
 
@@ -1246,8 +1250,9 @@ public class Browser {
             }
         }
         if (this.isVerbose()) {
-            if (this.getLogger() != null) {
-                this.getLogger().finest("\r\n" + requ + "\r\n");
+            final Logger llogger = this.getLogger();
+            if (llogger != null) {
+                llogger.finest("\r\n" + requ + "\r\n");
             }
         }
         return requ;
@@ -1322,8 +1327,9 @@ public class Browser {
             final String org = request.getUrl();
             final String red = request.getLocation();
             if (org.equalsIgnoreCase(red) && this.redirectLoopCounter >= 20) {
-                if (this.getLogger() != null) {
-                    this.getLogger().severe("20 Redirects!!!");
+                final Logger llogger = this.getLogger();
+                if (llogger != null) {
+                    llogger.severe("20 Redirects!!!");
                 }
             } else if (!org.equalsIgnoreCase(red) || this.redirectLoopCounter < 20) {
                 if (org.equalsIgnoreCase(red)) {
@@ -1336,7 +1342,7 @@ public class Browser {
                 try {
                     /* close old connection, because we follow redirect */
                     request.httpConnection.disconnect();
-                } catch (final Exception e) {
+                } catch (final Throwable e) {
                 }
                 this.openGetConnection(null);
             }
@@ -1482,8 +1488,9 @@ public class Browser {
         }
         this.proxy = proxy;
         if (this.debug) {
-            if (Browser.LOGGER != null) {
-                Browser.LOGGER.info("Use local proxy: " + proxy + " wished: " + wished);
+            final Logger llogger = this.getLogger();
+            if (llogger != null) {
+                llogger.info("Use local proxy: " + proxy + " wished: " + wished);
             }
         }
     }
