@@ -1410,10 +1410,6 @@ public class Browser {
         this.allowedResponseCodes = allowedResponseCodes;
     }
 
-    /* TODO: setauth needs to be done */
-    public void setAuth(final String domain, final String user, final String pass) {
-    }
-
     public void setConnectTimeout(final int connectTimeout) {
         this.connectTimeout = connectTimeout;
     }
