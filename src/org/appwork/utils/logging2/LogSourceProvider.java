@@ -64,15 +64,15 @@ public abstract class LogSourceProvider {
         }
     }
 
-    private final HashMap<String, LogSink> logSinks    = new HashMap<String, LogSink>();
-    private final int                      maxSize;
-    private final int                      maxLogs;
-    private final long                     logTimeout;
-    private Thread                         flushThread = null;
-    private final File                     logFolder;
-    private ConsoleHandler                 consoleHandler;
+    protected final HashMap<String, LogSink> logSinks    = new HashMap<String, LogSink>();
+    private final int                        maxSize;
+    private final int                        maxLogs;
+    protected long                           logTimeout;
+    protected Thread                         flushThread = null;
+    protected File                           logFolder;
+    protected ConsoleHandler                 consoleHandler;
 
-    private final boolean                  instantFlushDefault;
+    protected boolean                        instantFlushDefault;
 
     public LogSourceProvider(final long timeStamp) {
         this.consoleHandler = new ConsoleHandler();

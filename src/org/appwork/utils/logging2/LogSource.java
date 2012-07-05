@@ -39,6 +39,7 @@ public class LogSource extends Logger {
     private boolean              allowTimeoutFlush = true;
 
     private boolean              instantFlush      = false;
+    private boolean              flushOnFinalize   = false;
     private Logger               parent            = null;
 
     public LogSource(final String name) {
@@ -80,7 +81,7 @@ public class LogSource extends Logger {
     @Override
     protected void finalize() throws Throwable {
         try {
-            if (this.allowTimeoutFlush) {
+            if (this.allowTimeoutFlush || this.flushOnFinalize) {
                 this.flush();
             }
         } finally {
@@ -127,6 +128,13 @@ public class LogSource extends Logger {
 
     protected boolean isClosed() {
         return this.closed;
+    }
+
+    /**
+     * @return the flushOnFinalize
+     */
+    public boolean isFlushOnFinalize() {
+        return this.flushOnFinalize;
     }
 
     /**
@@ -183,6 +191,14 @@ public class LogSource extends Logger {
 
     public void setAllowTimeoutFlush(final boolean allowTimeoutFlush) {
         this.allowTimeoutFlush = allowTimeoutFlush;
+    }
+
+    /**
+     * @param flushOnFinalize
+     *            the flushOnFinalize to set
+     */
+    public void setFlushOnFinalize(final boolean flushOnFinalize) {
+        this.flushOnFinalize = flushOnFinalize;
     }
 
     /**
