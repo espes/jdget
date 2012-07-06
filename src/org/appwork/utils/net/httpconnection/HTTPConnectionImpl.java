@@ -322,7 +322,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         this.connect();
         this.connectInputStream();
         final int code = this.getResponseCode();
-        if (code >= 200 && code <= 400 || code == 404 || code == 403 || code == 416 || this.isResponseCodeAllowed(code)) {
+        if (this.isOK() || code == 404 || code == 403 || code == 416) {
             if (this.convertedInputStream != null) { return this.convertedInputStream; }
             if (this.contentDecoded) {
                 final String encodingTransfer = this.getHeaderField("Content-Transfer-Encoding");
@@ -511,7 +511,9 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     public boolean isOK() {
-        if (this.getResponseCode() >= 200 && this.getResponseCode() < 400) { return true; }
+        final int code = this.getResponseCode();
+        if (code >= 200 && code < 400) { return true; }
+        if (this.isResponseCodeAllowed(code)) { return true; }
         return false;
     }
 
