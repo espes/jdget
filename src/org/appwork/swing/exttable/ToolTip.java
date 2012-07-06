@@ -56,6 +56,7 @@ public class ToolTip extends ExtTooltip {
         SwingUtils.setOpaque(this.tf, false);
 
         p.add(this.tf);
+
         return p;
     }
 
@@ -63,14 +64,16 @@ public class ToolTip extends ExtTooltip {
      * @param txt
      */
 
-    public void setTipText( String txt) {
-   
-     if(txt.contains("\r")||txt.contains("\n")&&!txt.startsWith("<html>")){
-         txt="<html>"+txt.replaceAll("[\r\n]{1,2}", "<br>")+"</html>";
-     }
+    public void setTipText(String txt) {
+
+        if (txt.contains("\r") || txt.contains("\n") && !txt.startsWith("<html>")) {
+            txt = "<html>" + txt.replaceAll("[\r\n]{1,2}", "<br>") + "</html>";
+        }
 
         this.tf.setText(txt);
-
+        panel.invalidate();
+       
+        System.out.println("Set text");
     }
 
     /*
