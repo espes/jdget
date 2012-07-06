@@ -266,4 +266,144 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "This dialog has a countdown and closes after a few seconds. Click to cancel the countdown", "Dieser Dialog hat einen Countdown und schließt sich in einigen Sekunden. Klicken Sie hier um den Countdown abzubrechen." })
     String TIMERDIALOG_TOOLTIP_TIMERLABEL();
 
+    @Default(lngs = { "en", "de" }, values = { "Look In:", "Suchen in:" })
+    String DIALOG_FILECHOOSER_lookInLabelText();
+
+    // FileChooser =Look In:
+    @Default(lngs = { "en", "de" }, values = { "Save In:", "Speichern in:" })
+    String DIALOG_FILECHOOSER_saveInLabelText();
+
+    // FileChooser =Save In:
+    @Default(lngs = { "en", "de" }, values = { "File Name:", "Dateiname:" })
+    String DIALOG_FILECHOOSER_fileNameLabelText();
+
+    // FileChooser =File Name:
+    @Default(lngs = { "en", "de" }, values = { "Folder name:", "Ordnername:" })
+    String DIALOG_FILECHOOSER_folderNameLabelText();
+
+    // FileChooser =Folder name:
+    @Default(lngs = { "en", "de" }, values = { "Files of Type:", "Dateityp:" })
+    String DIALOG_FILECHOOSER_filesOfTypeLabelText();
+
+    // FileChooser =Files of Type:
+    @Default(lngs = { "en", "de" }, values = { "Up One Level", "Eine Ebene höher" })
+    String DIALOG_FILECHOOSER_upFolderToolTipText();
+
+    // FileChooser =Up One Level
+    @Default(lngs = { "en", "de" }, values = { "Up", "Nach oben" })
+    String DIALOG_FILECHOOSER_upFolderAccessibleName();
+
+    // FileChooser =Up
+    @Default(lngs = { "en", "de" }, values = { "Home", "Home" })
+    String DIALOG_FILECHOOSER_homeFolderToolTipText();
+
+    // FileChooser =Home
+    @Default(lngs = { "en", "de" }, values = { "Home", "Home" })
+    String DIALOG_FILECHOOSER_homeFolderAccessibleName();
+
+    // FileChooser =Home
+    @Default(lngs = { "en", "de" }, values = { "Create New Folder", "Neuen Ordner erstellen" })
+    String DIALOG_FILECHOOSER_newFolderToolTipText();
+
+    // FileChooser =Create New Folder
+    @Default(lngs = { "en", "de" }, values = { "New Folder", "Neuer Ordner" })
+    String DIALOG_FILECHOOSER_newFolderAccessibleName();
+
+    // FileChooser =New Folder
+    @Default(lngs = { "en", "de" }, values = { "List", "Liste" })
+    String DIALOG_FILECHOOSER_listViewButtonToolTipText();
+
+    // FileChooser =List
+    @Default(lngs = { "en", "de" }, values = { "List", "Liste" })
+    String DIALOG_FILECHOOSER_listViewButtonAccessibleName();
+
+    // FileChooser =List
+    @Default(lngs = { "en", "de" }, values = { "Details", "Details" })
+    String DIALOG_FILECHOOSER_detailsViewButtonToolTipText();
+
+    // FileChooser =Details
+    @Default(lngs = { "en", "de" }, values = { "Details", "Details" })
+    String DIALOG_FILECHOOSER_detailsViewButtonAccessibleName();
+
+    // FileChooser =Details
+    @Default(lngs = { "en", "de" }, values = { "Error creating new folder", "Fehler beim Erstellen eines neuen Ordners" })
+    String DIALOG_FILECHOOSER_newFolderErrorText();
+
+    // FileChooser =Error creating new folder
+    @Default(lngs = { "en", "de" }, values = { ": ", ":" })
+    String DIALOG_FILECHOOSER_newFolderErrorSeparator();
+
+    // FileChooser =:
+    @Default(lngs = { "en", "de" }, values = { "Unable to create folder", "Ordner kann nicht erstellt werden" })
+    String DIALOG_FILECHOOSER_newFolderParentDoesntExistTitleText();
+
+    // FileChooser =Unable to create folder
+    @Default(lngs = { "en", "de" }, values = { "Unable to create the folder.\\r\\n\\r\\nThe system cannot find the path specified.", "Ordner kann nicht erstellt werden.\\r\\n\\r\\n System kann den angegebenen Pfad nicht finden." })
+    String DIALOG_FILECHOOSER_newFolderParentDoesntExistText();
+
+    // FileChooser =Unable to create the folder.
+    @Default(lngs = { "en", "de" }, values = { "Generic File", "Allgemeine Datei" })
+    String DIALOG_FILECHOOSER_fileDescriptionText();
+
+    // FileChooser =Generic File
+    @Default(lngs = { "en", "de" }, values = { "Directory", "Verzeichnis" })
+    String DIALOG_FILECHOOSER_directoryDescriptionText();
+
+    // FileChooser =Directory
+    @Default(lngs = { "en", "de" }, values = { "Save", "Speichern" })
+    String DIALOG_FILECHOOSER_saveButtonText();
+
+    // FileChooser =Save
+    @Default(lngs = { "en", "de" }, values = { "Open", "Öffnen" })
+    String DIALOG_FILECHOOSER_openButtonText();
+
+    // FileChooser =Open
+    @Default(lngs = { "en", "de" }, values = { "Save", "Speichern" })
+    String DIALOG_FILECHOOSER_saveDialogTitleText();
+
+    // FileChooser =Save
+    @Default(lngs = { "en", "de" }, values = { "Open", "Öffnen" })
+    String DIALOG_FILECHOOSER_openDialogTitleText();
+
+    // FileChooser =Open
+    @Default(lngs = { "en", "de" }, values = { "Cancel", "Abbrechen" })
+    String DIALOG_FILECHOOSER_cancelButtonText();
+
+    // FileChooser =Cancel
+    @Default(lngs = { "en", "de" }, values = { "Update", "Aktualisieren" })
+    String DIALOG_FILECHOOSER_updateButtonText();
+
+    // FileChooser =Update
+    @Default(lngs = { "en", "de" }, values = { "Help", "Hilfe" })
+    String DIALOG_FILECHOOSER_helpButtonText();
+
+    // FileChooser =Help
+    @Default(lngs = { "en", "de" }, values = { "Open", "Öffnen" })
+    String DIALOG_FILECHOOSER_directoryOpenButtonText();
+
+    // FileChooser =Open
+    @Default(lngs = { "en", "de" }, values = { "Save selected file", "Ausgewählte Datei speichern" })
+    String DIALOG_FILECHOOSER_saveButtonToolTipText();
+
+    // FileChooser =Save selected file
+    @Default(lngs = { "en", "de" }, values = { "Open selected file", "Ausgewählte Datei öffnen" })
+    String DIALOG_FILECHOOSER_openButtonToolTipText();
+
+    // FileChooser =Open selected file
+    @Default(lngs = { "en", "de" }, values = { "Abort file chooser dialog", "Dialogfeld für Dateiauswahl schließen" })
+    String DIALOG_FILECHOOSER_cancelButtonToolTipText();
+
+    // FileChooser =Abort file chooser dialog
+    @Default(lngs = { "en", "de" }, values = { "Update directory listing", "Verzeichnisliste aktualisieren" })
+    String DIALOG_FILECHOOSER_updateButtonToolTipText();
+
+    // FileChooser =Update directory listing
+    @Default(lngs = { "en", "de" }, values = { "FileChooser help", "FileChooser-Hilfe" })
+    String DIALOG_FILECHOOSER_helpButtonToolTipText();
+
+    // FileChooser =FileChooser help
+    @Default(lngs = { "en", "de" }, values = { "Open selected directory", "Ausgewähltes Verzeichnis öffnen" })
+    String DIALOG_FILECHOOSER_directoryOpenButtonToolTipText();
+    // FileChooser =Open selected directory
+
 }

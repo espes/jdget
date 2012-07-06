@@ -10,8 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -256,11 +254,54 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             public void updateUI() {
 
                 putClientProperty("FileChooser.useShellFolder", false);
-                putClientProperty("FileChooser.homeFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER());
-                putClientProperty("FileChooser.newFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER());
+
+                putClientProperty("FileChooser.lookInLabelText", _AWU.T.DIALOG_FILECHOOSER_lookInLabelText());
+                putClientProperty("FileChooser.saveInLabelText", _AWU.T.DIALOG_FILECHOOSER_saveInLabelText());
+
+                putClientProperty("FileChooser.fileNameLabelText", _AWU.T.DIALOG_FILECHOOSER_fileNameLabelText());
+
+                putClientProperty("FileChooser.folderNameLabelText", _AWU.T.DIALOG_FILECHOOSER_folderNameLabelText());
+
+                putClientProperty("FileChooser.filesOfTypeLabelText", _AWU.T.DIALOG_FILECHOOSER_filesOfTypeLabelText());
+
                 putClientProperty("FileChooser.upFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_UPFOLDER());
-                putClientProperty("FileChooser.detailsViewButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_DETAILS());
+                putClientProperty("FileChooser.upFolderAccessibleName", _AWU.T.DIALOG_FILECHOOSER_upFolderAccessibleName());
+
+                putClientProperty("FileChooser.homeFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_HOMEFOLDER());
+                putClientProperty("FileChooser.homeFolderAccessibleName", _AWU.T.DIALOG_FILECHOOSER_homeFolderAccessibleName());
+
+                putClientProperty("FileChooser.newFolderToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_NEWFOLDER());
+                putClientProperty("FileChooser.newFolderAccessibleName", _AWU.T.DIALOG_FILECHOOSER_newFolderAccessibleName());
+
                 putClientProperty("FileChooser.listViewButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_LIST());
+                putClientProperty("FileChooser.listViewButtonAccessibleName", _AWU.T.DIALOG_FILECHOOSER_listViewButtonAccessibleName());
+
+                putClientProperty("FileChooser.detailsViewButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_TOOLTIP_DETAILS());
+                putClientProperty("FileChooser.detailsViewButtonAccessibleName", _AWU.T.DIALOG_FILECHOOSER_detailsViewButtonAccessibleName());
+                putClientProperty("FileChooser.newFolderErrorText", _AWU.T.DIALOG_FILECHOOSER_newFolderErrorText());
+                putClientProperty("FileChooser.newFolderErrorSeparator", _AWU.T.DIALOG_FILECHOOSER_newFolderErrorSeparator());
+
+                putClientProperty("FileChooser.newFolderParentDoesntExistTitleText", _AWU.T.DIALOG_FILECHOOSER_newFolderParentDoesntExistTitleText());
+                putClientProperty("FileChooser.newFolderParentDoesntExistText", _AWU.T.DIALOG_FILECHOOSER_newFolderParentDoesntExistText());
+
+                putClientProperty("FileChooser.fileDescriptionText", _AWU.T.DIALOG_FILECHOOSER_fileDescriptionText());
+                putClientProperty("FileChooser.directoryDescriptionText", _AWU.T.DIALOG_FILECHOOSER_directoryDescriptionText());
+
+                putClientProperty("FileChooser.saveButtonText", _AWU.T.DIALOG_FILECHOOSER_saveButtonText());
+                putClientProperty("FileChooser.openButtonText", _AWU.T.DIALOG_FILECHOOSER_openButtonText());
+                putClientProperty("FileChooser.saveDialogTitleText", _AWU.T.DIALOG_FILECHOOSER_saveDialogTitleText());
+                putClientProperty("FileChooser.openDialogTitleText", _AWU.T.DIALOG_FILECHOOSER_openDialogTitleText());
+                putClientProperty("FileChooser.cancelButtonText", _AWU.T.DIALOG_FILECHOOSER_cancelButtonText());
+                putClientProperty("FileChooser.updateButtonText", _AWU.T.DIALOG_FILECHOOSER_updateButtonText());
+                putClientProperty("FileChooser.helpButtonText", _AWU.T.DIALOG_FILECHOOSER_helpButtonText());
+                putClientProperty("FileChooser.directoryOpenButtonText", _AWU.T.DIALOG_FILECHOOSER_directoryOpenButtonText());
+
+                putClientProperty("FileChooser.saveButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_saveButtonToolTipText());
+                putClientProperty("FileChooser.openButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_openButtonToolTipText());
+                putClientProperty("FileChooser.cancelButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_cancelButtonToolTipText());
+                putClientProperty("FileChooser.updateButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_updateButtonToolTipText());
+                putClientProperty("FileChooser.helpButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_helpButtonToolTipText());
+                putClientProperty("FileChooser.directoryOpenButtonToolTipText", _AWU.T.DIALOG_FILECHOOSER_directoryOpenButtonToolTipText());
                 super.updateUI();
             }
 
@@ -419,13 +460,13 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             // detailsview thingy is part of the ui/LAF
             Log.exception(t);
         }
-//        fc.addPropertyChangeListener(new PropertyChangeListener() {
-//
-//            @Override
-//            public void propertyChange(PropertyChangeEvent evt) {
-//                System.out.println(evt);
-//            }
-//        });
+        // fc.addPropertyChangeListener(new PropertyChangeListener() {
+        //
+        // @Override
+        // public void propertyChange(PropertyChangeEvent evt) {
+        // System.out.println(evt);
+        // }
+        // });
         if (quickSelectionList != null && multiSelection == false) {
             try {
                 // wraps the textfield to enter a path in a SearchCombobox
@@ -564,7 +605,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 destination.setText(text);
                 namePanel.add(destination);
                 modifiyNamePanel(namePanel);
-//                SwingUtils.printComponentTree(fc);
+                // SwingUtils.printComponentTree(fc);
                 // [2][0][0][0][0]
                 JComponent c = (JComponent) fc.getComponent(2);
                 c = (JComponent) c.getComponent(0);
