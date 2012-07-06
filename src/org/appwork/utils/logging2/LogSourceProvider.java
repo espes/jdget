@@ -228,10 +228,20 @@ public abstract class LogSourceProvider {
                 this.startFlushThread();
             }
         }
-        final LogSource source = new LogSource(name, -1);
+        final LogSource source = createLogSource(name, -1);
         source.setInstantFlush(this.instantFlushDefault);
         sink.addLogSource(source);
         return source;
+    }
+
+    /**
+     * @param name
+     * @param i
+     * @return
+     */
+    protected LogSource createLogSource(String name, int i) {
+        // TODO Auto-generated method stub
+        return new LogSource(name,i);
     }
 
     public void removeConsoleHandler() {

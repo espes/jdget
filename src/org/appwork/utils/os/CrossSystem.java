@@ -362,9 +362,7 @@ public class CrossSystem {
         return false;
     }
 
-    public static void main(final String[] args) {
-        CrossSystem.restartApplication(MigLayout.class);
-    }
+
 
     private static boolean openCustom(final String[] custom, final String what) throws IOException {
         if (custom == null || custom.length < 1) { return false; }
@@ -436,15 +434,16 @@ public class CrossSystem {
     /**
      * @param class1
      */
-    public static void restartApplication(final Class<?> class1, final String... parameters) {
+    public static void restartApplication(File jar, final String... parameters) {
 
         try {
+            Log.L.info("restartApplication "+jar+" "+parameters.length);
             final ArrayList<String> nativeParameters = new ArrayList<String>();
             File runin = null;
             if (CrossSystem.isMac()) {
 
                 // find .app
-                File rootpath = Application.getRootByClass(class1, null);
+                File rootpath = jar;
                 final HashSet<File> loopMap = new HashSet<File>();
                 while (rootpath != null && loopMap.add(rootpath)) {
                     if (rootpath.getName().endsWith(".app")) {
@@ -467,8 +466,9 @@ public class CrossSystem {
 
             }
             if (nativeParameters.isEmpty()) {
-
-                final File jarFile = Application.getJarFile(class1);
+                Log.L.info("Find Jarfile");
+                final File jarFile =jar;
+                Log.L.info("Find Jarfile "+jarFile);
                 runin = jarFile.getParentFile();
                 if (CrossSystem.isWindows()) {
                     final File exeFile = new File(jarFile.getParentFile(), jarFile.getName().substring(0, jarFile.getName().length() - 4) + ".exe");
@@ -551,4 +551,6 @@ public class CrossSystem {
         final String name = new Regex(filename, "(.*?)(\\.+[^\\.]*$|$)").getMatch(0);
         return new String[] { name, extension };
     }
+
+ 
 }

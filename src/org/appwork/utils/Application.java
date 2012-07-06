@@ -76,6 +76,7 @@ public class Application {
         final URL url = Application.getRessourceURL(name);
         String prot = url.getProtocol();
         String path = url.getPath();
+        Log.L.info(url+"");
         if(!"jar".equals(prot)){
             throw new WTFException("Works in Jared mode only");
         }
