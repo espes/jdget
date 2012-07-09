@@ -108,7 +108,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         // }
         // });
         this.renderer = this.determinatedRenderer;
-        this.defaultBorder = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1), this.determinatedRenderer.getBorder());
+        this.defaultBorder = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 2, 1), this.determinatedRenderer.getBorder());
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override

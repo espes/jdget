@@ -123,7 +123,7 @@ public class SwingUtils {
         // c.setVisible(false);
         for (int i = 0; i < fc.getComponentCount(); i++) {
             Component cc = fc.getComponent(i);
-            System.out.println(string + "[" + i + "]" + cc.getClass().getSuperclass().getSimpleName() + ":" + cc);
+            System.out.println(string + "[" + i + "]" + cc.getClass().getSuperclass().getSimpleName() + ":" + cc+ " Opaque: "+cc.isOpaque());
 
             if (cc instanceof JComponent) {
                 printComponentTree((JComponent) cc, string + "[" + i + "]");
