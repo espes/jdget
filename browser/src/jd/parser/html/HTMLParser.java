@@ -195,6 +195,8 @@ public class HTMLParser {
             }
         }
         if (HTMLParser.mp != null) {
+            /* replace ' with %27 */
+            data = data.replaceAll("'", "%27");
             m = HTMLParser.mp.matcher(data);
             while (m.find()) {
                 link = m.group(0);
