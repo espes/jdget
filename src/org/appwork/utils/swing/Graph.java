@@ -71,10 +71,10 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
 
     private Limiter[]                  limiter;
     private TooltipTextDelegateFactory tooltipFactory;
+    private boolean                    AntiAliasing     = false;
 
     public Graph() {
         this(60, 1000);
-
     }
 
     public Graph(final int capacity, final int interval) {
@@ -195,6 +195,13 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
      */
     abstract public int getValue();
 
+    /**
+     * @return the antiAliasing
+     */
+    public boolean isAntiAliasing() {
+        return this.AntiAliasing;
+    }
+
     public boolean isTooltipDisabledUntilNextRefocus() {
         return false;
     }
@@ -211,7 +218,11 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
         super.paintComponent(g);
         if (this.fetcherThread != null) {
             final Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (!this.AntiAliasing) {
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+            } else {
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+            }
             g2.setStroke(new BasicStroke(1));
 
             int id = this.i;
@@ -279,25 +290,23 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
                     }
                 }
             }
-            
-            
-            //Draw speed string
+
+            // Draw speed string
             int xText = this.getWidth();
 
             if (this.textFont != null) {
                 g2.setFont(this.textFont);
             }
-            //current speed
+            // current speed
             String speedString = this.getSpeedString();
             if (speedString != null && this.running) {
                 g2.setColor(this.getTextColor());
-                //align right. move left
+                // align right. move left
                 xText = xText - 3 - g2.getFontMetrics().stringWidth(speedString);
                 g2.drawString(speedString, xText, 12);
             }
-            //average speed
-            if(this.averageColor != null)
-            {
+            // average speed
+            if (this.averageColor != null) {
                 speedString = this.getAverageSpeedString();
                 if (speedString != null && this.running) {
                     g2.setColor(this.getAverageTextColor());
@@ -321,6 +330,14 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
         }
         this.average *= 3;
         this.all = 3;
+    }
+
+    /**
+     * @param antiAliasing
+     *            the antiAliasing to set
+     */
+    public void setAntiAliasing(final boolean antiAliasing) {
+        this.AntiAliasing = antiAliasing;
     }
 
     /**
