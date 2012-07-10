@@ -711,7 +711,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     private ExtFileChooserIdConfig getIDConfig() {
 
-        File path = Application.getResource("cfg/FileChooser/" + getStorageID() + ".ejs");
+        File path = Application.getResource("cfg/FileChooser/" + getStorageID());
         path.getParentFile().mkdirs();
         return JsonConfig.create(path, ExtFileChooserIdConfig.class);
     }

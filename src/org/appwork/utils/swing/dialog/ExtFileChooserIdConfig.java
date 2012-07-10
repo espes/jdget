@@ -10,11 +10,13 @@
 package org.appwork.utils.swing.dialog;
 
 import org.appwork.storage.config.ConfigInterface;
+import org.appwork.storage.config.annotations.CryptedStorage;
 
 /**
  * @author Thomas
  * 
  */
+@CryptedStorage(key = { 0x00, 0x02, 0x11, 0x01, 0x01, 0x54, 0x02, 0x01, 0x01, 0x01, 0x12, 0x01, 0x01, 0x01, 0x12, 0x01 })
 public interface ExtFileChooserIdConfig extends ConfigInterface {
 
     /**
