@@ -29,7 +29,7 @@ public class RemoteAPIResponse implements HttpResponseInterface {
 
     public RemoteAPIResponse(final HttpResponse response) {
         this.response = response;
-        //Remote API requests are available via CORS by default.
+        // Remote API requests are available via CORS by default.
         this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
     }
 
@@ -54,6 +54,28 @@ public class RemoteAPIResponse implements HttpResponseInterface {
      */
     public void setResponseCode(final ResponseCode responseCode) {
         this.response.setResponseCode(responseCode);
+    }
+
+    @Override
+    public boolean isResponseAsync() {
+        return response.isResponseAsync();
+    }
+
+    @Override
+    public void setResponseAsync(boolean b) {
+        response.setResponseAsync(b);
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.net.httpserver.responses.HttpResponseInterface#
+     * closeConnection()
+     */
+    @Override
+    public void closeConnection() {
+        response.closeConnection();
     }
 
 }

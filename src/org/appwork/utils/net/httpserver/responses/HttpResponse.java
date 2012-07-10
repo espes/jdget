@@ -29,12 +29,13 @@ import org.appwork.utils.net.httpserver.HttpConnection;
 public class HttpResponse implements HttpResponseInterface {
 
     private final HeaderCollection        responseHeaders;
-    public static final byte[]            NEWLINE      = "\r\n".getBytes();
-    public static final byte[]            HTTP11       = "HTTP/1.1 ".getBytes();
-    public static final byte[]            _0           = "0".getBytes();
-    private ResponseCode                  responseCode = ResponseCode.SUCCESS_NO_CONTENT;
+    public static final byte[]            NEWLINE       = "\r\n".getBytes();
+    public static final byte[]            HTTP11        = "HTTP/1.1 ".getBytes();
+    public static final byte[]            _0            = "0".getBytes();
+    private ResponseCode                  responseCode  = ResponseCode.SUCCESS_NO_CONTENT;
     private final HttpConnection          connection;
-    protected OutputStream                  outputStream = null;
+    protected OutputStream                outputStream  = null;
+    protected boolean                     asyncResponse = false;
     private static final SimpleDateFormat date;
     static {
         date = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.UK);
@@ -84,6 +85,31 @@ public class HttpResponse implements HttpResponseInterface {
      */
     public void setResponseCode(final ResponseCode responseCode) {
         this.responseCode = responseCode;
+    }
+
+    @Override
+    public boolean isResponseAsync() {
+        return asyncResponse;
+    }
+
+    @Override
+    public void setResponseAsync(boolean b) {
+        asyncResponse = b;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.net.httpserver.responses.HttpResponseInterface#
+     * closeConnection()
+     */
+    @Override
+    public void closeConnection() {
+        if (asyncResponse) {
+            connection.closeConnection();
+            connection.close();
+        }
+
     }
 
 }

@@ -37,4 +37,10 @@ public interface HttpResponseInterface {
      *            the responseCode to set
      */
     public void setResponseCode(final ResponseCode responseCode);
+
+    public boolean isResponseAsync();
+
+    public void setResponseAsync(boolean b);
+
+    public void closeConnection();
 }

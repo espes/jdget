@@ -150,14 +150,14 @@ public class HttpConnection implements Runnable {
         return request;
     }
 
-    protected void close() {
+    public void close() {
     }
 
     /**
      * closes the client socket and removes this connection from server
      * connection pool
      */
-    protected void closeConnection() {
+    public void closeConnection() {
         if (this.clientSocket == null) { return; }
         try {
             this.clientSocket.getOutputStream().flush();
@@ -194,6 +194,7 @@ public class HttpConnection implements Runnable {
 
     @Override
     public void run() {
+        boolean closeConnection = true;
         try {
             final HttpRequest request = this.buildRequest();
             // if(Log.L.isLoggable(Level.FINER)) Log.L.finer(request+"");
@@ -222,7 +223,11 @@ public class HttpConnection implements Runnable {
                 this.response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
             }
             /* send response headers if they have not been sent yet send yet */
-            this.response.getOutputStream();
+            if (this.response.isResponseAsync() == false) {
+                this.response.getOutputStream();
+            } else {
+                closeConnection = false;
+            }
         } catch (final Throwable e) {
             Log.L.severe(e.getMessage());
             try {
@@ -236,8 +241,10 @@ public class HttpConnection implements Runnable {
             } catch (final Throwable nothing) {
             }
         } finally {
-            this.closeConnection();
-            this.close();
+            if (closeConnection) {
+                this.closeConnection();
+                this.close();
+            }
         }
     }
 
