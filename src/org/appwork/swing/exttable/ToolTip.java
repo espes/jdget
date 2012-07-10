@@ -73,7 +73,7 @@ public class ToolTip extends ExtTooltip {
         this.tf.setText(txt);
         panel.invalidate();
        
-        System.out.println("Set text");
+
     }
 
     /*

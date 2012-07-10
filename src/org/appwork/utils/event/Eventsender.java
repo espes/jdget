@@ -19,10 +19,11 @@ import java.util.EventListener;
 
 import org.appwork.utils.IO;
 import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.Dialog.FileChooserSelectionMode;
-import org.appwork.utils.swing.dialog.Dialog.FileChooserType;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
 import org.appwork.utils.swing.dialog.DialogClosedException;
+import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
+import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
+import org.appwork.utils.swing.dialog.FileChooserType;
 
 /**
  * The Eventsenderclass is the core of the Eventsystem. it can be used to design
@@ -99,8 +100,26 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
         final File rootFile = new File(root.toURI());
         final String name = Dialog.getInstance().showInputDialog("Enter Name");
 
-        final File[] sel = Dialog.getInstance().showFileChooser("EventSenderCReater", "Choose folder", FileChooserSelectionMode.DIRECTORIES_ONLY, null, false, FileChooserType.OPEN_DIALOG, rootFile.getParentFile().getParentFile());
-        Eventsender.create(name, sel[0]);
+        ExtFileChooserDialog d = new ExtFileChooserDialog(0, "Choose folder", null, null);
+        d.setStorageID("EventSenderCReater");
+        d.setFileSelectionMode(FileChooserSelectionMode.DIRECTORIES_ONLY);
+
+        d.setType(FileChooserType.OPEN_DIALOG);
+        d.setMultiSelection(false);
+        d.setPreSelection(rootFile.getParentFile().getParentFile());
+        try {
+            Dialog.I().showDialog(d);
+        } catch (DialogClosedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (DialogCanceledException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        
+        
+        Eventsender.create(name, d.getSelectedFile());
         System.exit(1);
     }
 

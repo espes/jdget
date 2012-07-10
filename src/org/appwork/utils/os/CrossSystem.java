@@ -19,14 +19,11 @@ import java.util.logging.Level;
 
 import javax.swing.filechooser.FileFilter;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.appwork.exceptions.WTFException;
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
-import org.appwork.utils.Application;
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.locale._AWU;
@@ -39,6 +36,9 @@ import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
 import org.appwork.utils.swing.dialog.DialogClosedException;
 import org.appwork.utils.swing.dialog.DialogNoAnswerException;
+import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
+import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
+import org.appwork.utils.swing.dialog.FileChooserType;
 
 /**
  * This class provides a few native features.
@@ -158,7 +158,11 @@ public class CrossSystem {
     }
 
     public static String[] getEditor(final String extension) throws DialogCanceledException, DialogClosedException, StorageException {
-        final File[] ret = Dialog.getInstance().showFileChooser("FILE_EDIT_CONTROLLER_" + extension, _AWU.T.fileditcontroller_geteditor_for(extension), Dialog.FileChooserSelectionMode.FILES_ONLY, new FileFilter() {
+
+        ExtFileChooserDialog d = new ExtFileChooserDialog(0, _AWU.T.fileditcontroller_geteditor_for(extension), null, null);
+        d.setStorageID("FILE_EDIT_CONTROLLER_" + extension);
+        d.setFileSelectionMode(FileChooserSelectionMode.FILES_ONLY);
+        d.setFileFilter(new FileFilter() {
 
             @Override
             public boolean accept(final File f) {
@@ -178,14 +182,28 @@ public class CrossSystem {
 
             }
 
-        }, false, Dialog.FileChooserType.OPEN_DIALOG_WITH_PRESELECTION, new File(JSonStorage.getPlainStorage("EDITORS").get(extension, "")));
-        if (ret != null && ret.length > 0) {
-            JSonStorage.getPlainStorage("EDITORS").put(extension, ret[0].toString());
+        });
+        d.setType(FileChooserType.OPEN_DIALOG_WITH_PRESELECTION);
+        d.setMultiSelection(false);
+        d.setPreSelection(new File(JSonStorage.getPlainStorage("EDITORS").get(extension, "")));
+        try {
+            Dialog.I().showDialog(d);
+        } catch (DialogClosedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (DialogCanceledException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
-            return new String[] { ret[0].toString() };
+        File ret = d.getSelectedFile();
+        if (ret != null && ret.exists()) {
+            JSonStorage.getPlainStorage("EDITORS").put(extension, ret.toString());
+            return new String[] { ret.toString() };
         } else {
             return null;
         }
+
     }
 
     public static String[] getFileCommandLine() {
@@ -362,8 +380,6 @@ public class CrossSystem {
         return false;
     }
 
-
-
     private static boolean openCustom(final String[] custom, final String what) throws IOException {
         if (custom == null || custom.length < 1) { return false; }
         boolean added = false;
@@ -437,7 +453,7 @@ public class CrossSystem {
     public static void restartApplication(File jar, final String... parameters) {
 
         try {
-            Log.L.info("restartApplication "+jar+" "+parameters.length);
+            Log.L.info("restartApplication " + jar + " " + parameters.length);
             final ArrayList<String> nativeParameters = new ArrayList<String>();
             File runin = null;
             if (CrossSystem.isMac()) {
@@ -467,8 +483,8 @@ public class CrossSystem {
             }
             if (nativeParameters.isEmpty()) {
                 Log.L.info("Find Jarfile");
-                final File jarFile =jar;
-                Log.L.info("Find Jarfile "+jarFile);
+                final File jarFile = jar;
+                Log.L.info("Find Jarfile " + jarFile);
                 runin = jarFile.getParentFile();
                 if (CrossSystem.isWindows()) {
                     final File exeFile = new File(jarFile.getParentFile(), jarFile.getName().substring(0, jarFile.getName().length() - 4) + ".exe");
@@ -552,5 +568,4 @@ public class CrossSystem {
         return new String[] { name, extension };
     }
 
- 
 }

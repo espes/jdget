@@ -31,10 +31,11 @@ import org.appwork.utils.StringUtils;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.Dialog.FileChooserSelectionMode;
-import org.appwork.utils.swing.dialog.Dialog.FileChooserType;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
 import org.appwork.utils.swing.dialog.DialogClosedException;
+import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
+import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
+import org.appwork.utils.swing.dialog.FileChooserType;
 
 public class PathChooser extends MigPanel {
     private class BrowseAction extends AbstractAction {
@@ -217,16 +218,25 @@ public class PathChooser extends MigPanel {
      * @return
      */
     public File doFileChooser() {
-        try {
 
-            final File[] ret = Dialog.getInstance().showFileChooser(this.getID(), this.getDialogTitle(), this.getSelectionMode(), this.getFileFilter(), false, this.getType(), this.getFile());
-            if (ret != null && ret.length == 1) { return ret[0]; }
-        } catch (final DialogCanceledException e1) {
-            e1.printStackTrace();
-        } catch (final DialogClosedException e1) {
-            e1.printStackTrace();
+        ExtFileChooserDialog d = new ExtFileChooserDialog(0, getDialogTitle(), null, null);
+        d.setStorageID(getID());
+        d.setFileSelectionMode(getSelectionMode());
+        d.setFileFilter(getFileFilter());
+        d.setType(this.getType());
+        d.setMultiSelection(false);
+        d.setPreSelection(getFile());
+        try {
+            Dialog.I().showDialog(d);
+        } catch (DialogClosedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (DialogCanceledException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        return null;
+        return d.getSelectedFile();
+
     }
 
     /**

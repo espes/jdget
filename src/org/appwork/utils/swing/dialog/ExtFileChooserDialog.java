@@ -33,13 +33,15 @@ import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.basic.BasicFileChooserUI;
 
+import org.appwork.storage.config.JsonConfig;
 import org.appwork.swing.components.searchcombo.SearchComboBox;
+import org.appwork.utils.Application;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.SwingUtils;
-import org.appwork.utils.swing.dialog.Dialog.FileChooserSelectionMode;
 
 public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     static {
@@ -124,7 +126,13 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     private ExtFileSystemView        fileSystemView;
     private Component                parentGlassPane;
-    protected View                   view              = View.DETAILS;                                      ;
+    protected View                   view              = View.DETAILS;
+    private FileChooserType          type              = FileChooserType.SAVE_DIALOG;
+    private String                   storageID;
+
+    public void setType(FileChooserType type) {
+        this.type = type;
+    }
 
     public ArrayList<String> getQuickSelectionList() {
         return quickSelectionList;
@@ -177,22 +185,26 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     @Override
     protected File[] createReturnValue() {
+        try {
+            if (isMultiSelection()) {
+                File[] files = fc.getSelectedFiles();
 
-        if (isMultiSelection()) {
-            File[] files = fc.getSelectedFiles();
-            return files;
-        } else {
-            File f = fc.getSelectedFile();
-            if (f == null) {
-                String path = getText();
-                if (path != null) {
-                    f = new File(path);
+                return files;
+            } else {
+                File f = fc.getSelectedFile();
+                if (f == null) {
+                    String path = getText();
+                    if (path != null) {
+                        f = new File(path);
 
-                } else {
-                    return null;
+                    } else {
+                        return null;
+                    }
                 }
+                return new File[] { f };
             }
-            return new File[] { f };
+        } finally {
+            getIDConfig().setLastSelection(fc.getCurrentDirectory().getAbsolutePath());
         }
 
     }
@@ -303,10 +315,15 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
             @Override
             public void updateUI() {
+                // UIManager.put("FileChooser.lookInLabelText",
+                // _AWU.T.DIALOG_FILECHOOSER_lookInLabelText());
+                // UIManager.put("FileChooser.saveInLabelText",
+                // _AWU.T.DIALOG_FILECHOOSER_saveInLabelText());
 
                 putClientProperty("FileChooser.useShellFolder", false);
 
                 super.updateUI();
+                System.out.println(getUI().getClass().getName());
             }
 
             @Override
@@ -389,8 +406,12 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         } catch (Throwable e) {
             Log.exception(e);
         }
+
+        if (isFilePreviewEnabled()) {
+            fc.setAccessory(new FilePreview(fc));
+        }
         fc.setControlButtonsAreShown(false);
-        fc.setDialogType(JFileChooser.SAVE_DIALOG);
+        fc.setDialogType(getType().getId());
         if (fileSelectionMode != null) {
             fc.setFileSelectionMode(fileSelectionMode.getId());
         }
@@ -407,29 +428,35 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
         /* preSelection */
 
-        Log.L.info("Given Preselection: " + preSelection);
+        Log.L.info("Given presel: " + preSelection);
 
-        while (preSelection != null) {
-            if (!preSelection.exists()) {
+        File presel = preSelection;
+        if (presel == null) {
+            String path = getIDConfig().getLastSelection();
+            presel = StringUtils.isEmpty(path) ? null : new File(path);
+
+        }
+        while (presel != null) {
+            if (!presel.exists()) {
                 /* file does not exist, try ParentFile */
-                preSelection = preSelection.getParentFile();
+                presel = presel.getParentFile();
             } else {
-                if (preSelection.isDirectory()) {
-                    fc.setCurrentDirectory(preSelection);
+                if (presel.isDirectory()) {
+                    fc.setCurrentDirectory(presel);
                     /*
                      * we have to setSelectedFile here too, so the folder is
                      * preselected
                      */
 
                 } else {
-                    fc.setCurrentDirectory(preSelection.getParentFile());
+                    fc.setCurrentDirectory(presel.getParentFile());
                     /* only preselect file in savedialog */
 
                     if (fileSelectionMode != null) {
                         if (fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
-                            fc.setSelectedFile(preSelection.getParentFile());
+                            fc.setSelectedFile(presel.getParentFile());
                         } else {
-                            fc.setSelectedFile(preSelection);
+                            fc.setSelectedFile(presel);
                         }
                     }
 
@@ -680,6 +707,32 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     }
 
     /**
+     * @return
+     */
+    private ExtFileChooserIdConfig getIDConfig() {
+
+        File path = Application.getResource("cfg/FileChooser/" + getStorageID() + ".ejs");
+        path.getParentFile().mkdirs();
+        return JsonConfig.create(path, ExtFileChooserIdConfig.class);
+    }
+
+    /**
+     * @return
+     */
+    protected boolean isFilePreviewEnabled() {
+
+        return getFileSelectionMode() != FileChooserSelectionMode.DIRECTORIES_ONLY;
+    }
+
+    /**
+     * @return
+     */
+    public FileChooserType getType() {
+
+        return type;
+    }
+
+    /**
      * 
      */
     private void updateView() {
@@ -843,8 +896,28 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     public File[] getSelection() {
-        // TODO Auto-generated method stub
+
         return createReturnValue();
+    }
+
+    /**
+     * @return
+     */
+    public File getSelectedFile() {
+        if (isMultiSelection()) throw new IllegalStateException("Not available if multiselection is active. use #getSelection() instead");
+        File[] sel = getSelection();
+        return sel == null || sel.length == 0 ? null : sel[0];
+    }
+
+    /**
+     * @param id
+     */
+    public void setStorageID(String id) {
+        this.storageID = id;
+    }
+
+    public String getStorageID() {
+        return storageID;
     }
 
 }

@@ -18,10 +18,11 @@ import org.appwork.swing.exttable.ExtTableModel;
 import org.appwork.swing.exttable.columns.ExtFileBrowser;
 import org.appwork.swing.exttable.columns.ExtTextColumn;
 import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.Dialog.FileChooserSelectionMode;
-import org.appwork.utils.swing.dialog.Dialog.FileChooserType;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
 import org.appwork.utils.swing.dialog.DialogClosedException;
+import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
+import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
+import org.appwork.utils.swing.dialog.FileChooserType;
 
 /**
  * @author thomas
@@ -117,17 +118,22 @@ public class ExtTestModel extends ExtTableModel<TextObject> {
 
             @Override
             public File browse(TextObject object) {
-                // TODO Auto-generated method stub
+
+                ExtFileChooserDialog d = new ExtFileChooserDialog(0, "Choose file", null, null);
+                d.setFileSelectionMode(FileChooserSelectionMode.FILES_AND_DIRECTORIES);
+
+                d.setType(FileChooserType.OPEN_DIALOG);
+                d.setMultiSelection(false);
                 try {
-                    return Dialog.getInstance().showFileChooser("test", "Choose file", FileChooserSelectionMode.FILES_AND_DIRECTORIES, null, false, FileChooserType.OPEN_DIALOG, object.getFile())[0];
-                } catch (DialogCanceledException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    Dialog.I().showDialog(d);
                 } catch (DialogClosedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
+                } catch (DialogCanceledException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
-                return null;
+                return d.getSelectedFile();
             }
 
         });
