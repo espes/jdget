@@ -94,7 +94,7 @@ public abstract class LogSourceProvider {
 
             @Override
             public void run() {
-                LogSourceProvider.this.flushSinks();
+                LogSourceProvider.this.flushSinks(false);
             }
 
             @Override
@@ -104,9 +104,11 @@ public abstract class LogSourceProvider {
 
         });
         new Thread("LogsCleanup") {
+            long newestTimeStamp = -1;
 
             @Override
             public void run() {
+
                 final File oldLogs[] = Application.getResource("logs/").listFiles(new FilenameFilter() {
 
                     long removeTimeStamp = timeStamp - JsonConfig.create(LogConfig.class).getCleanupLogsOlderThanXDays() * 24 * 60 * 60 * 1000l;
@@ -115,7 +117,17 @@ public abstract class LogSourceProvider {
                     public boolean accept(final File dir, final String name) {
                         if (dir.exists() && dir.isDirectory() && name.matches("^\\d+_\\d+\\.\\d+(\\.\\d+)?$")) {
                             final String timeStamp = new Regex(name, "^(\\d+)_").getMatch(0);
-                            if (timeStamp != null && Long.parseLong(timeStamp) < this.removeTimeStamp) { return true; }
+                            long times = 0;
+                            if (timeStamp != null && (times = Long.parseLong(timeStamp)) < this.removeTimeStamp) {
+                                if (newestTimeStamp == -1 || times > newestTimeStamp) {
+                                    /*
+                                     * find the latest logfolder, so we can keep
+                                     * it
+                                     */
+                                    newestTimeStamp = times;
+                                }
+                                return true;
+                            }
                         }
                         return false;
                     }
@@ -123,6 +135,10 @@ public abstract class LogSourceProvider {
                 if (oldLogs != null) {
                     for (final File oldLog : oldLogs) {
                         try {
+                            if (this.newestTimeStamp > 0 && oldLog.getName().contains(this.newestTimeStamp + "")) {
+                                /* always keep at least the last logfolder! */
+                                continue;
+                            }
                             Files.deleteRecursiv(oldLog);
                         } catch (final IOException e) {
                             e.printStackTrace();
@@ -144,7 +160,7 @@ public abstract class LogSourceProvider {
         return new LogSource(name, i);
     }
 
-    protected synchronized void flushSinks() {
+    public synchronized void flushSinks(final boolean flushOnly) {
         ArrayList<LogSink> logSinks2Flush = null;
         synchronized (this.logSinks) {
             logSinks2Flush = new ArrayList<LogSink>(this.logSinks.size());
@@ -154,7 +170,9 @@ public abstract class LogSourceProvider {
                 if (next.hasLogSources()) {
                     logSinks2Flush.add(next);
                 } else {
-                    next.close();
+                    if (flushOnly == false) {
+                        next.close();
+                    }
                     it.remove();
                 }
             }
@@ -279,7 +297,7 @@ public abstract class LogSourceProvider {
                             Thread.sleep(LogSourceProvider.this.logTimeout);
                         } catch (final InterruptedException e) {
                         }
-                        LogSourceProvider.this.flushSinks();
+                        LogSourceProvider.this.flushSinks(true);
                     } catch (final Throwable e) {
                     }
                 }
