@@ -134,6 +134,16 @@ public abstract class LogSourceProvider {
         }.start();
     }
 
+    /**
+     * @param name
+     * @param i
+     * @return
+     */
+    protected LogSource createLogSource(final String name, final int i) {
+        // TODO Auto-generated method stub
+        return new LogSource(name, i);
+    }
+
     protected synchronized void flushSinks() {
         ArrayList<LogSink> logSinks2Flush = null;
         synchronized (this.logSinks) {
@@ -228,20 +238,10 @@ public abstract class LogSourceProvider {
                 this.startFlushThread();
             }
         }
-        final LogSource source = createLogSource(name, -1);
+        final LogSource source = this.createLogSource(name, -1);
         source.setInstantFlush(this.instantFlushDefault);
         sink.addLogSource(source);
         return source;
-    }
-
-    /**
-     * @param name
-     * @param i
-     * @return
-     */
-    protected LogSource createLogSource(String name, int i) {
-        // TODO Auto-generated method stub
-        return new LogSource(name,i);
     }
 
     public void removeConsoleHandler() {

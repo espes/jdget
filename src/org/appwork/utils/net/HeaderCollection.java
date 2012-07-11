@@ -12,46 +12,57 @@ package org.appwork.utils.net;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Locale;
 
 /**
  * @author daniel
  * 
  */
 public class HeaderCollection implements Iterable<HTTPHeader> {
-    private final LinkedList<HTTPHeader>      headers;
-    private final HashMap<String, HTTPHeader> headersMap;
-    private static HashMap<String, Boolean>   DUPES_ALLOWED = new HashMap<String, Boolean>();
+    private final LinkedList<HTTPHeader>    headers;
+    private static HashMap<String, Boolean> DUPES_ALLOWED = new HashMap<String, Boolean>();
     static {
-        HeaderCollection.DUPES_ALLOWED.put("Set-Cookies", true);
+        HeaderCollection.DUPES_ALLOWED.put("Set-Cookies".toLowerCase(Locale.ENGLISH), true);
     }
 
     public HeaderCollection() {
         this.headers = new LinkedList<HTTPHeader>();
-        this.headersMap = new HashMap<String, HTTPHeader>();
     }
-    public String toString(){
-      return headers.toString();
-        
+
+    public String toString() {
+        return headers.toString();
     }
+
     public void add(final HTTPHeader header) {
-        if (!HeaderCollection.DUPES_ALLOWED.containsKey(header.getKey()) && this.headersMap.containsKey(header.getKey())) {
-            // overwrite
-            for (final Iterator<HTTPHeader> it = this.headers.iterator(); it.hasNext();) {
-                HTTPHeader elem;
-                if ((elem = it.next()).getKey().equalsIgnoreCase(header.getKey())) {
-                    if (elem.isAllowOverwrite()) {
-                        //Log.L.warning("Overwrite Header: " + header);
-                        it.remove();
-                    } else {
-                        //Log.L.warning("Header must not be overwritten: " + header);
-                        return;
-                    }
-                    break;
+        HTTPHeader existingHeader = null;
+        if ((existingHeader = get(header.getKey())) != null) {
+            if (!HeaderCollection.DUPES_ALLOWED.containsKey(header.getKey().toLowerCase(Locale.ENGLISH))) {
+                // overwrite
+                if (existingHeader.isAllowOverwrite()) {
+                    // Log.L.warning("Overwrite Header: " + header);
+                    headers.remove(existingHeader);
+                } else {
+                    // Log.L.warning("Header must not be overwritten: " +
+                    // header);
+                    return;
                 }
             }
         }
         this.headers.add(header);
-        this.headersMap.put(header.getKey(), header);
+    }
+
+    public boolean remove(final HTTPHeader header) {
+        return remove(header.getKey());
+    }
+
+    public boolean remove(final String key) {
+        HTTPHeader existingHeader = get(key);
+        if (existingHeader != null) {
+            headers.remove(existingHeader);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public HTTPHeader get(final String key) {

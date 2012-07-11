@@ -65,6 +65,8 @@ public class HTTPConstants {
          * in the future.[2] Subsequent requests by the client are permissible.
          */
         ERROR_NOT_FOUND(404, "Not Found"),
+
+        ERROR_RANGE_NOT_SUPPORTED(416, "Range requests not supported"),
         /**
          * A generic error message, given when no more specific message is
          * suitable.[2
@@ -84,9 +86,9 @@ public class HTTPConstants {
          * The server is currently unavailable (because it is overloaded or down
          * for maintenance).[2] Generally, this is a temporary state.
          */
-        SERVERERROR_SERVICE_UNAVAILABLE(503, "Service Unavailable"), 
-        
-        SUCCESS_PARTIAL_CONTENT(206,"Partial Content");
+        SERVERERROR_SERVICE_UNAVAILABLE(503, "Service Unavailable"),
+
+        SUCCESS_PARTIAL_CONTENT(206, "Partial Content");
         private final int    code;
         private final String description;
         private final byte[] bytes;
