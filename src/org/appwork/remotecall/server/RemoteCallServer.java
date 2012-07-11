@@ -38,7 +38,7 @@ public class RemoteCallServer {
      */
     protected Object handleRequestReturnData(final Requestor requestor, final String clazz, final String method, final String[] parameters) throws ServerInvokationException {
         try {
-            final RemoteCallServiceWrapper service = this.servicesMap.get(new String(clazz));
+            final RemoteCallServiceWrapper service = this.servicesMap.get(clazz);
             if (service == null) { //
                 throw new ServerInvokationException(this.handleRequestError(requestor, new BadRequestException("Service not defined: " + clazz)), requestor);
 
@@ -99,6 +99,10 @@ public class RemoteCallServer {
             throw new ServerInvokationException(this.handleRequestError(requestor, e), requestor);
         }
 
+    }
+
+    public HashMap<String, RemoteCallServiceWrapper> getServicesMap() {
+        return servicesMap;
     }
 
     protected String handleRequest(final Requestor requestor, final String clazz, final String method, final String[] parameters) throws ServerInvokationException {

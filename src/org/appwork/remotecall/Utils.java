@@ -54,7 +54,7 @@ public class Utils {
             if (sb.length() > 0) {
                 sb.append("&");
             }
-            sb.append(Utils.serialiseSingleObject(o));
+            sb.append(JSonStorage.serializeToJson(o));
         }
         return sb.toString();
     }
