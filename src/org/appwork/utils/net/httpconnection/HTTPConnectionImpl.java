@@ -97,12 +97,10 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 /* https */
                 this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
                 /*
-                 * http://twelve-programmers.blogspot.de/2010/01/limitations-in-jsse
-                 * -tls-implementation.html
+                 * http://twelve-programmers.blogspot.de/2010/01/limitations-in-jsse-tls-implementation.html
                  */
                 /*
-                 * http://stackoverflow.com/questions/6851461/java-why-does-ssl-
-                 * handshake-give-could-not-generate-dh-keypair-exception
+                 * http://stackoverflow.com/questions/6851461/java-why-does-ssl- handshake-give-could-not-generate-dh-keypair-exception
                  */
                 // final List<String> limited = new LinkedList<String>();
                 // for (final String suite : ((SSLSocket)
@@ -195,8 +193,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
             if (bytes.length > 0) {
                 this.inputStream = new PushbackInputStream(this.httpSocket.getInputStream(), bytes.length);
                 /*
-                 * push back the data that got read because no http header
-                 * exists
+                 * push back the data that got read because no http header exists
                  */
                 ((PushbackInputStream) this.inputStream).unread(bytes);
             } else {
@@ -262,8 +259,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * org.appwork.utils.net.httpconnection.HTTPConnection#finalizeConnect()
+     * @see org.appwork.utils.net.httpconnection.HTTPConnection#finalizeConnect()
      */
     @Override
     public void finalizeConnect() throws IOException {
@@ -380,8 +376,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 /* only parse this when we have NO 416 (invalid range request) */
                 /* NON RFC-2616! STOP is missing */
                 /*
-                 * this happend for some stupid servers, seems to happen when
-                 * request is bytes=9500- (x till end)
+                 * this happend for some stupid servers, seems to happen when request is bytes=9500- (x till end)
                  */
                 /* START-/SIZE */
                 /* content-range: bytes 1020054729-/1073741824 */
@@ -404,16 +399,17 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     protected String getRequestInfo() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("-->Host:").append(this.getURL().getHost()).append("\r\n");
-        sb.append("-->Url:").append(this.getURL()).append("\r\n");
-        sb.append("-->Connect-Timeout:").append(this.connectTimeout).append("\r\n");
-        sb.append("-->Read-Timeout:").append(this.readTimeout).append("\r\n");
+        sb.append("----------------Request Information-------------\r\n");
+        sb.append("URL: ").append(this.getURL()).append("\r\n");
+        sb.append("Host: ").append(this.getURL().getHost()).append("\r\n");
         if (this.connectedInetSocketAddress != null && this.connectedInetSocketAddress.getAddress() != null) {
-            sb.append("-->HostIP:").append(this.connectedInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
+            sb.append("HostIP: ").append(this.connectedInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
         }
         if (this.proxyInetSocketAddress != null && this.proxyInetSocketAddress.getAddress() != null) {
-            sb.append("-->LocalIP:").append(this.proxyInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
+            sb.append("LocalIP: ").append(this.proxyInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
         }
+        sb.append("Connection-Timeout: ").append(this.connectTimeout + "ms").append("\r\n");
+        sb.append("Read-Timeout: ").append(this.readTimeout + "ms").append("\r\n");
         sb.append("----------------Request-------------------------\r\n");
         if (this.isConnected()) {
             sb.append(this.httpMethod.toString()).append(' ').append(this.httpPath).append(" HTTP/1.1\r\n");
@@ -430,7 +426,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 sb.append("\r\n");
             }
         } else {
-            sb.append("-------------not connected yet------------------\r\n");
+            sb.append("-------------Not Connected Yet!-----------------\r\n");
         }
         return sb.toString();
     }
@@ -457,10 +453,11 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     protected String getResponseInfo() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("----------------Response------------------------\r\n");
+        sb.append("----------------Response Information------------\r\n");
         try {
             if (this.isConnected()) {
-                sb.append("-->Connect-Time:").append(this.requestTime).append("\r\n");
+                sb.append("Connection-Time: ").append(this.requestTime + "ms").append("\r\n");
+                sb.append("----------------Response------------------------\r\n");
                 this.connectInputStream();
                 sb.append(this.httpHeader).append("\r\n");
                 for (final Entry<String, List<String>> next : this.getHeaderFields().entrySet()) {
@@ -479,10 +476,10 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 }
                 sb.append("------------------------------------------------\r\n");
             } else {
-                sb.append("-------------not connected yet------------------");
+                sb.append("-------------Not Connected Yet!------------------\r\n");
             }
         } catch (final IOException nothing) {
-            sb.append("----------no InputStream available--------------");
+            sb.append("----------No InputStream Available!--------------\r\n");
         }
         sb.append("\r\n");
         return sb.toString();
