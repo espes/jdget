@@ -176,10 +176,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         Dialog.getInstance().setParentOwner(this.getDialog());
         try {
             this.setTitle(this.title);
-            dont: if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
+            dont: if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
+                String key = this.getDontShowAgainKey();
                 try {
-                    final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getPlainStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
+                    final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(key) : JSonStorage.getPlainStorage("Dialogs").get(key, -1);
 
                     if (i >= 0) {
                         // filter saved return value
@@ -576,6 +577,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     public boolean isInitialized() {
         return this.initialized;
+    }
+
+    public boolean isDontShowAgainSelected() {
+        if (isHiddenByDontShowAgain() || (this.dontshowagain.isSelected() && this.dontshowagain.isEnabled())) { return true; }
+        return false;
+
     }
 
     /**
