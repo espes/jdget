@@ -92,7 +92,7 @@ public final class EditDistance {
     /**
      * Gibt den Prozentualen Unterschied zwischen zwei Strings zurück verwendet
      * die LevenshteinDistance
-     * 
+     *  
      * @param s
      * @param t
      * @return
