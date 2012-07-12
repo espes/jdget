@@ -11,7 +11,12 @@ package org.appwork.utils.swing.dialog;
 
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
+import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 
 import org.appwork.utils.swing.SwingUtils;
@@ -40,23 +45,37 @@ public class CenterOfScreenLocator implements Locator {
 
         } else if (dialog.getParent() instanceof Frame && ((Frame) dialog.getParent()).getExtendedState() == Frame.ICONIFIED) {
             // dock dialog at bottom right if mainframe is not visible
+
+            final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            final GraphicsDevice[] screens = ge.getScreenDevices();
+
+            for (final GraphicsDevice screen : screens) {
+                final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
+                screen.getDefaultConfiguration().getDevice();
+
+                Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(screen.getDefaultConfiguration());
+                if (bounds.contains(MouseInfo.getPointerInfo().getLocation())) { return (new Point((int) (bounds.x + bounds.getWidth() - dialog.getWidth() - 20 - insets.right), (int) (bounds.y + bounds.getHeight() - dialog.getHeight() - 20 - insets.bottom))); }
+
+            }
             final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
             return (new Point((int) (screenSize.getWidth() - dialog.getWidth() - 20), (int) (screenSize.getHeight() - dialog.getHeight() - 60)));
-        }else{
-           return  SwingUtils.getCenter(dialog.getParent(), dialog);
+        } else {
+            return SwingUtils.getCenter(dialog.getParent(), dialog);
         }
-
 
     }
 
-    /* (non-Javadoc)
-     * @see org.appwork.utils.swing.dialog.Locator#onClose(org.appwork.utils.swing.dialog.AbstractDialog)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.utils.swing.dialog.Locator#onClose(org.appwork.utils.swing
+     * .dialog.AbstractDialog)
      */
     @Override
     public void onClose(AbstractDialog<?> abstractDialog) {
         // TODO Auto-generated method stub
-        
+
     }
 
 }
