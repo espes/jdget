@@ -42,13 +42,7 @@ public class LogSourceFormatter extends SimpleFormatter {
         if (th != this.lastThreadID) {
             sb.append("------------------------Thread: ");
             sb.append(th);
-            /*
-             * This piece of code also appends the name of current thread into
-             * log
-             */
-            if (Thread.currentThread().getId() == th) {
-                sb.append(":" + Thread.currentThread().getName());
-            }
+            sb.append(":" + record.getLoggerName());
             sb.append("-----------------------\r\n");
         }
         this.lastThreadID = th;
@@ -60,8 +54,6 @@ public class LogSourceFormatter extends SimpleFormatter {
         String tmp = null;
         if ((tmp = record.getSourceClassName()) != null) {
             sb.append(tmp);
-        } else {
-            sb.append(record.getLoggerName());
         }
         if ((tmp = record.getSourceMethodName()) != null) {
             sb.append('(');

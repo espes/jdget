@@ -150,6 +150,7 @@ public class LogSource extends Logger {
         /* make sure we have gathered all information about current class/method */
         /* this will collect current class/method if net set yet */
         record.getSourceClassName();
+        record.setLoggerName(Thread.currentThread().getName());
         if (this.maxLogRecordsInMemory == 0 || this.instantFlush) {
             /* maxLogRecordsInMemory == 0, we want to use parent's handlers */
             final Logger parent = this.getParent();
