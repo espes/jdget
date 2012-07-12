@@ -62,10 +62,15 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private File                           path;
     private ConfigEventSender<Object>      eventSender;
     private String                         relativCPPath;
+    protected boolean                      save                 = true;
     // set externaly to start profiling
     public static HashMap<String, Long>    PROFILER_MAP         = null;
 
     public static HashMap<String, Long>    PROFILER_CALLNUM_MAP = null;
+
+    public void disableSaveAtEnd() {
+        save = false;
+    }
 
     /**
      * @param name
@@ -115,7 +120,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
             @Override
             public void run() {
-                StorageHandler.this.primitiveStorage.save();
+                if (save) StorageHandler.this.primitiveStorage.save();
             }
 
             @Override
@@ -176,7 +181,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
             @Override
             public void run() {
-                StorageHandler.this.primitiveStorage.save();
+                if (save) StorageHandler.this.primitiveStorage.save();
             }
 
             @Override
@@ -185,6 +190,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
         });
 
+    }
+
+    public void write() {
+        primitiveStorage.save();
     }
 
     /**
