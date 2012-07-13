@@ -241,10 +241,13 @@ public class HTMLParser {
             } else {
                 /* lets check if tag contains links */
                 HTMLParser._getHttpLinksWalker(nexttag, url, results);
-                final int tagClose = data.indexOf('>');
+                int tagClose = data.indexOf('<' + nexttag);
+                if (tagClose >= 0) {
+                    tagClose = tagClose + nexttag.length() + 1;
+                }
                 if (tagClose >= 0 && data.length() >= tagClose + 1) {
-                    final int tagOpen = data.indexOf('<');
-                    if (tagOpen > 0 && tagOpen < tagClose) {
+                    final int tagOpen = data.indexOf('<' + nexttag);
+                    if (tagOpen > 0) {
                         /*
                          * there might be some data left before the tag, do not remove that data
                          */
