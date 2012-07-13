@@ -109,9 +109,9 @@ public class ParameterParser {
                 while (var.length() > 0 && var.startsWith("-")) {
                     var = var.substring(1);
                 }
-                if (switchCommand != null) {
+                if (switchCommand != null || params.size() > 0) {
                     CommandSwitch cs;
-                    switchCommand = switchCommand.toLowerCase(Locale.ENGLISH);
+                    if (switchCommand != null) switchCommand = switchCommand.toLowerCase(Locale.ENGLISH);
                     this.getEventSender().fireEvent(cs = new CommandSwitch(switchCommand, params.toArray(new String[] {})));
                     this.map.put(switchCommand, cs);
                 }
@@ -122,9 +122,9 @@ public class ParameterParser {
                 params.add(var);
             }
         }
-        if (switchCommand != null) {
+        if (switchCommand != null || params.size() > 0) {
             CommandSwitch cs;
-            switchCommand = switchCommand.toLowerCase(Locale.ENGLISH);
+            if (switchCommand != null) switchCommand = switchCommand.toLowerCase(Locale.ENGLISH);
             this.getEventSender().fireEvent(cs = new CommandSwitch(switchCommand, params.toArray(new String[] {})));
             this.map.put(switchCommand, cs);
         }

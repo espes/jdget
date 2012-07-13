@@ -154,6 +154,7 @@ public class HttpServer implements Runnable {
                     final Socket clientSocket = socket.accept();
 
                     try {
+
                         this.threadPool.execute(new HttpConnection(this, clientSocket));
                     } catch (final IOException e) {
                         e.printStackTrace();

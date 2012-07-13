@@ -87,7 +87,11 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
     private boolean        preSave = false;
     private JCheckBox      save;
     private final boolean  rememberDisabled;
-    private final String   message;
+    private  String   message;
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
     public LoginDialog(final int flag) {
         this(flag, _AWU.T.AccountNew_AccountNew_title(), _AWU.T.AccountNew_AccountNew_message(), AWUTheme.I().getIcon("dialog/login", 32));
@@ -100,9 +104,13 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
     }
 
     private JLabel addSettingName(final String name) {
-        final JLabel lbl = new JLabel(name);
+        final JLabel lbl = new JLabel(name); 
         lbl.setForeground(this.titleColor);
         return lbl;
+    }
+
+    public String getMessage() {
+        return message;
     }
 
     public void caretUpdate(final CaretEvent e) {

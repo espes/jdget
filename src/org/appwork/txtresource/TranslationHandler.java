@@ -30,9 +30,9 @@ public class TranslationHandler implements InvocationHandler {
     private final Class<? extends TranslateInterface> tInterface;
     private ArrayList<TranslateResource>              lookup;
 
-    private final HashMap<Method, String>             cache;
+    private HashMap<Method, String>                   cache;
     private final Method[]                            methods;
-    private final HashMap<String, TranslateResource>  resourceCache;
+    private HashMap<String, TranslateResource>        resourceCache;
     private boolean                                   tryCustom;
 
     public static final String                        DEFAULT = "en";
@@ -338,13 +338,18 @@ public class TranslationHandler implements InvocationHandler {
 
         //
         // if (method.getName().equals("_getTranslation")) {
+        HashMap<Method, String> lcache = cache;
+        String ret = null;
 
-        String ret = this.cache.get(method);
-        if (ret == null) {
-            ret = this.getValue(method, lookup);
-            if (ret != null) {
-                this.cache.put(method, ret);
+        synchronized (lcache) {
+            ret = lcache.get(method);
+            if (ret == null) {
+                ret = this.getValue(method, lookup);
+                if (ret != null) {
+                    lcache.put(method, ret);
+                }
             }
+
         }
         return this.format(ret, args);
 
@@ -360,8 +365,8 @@ public class TranslationHandler implements InvocationHandler {
      * @param loc
      */
     public void setLanguage(final String loc) {
-        this.cache.clear();
-        this.resourceCache.clear();
+        this.cache = new HashMap<Method, String>();
+        this.resourceCache = new HashMap<String, TranslateResource>();
         this.lookup = this.fillLookup(loc);
 
     }
