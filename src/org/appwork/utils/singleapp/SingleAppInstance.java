@@ -63,6 +63,7 @@ public class SingleAppInstance {
     private ServerSocket            serverSocket  = null;
     private final String            SINGLEAPP     = "SingleAppInstance";
     private Thread                  daemon        = null;
+    private static final int        DEFAULTPORT   = 9665;
 
     private File                    portFile      = null;
 
@@ -250,8 +251,18 @@ public class SingleAppInstance {
             }
             this.portFile.delete();
             this.serverSocket = new ServerSocket();
-            final SocketAddress socketAddress = new InetSocketAddress(this.getLocalHost(), 0);
-            this.serverSocket.bind(socketAddress);
+            SocketAddress socketAddress = null;
+            try {
+                socketAddress = new InetSocketAddress(this.getLocalHost(), SingleAppInstance.DEFAULTPORT);
+                this.serverSocket.bind(socketAddress);
+            } catch (final IOException e) {
+                try {
+                    this.serverSocket.close();
+                } catch (final Throwable e2) {
+                }
+                socketAddress = new InetSocketAddress(this.getLocalHost(), 0);
+                this.serverSocket.bind(socketAddress);
+            }
             FileOutputStream portWriter = null;
             try {
                 portWriter = new FileOutputStream(this.portFile);
