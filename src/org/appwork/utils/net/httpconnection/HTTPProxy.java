@@ -100,7 +100,10 @@ public class HTTPProxy {
                     ret.setLocalIP(ip);
                 } catch (final Throwable e) {
                     e.printStackTrace();
+                    return null;
                 }
+            } else {
+                return null;
             }
             break;
         case HTTP:
