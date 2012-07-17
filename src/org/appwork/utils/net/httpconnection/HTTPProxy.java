@@ -181,7 +181,7 @@ public class HTTPProxy {
 
     public static HTTPProxy parseHTTPProxy(final String s) {
         if (StringUtils.isEmpty(s)) { return null; }
-        final String type = new Regex(s, "(https?|socks5|socks4)://").getMatch(0);
+        final String type = new Regex(s, "(https?|socks5|socks4|direct)://").getMatch(0);
         final String auth = new Regex(s, "://(.*?)@").getMatch(0);
         final String host = new Regex(s, "://(.*?@)?(.*?)(/|$)").getMatch(1);
         HTTPProxy ret = null;
@@ -194,6 +194,19 @@ public class HTTPProxy {
         } else if ("socks4".equalsIgnoreCase(type)) {
             ret = new HTTPProxy(TYPE.SOCKS4);
             ret.port = 1080;
+        } else if ("direct".equalsIgnoreCase(type)) {
+            ret = new HTTPProxy(TYPE.DIRECT);
+            final String hostname = new Regex(host, "(.*?)(:|$)").getMatch(0);
+            if (!StringUtils.isEmpty(hostname)) {
+                try {
+                    final InetAddress ip = InetAddress.getByName(hostname);
+                    ret.localIP = ip;
+                    return ret;
+                } catch (final Throwable e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
         }
         if (ret != null) {
             final String hostname = new Regex(host, "(.*?)(:|$)").getMatch(0);
@@ -326,8 +339,8 @@ public class HTTPProxy {
         } else {
             if (!proxy.getHost().equalsIgnoreCase(this.host)) { return false; }
         }
-        if (!StringUtils.equals(proxy.getPass(),this.pass)) { return false; }
-        if (!StringUtils.equals(proxy.getUser(),this.user)) { return false; }
+        if (!StringUtils.equals(proxy.getPass(), this.pass)) { return false; }
+        if (!StringUtils.equals(proxy.getUser(), this.user)) { return false; }
         if (proxy.getPort() != this.port) { return false; }
         return true;
     }

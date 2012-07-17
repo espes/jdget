@@ -22,9 +22,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class StreamingChunk {
 
-    protected RandomAccessFile chunkFile = null;
-    protected volatile boolean canGrow   = false;
-    protected AtomicLong       writes    = new AtomicLong(0);
+    protected RandomAccessFile chunkFile        = null;
+    protected volatile boolean canGrow          = false;
+    protected AtomicLong       writes           = new AtomicLong(0);
+    protected AtomicLong       currentChunkSize = new AtomicLong(0);
 
     public StreamingChunk(final File file) throws FileNotFoundException {
         this(file, false);
@@ -37,10 +38,11 @@ public class StreamingChunk {
             this.chunkFile = new RandomAccessFile(file, "r");
         }
         this.canGrow = canGrow;
+        this.currentChunkSize.set(file.length());
     }
 
     private synchronized int _read(final byte[] b, final long position) throws IOException {
-        if (position < this.chunkFile.length()) {
+        if (position < this.currentChunkSize.get()) {
             this.chunkFile.seek(position);
             return this.chunkFile.read(b);
         } else if (this.canGrow == false) {
@@ -86,6 +88,7 @@ public class StreamingChunk {
             this.chunkFile.seek(this.chunkFile.length());
         }
         this.chunkFile.write(b);
+        this.currentChunkSize.addAndGet(b.length);
         this.writes.incrementAndGet();
     }
 
