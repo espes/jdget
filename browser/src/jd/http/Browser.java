@@ -277,7 +277,12 @@ public class Browser {
         endisslash = tmp.endsWith("/");
 
         /* filter multiple / */
-        tmp = tmp.replaceAll("/+", "/");
+        /*
+         * NOTE: http://webmasters.stackexchange.com/questions/8354/what-does-the-double-slash-mean-in-urls
+         * 
+         * http://svn.jdownloader.org/issues/5610
+         */
+        tmp = tmp.replaceAll("/{3,}", "/");
 
         /* filter .. and . */
         final String parts[] = tmp.split("/");
@@ -296,12 +301,18 @@ public class Browser {
                     }
                 }
                 parts[i] = "";
+            } else if (i > 0 && parts[i].length() == 0) {
+                parts[i] = "/";
             }
         }
         tmp = "";
         for (final String part : parts) {
             if (part.length() > 0) {
-                tmp = tmp + "/" + part;
+                if ("/".equals(part)) {
+                    tmp = tmp + "/";
+                } else {
+                    tmp = tmp + "/" + part;
+                }
             }
         }
         if (endisslash) {
@@ -542,27 +553,22 @@ public class Browser {
         String base = null;
         String action = null;
         if (this.request != null) {
+            /* take current url as base url */
             base = this.request.getUrl().toString();
-            action = form.getAction(base);
         }
-
         try {
-            // find base in source
-            final String sourceBase = this.getRegex("<base.*?href=\"(.+?)\"").getMatch(0).trim();
-            // check if valid url
-            new URL(sourceBase);
-            base = sourceBase;
-            if (form.getAction(null) != null) {
-                action = form.getAction(base);
+            final String sourceBase = this.getRegex("<base.*?href=\"(.+?)\"").getMatch(0);
+            if (sourceBase != null) {
+                /* take baseURL in case we've found one in current request */
+                new URL(sourceBase.trim());
+                base = sourceBase;
             }
-
         } catch (final Throwable e) {
-
         }
-
+        action = form.getAction(base);
+        if (action == null) { throw new NullPointerException("no valid action url"); }
         // action = action;
         switch (form.getMethod()) {
-
         case GET:
             final String varString = form.getPropertyString();
             if (varString != null && !varString.matches("[\\s]*")) {
