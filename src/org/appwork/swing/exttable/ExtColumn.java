@@ -76,6 +76,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     public static final String       SORT_DESC              = "DESC";
     public static final String       SORT_ASC               = "ASC";
+    protected volatile boolean       modifying              = false;
 
     /**
      * Create a new ExtColum.
@@ -377,20 +378,25 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public Component getTableCellEditorComponent(final JTable table, final E value, final boolean isSelected, final int row, final int column, final boolean editing) {
-        final JComponent ret = this.getEditorComponent(value, isSelected, row, column);
-        this.resetEditor();
-        this.configureEditorHighlighters(ret, value, isSelected, row);
-        if (editing) {
-            // while editing, we call a different method, which can be used to
-            // update colors, borders, layouts, but not the editing value
-            // itself.
-            this.configureCurrentlyEditingComponent(value, isSelected, row, column);
-        } else {
-            this.configureEditorComponent(value, isSelected, row, column);
+        try {
+            this.modifying = true;
+            final JComponent ret = this.getEditorComponent(value, isSelected, row, column);
+            this.resetEditor();
+            this.configureEditorHighlighters(ret, value, isSelected, row);
+            if (editing) {
+                // while editing, we call a different method, which can be used
+                // to
+                // update colors, borders, layouts, but not the editing value
+                // itself.
+                this.configureCurrentlyEditingComponent(value, isSelected, row, column);
+            } else {
+                this.configureEditorComponent(value, isSelected, row, column);
+            }
+            ret.setEnabled(this.getModel().getTable().isEnabled() && this.isEnabled(value));
+            return ret;
+        } finally {
+            this.modifying = false;
         }
-        ret.setEnabled(this.getModel().getTable().isEnabled() && this.isEnabled(value));
-
-        return ret;
     }
 
     @SuppressWarnings("unchecked")
@@ -403,13 +409,17 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     @SuppressWarnings("unchecked")
     @Override
     final public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        final JComponent ret = this.getRendererComponent((E) value, isSelected, hasFocus, row, column);
-        this.resetRenderer();
-        this.configureRendererHighlighters(ret, (E) value, isSelected, hasFocus, row);
-        this.configureRendererComponent((E) value, isSelected, hasFocus, row, column);
-        ret.setEnabled(this.getModel().getTable().isEnabled() && this.isEnabled((E) value));
-
-        return ret;
+        try {
+            this.modifying = true;
+            final JComponent ret = this.getRendererComponent((E) value, isSelected, hasFocus, row, column);
+            this.resetRenderer();
+            this.configureRendererHighlighters(ret, (E) value, isSelected, hasFocus, row);
+            this.configureRendererComponent((E) value, isSelected, hasFocus, row, column);
+            ret.setEnabled(this.getModel().getTable().isEnabled() && this.isEnabled((E) value));
+            return ret;
+        } finally {
+            this.modifying = false;
+        }
     }
 
     /**
@@ -436,7 +446,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     @Override
     public boolean isCellEditable(final EventObject evt) {
-        if (editableProgrammaticly) return true;
+        if (this.editableProgrammaticly) { return true; }
         if (evt instanceof MouseEvent) { return ((MouseEvent) evt).getClickCount() >= this.getClickcount() && this.getClickcount() > 0; }
         return true;
     }
@@ -505,6 +515,10 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         return true;
     }
 
+    public boolean isModifying() {
+        return this.modifying;
+    }
+
     /**
      * If you want to use only an icon in the table header, you can override
      * this and let the method return false. This only works if
@@ -526,6 +540,15 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     public boolean isResizable() {
         return !this.getModel().getStorage().get("ColumnWidthLocked_" + this.getID(), !this.isDefaultResizable());
+    }
+
+    /**
+     * @see #shouldSelectCell(EventObject)
+     * @param anEvent
+     * @return
+     */
+    public boolean isSelectRowWhenEditing(final EventObject anEvent) {
+        return true;
     }
 
     /**
@@ -561,23 +584,6 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      */
     protected boolean onDoubleClick(final MouseEvent e, final E obj) {
         return false;
-    }
-
-    public void startEditing(final E obj) {
-        new EDTRunner() {
-
-            @Override
-            protected void runInEDT() {
-                editableProgrammaticly = true;
-                try {
-                    getModel().getTable().editCellAt(getModel().getTable().getExtTableModel().getRowforObject(obj), getIndex());
-
-                } finally {
-                    editableProgrammaticly = false;
-                }
-            }
-        };
-
     }
 
     /**
@@ -718,16 +724,24 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     @Override
     public boolean shouldSelectCell(final EventObject anEvent) {
-        return isSelectRowWhenEditing(anEvent);
+        return this.isSelectRowWhenEditing(anEvent);
     }
 
-    /**
-     * @see #shouldSelectCell(EventObject)
-     * @param anEvent
-     * @return
-     */
-    public boolean isSelectRowWhenEditing(EventObject anEvent) {
-        return true;
+    public void startEditing(final E obj) {
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                ExtColumn.this.editableProgrammaticly = true;
+                try {
+                    ExtColumn.this.getModel().getTable().editCellAt(ExtColumn.this.getModel().getTable().getExtTableModel().getRowforObject(obj), ExtColumn.this.getIndex());
+
+                } finally {
+                    ExtColumn.this.editableProgrammaticly = false;
+                }
+            }
+        };
+
     }
 
     /**

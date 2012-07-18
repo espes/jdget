@@ -1,6 +1,6 @@
 package org.appwork.swing.exttable.columns;
 
-import java.util.ArrayList;
+import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -9,7 +9,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JProgressBar;
 import javax.swing.border.CompoundBorder;
-import javax.swing.event.TableModelEvent;
 
 import org.appwork.swing.exttable.ExtColumn;
 import org.appwork.swing.exttable.ExtDefaultRowSorter;
@@ -34,19 +33,27 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
     public ExtProgressColumn(final String name, final ExtTableModel<E> extModel) {
         super(name, extModel);
-        this.determinatedRenderer = new RendererProgressBar();
+        this.map = new HashMap<E, Long>();
+        this.determinatedRenderer = new RendererProgressBar() {
+        };
 
         this.indeterminatedRenderer = new RendererProgressBar() {
             /**
              * 
              */
             private static final long serialVersionUID = 1L;
-            private long              timer            = 0;
             private long              cleanupTimer     = 0;
+            private volatile boolean  indeterminate    = false;
+            private volatile long     timer            = 0;
 
             @Override
             public boolean isDisplayable() {
                 return true;
+            }
+
+            @Override
+            public boolean isIndeterminate() {
+                return this.indeterminate;
             }
 
             @Override
@@ -56,8 +63,9 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
             @Override
             public void repaint() {
+                if (ExtProgressColumn.this.isModifying()) { return; }
                 final ExtTableModel<E> mod = ExtProgressColumn.this.getModel();
-                if (mod != null && mod.getTable() != null && mod.getTable().isShowing()) {
+                if (mod != null && mod.getTable() != null && ExtProgressColumn.this.indeterminatedRenderer.isIndeterminate() && mod.getTable().isShowing()) {
 
                     // cleanup map in case we removed a indeterminated value
                     if (System.currentTimeMillis() - this.cleanupTimer > 30000) {
@@ -77,20 +85,28 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
                         }
 
                     }
-                    if (System.currentTimeMillis() - this.timer > 1000 / ExtProgressColumn.this.getFps() && ExtProgressColumn.this.columnIndex >= 0) {
-                        final ArrayList<E> selection = mod.getSelectedObjects();
-
-                        mod.fireTableChanged(new TableModelEvent(mod, 0, Integer.MAX_VALUE, ExtProgressColumn.this.columnIndex, TableModelEvent.UPDATE));
-                        mod.setSelectedObjects(selection);
-                        this.timer = System.currentTimeMillis();
+                    if (ExtProgressColumn.this.columnIndex >= 0) {
+                        if (System.currentTimeMillis() - this.timer > 1000 / ExtProgressColumn.this.getFps()) {
+                            mod._fireTableStructureChanged(mod.getTableData(), false);
+                            this.timer = System.currentTimeMillis();
+                        }
                     }
-
                 }
+            }
 
+            @Override
+            public void repaint(final Rectangle r) {
+                this.repaint();
+            }
+
+            @Override
+            public void setIndeterminate(final boolean newValue) {
+                if (newValue == this.indeterminate) { return; }
+                this.indeterminate = newValue;
+                super.setIndeterminate(newValue);
             }
 
         };
-        this.map = new HashMap<E, Long>();
 
         // this.getModel().addTableModelListener(new TableModelListener() {
         //
@@ -151,7 +167,6 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
             this.renderer.setValue((int) v);
 
             this.renderer.setString(this.getString(value, v, m));
-
         } else {
             this.renderer.setString(this.getString(value, -1, -1));
             if (!this.renderer.isIndeterminate()) {
@@ -186,11 +201,16 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
      * @return
      */
     protected int getFps() {
-        return 20;
+        return 15;
     }
 
     protected long getMax(final E value) {
         return 100;
+    }
+
+    protected double getPercentString(final long current, final long total) {
+        if (total == 0) { return 0.00d; }
+        return current * 10000 / total / 100.0d;
     }
 
     /**
@@ -203,11 +223,11 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
             this.renderer = this.indeterminatedRenderer;
             if (this.map.size() == 0) {
                 if (!this.indeterminatedRenderer.isIndeterminate()) {
+                    this.map.put(value, System.currentTimeMillis());
                     this.indeterminatedRenderer.setIndeterminate(true);
                 }
             }
             this.map.put(value, System.currentTimeMillis());
-
         } else {
             this.renderer = this.determinatedRenderer;
             this.map.remove(value);
@@ -221,11 +241,6 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     }
 
     abstract protected String getString(E value, long current, long total);
-
-    protected double getPercentString(long current, long total) {
-        if (total == 0) return 0.00d ;
-        return ((current * 10000 / total) / 100.0d);
-    }
 
     @Override
     protected String getTooltipText(final E value) {
