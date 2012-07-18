@@ -40,7 +40,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     protected RenderLabel     rendererIcon;
 
     protected MigPanel        renderer;
-    private RenderLabel       editorIconLabel;
+    protected RenderLabel       editorIconLabel;
     protected boolean         noset            = false;
 
     /**
