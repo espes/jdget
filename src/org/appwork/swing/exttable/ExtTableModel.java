@@ -202,13 +202,15 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         /* replace TableData and set Selection */
                         ListSelectionModel s = ltable.getSelectionModel();
                         final boolean adjusting = s.getValueIsAdjusting();
-                        final int anchor = s.getAnchorSelectionIndex();
-                        final int lead = s.getLeadSelectionIndex();
+                         int anchor = s.getAnchorSelectionIndex();
+                         int lead = s.getLeadSelectionIndex();
                         int minIndex = s.getMinSelectionIndex();
                         int maxIndex = s.getMaxSelectionIndex();
 
                         E minObject = minIndex < 0 ? null : getObjectbyRow(minIndex);
                         E maxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
+                        E anchorObject = anchor < 0 ? null : getObjectbyRow(anchor);
+                        E leadObject = lead < 0 ? null : getObjectbyRow(lead);
                         ExtTableModel.this.setTableData(newtableData);
 
                         ExtTableModel.this.fireTableStructureChanged();
@@ -221,7 +223,19 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
                                 E newMinObject = minIndex < 0 ? null : getObjectbyRow(minIndex);
                                 E newMaxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
+                                E newAnchorObject = anchor < 0 ? null : getObjectbyRow(anchor);
+                                E newLeadObject = lead < 0 ? null : getObjectbyRow(lead);
+                                
+                                if (newAnchorObject != anchorObject) {
+                                    // we have to adjust minINdex
 
+                                    anchor = getRowforObject(anchorObject);
+                                }
+                                if (newLeadObject != leadObject) {
+                                    // we have to adjust minINdex
+
+                                    lead = getRowforObject(leadObject);
+                                }
                                 if (newMinObject != minObject) {
                                     // we have to adjust minINdex
 

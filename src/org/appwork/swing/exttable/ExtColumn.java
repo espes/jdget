@@ -17,6 +17,7 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.border.Border;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
@@ -177,6 +178,18 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                 public void run() {
                     try {
                         // get selections before sorting
+                        final Integer sel = new EDTHelper<Integer>() {
+
+                            @Override
+                            public Integer edtRun() {
+                                final JViewport viewport = (JViewport) getModel().getTable().getParent();
+                                if (viewport == null) { return 0; }
+                                Rectangle rec = viewport.getViewRect();
+                                return getModel().getTable().rowAtPoint(new Point(0, (int) (rec.getY() + 15)));
+
+                            }
+                        }.getReturnValue();
+                        final E selObject = getModel().getObjectbyRow(sel.intValue());
                         final ArrayList<E> data = ExtColumn.this.model.getElements();
                         try {
                             // sort data
@@ -191,6 +204,15 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                             @Override
                             public Object edtRun() {
                                 ExtColumn.this.getModel().getTable().getTableHeader().repaint();
+
+                                if (getModel().getTable().getSelectedRowCount() > 0) {
+                                    getModel().getTable().scrollToSelection();
+                                } else {
+                                    // scroll to 0,
+                                    // getModel().getRowforObject(selObject)
+                                    getModel().getTable().scrollToRow(0);
+
+                                }
                                 return null;
                             }
                         }.waitForEDT();
