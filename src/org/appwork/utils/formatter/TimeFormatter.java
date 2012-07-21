@@ -158,7 +158,7 @@ public class TimeFormatter {
 
     public static long getMilliSeconds(final String dateString, final String timeformat, final Locale l) {
         if (dateString != null) {
-            final SimpleDateFormat dateFormat = l != null ? new SimpleDateFormat(timeformat, l) : new SimpleDateFormat(timeformat);
+            final SimpleDateFormat dateFormat = l != null ? new SimpleDateFormat(timeformat, l) : new SimpleDateFormat(timeformat,Locale.ENGLISH);
             try {
                 return dateFormat.parse(dateString).getTime();
             } catch (final Exception e) {

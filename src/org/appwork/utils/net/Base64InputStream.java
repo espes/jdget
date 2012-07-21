@@ -16,7 +16,7 @@ import java.io.InputStream;
 /**
  * @author daniel
  * 
- *         Base64InputStream, based on RFC 2045, section 6.8
+ *         Base64InputStream, based on RFC R2045, section 6.8
  */
 public class Base64InputStream extends FilterInputStream {
 
