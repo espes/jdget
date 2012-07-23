@@ -381,7 +381,7 @@ public class HTMLParser {
         /*
          * in case we have valid and invalid (...) urls for the same link, we only use the valid one
          */
-        final ArrayList<String> tmplinks = new ArrayList<String>(links.size());
+        final HashSet<String> tmplinks = new HashSet<String>(links.size());
         for (final String link : links) {
             if (link.contains("...")) {
                 final String check = link.substring(0, link.indexOf("..."));
