@@ -76,6 +76,15 @@ public class LogSink extends Logger {
         }
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            this.close();
+        } finally {
+            super.finalize();
+        }
+    }
+
     protected void flushSources() {
         for (final LogSource source : this.getLogSources()) {
             if (source.isAllowTimeoutFlush()) {

@@ -137,7 +137,6 @@ public class StreamingChunk {
      * @throws IOException
      */
     public synchronized void write(final byte b[], final int off, final int len) throws IOException {
-        if (this.canGrow == false) { throw new IOException("canGrow == false"); }
         if (this.chunkFile.getFilePointer() != this.chunkFile.length()) {
             this.chunkFile.seek(this.chunkFile.length());
         }

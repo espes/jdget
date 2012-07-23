@@ -76,13 +76,14 @@ public class LogSource extends Logger {
     public synchronized void close() {
         this.flush();
         this.closed = true;
+        this.records = null;
     }
 
     @Override
     protected void finalize() throws Throwable {
         try {
             if (this.allowTimeoutFlush || this.flushOnFinalize) {
-                this.flush();
+                this.close();
             }
         } finally {
             super.finalize();
