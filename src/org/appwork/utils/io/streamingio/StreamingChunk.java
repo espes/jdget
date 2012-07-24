@@ -114,7 +114,7 @@ public class StreamingChunk {
      * 
      * @param b
      */
-    protected void setCanGrow(final boolean b) {
+    public void setCanGrow(final boolean b) {
         this.canGrow = b;
     }
 
