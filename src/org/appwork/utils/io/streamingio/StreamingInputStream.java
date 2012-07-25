@@ -76,7 +76,10 @@ public class StreamingInputStream extends InputStream {
         if (len == -1) { return -1; }
         final int ret = this.streaming.readChunkData(this, this.singleReadBuffer, 0, len);
         if (ret == -1) { return -1; }
-        if (ret == 1) { return this.singleReadBuffer[0]; }
+        if (ret == 1) {
+            this.currentPosition += 1;
+            return this.singleReadBuffer[0];
+        }
         throw new IOException("unknown IOException, ret=" + ret);
     }
 
