@@ -954,6 +954,12 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     @SuppressWarnings("unchecked")
     @Override
     protected boolean processKeyBinding(final KeyStroke stroke, final KeyEvent evt, final int condition, final boolean pressed) {
+
+        // ctrl + home or ctrl+end should scrol to top/bottom. If we would not
+        // catch these events here, they would change the table selection
+        // instead
+        if (evt.isControlDown() && evt.getKeyCode() == KeyEvent.VK_HOME) return false;
+        if (evt.isControlDown() && evt.getKeyCode() == KeyEvent.VK_END) return false;
         if (!pressed) { return super.processKeyBinding(stroke, evt, condition, pressed); }
 
         switch (evt.getKeyCode()) {
