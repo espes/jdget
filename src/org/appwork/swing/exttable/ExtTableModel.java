@@ -188,7 +188,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         new EDTRunner() {
             @Override
             protected void runInEDT() {
+                System.out.println("Refresh");
                 final ExtTable<E> ltable = ExtTableModel.this.getTable();
+                System.out.println("Refresh ce"+(!checkEditing));
+                System.out.println("diting "+table.isEditing());
                 final boolean replaceNow = !checkEditing || ltable == null || !ltable.isEditing();
                 if (replaceNow) {
 
@@ -211,6 +214,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         E maxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
                         E anchorObject = anchor < 0 ? null : getObjectbyRow(anchor);
                         E leadObject = lead < 0 ? null : getObjectbyRow(lead);
+                        System.out.println("Set table data:  "+newtableData);
                         ExtTableModel.this.setTableData(newtableData);
 
                         ExtTableModel.this.fireTableStructureChanged();
