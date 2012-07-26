@@ -188,10 +188,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         new EDTRunner() {
             @Override
             protected void runInEDT() {
-                System.out.println("Refresh");
+
                 final ExtTable<E> ltable = ExtTableModel.this.getTable();
-                System.out.println("Refresh ce"+(!checkEditing));
-                System.out.println("diting "+table.isEditing());
+
                 final boolean replaceNow = !checkEditing || ltable == null || !ltable.isEditing();
                 if (replaceNow) {
 
@@ -205,8 +204,8 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         /* replace TableData and set Selection */
                         ListSelectionModel s = ltable.getSelectionModel();
                         final boolean adjusting = s.getValueIsAdjusting();
-                         int anchor = s.getAnchorSelectionIndex();
-                         int lead = s.getLeadSelectionIndex();
+                        int anchor = s.getAnchorSelectionIndex();
+                        int lead = s.getLeadSelectionIndex();
                         int minIndex = s.getMinSelectionIndex();
                         int maxIndex = s.getMaxSelectionIndex();
 
@@ -214,7 +213,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         E maxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
                         E anchorObject = anchor < 0 ? null : getObjectbyRow(anchor);
                         E leadObject = lead < 0 ? null : getObjectbyRow(lead);
-                        System.out.println("Set table data:  "+newtableData);
+
                         ExtTableModel.this.setTableData(newtableData);
 
                         ExtTableModel.this.fireTableStructureChanged();
@@ -229,7 +228,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                                 E newMaxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
                                 E newAnchorObject = anchor < 0 ? null : getObjectbyRow(anchor);
                                 E newLeadObject = lead < 0 ? null : getObjectbyRow(lead);
-                                
+
                                 if (newAnchorObject != anchorObject) {
                                     // we have to adjust minINdex
 
