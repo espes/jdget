@@ -174,6 +174,22 @@ public abstract class Streaming {
         }
     }
 
+    protected synchronized ArrayList<StreamingInputStream> findAllStreamingInputStreamsFor(final StreamingOutputStream streamingOutputStream) {
+        final StreamingChunk chunk = streamingOutputStream.getCurrentChunk();
+        final ArrayList<StreamingInputStream> ret = new ArrayList<StreamingInputStream>();
+        if (chunk != null) {
+            final Iterator<WeakReference<StreamingInputStream>> it = this.connectedInputStreams.iterator();
+            while (it.hasNext()) {
+                final WeakReference<StreamingInputStream> next = it.next();
+                final StreamingInputStream current = next.get();
+                if (current != null && current.getCurrentChunk() == chunk) {
+                    ret.add(current);
+                }
+            }
+        }
+        return null;
+    }
+
     protected synchronized StreamingOutputStream findLastStreamingOutputStreamFor(final StreamingInputStream streamingInputStream) {
         final StreamingChunk chunk = streamingInputStream.getCurrentChunk();
         if (chunk != null) {
@@ -290,9 +306,9 @@ public abstract class Streaming {
     }
 
     protected void writeChunkData(final StreamingOutputStream streamingOutputStream, final byte[] b, final int off, final int len) throws IOException {
-        if (this.isClosed()) { throw new IOException("closed"); }
         final StreamingChunk currentChunk = streamingOutputStream.getCurrentChunk();
         currentChunk.write(b, off, len);
+        if (this.isClosed()) { throw new IOException("closed"); }
         /* check for overlap */
         this.detectOverlappingChunks(currentChunk);
     }
