@@ -1,12 +1,16 @@
 package org.appwork.swing.components;
 
 import java.awt.Point;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 
 import org.appwork.swing.action.BasicAction;
 import org.appwork.swing.components.tooltips.ExtTooltip;
@@ -14,6 +18,7 @@ import org.appwork.swing.components.tooltips.ToolTipController;
 import org.appwork.swing.components.tooltips.ToolTipHandler;
 import org.appwork.swing.components.tooltips.TooltipFactory;
 import org.appwork.swing.components.tooltips.TooltipTextDelegateFactory;
+import org.appwork.utils.StringUtils;
 
 public class ExtButton extends JButton implements ToolTipHandler {
 
@@ -39,8 +44,42 @@ public class ExtButton extends JButton implements ToolTipHandler {
         super(action);
         this.tooltipFactory = new TooltipTextDelegateFactory(this);
 
-        if (this.getToolTipText() != null) {
+        if (!StringUtils.isEmpty(getToolTipText())) {
             this.setTooltipsEnabled(true);
+        }
+
+        if (action instanceof BasicAction) {
+            if (((BasicAction) action).getTooltipFactory() != null) {
+                tooltipFactory = ((BasicAction) action).getTooltipFactory();
+                setTooltipsEnabled(true);
+            }
+            if (!StringUtils.isEmpty(((BasicAction) action).getTooltipText())) {
+                setTooltipsEnabled(true);
+            }
+            InputMap inputmap = getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW);
+            KeyStroke keystroke = (KeyStroke) action.getValue(Action.ACCELERATOR_KEY);
+            if (keystroke != null) {
+                inputmap.put(keystroke, ((BasicAction) action).getShortCutString());
+                setTooltipsEnabled(true);
+                StringBuilder tt = new StringBuilder();
+                if (!StringUtils.isEmpty(getToolTipText())) {
+                    tt.append(getToolTipText());
+                }
+                if (tt.length() > 0) tt.append(" ");
+                tt.append("[");
+                tt.append(((BasicAction) action).getShortCutString());
+                tt.append("]");
+
+                setToolTipText(tt.toString());
+                getActionMap().put(((BasicAction) action).getShortCutString(), new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+
+                        doClick();
+                    }
+                });
+            }
         }
 
     }
