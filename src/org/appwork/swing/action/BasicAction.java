@@ -10,6 +10,7 @@
 package org.appwork.swing.action;
 
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 
@@ -68,6 +69,7 @@ public abstract class BasicAction extends AbstractAction {
 
     }
 
+
     /**
      * Sets the shortcut fort this action. a System dependend behaviour is
      * choosen. e,g. WIndows+ Strg+ Acceleratir
@@ -99,6 +101,7 @@ public abstract class BasicAction extends AbstractAction {
                         Log.L.info(this.getName() + " Shortcuts: skipping wrong modifier " + mod + " in " + accelerator);
                     }
                 }
+            
                 final Field f = b.getField("VK_" + split[splitLength - 1].toUpperCase());
                 final int m = (Integer) f.get(null);
                 putValue(AbstractAction.ACCELERATOR_KEY, ks = KeyStroke.getKeyStroke(m, mod));
