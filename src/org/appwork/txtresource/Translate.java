@@ -24,7 +24,7 @@ public interface Translate extends TranslateInterface {
      * @param l
      * @return
      */
-    @Description("Shows how to order\r\nvariables")
+    @DescriptionForTranslationEntry("Shows how to order\r\nvariables")
     @Default(lngs = { "en", "de" }, values = { "Ordered: %s3 %s2 %s4 %s1", "Geordnet: %s3 %s2 %s4 %s1" })
     String getOrderedText(int i, int j, int k, int l);
 

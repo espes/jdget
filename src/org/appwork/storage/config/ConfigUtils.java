@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.appwork.storage.config.annotations.Description;
+import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
 import org.appwork.storage.config.handler.KeyHandler;
 import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
@@ -59,11 +59,11 @@ public class ConfigUtils {
              * 
              */
 
-            if (kh.getAnnotation(Description.class) != null) {
+            if (kh.getAnnotation(DescriptionForConfigEntry.class) != null) {
                 strBuild.append("\r\n");
                 strBuild.append("/**");
                 strBuild.append("\r\n");
-                strBuild.append(" * " + kh.getAnnotation(Description.class).value());
+                strBuild.append(" * " + kh.getAnnotation(DescriptionForConfigEntry.class).value());
                 strBuild.append("\r\n");
                 strBuild.append("**/");
             }

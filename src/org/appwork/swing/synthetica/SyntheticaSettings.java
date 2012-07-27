@@ -14,7 +14,7 @@ import org.appwork.storage.config.annotations.AboutConfig;
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
 import org.appwork.storage.config.annotations.DefaultIntValue;
 import org.appwork.storage.config.annotations.DefaultStringValue;
-import org.appwork.storage.config.annotations.Description;
+import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
 import org.appwork.storage.config.annotations.RequiresRestart;
 
 /**
@@ -24,37 +24,37 @@ import org.appwork.storage.config.annotations.RequiresRestart;
 public interface SyntheticaSettings extends ConfigInterface {
 
     @AboutConfig
-    @Description("Font to be used. Default value is default. For foreign chars use e.g. Dialog")
+    @DescriptionForConfigEntry("Font to be used. Default value is default. For foreign chars use e.g. Dialog")
     @DefaultStringValue("default")
     @RequiresRestart
     String getFontName();
 
     @AboutConfig
-    @Description("Font scale factor in percent. Default value is 100 which means no font scaling.")
+    @DescriptionForConfigEntry("Font scale factor in percent. Default value is 100 which means no font scaling.")
     @DefaultIntValue(100)
     @RequiresRestart
     int getFontScaleFactor();
 
     @AboutConfig
-    @Description("Disable animation and all animation threads. Optional value. Default value is true.")
+    @DescriptionForConfigEntry("Disable animation and all animation threads. Optional value. Default value is true.")
     @DefaultBooleanValue(true)
     @RequiresRestart
     boolean isAnimationEnabled();
 
     @AboutConfig
-    @Description("Enable/disable support for system DPI settings. Default value is true.")
+    @DescriptionForConfigEntry("Enable/disable support for system DPI settings. Default value is true.")
     @DefaultBooleanValue(true)
     @RequiresRestart
     boolean isFontRespectsSystemDPI();
 
     @AboutConfig
-    @Description("Paint all labels/text with or without antialias. Default value is false.")
+    @DescriptionForConfigEntry("Paint all labels/text with or without antialias. Default value is false.")
     @DefaultBooleanValue(false)
     @RequiresRestart
     boolean isTextAntiAliasEnabled();
 
     @AboutConfig
-    @Description("Enable/disable window opacity on Java 6u10 and above. A value of 'false' disables window opacity which means that the window corner background which is visible for non-rectangular windows disappear. Furthermore the shadow for popupMenus makes use of real translucent window. Some themes like SyntheticaSimple2D support translucent titlePanes if opacity is disabled. The property is ignored on JRE's below 6u10. Note: It is recommended to activate this feature only if your graphics hardware acceleration is supported by the JVM - a value of 'false' can affect application performance. Default value is false which means the translucency feature is enabled")
+    @DescriptionForConfigEntry("Enable/disable window opacity on Java 6u10 and above. A value of 'false' disables window opacity which means that the window corner background which is visible for non-rectangular windows disappear. Furthermore the shadow for popupMenus makes use of real translucent window. Some themes like SyntheticaSimple2D support translucent titlePanes if opacity is disabled. The property is ignored on JRE's below 6u10. Note: It is recommended to activate this feature only if your graphics hardware acceleration is supported by the JVM - a value of 'false' can affect application performance. Default value is false which means the translucency feature is enabled")
     @DefaultBooleanValue(false)
     @RequiresRestart
     boolean isWindowOpaque();

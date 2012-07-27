@@ -25,7 +25,7 @@ import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.storage.config.annotations.CryptedStorage;
 import org.appwork.storage.config.annotations.DefaultFactory;
 import org.appwork.storage.config.annotations.DefaultJsonObject;
-import org.appwork.storage.config.annotations.Description;
+import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.RequiresRestart;
 import org.appwork.storage.config.annotations.ValidatorFactory;
@@ -100,7 +100,7 @@ public abstract class KeyHandler<RawClass> {
         /**
          * This main mark is important!!
          */
-        final Class<?>[] okForAll = new Class<?>[] { ValidatorFactory.class, DefaultJsonObject.class, DefaultFactory.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, Description.class, CryptedStorage.class, PlainStorage.class };
+        final Class<?>[] okForAll = new Class<?>[] { ValidatorFactory.class, DefaultJsonObject.class, DefaultFactory.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, DescriptionForConfigEntry.class, CryptedStorage.class, PlainStorage.class };
         final Class<?>[] clazzes = new Class<?>[classes.length + okForAll.length];
         System.arraycopy(classes, 0, clazzes, 0, classes.length);
         System.arraycopy(okForAll, 0, clazzes, classes.length, okForAll.length);

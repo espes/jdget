@@ -102,7 +102,7 @@ public class TranslationHandler implements InvocationHandler {
         if (addComments) {
             for (final Method m : this.tInterface.getDeclaredMethods()) {
                 final Default def = m.getAnnotation(Default.class);
-                final Description desc = m.getAnnotation(Description.class);
+                final DescriptionForTranslationEntry desc = m.getAnnotation(DescriptionForTranslationEntry.class);
 
                 String comment = "";
                 if (desc != null) {

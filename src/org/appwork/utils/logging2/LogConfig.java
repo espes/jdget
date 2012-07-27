@@ -13,7 +13,7 @@ import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.annotations.AboutConfig;
 import org.appwork.storage.config.annotations.DefaultBooleanValue;
 import org.appwork.storage.config.annotations.DefaultIntValue;
-import org.appwork.storage.config.annotations.Description;
+import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
 import org.appwork.storage.config.annotations.RequiresRestart;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 
@@ -26,34 +26,34 @@ public interface LogConfig extends ConfigInterface {
     @AboutConfig
     @DefaultIntValue(2)
     @SpinnerValidator(min = 0, max = Integer.MAX_VALUE)
-    @Description("Automatic remove logs older than x days")
+    @DescriptionForConfigEntry("Automatic remove logs older than x days")
     @RequiresRestart
     int getCleanupLogsOlderThanXDays();
 
     @AboutConfig
     @DefaultIntValue(60)
     @SpinnerValidator(min = 30, max = Integer.MAX_VALUE)
-    @Description("Timeout in secs after which the logger will be flushed/closed")
+    @DescriptionForConfigEntry("Timeout in secs after which the logger will be flushed/closed")
     @RequiresRestart
     int getLogFlushTimeout();
 
     @AboutConfig
     @DefaultIntValue(5)
     @SpinnerValidator(min = 1, max = Integer.MAX_VALUE)
-    @Description("Max number of logfiles for each logger")
+    @DescriptionForConfigEntry("Max number of logfiles for each logger")
     @RequiresRestart
     int getMaxLogFiles();
 
     @AboutConfig
     @DefaultIntValue(1024 * 1024)
     @SpinnerValidator(min = 100 * 1024, max = Integer.MAX_VALUE)
-    @Description("Max logfile size in bytes")
+    @DescriptionForConfigEntry("Max logfile size in bytes")
     @RequiresRestart
     int getMaxLogFileSize();
 
     @AboutConfig
     @DefaultBooleanValue(false)
-    @Description("Enable debug mode, nearly everything will be logged!")
+    @DescriptionForConfigEntry("Enable debug mode, nearly everything will be logged!")
     @RequiresRestart
     boolean isDebugModeEnabled();
 

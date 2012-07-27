@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 /**
  * can be used to assign a description to a config entry. This makes sense of there is no settings panel, but only advanced config (about:config) or config-json-files
  */
-public @interface Description {
+public @interface DescriptionForConfigEntry {
 
     String value();
 
