@@ -10,7 +10,6 @@
 package org.appwork.swing.action;
 
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 
@@ -20,9 +19,15 @@ import javax.swing.Icon;
 import javax.swing.KeyStroke;
 
 import org.appwork.swing.components.tooltips.TooltipFactory;
+import org.appwork.utils.Hash;
 import org.appwork.utils.Regex;
 import org.appwork.utils.Shortcuts;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.dialog.DialogCanceledException;
+import org.appwork.utils.swing.dialog.DialogClosedException;
+import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
+import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
 
 /**
  * @author thomas
@@ -68,7 +73,8 @@ public abstract class BasicAction extends AbstractAction {
         putValue(NAME, name);
 
     }
-
+ 
+  
 
     /**
      * Sets the shortcut fort this action. a System dependend behaviour is
@@ -101,7 +107,7 @@ public abstract class BasicAction extends AbstractAction {
                         Log.L.info(this.getName() + " Shortcuts: skipping wrong modifier " + mod + " in " + accelerator);
                     }
                 }
-            
+
                 final Field f = b.getField("VK_" + split[splitLength - 1].toUpperCase());
                 final int m = (Integer) f.get(null);
                 putValue(AbstractAction.ACCELERATOR_KEY, ks = KeyStroke.getKeyStroke(m, mod));

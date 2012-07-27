@@ -292,7 +292,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     @Override
     public JComponent layoutDialogContent() {
-        parentGlassPane = SwingUtilities.getRootPane(getDialog().getParent()).getGlassPane();
+      if(SwingUtilities.getRootPane(getDialog().getParent())!=null)  parentGlassPane = SwingUtilities.getRootPane(getDialog().getParent()).getGlassPane();
         if (parentGlassPane != null) {
             parentGlassPane.setCursor(BUSY_CURSOR);
             parentGlassPane.setVisible(true);
