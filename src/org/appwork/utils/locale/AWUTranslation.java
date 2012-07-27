@@ -285,41 +285,31 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Files of Type:", "Dateityp:" })
     String DIALOG_FILECHOOSER_filesOfTypeLabelText();
 
-    // FileChooser =Files of Type:
-    @Default(lngs = { "en", "de" }, values = { "Up One Level", "Eine Ebene höher" })
-    String DIALOG_FILECHOOSER_upFolderToolTipText();
+    
 
     // FileChooser =Up One Level
     @Default(lngs = { "en", "de" }, values = { "Up", "Nach oben" })
     String DIALOG_FILECHOOSER_upFolderAccessibleName();
 
-    // FileChooser =Up
-    @Default(lngs = { "en", "de" }, values = { "Home", "Home" })
-    String DIALOG_FILECHOOSER_homeFolderToolTipText();
+    
 
     // FileChooser =Home
     @Default(lngs = { "en", "de" }, values = { "Home", "Home" })
     String DIALOG_FILECHOOSER_homeFolderAccessibleName();
 
-    // FileChooser =Home
-    @Default(lngs = { "en", "de" }, values = { "Create New Folder", "Neuen Ordner erstellen" })
-    String DIALOG_FILECHOOSER_newFolderToolTipText();
+    
 
     // FileChooser =Create New Folder
     @Default(lngs = { "en", "de" }, values = { "New Folder", "Neuer Ordner" })
     String DIALOG_FILECHOOSER_newFolderAccessibleName();
 
-    // FileChooser =New Folder
-    @Default(lngs = { "en", "de" }, values = { "List", "Liste" })
-    String DIALOG_FILECHOOSER_listViewButtonToolTipText();
+    
 
     // FileChooser =List
     @Default(lngs = { "en", "de" }, values = { "List", "Liste" })
     String DIALOG_FILECHOOSER_listViewButtonAccessibleName();
 
-    // FileChooser =List
-    @Default(lngs = { "en", "de" }, values = { "Details", "Details" })
-    String DIALOG_FILECHOOSER_detailsViewButtonToolTipText();
+    
 
     // FileChooser =Details
     @Default(lngs = { "en", "de" }, values = { "Details", "Details" })
