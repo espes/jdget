@@ -21,9 +21,17 @@ import java.util.ArrayList;
  */
 public class DesktopSupportLinux implements DesktopSupport {
 
+    public static enum WINDOW_MANAGER {
+        GNOME,
+        UNITY,
+        KDE,
+        UNKNOWN
+    }
+
     private final DesktopSupportJavaDesktop fallBack = new DesktopSupportJavaDesktop();
     private final String[]                  customFile;
     private final String[]                  customBrowse;
+    private final WINDOW_MANAGER            windowManager;
 
     public DesktopSupportLinux() {
         /* see http://standards.freedesktop.org/menu-spec/latest/apb.html */
@@ -31,15 +39,23 @@ public class DesktopSupportLinux implements DesktopSupport {
         /* returns true in case we have running KDE */
         final String kdeFullSession = System.getenv("KDE_FULL_SESSION");
         final String desktopSession = System.getenv("DESKTOP_SESSION");
-        if ("Unity".equals(desktopManager) || "GNOME".equals(desktopManager) || "ubuntu-2d".equals(desktopManager) || "gnome".equals(desktopManager)) {
-            System.out.println("Gnome or Unity Desktop detected");
+        if ("Unity".equals(desktopManager) || "GNOME".equalsIgnoreCase(desktopManager) || "ubuntu-2d".equals(desktopManager)) {
+            if ("Unity".equals(desktopManager) || "ubuntu-2d".equals(desktopManager)) {
+                this.windowManager = WINDOW_MANAGER.UNITY;
+                System.out.println("Unity Desktop detected");
+            } else {
+                this.windowManager = WINDOW_MANAGER.GNOME;
+                System.out.println("Gnome Desktop detected");
+            }
             this.customFile = new String[] { "gnome-open", "%s" };
             this.customBrowse = new String[] { "gnome-open", "%s" };
         } else if ("true".equals(kdeFullSession) || "kde-plasma".equals(desktopSession)) {
             System.out.println("KDE detected");
+            this.windowManager = WINDOW_MANAGER.KDE;
             this.customFile = new String[] { "kde-open", "%s" };
             this.customBrowse = new String[] { "kde-open", "%s" };
         } else {
+            this.windowManager = WINDOW_MANAGER.UNKNOWN;
             this.customFile = null;
             this.customBrowse = null;
         }
@@ -54,6 +70,23 @@ public class DesktopSupportLinux implements DesktopSupport {
     @Override
     public boolean isBrowseURLSupported() {
         if (this.customBrowse != null && this.customFile.length >= 2 || this.fallBack.isBrowseURLSupported()) { return true; }
+        return false;
+    }
+
+    public boolean isGnomeDesktop() {
+        switch (this.windowManager) {
+        case GNOME:
+        case UNITY:
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isKDEDesktop() {
+        switch (this.windowManager) {
+        case KDE:
+            return true;
+        }
         return false;
     }
 
