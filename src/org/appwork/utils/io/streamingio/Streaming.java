@@ -209,6 +209,7 @@ public abstract class Streaming {
         if (this.isClosed) { throw new IOException("streaming file is closed!"); }
         if (startPosition < 0) { throw new IllegalArgumentException("startPosition <0"); }
         if (endPosition >= 0 && endPosition <= startPosition) { throw new IllegalArgumentException("endposition <= startPosition"); }
+        if (this.getFinalFileSize() > 0 && startPosition >= this.getFinalFileSize()) { throw new IllegalArgumentException("startPosition >= filesize"); }
         /* create new StreamingInputStream instance */
         final StreamingInputStream streamingInputStream = this.streamingInputStreamFactory(startPosition, endPosition);
         final StreamingChunk streamingChunk = this.getNextStreamingChunk(startPosition, endPosition);
