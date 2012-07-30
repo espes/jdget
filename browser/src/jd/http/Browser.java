@@ -683,17 +683,8 @@ public class Browser {
         return request;
     }
 
-    /**
-     * Creates a new GET request including cookies from old request.
-     * 
-     * @param oldRequest
-     *            the old request
-     * 
-     * @return the created GET request
-     * 
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
-     */
+    /* this is buggy as we must set correct referer! */
+    @Deprecated
     public Request createGetRequestRedirectedRequest(final Request oldRequest) throws IOException {
         return this.createGetRequest(oldRequest.getLocation(), oldRequest);
     }
@@ -789,6 +780,8 @@ public class Browser {
         return this.createPostRequest(url, Request.parseQuery(post));
     }
 
+    @Deprecated
+    /* this is buggy as we must set correct referer! */
     public Request createPostRequestfromRedirectedRequest(final Request oldrequest, final String postdata) throws IOException {
         final String url = this.getURL(oldrequest.getLocation());
         boolean sendref = true;
