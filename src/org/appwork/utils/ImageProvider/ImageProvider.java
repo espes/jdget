@@ -63,17 +63,23 @@ public class ImageProvider {
         ImageIO.setUseCache(false);
     }
 
-    /**
-     * @param bufferedImage
-     * @return
-     */
+    /* Thx to flubshi */
     public static BufferedImage convertToGrayScale(final BufferedImage bufferedImage) {
-        final BufferedImage dest = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
-        final Graphics2D g2 = dest.createGraphics();
-        g2.drawImage(bufferedImage, 0, 0, null);
-        g2.dispose();
+        final BufferedImage dest = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Color tmp;
+        int val, alpha;
+        for (int y = 0; y < dest.getHeight(); y++) {
+            for (int x = 0; x < dest.getWidth(); x++) {
+                alpha = bufferedImage.getRGB(x, y) & 0xFF000000;
+                tmp = new Color(bufferedImage.getRGB(x, y));
+                // val = (int) (tmp.getRed()+tmp.getGreen()+tmp.getBlue())/3;
+                // val =
+                // Math.max(tmp.getRed(),Math.max(tmp.getGreen(),tmp.getBlue()));
+                val = (int) (tmp.getRed() * 0.3 + tmp.getGreen() * 0.59 + tmp.getBlue() * 0.11);
+                dest.setRGB(x, y, alpha | val | val << 8 & 0x0000FF00 | val << 16 & 0x00FF0000);
+            }
+        }
         return dest;
-
     }
 
     /**
