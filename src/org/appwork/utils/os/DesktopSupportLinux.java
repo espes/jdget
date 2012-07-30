@@ -34,19 +34,23 @@ public class DesktopSupportLinux implements DesktopSupport {
     private final WINDOW_MANAGER            windowManager;
 
     public DesktopSupportLinux() {
+        /* java vm property */
+        final String sunDesktop = System.getProperty("sun.desktop");
         /* see http://standards.freedesktop.org/menu-spec/latest/apb.html */
         final String desktopManager = System.getenv("XDG_CURRENT_DESKTOP");
         /* returns true in case we have running KDE */
         final String kdeFullSession = System.getenv("KDE_FULL_SESSION");
+        /* gnome session */
+        final String gdmSession = System.getenv("GDMSESSION");
         final String desktopSession = System.getenv("DESKTOP_SESSION");
-        if ("Unity".equals(desktopManager) || "GNOME".equalsIgnoreCase(desktopManager) || "ubuntu-2d".equals(desktopManager)) {
-            if ("Unity".equals(desktopManager) || "ubuntu-2d".equals(desktopManager)) {
-                this.windowManager = WINDOW_MANAGER.UNITY;
-                System.out.println("Unity Desktop detected");
-            } else {
-                this.windowManager = WINDOW_MANAGER.GNOME;
-                System.out.println("Gnome Desktop detected");
-            }
+        if ("Unity".equals(desktopManager) || "ubuntu-2d".equals(desktopManager)) {
+            System.out.println("Unity Desktop detected");
+            this.windowManager = WINDOW_MANAGER.UNITY;
+            this.customFile = new String[] { "gnome-open", "%s" };
+            this.customBrowse = new String[] { "gnome-open", "%s" };
+        } else if ("GNOME".equalsIgnoreCase(desktopManager) || "GNOME".equalsIgnoreCase(gdmSession)) {
+            System.out.println("Gnome Desktop detected");
+            this.windowManager = WINDOW_MANAGER.GNOME;
             this.customFile = new String[] { "gnome-open", "%s" };
             this.customBrowse = new String[] { "gnome-open", "%s" };
         } else if ("true".equals(kdeFullSession) || "kde-plasma".equals(desktopSession)) {
