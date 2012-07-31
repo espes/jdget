@@ -9,13 +9,8 @@
  */
 package org.appwork.remoteapi.test;
 
-import java.net.URL;
-
-import org.appwork.txtresource.Default;
 import org.appwork.txtresource.Defaults;
-import org.appwork.txtresource.DescriptionForTranslationEntry;
 import org.appwork.txtresource.TranslateInterface;
-import org.appwork.utils.net.httpconnection.HTTPProxy;
 
 /**
  * @author thomas

@@ -22,10 +22,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
-import javax.swing.filechooser.FileFilter;
 
 import org.appwork.resources.AWUTheme;
-import org.appwork.storage.JSonStorage;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.interfaces.ValueConverter;
 import org.appwork.utils.locale._AWU;

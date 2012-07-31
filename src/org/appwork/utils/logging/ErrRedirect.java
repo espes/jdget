@@ -8,7 +8,6 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.appwork.utils.Application;
-import org.appwork.utils.logging.Log;
 
 public class ErrRedirect extends Thread {
     private final File       file;

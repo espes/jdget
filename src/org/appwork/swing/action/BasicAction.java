@@ -19,15 +19,9 @@ import javax.swing.Icon;
 import javax.swing.KeyStroke;
 
 import org.appwork.swing.components.tooltips.TooltipFactory;
-import org.appwork.utils.Hash;
 import org.appwork.utils.Regex;
 import org.appwork.utils.Shortcuts;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.swing.dialog.Dialog;
-import org.appwork.utils.swing.dialog.DialogCanceledException;
-import org.appwork.utils.swing.dialog.DialogClosedException;
-import org.appwork.utils.swing.dialog.ExtFileChooserDialog;
-import org.appwork.utils.swing.dialog.FileChooserSelectionMode;
 
 /**
  * @author thomas

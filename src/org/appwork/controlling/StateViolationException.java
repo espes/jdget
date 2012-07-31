@@ -1,6 +1,5 @@
 package org.appwork.controlling;
 
-import org.appwork.controlling.State;
 
 public class StateViolationException extends RuntimeException {
 

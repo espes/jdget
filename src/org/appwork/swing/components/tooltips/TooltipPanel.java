@@ -11,17 +11,8 @@ package org.appwork.swing.components.tooltips;
 
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-
-import javax.swing.JComponent;
-import javax.swing.RepaintManager;
-import javax.swing.SwingUtilities;
 
 import org.appwork.swing.MigPanel;
-
-import com.sun.java.swing.SwingUtilities3;
 
 /**
  * @author thomas

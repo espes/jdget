@@ -19,7 +19,8 @@ import org.appwork.utils.Regex;
 import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.reflection.Clazz;
-
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 
 import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;

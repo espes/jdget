@@ -32,6 +32,7 @@ import org.appwork.utils.os.mime.Mime;
 import org.appwork.utils.os.mime.MimeDefault;
 import org.appwork.utils.os.mime.MimeLinux;
 import org.appwork.utils.os.mime.MimeWindows;
+import org.appwork.utils.processes.ProcessBuilderFactory;
 import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
 import org.appwork.utils.swing.dialog.DialogClosedException;
@@ -509,7 +510,7 @@ public class CrossSystem {
                 }
             }
             Log.L.info("Start " + nativeParameters);
-            final ProcessBuilder pb = new ProcessBuilder(nativeParameters.toArray(new String[] {}));
+            final ProcessBuilder pb = ProcessBuilderFactory.create(nativeParameters.toArray(new String[] {}));
             /*
              * needed because the root is different for jre/class version
              */
