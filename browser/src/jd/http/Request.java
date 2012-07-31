@@ -167,7 +167,7 @@ public abstract class Request {
     protected URLConnectionAdapter httpConnection;
     private long                   readTime       = -1;
 
-    private boolean                requested      = false;
+    protected boolean              requested      = false;
     private HTTPProxy              proxy;
     private String                 orgURL;
     private String                 customCharset  = null;
@@ -340,7 +340,7 @@ public abstract class Request {
                 // we need to filter the time count from the url
                 red = new Regex(red, "url=(.+);?").getMatch(0);
             }
-            if (StringUtils.isEmpty(red)) return null;
+            if (StringUtils.isEmpty(red)) { return null; }
         }
         final String encoding = this.httpConnection.getHeaderField("Content-Type");
         if (encoding != null && encoding.contains("UTF-8")) {

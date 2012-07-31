@@ -1221,6 +1221,10 @@ public class Browser {
             requ = this.request;
         } else {
             requ = new Request(con) {
+                {
+                    this.requested = true;
+                }
+
                 @Override
                 public long postRequest() throws IOException {
                     return 0;
