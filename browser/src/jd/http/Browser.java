@@ -354,7 +354,6 @@ public class Browser {
             parentFile.mkdirs();
         }
         file.createNewFile();
-
         FileOutputStream fos = null;
         BufferedOutputStream output = null;
         BufferedInputStream input = null;
