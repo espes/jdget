@@ -431,8 +431,7 @@ public class HTMLParser {
         // not needed here because our filter below will take care of them
         // data = data.replaceAll("(?i)<span.*?>", "");
         // data = data.replaceAll("(?i)</span.*?>", "");
-        /* CHECKME: why remove url/link tags? */
-        data = data.replaceAll("(?s)\\[(url|link)\\].*?\\[/(url|link)\\]", "");
+        data = data.replaceAll("(?s)\\[(url|link)\\](.*?)\\[/(url|link)\\]", "<$2>");
         final HashSet<String> results = new HashSet<String>() {
 
             @Override
