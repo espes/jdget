@@ -29,6 +29,7 @@ import org.appwork.utils.net.HeaderCollection;
 import org.appwork.utils.net.httpconnection.HTTPConnectionUtils;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
+import org.appwork.utils.net.httpserver.requests.HeadRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
@@ -99,7 +100,7 @@ public class HttpConnection implements Runnable {
         byte[] bytesRequestLine = new byte[header.limit()];
         header.get(bytesRequestLine);
         String requestLine = new String(bytesRequestLine, "ISO-8859-1").trim();
-        String method = new Regex(requestLine, "(GET|POST)").getMatch(0);
+        String method = new Regex(requestLine, "(GET|POST|HEAD)").getMatch(0);
         final String requestedURL = new Regex(requestLine, " (/.*?) ").getMatch(0);
         final String requestedPath = new Regex(requestedURL, "(/.*?)($|\\?)").getMatch(0);
         final String requestedParameters = new Regex(requestedURL, "\\?(.+)").getMatch(0);
@@ -138,6 +139,8 @@ public class HttpConnection implements Runnable {
             request = new GetRequest();
         } else if ("POST".equalsIgnoreCase(method)) {
             request = new PostRequest(this);
+        } else if ("HEAD".equalsIgnoreCase(method)) {
+            request = new HeadRequest();
         } else {
             throw new IOException("Unsupported " + requestLine);
         }
@@ -206,7 +209,7 @@ public class HttpConnection implements Runnable {
                 handlers = this.server.getHandler();
             }
             for (final HttpRequestHandler handler : handlers) {
-                if (request instanceof GetRequest) {
+                if (request instanceof GetRequest || request instanceof HeadRequest) {
                     if (handler.onGetRequest((GetRequest) request, this.response)) {
                         handled = true;
                         break;
