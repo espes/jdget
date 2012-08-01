@@ -15,6 +15,8 @@ import java.lang.reflect.Method;
 import java.util.LinkedList;
 
 import org.appwork.utils.net.HeaderCollection;
+import org.appwork.utils.net.httpserver.requests.GetRequest;
+import org.appwork.utils.net.httpserver.requests.HeadRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequestInterface;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
@@ -24,6 +26,13 @@ import org.appwork.utils.net.httpserver.requests.PostRequest;
  * 
  */
 public class RemoteAPIRequest implements HttpRequestInterface {
+
+    public static enum REQUESTTYPE {
+        HEAD,
+        POST,
+        GET,
+        UNKNOWN
+    }
 
     private final InterfaceHandler<?> iface;
 
@@ -44,7 +53,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
         this.request = request;
         this.jqueryCallback = jqueryCallback;
         this.methodName = methodName;
-        
+
         this.method = this.iface.getMethod(methodName, this.parameters.length);
         try {
             this.parameterCount = iface.getParameterCount(this.method);
@@ -120,6 +129,13 @@ public class RemoteAPIRequest implements HttpRequestInterface {
 
     public HeaderCollection getRequestHeaders() {
         return this.request.getRequestHeaders();
+    }
+
+    public REQUESTTYPE getRequestType() {
+        if (this.request instanceof HeadRequest) { return REQUESTTYPE.HEAD; }
+        if (this.request instanceof PostRequest) { return REQUESTTYPE.POST; }
+        if (this.request instanceof GetRequest) { return REQUESTTYPE.GET; }
+        return REQUESTTYPE.UNKNOWN;
     }
 
 }
