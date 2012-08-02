@@ -97,10 +97,12 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 /* https */
                 this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
                 /*
-                 * http://twelve-programmers.blogspot.de/2010/01/limitations-in-jsse-tls-implementation.html
+                 * http://twelve-programmers.blogspot.de/2010/01/limitations-in-jsse
+                 * -tls-implementation.html
                  */
                 /*
-                 * http://stackoverflow.com/questions/6851461/java-why-does-ssl- handshake-give-could-not-generate-dh-keypair-exception
+                 * http://stackoverflow.com/questions/6851461/java-why-does-ssl-
+                 * handshake-give-could-not-generate-dh-keypair-exception
                  */
                 // final List<String> limited = new LinkedList<String>();
                 // for (final String suite : ((SSLSocket)
@@ -193,7 +195,8 @@ public class HTTPConnectionImpl implements HTTPConnection {
             if (bytes.length > 0) {
                 this.inputStream = new PushbackInputStream(this.httpSocket.getInputStream(), bytes.length);
                 /*
-                 * push back the data that got read because no http header exists
+                 * push back the data that got read because no http header
+                 * exists
                  */
                 ((PushbackInputStream) this.inputStream).unread(bytes);
             } else {
@@ -259,7 +262,8 @@ public class HTTPConnectionImpl implements HTTPConnection {
     /*
      * (non-Javadoc)
      * 
-     * @see org.appwork.utils.net.httpconnection.HTTPConnection#finalizeConnect()
+     * @see
+     * org.appwork.utils.net.httpconnection.HTTPConnection#finalizeConnect()
      */
     @Override
     public void finalizeConnect() throws IOException {
@@ -376,14 +380,14 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 /* only parse this when we have NO 416 (invalid range request) */
                 /* NON RFC-2616! STOP is missing */
                 /*
-                 * this happend for some stupid servers, seems to happen when request is bytes=9500- (x till end)
+                 * this happend for some stupid servers, seems to happen when
+                 * request is bytes=9500- (x till end)
                  */
                 /* START-/SIZE */
                 /* content-range: bytes 1020054729-/1073741824 */
                 final long gotSB = Long.parseLong(range[0]);
                 final long gotS = Long.parseLong(range[1]);
-                final long guessEB = gotSB + this.getContentLength();
-                this.ranges = new long[] { gotSB, guessEB, gotS };
+                this.ranges = new long[] { gotSB, gotS - 1, gotS };
                 return this.ranges;
             } else if (this.getResponseCode() == 416 && (range = new Regex(contentRange, ".*?\\*/.*?(\\d+)").getRow(0)) != null) {
                 /* a 416 may respond with content-range * | content.size answer */
