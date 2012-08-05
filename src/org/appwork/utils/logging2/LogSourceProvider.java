@@ -200,7 +200,7 @@ public abstract class LogSourceProvider {
         try {
             for (final StackTraceElement element : stackTrace.getStackTrace()) {
                 final String currentClassName = element.getClassName();
-                final Class<?> currentClass = Class.forName(currentClassName);
+                final Class<?> currentClass = Class.forName(currentClassName,true,Thread.currentThread().getContextClassLoader());
                 if (Modifier.isAbstract(currentClass.getModifiers())) {
                     /* we dont want the abstract class to be used */
                     continue;
