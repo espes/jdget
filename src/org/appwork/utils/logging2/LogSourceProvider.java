@@ -197,7 +197,7 @@ public abstract class LogSourceProvider {
      */
     public LogSource getCurrentClassLogger() {
         Throwable e = null;
-        Log.L.info(" CL "+getClass().getClassLoader());
+
         final Throwable stackTrace = new Throwable().fillInStackTrace();
         try {
             for (final StackTraceElement element : stackTrace.getStackTrace()) {
