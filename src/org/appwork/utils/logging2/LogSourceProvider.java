@@ -35,6 +35,7 @@ import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.Regex;
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.logging.LogFormatter;
 
 public abstract class LogSourceProvider {
@@ -196,6 +197,7 @@ public abstract class LogSourceProvider {
      */
     public LogSource getCurrentClassLogger() {
         Throwable e = null;
+        Log.L.info(" CL "+getClass().getClassLoader());
         final Throwable stackTrace = new Throwable().fillInStackTrace();
         try {
             for (final StackTraceElement element : stackTrace.getStackTrace()) {
