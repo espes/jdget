@@ -292,7 +292,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     @Override
     public JComponent layoutDialogContent() {
-      if(SwingUtilities.getRootPane(getDialog().getParent())!=null)  parentGlassPane = SwingUtilities.getRootPane(getDialog().getParent()).getGlassPane();
+        if (SwingUtilities.getRootPane(getDialog().getParent()) != null) parentGlassPane = SwingUtilities.getRootPane(getDialog().getParent()).getGlassPane();
         if (parentGlassPane != null) {
             parentGlassPane.setCursor(BUSY_CURSOR);
             parentGlassPane.setVisible(true);
@@ -436,6 +436,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             presel = StringUtils.isEmpty(path) ? null : new File(path);
 
         }
+        File orgPresel = presel;
         while (presel != null) {
             if (!presel.exists()) {
                 /* file does not exist, try ParentFile */
@@ -464,6 +465,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 break;
             }
 
+        }
+        if(!orgPresel.isDirectory()){
+            if(fc.getSelectedFile()==null||!fc.getSelectedFile().equals(orgPresel)){
+                fc.setSelectedFile(new File(fc.getCurrentDirectory(),orgPresel.getName()));
+            }
         }
         updateView();
 
