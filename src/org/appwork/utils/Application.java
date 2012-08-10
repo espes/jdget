@@ -438,7 +438,7 @@ public class Application {
         System.out.println("Java Version: " + Application.getJavaVersion());
         System.out.println("Java is 64bit: " + Application.is64BitJvm());
         System.out.println("OS is: " + CrossSystem.getOSString());
-        System.out.println("OS is 64Bit: " + CrossSystem.is64Bit());
+        System.out.println("OS is 64Bit: " + CrossSystem.is64BitOperatingSystem());
     }
 
     /**

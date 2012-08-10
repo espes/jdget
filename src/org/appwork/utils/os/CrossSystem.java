@@ -292,7 +292,7 @@ public class CrossSystem {
         return CrossSystem.OS_STRING;
     }
 
-    public static boolean is64Bit() {
+    public static boolean is64BitOperatingSystem() {
         if (CrossSystem.OS64BIT != null) { return CrossSystem.OS64BIT; }
         boolean ret = false;
         if (org.appwork.utils.Application.is64BitJvm()) {
