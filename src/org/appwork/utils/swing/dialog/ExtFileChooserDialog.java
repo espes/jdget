@@ -466,7 +466,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             }
 
         }
-        if(!orgPresel.isDirectory()){
+        if(orgPresel!=null&&!orgPresel.isDirectory()){
             if(fc.getSelectedFile()==null||!fc.getSelectedFile().equals(orgPresel)){
                 fc.setSelectedFile(new File(fc.getCurrentDirectory(),orgPresel.getName()));
             }
