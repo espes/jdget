@@ -76,14 +76,12 @@ public class Application {
         final URL url = Application.getRessourceURL(name);
         String prot = url.getProtocol();
         String path = url.getPath();
-        Log.L.info(url+"");
-        if(!"jar".equals(prot)){
-            throw new WTFException("Works in Jared mode only");
-        }
+        Log.L.info(url + "");
+        if (!"jar".equals(prot)) { throw new WTFException("Works in Jared mode only"); }
         final int index = path.indexOf(".jar!");
-        if (index < 0) { throw new WTFException("Works in Jared mode only");}
+        if (index < 0) { throw new WTFException("Works in Jared mode only"); }
         try {
-            return new File(new URL(path.substring(0,index + 4)).toURI());
+            return new File(new URL(path.substring(0, index + 4)).toURI());
         } catch (final MalformedURLException e) {
             Log.exception(Level.WARNING, e);
 
@@ -399,6 +397,7 @@ public class Application {
 
     public static void main(final String[] args) {
         System.out.println(Application.getJavaVersion());
+        System.out.println(is64BitJvm());
     }
 
     /**
@@ -438,4 +437,33 @@ public class Application {
         Application.APP_FOLDER = newAppFolder;
     }
 
+    /**
+     * @return
+     */
+    public static boolean is64BitJvm() {
+
+        String prop = System.getProperty("sun.arch.data.model");
+        try {
+            return Integer.parseInt(prop) == 64;
+        } catch (NumberFormatException e) {
+
+            prop = System.getProperty("os.arch");
+            // See if we recognize the property value.
+            if (prop != null) {
+                if ("i386".equals(prop)) {
+                    return false;
+                } else if ("x86".equals(prop)) {
+                    return false;
+                } else if ("sparc".equals(prop)) {
+                    return false;
+                } else if ("amd64".equals(prop)) {
+                    return true;
+                } else if ("x86_64".equals(prop)) {
+                    return true;
+                } else if ("sparcv9".equals(prop)) { return true; }
+            }
+        }
+        // nothing found. probably a 32bit version
+        return false;
+    }
 }
