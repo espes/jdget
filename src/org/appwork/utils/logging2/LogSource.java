@@ -22,6 +22,7 @@ import org.appwork.utils.logging.ExceptionDefaultLogLevel;
 public class LogSource extends Logger {
 
     public static void exception(final Logger logger, final Throwable e) {
+    
         if (logger == null || e == null) { return; }
         if (logger instanceof LogSource) {
             ((LogSource) logger).log(e);
