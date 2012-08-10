@@ -72,7 +72,7 @@ public class LogFormatter extends SimpleFormatter {
         sb.append(" ] ");
 
         sb.append("-> ");
-        sb.append(message);
+        sb.append(message.replace((char) 0, '-'));
         sb.append("\r\n");
         if (record.getThrown() != null) {
             sb.append(Exceptions.getStackTrace(record.getThrown()));

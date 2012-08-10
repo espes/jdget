@@ -573,7 +573,7 @@ public class CrossSystem {
      * returns if the underlaying os is a 64 bit System or not. Please note that os.arch returns the JVM Version NOT the underlaying System
      * @return
      */
-    public static boolean is64Bit() {
+    public static boolean is64BitOperatingSystem() {
         if (System.getProperty("os.name").contains("Windows")) {
             if (System.getProperty("os.arch").contains("64")) if (System.getProperty("sun.management.compiler") != null && System.getProperty("sun.management.compiler").contains("64-Bit")) return true;
             if (System.getProperty("sun.arch.data.model") != null && System.getProperty("sun.arch.data.model").contains("64")) return true;
