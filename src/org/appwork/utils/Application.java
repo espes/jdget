@@ -46,6 +46,7 @@ public class Application {
     public static long     JAVA15      = 15000000;
     public static long     JAVA16      = 16000000;
     public static long     JAVA17      = 17000000;
+    private static Boolean JVM64BIT    = null;
 
     private static boolean REDIRECTED  = false;
 
@@ -68,28 +69,6 @@ public class Application {
             throw new IOException("Error, could not add URL to system classloader");
         }
 
-    }
-
-    // returns the jar filename of clazz
-    public static File getJarFile(Class<?> clazz) {
-        final String name = clazz.getName().replaceAll("\\.", "/") + ".class";
-        final URL url = Application.getRessourceURL(name);
-        String prot = url.getProtocol();
-        String path = url.getPath();
-        Log.L.info(url + "");
-        if (!"jar".equals(prot)) { throw new WTFException("Works in Jared mode only"); }
-        final int index = path.indexOf(".jar!");
-        if (index < 0) { throw new WTFException("Works in Jared mode only"); }
-        try {
-            return new File(new URL(path.substring(0, index + 4)).toURI());
-        } catch (final MalformedURLException e) {
-            Log.exception(Level.WARNING, e);
-
-        } catch (final URISyntaxException e) {
-            Log.exception(Level.WARNING, e);
-
-        }
-        return null;
     }
 
     /**
@@ -143,6 +122,28 @@ public class Application {
         } catch (final MalformedURLException e) {
             throw new WTFException(e);
         }
+    }
+
+    // returns the jar filename of clazz
+    public static File getJarFile(final Class<?> clazz) {
+        final String name = clazz.getName().replaceAll("\\.", "/") + ".class";
+        final URL url = Application.getRessourceURL(name);
+        final String prot = url.getProtocol();
+        final String path = url.getPath();
+        Log.L.info(url + "");
+        if (!"jar".equals(prot)) { throw new WTFException("Works in Jared mode only"); }
+        final int index = path.indexOf(".jar!");
+        if (index < 0) { throw new WTFException("Works in Jared mode only"); }
+        try {
+            return new File(new URL(path.substring(0, index + 4)).toURI());
+        } catch (final MalformedURLException e) {
+            Log.exception(Level.WARNING, e);
+
+        } catch (final URISyntaxException e) {
+            Log.exception(Level.WARNING, e);
+
+        }
+        return null;
     }
 
     public static long getJavaVersion() {
@@ -272,15 +273,15 @@ public class Application {
                     appRoot = appRoot.getParentFile();
                 }
                 Application.ROOT = appRoot.getAbsolutePath();
-                System.out.println("Application Root: " + ROOT + " (jared) " + rootOfClazz);
+                System.out.println("Application Root: " + Application.ROOT + " (jared) " + rootOfClazz);
             } catch (final URISyntaxException e) {
                 Log.exception(e);
                 Application.ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + Application.APP_FOLDER + System.getProperty("file.separator");
-                System.out.println("Application Root: " + ROOT + " (jared but error) " + rootOfClazz);
+                System.out.println("Application Root: " + Application.ROOT + " (jared but error) " + rootOfClazz);
             }
         } else {
             Application.ROOT = System.getProperty("user.home") + System.getProperty("file.separator") + Application.APP_FOLDER + System.getProperty("file.separator");
-            System.out.println("Application Root: " + ROOT + " (DEV) " + rootOfClazz);
+            System.out.println("Application Root: " + Application.ROOT + " (DEV) " + rootOfClazz);
         }
         // do not use Log.L here. this might be null
         return Application.ROOT;
@@ -327,6 +328,44 @@ public class Application {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean is64BitJvm() {
+        if (Application.JVM64BIT != null) { return Application.JVM64BIT; }
+        boolean ret = false;
+        String prop = System.getProperty("sun.arch.data.model");
+        try {
+            if (Integer.parseInt(prop) == 64) {
+                ret = true;
+            } else {
+                ret = false;
+            }
+        } catch (final Throwable e) {
+            prop = System.getProperty("os.arch");
+            if (prop != null) {
+                if ("i386".equals(prop)) {
+                    ret = false;
+                } else if ("x86".equals(prop)) {
+                    ret = false;
+                } else if ("sparc".equals(prop)) {
+                    ret = false;
+                } else if ("amd64".equals(prop)) {
+                    ret = true;
+                } else if ("ppc64".equals(prop)) {
+                    ret = true;
+                } else if ("amd_64".equals(prop)) {
+                    ret = true;
+                } else if ("x86_64".equals(prop)) {
+                    ret = true;
+                } else if ("sparcv9".equals(prop)) {
+                    ret = true;
+                } else {
+                    ret = false;
+                }
+            }
+        }
+        Application.JVM64BIT = ret;
+        return ret;
     }
 
     /**
@@ -396,8 +435,10 @@ public class Application {
     }
 
     public static void main(final String[] args) {
-        System.out.println(Application.getJavaVersion());
-        System.out.println(is64BitJvm());
+        System.out.println("Java Version: " + Application.getJavaVersion());
+        System.out.println("Java is 64bit: " + Application.is64BitJvm());
+        System.out.println("OS is: " + CrossSystem.getOSString());
+        System.out.println("OS is 64Bit: " + CrossSystem.is64Bit());
     }
 
     /**
@@ -435,35 +476,5 @@ public class Application {
     public synchronized static void setApplication(final String newAppFolder) {
         Application.ROOT = null;
         Application.APP_FOLDER = newAppFolder;
-    }
-
-    /**
-     * @return
-     */
-    public static boolean is64BitJvm() {
-
-        String prop = System.getProperty("sun.arch.data.model");
-        try {
-            return Integer.parseInt(prop) == 64;
-        } catch (NumberFormatException e) {
-
-            prop = System.getProperty("os.arch");
-            // See if we recognize the property value.
-            if (prop != null) {
-                if ("i386".equals(prop)) {
-                    return false;
-                } else if ("x86".equals(prop)) {
-                    return false;
-                } else if ("sparc".equals(prop)) {
-                    return false;
-                } else if ("amd64".equals(prop)) {
-                    return true;
-                } else if ("x86_64".equals(prop)) {
-                    return true;
-                } else if ("sparcv9".equals(prop)) { return true; }
-            }
-        }
-        // nothing found. probably a 32bit version
-        return false;
     }
 }

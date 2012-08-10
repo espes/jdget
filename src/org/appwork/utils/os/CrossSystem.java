@@ -9,8 +9,10 @@
  */
 package org.appwork.utils.os;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -80,9 +82,7 @@ public class CrossSystem {
     private static final Mime     MIME;
     private static String[]       BROWSER_COMMANDLINE    = null;
     private static String[]       FILE_COMMANDLINE       = null;
-    static {
-
-    }
+    private static Boolean        OS64BIT                = null;
     static {
         /* Init OS_ID */
         OS_STRING = System.getProperty("os.name");
@@ -160,7 +160,7 @@ public class CrossSystem {
 
     public static String[] getEditor(final String extension) throws DialogCanceledException, DialogClosedException, StorageException {
 
-        ExtFileChooserDialog d = new ExtFileChooserDialog(0, _AWU.T.fileditcontroller_geteditor_for(extension), null, null);
+        final ExtFileChooserDialog d = new ExtFileChooserDialog(0, _AWU.T.fileditcontroller_geteditor_for(extension), null, null);
         d.setStorageID("FILE_EDIT_CONTROLLER_" + extension);
         d.setFileSelectionMode(FileChooserSelectionMode.FILES_ONLY);
         d.setFileFilter(new FileFilter() {
@@ -189,15 +189,15 @@ public class CrossSystem {
         d.setPreSelection(new File(JSonStorage.getPlainStorage("EDITORS").get(extension, "")));
         try {
             Dialog.I().showDialog(d);
-        } catch (DialogClosedException e) {
+        } catch (final DialogClosedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (DialogCanceledException e) {
+        } catch (final DialogCanceledException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
-        File ret = d.getSelectedFile();
+        final File ret = d.getSelectedFile();
         if (ret != null && ret.exists()) {
             JSonStorage.getPlainStorage("EDITORS").put(extension, ret.toString());
             return new String[] { ret.toString() };
@@ -290,6 +290,58 @@ public class CrossSystem {
 
     public static String getOSString() {
         return CrossSystem.OS_STRING;
+    }
+
+    public static boolean is64Bit() {
+        if (CrossSystem.OS64BIT != null) { return CrossSystem.OS64BIT; }
+        boolean ret = false;
+        if (org.appwork.utils.Application.is64BitJvm()) {
+            /*
+             * we are running a 64bit jvm, so the underlying os must be 64bit
+             * too
+             */
+            ret = true;
+        } else if (CrossSystem.isMac()) {
+            /* mac is always 64bit os */
+            ret = true;
+        } else if (CrossSystem.isLinux()) {
+            Process p = null;
+            Boolean ret2 = null;
+            try {
+                final Runtime r = Runtime.getRuntime();
+                p = r.exec("uname -m");
+                p.waitFor();
+                final BufferedReader b = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                final String arch = b.readLine();
+                if (arch != null && arch.contains("x86_64")) {
+                    ret2 = true;
+                }
+            } catch (final Throwable e) {
+            } finally {
+                try {
+                    p.destroy();
+                } catch (final Throwable e2) {
+                }
+            }
+            if (ret2 == null) {
+                final String hostType = System.getenv("HOSTTYPE");
+                if (hostType != null && hostType.contains("x86_64")) {
+                    ret2 = true;
+                }
+            }
+            if (ret2 != null) {
+                ret = ret2;
+            }
+        } else if (CrossSystem.isWindows()) {
+            if (System.getenv("ProgramFiles(x86)") != null) {
+                ret = true;
+            }
+            if (System.getenv("ProgramW6432") != null) {
+                ret = true;
+            }
+        }
+        CrossSystem.OS64BIT = ret;
+        return ret;
     }
 
     /**
@@ -451,7 +503,7 @@ public class CrossSystem {
     /**
      * @param class1
      */
-    public static void restartApplication(File jar, final String... parameters) {
+    public static void restartApplication(final File jar, final String... parameters) {
 
         try {
             Log.L.info("restartApplication " + jar + " " + parameters.length);
@@ -567,21 +619,6 @@ public class CrossSystem {
         final String extension = new Regex(filename, "\\.+([^\\.]*$)").getMatch(0);
         final String name = new Regex(filename, "(.*?)(\\.+[^\\.]*$|$)").getMatch(0);
         return new String[] { name, extension };
-    }
-
-    /**
-     * returns if the underlaying os is a 64 bit System or not. Please note that os.arch returns the JVM Version NOT the underlaying System
-     * @return
-     */
-    public static boolean is64BitOperatingSystem() {
-        if (System.getProperty("os.name").contains("Windows")) {
-            if (System.getProperty("os.arch").contains("64")) if (System.getProperty("sun.management.compiler") != null && System.getProperty("sun.management.compiler").contains("64-Bit")) return true;
-            if (System.getProperty("sun.arch.data.model") != null && System.getProperty("sun.arch.data.model").contains("64")) return true;
-            if (System.getProperty("java.vm.name") != null && System.getProperty("java.vm.name").contains("64-Bit")) return true;
-            return System.getenv("ProgramFiles(x86)") != null;
-        } else {
-            return System.getProperty("os.arch").indexOf("64") != -1;
-        }
     }
 
 }
