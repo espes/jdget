@@ -33,6 +33,10 @@ public class Test {
         Test.parseValid("{\"defaultdownloadfolder\":\"C:\\\\Users\\\\thomas\\\\down\\rloads\"}");
 
         Test.parseValid("[\"Z:\\\\\"]");
+        
+        new JSonNode() {
+        };
+        
     }
 
     /**

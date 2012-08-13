@@ -50,10 +50,10 @@ public class JSonObject extends HashMap<String, JSonNode> implements JSonNode {
             }
             next = it.next();
             sb.append("\"");
-            sb.append(next.getKey());
+            sb.append(JSonUtils.escape(next.getKey()));
             sb.append("\"");
             sb.append(":");
-            sb.append(next.getValue());
+            sb.append(next.getValue().toString());
         }
         sb.append("}");
         return sb.toString();
