@@ -146,6 +146,7 @@ public class HttpConnection implements Runnable {
         }
         method = null;
         requestLine = null;
+        if(clientSocket!=null)request.setRemoteAddress(this.clientSocket.getInetAddress());
         request.setRequestedURLParameters(requestedURLParameters);
         request.setRequestedPath(requestedPath);
         request.setRequestedURL(requestedURL);

@@ -10,6 +10,7 @@
 package org.appwork.utils.net.httpserver.requests;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.LinkedList;
 
 import org.appwork.utils.net.HeaderCollection;
@@ -27,6 +28,8 @@ public abstract class HttpRequest implements HttpRequestInterface {
     protected String               requestedPath          = null;
 
     protected LinkedList<String[]> requestedURLParameters = null;
+
+    private InetAddress remoteAddress;
 
     public String getRequestedPath() {
         return this.requestedPath;
@@ -91,5 +94,17 @@ public abstract class HttpRequest implements HttpRequestInterface {
             }
         }
         return null;
+    }
+
+    /**
+     * @param inetAddress
+     */
+    public void setRemoteAddress(InetAddress remoteAddress) {
+     this.remoteAddress=remoteAddress;
+        
+    }
+
+    public InetAddress getRemoteAddress() {
+        return remoteAddress;
     }
 }

@@ -12,6 +12,7 @@ package org.appwork.remoteapi;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.util.LinkedList;
 
 import org.appwork.utils.net.HeaderCollection;
@@ -136,6 +137,13 @@ public class RemoteAPIRequest implements HttpRequestInterface {
         if (this.request instanceof PostRequest) { return REQUESTTYPE.POST; }
         if (this.request instanceof GetRequest) { return REQUESTTYPE.GET; }
         return REQUESTTYPE.UNKNOWN;
+    }
+
+    /**
+     * @return
+     */
+    public InetAddress getRemoteAdress() {
+        return request.getRemoteAddress();
     }
 
 }
