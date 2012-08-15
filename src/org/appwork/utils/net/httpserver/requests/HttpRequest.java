@@ -10,8 +10,9 @@
 package org.appwork.utils.net.httpserver.requests;
 
 import java.io.IOException;
-import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.appwork.utils.net.HeaderCollection;
 
@@ -21,6 +22,22 @@ import org.appwork.utils.net.HeaderCollection;
  */
 public abstract class HttpRequest implements HttpRequestInterface {
 
+    public static String getParameterbyKey(final HttpRequestInterface request, final String key) throws IOException {
+        LinkedList<String[]> params = request.getRequestedURLParameters();
+        if (params != null) {
+            for (final String[] param : params) {
+                if (key.equalsIgnoreCase(param[0]) && param.length == 2) { return param[1]; }
+            }
+        }
+        params = request.getPostParameter();
+        if (params != null) {
+            for (final String[] param : params) {
+                if (key.equalsIgnoreCase(param[0]) && param.length == 2) { return param[1]; }
+            }
+        }
+        return null;
+    }
+
     protected String               requestedURL           = null;
 
     protected HeaderCollection     requestHeaders         = null;
@@ -29,7 +46,11 @@ public abstract class HttpRequest implements HttpRequestInterface {
 
     protected LinkedList<String[]> requestedURLParameters = null;
 
-    private InetAddress remoteAddress;
+    private List<String>           remoteAddress          = new ArrayList<String>();
+
+    public List<String> getRemoteAddress() {
+        return this.remoteAddress;
+    }
 
     public String getRequestedPath() {
         return this.requestedPath;
@@ -38,8 +59,6 @@ public abstract class HttpRequest implements HttpRequestInterface {
     public String getRequestedURL() {
         return this.requestedURL;
     }
-
-
 
     /**
      * @return the requestedURLParameters
@@ -50,6 +69,13 @@ public abstract class HttpRequest implements HttpRequestInterface {
 
     public HeaderCollection getRequestHeaders() {
         return this.requestHeaders;
+    }
+
+    /**
+     * @param inetAddress
+     */
+    public void setRemoteAddress(final List<String> remoteAddress) {
+        this.remoteAddress = remoteAddress;
     }
 
     /**
@@ -78,33 +104,5 @@ public abstract class HttpRequest implements HttpRequestInterface {
 
     public void setRequestHeaders(final HeaderCollection requestHeaders) {
         this.requestHeaders = requestHeaders;
-    }
-    
-    public static String getParameterbyKey(HttpRequestInterface request, String key) throws IOException {
-        LinkedList<String[]> params = request.getRequestedURLParameters();
-        if (params != null) {
-            for (String[] param : params) {
-                if (key.equalsIgnoreCase(param[0]) && param.length == 2) return param[1];
-            }
-        }
-        params = request.getPostParameter();
-        if (params != null) {
-            for (String[] param : params) {
-                if (key.equalsIgnoreCase(param[0]) && param.length == 2) return param[1];
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @param inetAddress
-     */
-    public void setRemoteAddress(InetAddress remoteAddress) {
-     this.remoteAddress=remoteAddress;
-        
-    }
-
-    public InetAddress getRemoteAddress() {
-        return remoteAddress;
     }
 }

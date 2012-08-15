@@ -146,7 +146,18 @@ public class HttpConnection implements Runnable {
         }
         method = null;
         requestLine = null;
-        if(clientSocket!=null)request.setRemoteAddress(this.clientSocket.getInetAddress());
+        /* parse remoteClientAddresses */
+        final ArrayList<String> remoteAddress = new ArrayList<String>();
+        if (this.clientSocket != null) {
+            remoteAddress.add(this.clientSocket.getInetAddress().getHostAddress());
+        }
+        final HTTPHeader forwardedFor = requestHeaders.get("X-Forwarded-For");
+        if (forwardedFor != null && !StringUtils.isEmpty(forwardedFor.getValue())) {
+            final String addresses[] = forwardedFor.getValue().split(", ");
+            for (final String ip : addresses) {
+                remoteAddress.add(ip.trim());
+            }
+        }
         request.setRequestedURLParameters(requestedURLParameters);
         request.setRequestedPath(requestedPath);
         request.setRequestedURL(requestedURL);
