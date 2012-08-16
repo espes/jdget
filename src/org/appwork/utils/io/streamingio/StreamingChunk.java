@@ -101,6 +101,7 @@ public class StreamingChunk {
         if (ret > 0 || ret == -1) { return ret; }
         while (true) {
             Thread.sleep(50);
+            
             if (lastWrites != this.writes.get()) {
                 ret = this._read(b, off, len, position);
                 if (ret > 0 || ret == -1) { return ret; }

@@ -48,7 +48,9 @@ public class StreamingOutputStream extends OutputStream {
 
     @Override
     public void write(final byte[] b, final int off, final int len) throws IOException {
-        if (this.currentChunk == null) { throw new IOException("outputstream is closed!"); }
+        if (this.currentChunk == null) {
+            //
+            throw new IOException("outputstream is closed!"); }
         this.streaming.writeChunkData(this, b, off, len);
     }
 
