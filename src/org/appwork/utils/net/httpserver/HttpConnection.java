@@ -158,6 +158,7 @@ public class HttpConnection implements Runnable {
                 remoteAddress.add(ip.trim());
             }
         }
+        request.setRemoteAddress(remoteAddress);
         request.setRequestedURLParameters(requestedURLParameters);
         request.setRequestedPath(requestedPath);
         request.setRequestedURL(requestedURL);
