@@ -24,7 +24,7 @@ public class Stater {
 
     }
 
-    private static long count(final ArrayList<HashMap<String, String>> data, final String key, final String regex) {
+    private static long count(final java.util.List<HashMap<String, String>> data, final String key, final String regex) {
         long ret = 0;
         for (final HashMap<String, String> d : data) {
             if (new Regex(d.get(key), regex).matches()) {
@@ -59,7 +59,7 @@ public class Stater {
         final String sql = "http://update0.jdownloader.org/php/stats146738.php?start=" + start + "&end=" + end;
         final String dat = new Browser().getPage(sql);
 
-        final ArrayList<HashMap<String, String>> data = JSonStorage.restoreFromString(dat, new TypeRef<ArrayList<HashMap<String, String>>>() {
+        final java.util.List<HashMap<String, String>> data = JSonStorage.restoreFromString(dat, new TypeRef<ArrayList<HashMap<String, String>>>() {
         }, null);
         final SimpleDateFormat df = new SimpleDateFormat("dd.MM.yy - HH:mm");
         System.err.println(df.format(new Date(start * 1000)) + " - " + df.format(new Date(end * 1000)));

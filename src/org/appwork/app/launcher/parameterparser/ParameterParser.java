@@ -103,7 +103,7 @@ public class ParameterParser {
     private void parse(final String[] startArguments) {
 
         String switchCommand = null;
-        final ArrayList<String> params = new ArrayList<String>();
+        final java.util.List<String> params = new ArrayList<String>();
         for (String var : startArguments) {
             if (var.startsWith("-")) {
                 while (var.length() > 0 && var.startsWith("-")) {

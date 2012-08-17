@@ -116,7 +116,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     private BasicFileChooserUI       fcUI;
 
-    private ArrayList<String>        quickSelectionList;
+    private java.util.List<String>        quickSelectionList;
 
     protected boolean                selecting;
 
@@ -134,11 +134,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         this.type = type;
     }
 
-    public ArrayList<String> getQuickSelectionList() {
+    public java.util.List<String> getQuickSelectionList() {
         return quickSelectionList;
     }
 
-    public void setQuickSelectionList(ArrayList<String> quickSelectionList) {
+    public void setQuickSelectionList(java.util.List<String> quickSelectionList) {
         this.quickSelectionList = quickSelectionList;
     }
 

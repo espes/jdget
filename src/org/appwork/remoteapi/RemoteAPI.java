@@ -335,7 +335,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
 
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
         final String[] intf = new Regex(request.getRequestedPath(), "/((.+)/)?(.+)$").getRow(0);
-       if (intf == null || intf.length != 3) { return null; }
+        if (intf == null || intf.length != 3) { return null; }
         /* intf=unimportant,namespace,method */
         if (intf[2] != null && intf[2].endsWith("/")) {
             /* special handling for commands without name */
@@ -356,7 +356,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             interfaceHandler = this.interfaces.get(intf[1]);
         }
         if (interfaceHandler == null) { return null; }
-        final ArrayList<String> parameters = new ArrayList<String>();
+        final java.util.List<String> parameters = new ArrayList<String>();
         String jqueryCallback = null;
         /* convert GET parameters to methodParameters */
         for (final String[] param : request.getRequestedURLParameters()) {
@@ -525,7 +525,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             this.processes.put(process.getPID(), process);
             final String namespace = "processes/" + process.getPID();
             Class<?> clazz = process.getClass();
-            final ArrayList<Class<?>> interfaces = new ArrayList<Class<?>>();
+            final java.util.List<Class<?>> interfaces = new ArrayList<Class<?>>();
             while (clazz != null) {
                 main: for (final Class<?> c : clazz.getInterfaces()) {
                     if (RemoteAPIInterface.class.isAssignableFrom(c)) {

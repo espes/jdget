@@ -79,7 +79,7 @@ public abstract class EventsAPI implements EventsAPIInterface {
         if (event == null) {
             event = queue.pullEvent();
         }
-        final ArrayList<HashMap<String, Object>> eventArray = new ArrayList<HashMap<String, Object>>();
+        final java.util.List<HashMap<String, Object>> eventArray = new ArrayList<HashMap<String, Object>>();
         boolean checkID = lastEventID >= 0;
         while (event != null) {
             /* build json for this event */

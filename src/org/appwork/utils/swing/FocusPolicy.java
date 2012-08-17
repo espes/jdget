@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import javax.swing.JComponent;
 
 public class FocusPolicy extends FocusTraversalPolicy {
-    private ArrayList<JComponent> order;
+    private java.util.List<JComponent> order;
 
     public FocusPolicy(JComponent... components) {
         this.order = new ArrayList<JComponent>(components.length);

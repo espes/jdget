@@ -110,7 +110,7 @@ public class ShutdownController extends Thread {
     }
 
     private final LinkedList<ShutdownEvent>       hooks;
-    private final ArrayList<ShutdownVetoListener> vetoListeners;
+    private final java.util.List<ShutdownVetoListener> vetoListeners;
 
     private int                                   exitCode           = 0;
     private final AtomicInteger                   requestedShutDowns = new AtomicInteger(0);
@@ -224,8 +224,8 @@ public class ShutdownController extends Thread {
     /**
      * @return
      */
-    public ArrayList<ShutdownVetoException> collectVetos(final boolean silent) {
-        final ArrayList<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
+    public java.util.List<ShutdownVetoException> collectVetos(final boolean silent) {
+        final java.util.List<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
         ShutdownVetoListener[] localList = null;
         synchronized (this.vetoListeners) {
             localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
@@ -332,7 +332,7 @@ public class ShutdownController extends Thread {
     public boolean requestShutdown(final boolean silent) {
         this.requestedShutDowns.incrementAndGet();
         try {
-            ArrayList<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
+            java.util.List<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
 
             vetos = this.collectVetos(silent);
 
@@ -398,7 +398,7 @@ public class ShutdownController extends Thread {
          */
 
         try {
-            ArrayList<ShutdownEvent> list;
+            java.util.List<ShutdownEvent> list;
             synchronized (this.hooks) {
                 list = new ArrayList<ShutdownEvent>(this.hooks);
             }

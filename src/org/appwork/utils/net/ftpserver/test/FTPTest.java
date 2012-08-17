@@ -50,7 +50,7 @@ public class FTPTest {
             }
 
             @Override
-            public ArrayList<FtpTestFile> getFileList(final FtpConnectionState connectionState, final String item) throws UnsupportedEncodingException, IOException, FtpFileNotExistException {
+            public java.util.List<FtpTestFile> getFileList(final FtpConnectionState connectionState, final String item) throws UnsupportedEncodingException, IOException, FtpFileNotExistException {
 
                 if (item == null || item.length() == 0 || item.startsWith("-") || item.startsWith("*")) {
                     return list(new File(FTPTest.ROOT, connectionState.getCurrentDir()));
@@ -81,8 +81,8 @@ public class FTPTest {
              * @return
              * @throws FtpFileNotExistException
              */
-            protected ArrayList<FtpTestFile> list(final File file) throws FtpFileNotExistException {
-                final ArrayList<FtpTestFile> ret = new ArrayList<FtpTestFile>();
+            protected java.util.List<FtpTestFile> list(final File file) throws FtpFileNotExistException {
+                final java.util.List<FtpTestFile> ret = new ArrayList<FtpTestFile>();
                 if (!file.exists()) { throw new FtpFileNotExistException();
 
                 }

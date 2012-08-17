@@ -147,7 +147,7 @@ public class HttpConnection implements Runnable {
         method = null;
         requestLine = null;
         /* parse remoteClientAddresses */
-        final ArrayList<String> remoteAddress = new ArrayList<String>();
+        final java.util.List<String> remoteAddress = new ArrayList<String>();
         if (this.clientSocket != null) {
             remoteAddress.add(this.clientSocket.getInetAddress().getHostAddress());
         }
@@ -217,7 +217,7 @@ public class HttpConnection implements Runnable {
             this.response = new HttpResponse(this);
             this.requestReceived(request);
             boolean handled = false;
-            ArrayList<HttpRequestHandler> handlers = null;
+            java.util.List<HttpRequestHandler> handlers = null;
             synchronized (this.server.getHandler()) {
                 handlers = this.server.getHandler();
             }

@@ -14,6 +14,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Thomas
@@ -22,13 +23,13 @@ import java.util.ArrayList;
 public class ExtTransferable implements Transferable {
 
     private ExtDataFlavor<?> flavor;
-    private ArrayList<?>  items;
+    private List<?>  items;
     private DataFlavor[] flavorList;
 
     /**
      * @param selectedObjects
      */
-    public ExtTransferable(ExtDataFlavor<?> flavor,ArrayList<?> selectedObjects) {
+    public ExtTransferable(ExtDataFlavor<?> flavor,List<?> selectedObjects) {
         // TODO Auto-generated constructor stub
         items = selectedObjects;
         this.flavor = flavor;

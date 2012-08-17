@@ -23,9 +23,9 @@ import org.appwork.utils.ClipboardUtils;
  */
 public class ArrayListTransferable implements Transferable {
 
-    private ArrayList<Object> objs = null;
+    private java.util.List<Object> objs = null;
 
-    public ArrayListTransferable(ArrayList<Object> objs) {
+    public ArrayListTransferable(java.util.List<Object> objs) {
         this.objs = objs;
     }
 

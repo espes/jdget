@@ -33,7 +33,7 @@ public class SimpleThrottledConnectionHandler implements ThrottledConnectionHand
     }
 
     protected Thread                         watchDog     = null;
-    protected ArrayList<ThrottledConnection> connections  = new ArrayList<ThrottledConnection>();
+    protected java.util.List<ThrottledConnection> connections  = new ArrayList<ThrottledConnection>();
     protected volatile int                   limit        = 0;
     protected int                            updateSpeed  = 2000;
     protected volatile int                   bandwidth    = 0;
@@ -51,7 +51,7 @@ public class SimpleThrottledConnectionHandler implements ThrottledConnectionHand
     public void addThrottledConnection(final ThrottledConnection con) {
         if (this.connections.contains(con)) { return; }
         synchronized (this) {
-            final ArrayList<ThrottledConnection> newConnections = new ArrayList<ThrottledConnection>(this.connections);
+            final java.util.List<ThrottledConnection> newConnections = new ArrayList<ThrottledConnection>(this.connections);
             newConnections.add(con);
             this.connections = newConnections;
         }
@@ -92,7 +92,7 @@ public class SimpleThrottledConnectionHandler implements ThrottledConnectionHand
     public void removeThrottledConnection(final ThrottledConnection con) {
         if (!this.connections.contains(con)) { return; }
         synchronized (this) {
-            final ArrayList<ThrottledConnection> newConnections = new ArrayList<ThrottledConnection>(this.connections);
+            final java.util.List<ThrottledConnection> newConnections = new ArrayList<ThrottledConnection>(this.connections);
             newConnections.remove(con);
             this.connections = newConnections;
         }
@@ -121,7 +121,7 @@ public class SimpleThrottledConnectionHandler implements ThrottledConnectionHand
                     SimpleThrottledConnectionHandler.this.speedMeter.resetSpeedMeter();
                     final HashMap<ThrottledConnection, SpeedAssignHelp> speedAssignHelpMap = new HashMap<ThrottledConnection, SpeedAssignHelp>();
                     while (true) {
-                        final ArrayList<ThrottledConnection> lConnections = SimpleThrottledConnectionHandler.this.connections;
+                        final java.util.List<ThrottledConnection> lConnections = SimpleThrottledConnectionHandler.this.connections;
                         if (lConnections.size() == 0) {
                             break;
                         }

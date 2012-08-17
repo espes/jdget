@@ -152,7 +152,7 @@ public class ExtFileSystemView extends FileSystemView {
             });
 
             Log.L.info("Listed Base folders " + (System.currentTimeMillis() - t));
-            ArrayList<File> newRoots = new ArrayList<File>();
+            java.util.List<File> newRoots = new ArrayList<File>();
 
             File home = getHomeDirectory();
             for (File f : baseFolders) {
@@ -224,7 +224,7 @@ public class ExtFileSystemView extends FileSystemView {
         long t = System.currentTimeMillis();
         try {
             File[] ret = org.getFiles(dir, useFileHiding);
-            ArrayList<File> filtered = new ArrayList<File>();
+            java.util.List<File> filtered = new ArrayList<File>();
             for (File f : ret) {
                 if (f.getName().equals(VIRTUAL_NETWORKFOLDER)) {
                     filtered.add(f);

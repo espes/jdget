@@ -20,7 +20,7 @@ import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
  */
 public class HttpServerController {
 
-    private final ArrayList<HttpServer> servers = new ArrayList<HttpServer>();
+    private final java.util.List<HttpServer> servers = new ArrayList<HttpServer>();
 
     public HttpServerController() {
     }

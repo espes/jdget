@@ -104,7 +104,7 @@ public class IO {
     }
 
     public static void moveTo(final File source, final File dest, final FileFilter filter) throws IOException {
-        final ArrayList<File> files = Files.getFiles(filter, source);
+        final java.util.List<File> files = Files.getFiles(filter, source);
         // TODO Proper delete
         for (final File src : files) {
             final String rel = Files.getRelativePath(source, src);

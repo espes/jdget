@@ -62,7 +62,7 @@ public class CounterProcess extends RemoteAPIProcess<Boolean> implements Counter
             final EventsAPIEvent event = new EventsAPIEvent("test", null);
             event.setProcessID(this.getPID());
             event.setData(this.counter);
-            final ArrayList<HttpSession> sessions = new ArrayList<HttpSession>();
+            final java.util.List<HttpSession> sessions = new ArrayList<HttpSession>();
             sessions.add(this.session);
             serverTest.events.publishEvent(event, sessions);
             this.counter++;

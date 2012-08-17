@@ -103,7 +103,7 @@ public class DesktopSupportLinux implements DesktopSupport {
     private boolean openCustom(final String[] custom, final String what) throws IOException {
         if (custom == null || custom.length < 1) { return false; }
         boolean added = false;
-        final ArrayList<String> commands = new ArrayList<String>();
+        final java.util.List<String> commands = new ArrayList<String>();
         for (final String s : custom) {
             final String add = s.replace("%s", what);
             if (!add.equals(s)) {

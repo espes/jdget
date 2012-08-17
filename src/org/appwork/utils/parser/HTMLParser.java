@@ -21,11 +21,11 @@ import org.appwork.utils.logging.Log;
  * 
  */
 public class HTMLParser {
-    public static ArrayList<String> findUrls(final String source) {
+    public static java.util.List<String> findUrls(final String source) {
         /* TODO: better parsing */
         /* remove tags!! */
 
-        final ArrayList<String> ret = new ArrayList<String>();
+        final java.util.List<String> ret = new ArrayList<String>();
         try {
 
             for (String link : new Regex(source, "\\(?\\b(ftp://|https?://)[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]").getColumn(-1)) {
@@ -47,8 +47,8 @@ public class HTMLParser {
         return HTMLParser.removeDuplicates(ret);
     }
 
-    public static ArrayList<String> removeDuplicates(final ArrayList<String> links) {
-        final ArrayList<String> tmplinks = new ArrayList<String>();
+    public static java.util.List<String> removeDuplicates(final java.util.List<String> links) {
+        final java.util.List<String> tmplinks = new ArrayList<String>();
         if ((links == null) || (links.size() == 0)) { return tmplinks; }
         for (final String link : links) {
             if (link.contains("...")) {

@@ -27,7 +27,7 @@ public class ListTest {
     
     double[] da = cfg.getDoubleArray();
  Double[] dwa = cfg.getDoubleWrapperArray();
-    ArrayList<Double> dwl = cfg.getDoubleWrapperList();
+ ArrayList<Double> dwl = cfg.getDoubleWrapperList();
     cfg.setDoubleArray(new double[]{9.8,7.6});
     cfg.setDoubleWrapperArray(new Double[]{7.6,5.4});
     dwl.add(Math.random());

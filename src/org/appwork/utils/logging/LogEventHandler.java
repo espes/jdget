@@ -58,10 +58,10 @@ public class LogEventHandler extends Handler {
         return INSTANCE;
     }
 
-    private ArrayList<LogRecord> cache;
+    private java.util.List<LogRecord> cache;
     private Object               lock = new Object();
 
-    public ArrayList<LogRecord> getCache() {
+    public java.util.List<LogRecord> getCache() {
         synchronized (lock) {
             return new ArrayList<LogRecord>(cache);
         }

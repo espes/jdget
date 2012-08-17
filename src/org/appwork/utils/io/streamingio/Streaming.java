@@ -27,10 +27,10 @@ import org.appwork.utils.Regex;
  */
 public abstract class Streaming {
 
-    protected ArrayList<StreamingChunk>                       availableChunks        = new ArrayList<StreamingChunk>();
+    protected java.util.List<StreamingChunk>                       availableChunks        = new ArrayList<StreamingChunk>();
 
-    protected ArrayList<WeakReference<StreamingInputStream>>  connectedInputStreams  = new ArrayList<WeakReference<StreamingInputStream>>();
-    protected ArrayList<WeakReference<StreamingOutputStream>> connectedOutputStreams = new ArrayList<WeakReference<StreamingOutputStream>>();
+    protected java.util.List<WeakReference<StreamingInputStream>>  connectedInputStreams  = new ArrayList<WeakReference<StreamingInputStream>>();
+    protected java.util.List<WeakReference<StreamingOutputStream>> connectedOutputStreams = new ArrayList<WeakReference<StreamingOutputStream>>();
 
     protected final String                                    outputFile;
     private boolean                                           isClosed               = false;
@@ -174,9 +174,9 @@ public abstract class Streaming {
         }
     }
 
-    protected synchronized ArrayList<StreamingInputStream> findAllStreamingInputStreamsFor(final StreamingOutputStream streamingOutputStream) {
+    protected synchronized java.util.List<StreamingInputStream> findAllStreamingInputStreamsFor(final StreamingOutputStream streamingOutputStream) {
         final StreamingChunk chunk = streamingOutputStream.getCurrentChunk();
-        final ArrayList<StreamingInputStream> ret = new ArrayList<StreamingInputStream>();
+        final java.util.List<StreamingInputStream> ret = new ArrayList<StreamingInputStream>();
         if (chunk != null) {
             final Iterator<WeakReference<StreamingInputStream>> it = this.connectedInputStreams.iterator();
             while (it.hasNext()) {

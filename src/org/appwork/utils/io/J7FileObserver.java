@@ -46,7 +46,7 @@ public abstract class J7FileObserver implements Runnable {
     private Thread              runner;
     private final String        filename;
     private final String        hash;
-    private ArrayList<WatchKey> keys;
+    private java.util.List<WatchKey> keys;
 
     /**
      * @param string

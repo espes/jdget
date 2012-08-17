@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -104,7 +105,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      */
     private final ExtTableModel<E>                    model;
 
-    final private ArrayList<ExtOverlayRowHighlighter> rowHighlighters;
+    final private java.util.List<ExtOverlayRowHighlighter> rowHighlighters;
     /**
      * true if search is enabled
      */
@@ -732,7 +733,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     /**
      * @return the rowHighlighters
      */
-    public ArrayList<ExtOverlayRowHighlighter> getRowHighlighters() {
+    public java.util.List<ExtOverlayRowHighlighter> getRowHighlighters() {
         return this.rowHighlighters;
     }
 
@@ -802,7 +803,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return false;
     }
 
-    protected JPopupMenu onContextMenu(final JPopupMenu popup, final E contextObject, final ArrayList<E> selection, final ExtColumn<E> column, final MouseEvent mouseEvent) {
+    protected JPopupMenu onContextMenu(final JPopupMenu popup, final E contextObject, final List<E> selection, final ExtColumn<E> column, final MouseEvent mouseEvent) {
         return null;
     }
 
@@ -852,7 +853,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @param evt
      * @return
      */
-    protected boolean onShortcutCopy(final ArrayList<E> selectedObjects, final KeyEvent evt) {
+    protected boolean onShortcutCopy(final List<E> selectedObjects, final KeyEvent evt) {
         return false;
     }
 
@@ -861,7 +862,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @param evt
      * @return
      */
-    protected boolean onShortcutCut(final ArrayList<E> selectedObjects, final KeyEvent evt) {
+    protected boolean onShortcutCut(final List<E> selectedObjects, final KeyEvent evt) {
         return false;
     }
 
@@ -872,7 +873,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      *            TODO
      * @return
      */
-    protected boolean onShortcutDelete(final ArrayList<E> selectedObjects, final KeyEvent evt, final boolean direct) {
+    protected boolean onShortcutDelete(final List<E> selectedObjects, final KeyEvent evt, final boolean direct) {
         return false;
     }
 
@@ -881,7 +882,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @param evt
      * @return
      */
-    protected boolean onShortcutPaste(final ArrayList<E> selectedObjects, final KeyEvent evt) {
+    protected boolean onShortcutPaste(final List<E> selectedObjects, final KeyEvent evt) {
         return false;
     }
 
@@ -890,7 +891,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @param evt
      * @return
      */
-    protected boolean onShortcutSearch(final ArrayList<E> selectedObjects, final KeyEvent evt) {
+    protected boolean onShortcutSearch(final List<E> selectedObjects, final KeyEvent evt) {
 
         if (this.isSearchEnabled() && this.hasFocus()) {
             this.startSearch();
@@ -968,19 +969,19 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             return true;
         case KeyEvent.VK_X:
             if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
-                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_CUT, this.getExtTableModel().getSelectedObjects()));
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_CUT, this.getExtTableModel().getSelectedObjects()));
                 return this.onShortcutCut(this.getExtTableModel().getSelectedObjects(), evt);
             }
             break;
         case KeyEvent.VK_V:
             if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
-                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_PASTE, this.getExtTableModel().getSelectedObjects()));
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_PASTE, this.getExtTableModel().getSelectedObjects()));
                 return this.onShortcutPaste(this.getExtTableModel().getSelectedObjects(), evt);
             }
             break;
         case KeyEvent.VK_C:
             if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
-                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_COPY, this.getExtTableModel().getSelectedObjects()));
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_COPY, this.getExtTableModel().getSelectedObjects()));
                 return this.onShortcutCopy(this.getExtTableModel().getSelectedObjects(), evt);
 
             }
@@ -1002,7 +1003,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             break;
         case KeyEvent.VK_F:
             if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
-                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<ArrayList<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_SEARCH, this.getExtTableModel().getSelectedObjects()));
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_SEARCH, this.getExtTableModel().getSelectedObjects()));
 
                 return this.onShortcutSearch(this.getExtTableModel().getSelectedObjects(), evt);
             }
@@ -1100,7 +1101,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                         this.clearSelection();
                         this.addRowSelectionInterval(row, row);
                     }
-                    final ArrayList<E> selected = this.getExtTableModel().getSelectedObjects();
+                    final List<E> selected = this.getExtTableModel().getSelectedObjects();
                     final JPopupMenu popup = this.onContextMenu(new JPopupMenu(), obj, selected, col, e);
 
                     if (popup != null && popup.getComponentCount() > 0) {

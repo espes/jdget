@@ -177,7 +177,7 @@ public abstract class BasicGui {
      * @return
      */
     protected List<? extends Image> getAppIconList() {
-     final ArrayList<Image> list = new ArrayList<Image>();
+     final java.util.List<Image> list = new ArrayList<Image>();
 
         
    

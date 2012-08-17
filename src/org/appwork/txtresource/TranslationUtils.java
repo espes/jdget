@@ -130,7 +130,7 @@ public class TranslationUtils {
         // return JSonStorage.serializeToJson(map);
 
         StringBuilder ret = new StringBuilder();
-        ArrayList<String> keys = new ArrayList<String>();
+        java.util.List<String> keys = new ArrayList<String>();
 
         for (Entry<String, String> entry : map.entrySet()) {
             keys.add(entry.getKey());

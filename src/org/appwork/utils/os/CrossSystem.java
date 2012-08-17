@@ -436,7 +436,7 @@ public class CrossSystem {
     private static boolean openCustom(final String[] custom, final String what) throws IOException {
         if (custom == null || custom.length < 1) { return false; }
         boolean added = false;
-        final ArrayList<String> commands = new ArrayList<String>();
+        final java.util.List<String> commands = new ArrayList<String>();
         for (final String s : custom) {
             final String add = s.replace("%s", what);
             if (!add.equals(s)) {
@@ -507,7 +507,7 @@ public class CrossSystem {
 
         try {
             Log.L.info("restartApplication " + jar + " " + parameters.length);
-            final ArrayList<String> nativeParameters = new ArrayList<String>();
+            final java.util.List<String> nativeParameters = new ArrayList<String>();
             File runin = null;
             if (CrossSystem.isMac()) {
 

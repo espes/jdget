@@ -59,8 +59,8 @@ public class TranslationFactory {
     /**
      * 
      */
-    public static ArrayList<TranslateInterface> getCachedInterfaces() {
-        final ArrayList<TranslateInterface> ret = new ArrayList<TranslateInterface>();
+    public static java.util.List<TranslateInterface> getCachedInterfaces() {
+        final java.util.List<TranslateInterface> ret = new ArrayList<TranslateInterface>();
         Entry<String, TranslateInterface> next;
         for (final Iterator<Entry<String, TranslateInterface>> it = TranslationFactory.CACHE.entrySet().iterator(); it.hasNext();) {
             next = it.next();
@@ -114,7 +114,7 @@ public class TranslationFactory {
      * @param ret
      */
     private static void collectByPath(File path, HashSet<String> ret) {
-        ArrayList<File> files = Files.getFiles(new FileFilter() {
+        java.util.List<File> files = Files.getFiles(new FileFilter() {
 
             @Override
             public boolean accept(File pathname) {

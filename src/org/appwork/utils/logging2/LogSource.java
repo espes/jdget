@@ -32,7 +32,7 @@ public class LogSource extends Logger {
         }
     }
 
-    private ArrayList<LogRecord> records           = new ArrayList<LogRecord>();
+    private java.util.List<LogRecord> records           = new ArrayList<LogRecord>();
     private int                  maxLogRecordsInMemory;
     private int                  flushCounter      = 0;
     private int                  recordsCounter    = 0;

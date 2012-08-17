@@ -432,7 +432,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             }
             this.write(150, "Opening XY mode data connection for file list");
             try {
-                final ArrayList<? extends FtpFile> list = this.ftpServer.getFtpCommandHandler().getFileList(this.connectionState, this.buildParameter(params));
+                final java.util.List<? extends FtpFile> list = this.ftpServer.getFtpCommandHandler().getFileList(this.connectionState, this.buildParameter(params));
                 this.dataSocket.getOutputStream().write(this.ftpServer.getFtpCommandHandler().formatFileList(list).getBytes("UTF-8"));
                 this.dataSocket.getOutputStream().flush();
             } catch (final FtpFileNotExistException e) {
@@ -482,7 +482,7 @@ public class FtpConnection implements Runnable, StateMachineInterface {
             }
             this.write(150, "Opening XY mode data connection for file list");
             try {
-                final ArrayList<? extends FtpFile> list = this.ftpServer.getFtpCommandHandler().getFileList(this.connectionState, this.buildParameter(commandParts));
+                final java.util.List<? extends FtpFile> list = this.ftpServer.getFtpCommandHandler().getFileList(this.connectionState, this.buildParameter(commandParts));
                 final StringBuilder sb = new StringBuilder();
                 for (final FtpFile file : list) {
                     sb.append(file.getName());

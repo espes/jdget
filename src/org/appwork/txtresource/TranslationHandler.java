@@ -28,7 +28,7 @@ import org.appwork.utils.logging.Log;
 public class TranslationHandler implements InvocationHandler {
 
     private final Class<? extends TranslateInterface> tInterface;
-    private ArrayList<TranslateResource>              lookup;
+    private java.util.List<TranslateResource>              lookup;
 
     private HashMap<Method, String>                   cache;
     private final Method[]                            methods;
@@ -199,9 +199,9 @@ public class TranslationHandler implements InvocationHandler {
      * @param lookup2
      * @return
      */
-    private ArrayList<TranslateResource> fillLookup(final String... lookup) {
+    private java.util.List<TranslateResource> fillLookup(final String... lookup) {
 
-        final ArrayList<TranslateResource> ret = new ArrayList<TranslateResource>();
+        final java.util.List<TranslateResource> ret = new ArrayList<TranslateResource>();
         TranslateResource res;
         boolean containsDefault = false;
         for (final String o : lookup) {
@@ -302,7 +302,7 @@ public class TranslationHandler implements InvocationHandler {
 
     }
 
-    public String getValue(final Method method, final ArrayList<TranslateResource> lookup) {
+    public String getValue(final Method method, final java.util.List<TranslateResource> lookup) {
         String ret = null;
         TranslateResource res;
         for (final Iterator<TranslateResource> it = lookup.iterator(); it.hasNext();) {
@@ -324,7 +324,7 @@ public class TranslationHandler implements InvocationHandler {
 
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
 
-        final ArrayList<TranslateResource> lookup = this.lookup;
+        final java.util.List<TranslateResource> lookup = this.lookup;
         // for speed reasons let all controller methods (@see
         // TRanslationINterface.java) start with _
         if (method.getDeclaringClass() == Object.class) { return method.invoke(this, args); }

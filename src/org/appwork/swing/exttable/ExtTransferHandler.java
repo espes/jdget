@@ -30,7 +30,7 @@ public class ExtTransferHandler<T> extends TransferHandler {
         if (dl.isInsertRow()) {
             int dropRow = dl.getRow();
             try {
-                return table.getExtTableModel().move((ArrayList<T>) support.getTransferable().getTransferData(table.getDataFlavor()), dropRow);
+                return table.getExtTableModel().move((java.util.List<T>) support.getTransferable().getTransferData(table.getDataFlavor()), dropRow);
 
             } catch (UnsupportedFlavorException e) {
                 // TODO Auto-generated catch block

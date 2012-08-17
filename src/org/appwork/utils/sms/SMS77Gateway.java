@@ -112,7 +112,7 @@ public class SMS77Gateway {
         if (message == null) { throw new NullPointerException("message is null"); }
         if (receiver == null) { throw new NullPointerException("receiver is null"); }
         if (message.getMessage().length() > 1555) { throw new SMS77GatewayException("Message too long"); }
-        final ArrayList<SMS77GatewayParameter> params = new ArrayList<SMS77GatewayParameter>();
+        final java.util.List<SMS77GatewayParameter> params = new ArrayList<SMS77GatewayParameter>();
         params.add(SMS77GatewayParameter.create("to", receiver));
         params.add(SMS77GatewayParameter.create("text", message.getMessage()));
         params.add(SMS77GatewayParameter.create("type", message.getType().name().toLowerCase(Locale.ENGLISH)));

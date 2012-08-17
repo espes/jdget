@@ -39,7 +39,7 @@ public class HttpServer implements Runnable {
     private Thread                        controlThread = null;
     private boolean                       localhostOnly = false;
     private boolean                       debug         = false;
-    private ArrayList<HttpRequestHandler> handler       = null;
+    private java.util.List<HttpRequestHandler> handler       = null;
     private ThreadPoolExecutor            threadPool    = null;
 
     public HttpServer(final int port) {
@@ -81,7 +81,7 @@ public class HttpServer implements Runnable {
         this.threadPool.allowCoreThreadTimeOut(true);
     }
 
-    public ArrayList<HttpRequestHandler> getHandler() {
+    public java.util.List<HttpRequestHandler> getHandler() {
         return this.handler;
     }
 
@@ -132,7 +132,7 @@ public class HttpServer implements Runnable {
     public HttpHandlerInfo registerRequestHandler(final HttpRequestHandler handler) {
         synchronized (this.handler) {
             if (!this.handler.contains(handler)) {
-                final ArrayList<HttpRequestHandler> newhandler = new ArrayList<HttpRequestHandler>(this.handler);
+                final java.util.List<HttpRequestHandler> newhandler = new ArrayList<HttpRequestHandler>(this.handler);
                 newhandler.add(handler);
                 this.handler = newhandler;
             }
@@ -258,7 +258,7 @@ public class HttpServer implements Runnable {
      */
     public void unregisterRequestHandler(final HttpRequestHandler handler) {
         synchronized (this.handler) {
-            final ArrayList<HttpRequestHandler> newhandler = new ArrayList<HttpRequestHandler>(this.handler);
+            final java.util.List<HttpRequestHandler> newhandler = new ArrayList<HttpRequestHandler>(this.handler);
             newhandler.remove(handler);
             this.handler = newhandler;
         }

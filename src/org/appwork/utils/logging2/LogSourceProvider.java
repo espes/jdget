@@ -162,7 +162,7 @@ public abstract class LogSourceProvider {
     }
 
     public synchronized void flushSinks(final boolean flushOnly) {
-        ArrayList<LogSink> logSinks2Flush = null;
+        java.util.List<LogSink> logSinks2Flush = null;
         synchronized (this.logSinks) {
             logSinks2Flush = new ArrayList<LogSink>(this.logSinks.size());
             final Iterator<LogSink> it = this.logSinks.values().iterator();

@@ -32,10 +32,10 @@ public abstract class Queue extends Thread {
 
     protected boolean                                                                debugFlag          = false;
     protected QueuePriority[]                                                        prios;
-    protected HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>> queue              = new HashMap<QueuePriority, ArrayList<QueueAction<?, ? extends Throwable>>>();
+    protected HashMap<QueuePriority, java.util.List<QueueAction<?, ? extends Throwable>>> queue              = new HashMap<QueuePriority, java.util.List<QueueAction<?, ? extends Throwable>>>();
     protected final Object                                                           queueLock          = new Object();
 
-    protected ArrayList<QueueAction<?, ? extends Throwable>>                         queueThreadHistory = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
+    protected java.util.List<QueueAction<?, ? extends Throwable>>                         queueThreadHistory = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
     protected Thread                                                                 thread             = null;
     protected boolean                                                                waitFlag           = true;
     private QueueAction<?, ? extends Throwable>                                      sourceItem         = null;
@@ -60,8 +60,8 @@ public abstract class Queue extends Thread {
         this.start();
     }
 
-    public ArrayList<QueueAction<?, ?>> getEntries() {
-        ArrayList<QueueAction<?, ?>> ret = new ArrayList<QueueAction<?, ?>>();
+    public java.util.List<QueueAction<?, ?>> getEntries() {
+        java.util.List<QueueAction<?, ?>> ret = new ArrayList<QueueAction<?, ?>>();
         synchronized (this.queueLock) {
 
             if (currentJob != null) {
@@ -98,7 +98,7 @@ public abstract class Queue extends Thread {
     public boolean remove(QueueAction<?, ?> action) {
 
         synchronized (this.queueLock) {
-            ArrayList<QueueAction<?, ? extends Throwable>> list = this.queue.get(action.getQueuePrio());
+            java.util.List<QueueAction<?, ? extends Throwable>> list = this.queue.get(action.getQueuePrio());
             if (list.remove(action)) {
                 action.kill();
                 synchronized (action) {
@@ -242,7 +242,7 @@ public abstract class Queue extends Thread {
     public long getQueueSize(final QueuePriority prio) {
         if (prio == null) { return -1; }
         synchronized (this.queueLock) {
-            final ArrayList<QueueAction<?, ? extends Throwable>> ret = this.queue.get(prio);
+            final java.util.List<QueueAction<?, ? extends Throwable>> ret = this.queue.get(prio);
             if (ret == null) { return -1; }
             return ret.size();
         }
@@ -398,12 +398,22 @@ public abstract class Queue extends Thread {
                 } catch (final Throwable e) {
                 } finally {
                     this.sourceItem = null;
+                    
+                    onItemHandled(item);
                 }
             } catch (final Throwable e) {
                 Log.L.info("Queue rescued!");
                 Log.exception(e);
             }
         }
+    }
+
+    /**
+     * @param item
+     */
+    protected void onItemHandled(QueueAction<?, ? extends Throwable> item) {
+        // TODO Auto-generated method stub
+        
     }
 
     /**

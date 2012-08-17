@@ -37,7 +37,7 @@ public class StateMachine {
     private final StateEventsender          eventSender;
 
     private final State                     finalState;
-    private final ArrayList<StatePathEntry> path;
+    private final java.util.List<StatePathEntry> path;
     private final StateMachineInterface     owner;
     private final Object                    lock  = new Object();
 
@@ -160,7 +160,7 @@ public class StateMachine {
     /**
      * @return the path
      */
-    public ArrayList<StatePathEntry> getPath() {
+    public java.util.List<StatePathEntry> getPath() {
         return this.path;
     }
 
@@ -190,7 +190,7 @@ public class StateMachine {
         return false;
     }
 
-    // private State getStateById(State startState, int id, ArrayList<State>
+    // private State getStateById(State startState, int id, java.util.List<State>
     // foundStates) {
     //
     // if (foundStates == null) foundStates = new ArrayList<State>();

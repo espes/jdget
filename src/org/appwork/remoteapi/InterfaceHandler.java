@@ -79,7 +79,7 @@ public class InterfaceHandler<T> {
     }
 
     private final RemoteAPIInterface                        impl;
-    private final ArrayList<Class<T>>                       interfaceClasses;
+    private final java.util.List<Class<T>>                       interfaceClasses;
     private final TreeMap<String, TreeMap<Integer, Method>> methods;
     private final HashMap<Method, Integer>                  parameterCountMap;
     private final HashMap<Method, Integer>                  methodsAuthLevel;

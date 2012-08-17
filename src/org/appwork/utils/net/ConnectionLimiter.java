@@ -45,7 +45,7 @@ public class ConnectionLimiter {
 
     public static final int WAIT_DUETO_CONNECTIONSPERMINUTE_LIMIT_END = 5;
     private int connectioncount;
-    private final ArrayList<Long> list = new ArrayList<Long>();
+    private final java.util.List<Long> list = new ArrayList<Long>();
     private int maxConcurrent = -1;
     private int timeConnections = -1;
     private long timeTime = -1;

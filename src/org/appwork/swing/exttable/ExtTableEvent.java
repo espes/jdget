@@ -22,7 +22,7 @@ public class ExtTableEvent<P> extends SimpleEvent<ExtTable<?>, P, ExtTableEvent.
         CONTEXTMENU,
         DOUBLECLICK,
         /**
-         * ArrayList<?>
+         * java.util.List<?>
          */
         SELECTION_CHANGED,
         SHORTCUT_COPY,

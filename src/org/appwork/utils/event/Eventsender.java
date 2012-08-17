@@ -127,8 +127,8 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
      * List of registered Eventlistener
      */
 
-    transient volatile protected ArrayList<ListenerType>                strongListeners = null;
-    transient volatile protected ArrayList<WeakReference<ListenerType>> weakListener    = null;
+    transient volatile protected java.util.List<ListenerType>                strongListeners = null;
+    transient volatile protected java.util.List<WeakReference<ListenerType>> weakListener    = null;
 
     private final Object                                                LOCK            = new Object();
 
@@ -151,11 +151,11 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
      * 
      * @param listener
      */
-    public void addAllListener(final ArrayList<ListenerType> listener) {
+    public void addAllListener(final java.util.List<ListenerType> listener) {
         this.addAllListener(listener, false);
     }
 
-    public void addAllListener(final ArrayList<ListenerType> listener, final boolean weak) {
+    public void addAllListener(final java.util.List<ListenerType> listener, final boolean weak) {
         for (final ListenerType l : listener) {
             this.addListener(l, weak);
         }
@@ -176,7 +176,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
             boolean added = false;
             if (weak == false) {
                 /* update strong listeners */
-                final ArrayList<ListenerType> newStrongListener = new ArrayList<ListenerType>(this.strongListeners);
+                final java.util.List<ListenerType> newStrongListener = new ArrayList<ListenerType>(this.strongListeners);
                 if (!newStrongListener.contains(t)) {
                     newStrongListener.add(t);
                 }
@@ -184,7 +184,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
             }
             /* update weak listeners */
             ListenerType l = null;
-            final ArrayList<WeakReference<ListenerType>> newWeakListener = new ArrayList<WeakReference<ListenerType>>(this.weakListener.size());
+            final java.util.List<WeakReference<ListenerType>> newWeakListener = new ArrayList<WeakReference<ListenerType>>(this.weakListener.size());
             for (final WeakReference<ListenerType> listener : this.weakListener) {
                 if ((l = listener.get()) == null) {
                     /* remove weak listener because it is gone */
@@ -205,7 +205,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
 
     public void cleanup() {
         synchronized (this.LOCK) {
-            final ArrayList<WeakReference<ListenerType>> newWeakListener = new ArrayList<WeakReference<ListenerType>>(this.weakListener.size());
+            final java.util.List<WeakReference<ListenerType>> newWeakListener = new ArrayList<WeakReference<ListenerType>>(this.weakListener.size());
             for (final WeakReference<ListenerType> listener : this.weakListener) {
                 if (listener.get() == null) {
                     /* weak item is gone */
@@ -239,7 +239,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
         if (event == null) { return; }
         ListenerType t = null;
         boolean cleanup = false;
-        final ArrayList<WeakReference<ListenerType>> listeners = this.weakListener;
+        final java.util.List<WeakReference<ListenerType>> listeners = this.weakListener;
         for (final WeakReference<ListenerType> listener : listeners) {
             t = listener.get();
             if (t == null) {
@@ -262,7 +262,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
     final public void fireEvent(final int id, final Object... parameters) {
         ListenerType t = null;
         boolean cleanup = false;
-        final ArrayList<WeakReference<ListenerType>> listeners = this.weakListener;
+        final java.util.List<WeakReference<ListenerType>> listeners = this.weakListener;
         for (final WeakReference<ListenerType> listener : listeners) {
             t = listener.get();
             if (t == null) {
@@ -295,10 +295,10 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
 
     }
 
-    public ArrayList<ListenerType> getListener() {
-        final ArrayList<WeakReference<ListenerType>> listeners = this.weakListener;
+    public java.util.List<ListenerType> getListener() {
+        final java.util.List<WeakReference<ListenerType>> listeners = this.weakListener;
         boolean cleanup = true;
-        final ArrayList<ListenerType> ret = new ArrayList<ListenerType>(listeners.size());
+        final java.util.List<ListenerType> ret = new ArrayList<ListenerType>(listeners.size());
         ListenerType t = null;
         for (final WeakReference<ListenerType> listener : listeners) {
             t = listener.get();
@@ -315,7 +315,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
     }
 
     public boolean hasListener() {
-        final ArrayList<WeakReference<ListenerType>> listeners = this.weakListener;
+        final java.util.List<WeakReference<ListenerType>> listeners = this.weakListener;
         for (final WeakReference<ListenerType> listener : listeners) {
             if (listener.get() != null) { return true; }
         }
@@ -326,8 +326,8 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
         if (t == null) { return; }
         synchronized (this.LOCK) {
             ListenerType l = null;
-            final ArrayList<WeakReference<ListenerType>> newWeakListener = new ArrayList<WeakReference<ListenerType>>(this.weakListener.size());
-            final ArrayList<ListenerType> newStrongListener = new ArrayList<ListenerType>(this.strongListeners);
+            final java.util.List<WeakReference<ListenerType>> newWeakListener = new ArrayList<WeakReference<ListenerType>>(this.weakListener.size());
+            final java.util.List<ListenerType> newStrongListener = new ArrayList<ListenerType>(this.strongListeners);
             for (final WeakReference<ListenerType> listener : this.weakListener) {
                 if ((l = listener.get()) == null) {
                     /* weak item is gone */

@@ -254,7 +254,7 @@ public class Dialog implements WindowFocusListener {
      */
     private Component               owner         = null;
 
-    private final ArrayList<Window> parents;
+    private final java.util.List<Window> parents;
 
     private Dialog() {
         this.parents = new ArrayList<Window>();
@@ -290,7 +290,7 @@ public class Dialog implements WindowFocusListener {
      * 
      * @return
      */
-    public ArrayList<Window> getRegisteredParents() {
+    public java.util.List<Window> getRegisteredParents() {
         return this.parents;
     }
 

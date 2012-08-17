@@ -295,7 +295,7 @@ public class JSonStorage {
      * @param type
      *            TypeRef instance. This is important for generic classes. for
      *            example: new TypeRef<ArrayList<Contact>>(){} to restore type
-     *            ArrayList<Contact>
+     *            java.util.List<Contact>
      * @param def
      *            defaultvalue. if typeref is not set, the method tries to use
      *            the class of def as restoreclass

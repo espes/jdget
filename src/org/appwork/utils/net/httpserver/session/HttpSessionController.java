@@ -28,7 +28,7 @@ import org.appwork.utils.net.httpserver.responses.HttpResponse;
  */
 public abstract class HttpSessionController<T extends HttpSession> implements HttpRequestHandler, LoginAPIInterface {
 
-    private ArrayList<HttpSessionRequestHandler<T>> handler = null;
+    private java.util.List<HttpSessionRequestHandler<T>> handler = null;
 
     public HttpSessionController() {
         this.handler = new ArrayList<HttpSessionRequestHandler<T>>();
@@ -91,7 +91,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
      */
     @Override
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
-        ArrayList<HttpSessionRequestHandler<T>> handlers = null;
+        java.util.List<HttpSessionRequestHandler<T>> handlers = null;
         synchronized (this.handler) {
             handlers = this.handler;
         }
@@ -112,7 +112,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
      */
     @Override
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) {
-        ArrayList<HttpSessionRequestHandler<T>> handlers = null;
+        java.util.List<HttpSessionRequestHandler<T>> handlers = null;
         synchronized (this.handler) {
             handlers = this.handler;
         }
@@ -126,7 +126,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
     public void registerSessionRequestHandler(final HttpSessionRequestHandler<T> handler) {
         synchronized (this.handler) {
             if (!this.handler.contains(handler)) {
-                final ArrayList<HttpSessionRequestHandler<T>> newhandler = new ArrayList<HttpSessionRequestHandler<T>>(this.handler);
+                final java.util.List<HttpSessionRequestHandler<T>> newhandler = new ArrayList<HttpSessionRequestHandler<T>>(this.handler);
                 newhandler.add(handler);
                 this.handler = newhandler;
             }
@@ -137,7 +137,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
 
     public void unregisterSessionRequestHandler(final HttpSessionRequestHandler<T> handler) {
         synchronized (this.handler) {
-            final ArrayList<HttpSessionRequestHandler<T>> newhandler = new ArrayList<HttpSessionRequestHandler<T>>(this.handler);
+            final java.util.List<HttpSessionRequestHandler<T>> newhandler = new ArrayList<HttpSessionRequestHandler<T>>(this.handler);
             newhandler.remove(handler);
             this.handler = newhandler;
         }

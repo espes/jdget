@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 
 public class LogSink extends Logger {
 
-    protected ArrayList<WeakReference<LogSource>> logSources     = new ArrayList<WeakReference<LogSource>>();
+    protected java.util.List<WeakReference<LogSource>> logSources     = new ArrayList<WeakReference<LogSource>>();
     protected FileHandler                         fileHandler    = null;
     protected ConsoleHandler                      consoleHandler = null;
     protected Logger                              parent         = null;
@@ -41,7 +41,7 @@ public class LogSink extends Logger {
             this.fileHandler = (FileHandler) handler;
         } else if (this.consoleHandler == null && handler instanceof ConsoleHandler) {
             this.consoleHandler = (ConsoleHandler) handler;
-            final ArrayList<LogSource> sources = this.getLogSources();
+            final java.util.List<LogSource> sources = this.getLogSources();
             for (final LogSource source : sources) {
                 source.removeHandler(this.consoleHandler);
                 source.addHandler(this.consoleHandler);
@@ -93,8 +93,8 @@ public class LogSink extends Logger {
         }
     }
 
-    protected ArrayList<LogSource> getLogSources() {
-        final ArrayList<LogSource> sources = new ArrayList<LogSource>();
+    protected java.util.List<LogSource> getLogSources() {
+        final java.util.List<LogSource> sources = new ArrayList<LogSource>();
         synchronized (this.logSources) {
             final Iterator<WeakReference<LogSource>> it = this.logSources.iterator();
             while (it.hasNext()) {
@@ -129,7 +129,7 @@ public class LogSink extends Logger {
             this.close();
         } else if (this.consoleHandler != null && handler == this.consoleHandler) {
             this.consoleHandler = null;
-            final ArrayList<LogSource> sources = this.getLogSources();
+            final java.util.List<LogSource> sources = this.getLogSources();
             for (final LogSource source : sources) {
                 source.removeHandler(this.consoleHandler);
             }

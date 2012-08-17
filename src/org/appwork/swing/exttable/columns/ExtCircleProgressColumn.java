@@ -3,6 +3,7 @@ package org.appwork.swing.exttable.columns;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
@@ -78,7 +79,7 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
 
                 }
                 if (System.currentTimeMillis() - this.timer > 1000 / ExtCircleProgressColumn.this.getFps() && ExtCircleProgressColumn.this.columnIndex >= 0) {
-                    final ArrayList<E> selection = mod.getSelectedObjects();
+                    final List<E> selection = mod.getSelectedObjects();
 
                     mod.fireTableChanged(new TableModelEvent(mod, 0, Integer.MAX_VALUE, ExtCircleProgressColumn.this.columnIndex, TableModelEvent.UPDATE));
                     mod.setSelectedObjects(selection);

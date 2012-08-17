@@ -30,7 +30,7 @@ public class ProcessBuilderFactory {
         return ret;
     }
 
-    public static ProcessBuilder create(ArrayList<String> splitCommandString) {
+    public static ProcessBuilder create(java.util.List<String> splitCommandString) {
         return create(splitCommandString.toArray(new String[] {}));
 
     }

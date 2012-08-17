@@ -27,8 +27,8 @@ public class TestClass implements Storable {
 
     }
 
-    public static ArrayList<TestClass> createList() {
-        final ArrayList<TestClass> ret = new ArrayList<TestClass>();
+    public static java.util.List<TestClass> createList() {
+        final java.util.List<TestClass> ret = new ArrayList<TestClass>();
         ret.add(TestClass.createObject());
         ret.add(TestClass.createObject());
         ret.add(TestClass.createObject());
@@ -76,7 +76,7 @@ public class TestClass implements Storable {
     private int[]                      intArray = new int[] { 1, 2 };
     private TestClass[]                objArray = null;
     private HashMap<String, TestClass> map      = new HashMap<String, TestClass>();
-    private ArrayList<Integer>         list     = new ArrayList<Integer>();
+    private java.util.List<Integer>         list     = new ArrayList<Integer>();
 
     private TestClass                  obj;
 
@@ -120,7 +120,7 @@ public class TestClass implements Storable {
         return this.intArray;
     }
 
-    public ArrayList<Integer> getList() {
+    public java.util.List<Integer> getList() {
         return this.list;
     }
 
@@ -204,7 +204,7 @@ public class TestClass implements Storable {
         this.intArray = intArray;
     }
 
-    public void setList(final ArrayList<Integer> list) {
+    public void setList(final java.util.List<Integer> list) {
         this.list = list;
     }
 

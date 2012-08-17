@@ -30,7 +30,7 @@ public class AutoScroller extends Thread {
     public void run() {
 
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        final ArrayList<ExtScreen> screens = new ArrayList<ExtScreen>();
+        final java.util.List<ExtScreen> screens = new ArrayList<ExtScreen>();
         for (GraphicsDevice gs : ge.getScreenDevices()) {
            
             screens.add(ExtScreen.create(gs.getDefaultConfiguration()));

@@ -19,7 +19,7 @@ public abstract class CommandLineApp {
     /**
      * Parameters required for this command. String[]{name,description}
      */
-    private final ArrayList<String[]> parameters;
+    private final java.util.List<String[]> parameters;
 
     public CommandLineApp(final String... commands) {
         this.commands = commands;
@@ -66,7 +66,7 @@ public abstract class CommandLineApp {
      * @return the {@link CommandLineApp#parameters}
      * @see CommandLineApp#parameters
      */
-    public ArrayList<String[]> getParameters() {
+    public java.util.List<String[]> getParameters() {
         return parameters;
     }
 

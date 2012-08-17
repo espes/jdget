@@ -50,8 +50,8 @@ public class ClipboardUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static ArrayList<File> getFiles(final TransferSupport info) {
-        final ArrayList<File> files = new ArrayList<File>();
+    public static java.util.List<File> getFiles(final TransferSupport info) {
+        final java.util.List<File> files = new ArrayList<File>();
         String inString = null;
         if (info != null) {
             StringTokenizer izer;
@@ -90,8 +90,8 @@ public class ClipboardUtils {
         return ClipboardUtils.INSTANCE;
     }
 
-    public static ArrayList<String> getLinks(final Transferable trans) {
-        final ArrayList<String> links = new ArrayList<String>();
+    public static java.util.List<String> getLinks(final Transferable trans) {
+        final java.util.List<String> links = new ArrayList<String>();
         String content = null;
         DataFlavor htmlFlavor = null;
         /*
@@ -153,7 +153,7 @@ public class ClipboardUtils {
         return links;
     }
 
-    public static ArrayList<String> getLinks(final TransferSupport trans) {
+    public static java.util.List<String> getLinks(final TransferSupport trans) {
         return ClipboardUtils.getLinks(trans.getTransferable());
     }
 

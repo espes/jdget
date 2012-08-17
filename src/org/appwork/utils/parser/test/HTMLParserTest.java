@@ -121,7 +121,7 @@ public class HTMLParserTest {
         };
 
         for (final TestEntry e : testStrings) {
-            final ArrayList<String> found = HTMLParser.findUrls(e.getString());
+            final java.util.List<String> found = HTMLParser.findUrls(e.getString());
             Assert.assertTrue(found.size() == e.getUrlsCount());
             if (e.getFinds() != null) {
                 for (int i = 0; i < e.getFinds().length; i++) {

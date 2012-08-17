@@ -151,7 +151,7 @@ public class Loc {
      * @return
      */
     public static String[] getLocales() {
-        final ArrayList<String> ret = new ArrayList<String>();
+        final java.util.List<String> ret = new ArrayList<String>();
 
         // first look out for all translations in filesystem
         String[] files;

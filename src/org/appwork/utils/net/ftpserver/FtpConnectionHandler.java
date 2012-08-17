@@ -33,7 +33,7 @@ public abstract class FtpConnectionHandler<E extends FtpFile> {
         return new FtpConnectionState();
     }
 
-    public String formatFileList(final ArrayList<? extends FtpFile> list) {
+    public String formatFileList(final java.util.List<? extends FtpFile> list) {
         final String DEL = " ";
         final StringBuilder sb = new StringBuilder();
         final Calendar cal = Calendar.getInstance();
@@ -79,7 +79,7 @@ public abstract class FtpConnectionHandler<E extends FtpFile> {
      * @throws IOException
      * @throws UnsupportedEncodingException
      */
-    public abstract ArrayList<E> getFileList(FtpConnectionState connectionState, String string) throws UnsupportedEncodingException, IOException, FtpException;
+    public abstract java.util.List<E> getFileList(FtpConnectionState connectionState, String string) throws UnsupportedEncodingException, IOException, FtpException;
 
     /**
      * @param connectionState

@@ -99,7 +99,7 @@ public class TreeModelStateSaver {
         }.start();
     }
 
-    protected void restoreState(final Object node, final ArrayList<Object> path) {
+    protected void restoreState(final Object node, final java.util.List<Object> path) {
         new EDTHelper<Object>() {
 
             @Override
@@ -146,7 +146,7 @@ public class TreeModelStateSaver {
      * 
      * @param root
      */
-    private void saveState(final Object node, final ArrayList<Object> path) {
+    private void saveState(final Object node, final java.util.List<Object> path) {
         path.add(node);
         try {
             this.treePath = new TreePath(path.toArray(new Object[] {}));

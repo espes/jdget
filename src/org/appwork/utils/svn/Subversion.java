@@ -210,10 +210,10 @@ public class Subversion implements ISVNEventHandler {
      * @throws SVNException
      */
     @SuppressWarnings("unchecked")
-    public ArrayList<SVNLogEntry> getChangeset(final long start, final long end) throws SVNException {
+    public java.util.List<SVNLogEntry> getChangeset(final long start, final long end) throws SVNException {
         final Collection<SVNLogEntry> log = this.repository.log(new String[] { "" }, null, start, end, true, true);
 
-        final ArrayList<SVNLogEntry> list = new ArrayList<SVNLogEntry>();
+        final java.util.List<SVNLogEntry> list = new ArrayList<SVNLogEntry>();
         list.addAll(log);
         return list;
     }
@@ -263,8 +263,8 @@ public class Subversion implements ISVNEventHandler {
      * @param file
      * @return
      */
-    public ArrayList<SVNInfo> getInfo(final File file) {
-        final ArrayList<SVNInfo> ret = new ArrayList<SVNInfo>();
+    public java.util.List<SVNInfo> getInfo(final File file) {
+        final java.util.List<SVNInfo> ret = new ArrayList<SVNInfo>();
         try {
             this.getWCClient().doInfo(file, SVNRevision.UNDEFINED, SVNRevision.WORKING, SVNDepth.getInfinityOrEmptyDepth(true), null, new ISVNInfoHandler() {
 
@@ -540,7 +540,7 @@ public class Subversion implements ISVNEventHandler {
      * @throws InterruptedException
      */
     public List<SVNDirEntry> listFiles(final FilePathFilter filePathFilter, final String path) throws SVNException, InterruptedException {
-        final ArrayList<SVNDirEntry> ret = new ArrayList<SVNDirEntry>();
+        final java.util.List<SVNDirEntry> ret = new ArrayList<SVNDirEntry>();
         final Collection entries = this.repository.getDir(path, -1, null, (Collection) null);
         final Iterator iterator = entries.iterator();
         while (iterator.hasNext()) {

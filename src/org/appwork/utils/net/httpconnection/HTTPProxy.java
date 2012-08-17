@@ -44,7 +44,7 @@ public class HTTPProxy {
                                        };
 
     public static List<HTTPProxy> getFromSystemProperties() {
-        final ArrayList<HTTPProxy> ret = new ArrayList<HTTPProxy>();
+        final java.util.List<HTTPProxy> ret = new ArrayList<HTTPProxy>();
         try {
             {
                 /* try to parse http proxy from system properties */

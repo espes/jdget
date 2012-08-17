@@ -38,7 +38,7 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
     @SuppressWarnings("unchecked")
     @Override
     protected Class<? extends Annotation>[] getAllowedAnnotations() {
-        final ArrayList<Class<? extends Annotation>> list = new ArrayList<Class<? extends Annotation>>();
+        final java.util.List<Class<? extends Annotation>> list = new ArrayList<Class<? extends Annotation>>();
 
         list.add(SpinnerValidator.class);
         return (Class<? extends Annotation>[]) list.toArray(new Class<?>[] {});

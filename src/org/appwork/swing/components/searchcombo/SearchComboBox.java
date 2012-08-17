@@ -169,7 +169,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
             final T lValue = this.value;
             if (lValue != null && SearchComboBox.this.getTextForValue(lValue).equals(txt)) { return true; }
             String text = null;
-            final ArrayList<T> found = new ArrayList<T>();
+            final java.util.List<T> found = new ArrayList<T>();
             for (int i = 0; i < SearchComboBox.this.getModel().getSize(); i++) {
                 text = SearchComboBox.this.getTextForValue((T) SearchComboBox.this.getModel().getElementAt(i));
                 if (text != null && text.startsWith(txt)) {
@@ -420,7 +420,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
                         }
                     };
                     final String p = AWUTheme.I().getPath();
-                    final ArrayList<String> list = new ArrayList<String>();
+                    final java.util.List<String> list = new ArrayList<String>();
 
                     final URL images = AWUTheme.class.getResource(p + "images");
                     for (final String s : new File(images.toURI()).list(new FilenameFilter() {
@@ -759,9 +759,9 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     /**
      * Do not use this method. For Type Safty, please use
-     * {@link #setList(ArrayList)} instead
+     * {@link #setList(java.util.List)} instead
      * 
-     * @deprecated use {@link #setList(ArrayList)}
+     * @deprecated use {@link #setList(java.util.List)}
      */
     @Override
     @Deprecated

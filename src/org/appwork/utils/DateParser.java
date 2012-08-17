@@ -20,7 +20,7 @@ import java.util.Date;
  */
 public class DateParser {
 
-    private ArrayList<SimpleDateFormat> dateFormats = new ArrayList<SimpleDateFormat>();
+    private java.util.List<SimpleDateFormat> dateFormats = new ArrayList<SimpleDateFormat>();
 
     public DateParser() {
     }

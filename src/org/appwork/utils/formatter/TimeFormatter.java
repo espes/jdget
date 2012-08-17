@@ -20,7 +20,7 @@ import org.appwork.utils.Regex;
 
 public class TimeFormatter {
 
-    private static final ArrayList<SimpleDateFormat> dateformats  = new ArrayList<SimpleDateFormat>();
+    private static final java.util.List<SimpleDateFormat> dateformats  = new ArrayList<SimpleDateFormat>();
     static {
         try {
             SimpleDateFormat sdf;

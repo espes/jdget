@@ -754,7 +754,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
         }
 
-        final ArrayList<Method> methodsToRemove = new ArrayList<Method>();
+        final java.util.List<Method> methodsToRemove = new ArrayList<Method>();
         for (final KeyHandler<?> kh : this.methodMap.values()) {
             try {
                 kh.init();

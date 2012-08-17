@@ -88,8 +88,8 @@ public class ZipIOReader {
      * @throws ZipIOException
      * @throws IOException
      */
-    public synchronized ArrayList<File> extract(final ZipEntry entry, final File output) throws ZipIOException, IOException {
-        final ArrayList<File> ret = new ArrayList<File>();
+    public synchronized java.util.List<File> extract(final ZipEntry entry, final File output) throws ZipIOException, IOException {
+        final java.util.List<File> ret = new ArrayList<File>();
         if (output.exists() && output.isDirectory()) {
             if (this.isOverwrite()) {
                 Files.deleteRecursiv(output);
@@ -198,7 +198,7 @@ public class ZipIOReader {
 
     }
 
-    public synchronized ArrayList<File> extractTo(final File outputDirectory) throws ZipIOException, IOException {
+    public synchronized java.util.List<File> extractTo(final File outputDirectory) throws ZipIOException, IOException {
         if (outputDirectory.exists() && outputDirectory.isFile()) {
 
             if (isBreakOnError()) {
@@ -215,7 +215,7 @@ public class ZipIOReader {
             }
         }
 
-        final ArrayList<File> ret = new ArrayList<File>();
+        final java.util.List<File> ret = new ArrayList<File>();
 
         for (final ZipEntry entry : this.getZipFiles()) {
             final File out = new File(outputDirectory, entry.getName());
@@ -390,7 +390,7 @@ public class ZipIOReader {
      */
     public synchronized ZipEntry[] getZipFiles() throws ZipIOException {
         if (this.zipEntries != null) { return this.zipEntries; }
-        final ArrayList<ZipEntry> ret = new ArrayList<ZipEntry>();
+        final java.util.List<ZipEntry> ret = new ArrayList<ZipEntry>();
         if (this.zip != null) {
             final Enumeration<? extends ZipEntry> zipIter = this.zip.entries();
             while (zipIter.hasMoreElements()) {
@@ -426,7 +426,7 @@ public class ZipIOReader {
     public synchronized ZipIOFile getZipIOFileSystem() throws ZipIOException {
         if (this.rootFS != null) { return this.rootFS; }
         final ZipEntry[] content = this.getZipFiles();
-        final ArrayList<ZipIOFile> root = new ArrayList<ZipIOFile>();
+        final java.util.List<ZipIOFile> root = new ArrayList<ZipIOFile>();
         for (final ZipEntry file : content) {
             if (!file.isDirectory() && !file.getName().contains("/")) {
                 /* file is in root */

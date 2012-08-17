@@ -50,8 +50,8 @@ public class ShellParser {
      * @return
      */
    
-    public static ArrayList<String> splitCommandString(String command) {
-        final ArrayList<String> ret = new ArrayList<String>();
+    public static java.util.List<String> splitCommandString(String command) {
+        final java.util.List<String> ret = new ArrayList<String>();
 
         while (true) {
             final int space = command.indexOf(" ");

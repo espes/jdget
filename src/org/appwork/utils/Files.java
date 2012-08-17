@@ -27,7 +27,7 @@ public class Files {
      * @throws IOException
      */
     public static void deleteRecursiv(final File... files) throws IOException {
-        final ArrayList<File> ret = Files.getFiles(true, true, files);
+        final java.util.List<File> ret = Files.getFiles(true, true, files);
         for (int i = ret.size() - 1; i >= 0; i--) {
             final File file = ret.get(i);
             if (!file.exists() || file.isFile()) {
@@ -49,7 +49,7 @@ public class Files {
         final LinkedList<String> done = new LinkedList<String>();
         File current = null;
         File[] currents = null;
-        final ArrayList<File> todo = new ArrayList<File>();
+        final java.util.List<File> todo = new ArrayList<File>();
         todo.add(startDirectory);
         while (todo.size() > 0) {
             current = todo.remove(0);
@@ -118,7 +118,7 @@ public class Files {
      * @param files
      * @return
      */
-    public static ArrayList<File> getFiles(final boolean includeDirectories, final boolean includeFiles, final File... files) {
+    public static java.util.List<File> getFiles(final boolean includeDirectories, final boolean includeFiles, final File... files) {
         return getFiles(new FileFilter() {
 
             @Override
@@ -180,8 +180,8 @@ public class Files {
      * @param source
      * @return
      */
-    public static ArrayList<File> getFiles(FileFilter filter, final File... files) {
-        final ArrayList<File> ret = new ArrayList<File>();
+    public static java.util.List<File> getFiles(FileFilter filter, final File... files) {
+        final java.util.List<File> ret = new ArrayList<File>();
         if (files != null) {
             for (final File f : files) {
                 if (!f.exists()) {

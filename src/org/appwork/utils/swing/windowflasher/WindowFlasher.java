@@ -17,13 +17,13 @@ public class WindowFlasher {
 
     private final JFrame           window;
 
-    private final ArrayList<Image> flashIcons;
+    private final java.util.List<Image> flashIcons;
     private List<Image>            icons;
     private Timer                  iconFlashTimer;
 
     private boolean                running = false;
 
-    public WindowFlasher(final JFrame frame, final ArrayList<Image> list) {
+    public WindowFlasher(final JFrame frame, final java.util.List<Image> list) {
         this.window = frame;
         this.flashIcons = list;
 

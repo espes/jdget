@@ -124,7 +124,7 @@ public class Regex {
             final Matcher matcher = this.matcher;
             matcher.reset();
 
-            final ArrayList<String> ar = new ArrayList<String>();
+            final java.util.List<String> ar = new ArrayList<String>();
             while (matcher.find()) {
                 String tmp = matcher.group(x);
                 if (tmp != null && this.memOpt) {
@@ -186,7 +186,7 @@ public class Regex {
         } else {
             final Matcher matcher = this.matcher;
             matcher.reset();
-            final ArrayList<String[]> ar = new ArrayList<String[]>();
+            final java.util.List<String[]> ar = new ArrayList<String[]>();
             while (matcher.find()) {
                 final int c = matcher.groupCount();
                 int d = 1;

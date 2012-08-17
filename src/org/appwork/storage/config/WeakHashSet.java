@@ -132,7 +132,7 @@ public class WeakHashSet<E> extends AbstractSet<E> implements Set<E> {
     }
 
     public static void main(String[] args) {
-        ArrayList<String> strong = new ArrayList<String>();
+        java.util.List<String> strong = new ArrayList<String>();
         WeakHashSet<String> test = new WeakHashSet<String>();
         {
             for (int i = 1; i < 1000000; i++) {

@@ -62,7 +62,7 @@ public class TranslateResource {
      */
     private static void convert() {
         File root = new File("C:/workspace/");
-        ArrayList<File> lngFiles = Files.getFiles(new FileFilter() {
+        java.util.List<File> lngFiles = Files.getFiles(new FileFilter() {
 
             @Override
             public boolean accept(File pathname) {

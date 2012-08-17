@@ -190,7 +190,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                             }
                         }.getReturnValue();
                         final E selObject = getModel().getObjectbyRow(sel.intValue());
-                        final ArrayList<E> data = ExtColumn.this.model.getElements();
+                        final java.util.List<E> data = ExtColumn.this.model.getElements();
                         try {
                             // sort data
                             ExtColumn.this.setSortOrderIdentifier(newID);

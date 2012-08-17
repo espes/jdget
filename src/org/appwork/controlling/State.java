@@ -26,9 +26,9 @@ public class State {
 
     private final String           label;
 
-    private final ArrayList<State> parents;
+    private final java.util.List<State> parents;
 
-    private final ArrayList<State> children;
+    private final java.util.List<State> children;
 
     private final int              id;
 
@@ -54,7 +54,7 @@ public class State {
     /**
      * @return the children
      */
-    public ArrayList<State> getChildren() {
+    public java.util.List<State> getChildren() {
         return children;
     }
 
@@ -65,7 +65,7 @@ public class State {
     /**
      * @return the parents
      */
-    public ArrayList<State> getParents() {
+    public java.util.List<State> getParents() {
         return parents;
     }
 

@@ -65,7 +65,7 @@ public PerformanceObserver(){
     public void print() {
         if(profileMethods){
             // /
-            ArrayList<Entry<String, Long>> entries = new ArrayList<Entry<String, Long>>();
+            java.util.List<Entry<String, Long>> entries = new ArrayList<Entry<String, Long>>();
             for (Iterator<Entry<String, Long>> it = StorageHandler.PROFILER_MAP.entrySet().iterator(); it.hasNext();) {
                 entries.add(it.next());
             }

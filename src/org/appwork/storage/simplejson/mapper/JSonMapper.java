@@ -337,7 +337,7 @@ public class JSonMapper {
                 } else {
                     if (json instanceof JSonArray) {
 
-                        final ArrayList<Object> inst = new ArrayList<Object>();
+                        final java.util.List<Object> inst = new ArrayList<Object>();
                         final JSonArray obj = (JSonArray) json;
                         final Type gs = clazz.getGenericSuperclass();
                         final Type gType;

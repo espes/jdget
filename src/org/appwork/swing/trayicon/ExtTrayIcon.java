@@ -34,11 +34,11 @@ public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionL
     private Point max;
     // private TrayIcon trayIcon;
     private Point min;
-    private final ArrayList<MouseListener> mouseListeners;
+    private final java.util.List<MouseListener> mouseListeners;
     private Thread mouseLocationObserver;
     private boolean mouseover;
     private Dimension size;
-    private final ArrayList<TrayMouseListener> traymouseListeners;
+    private final java.util.List<TrayMouseListener> traymouseListeners;
 
     /**
      * @param icon

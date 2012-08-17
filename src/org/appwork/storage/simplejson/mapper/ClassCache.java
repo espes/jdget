@@ -142,8 +142,8 @@ public class ClassCache {
     protected Constructor<? extends Object> constructor;
 
     protected final Class<? extends Object> clazz;
-    protected final ArrayList<Getter>       getter;
-    protected final ArrayList<Setter>       setter;
+    protected final java.util.List<Getter>       getter;
+    protected final java.util.List<Setter>       setter;
     protected final HashMap<String, Getter> getterMap;
     protected final HashMap<String, Setter> setterMap;
 
@@ -158,7 +158,7 @@ public class ClassCache {
         this.setterMap = new HashMap<String, Setter>();
     }
 
-    public ArrayList<Getter> getGetter() {
+    public java.util.List<Getter> getGetter() {
         return this.getter;
     }
 
@@ -178,7 +178,7 @@ public class ClassCache {
         return this.constructor.newInstance(ClassCache.EMPTY_OBJECT);
     }
 
-    public ArrayList<Setter> getSetter() {
+    public java.util.List<Setter> getSetter() {
         return this.setter;
     }
 
