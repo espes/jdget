@@ -49,19 +49,19 @@ public final class RandomUserAgent {
     /**
      * Browser-Language
      */
-    private static ArrayList<String>   langs          = new ArrayList<String>();
+    private static java.util.List<String>   langs          = new ArrayList<String>();
 
     /**
      * Firefox branch revision, version and release date triplet. They MUST
      * match! Release date in form of "YYYY.MM.DD[.HH]". As of Firefox version >
      * 3.0 buildHour is appended. Use ".xx"
      */
-    private static ArrayList<String>   ffVersionInfos = new ArrayList<String>();
+    private static java.util.List<String>   ffVersionInfos = new ArrayList<String>();
 
     /**
      * Internet Explorer versions
      */
-    private static ArrayList<String>   ieVersions     = new ArrayList<String>();
+    private static java.util.List<String>   ieVersions     = new ArrayList<String>();
 
     /**
      * Windows Versions. E.g. NT 5.1 is Windows XP
@@ -71,22 +71,22 @@ public final class RandomUserAgent {
     /**
      * Windows: dotNet addon-strings, to make the user-agent more random
      */
-    private static ArrayList<String[]> winAddons      = new ArrayList<String[]>();
+    private static java.util.List<String[]> winAddons      = new ArrayList<String[]>();
 
     /**
      * Linux: distribution addon-strings, to make the user-agent more random
      */
-    private static ArrayList<String>   linuxAddons    = new ArrayList<String>();
+    private static java.util.List<String>   linuxAddons    = new ArrayList<String>();
 
     /**
      * Macintosh: version addon-strings, to make the user-agent more random
      */
-    private static ArrayList<String>   macAddons      = new ArrayList<String>();
+    private static java.util.List<String>   macAddons      = new ArrayList<String>();
 
     /**
      * Information about the system: platform, OS, architecture
      */
-    private static ArrayList<System>   system         = new ArrayList<System>();
+    private static java.util.List<System>   system         = new ArrayList<System>();
 
     /**
      * Fill in the values (the "CONFIGURATION")

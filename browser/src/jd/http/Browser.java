@@ -721,7 +721,7 @@ public class Browser {
     /**
      * Creates a new postrequest based an an requestVariable Arraylist
      */
-    private Request createPostRequest(String url, final ArrayList<RequestVariable> post, final String encoding) throws IOException {
+    private Request createPostRequest(String url, final java.util.List<RequestVariable> post, final String encoding) throws IOException {
         url = this.getURL(url);
         boolean sendref = true;
         if (this.currentURL == null) {

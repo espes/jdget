@@ -42,16 +42,16 @@ public class PostRequest extends Request {
         NOTHING
     }
 
-    public static ArrayList<RequestVariable> variableMaptoArray(final LinkedHashMap<String, String> post) {
+    public static java.util.List<RequestVariable> variableMaptoArray(final LinkedHashMap<String, String> post) {
         if (post == null) { return null; }
-        final ArrayList<RequestVariable> ret = new ArrayList<RequestVariable>();
+        final java.util.List<RequestVariable> ret = new ArrayList<RequestVariable>();
         for (final Entry<String, String> entry : post.entrySet()) {
             ret.add(new RequestVariable(entry.getKey(), entry.getValue()));
         }
         return ret;
     }
 
-    private final ArrayList<RequestVariable> postVariables;
+    private final java.util.List<RequestVariable> postVariables;
     private String                           postString  = null;
     private String                           contentType = null;
     private byte[]                           postBytes   = null;
@@ -67,7 +67,7 @@ public class PostRequest extends Request {
         this.postVariables = new ArrayList<RequestVariable>();
     }
 
-    public void addAll(final ArrayList<RequestVariable> post) {
+    public void addAll(final java.util.List<RequestVariable> post) {
         this.postVariables.addAll(post);
     }
 

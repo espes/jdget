@@ -40,7 +40,7 @@ import org.appwork.utils.net.httpconnection.HTTPConnection.RequestMethod;
 public class PostFormDataRequest extends Request {
 
     private String                    boundary;
-    private final ArrayList<FormData> formDatas;
+    private final java.util.List<FormData> formDatas;
     private String                    encodeType = "multipart/form-data";
 
     public PostFormDataRequest(final String url) throws MalformedURLException {

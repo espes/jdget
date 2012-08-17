@@ -70,7 +70,7 @@ public class Form {
      */
     private String action;
 
-    private ArrayList<InputField> inputfields;
+    private java.util.List<InputField> inputfields;
 
     private String htmlcode = null;
 
@@ -260,12 +260,12 @@ public class Form {
 
     }
 
-    public ArrayList<InputField> getInputFields() {
+    public java.util.List<InputField> getInputFields() {
         return this.inputfields;
     }
 
-    public ArrayList<InputField> getInputFieldsByType(final String type) {
-        final ArrayList<InputField> ret = new ArrayList<InputField>();
+    public java.util.List<InputField> getInputFieldsByType(final String type) {
+        final java.util.List<InputField> ret = new ArrayList<InputField>();
         for (final InputField ipf : this.inputfields) {
             if (ipf.getType() != null && org.appwork.utils.Regex.matches(ipf.getType(), type)) {
                 ret.add(ipf);
@@ -334,8 +334,8 @@ public class Form {
      * 
      * @return
      */
-    public ArrayList<RequestVariable> getRequestVariables() {
-        final ArrayList<RequestVariable> ret = new ArrayList<RequestVariable>();
+    public java.util.List<RequestVariable> getRequestVariables() {
+        final java.util.List<RequestVariable> ret = new ArrayList<RequestVariable>();
         for (final InputField ipf : this.inputfields) {
             // Do not send not prefered Submit types
             if (this.getPreferredSubmit() != null && ipf.getType() != null && ipf.getType().equalsIgnoreCase("submit") && this.getPreferredSubmit() != ipf) {
