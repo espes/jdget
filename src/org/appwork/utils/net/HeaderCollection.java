@@ -19,7 +19,7 @@ import java.util.Locale;
  * 
  */
 public class HeaderCollection implements Iterable<HTTPHeader> {
-    private final LinkedList<HTTPHeader>    headers;
+    private  LinkedList<HTTPHeader>    headers;
     private static HashMap<String, Boolean> DUPES_ALLOWED = new HashMap<String, Boolean>();
     static {
         HeaderCollection.DUPES_ALLOWED.put("Set-Cookies".toLowerCase(Locale.ENGLISH), true);
@@ -31,6 +31,10 @@ public class HeaderCollection implements Iterable<HTTPHeader> {
 
     public String toString() {
         return headers.toString();
+    }
+    
+    public void clear(){
+        headers = new LinkedList<HTTPHeader>();
     }
 
     public void add(final HTTPHeader header) {
