@@ -18,7 +18,7 @@ public class IconLabelToolTip extends ExtTooltip {
 
     private ImageIcon icon;
 
-    private JLabel    label;
+    protected JLabel    label;
 
     /**
      * @param host
