@@ -22,6 +22,7 @@ import java.awt.image.ImageProducer;
 import java.awt.image.Kernel;
 import java.awt.image.RGBImageFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -39,18 +40,96 @@ public class IconIO {
     }
 
     /**
+     * @param image
+     * @return
+     */
+    public static BufferedImage blur(final BufferedImage image) {
+        final float[] matrix = new float[400];
+        for (int i = 0; i < 400; i++) {
+            matrix[i] = 1.0f / 400.0f;
+        }
+
+        final BufferedImageOp op = new ConvolveOp(new Kernel(20, 20, matrix), ConvolveOp.EDGE_NO_OP, null);
+        return op.filter(image, null);
+
+    }
+
+    public static BufferedImage colorRangeToTransparency(final BufferedImage image, final Color c1, final Color c2) {
+
+        final int r1 = c1.getRed();
+        final int g1 = c1.getGreen();
+        final int b1 = c1.getBlue();
+        final int r2 = c2.getRed();
+        final int g2 = c2.getGreen();
+        final int b2 = c2.getBlue();
+        final ImageFilter filter = new RGBImageFilter() {
+            @Override
+            public final int filterRGB(final int x, final int y, final int rgb) {
+
+                final int r = (rgb & 0xFF0000) >> 16;
+                final int g = (rgb & 0xFF00) >> 8;
+                final int b = rgb & 0xFF;
+                if (r >= r1 && r <= r2 && g >= g1 && g <= g2 && b >= b1 && b <= b2) {
+                    // Set fully transparent but keep color
+                    // calculate a alpha value based on the distance between the
+                    // range borders and the pixel color
+                    final int dist = (Math.abs(r - (r1 + r2) / 2) + Math.abs(g - (g1 + g2) / 2) + Math.abs(b - (b1 + b2) / 2)) * 2;
+
+                    return new Color(r, g, b, Math.min(255, dist)).getRGB();
+                }
+
+                return rgb;
+            }
+        };
+
+        final ImageProducer ip = new FilteredImageSource(image.getSource(), filter);
+        final Image img = Toolkit.getDefaultToolkit().createImage(ip);
+        return IconIO.toBufferedImage(img);
+    }
+
+    public static BufferedImage createEmptyImage(final int w, final int h) {
+
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice gd = ge.getDefaultScreenDevice();
+        final GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.BITMASK);
+        return image;
+    }
+
+    public static BufferedImage debug(final BufferedImage img) {
+        final Graphics2D g2 = img.createGraphics();
+        g2.setColor(Color.RED);
+        g2.drawRect(0, 0, img.getWidth() - 1, img.getHeight() - 1);
+        return img;
+    }
+
+    /**
      * @param resource
      * @return
      */
     public static BufferedImage getImage(final URL resource) {
         if (resource != null) {
+            InputStream is = null;
+            /*
+             * workaround for
+             * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7166379
+             */
+            /*
+             * http://stackoverflow.com/questions/10441276/jdk-1-7-too-many-open-
+             * files-due-to-posix-semaphores
+             */
             try {
-                return (ImageIO.read(resource));
+                is = resource.openStream();
+                return ImageIO.read(is);
             } catch (final IOException e) {
                 Log.exception(Level.WARNING, e);
+            } finally {
+                try {
+                    is.close();
+                } catch (final Throwable e) {
+                }
             }
         }
-
         return ImageProvider.createIcon("DUMMY", 48, 48);
     }
 
@@ -77,36 +156,15 @@ public class IconIO {
         }
     }
 
-    public static BufferedImage colorRangeToTransparency(BufferedImage image, Color c1, Color c2) {
-
-        final int r1 = c1.getRed();
-        final int g1 = c1.getGreen();
-        final int b1 = c1.getBlue();
-        final int r2 = c2.getRed();
-        final int g2 = c2.getGreen();
-        final int b2 = c2.getBlue();
-        ImageFilter filter = new RGBImageFilter() {
-            public final int filterRGB(int x, int y, int rgb) {
-
-                int r = (rgb & 0xFF0000) >> 16;
-                int g = (rgb & 0xFF00) >> 8;
-                int b = rgb & 0xFF;
-                if (r >= r1 && r <= r2 && g >= g1 && g <= g2 && b >= b1 && b <= b2) {
-                    // Set fully transparent but keep color
-                    // calculate a alpha value based on the distance between the
-                    // range borders and the pixel color
-                    int dist = ((Math.abs(r - (r1 + r2) / 2) + Math.abs(g - (g1 + g2) / 2) + Math.abs(b - (b1 + b2) / 2))) * 2;
-
-                    return new Color(r, g, b, Math.min(255, dist)).getRGB();
-                }
-
-                return rgb;
-            }
-        };
-
-        ImageProducer ip = new FilteredImageSource(image.getSource(), filter);
-        Image img = Toolkit.getDefaultToolkit().createImage(ip);
-        return toBufferedImage(img);
+    /**
+     * @param image
+     * @param i
+     * @param j
+     * @return
+     */
+    public static BufferedImage getScaledInstance(final Image img, final int width, final int height) {
+        // TODO Auto-generated method stub
+        return IconIO.getScaledInstance(img, width, height, Interpolation.BICUBIC, true);
     }
 
     /**
@@ -131,7 +189,7 @@ public class IconIO {
      * @return a scaled version of the original {@code BufferedImage}
      */
     public static BufferedImage getScaledInstance(final Image img, int width, int height, final Interpolation interpolation, final boolean higherQuality) {
-        double faktor = Math.max((double) img.getWidth(null) / width, (double) img.getHeight(null) / height);
+        final double faktor = Math.max((double) img.getWidth(null) / width, (double) img.getHeight(null) / height);
         width = Math.max((int) (img.getWidth(null) / faktor), 1);
         height = Math.max((int) (img.getHeight(null) / faktor), 1);
         if (faktor == 1.0 && img instanceof BufferedImage) { return (BufferedImage) img; }
@@ -175,7 +233,7 @@ public class IconIO {
                 }
             }
             if (w == 0) {
-                int o = 2;
+                final int o = 2;
             }
             final BufferedImage tmp = new BufferedImage(w, h, type);
             final Graphics2D g2 = tmp.createGraphics();
@@ -187,6 +245,57 @@ public class IconIO {
         } while (w != width || h != height);
 
         return (BufferedImage) ret;
+    }
+
+    /**
+     * @param object
+     * @param image
+     * @param i
+     * @param j
+     * @return
+     * @return
+     */
+    public static BufferedImage paint(final BufferedImage paintTo, final Image image, final int xoffset, final int yoffset) {
+
+        final Graphics2D g2 = paintTo.createGraphics();
+        g2.drawImage(image, xoffset, yoffset, null);
+        g2.dispose();
+        IconIO.debug(paintTo);
+        return paintTo;
+
+    }
+
+    /**
+     * This function removes the major color of the image and replaces it with
+     * transparency.
+     * 
+     * @param image
+     * @return
+     */
+    public static BufferedImage removeBackground(final BufferedImage image, final double tollerance) {
+
+        final HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
+        int biggestValue = 0;
+        int color = -1;
+        for (final int rgb : image.getRGB(0, 0, image.getWidth() - 1, image.getHeight() - 1, null, 0, image.getWidth())) {
+            Integer v = map.get(rgb);
+            if (v == null) {
+                v = 0;
+            }
+            v++;
+            map.put(rgb, v);
+            if (v > biggestValue) {
+                biggestValue = v;
+                color = rgb;
+            }
+        }
+        final Color col = new Color(color);
+
+        final int r = col.getRed();
+        final int g = col.getGreen();
+        final int b = col.getBlue();
+        final int a = col.getAlpha();
+        return IconIO.colorRangeToTransparency(image, new Color(Math.max((int) (r * (1d - tollerance)), 0), Math.max((int) (g * (1d - tollerance)), 0), Math.max((int) (b * (1d - tollerance)), 0), a), new Color(Math.min(255, (int) (r * (1d + tollerance))), Math.min(255, (int) (g * (1d + tollerance))), Math.min(255, (int) (b * (1d + tollerance))), a));
     }
 
     /**
@@ -267,95 +376,4 @@ public class IconIO {
         return image;
     }
 
-    /**
-     * @param image
-     * @return
-     */
-    public static BufferedImage blur(BufferedImage image) {
-        float[] matrix = new float[400];
-        for (int i = 0; i < 400; i++)
-            matrix[i] = 1.0f / 400.0f;
-
-        BufferedImageOp op = new ConvolveOp(new Kernel(20, 20, matrix), ConvolveOp.EDGE_NO_OP, null);
-        return op.filter(image, null);
-
-    }
-
-    /**
-     * @param image
-     * @param i
-     * @param j
-     * @return
-     */
-    public static BufferedImage getScaledInstance(Image img, int width, int height) {
-        // TODO Auto-generated method stub
-        return getScaledInstance(img, width, height, Interpolation.BICUBIC, true);
-    }
-
-    /**
-     * This function removes the major color of the image and replaces it with
-     * transparency.
-     * 
-     * @param image
-     * @return
-     */
-    public static BufferedImage removeBackground(BufferedImage image, double tollerance) {
-
-        HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
-        int biggestValue = 0;
-        int color = -1;
-        for (int rgb : image.getRGB(0, 0, image.getWidth() - 1, image.getHeight() - 1, null, 0, image.getWidth())) {
-            Integer v = map.get(rgb);
-            if (v == null) v = 0;
-            v++;
-            map.put(rgb, v);
-            if (v > biggestValue) {
-                biggestValue = v;
-                color = rgb;
-            }
-        }
-        Color col = new Color(color);
-
-        int r = col.getRed();
-        int g = col.getGreen();
-        int b = col.getBlue();
-        int a = col.getAlpha();
-        return colorRangeToTransparency(image, new Color(Math.max((int) (r * (1d - tollerance)), 0), Math.max((int) (g * (1d - tollerance)), 0), Math.max((int) (b * (1d - tollerance)), 0), a), new Color(Math.min(255, (int) (r * (1d + tollerance))), Math.min(255, (int) (g * (1d + tollerance))), Math.min(255, (int) (b * (1d + tollerance))), a));
-    }
-
-    public static BufferedImage createEmptyImage(int w, int h) {
-
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        final GraphicsDevice gd = ge.getDefaultScreenDevice();
-        final GraphicsConfiguration gc = gd.getDefaultConfiguration();
-        final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.BITMASK);
-        return image;
-    }
-
-    public static BufferedImage debug(BufferedImage img) {
-        Graphics2D g2 = img.createGraphics();
-        g2.setColor(Color.RED);
-        g2.drawRect(0, 0, img.getWidth() - 1, img.getHeight() - 1);
-        return img;
-    }
-
-    /**
-     * @param object
-     * @param image
-     * @param i
-     * @param j
-     * @return
-     * @return
-     */
-    public static BufferedImage paint(BufferedImage paintTo, Image image, int xoffset, int yoffset) {
-
-        Graphics2D g2 = paintTo.createGraphics();
-        g2.drawImage(image, xoffset, yoffset, null);
-        g2.dispose();
-        debug(paintTo);
-        return paintTo;
-
-    }
-
- 
 }
