@@ -431,6 +431,13 @@ public class Application {
              */
             return true;
         }
+        if (CrossSystem.isMac() && java >= Application.JAVA17 && java < 17006000l) {
+            /*
+             * leaking semaphores
+             * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7166379
+             */
+            return true;
+        }
         return false;
     }
 
