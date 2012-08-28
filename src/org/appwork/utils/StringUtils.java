@@ -45,4 +45,12 @@ public class StringUtils {
         return pass.equals(pass2);
     }
 
+    /**
+     * @param value
+     * @return
+     */
+    public static boolean isNotEmpty(String value) {        
+        return !isEmpty(value);
+    }
+
 }
