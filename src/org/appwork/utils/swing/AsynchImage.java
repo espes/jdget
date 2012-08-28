@@ -15,12 +15,18 @@ import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.Hash;
 import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.utils.event.queue.Queue;
+import org.appwork.utils.event.queue.QueueAction;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.SimpleHTTP;
 
 public class AsynchImage extends JLabel {
 
-    public static class Updater extends Thread {
+    private static final Queue QUEUE = new Queue(AsynchImage.class.getName() + "-Queue") {
+
+                                     };
+
+    public static class Updater extends QueueAction<Void, RuntimeException> {
 
         private final File        cache;
         private final int         x;
@@ -44,13 +50,17 @@ public class AsynchImage extends JLabel {
             this.asynchImage = asynchImage;
         }
 
+        public void start() {
+            QUEUE.add(this);
+        }
+
         /*
          * (non-Javadoc)
          * 
          * @see java.lang.Runnable#run()
          */
         @Override
-        public void run() {
+        public Void run() {
             try {
                 synchronized (AsynchImage.LOCK) {
                     // check again.
@@ -62,7 +72,7 @@ public class AsynchImage extends JLabel {
                         if (this.asynchImage != null) {
                             this.asynchImage.setDirectIcon(new ImageIcon(image));
                         }
-                        return;
+                        return null;
                     }
                 }
                 BufferedImage image = null;
@@ -77,13 +87,13 @@ public class AsynchImage extends JLabel {
                             if (this.asynchImage != null) {
                                 this.asynchImage.setDirectIcon(new ImageIcon(image));
                             }
-                            return;
+                            return null;
                         }
                     }
                     Log.L.finest("Update image " + this.cache);
                     if (this.url == null) {
                         Log.L.finest("no url given");
-                        return;
+                        return null;
                     }
                     final SimpleHTTP simple = new SimpleHTTP();
                     HttpURLConnection ret = null;
@@ -111,7 +121,7 @@ public class AsynchImage extends JLabel {
                         if (this.asynchImage != null) {
                             this.asynchImage.setDirectIcon(new ImageIcon(image));
                         }
-                        return;
+                        return null;
                     }
                     Log.L.finest("Cachewrite image " + this.cache + " " + this.x + " - " + image.getWidth());
                     this.cache.getParentFile().mkdirs();
@@ -123,6 +133,7 @@ public class AsynchImage extends JLabel {
             } catch (final Throwable e) {
                 Log.exception(e);
             }
+            return null;
         }
     }
 
