@@ -21,7 +21,9 @@ import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Locale;
@@ -29,7 +31,6 @@ import java.util.logging.Level;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageInputStream;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.UIManager;
@@ -400,7 +401,16 @@ public class ImageProvider {
     /* copied from ImageIO, to close the inputStream */
     public static BufferedImage read(final File input) throws IOException {
         if (!input.canRead()) { throw new IIOException("Can't read input file!"); }
-        return ImageProvider.read(input.toURI().toURL());
+        FileInputStream is = null;
+        try {
+            is = new FileInputStream(input);
+            return ImageIO.read(is);
+        } finally {
+            try {
+                is.close();
+            } catch (final Throwable e) {
+            }
+        }
     }
 
     /**
@@ -410,14 +420,15 @@ public class ImageProvider {
      */
     private static BufferedImage read(final URL absolutePath) throws IOException {
         if (absolutePath == null) { throw new IllegalArgumentException("input == null!"); }
-        final ImageInputStream stream = ImageIO.createImageInputStream(absolutePath.openStream());
+        InputStream is = null;
         BufferedImage bi = null;
         try {
-            if (stream == null) { throw new IIOException("Can't create an ImageInputStream!"); }
-            bi = ImageIO.read(stream);
+            is = absolutePath.openStream();
+            if (is == null) { throw new IIOException("Can't create an ImageInputStream!"); }
+            bi = ImageIO.read(is);
         } finally {
             try {
-                stream.close();
+                is.close();
             } catch (final Throwable e) {
             }
         }

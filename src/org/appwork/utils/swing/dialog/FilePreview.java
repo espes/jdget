@@ -15,7 +15,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 
-import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -45,37 +44,37 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
         this.fileChooser = fileChooser;
         this.fileChooser.addPropertyChangeListener(this);
 
-        panel = new JPanel(new MigLayout("ins 5", "[grow,fill]", "[grow,fill]"));
-        panel.add(label = new JLabel());
+        this.panel = new JPanel(new MigLayout("ins 5", "[grow,fill]", "[grow,fill]"));
+        this.panel.add(this.label = new JLabel());
 
-        setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
-        this.add(new JScrollPane(panel), "hidemode 3,gapleft 5");
-        setPreferredSize(new Dimension(200, 100));
+        this.setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
+        this.add(new JScrollPane(this.panel), "hidemode 3,gapleft 5");
+        this.setPreferredSize(new Dimension(200, 100));
     }
 
     public void propertyChange(final PropertyChangeEvent e) {
         if (JFileChooser.DIRECTORY_CHANGED_PROPERTY.equals(e.getPropertyName())) {
-            file = (File) e.getNewValue();
+            this.file = (File) e.getNewValue();
         } else if (JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(e.getPropertyName())) {
-            file = (File) e.getNewValue();
+            this.file = (File) e.getNewValue();
         }
         new Thread() {
             @Override
             public void run() {
-                update();
+                FilePreview.this.update();
             }
         }.start();
     }
 
     private void update() {
-        if (file != null && file.isFile()) {
+        if (this.file != null && this.file.isFile()) {
             try {
-                final String ext = Files.getExtension(file.getName());
+                final String ext = Files.getExtension(this.file.getName());
                 if (ext != null) {
                     BufferedImage image = null;
 
                     if (ext.equalsIgnoreCase("png") || ext.equalsIgnoreCase("jpg") || ext.equalsIgnoreCase("gif")) {
-                        image = ImageIO.read(file);
+                        image = ImageProvider.read(this.file);
                     }
 
                     if (image != null) {
@@ -84,10 +83,10 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
 
                             @Override
                             public Object edtRun() {
-                                label.setIcon(ii);
-                                final int w = fileChooser.getWidth() / 3;
-                                setPreferredSize(new Dimension(w, 100));
-                                fileChooser.revalidate();
+                                FilePreview.this.label.setIcon(ii);
+                                final int w = FilePreview.this.fileChooser.getWidth() / 3;
+                                FilePreview.this.setPreferredSize(new Dimension(w, 100));
+                                FilePreview.this.fileChooser.revalidate();
                                 return null;
                             }
 
@@ -105,10 +104,10 @@ public class FilePreview extends JPanel implements PropertyChangeListener {
 
             @Override
             public Object edtRun() {
-                label.setIcon(null);
-                label.setText("");
-                setPreferredSize(new Dimension(0, 0));
-                fileChooser.revalidate();
+                FilePreview.this.label.setIcon(null);
+                FilePreview.this.label.setText("");
+                FilePreview.this.setPreferredSize(new Dimension(0, 0));
+                FilePreview.this.fileChooser.revalidate();
                 return null;
             }
 

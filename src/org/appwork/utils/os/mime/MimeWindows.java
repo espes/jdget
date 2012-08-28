@@ -11,6 +11,7 @@ package org.appwork.utils.os.mime;
 
 import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -32,18 +33,24 @@ public class MimeWindows extends MimeDefault {
             final File path = Application.getResource("tmp/images/" + extension + ".png");
             try {
                 if (path.exists() && path.isFile()) {
-                    ret = new ImageIcon(ImageIO.read(path));
+                    ret = new ImageIcon(ImageProvider.read(path));
                 } else {
                     File file = null;
+                    FileOutputStream fos = null;
                     try {
                         file = File.createTempFile("icon", "." + extension);
                         final ShellFolder shellFolder = ShellFolder.getShellFolder(file);
                         ret = new ImageIcon(shellFolder.getIcon(true));
                         path.mkdirs();
-                        ImageIO.write((RenderedImage) ret.getImage(), "png", path);
+                        fos = new FileOutputStream(path);
+                        ImageIO.write((RenderedImage) ret.getImage(), "png", fos);
                     } catch (final Throwable e) {
                         ret = ImageProvider.toImageIcon(FileSystemView.getFileSystemView().getSystemIcon(file));
                     } finally {
+                        try {
+                            fos.close();
+                        } catch (final Throwable e) {
+                        }
                         if (file != null) {
                             file.delete();
                         }

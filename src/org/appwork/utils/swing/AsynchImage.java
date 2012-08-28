@@ -3,6 +3,7 @@ package org.appwork.utils.swing;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -21,10 +22,6 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.SimpleHTTP;
 
 public class AsynchImage extends JLabel {
-
-    private static final Queue QUEUE = new Queue(AsynchImage.class.getName() + "-Queue") {
-
-                                     };
 
     public static class Updater extends QueueAction<Void, RuntimeException> {
 
@@ -50,10 +47,6 @@ public class AsynchImage extends JLabel {
             this.asynchImage = asynchImage;
         }
 
-        public void start() {
-            QUEUE.add(this);
-        }
-
         /*
          * (non-Javadoc)
          * 
@@ -68,7 +61,7 @@ public class AsynchImage extends JLabel {
                     if (this.cache.exists() && age < Updater.EXPIRETIME) {
                         // seems like another thread updated the image in the
                         // meantime
-                        final BufferedImage image = ImageIO.read(this.cache);
+                        final BufferedImage image = ImageProvider.read(this.cache);
                         if (this.asynchImage != null) {
                             this.asynchImage.setDirectIcon(new ImageIcon(image));
                         }
@@ -83,7 +76,7 @@ public class AsynchImage extends JLabel {
                             // seems like another thread updated the image in
                             // the
                             // meantime
-                            image = ImageIO.read(this.cache);
+                            image = ImageProvider.read(this.cache);
                             if (this.asynchImage != null) {
                                 this.asynchImage.setDirectIcon(new ImageIcon(image));
                             }
@@ -98,13 +91,17 @@ public class AsynchImage extends JLabel {
                     final SimpleHTTP simple = new SimpleHTTP();
                     HttpURLConnection ret = null;
                     try {
-                        Log.L.finest("Call " + url);
+                        Log.L.finest("Call " + this.url);
                         ret = simple.openGetConnection(this.url, 30 * 1000);
                         Log.L.finest("DONE");
                         image = ImageIO.read(ret.getInputStream());
                     } finally {
                         try {
                             ret.disconnect();
+                        } catch (final Throwable e) {
+                        }
+                        try {
+                            simple.getConnection().disconnect();
                         } catch (final Throwable e) {
                         }
                     }
@@ -117,7 +114,7 @@ public class AsynchImage extends JLabel {
                         // seems like another thread updated the image in
                         // the
                         // meantime
-                        image = ImageIO.read(this.cache);
+                        image = ImageProvider.read(this.cache);
                         if (this.asynchImage != null) {
                             this.asynchImage.setDirectIcon(new ImageIcon(image));
                         }
@@ -125,7 +122,16 @@ public class AsynchImage extends JLabel {
                     }
                     Log.L.finest("Cachewrite image " + this.cache + " " + this.x + " - " + image.getWidth());
                     this.cache.getParentFile().mkdirs();
-                    ImageIO.write(image, Files.getExtension(this.cache.getName()), this.cache);
+                    FileOutputStream fos = null;
+                    try {
+                        fos = new FileOutputStream(this.cache);
+                        ImageIO.write(image, Files.getExtension(this.cache.getName()), fos);
+                    } finally {
+                        try {
+                            fos.close();
+                        } catch (final Throwable e) {
+                        }
+                    }
                     if (this.asynchImage != null) {
                         this.asynchImage.setDirectIcon(new ImageIcon(image));
                     }
@@ -135,20 +141,28 @@ public class AsynchImage extends JLabel {
             }
             return null;
         }
+
+        public void start() {
+            AsynchImage.QUEUE.add(this);
+        }
     }
+
+    private static final Queue QUEUE               = new Queue(AsynchImage.class.getName() + "-Queue") {
+
+                                                   };
 
     /**
      * 
      */
-    private static final long serialVersionUID    = 1L;
-    private File              cache;
+    private static final long  serialVersionUID    = 1L;
+    private File               cache;
 
-    private final int         prefX;
-    private final int         prefY;
-    private boolean           setIconAfterLoading = true;
+    private final int          prefX;
+    private final int          prefY;
+    private boolean            setIconAfterLoading = true;
 
-    public static Object      LOCK                = new Object();
-    private static Object     LOCK2               = new Object();
+    public static Object       LOCK                = new Object();
+    private static Object      LOCK2               = new Object();
 
     /**
      * @param i
@@ -214,7 +228,7 @@ public class AsynchImage extends JLabel {
                 if (this.cache.exists() && age < Updater.EXPIRETIME) {
                     refresh = false;
                     BufferedImage image;
-                    image = ImageIO.read(this.cache);
+                    image = ImageProvider.read(this.cache);
                     this.setIcon(new ImageIcon(image));
                     if (!this.isSetIconAfterLoading()) {
                         if (image.getWidth() > 32) {
@@ -224,7 +238,7 @@ public class AsynchImage extends JLabel {
                     return;
                 } else if (this.cache.exists()) {
                     BufferedImage image;
-                    image = ImageIO.read(this.cache);
+                    image = ImageProvider.read(this.cache);
                     this.setIcon(new ImageIcon(image));
                     return;
                 }
