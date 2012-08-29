@@ -22,6 +22,10 @@ public class HTTPProxy {
     public static final HTTPProxy NONE = new HTTPProxy(TYPE.NONE) {
 
                                            @Override
+                                           public void setConnectMethodPrefered(final boolean value) {
+                                           }
+
+                                           @Override
                                            public void setLocalIP(final InetAddress localIP) {
                                            }
 
@@ -233,16 +237,18 @@ public class HTTPProxy {
         return null;
     }
 
-    private InetAddress localIP = null;
+    private InetAddress localIP          = null;
 
-    private String      user    = null;
+    private String      user             = null;
 
-    private String      pass    = null;
-    private int         port    = 80;
+    private String      pass             = null;
+    private int         port             = 80;
 
-    protected String    host    = null;
+    protected String    host             = null;
 
-    private TYPE        type    = TYPE.DIRECT;
+    private TYPE        type             = TYPE.DIRECT;
+
+    private boolean     useConnectMethod = false;
 
     protected HTTPProxy() {
     }
@@ -271,6 +277,7 @@ public class HTTPProxy {
         this.port = proxy.port;
         this.type = proxy.type;
         this.localIP = proxy.localIP;
+        this.useConnectMethod = proxy.useConnectMethod;
     }
 
     public String getHost() {
@@ -307,6 +314,10 @@ public class HTTPProxy {
      */
     public boolean isDirect() {
         return this.type == TYPE.DIRECT;
+    }
+
+    public boolean isConnectMethodPrefered() {
+        return this.useConnectMethod;
     }
 
     public boolean isLocal() {
@@ -376,13 +387,24 @@ public class HTTPProxy {
         this.user = user;
     }
 
+    public void setConnectMethodPrefered(final boolean value) {
+        this.useConnectMethod = value;
+    }
+
     @Override
     public String toString() {
-        if (this.type == TYPE.NONE) { return _AWU.T.proxy_none(); }
-        if (this.type == TYPE.DIRECT) { return _AWU.T.proxy_direct(this.localIP.getHostAddress()); }
-        if (this.type == TYPE.HTTP) { return _AWU.T.proxy_http(this.getHost(), this.getPort()); }
-        if (this.type == TYPE.SOCKS5) { return _AWU.T.proxy_socks5(this.getHost(), this.getPort()); }
-        if (this.type == TYPE.SOCKS4) { return _AWU.T.proxy_socks4(this.getHost(), this.getPort()); }
-        return "UNKNOWN";
+        if (this.type == TYPE.NONE) {
+            return _AWU.T.proxy_none();
+        } else if (this.type == TYPE.DIRECT) {
+            return _AWU.T.proxy_direct(this.localIP.getHostAddress());
+        } else if (this.type == TYPE.HTTP) {
+            return _AWU.T.proxy_http(this.getHost(), this.getPort());
+        } else if (this.type == TYPE.SOCKS5) {
+            return _AWU.T.proxy_socks5(this.getHost(), this.getPort());
+        } else if (this.type == TYPE.SOCKS4) {
+            return _AWU.T.proxy_socks4(this.getHost(), this.getPort());
+        } else {
+            return "UNKNOWN";
+        }
     }
 }

@@ -23,8 +23,19 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
     private StringBuilder     proxyRequest;
     private InetSocketAddress proxyInetSocketAddress = null;
 
+    private boolean           preferConnectMethod    = true;
+
+    public boolean isConnectMethodPrefered() {
+        return preferConnectMethod;
+    }
+
+    public void setPreferConnectMethod(boolean preferConnectMethod) {
+        this.preferConnectMethod = preferConnectMethod;
+    }
+
     public HTTPProxyHTTPConnectionImpl(final URL url, final HTTPProxy p) {
         super(url, p);
+        preferConnectMethod = p.isConnectMethodPrefered();
     }
 
     /*
@@ -74,8 +85,8 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             }
             if (ee != null) { throw new ProxyConnectException(ee, this.proxy); }
             this.requestTime = System.currentTimeMillis() - startTime;
-            if (this.httpURL.getProtocol().startsWith("https")) {
-                /* ssl via CONNECT method */
+            if (this.httpURL.getProtocol().startsWith("https") || isConnectMethodPrefered()) {
+                /* ssl via CONNECT method or because we prefer CONNECT */
                 /* build CONNECT request */
                 this.proxyRequest = new StringBuilder();
                 this.proxyRequest.append("CONNECT ");
@@ -145,28 +156,30 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                     final String temp = new String(bytes, "UTF-8").trim();
                     this.proxyRequest.append(temp + "\r\n");
                 }
-                SSLSocket sslSocket = null;
                 this.httpPort = this.httpURL.getPort();
                 this.httpHost = this.httpURL.getHost();
                 if (this.httpPort == -1) {
                     this.httpPort = this.httpURL.getDefaultPort();
                 }
-                try {
-                    final SSLSocketFactory socketFactory = TrustALLSSLFactory.getSSLFactoryTrustALL();
-                    sslSocket = (SSLSocket) socketFactory.createSocket(this.httpSocket, this.httpHost, this.httpPort, true);
-                    sslSocket.startHandshake();
-                } catch (final SSLHandshakeException e) {
+                if (this.httpURL.getProtocol().startsWith("https")) {
+                    SSLSocket sslSocket = null;
                     try {
-                        sslSocket.close();
-                    } catch (final Throwable e3) {
+                        final SSLSocketFactory socketFactory = TrustALLSSLFactory.getSSLFactoryTrustALL();
+                        sslSocket = (SSLSocket) socketFactory.createSocket(this.httpSocket, this.httpHost, this.httpPort, true);
+                        sslSocket.startHandshake();
+                    } catch (final SSLHandshakeException e) {
+                        try {
+                            sslSocket.close();
+                        } catch (final Throwable e3) {
+                        }
+                        try {
+                            this.httpSocket.close();
+                        } catch (final Throwable e2) {
+                        }
+                        throw new IOException("HTTPProxyHTTPConnection: " + e, e);
                     }
-                    try {
-                        this.httpSocket.close();
-                    } catch (final Throwable e2) {
-                    }
-                    throw new IOException("HTTPProxyHTTPConnection: " + e, e);
+                    this.httpSocket = sslSocket;
                 }
-                this.httpSocket = sslSocket;
                 /* httpPath needs to be like normal http request, eg /index.html */
                 this.httpPath = new org.appwork.utils.Regex(this.httpURL.toString(), "https?://.*?(/.+)").getMatch(0);
                 if (this.httpPath == null) {

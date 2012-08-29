@@ -9,6 +9,9 @@
  */
 package org.appwork.utils.net.httpconnection;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.appwork.storage.Storable;
 
 /**
@@ -30,7 +33,8 @@ public class HTTPProxyStorable implements Storable {
     private int    port     = -1;
     private String address  = null;
     private TYPE   type     = null;
-
+    private boolean useConnectMethod = false;
+    
     public String getAddress() {
         return this.address;
     }
@@ -50,7 +54,11 @@ public class HTTPProxyStorable implements Storable {
     public String getUsername() {
         return this.username;
     }
-
+    
+    public boolean isConnectMethodPrefered() {
+        return this.useConnectMethod;
+    }
+    
     public void setAddress(final String address) {
         this.address = address;
     }
@@ -70,5 +78,8 @@ public class HTTPProxyStorable implements Storable {
     public void setUsername(final String username) {
         this.username = username;
     }
-
+    
+    public void setConnectMethodPrefered(final boolean value) {
+        this.useConnectMethod = value;
+    }
 }
