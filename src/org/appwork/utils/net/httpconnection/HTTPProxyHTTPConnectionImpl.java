@@ -7,7 +7,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 import javax.net.ssl.SSLHandshakeException;
@@ -25,17 +24,9 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
 
     private boolean           preferConnectMethod    = true;
 
-    public boolean isConnectMethodPrefered() {
-        return preferConnectMethod;
-    }
-
-    public void setPreferConnectMethod(boolean preferConnectMethod) {
-        this.preferConnectMethod = preferConnectMethod;
-    }
-
     public HTTPProxyHTTPConnectionImpl(final URL url, final HTTPProxy p) {
         super(url, p);
-        preferConnectMethod = p.isConnectMethodPrefered();
+        this.preferConnectMethod = p.isConnectMethodPrefered();
     }
 
     /*
@@ -54,13 +45,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                 final String pass = this.proxy.getPass() == null ? "" : this.proxy.getPass();
                 this.requestProperties.put("Proxy-Authorization", "Basic " + new String(Base64.encodeToByte((user + ":" + pass).getBytes(), false)));
             }
-            InetAddress hosts[] = null;
-            try {
-                /* resolv all possible proxy ip's */
-                hosts = InetAddress.getAllByName(this.proxy.getHost());
-            } catch (final UnknownHostException e) {
-                throw e;
-            }
+            final InetAddress hosts[] = this.resolvHostIP(this.proxy.getHost());
             IOException ee = null;
             long startTime = System.currentTimeMillis();
             for (final InetAddress host : hosts) {
@@ -85,7 +70,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             }
             if (ee != null) { throw new ProxyConnectException(ee, this.proxy); }
             this.requestTime = System.currentTimeMillis() - startTime;
-            if (this.httpURL.getProtocol().startsWith("https") || isConnectMethodPrefered()) {
+            if (this.httpURL.getProtocol().startsWith("https") || this.isConnectMethodPrefered()) {
                 /* ssl via CONNECT method or because we prefer CONNECT */
                 /* build CONNECT request */
                 this.proxyRequest = new StringBuilder();
@@ -233,5 +218,13 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             return sb.toString();
         }
         return super.getRequestInfo();
+    }
+
+    public boolean isConnectMethodPrefered() {
+        return this.preferConnectMethod;
+    }
+
+    public void setPreferConnectMethod(final boolean preferConnectMethod) {
+        this.preferConnectMethod = preferConnectMethod;
     }
 }

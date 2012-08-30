@@ -16,7 +16,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
-import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
@@ -53,13 +52,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
         }
         try {
             this.validateProxy();
-            InetAddress hosts[] = null;
-            try {
-                /* resolv all possible proxy ip's */
-                hosts = InetAddress.getAllByName(this.proxy.getHost());
-            } catch (final UnknownHostException e) {
-                throw e;
-            }
+            final InetAddress hosts[] = this.resolvHostIP(this.proxy.getHost());
             IOException ee = null;
             long startTime = System.currentTimeMillis();
             for (final InetAddress host : hosts) {

@@ -83,13 +83,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     public void connect() throws IOException {
         if (this.isConnected()) { return;/* oder fehler */
         }
-        InetAddress hosts[] = null;
-        try {
-            /* resolv all possible ip's */
-            hosts = InetAddress.getAllByName(this.httpURL.getHost());
-        } catch (final UnknownHostException e) {
-            throw e;
-        }
+        final InetAddress hosts[] = this.resolvHostIP(this.httpURL.getHost());
         /* try all different ip's until one is valid and connectable */
         IOException ee = null;
         for (final InetAddress host : hosts) {
@@ -533,6 +527,24 @@ public class HTTPConnectionImpl implements HTTPConnection {
         }
         newRet.putAll(oldRequestProperties);
         return newRet;
+    }
+
+    public InetAddress[] resolvHostIP(final String host) throws IOException {
+        InetAddress hosts[] = null;
+        for (int resolvTry = 0; resolvTry < 2; resolvTry++) {
+            try {
+                /* resolv all possible ip's */
+                hosts = InetAddress.getAllByName(host);
+                return hosts;
+            } catch (final UnknownHostException e) {
+                try {
+                    Thread.sleep(500);
+                } catch (final InterruptedException e1) {
+                    throw new IOException(e1);
+                }
+            }
+        }
+        throw new UnknownHostException(host);
     }
 
     protected void sendRequest() throws UnsupportedEncodingException, IOException {
