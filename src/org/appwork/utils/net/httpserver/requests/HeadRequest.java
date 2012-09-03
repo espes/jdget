@@ -9,10 +9,27 @@
  */
 package org.appwork.utils.net.httpserver.requests;
 
+import org.appwork.utils.net.HTTPHeader;
+
 /**
  * @author daniel
  * 
  */
 public class HeadRequest extends GetRequest {
+    public String toString(){
+        final StringBuilder sb = new StringBuilder();
+      
+        sb.append("\r\n----------------Request-------------------------\r\n");
 
+        sb.append("HEAD ").append(getRequestedPath()).append(" HTTP/1.1\r\n");
+
+        for (final HTTPHeader key : this.getRequestHeaders()) {
+   
+            sb.append(key.getKey());
+            sb.append(": ");
+            sb.append(key.getValue());
+            sb.append("\r\n");
+        }
+        return sb.toString();
+    }
 }
