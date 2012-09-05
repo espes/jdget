@@ -105,6 +105,7 @@ public class Input2OutputStreamForwarder {
                         // SizeFormatter.formatBytes(Input2OutputStreamForwarder.this.readS));
                         Input2OutputStreamForwarder.this.out.write(Input2OutputStreamForwarder.this.buffer, Input2OutputStreamForwarder.this.readP, Input2OutputStreamForwarder.this.readS);
                         Input2OutputStreamForwarder.this.outC = Input2OutputStreamForwarder.this.outC + Input2OutputStreamForwarder.this.readS;
+                        System.out.println(thread.getName()+" : "+outC+" bytes");
                         synchronized (Input2OutputStreamForwarder.this.LOCK) {
                             Input2OutputStreamForwarder.this.readP = Input2OutputStreamForwarder.this.readP + Input2OutputStreamForwarder.this.readS;
                             Input2OutputStreamForwarder.this.LOCK.notifyAll();
@@ -119,7 +120,7 @@ public class Input2OutputStreamForwarder {
                 }
             }
 
-        });
+        },this.in+" >> "+out);
     }
 
     public void forward() throws IOException, InterruptedException {
@@ -176,7 +177,14 @@ public class Input2OutputStreamForwarder {
                     this.writeP = this.writeP + read;
                 }
             }
-            if (this.outE != null) { throw this.outE; }
+            if (this.outE != null) { 
+                
+                throw this.outE; 
+                
+            }
+        }catch(IOException e){
+          
+            throw e;
         } finally {
             try {
                 this.readDone = true;

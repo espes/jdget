@@ -85,7 +85,10 @@ public class StreamingInputStream extends InputStream {
 
     @Override
     public int read(final byte[] b, final int off, int len) throws IOException {
-        if (this.currentChunk == null) { throw new IOException("inputstream is closed"); }
+        if (this.currentChunk == null) {
+            //
+            throw new IOException("DownloadStream is closed");
+        }
         len = this.checkEOF(len);
         if (len == -1) { return -1; }
         final int ret = this.streaming.readChunkData(this, b, off, len);

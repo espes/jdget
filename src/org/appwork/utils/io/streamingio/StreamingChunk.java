@@ -98,7 +98,12 @@ public class StreamingChunk {
         if (position < 0) { throw new IOException("invalid position " + position); }
         final long lastWrites = this.writes.get();
         int ret = this._read(b, off, len, position);
-        if (ret > 0 || ret == -1) { return ret; }
+        if (ret > 0 || ret == -1) { 
+            
+            //
+            return ret;
+            
+        }
         while (true) {
             Thread.sleep(50);
             
@@ -106,7 +111,10 @@ public class StreamingChunk {
                 ret = this._read(b, off, len, position);
                 if (ret > 0 || ret == -1) { return ret; }
             }
-            if (this.canGrow == false) { return -1; }
+            if (this.canGrow == false) {
+                //
+                return -1; 
+                }
         }
     }
 
