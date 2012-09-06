@@ -17,6 +17,7 @@ package org.appwork.utils.io.streamingio;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -98,23 +99,23 @@ public class StreamingChunk {
         if (position < 0) { throw new IOException("invalid position " + position); }
         final long lastWrites = this.writes.get();
         int ret = this._read(b, off, len, position);
-        if (ret > 0 || ret == -1) { 
-            
+        if (ret > 0 || ret == -1) {
+
             //
             return ret;
-            
+
         }
         while (true) {
             Thread.sleep(50);
-            
+
             if (lastWrites != this.writes.get()) {
                 ret = this._read(b, off, len, position);
                 if (ret > 0 || ret == -1) { return ret; }
             }
             if (this.canGrow == false) {
                 //
-                return -1; 
-                }
+                return -1;
+            }
         }
     }
 
@@ -152,6 +153,59 @@ public class StreamingChunk {
         this.chunkFile.write(b, off, len);
         this.currentChunkSize.addAndGet(len);
         this.writes.incrementAndGet();
+    }
+
+    /**
+     * @param start
+     * @param end
+     * @return
+     */
+    public InputStream getInputStream(final long startPosition, long end) {
+
+        return new InputStream() {
+            long   currentPosition = startPosition;
+            byte[] bufferByte      = new byte[1];
+
+            @Override
+            public int read() throws IOException {
+
+                if (currentPosition != 0 && currentPosition > getAvailableChunkSize()) return -1;
+                int ret = read(bufferByte, 0, 1);
+                if (ret == 1) return bufferByte[1];
+                return -1;
+            }
+
+            @Override
+            public void close() throws IOException {
+                super.close();
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException {
+
+                if (currentPosition != 0 && currentPosition > StreamingChunk.this.getAvailableChunkSize()) {
+                    System.out.println("-1 answer");
+                    return -1;
+                }
+                try {
+                    int ret;
+
+                    ret = StreamingChunk.this.read(b, off, len, currentPosition);
+                    if (ret >= 0) currentPosition += ret;
+
+                    return ret;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return -1;
+                }
+
+            }
+
+            @Override
+            public boolean markSupported() {
+                return false;
+            }
+        };
     }
 
 }

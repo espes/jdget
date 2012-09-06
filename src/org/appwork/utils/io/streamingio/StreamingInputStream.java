@@ -18,6 +18,10 @@ import java.io.InputStream;
  */
 public class StreamingInputStream extends InputStream {
 
+    /**
+     * 
+     */
+    public static final String DOWNLOAD_STREAM_IS_CLOSED = "DownloadStream is closed";
     protected final Streaming streaming;
     protected final long      startPosition;
     protected final long      endPosition;
@@ -87,7 +91,7 @@ public class StreamingInputStream extends InputStream {
     public int read(final byte[] b, final int off, int len) throws IOException {
         if (this.currentChunk == null) {
             //
-            throw new IOException("DownloadStream is closed");
+            throw new IOException(DOWNLOAD_STREAM_IS_CLOSED);
         }
         len = this.checkEOF(len);
         if (len == -1) { return -1; }
