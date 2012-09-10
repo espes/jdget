@@ -220,11 +220,11 @@ public class Dialog implements WindowFocusListener {
      */
     public static ImageIcon getIconByText(final String text) {
         try {
-            if (text.contains("?")) {
+            if (text != null && text.contains("?")) {
                 return AWUTheme.I().getIcon(Dialog.ICON_QUESTION, 32);
-            } else if (text.contains("error") || text.contains("exception")) {
+            } else if (text != null && (text.contains("error") || text.contains("exception"))) {
                 return AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32);
-            } else if (text.contains("!")) {
+            } else if (text != null && text.contains("!")) {
                 return AWUTheme.I().getIcon(Dialog.ICON_WARNING, 32);
             } else {
                 return AWUTheme.I().getIcon(Dialog.ICON_INFO, 32);
@@ -247,12 +247,12 @@ public class Dialog implements WindowFocusListener {
     /**
      * The max counter value for a timeout Dialog
      */
-    private int                     countdownTime = 20;
+    private int                          countdownTime = 20;
 
     /**
      * Parent window for all dialogs created with abstractdialog
      */
-    private Component               owner         = null;
+    private Component                    owner         = null;
 
     private final java.util.List<Window> parents;
 
@@ -531,8 +531,6 @@ public class Dialog implements WindowFocusListener {
         return 0;
     }
 
-  
-   
     /**
      * 
      * @param flag

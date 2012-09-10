@@ -256,6 +256,7 @@ public class SingleAppInstance {
                 socketAddress = new InetSocketAddress(this.getLocalHost(), SingleAppInstance.DEFAULTPORT);
                 this.serverSocket.bind(socketAddress);
             } catch (final IOException e) {
+                e.printStackTrace();
                 try {
                     this.serverSocket.close();
                 } catch (final Throwable e2) {
