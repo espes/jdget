@@ -43,6 +43,7 @@ import jd.parser.Regex;
 import jd.parser.html.Form;
 import jd.parser.html.InputField;
 
+import org.appwork.utils.logging2.LogSource;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
 public class Browser {
@@ -531,7 +532,11 @@ public class Browser {
             if (this.isDebug()) {
                 final Logger llogger = this.getLogger();
                 if (llogger != null) {
-                    llogger.finest("\r\n" + request.printHeaders());
+                    try {
+                        llogger.finest("\r\n" + request.printHeaders());
+                    } catch (final Throwable e) {
+                        LogSource.exception(llogger, e);
+                    }
                 }
             }
         }
