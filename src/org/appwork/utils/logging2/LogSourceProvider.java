@@ -35,7 +35,6 @@ import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.Regex;
-import org.appwork.utils.logging.Log;
 import org.appwork.utils.logging.LogFormatter;
 
 public abstract class LogSourceProvider {
@@ -157,14 +156,15 @@ public abstract class LogSourceProvider {
      * @return
      */
     protected LogSource createLogSource(final String name, final int i) {
-        // TODO Auto-generated method stub
         return new LogSource(name, i);
     }
 
-    public synchronized void flushSinks(final boolean flushOnly) {
+    public void flushSinks(final boolean flushOnly) {
         java.util.List<LogSink> logSinks2Flush = null;
+        java.util.List<LogSink> logSinks2Close = null;
         synchronized (this.logSinks) {
             logSinks2Flush = new ArrayList<LogSink>(this.logSinks.size());
+            logSinks2Close = new ArrayList<LogSink>(this.logSinks.size());
             final Iterator<LogSink> it = this.logSinks.values().iterator();
             while (it.hasNext()) {
                 final LogSink next = it.next();
@@ -172,10 +172,16 @@ public abstract class LogSourceProvider {
                     logSinks2Flush.add(next);
                 } else {
                     if (flushOnly == false) {
-                        next.close();
+                        logSinks2Close.add(next);
                     }
                     it.remove();
                 }
+            }
+        }
+        for (final LogSink sink : logSinks2Close) {
+            try {
+                sink.close();
+            } catch (final Throwable e) {
             }
         }
         for (final LogSink sink : logSinks2Flush) {
@@ -202,7 +208,7 @@ public abstract class LogSourceProvider {
         try {
             for (final StackTraceElement element : stackTrace.getStackTrace()) {
                 final String currentClassName = element.getClassName();
-                final Class<?> currentClass = Class.forName(currentClassName,true,Thread.currentThread().getContextClassLoader());
+                final Class<?> currentClass = Class.forName(currentClassName, true, Thread.currentThread().getContextClassLoader());
                 if (Modifier.isAbstract(currentClass.getModifiers())) {
                     /* we dont want the abstract class to be used */
                     continue;
@@ -281,7 +287,7 @@ public abstract class LogSourceProvider {
         }
     }
 
-    protected synchronized void startFlushThread() {
+    protected void startFlushThread() {
         if (this.flushThread != null && this.flushThread.isAlive()) { return; }
         this.flushThread = new Thread("LogFlushThread") {
 

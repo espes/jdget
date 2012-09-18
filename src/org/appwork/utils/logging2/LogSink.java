@@ -21,9 +21,9 @@ import java.util.logging.Logger;
 public class LogSink extends Logger {
 
     protected java.util.List<WeakReference<LogSource>> logSources     = new ArrayList<WeakReference<LogSource>>();
-    protected FileHandler                         fileHandler    = null;
-    protected ConsoleHandler                      consoleHandler = null;
-    protected Logger                              parent         = null;
+    protected FileHandler                              fileHandler    = null;
+    protected ConsoleHandler                           consoleHandler = null;
+    protected Logger                                   parent         = null;
 
     protected LogSink(final String name) {
         this(name, (String) null);
@@ -117,9 +117,7 @@ public class LogSink extends Logger {
     }
 
     protected boolean hasLogSources() {
-        synchronized (this.logSources) {
-            return this.getLogSources().size() > 0;
-        }
+        return this.getLogSources().size() > 0;
     }
 
     @Override
