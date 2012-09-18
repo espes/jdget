@@ -352,10 +352,10 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
         // find samba library
 
-        if (fileSystemView.getSambaFolders() != null) {
+        if (fileSystemView.getSAMBA_FOLDERS() != null) {
 
             // File[] list = windowsNetworkFolder.listFiles();
-            for (File f : fileSystemView.getSambaFolders()) {
+            for (File f : fileSystemView.getSAMBA_FOLDERS()) {
                 sambaFolders.put(f.getPath(), f);
             }
 

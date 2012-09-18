@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -292,7 +293,7 @@ public class JSonMapper {
             if (type instanceof Class) {
                 clazz = (Class<?>) type;
                 if (Collection.class.isAssignableFrom(clazz)) {
-                    final Collection<Object> inst = (Collection<Object>) clazz.newInstance();
+                    final Collection<Object> inst = (Collection<Object>) mapClasses(clazz).newInstance();
                     final JSonArray obj = (JSonArray) json;
                     final Type gs = clazz.getGenericSuperclass();
                     final Type gType;
@@ -306,7 +307,7 @@ public class JSonMapper {
                     }
                     return inst;
                 } else if (Map.class.isAssignableFrom(clazz)) {
-                    final Map<String, Object> inst = (Map<String, Object>) clazz.newInstance();
+                    final Map<String, Object> inst = (Map<String, Object>) mapClasses(clazz).newInstance();
                     final JSonObject obj = (JSonObject) json;
                     final Type gs = clazz.getGenericSuperclass();
                     final Type gType;
@@ -326,7 +327,7 @@ public class JSonMapper {
 
                 } else if (clazz.isArray()) {
                     final JSonArray obj = (JSonArray) json;
-                    final Object arr = Array.newInstance(clazz.getComponentType(), obj.size());
+                    final Object arr = Array.newInstance(mapClasses(clazz.getComponentType()), obj.size());
                     for (int i = 0; i < obj.size(); i++) {
                         final Object v = this.jsonToObject(obj.get(i), clazz.getComponentType());
 
@@ -384,14 +385,14 @@ public class JSonMapper {
             } else if (type instanceof ParameterizedTypeImpl) {
                 final ParameterizedTypeImpl pType = (ParameterizedTypeImpl) type;
                 if (Collection.class.isAssignableFrom(pType.getRawType())) {
-                    final Collection<Object> inst = (Collection<Object>) pType.getRawType().newInstance();
+                    final Collection<Object> inst = (Collection<Object>) mapClasses(pType.getRawType()).newInstance();
                     final JSonArray obj = (JSonArray) json;
                     for (final JSonNode n : obj) {
                         inst.add(this.jsonToObject(n, pType.getActualTypeArguments()[0]));
                     }
                     return inst;
                 } else if (Map.class.isAssignableFrom(pType.getRawType())) {
-                    final Map<String, Object> inst = (Map<String, Object>) pType.getRawType().newInstance();
+                    final Map<String, Object> inst = (Map<String, Object>) mapClasses(pType.getRawType()).newInstance();
                     final JSonObject obj = (JSonObject) json;
                     Entry<String, JSonNode> next;
                     for (final Iterator<Entry<String, JSonNode>> it = obj.entrySet().iterator(); it.hasNext();) {
@@ -419,6 +420,23 @@ public class JSonMapper {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * @param class1
+     * @return
+     * @throws MapperException 
+     */
+    private Class<?> mapClasses(Class<?> class1) throws MapperException {
+        if (class1.isInterface()) {
+            if (List.class.isAssignableFrom(class1)) {
+                return ArrayList.class;
+            } else if (Map.class.isAssignableFrom(class1)) { return HashMap.class; }
+
+            throw new MapperException("Interface not supported: " + class1);
+
+        }
+        return class1;
     }
 
     /**

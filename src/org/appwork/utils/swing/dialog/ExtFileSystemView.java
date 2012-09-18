@@ -38,7 +38,7 @@ public class ExtFileSystemView extends FileSystemView {
     private FileSystemView     org;
     private File[]             roots;
     private File               networkFolder;
-    private File[]             sambaFolders;
+    private static File[]      SAMBA_FOLDERS            = null;
     /**
      * 
      */
@@ -175,13 +175,19 @@ public class ExtFileSystemView extends FileSystemView {
                 if (hf.exists()) newRoots.add(hf);
             }
             if (networkFolder != null) {
-
                 Log.L.info("List Networkfolder " + (System.currentTimeMillis() - t));
-                sambaFolders = networkFolder.listFiles();
-                Log.L.info("List Networkfolder done " + (System.currentTimeMillis() - t));
-                if (sambaFolders != null && sambaFolders.length > 0) {
-                    newRoots.add(networkFolder);
-                }
+                final long tt = t;
+                new Thread("Networkfolder Loader") {
+                    public void run() {                        
+                        SAMBA_FOLDERS = networkFolder.listFiles();
+                        Log.L.info("List Networkfolder done " + (System.currentTimeMillis() - tt));
+                    }
+                }.start();
+
+            }
+
+            if (networkFolder != null && (SAMBA_FOLDERS != null && SAMBA_FOLDERS.length > 0)) {
+                newRoots.add(networkFolder);
             }
             roots = newRoots.toArray(new File[] {});
             return roots;
@@ -191,8 +197,8 @@ public class ExtFileSystemView extends FileSystemView {
         }
     }
 
-    public File[] getSambaFolders() {
-        return sambaFolders;
+    public File[] getSAMBA_FOLDERS() {
+        return SAMBA_FOLDERS;
     }
 
     @Override
