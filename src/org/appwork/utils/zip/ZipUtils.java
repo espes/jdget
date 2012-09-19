@@ -38,7 +38,7 @@ public class ZipUtils {
     public static byte[] zipString(final String fileList) throws ZipIOException, IOException {
         final ByteArrayOutputStream oStream = new ByteArrayOutputStream();
         final ZipIOWriter zip = new ZipIOWriter(oStream);
-        zip.addByteArry(fileList.getBytes(), true, null, "dat.dat");
+        zip.addByteArry(fileList.getBytes("UTF-8"), true, null, "dat.dat");
         zip.close();
         return oStream.toByteArray();
 

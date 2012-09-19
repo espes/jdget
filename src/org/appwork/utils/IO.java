@@ -135,7 +135,7 @@ public class IO {
     public static String readInputStreamToString(final InputStream fis) throws UnsupportedEncodingException, IOException {
         BufferedReader f = null;
         try {
-            f = new BufferedReader(new InputStreamReader(fis, "UTF8"));
+            f = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
             String line;
             final StringBuilder ret = new StringBuilder();
             final String sep = System.getProperty("line.separator");

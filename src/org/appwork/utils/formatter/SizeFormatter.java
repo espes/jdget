@@ -65,6 +65,7 @@ public class SizeFormatter {
     }
 
     public static long getSize(final String string) {
+       
         return SizeFormatter.getSize(string, true, false);
     }
 

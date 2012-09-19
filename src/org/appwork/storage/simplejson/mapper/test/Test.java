@@ -35,9 +35,9 @@ public class Test {
 
     public static void main(final String[] args) throws MapperException, ParserException {
         JSonStorage.setMapper(new JacksonMapper());
-        for (int i = 1; i <= 50; i++) {
-            Test.testSerialize(i * 200);
-            Test.testDeserialize(i * 200);
+        for (int i = 1; i <= 1; i++) {
+            Test.testSerialize(i * 1);
+            Test.testDeserialize(i * 1);
         }
 
     }
