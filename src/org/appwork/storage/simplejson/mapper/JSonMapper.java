@@ -174,7 +174,7 @@ public class JSonMapper {
                 Entry<Object, Object> next;
                 for (final Iterator<Entry<Object, Object>> it = ((Map<Object, Object>) obj).entrySet().iterator(); it.hasNext();) {
                     next = it.next();
-                    if (!(next.getKey() instanceof String)) { throw new MapperException("Map keys have to be Strings: " + clazz); }
+                    if (!(next.getKey() instanceof String)) { throw new MapperException("Map keys have to be Strings: " + clazz+" Keyclass:"+next.getKey().getClass()); }
                     ret.put(next.getKey().toString(), this.create(next.getValue()));
                 }
                 return ret;
