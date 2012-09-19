@@ -87,7 +87,7 @@ public class SimpleHTTP {
         try {
             this.download(url, progress, maxSize, baos);
         } catch (final IOException e) {
-            if (baos.size() > 0) { throw new HTTPException(this.connection, new String(baos.toByteArray()), e); }
+            if (baos.size() > 0) { throw new HTTPException(this.connection, new String(baos.toByteArray(), "UTF-8"), e); }
         }
         try {
             baos.close();

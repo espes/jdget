@@ -413,7 +413,8 @@ public class BasicHTTP {
                 this.connection.setRequestMethod(RequestMethod.POST);
                 this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
                 this.connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
-                this.connection.setRequestProperty(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, data.getBytes().length + "");
+                byte[] byteData = data.getBytes("UTF-8");
+                this.connection.setRequestProperty(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, byteData.length + "");
                 for (final Entry<String, String> next : this.requestHeader.entrySet()) {
                     this.connection.setRequestProperty(next.getKey(), next.getValue());
                 }
@@ -430,9 +431,9 @@ public class BasicHTTP {
                     }
                 }
                 outputStream = this.connection.getOutputStream();
-                writer = new OutputStreamWriter(outputStream);
-                writer.write(data);
-                writer.flush();
+//                writer = new OutputStream(outputStream);
+                outputStream.write(byteData);
+                outputStream.flush();
                 this.connection.finalizeConnect();
                 reader = new BufferedReader(isr = new InputStreamReader(this.connection.getInputStream(), "UTF-8"));
                 final StringBuilder sb = new StringBuilder();
