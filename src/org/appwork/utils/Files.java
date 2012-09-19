@@ -16,6 +16,7 @@ import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Locale;
 
 import org.appwork.utils.os.CrossSystem;
 
@@ -99,6 +100,7 @@ public class Files {
 
     /**
      * Returns the fileextension for a file with the given name
+     * 
      * @see #getFileNameWithoutExtension(String)
      * @param name
      * @return
@@ -111,6 +113,18 @@ public class Files {
     }
 
     /**
+     * @see #getExtension(String)
+     * @param jar
+     * @return
+     */
+    public static String getFileNameWithoutExtension(final String filename) {
+
+        final int index = filename.lastIndexOf(".");
+        if (index < 0) { return filename; }
+        return filename.substring(0, index);
+    }
+
+    /**
      * return all files ( and folders if includeDirectories is true ) for the
      * given files
      * 
@@ -119,15 +133,42 @@ public class Files {
      * @return
      */
     public static java.util.List<File> getFiles(final boolean includeDirectories, final boolean includeFiles, final File... files) {
-        return getFiles(new FileFilter() {
+        return Files.getFiles(new FileFilter() {
 
             @Override
-            public boolean accept(File pathname) {
-                if (includeDirectories && pathname.isDirectory()) return true;
-                if (includeFiles && pathname.isFile()) return true;
+            public boolean accept(final File pathname) {
+                if (includeDirectories && pathname.isDirectory()) { return true; }
+                if (includeFiles && pathname.isFile()) { return true; }
                 return false;
             }
         }, files);
+    }
+
+    /**
+     * @param b
+     * @param c
+     * @param filter
+     * @param source
+     * @return
+     */
+    public static java.util.List<File> getFiles(final FileFilter filter, final File... files) {
+        final java.util.List<File> ret = new ArrayList<File>();
+        if (files != null) {
+            for (final File f : files) {
+                if (!f.exists()) {
+                    continue;
+                }
+                if (filter == null || filter.accept(f)) {
+                    ret.add(f);
+                }
+
+                if (f.isDirectory()) {
+
+                    ret.addAll(Files.getFiles(filter, f.listFiles()));
+                }
+            }
+        }
+        return ret;
     }
 
     /**
@@ -157,8 +198,8 @@ public class Files {
     public static String getRelativePath(final File root, final File file) {
         final String rootPath, filePath;
         if (CrossSystem.isWindows()) {
-            rootPath = root.getAbsolutePath().toLowerCase();
-            filePath = file.getAbsolutePath().toLowerCase();
+            rootPath = root.getAbsolutePath().toLowerCase(Locale.ENGLISH);
+            filePath = file.getAbsolutePath().toLowerCase(Locale.ENGLISH);
         } else {
             rootPath = root.getAbsolutePath();
             filePath = file.getAbsolutePath();
@@ -171,44 +212,5 @@ public class Files {
 
     public static void main(final String[] args) {
         System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/test/eins/zwei/drei.vier")));
-    }
-
-    /**
-     * @param b
-     * @param c
-     * @param filter
-     * @param source
-     * @return
-     */
-    public static java.util.List<File> getFiles(FileFilter filter, final File... files) {
-        final java.util.List<File> ret = new ArrayList<File>();
-        if (files != null) {
-            for (final File f : files) {
-                if (!f.exists()) {
-                    continue;
-                }
-                if (filter == null || filter.accept(f)) {
-                    ret.add(f);
-                }
-
-                if (f.isDirectory()) {
-
-                    ret.addAll(Files.getFiles(filter, f.listFiles()));
-                }
-            }
-        }
-        return ret;
-    }
-
-    /**
-     * @see #getExtension(String)
-     * @param jar
-     * @return
-     */
-    public static String getFileNameWithoutExtension(String filename) {
-
-        int index = filename.lastIndexOf(".");
-        if (index < 0) return filename;
-        return filename.substring(0, index);
     }
 }
