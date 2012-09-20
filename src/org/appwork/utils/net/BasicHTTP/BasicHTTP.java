@@ -9,10 +9,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 
 import org.appwork.net.protocol.http.HTTPConstants;
@@ -39,9 +41,21 @@ public class BasicHTTP {
         // URL("http://ipcheck0.jdownloader.org"), "BKA"));
     }
 
+    private HashSet<Integer> allowedResponseCodes;
+
+    public void setAllowedResponseCodes(int... codes) {
+        this.allowedResponseCodes = new HashSet<Integer>();
+        for (int i : codes)
+            allowedResponseCodes.add(i);
+    }
+
+    public HashSet<Integer> getAllowedResponseCodes() {
+        return allowedResponseCodes;
+    }
+
     private final HashMap<String, String> requestHeader;
 
-    private HTTPConnection                connection;
+    protected HTTPConnection              connection;
 
     private int                           connectTimeout = 15000;
 
@@ -96,7 +110,7 @@ public class BasicHTTP {
         } catch (final WriteIOException e) {
             throw e;
         } catch (final IOException e) {
-         
+
             if (baos.size() > 0) {
                 throw new BasicHTTPException(this.connection, e);
             } else {
@@ -127,8 +141,8 @@ public class BasicHTTP {
         try {
 
             this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
-            this.connection.setConnectTimeout(this.connectTimeout);
-            this.connection.setReadTimeout(this.readTimeout);
+            this.connection.setConnectTimeout(getConnectTimeout());
+            this.connection.setReadTimeout(getReadTimeout());
             this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
             this.connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
             for (final Entry<String, String> next : this.requestHeader.entrySet()) {
@@ -139,7 +153,7 @@ public class BasicHTTP {
             }
             this.connection.setRequestProperty("Connection", "Close");
             this.connection.connect();
-
+            checkResponseCode();
             input = this.connection.getInputStream();
 
             if (maxSize > 0 && this.connection.getCompleteContentLength() > maxSize) { throw new IOException("Max size exeeded!"); }
@@ -161,7 +175,7 @@ public class BasicHTTP {
                 if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
                 if (len > 0) {
                     try {
-                        baos.write(b, 0, len);                      
+                        baos.write(b, 0, len);
                     } catch (IOException e) {
                         throw new WriteIOException(e);
                     }
@@ -205,8 +219,8 @@ public class BasicHTTP {
             try {
 
                 this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
-                this.connection.setConnectTimeout(this.connectTimeout);
-                this.connection.setReadTimeout(this.readTimeout);
+                this.connection.setConnectTimeout(getConnectTimeout());
+                this.connection.setReadTimeout(getReadTimeout());
                 this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
                 this.connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
                 this.connection.setRequestProperty("Accept-Charset", "UTF-8");
@@ -225,7 +239,7 @@ public class BasicHTTP {
                         Thread.sleep(200);
                     }
                 }
-
+                checkResponseCode();
                 in = new BufferedReader(isr = new InputStreamReader(this.connection.getInputStream(), "UTF-8"));
 
                 String str;
@@ -295,7 +309,7 @@ public class BasicHTTP {
         synchronized (BasicHTTP.CALL_LOCK) {
             try {
                 this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
-                this.connection.setConnectTimeout(this.connectTimeout);
+                this.connection.setConnectTimeout(getConnectTimeout());
                 this.connection.setReadTimeout(readTimeout < 0 ? this.readTimeout : readTimeout);
                 this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
                 this.connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
@@ -320,7 +334,8 @@ public class BasicHTTP {
                     throw new ReadIOException(e);
                 }
                 close = false;
-                return this.connection;
+              checkResponseCode();
+              return this.connection;
             } finally {
                 try {
                     if (close) {
@@ -333,6 +348,16 @@ public class BasicHTTP {
         }
     }
 
+    /**
+     * @throws IOException 
+     * 
+     */
+    private void checkResponseCode() throws InvalidResponseCode {
+        if (allowedResponseCodes != null && !allowedResponseCodes.contains(connection.getResponseCode())) { throw new InvalidResponseCode(connection); }
+        
+        
+    }
+
     public HTTPConnection openPostConnection(final URL url, final String postData, final HashMap<String, String> header) throws IOException, InterruptedException {
         boolean close = true;
         synchronized (BasicHTTP.CALL_LOCK) {
@@ -341,8 +366,8 @@ public class BasicHTTP {
             try {
 
                 this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
-                this.connection.setConnectTimeout(this.connectTimeout);
-                this.connection.setReadTimeout(this.readTimeout);
+                this.connection.setConnectTimeout(getConnectTimeout());
+                this.connection.setReadTimeout(getReadTimeout());
                 this.connection.setRequestMethod(RequestMethod.POST);
 
                 this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
@@ -379,6 +404,7 @@ public class BasicHTTP {
                 writer.write(postData);
                 writer.flush();
                 this.connection.finalizeConnect();
+                checkResponseCode();
                 close = false;
                 return this.connection;
             } finally {
@@ -400,20 +426,51 @@ public class BasicHTTP {
         }
     }
 
-    public String postPage(final URL url, final String data) throws IOException, InterruptedException {
+    public String postPage(final URL url, final String data) throws BasicHTTPException, InterruptedException {
+        byte[] byteData;
+        try {
+            byteData = data.getBytes("UTF-8");
+
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            postPage(url, byteData, baos, null, null);
+            return new String(baos.toByteArray(), "UTF-8");
+
+        } catch (UnsupportedEncodingException e) {
+            throw new BasicHTTPException(connection, e);
+        }
+    }
+
+    public byte[] postPage(URL url, byte[] byteData) throws BasicHTTPException, InterruptedException {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        postPage(url, byteData, baos, null, null);
+        return baos.toByteArray();
+
+    }
+
+    /**
+     * @param url
+     * @param byteData
+     * @param baos
+     * @return
+     * @throws InterruptedException
+     * @throws BasicHTTPException
+     */
+    public void postPage(URL url, byte[] byteData, OutputStream baos, final DownloadProgress uploadProgress, final DownloadProgress downloadProgress) throws InterruptedException, BasicHTTPException {
+
         synchronized (BasicHTTP.CALL_LOCK) {
+
             OutputStreamWriter writer = null;
             BufferedReader reader = null;
             OutputStream outputStream = null;
             InputStreamReader isr = null;
             try {
                 this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
-                this.connection.setConnectTimeout(this.connectTimeout);
-                this.connection.setReadTimeout(this.readTimeout);
+                this.connection.setConnectTimeout(getConnectTimeout());
+                this.connection.setReadTimeout(getReadTimeout());
                 this.connection.setRequestMethod(RequestMethod.POST);
                 this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
                 this.connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
-                byte[] byteData = data.getBytes("UTF-8");
+
                 this.connection.setRequestProperty(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, byteData.length + "");
                 for (final Entry<String, String> next : this.requestHeader.entrySet()) {
                     this.connection.setRequestProperty(next.getKey(), next.getValue());
@@ -431,20 +488,52 @@ public class BasicHTTP {
                     }
                 }
                 outputStream = this.connection.getOutputStream();
-//                writer = new OutputStream(outputStream);
-                outputStream.write(byteData);
+                // writer = new OutputStream(outputStream);
+                if (uploadProgress != null) uploadProgress.setTotal(byteData.length);
+                if (downloadProgress != null) downloadProgress.setTotal(connection.getCompleteContentLength());
+                // write upload in 50*1024 steps
+                int offset = 0;
+                while (true) {
+                    int part = Math.min(50 * 1024, byteData.length - offset);
+                    if (part == 0) {
+                        if (uploadProgress != null) uploadProgress.setLoaded(byteData.length);
+                        break;
+                    }
+                    outputStream.write(byteData, offset, part);
+                    outputStream.flush();
+                    offset += part;
+                    if (uploadProgress != null) uploadProgress.increaseLoaded(part);
+                }
+
                 outputStream.flush();
                 this.connection.finalizeConnect();
-                reader = new BufferedReader(isr = new InputStreamReader(this.connection.getInputStream(), "UTF-8"));
-                final StringBuilder sb = new StringBuilder();
-                String str;
-                while ((str = reader.readLine()) != null) {
-                    if (sb.length() > 0) {
-                        sb.append("\r\n");
+                checkResponseCode();
+                final byte[] b = new byte[32767];
+                int len = 0;
+                long loaded = 0;
+                InputStream input = this.connection.getInputStream();
+                while (true) {
+                    try {
+                        if ((len = input.read(b)) == -1) break;
+                    } catch (IOException e) {
+                        throw new ReadIOException(e);
                     }
-                    sb.append(str);
+                    if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
+                    if (len > 0) {
+                        try {
+                            baos.write(b, 0, len);
+                        } catch (IOException e) {
+                            throw new WriteIOException(e);
+                        }
+                        loaded += len;
+
+                        if (downloadProgress != null) {
+                            downloadProgress.increaseLoaded(len);
+                        }
+                    }
                 }
-                return sb.toString();
+                if (loaded != this.connection.getCompleteContentLength()) { throw new IOException("Incomplete download!"); }
+                return;
             } catch (IOException e) {
                 throw new BasicHTTPException(connection, new ReadIOException(e));
             } finally {

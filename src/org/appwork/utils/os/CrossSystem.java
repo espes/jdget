@@ -74,7 +74,7 @@ public class CrossSystem {
     /**
      * Cache to store the OS ID in
      */
-    private final static byte     OS_ID;
+    public final static byte     OS_ID;
 
     /**
      * Cache to store the Mime Class in

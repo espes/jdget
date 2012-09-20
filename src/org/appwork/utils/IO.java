@@ -17,7 +17,6 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URL;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 
@@ -404,5 +403,23 @@ public class IO {
             if (ERROR_HANDLER != null) ERROR_HANDLER.onWriteException(e, file, data);
             throw e;
         }
+    }
+
+    /**
+     * @param file
+     * @param bytes
+     * @throws IOException
+     */
+    public static void secureWrite(File file, byte[] bytes) throws IOException {
+        File bac = new File(file, ".bac");
+        bac.delete();
+        try {
+            writeToFile(bac, bytes);
+            file.delete();
+            if (!bac.renameTo(file)) { throw new IOException("COuld not rename " + bac + " to " + file); }
+        } finally {
+            bac.delete();
+        }
+
     }
 }

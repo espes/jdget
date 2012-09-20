@@ -9,11 +9,11 @@ import java.util.EventListener;
  * @author $Author: unknown$
  *
  */
-public abstract class CommandSwitchListener implements EventListener {
+public  interface CommandSwitchListener extends EventListener {
 
     /**
      * @param event
      */
-    abstract public void executeCommandSwitch(CommandSwitch event);
+     public void executeCommandSwitch(CommandSwitch event);
 
 }
