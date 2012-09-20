@@ -80,6 +80,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 
+        
+        
         this.path = name;
         if (name.getName().endsWith(".json") || name.getName().endsWith(".ejs")) {
             Log.L.warning(name + " should not have an extension!!");

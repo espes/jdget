@@ -45,6 +45,8 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
         super(storageHandler, key);
         this.typeRef = new TypeRef<Object>(type) {
         };
+        
+ 
 
     }
 

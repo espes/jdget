@@ -62,6 +62,7 @@ public abstract class KeyHandler<RawClass> {
      * @param key2
      */
     protected KeyHandler(final StorageHandler<?> storageHandler, final String key) {
+
         this.storageHandler = storageHandler;
         this.key = key;
         // get parent crypt infos
@@ -69,6 +70,7 @@ public abstract class KeyHandler<RawClass> {
         this.cryptKey = storageHandler.getKey();
         this.primitiveStorage = storageHandler.primitiveStorage;
         // this.refQueue = new ReferenceQueue<Object>();
+   
 
     }
 
@@ -91,7 +93,7 @@ public abstract class KeyHandler<RawClass> {
         }
 
     }
-   
+
     /**
      * @param m
      * @param class1
@@ -159,11 +161,12 @@ public abstract class KeyHandler<RawClass> {
             ret = this.setter.getMethod().getAnnotation(class1);
         } else if (this.setter != null && this.setter.getMethod().getAnnotation(class1) != null) {
 
-            if (KeyHandler.ANNOTATION_PACKAGE_NAME.equals(class1.getPackage().getName())) { 
-                
+            if (KeyHandler.ANNOTATION_PACKAGE_NAME.equals(class1.getPackage().getName())) {
+
                 //
-                
-                throw new InterfaceParseException("Dupe Annotation in  " + this + " (" + class1 + ") "+this.setter.getMethod()); }
+
+                throw new InterfaceParseException("Dupe Annotation in  " + this + " (" + class1 + ") " + this.setter.getMethod());
+            }
         }
         return ret;
     }
@@ -238,6 +241,7 @@ public abstract class KeyHandler<RawClass> {
     }
 
     public RawClass getValue() {
+
         if (this.primitiveStorage.hasProperty(this.getKey())) { return this.primitiveStorage.get(this.getKey(), (RawClass) this.defaultValue); }
         return this.primitiveStorage.get(this.getKey(), this.getDefaultValue());
     }
@@ -249,10 +253,8 @@ public abstract class KeyHandler<RawClass> {
     @SuppressWarnings("unchecked")
     protected void init() throws Throwable {
 
-        if(getter==null){
-            throw new InterfaceParseException("Getter Method is Missing for "+setter.getMethod());
-        }
-     
+        if (getter == null) { throw new InterfaceParseException("Getter Method is Missing for " + setter.getMethod()); }
+
         // read local cryptinfos
         this.primitive = JSonStorage.canStorePrimitive(this.getter.getMethod().getReturnType());
         final CryptedStorage an = this.getAnnotation(CryptedStorage.class);
@@ -287,6 +289,15 @@ public abstract class KeyHandler<RawClass> {
         this.checkBadAnnotations(this.getAllowedAnnotations());
         this.initDefaults();
         this.initHandler();
+        
+        String kk = "CFG:" + storageHandler.getConfigInterface().getName() + "." + key;
+        String sys = System.getProperty(kk);
+        if (sys != null) {
+            // Set configvalud because of JVM Parameter
+            System.out.println(kk+"="+sys);
+            setValue((RawClass) JSonStorage.restoreFromString(sys, new TypeRef<Object>(this.getRawClass()) {
+            }, null));
+        }
     }
 
     protected void initDefaults() throws Throwable {
@@ -371,7 +382,7 @@ public abstract class KeyHandler<RawClass> {
             } else if (oldValue != null && newValue == null) {
                 /* new is null, but old is not */
                 changed = true;
-            } else if (!Clazz.isPrimitive(this.getRawClass())&&getRawClass()!=String.class) {
+            } else if (!Clazz.isPrimitive(this.getRawClass()) && getRawClass() != String.class) {
                 /* no primitive, we cannot detect changes 100% */
                 changed = true;
             } else if (!newValue.equals(oldValue)) {
@@ -402,9 +413,9 @@ public abstract class KeyHandler<RawClass> {
     }
 
     @Override
-    public String toString() {        
+    public String toString() {
         RawClass ret = getValue();
-        return ret==null?null:ret.toString();
+        return ret == null ? null : ret.toString();
     }
 
     public void validateEncryptionKey(final byte[] key2) {
