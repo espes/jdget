@@ -36,6 +36,7 @@ import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.Regex;
 import org.appwork.utils.logging.LogFormatter;
+import org.appwork.utils.os.CrossSystem;
 
 public abstract class LogSourceProvider {
     public static void main(final String[] args) {
@@ -239,8 +240,9 @@ public abstract class LogSourceProvider {
         return logger;
     }
 
-    public LogSource getLogger(final String name) {
+    public LogSource getLogger(String name) {
         LogSink sink = null;
+        name = CrossSystem.alleviatePathParts(name);
         synchronized (this.logSinks) {
             sink = this.logSinks.get(name);
             if (sink == null) {
