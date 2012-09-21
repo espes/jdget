@@ -411,8 +411,9 @@ public class IO {
      * @throws IOException
      */
     public static void secureWrite(File file, byte[] bytes) throws IOException {
-        File bac = new File(file, ".bac");
+        File bac = new File(file.getAbsolutePath()+ ".bac");
         bac.delete();
+        file.getParentFile().mkdirs();
         try {
             writeToFile(bac, bytes);
             file.delete();
