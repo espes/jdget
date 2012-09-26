@@ -19,22 +19,10 @@ import java.util.Locale;
  * 
  */
 public class HeaderCollection implements Iterable<HTTPHeader> {
-    private  LinkedList<HTTPHeader>    headers;
+    private LinkedList<HTTPHeader>          headers;
     private static HashMap<String, Boolean> DUPES_ALLOWED = new HashMap<String, Boolean>();
     static {
         HeaderCollection.DUPES_ALLOWED.put("Set-Cookies".toLowerCase(Locale.ENGLISH), true);
-    }
-
-    public HeaderCollection() {
-        this.headers = new LinkedList<HTTPHeader>();
-    }
-
-    public String toString() {
-        return headers.toString();
-    }
-    
-    public void clear(){
-        headers = new LinkedList<HTTPHeader>();
     }
 
     public void add(final HTTPHeader header) {
@@ -69,6 +57,24 @@ public class HeaderCollection implements Iterable<HTTPHeader> {
         }
     }
 
+    public HeaderCollection clone() {
+        HeaderCollection ret = new HeaderCollection();
+        ret.headers = new LinkedList<HTTPHeader>(this.headers);
+        return ret;
+    }
+
+    public HeaderCollection() {
+        this.headers = new LinkedList<HTTPHeader>();
+    }
+
+    public String toString() {
+        return headers.toString();
+    }
+
+    public void clear() {
+        headers = new LinkedList<HTTPHeader>();
+    }
+
     public HTTPHeader get(final String key) {
         for (final Iterator<HTTPHeader> it = this.headers.iterator(); it.hasNext();) {
             HTTPHeader elem;
@@ -87,4 +93,5 @@ public class HeaderCollection implements Iterable<HTTPHeader> {
     public Iterator<HTTPHeader> iterator() {
         return this.headers.iterator();
     }
+
 }

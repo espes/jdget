@@ -437,7 +437,6 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
      * @param string
      * @return
      */
-
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return false; }
