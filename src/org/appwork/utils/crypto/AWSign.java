@@ -20,43 +20,24 @@ import org.appwork.utils.encoding.Base64;
 
 public class AWSign {
 
-    /**
-     * @param f
-     * @param key
-     * @return
-     * @throws SignatureViolation
-     */
-    public static byte[] createSign(File f, String key) throws SignatureViolation {
-
-        try {
-            return createSign(f, KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(Base64.decode(key))));
-        } catch (Throwable e) {
-            throw new SignatureViolation(e);
-        }
-    }
-
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-        createKeyPair();
-    }
-
     public static void createKeyPair() throws NoSuchAlgorithmException {
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        final KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(2048);
-        KeyPair keyPair = keyPairGenerator.genKeyPair();
+        final KeyPair keyPair = keyPairGenerator.genKeyPair();
 
         System.out.println("PUBLIC  " + Base64.encodeToString(keyPair.getPublic().getEncoded(), false));
         System.out.println("PRIVATE " + Base64.encodeToString(keyPair.getPrivate().getEncoded(), false));
     }
 
-    public static byte[] createSign(File f, PrivateKey publicKey) throws SignatureViolation {
+    public static byte[] createSign(final File f, final PrivateKey publicKey) throws SignatureViolation {
         try {
 
-            Signature sig = Signature.getInstance("Sha256WithRSA");
+            final Signature sig = Signature.getInstance("Sha256WithRSA");
             sig.initSign(publicKey);
 
             InputStream input = null;
             try {
-                byte[] buffer = new byte[1024];
+                final byte[] buffer = new byte[1024];
                 int len;
                 input = new FileInputStream(f);
                 while ((len = input.read(buffer)) != -1) {
@@ -75,20 +56,48 @@ public class AWSign {
 
             return sig.sign();
 
-        } catch (Throwable e) {
+        } catch (final Throwable e) {
             throw new SignatureViolation(e);
         }
     }
 
-    public static void verifyFile(File f, String pub) throws SignatureViolation {
+    /**
+     * @param f
+     * @param key
+     * @return
+     * @throws SignatureViolation
+     */
+    public static byte[] createSign(final File f, final String key) throws SignatureViolation {
+
         try {
-            verifyFile(f, KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(pub))));
-        } catch (InvalidKeySpecException e) {
-            throw new SignatureViolation(e);
-        } catch (NoSuchAlgorithmException e) {
+            return AWSign.createSign(f, KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(Base64.decode(key))));
+        } catch (final Throwable e) {
             throw new SignatureViolation(e);
         }
+    }
 
+    public static void main(final String[] args) throws NoSuchAlgorithmException {
+        AWSign.createKeyPair();
+    }
+
+    /**
+     * @param decode
+     * @param decode2
+     * @throws SignatureViolation
+     */
+    public static void verifyFile(final byte[] dataToVerify, final PublicKey pub, final byte[] signature) throws SignatureViolation {
+        try {
+
+            final Signature sig = Signature.getInstance("Sha256WithRSA");
+            sig.initVerify(pub);
+            sig.update(dataToVerify);
+            if (!sig.verify(signature)) {
+                new SignatureViolation("Signatur Check Failed");
+            }
+        } catch (final Throwable e) {
+
+            throw new SignatureViolation(e);
+        }
     }
 
     /**
@@ -96,12 +105,23 @@ public class AWSign {
      * @param pub
      * @throws SignatureViolation
      */
-    public static void verifyFile(File f, PublicKey pub) throws SignatureViolation {
+    public static void verifyFile(final File f, final PublicKey pub) throws SignatureViolation {
         try {
-            verifySignature(f, pub, IO.readFile(new File(f.getAbsolutePath() + ".updateSignature")));
-        } catch (IOException e) {
+            AWSign.verifySignature(f, pub, IO.readFile(new File(f.getAbsolutePath() + ".updateSignature")));
+        } catch (final IOException e) {
             throw new SignatureViolation(e);
         }
+    }
+
+    public static void verifyFile(final File f, final String pub) throws SignatureViolation {
+        try {
+            AWSign.verifyFile(f, KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(pub))));
+        } catch (final InvalidKeySpecException e) {
+            throw new SignatureViolation(e);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new SignatureViolation(e);
+        }
+
     }
 
     /**
@@ -110,15 +130,14 @@ public class AWSign {
      * @param bs
      * @throws SignatureViolation
      */
-    public static void verifySignature(File f, PublicKey pub, byte[] signature) throws SignatureViolation {
+    public static void verifySignature(final File f, final PublicKey pub, final byte[] signature) throws SignatureViolation {
         try {
 
-            Signature sig = Signature.getInstance("Sha256WithRSA");
+            final Signature sig = Signature.getInstance("Sha256WithRSA");
             sig.initVerify(pub);
-
             InputStream input = null;
             try {
-                byte[] buffer = new byte[1024];
+                final byte[] buffer = new byte[16384];
                 int len;
                 input = f.toURI().toURL().openStream();
                 while ((len = input.read(buffer)) != -1) {
@@ -137,27 +156,7 @@ public class AWSign {
             if (!sig.verify(signature)) {
                 new SignatureViolation("Signatur Check Failed: " + f);
             }
-        } catch (Throwable e) {
-
-            throw new SignatureViolation(e);
-        }
-    }
-
-    /**
-     * @param decode
-     * @param decode2
-     * @throws SignatureViolation
-     */
-    public static void verifyFile(byte[] dataToVerify, PublicKey pub, byte[] signature) throws SignatureViolation {
-        try {
-
-            Signature sig = Signature.getInstance("Sha256WithRSA");
-            sig.initVerify(pub);
-            sig.update(dataToVerify);
-            if (!sig.verify(signature)) {
-                new SignatureViolation("Signatur Check Failed");
-            }
-        } catch (Throwable e) {
+        } catch (final Throwable e) {
 
             throw new SignatureViolation(e);
         }

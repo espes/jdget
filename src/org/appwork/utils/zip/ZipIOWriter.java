@@ -31,7 +31,7 @@ public class ZipIOWriter {
     private OutputStream    fileStream = null;
     private File            zipFile    = null;
 
-    private final byte[]    buf        = new byte[8192];
+    private final byte[]    buf        = new byte[16384];
 
     public ZipIOWriter(final ByteArrayOutputStream stream) throws FileNotFoundException, ZipIOException {
         this.fileStream = stream;
