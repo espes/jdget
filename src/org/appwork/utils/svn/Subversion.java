@@ -224,7 +224,19 @@ public class Subversion implements ISVNEventHandler {
 
     private synchronized SVNClientManager getClientManager() {
         if (this.clientManager == null) {
-            DefaultSVNOptions options = SVNWCUtil.createDefaultOptions(false);
+            DefaultSVNOptions options = new DefaultSVNOptions(null, true) {
+                private String[] ignorePatterns;
+                {
+                    ignorePatterns = new String[] {};
+                }
+
+                @Override
+                public String[] getIgnorePatterns() {
+
+                    return ignorePatterns;
+                }
+
+            };
             options.setIgnorePatterns(null);
             this.clientManager = SVNClientManager.newInstance(options, this.authManager);
         }
