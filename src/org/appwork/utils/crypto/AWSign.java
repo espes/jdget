@@ -10,6 +10,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -30,10 +31,48 @@ public class AWSign {
     }
 
     public static byte[] createSign(final File f, final PrivateKey publicKey) throws SignatureViolation {
+        return createSign(f, publicKey, false);
+    }
+
+    /**
+     * @param bytes
+     * @param pk
+     * @param salt
+     * @return
+     * @throws SignatureViolation
+     */
+    public static byte[] createSign(byte[] bytes, PrivateKey pk, boolean salt) throws SignatureViolation {
+        try {
+
+            Signature sig = Signature.getInstance("Sha256WithRSA");
+            if (salt) {
+
+                SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
+                sig.initSign(pk, sr);
+            } else {
+                sig.initSign(pk);
+            }
+
+            sig.update(bytes, 0, bytes.length);
+
+            return sig.sign();
+
+        } catch (Throwable e) {
+            throw new SignatureViolation(e);
+        }
+    }
+
+    public static byte[] createSign(File f, PrivateKey publicKey, boolean salt) throws SignatureViolation {
         try {
 
             final Signature sig = Signature.getInstance("Sha256WithRSA");
-            sig.initSign(publicKey);
+            if (salt) {
+
+                SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
+                sig.initSign(publicKey, sr);
+            } else {
+                sig.initSign(publicKey);
+            }
 
             InputStream input = null;
             try {

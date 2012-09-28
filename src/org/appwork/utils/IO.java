@@ -20,6 +20,7 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.logging.Level;
 
+import org.appwork.utils.Files.Handler;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
@@ -411,7 +412,7 @@ public class IO {
      * @throws IOException
      */
     public static void secureWrite(File file, byte[] bytes) throws IOException {
-        File bac = new File(file.getAbsolutePath()+ ".bac");
+        File bac = new File(file.getAbsolutePath() + ".bac");
         bac.delete();
         file.getParentFile().mkdirs();
         try {
@@ -421,6 +422,38 @@ public class IO {
         } finally {
             bac.delete();
         }
+
+    }
+
+    public static void main(String[] args) {
+        new File("Z:\\BuildServ\\applications\\beta\\bin3").mkdirs();
+        try {
+            copyFolderRecursive(new File("Z:\\BuildServ\\applications\\beta\\bin"), new File("Z:\\BuildServ\\applications\\beta\\bin3"));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @param dist
+     * @param dist2
+     * @throws IOException
+     */
+    public static void copyFolderRecursive(final File src, final File dest) throws IOException {
+        Files.walkThroughStructure(new Handler<IOException>() {
+
+            @Override
+            public void onFile(File f) throws IOException {
+                String path = Files.getRelativePath(src, f);
+                if (f.isDirectory()) {
+                    new File(dest, path).mkdirs();
+                } else {
+                    IO.copyFile(f, new File(dest, path));
+                }
+
+            }
+        }, src);
 
     }
 }

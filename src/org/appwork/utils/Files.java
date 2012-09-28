@@ -213,4 +213,27 @@ public class Files {
     public static void main(final String[] args) {
         System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/test/eins/zwei/drei.vier")));
     }
+
+    public static interface Handler<T extends Exception> {
+
+        /**
+         * @param f
+         * @throws IOException
+         */
+        void onFile(File f) throws T;
+
+    }
+
+    public static <T extends Exception> void walkThroughStructure(Handler<T> handler, final File f) throws T {
+
+        handler.onFile(f);
+
+        if (f.isDirectory()) {
+            for (File sf : f.listFiles()) {
+                walkThroughStructure(handler, sf);
+            }
+
+        }
+
+    }
 }
