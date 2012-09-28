@@ -2,7 +2,6 @@ package org.appwork.utils.crypto;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -16,7 +15,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import org.appwork.utils.IO;
 import org.appwork.utils.encoding.Base64;
 
 public class AWSign {
@@ -30,58 +28,55 @@ public class AWSign {
         System.out.println("PRIVATE " + Base64.encodeToString(keyPair.getPrivate().getEncoded(), false));
     }
 
-    public static byte[] createSign(final File f, final PrivateKey publicKey) throws SignatureViolation {
-        return createSign(f, publicKey, false, null);
-    }
-
     /**
      * @param bytes
      * @param pk
      * @param salt
      * @return
-     * @throws SignatureViolation
+     * @throws SignatureViolationException
      */
-    public static byte[] createSign(byte[] bytes, PrivateKey pk, boolean salt) throws SignatureViolation {
+    public static byte[] createSign(byte[] bytes, PrivateKey pk, boolean salt) throws SignatureViolationException {
         try {
 
             Signature sig = Signature.getInstance("Sha256WithRSA");
-            if (salt) {
 
-                SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
-                byte[] seedbytes = new byte[1024];
-                sr.nextBytes(seedbytes);
-                System.out.println(new String(seedbytes));
-                // sr.setSeed(System.currentTimeMillis());
-                // sr.setSeed(sr.generateSeed(1024));
-                sig.initSign(pk, sr);
-            } else {
-                sig.initSign(pk);
+            sig.initSign(pk);
+            byte[] saltBytes = getSalt(salt);
+
+            if (saltBytes != null) {
+                sig.update(saltBytes);
             }
 
             sig.update(bytes, 0, bytes.length);
 
-            return sig.sign();
+            byte[] ret = sig.sign();
+            if (!salt) return ret;
+
+            byte[] merged = new byte[ret.length + saltBytes.length];
+            System.arraycopy(saltBytes, 0, merged, 0, saltBytes.length);
+            System.arraycopy(ret, 0, merged, saltBytes.length, ret.length);
+            return merged;
 
         } catch (Throwable e) {
-            throw new SignatureViolation(e);
+            throw new SignatureViolationException(e);
         }
     }
 
-    public static byte[] createSign(File f, PrivateKey publicKey, boolean salt, byte[] addInfo) throws SignatureViolation {
+    public static byte[] createSign(File f, PrivateKey publicKey, boolean salt, byte[] addInfo) throws SignatureViolationException {
         try {
 
             final Signature sig = Signature.getInstance("Sha256WithRSA");
-            if (salt) {
 
-                SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
-
-                sig.initSign(publicKey, sr);
-            } else {
-                sig.initSign(publicKey);
-            }
+            sig.initSign(publicKey);
 
             InputStream input = null;
             try {
+
+                byte[] saltBytes = getSalt(salt);
+
+                if (saltBytes != null) {
+                    sig.update(saltBytes);
+                }
                 if (addInfo != null) {
                     sig.update(addInfo, 0, addInfo.length);
                 }
@@ -93,6 +88,14 @@ public class AWSign {
                         sig.update(buffer, 0, len);
                     }
                 }
+                byte[] ret = sig.sign();
+                if (!salt) return ret;
+
+                byte[] merged = new byte[ret.length + saltBytes.length];
+                System.arraycopy(saltBytes, 0, merged, 0, saltBytes.length);
+                System.arraycopy(ret, 0, merged, saltBytes.length, ret.length);
+                return merged;
+
             } finally {
 
                 try {
@@ -102,26 +105,24 @@ public class AWSign {
 
             }
 
-            return sig.sign();
-
         } catch (final Throwable e) {
-            throw new SignatureViolation(e);
+            throw new SignatureViolationException(e);
         }
     }
 
     /**
-     * @param f
-     * @param key
+     * @param salt
      * @return
-     * @throws SignatureViolation
+     * @throws NoSuchAlgorithmException
      */
-    public static byte[] createSign(final File f, final String key) throws SignatureViolation {
+    private static byte[] getSalt(boolean salt) throws NoSuchAlgorithmException {
+        if (!salt) return null;
 
-        try {
-            return AWSign.createSign(f, KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(Base64.decode(key))));
-        } catch (final Throwable e) {
-            throw new SignatureViolation(e);
-        }
+        byte[] saltBytes = new byte[16];
+        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
+        sr.nextBytes(saltBytes);
+        return saltBytes;
+
     }
 
     public static void main(final String[] args) throws NoSuchAlgorithmException {
@@ -135,64 +136,69 @@ public class AWSign {
                     .generatePrivate(
                             new PKCS8EncodedKeySpec(
                                     Base64.decode("MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCD4RDXAcPrZAaPMlqUCSXVaMTF5LfjlmQIy27K+o/c0tWlRt9mNz8h4dWL2ooFQ+1XxxrxB85mjwAI0gG9TESJXLhgUTu+pl8E1XS4TP+QdJfEOUV6K/T4EUyBxejDQ1gGMYNPTb/V12aMQy2cBeeOpTCVU+ivM6Ymh641IsLIJw57Skq4XXIOFr1OQSxpRwnySGj7T2RC+EyXmYqe5NRzzWcgcdVvgYKVGYWnWR8H0Fuo9z2wvmODUGuaMcwIPzgdmTg56HEnwB4D695VEfYafqByyU9yuA3DXMrpVxfMKqy5kIB6MDIMedf6NrLVJrGYcOCTmNz5qB574zb5A+LBAgMBAAECggEAWLi/lYZQgjoG16tumI0W8N3NE71toST6I5iI7vFme48zwD9P5/pe9LJz8eSSWjx6nkUK8QDpcMHfqg9usCVxLmA8gj/kS7ytzBi2r47NmCd4OsC05x5PbdxldiDpGQRjYbdJub56wqhpCw/ezUqDn8muR6ftsIC01NMO9hxuoiv1tE1GXZwBo36YSPb5NsB0Og5p0w8gwogXo0/TLIOJVy5ysZGACrXMaSN7DX/XP5hp4rXEfbY9vQdegVShejIKOIc9r5+0btRPjGP7YkMRWvTQQt43jWgI8cBIFUcZ4fYmwegzGnl1OONVzXjum10B2E3R2vmDEZqrLVB22I5Y4QKBgQDq0W0/g9H7hyd0NroZP8yP0/bOZO6ZYzUNMRQgZ/BO76yMUId6+wi0RREzqya+r/ur+kDXCs+liTlbJ+KyjRv29ls40eDW5OpCG9ccFguzg1CUpyIRu2obKC5i59x3I4KGiUplumKcSE8QILD09DslvoSf2pHBIQKZNEdVMROObQKBgQCPxoGORYshbsptqZ5batMTWAeb5xeBn6rxBNDWAzeD+qXazOsTWYgU4310nq/Vqyc7UU18VPoRTTflUyhJFoFxJRjTEHxa/hKjIOGPYayCK2EHrMXHoSxZsUvSbSH1Y84zFAbDcRPylXg1pGnn5CyDB5jijS6mQxnT94TRgX1hJQKBgFwzcUcgNmIiFn7OQlJJt8O9wcoW3Y0C5EDSxYlX5obIGyNZN2k1ipxmBjQYfvUe2p4TfEQzrYbdE9VUGvJq79EPuI/d8P/QEJ92mQchLOUGqaxE197IjQguxc/2JJ3vJoA3Bixde/zLc6fsfi8getz+Ksstok+H66JGYb/0ri4dAoGAFnZeAVtOHGAR0kZAzmmHJquHLM1S99Z5P4SQGA+SmdUMGn4PcAt53kGYdSLht9EwpOzT3UvtccyNog926MxSVtoD4d3ef9zYDpJxixQofoHGfAt7LvA4XJ79iJeySYNZUNOdJuXAxxKhIEhan3cfmS0Trrl+A03SeDJgltbTPt0CgYEA1uPP5gpL029gtx3shiQFblpVl3AhUE1dmDITJYrGqD+06Z+nPHu73kOnVdPKgy9wYIIxcyx/DrQfcT5e1+IZy9bZ5OOIUVi9qNsQ1RhvFzEwo8tiE/1LX7XUIC2gIjyY0Q+VXLk03UgjV7qAgOg4X/foetGZn2NHmc4NUUaCoNE=")));
-            byte[] sign = createSign("Apfelbaum".getBytes(), pk, true);
+            byte[] sign = null;
+            sign = createSign("Apfelbaum".getBytes(), pk, true);
 
             System.out.println(Base64.encodeToString(sign, false));
-            verifyFile(sign, pub, sign);
+            verify("Apfelbaum".getBytes(), pub, sign, true);
             System.out.println("OK");
-        } catch (SignatureViolation e) {
+
+            File file = new File(AWSign.class.getResource(AWSign.class.getSimpleName() + ".class").toURI());
+            System.out.println("Sign File: " + file);
+            byte[] add = new byte[] { 1, 2, 3 };
+//            add=null;
+            sign = createSign(file, pk, true, add);
+
+            System.out.println(Base64.encodeToString(sign, false));
+            verify(file, pub, sign, true, add);
+            System.out.println("OK2");
+
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        } 
     }
 
     /**
+     * @param salted
+     *            TODO
      * @param decode
      * @param decode2
-     * @throws SignatureViolation
+     * @throws SignatureViolationException
      */
-    public static void verifyFile(final byte[] dataToVerify, final PublicKey pub, final byte[] signature) throws SignatureViolation {
+    public static void verify(final byte[] dataToVerify, final PublicKey pub, byte[] signature, boolean salted) throws SignatureViolationException {
         try {
-
             final Signature sig = Signature.getInstance("Sha256WithRSA");
             sig.initVerify(pub);
-            sig.update(dataToVerify);
-            if (!sig.verify(signature)) {
-                new SignatureViolation("Signatur Check Failed");
+            if (salted) {
+                byte[] salt = new byte[signature.length - 256];
+                System.arraycopy(signature, 0, salt, 0, salt.length);
+
+                byte[] actualSignature = new byte[256];
+                System.arraycopy(signature, signature.length - 256, actualSignature, 0, actualSignature.length);
+                signature = actualSignature;
+                sig.update(salt);
+
             }
+            
+            sig.update(dataToVerify);
+            if (!sig.verify(signature)) { throw new SignatureViolationException("Signatur Check Failed"); }
+        } catch (SignatureViolationException e) {
+            throw e;
         } catch (final Throwable e) {
 
-            throw new SignatureViolation(e);
+            throw new SignatureViolationException(e);
         }
     }
 
-    /**
-     * @param f
-     * @param pub
-     * @param additionalBytes
-     *            TODO
-     * @throws SignatureViolation
-     */
-    public static void verifyFile(final File f, final PublicKey pub, byte[] additionalBytes) throws SignatureViolation {
+    public static PublicKey getPublicKey(String base64Encoded) throws SignatureViolationException {
         try {
-            AWSign.verifySignature(f, pub, IO.readFile(new File(f.getAbsolutePath() + ".updateSignature")), additionalBytes);
-        } catch (final IOException e) {
-            throw new SignatureViolation(e);
+            return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(base64Encoded)));
+        } catch (InvalidKeySpecException e) {
+            throw new SignatureViolationException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new SignatureViolationException(e);
         }
-    }
-
-    public static void verifyFile(final File f, final String pub) throws SignatureViolation {
-        try {
-            AWSign.verifyFile(f, KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(pub))), null);
-        } catch (final InvalidKeySpecException e) {
-            throw new SignatureViolation(e);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new SignatureViolation(e);
-        }
-
     }
 
     /**
@@ -201,21 +207,30 @@ public class AWSign {
      * @param additionalBytes
      *            TODO
      * @param bs
-     * @throws SignatureViolation
+     * @throws SignatureViolationException
      */
-    public static void verifySignature(final File f, final PublicKey pub, final byte[] signature, byte[] additionalBytes) throws SignatureViolation {
+    public static void verify(final File f, final PublicKey pub, byte[] signature, boolean salted, byte[] additionalBytes) throws SignatureViolationException {
         try {
 
             final Signature sig = Signature.getInstance("Sha256WithRSA");
             sig.initVerify(pub);
+
+            if (salted) {
+                byte[] salt = new byte[signature.length - 256];
+                System.arraycopy(signature, 0, salt, 0, salt.length);
+
+                byte[] actualSignature = new byte[256];
+                System.arraycopy(signature, signature.length - 256, actualSignature, 0, actualSignature.length);
+                signature = actualSignature;
+                sig.update(salt);
+            }
+            if (additionalBytes != null) sig.update(additionalBytes);
             InputStream input = null;
             try {
                 final byte[] buffer = new byte[16384];
                 int len;
                 input = f.toURI().toURL().openStream();
-                if (additionalBytes != null) {
-                    sig.update(additionalBytes, 0, additionalBytes.length);
-                }
+               
                 while ((len = input.read(buffer)) != -1) {
                     if (len > 0) {
                         sig.update(buffer, 0, len);
@@ -229,12 +244,12 @@ public class AWSign {
                 }
 
             }
-            if (!sig.verify(signature)) {
-                new SignatureViolation("Signatur Check Failed: " + f);
-            }
+            if (!sig.verify(signature)) { throw new SignatureViolationException("Signatur Check Failed: " + f); }
+        } catch (SignatureViolationException e) {
+            throw e;
         } catch (final Throwable e) {
 
-            throw new SignatureViolation(e);
+            throw new SignatureViolationException(e);
         }
     }
 
