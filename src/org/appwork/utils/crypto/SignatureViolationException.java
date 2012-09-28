@@ -13,12 +13,12 @@ package org.appwork.utils.crypto;
  * @author Thomas
  *
  */
-public class SignatureViolation extends Exception {
+public class SignatureViolationException extends Exception {
 
     /**
      * 
      */
-    public SignatureViolation() {
+    public SignatureViolationException() {
         super();
         // TODO Auto-generated constructor stub
     }
@@ -29,7 +29,7 @@ public class SignatureViolation extends Exception {
      * @param enableSuppression
      * @param writableStackTrace
      */
-    public SignatureViolation(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public SignatureViolationException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
         // TODO Auto-generated constructor stub
     }
@@ -38,7 +38,7 @@ public class SignatureViolation extends Exception {
      * @param message
      * @param cause
      */
-    public SignatureViolation(String message, Throwable cause) {
+    public SignatureViolationException(String message, Throwable cause) {
         super(message, cause);
         // TODO Auto-generated constructor stub
     }
@@ -46,7 +46,7 @@ public class SignatureViolation extends Exception {
     /**
      * @param message
      */
-    public SignatureViolation(String message) {
+    public SignatureViolationException(String message) {
         super(message);
         // TODO Auto-generated constructor stub
     }
@@ -54,7 +54,7 @@ public class SignatureViolation extends Exception {
     /**
      * @param cause
      */
-    public SignatureViolation(Throwable cause) {
+    public SignatureViolationException(Throwable cause) {
         super(cause);
         // TODO Auto-generated constructor stub
     }
