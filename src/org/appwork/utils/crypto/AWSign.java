@@ -31,7 +31,7 @@ public class AWSign {
     }
 
     public static byte[] createSign(final File f, final PrivateKey publicKey) throws SignatureViolation {
-        return createSign(f, publicKey, false);
+        return createSign(f, publicKey, false,null);
     }
 
     /**
@@ -62,7 +62,7 @@ public class AWSign {
         }
     }
 
-    public static byte[] createSign(File f, PrivateKey publicKey, boolean salt) throws SignatureViolation {
+    public static byte[] createSign(File f, PrivateKey publicKey, boolean salt, byte[] addInfo) throws SignatureViolation {
         try {
 
             final Signature sig = Signature.getInstance("Sha256WithRSA");
@@ -76,6 +76,9 @@ public class AWSign {
 
             InputStream input = null;
             try {
+                if (addInfo != null) {
+                    sig.update(addInfo, 0, addInfo.length);
+                }
                 final byte[] buffer = new byte[1024];
                 int len;
                 input = new FileInputStream(f);
