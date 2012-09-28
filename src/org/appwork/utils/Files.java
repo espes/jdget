@@ -204,10 +204,9 @@ public class Files {
             rootPath = root.getAbsolutePath();
             filePath = file.getAbsolutePath();
         }
-
         if (!filePath.startsWith(rootPath)) { return null; }
         if (rootPath.equals(filePath)) { return "/"; }
-        return file.getAbsolutePath().substring(rootPath.length() + 1);
+        return file.getAbsolutePath().substring(rootPath.length() + 1).replace("\\", "/");
     }
 
     public static void main(final String[] args) {
