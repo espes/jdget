@@ -31,7 +31,7 @@ public class AWSign {
     }
 
     public static byte[] createSign(final File f, final PrivateKey publicKey) throws SignatureViolation {
-        return createSign(f, publicKey, false,null);
+        return createSign(f, publicKey, false, null);
     }
 
     /**
@@ -145,11 +145,12 @@ public class AWSign {
     /**
      * @param f
      * @param pub
+     * @param additionalBytes TODO
      * @throws SignatureViolation
      */
-    public static void verifyFile(final File f, final PublicKey pub) throws SignatureViolation {
+    public static void verifyFile(final File f, final PublicKey pub, byte[] additionalBytes) throws SignatureViolation {
         try {
-            AWSign.verifySignature(f, pub, IO.readFile(new File(f.getAbsolutePath() + ".updateSignature")));
+            AWSign.verifySignature(f, pub, IO.readFile(new File(f.getAbsolutePath() + ".updateSignature")), additionalBytes);
         } catch (final IOException e) {
             throw new SignatureViolation(e);
         }
@@ -157,7 +158,7 @@ public class AWSign {
 
     public static void verifyFile(final File f, final String pub) throws SignatureViolation {
         try {
-            AWSign.verifyFile(f, KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(pub))));
+            AWSign.verifyFile(f, KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(pub))), null);
         } catch (final InvalidKeySpecException e) {
             throw new SignatureViolation(e);
         } catch (final NoSuchAlgorithmException e) {
@@ -169,10 +170,12 @@ public class AWSign {
     /**
      * @param f
      * @param pub
+     * @param additionalBytes
+     *            TODO
      * @param bs
      * @throws SignatureViolation
      */
-    public static void verifySignature(final File f, final PublicKey pub, final byte[] signature) throws SignatureViolation {
+    public static void verifySignature(final File f, final PublicKey pub, final byte[] signature, byte[] additionalBytes) throws SignatureViolation {
         try {
 
             final Signature sig = Signature.getInstance("Sha256WithRSA");
@@ -182,6 +185,9 @@ public class AWSign {
                 final byte[] buffer = new byte[16384];
                 int len;
                 input = f.toURI().toURL().openStream();
+                if (additionalBytes != null) {
+                    sig.update(additionalBytes, 0, additionalBytes.length);
+                }
                 while ((len = input.read(buffer)) != -1) {
                     if (len > 0) {
                         sig.update(buffer, 0, len);
