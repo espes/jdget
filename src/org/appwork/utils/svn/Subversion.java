@@ -28,6 +28,7 @@ import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
 import org.tmatesoft.svn.core.internal.io.fs.FSRepositoryFactory;
 import org.tmatesoft.svn.core.internal.io.svn.SVNRepositoryFactoryImpl;
 import org.tmatesoft.svn.core.internal.wc.DefaultSVNAuthenticationManager;
+import org.tmatesoft.svn.core.internal.wc.DefaultSVNOptions;
 import org.tmatesoft.svn.core.io.ISVNEditor;
 import org.tmatesoft.svn.core.io.ISVNReporterBaton;
 import org.tmatesoft.svn.core.io.SVNRepository;
@@ -101,9 +102,12 @@ public class Subversion implements ISVNEventHandler {
         try {
             this.setupType(url);
             this.authManager = SVNWCUtil.createDefaultAuthenticationManager(user, pass);
+
             ((DefaultSVNAuthenticationManager) this.authManager).setAuthenticationForced(true);
             this.repository.setAuthenticationManager(this.authManager);
+
             this.checkRoot();
+
         } catch (final SVNException e) {
             this.dispose();
             throw e;
@@ -220,7 +224,9 @@ public class Subversion implements ISVNEventHandler {
 
     private synchronized SVNClientManager getClientManager() {
         if (this.clientManager == null) {
-            this.clientManager = SVNClientManager.newInstance(SVNWCUtil.createDefaultOptions(true), this.authManager);
+            DefaultSVNOptions options = SVNWCUtil.createDefaultOptions(false);
+            options.setIgnorePatterns(null);
+            this.clientManager = SVNClientManager.newInstance(options, this.authManager);
         }
         return this.clientManager;
     }
@@ -299,11 +305,10 @@ public class Subversion implements ISVNEventHandler {
 
     public long getRevisionNoException(final File resource) throws SVNException {
 
-      
         try {
             return getRevision(resource);
         } catch (final SVNException e) {
-          Log.exception(e);
+            Log.exception(e);
         }
         return -1;
 
@@ -587,7 +592,7 @@ public class Subversion implements ISVNEventHandler {
             final int delimStart = txt.indexOf(delim, mineStart);
             final int theirsEnd = txt.indexOf(theirs, delimStart + delim.length());
             int end = theirsEnd + theirs.length();
-            while (end<txt.length()&&txt.charAt(end) != '\r' && txt.charAt(end) != '\n') {
+            while (end < txt.length() && txt.charAt(end) != '\r' && txt.charAt(end) != '\n') {
                 end++;
             }
 
