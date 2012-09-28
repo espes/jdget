@@ -211,6 +211,22 @@ public class ZipIOWriter {
         this.addFileInternal(addFile, compress, path);
     }
 
+    public void addFolder(String fullPath) throws IOException {
+        if (!fullPath.endsWith("/")) {
+            fullPath = fullPath + "/";
+        }
+        boolean zipEntryAdded = false;
+        try {
+            final ZipEntry zipAdd = new ZipEntry(fullPath);
+            this.zipStream.putNextEntry(zipAdd);
+            zipEntryAdded = true;
+        } finally {
+            if (zipEntryAdded) {
+                this.zipStream.closeEntry();
+            }
+        }
+    }
+
     /**
      * closes the ZipFile
      * 
