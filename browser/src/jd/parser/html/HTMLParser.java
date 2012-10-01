@@ -66,6 +66,7 @@ public class HTMLParser {
             /* we dont have to further check urls with those prefixes */
             return results;
         }
+        final int sizeBefore = results.size();
         /* find reversed */
         String reversedata = new StringBuilder(data).reverse().toString();
         HTMLParser._getHttpLinksFinder(reversedata, url, results);
@@ -102,6 +103,10 @@ public class HTMLParser {
             } catch (final Throwable e) {
                 Log.exception(e);
             }
+        }
+        if (results.size() == sizeBefore && data.contains("%3A%2F%2")) {
+            /* no changes in results size, and data contains urlcoded http://, so lets urldecode it */
+            HTMLParser._getHttpLinksFinder(Encoding.urlDecode(data, true), url, results);
         }
         return results;
     }
@@ -283,7 +288,7 @@ public class HTMLParser {
             }
         }
         /* find normal */
-        if (!data.contains("://") || data.length() < 10) {
+        if (!data.contains("://") && !data.contains("%3A%2F%2") || data.length() < 10) {
             /* data must contain at least the protocol seperator */
             /* a://b.c/d == minimum 10 length */
             if (!data.contains("href") && !data.contains("unescape") && !data.contains("src=")) {
