@@ -66,6 +66,11 @@ public class ZipIOWriter {
         this.openZip(overwrite);
     }
 
+    public ZipIOWriter(final OutputStream stream) throws FileNotFoundException, ZipIOException {
+        this.fileStream = stream;
+        this.zipStream = new ZipOutputStream(this.fileStream);
+    }
+
     /**
      * add given File (File or Directory) to this ZipFile
      * 

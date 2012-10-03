@@ -100,6 +100,7 @@ public class ReusableByteArrayOutputStreamPool {
     public static void reuseReusableByteArrayOutputStream(final ReusableByteArrayOutputStream buf) {
         if (buf == null) { return; }
         synchronized (ReusableByteArrayOutputStreamPool.pool) {
+            /* TODO: this cannot work!, fix it by using iterator and compare */
             if (ReusableByteArrayOutputStreamPool.pool.contains(buf)) { return; }
             ReusableByteArrayOutputStreamPool.pool.add(new SoftReference<ReusableByteArrayOutputStream>(buf));
             buf.reset();

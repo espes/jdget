@@ -22,7 +22,7 @@ import org.appwork.utils.logging.ExceptionDefaultLogLevel;
 public class LogSource extends Logger {
 
     public static void exception(final Logger logger, final Throwable e) {
-    
+
         if (logger == null || e == null) { return; }
         if (logger instanceof LogSource) {
             ((LogSource) logger).log(e);
@@ -33,15 +33,15 @@ public class LogSource extends Logger {
     }
 
     private java.util.List<LogRecord> records           = new ArrayList<LogRecord>();
-    private int                  maxLogRecordsInMemory;
-    private int                  flushCounter      = 0;
-    private int                  recordsCounter    = 0;
-    private boolean              closed            = false;
-    private boolean              allowTimeoutFlush = true;
+    private int                       maxLogRecordsInMemory;
+    private int                       flushCounter      = 0;
+    private int                       recordsCounter    = 0;
+    private boolean                   closed            = false;
+    private boolean                   allowTimeoutFlush = true;
 
-    private boolean              instantFlush      = false;
-    private boolean              flushOnFinalize   = false;
-    private Logger               parent            = null;
+    private boolean                   instantFlush      = false;
+    private boolean                   flushOnFinalize   = false;
+    private Logger                    parent            = null;
 
     public LogSource(final String name) {
         this(name, -1);
@@ -234,6 +234,10 @@ public class LogSource extends Logger {
 
     @Override
     public String toString() {
+        return this.toString(0);
+    }
+
+    public String toString(final int lastXEntries) {
         final StringBuilder sb = new StringBuilder();
         synchronized (this) {
             sb.append("Log:" + this.getName() + " Records:" + this.recordsCounter + " Flushed:" + this.flushCounter);
@@ -241,12 +245,15 @@ public class LogSource extends Logger {
                 sb.append("\r\n");
                 final LogSourceFormatter formatter = new LogSourceFormatter();
                 formatter.setFormatterStringBuilder(sb);
-                for (final LogRecord record : this.records) {
-                    sb.append(formatter.format(record));
+                int index = 0;
+                if (lastXEntries > 0 && this.records.size() > lastXEntries) {
+                    index = this.records.size() - lastXEntries;
+                }
+                for (; index < this.records.size(); index++) {
+                    sb.append(formatter.format(this.records.get(index)));
                 }
             }
         }
         return sb.toString();
     }
-
 }
