@@ -21,6 +21,16 @@ import java.util.Locale;
 import org.appwork.utils.os.CrossSystem;
 
 public class Files {
+    public static interface Handler<T extends Exception> {
+
+        /**
+         * @param f
+         * @throws IOException
+         */
+        void onFile(File f) throws T;
+
+    }
+
     /**
      * delete all files/folders that are given
      * 
@@ -196,40 +206,38 @@ public class Files {
      * @return
      */
     public static String getRelativePath(final File root, final File file) {
+        return Files.getRelativePath(root.getAbsolutePath(), file.getAbsolutePath());
+    }
+
+    public static String getRelativePath(final String root, final String file) {
         final String rootPath, filePath;
         if (CrossSystem.isWindows()) {
-            rootPath = root.getAbsolutePath().toLowerCase(Locale.ENGLISH);
-            filePath = file.getAbsolutePath().toLowerCase(Locale.ENGLISH);
+            rootPath = root.toLowerCase(Locale.ENGLISH);
+            filePath = file.toLowerCase(Locale.ENGLISH);
         } else {
-            rootPath = root.getAbsolutePath();
-            filePath = file.getAbsolutePath();
+            rootPath = root;
+            filePath = file;
         }
         if (!filePath.startsWith(rootPath)) { return null; }
         if (rootPath.equals(filePath)) { return "/"; }
-        return file.getAbsolutePath().substring(rootPath.length() + 1).replace("\\", "/");
+        if (CrossSystem.isWindows()) {
+            return file.substring(rootPath.length() + 1).replace("\\", "/");
+        } else {
+            return file.substring(rootPath.length() + 1);
+        }
     }
 
     public static void main(final String[] args) {
         System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/test/eins/zwei/drei.vier")));
     }
 
-    public static interface Handler<T extends Exception> {
-
-        /**
-         * @param f
-         * @throws IOException
-         */
-        void onFile(File f) throws T;
-
-    }
-
-    public static <T extends Exception> void walkThroughStructure(Handler<T> handler, final File f) throws T {
+    public static <T extends Exception> void walkThroughStructure(final Handler<T> handler, final File f) throws T {
 
         handler.onFile(f);
 
         if (f.isDirectory()) {
-            for (File sf : f.listFiles()) {
-                walkThroughStructure(handler, sf);
+            for (final File sf : f.listFiles()) {
+                Files.walkThroughStructure(handler, sf);
             }
 
         }
