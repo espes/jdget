@@ -173,9 +173,9 @@ public abstract class LogSourceProvider {
                     logSinks2Flush.add(next);
                 } else {
                     if (flushOnly == false) {
+                        it.remove();
                         logSinks2Close.add(next);
                     }
-                    it.remove();
                 }
             }
         }
