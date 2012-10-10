@@ -11,6 +11,7 @@ package org.appwork.utils;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.FileNameMap;
 import java.net.URLConnection;
@@ -37,23 +38,16 @@ public class Files {
      * @param files
      * @throws IOException
      */
-    public static void deleteRecursiv(final File... files) throws IOException {
-        final java.util.List<File> ret = Files.getFiles(true, true, files);
-        for (int i = ret.size() - 1; i >= 0; i--) {
-            final File file = ret.get(i);
-            if (!file.exists() || file.isFile()) {
-                ret.remove(i);
+    public static void deleteRecursiv(final File file) throws IOException {
+        if (!file.exists()) throw new FileNotFoundException(file.getAbsolutePath());
+        if (file.isDirectory()) {
+            for (File f : file.listFiles()) {
+                deleteRecursiv(f);
             }
-            if (file.exists() && file.isFile() && !file.delete()) { throw new IOException("could not delete " + file); }
+        }
+        boolean fd = file.delete();
+        if (file.exists() && !fd) throw new IOException("Could not delete " + file);
 
-        }
-        for (int i = ret.size() - 1; i >= 0; i--) {
-            final File file = ret.get(i);
-            if (file.isDirectory()) {
-                ret.remove(i);
-            }
-            if (file.exists() && file.isDirectory() && !file.delete()) { throw new IOException("could not delete " + file); }
-        }
     }
 
     public static LinkedList<String> getDirectories_NonRecursive(final File startDirectory, final boolean includeStart) throws IOException {
