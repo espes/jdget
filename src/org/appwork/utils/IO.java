@@ -425,15 +425,6 @@ public class IO {
 
     }
 
-    public static void main(String[] args) {
-        new File("Z:\\BuildServ\\applications\\beta\\bin3").mkdirs();
-        try {
-            copyFolderRecursive(new File("Z:\\BuildServ\\applications\\beta\\bin"), new File("Z:\\BuildServ\\applications\\beta\\bin3"));
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
 
     /**
      * @param dist

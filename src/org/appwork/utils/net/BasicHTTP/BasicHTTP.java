@@ -175,6 +175,9 @@ public class BasicHTTP {
                 if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
                 if (len > 0) {
                     try {
+                        if(progress!=null){
+                            progress.onBytesLoaded(b,len);
+                        }
                         baos.write(b, 0, len);
                     } catch (IOException e) {
                         throw new WriteIOException(e);
