@@ -739,6 +739,7 @@ public class Subversion implements ISVNEventHandler {
 
             Log.L.info("SVN Update at " + file + " to Revision " + revision + " depths:" + i + "  " + this.svnurl);
             return updateClient.doUpdate(file, revision, i, false, true);
+         
         } catch (final Exception e) {
             Log.L.info(e.getMessage());
             Log.L.info("SVN Checkout at " + file + "  " + this.svnurl);
