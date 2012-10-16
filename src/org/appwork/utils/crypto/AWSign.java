@@ -2,7 +2,9 @@ package org.appwork.utils.crypto;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -211,6 +213,25 @@ public class AWSign {
      */
     public static void verify(final File f, final PublicKey pub, byte[] signature, boolean salted, byte[] additionalBytes) throws SignatureViolationException {
         try {
+            verify(f.toURI().toURL().openStream(),pub,signature,salted,additionalBytes);
+        } catch (SignatureViolationException e) {
+            throw e;
+        } catch (final Throwable e) {
+
+            throw new SignatureViolationException(e);
+        }
+     
+    }
+
+    /**
+     * @param openStream
+     * @param pub
+     * @param signature
+     * @param salted
+     * @param additionalBytes
+     */
+    public static void verify(InputStream input, PublicKey pub, byte[] signature, boolean salted, byte[] additionalBytes) throws SignatureViolationException {
+        try {
 
             final Signature sig = Signature.getInstance("Sha256WithRSA");
             sig.initVerify(pub);
@@ -225,11 +246,11 @@ public class AWSign {
                 sig.update(salt);
             }
             if (additionalBytes != null) sig.update(additionalBytes);
-            InputStream input = null;
+      
             try {
                 final byte[] buffer = new byte[16384];
                 int len;
-                input = f.toURI().toURL().openStream();
+           
                
                 while ((len = input.read(buffer)) != -1) {
                     if (len > 0) {
@@ -244,13 +265,14 @@ public class AWSign {
                 }
 
             }
-            if (!sig.verify(signature)) { throw new SignatureViolationException("Signatur Check Failed: " + f); }
+            if (!sig.verify(signature)) { throw new SignatureViolationException("Signatur Check Failed" ); }
         } catch (SignatureViolationException e) {
             throw e;
         } catch (final Throwable e) {
 
             throw new SignatureViolationException(e);
         }
+        
     }
 
 }

@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -36,6 +37,8 @@ public class IO {
                 Log.L.finest("Copy " + in + " to " + out);
             }
             try {
+                if (out.exists()) throw new IOException("Cannot overwrite " + out);
+                if (!in.exists()) throw new FileNotFoundException(in.getAbsolutePath());
                 inChannel = (fis = new FileInputStream(in)).getChannel();
                 outChannel = (fos = new FileOutputStream(out)).getChannel();
                 if (CrossSystem.isWindows()) {
@@ -424,7 +427,6 @@ public class IO {
         }
 
     }
-
 
     /**
      * @param dist
