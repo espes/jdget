@@ -181,7 +181,7 @@ public class Subversion implements ISVNEventHandler {
         }
         try {
             this.getClientManager().dispose();
-        } catch (final Exception e) {
+        } catch (final Throwable e) {
             e.printStackTrace();
         }
     }
@@ -224,16 +224,16 @@ public class Subversion implements ISVNEventHandler {
 
     private synchronized SVNClientManager getClientManager() {
         if (this.clientManager == null) {
-            DefaultSVNOptions options = new DefaultSVNOptions(null, true) {
+            final DefaultSVNOptions options = new DefaultSVNOptions(null, true) {
                 private String[] ignorePatterns;
                 {
-                    ignorePatterns = new String[] {};
+                    this.ignorePatterns = new String[] {};
                 }
 
                 @Override
                 public String[] getIgnorePatterns() {
 
-                    return ignorePatterns;
+                    return this.ignorePatterns;
                 }
 
             };
@@ -315,17 +315,6 @@ public class Subversion implements ISVNEventHandler {
         return this.repository;
     }
 
-    public long getRevisionNoException(final File resource) throws SVNException {
-
-        try {
-            return getRevision(resource);
-        } catch (final SVNException e) {
-            Log.exception(e);
-        }
-        return -1;
-
-    }
-
     public long getRevision(final File resource) throws SVNException {
         final long[] ret = new long[] { -1 };
         this.getWCClient().doInfo(resource, SVNRevision.UNDEFINED, SVNRevision.WORKING, SVNDepth.EMPTY, null, new ISVNInfoHandler() {
@@ -341,6 +330,17 @@ public class Subversion implements ISVNEventHandler {
 
         });
         return ret[0];
+    }
+
+    public long getRevisionNoException(final File resource) throws SVNException {
+
+        try {
+            return this.getRevision(resource);
+        } catch (final SVNException e) {
+            Log.exception(e);
+        }
+        return -1;
+
     }
 
     private SVNStatusClient getStatusClient() {

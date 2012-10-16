@@ -163,7 +163,6 @@ public class ZipIOWriter {
     public void addFile(final File addFile, final boolean compress, final String fullPath) throws ZipIOException, IOException, FileNotFoundException {
         FileInputStream fin = null;
         boolean zipEntryAdded = false;
-
         try {
             if (addFile == null || !addFile.isFile() || !addFile.exists()) { throw new ZipIOException("addFile " + addFile.getAbsolutePath() + " invalid"); }
             final ZipEntry zipAdd = new ZipEntry(fullPath);

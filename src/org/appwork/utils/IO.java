@@ -19,26 +19,23 @@ import java.io.Writer;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
-import java.util.logging.Level;
 
 import org.appwork.utils.Files.Handler;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
-import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
 public class IO {
+    private static IOErrorHandler ERROR_HANDLER = null;
+
     public static void copyFile(final File in, final File out) throws IOException {
         try {
             FileInputStream fis = null;
             FileOutputStream fos = null;
             FileChannel inChannel = null;
             FileChannel outChannel = null;
-            if (Log.L.isLoggable(Level.FINEST)) {
-                Log.L.finest("Copy " + in + " to " + out);
-            }
             try {
-                if (out.exists()) throw new IOException("Cannot overwrite " + out);
-                if (!in.exists()) throw new FileNotFoundException(in.getAbsolutePath());
+                if (out.exists()) { throw new IOException("Cannot overwrite " + out); }
+                if (!in.exists()) { throw new FileNotFoundException(in.getAbsolutePath()); }
                 inChannel = (fis = new FileInputStream(in)).getChannel();
                 outChannel = (fos = new FileOutputStream(out)).getChannel();
                 if (CrossSystem.isWindows()) {
@@ -83,17 +80,49 @@ public class IO {
                 } catch (final Throwable e) {
                 }
             }
-        } catch (IOException e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onCopyException(e, in, out);
+        } catch (final IOException e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onCopyException(e, in, out);
+            }
 
             throw e;
-        } catch (RuntimeException e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onCopyException(e, in, out);
+        } catch (final RuntimeException e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onCopyException(e, in, out);
+            }
             throw e;
-        } catch (Error e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onCopyException(e, in, out);
+        } catch (final Error e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onCopyException(e, in, out);
+            }
             throw e;
         }
+    }
+
+    /**
+     * @param dist
+     * @param dist2
+     * @throws IOException
+     */
+    public static void copyFolderRecursive(final File src, final File dest) throws IOException {
+        Files.walkThroughStructure(new Handler<IOException>() {
+
+            @Override
+            public void onFile(final File f) throws IOException {
+                final String path = Files.getRelativePath(src, f);
+                if (f.isDirectory()) {
+                    new File(dest, path).mkdirs();
+                } else {
+                    IO.copyFile(f, new File(dest, path));
+                }
+
+            }
+        }, src);
+
+    }
+
+    public static IOErrorHandler getErrorHandler() {
+        return IO.ERROR_HANDLER;
     }
 
     public static String importFileToString(final File file) throws IOException {
@@ -127,6 +156,14 @@ public class IO {
         return IO.readFile(ressource, -1);
     }
 
+    /*
+     * this function reads a line from a bufferedinputstream up to a maxLength.
+     * in case the line is longer than maxLength the rest of the line is read
+     * but not returned
+     * 
+     * this function skips emtpy lines
+     */
+
     public static byte[] readFile(final File ressource, final int maxSize) throws IOException {
         return IO.readURL(ressource.toURI().toURL(), maxSize);
     }
@@ -158,15 +195,21 @@ public class IO {
             }
 
             return ret.toString();
-        } catch (IOException e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onReadStreamException(e, fis);
+        } catch (final IOException e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onReadStreamException(e, fis);
+            }
 
             throw e;
-        } catch (RuntimeException e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onReadStreamException(e, fis);
+        } catch (final RuntimeException e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onReadStreamException(e, fis);
+            }
             throw e;
-        } catch (Error e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onReadStreamException(e, fis);
+        } catch (final Error e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onReadStreamException(e, fis);
+            }
             throw e;
         } finally {
             try {
@@ -175,14 +218,6 @@ public class IO {
             }
         }
     }
-
-    /*
-     * this function reads a line from a bufferedinputstream up to a maxLength.
-     * in case the line is longer than maxLength the rest of the line is read
-     * but not returned
-     * 
-     * this function skips emtpy lines
-     */
 
     public static String readLine(final BufferedInputStream is, final byte[] array) throws IOException {
         Arrays.fill(array, 0, array.length, (byte) 0);
@@ -230,15 +265,21 @@ public class IO {
                 }
             }
 
-        } catch (IOException e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onReadStreamException(e, input);
+        } catch (final IOException e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onReadStreamException(e, input);
+            }
 
             throw e;
-        } catch (RuntimeException e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onReadStreamException(e, input);
+        } catch (final RuntimeException e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onReadStreamException(e, input);
+            }
             throw e;
-        } catch (Error e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onReadStreamException(e, input);
+        } catch (final Error e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onReadStreamException(e, input);
+            }
             throw e;
         } finally {
             try {
@@ -276,9 +317,6 @@ public class IO {
     public static byte[] readURL(final URL url, final int maxSize) throws IOException {
         InputStream input = null;
         try {
-            if (Log.L.isLoggable(Level.FINEST)) {
-                Log.L.finest("Read " + url + " max size: " + maxSize);
-            }
             input = url.openStream();
             return IO.readStream(maxSize, input);
         } finally {
@@ -299,9 +337,6 @@ public class IO {
 
         InputStream fis = null;
         try {
-            if (Log.L.isLoggable(Level.FINEST)) {
-                Log.L.finest("Read " + ressourceURL);
-            }
             fis = ressourceURL.openStream();
             return IO.readInputStreamToString(fis);
         } finally {
@@ -312,6 +347,35 @@ public class IO {
         }
     }
 
+    /**
+     * @param file
+     * @param bytes
+     * @throws IOException
+     */
+    public static void secureWrite(final File file, final byte[] bytes) throws IOException {
+        final File bac = new File(file.getAbsolutePath() + ".bac");
+        bac.delete();
+        file.getParentFile().mkdirs();
+        try {
+            IO.writeToFile(bac, bytes);
+            file.delete();
+            if (!bac.renameTo(file)) { throw new IOException("COuld not rename " + bac + " to " + file); }
+        } finally {
+            bac.delete();
+        }
+
+    }
+
+    /**
+     * Want to get informed in case of any io problems, set this handler
+     * 
+     * @param handler
+     */
+    public static void setErrorHandler(final IOErrorHandler handler) {
+
+        IO.ERROR_HANDLER = handler;
+    }
+
     public static void writeStringToFile(final File file, final String string) throws IOException {
         try {
             if (file == null) { throw new IllegalArgumentException("File is null."); }
@@ -319,10 +383,7 @@ public class IO {
             file.createNewFile();
             if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
             if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
-            FileWriter fw = null;
-            if (Log.L.isLoggable(Level.FINEST)) {
-                Log.L.finest("Write " + file);
-            }
+            final FileWriter fw = null;
 
             final Writer output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
 
@@ -346,34 +407,24 @@ public class IO {
                 } catch (final Throwable e) {
                 }
             }
-        } catch (IOException e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onWriteException(e, file, string.getBytes());
+        } catch (final IOException e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onWriteException(e, file, string.getBytes());
+            }
 
             throw e;
-        } catch (RuntimeException e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onWriteException(e, file, string.getBytes());
+        } catch (final RuntimeException e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onWriteException(e, file, string.getBytes());
+            }
             throw e;
-        } catch (Error e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onWriteException(e, file, string.getBytes());
+        } catch (final Error e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onWriteException(e, file, string.getBytes());
+            }
             throw e;
         }
 
-    }
-
-    private static IOErrorHandler ERROR_HANDLER = null;
-
-    public static IOErrorHandler getErrorHandler() {
-        return ERROR_HANDLER;
-    }
-
-    /**
-     * Want to get informed in case of any io problems, set this handler
-     * 
-     * @param handler
-     */
-    public static void setErrorHandler(IOErrorHandler handler) {
-
-        ERROR_HANDLER = handler;
     }
 
     public static void writeToFile(final File file, final byte[] data) throws IOException {
@@ -383,9 +434,7 @@ public class IO {
             file.createNewFile();
             if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
             if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
-            if (Log.L.isLoggable(Level.FINEST)) {
-                Log.L.finest("Write " + file);
-            }
+
             final FileOutputStream out = new FileOutputStream(file);
             try {
 
@@ -396,57 +445,22 @@ public class IO {
                 } catch (final Throwable e) {
                 }
             }
-        } catch (IOException e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onWriteException(e, file, data);
-
-            throw e;
-        } catch (RuntimeException e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onWriteException(e, file, data);
-            throw e;
-        } catch (Error e) {
-            if (ERROR_HANDLER != null) ERROR_HANDLER.onWriteException(e, file, data);
-            throw e;
-        }
-    }
-
-    /**
-     * @param file
-     * @param bytes
-     * @throws IOException
-     */
-    public static void secureWrite(File file, byte[] bytes) throws IOException {
-        File bac = new File(file.getAbsolutePath() + ".bac");
-        bac.delete();
-        file.getParentFile().mkdirs();
-        try {
-            writeToFile(bac, bytes);
-            file.delete();
-            if (!bac.renameTo(file)) { throw new IOException("COuld not rename " + bac + " to " + file); }
-        } finally {
-            bac.delete();
-        }
-
-    }
-
-    /**
-     * @param dist
-     * @param dist2
-     * @throws IOException
-     */
-    public static void copyFolderRecursive(final File src, final File dest) throws IOException {
-        Files.walkThroughStructure(new Handler<IOException>() {
-
-            @Override
-            public void onFile(File f) throws IOException {
-                String path = Files.getRelativePath(src, f);
-                if (f.isDirectory()) {
-                    new File(dest, path).mkdirs();
-                } else {
-                    IO.copyFile(f, new File(dest, path));
-                }
-
+        } catch (final IOException e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onWriteException(e, file, data);
             }
-        }, src);
 
+            throw e;
+        } catch (final RuntimeException e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onWriteException(e, file, data);
+            }
+            throw e;
+        } catch (final Error e) {
+            if (IO.ERROR_HANDLER != null) {
+                IO.ERROR_HANDLER.onWriteException(e, file, data);
+            }
+            throw e;
+        }
     }
 }
