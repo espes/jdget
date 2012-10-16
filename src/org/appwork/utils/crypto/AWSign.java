@@ -115,7 +115,7 @@ public class AWSign {
      * @return
      * @throws NoSuchAlgorithmException
      */
-    private static byte[] getSalt(boolean salt) throws NoSuchAlgorithmException {
+    public static byte[] getSalt(boolean salt) throws NoSuchAlgorithmException {
         if (!salt) return null;
 
         byte[] saltBytes = new byte[16];
