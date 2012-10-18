@@ -212,6 +212,7 @@ public class ExtTrayIcon extends TrayIcon implements MouseListener, MouseMotionL
         if (!this.mouseover) {
 
             synchronized (this.mouseListeners) {
+                mouseEntered(e);
                 for (final MouseListener l : this.mouseListeners) {
                     l.mouseEntered(e);
                 }

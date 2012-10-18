@@ -54,6 +54,17 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
     }
 
     public AWTrayIcon(final JFrame frame, final Image icon) throws AWTException {
+        this(frame, icon, frame.getTitle());
+
+    }
+
+    /**
+     * @param frame2
+     * @param icon
+     * @param title
+     * @throws AWTException
+     */
+    public AWTrayIcon(JFrame frame, Image icon, String title) throws AWTException {
         this.frame = frame;
         this.eventSender = new BasicEventSender<AWTrayIcon>();
         final SystemTray systemTray = SystemTray.getSystemTray();
@@ -61,13 +72,12 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
          * trayicon message must be set, else windows cannot handle icon right
          * (eg autohide feature)
          */
-        this.trayIcon = new ExtTrayIcon(icon, frame.getTitle());
+        this.trayIcon = new ExtTrayIcon(icon, title);
 
         this.trayIcon.addMouseListener(this);
         this.trayIcon.addTrayMouseListener(this);
 
         systemTray.add(this.trayIcon);
-
     }
 
     public TrayIconPopup createPopup() {
@@ -75,6 +85,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
     }
 
     public void displayToolTip() {
+        System.out.println("Tooltip");
         // trayIcon.getEstimatedTopLeft();
     }
 
@@ -122,7 +133,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
     }
 
     public boolean isFrameVisible() {
-        return this.frame.isVisible();
+        return frame != null && this.frame.isVisible();
     }
 
     public void mouseClicked(final MouseEvent e) {
@@ -213,7 +224,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
     }
 
     public void setFrameVisible(final boolean visible) {
-
+        if (frame == null) return;
         new EDTHelper<Object>() {
 
             @Override
