@@ -216,6 +216,14 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
     public void paintComponent(final Graphics g) {
 
         super.paintComponent(g);
+        paintComponent(g, true);
+    }
+
+    /**
+     * @param g
+     * @param b
+     */
+    private void paintComponent(Graphics g, boolean paintText) {
         if (this.fetcherThread != null) {
             final Graphics2D g2 = (Graphics2D) g;
             if (!this.AntiAliasing) {
@@ -292,29 +300,32 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
             }
 
             // Draw speed string
-            int xText = this.getWidth();
+            if (paintText) {
+                int xText = this.getWidth();
 
-            if (this.textFont != null) {
-                g2.setFont(this.textFont);
-            }
-            // current speed
-            String speedString = this.getSpeedString();
-            if (speedString != null && this.running) {
-                g2.setColor(this.getTextColor());
-                // align right. move left
-                xText = xText - 3 - g2.getFontMetrics().stringWidth(speedString);
-                g2.drawString(speedString, xText, 12);
-            }
-            // average speed
-            if (this.averageColor != null) {
-                speedString = this.getAverageSpeedString();
+                if (this.textFont != null) {
+                    g2.setFont(this.textFont);
+                }
+                // current speed
+                String speedString = this.getSpeedString();
                 if (speedString != null && this.running) {
-                    g2.setColor(this.getAverageTextColor());
+                    g2.setColor(this.getTextColor());
+                    // align right. move left
                     xText = xText - 3 - g2.getFontMetrics().stringWidth(speedString);
                     g2.drawString(speedString, xText, 12);
                 }
+                // average speed
+                if (this.averageColor != null) {
+                    speedString = this.getAverageSpeedString();
+                    if (speedString != null && this.running) {
+                        g2.setColor(this.getAverageTextColor());
+                        xText = xText - 3 - g2.getFontMetrics().stringWidth(speedString);
+                        g2.drawString(speedString, xText, 12);
+                    }
+                }
             }
         }
+
     }
 
     /**
