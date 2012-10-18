@@ -223,7 +223,7 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
      * @param g
      * @param b
      */
-    private void paintComponent(Graphics g, boolean paintText) {
+    public void paintComponent(Graphics g, boolean paintText) {
         if (this.fetcherThread != null) {
             final Graphics2D g2 = (Graphics2D) g;
             if (!this.AntiAliasing) {
