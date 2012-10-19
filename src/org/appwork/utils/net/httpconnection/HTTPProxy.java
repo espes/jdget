@@ -1,8 +1,10 @@
 package org.appwork.utils.net.httpconnection;
 
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
@@ -186,6 +188,68 @@ public class HTTPProxy {
         return ret;
     }
 
+    /**
+     * Checks windows registry for proxy settings
+     */
+    public static List<HTTPProxy> getWindowsRegistryProxies() {
+        final java.util.List<HTTPProxy> ret = new ArrayList<HTTPProxy>();
+        try {
+            final Preferences userRoot = Preferences.userRoot();
+            final Class<?> clz = userRoot.getClass();
+            final Method openKey = clz.getDeclaredMethod("openKey", byte[].class, int.class, int.class);
+            openKey.setAccessible(true);
+
+            final Method closeKey = clz.getDeclaredMethod("closeKey", int.class);
+            closeKey.setAccessible(true);
+            final Method winRegQueryValue = clz.getDeclaredMethod("WindowsRegQueryValueEx", int.class, byte[].class);
+            winRegQueryValue.setAccessible(true);
+
+            byte[] valb = null;
+            String val = null;
+            String key = null;
+            Integer handle = -1;
+
+            // Query Internet Settings for Proxy
+            key = "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
+            try {
+                handle = (Integer) openKey.invoke(userRoot, HTTPProxy.toCstr(key), 0x20019, 0x20019);
+                valb = (byte[]) winRegQueryValue.invoke(userRoot, handle.intValue(), HTTPProxy.toCstr("ProxyServer"));
+                val = valb != null ? new String(valb).trim() : null;
+            } finally {
+                closeKey.invoke(Preferences.userRoot(), handle);
+            }
+            if (val != null) {
+                for (final String vals : val.split(";")) {
+                    /* parse ip */
+                    String proxyurl = new Regex(vals, "(\\d+\\.\\d+\\.\\d+\\.\\d+)").getMatch(0);
+                    if (proxyurl == null) {
+                        /* parse domain name */
+                        proxyurl = new Regex(vals, "=(.*?)($|:)").getMatch(0);
+                    }
+                    final String port = new Regex(vals, ":(\\d+)").getMatch(0);
+                    if (proxyurl != null) {
+                        if (vals.trim().contains("socks")) {
+                            final int rPOrt = port != null ? Integer.parseInt(port) : 1080;
+                            final HTTPProxy pd = new HTTPProxy(HTTPProxy.TYPE.SOCKS5);
+                            pd.setHost(proxyurl);
+                            pd.setPort(rPOrt);
+                            ret.add(pd);
+                        } else {
+                            final int rPOrt = port != null ? Integer.parseInt(port) : 8080;
+                            final HTTPProxy pd = new HTTPProxy(HTTPProxy.TYPE.HTTP);
+                            pd.setHost(proxyurl);
+                            pd.setPort(rPOrt);
+                            ret.add(pd);
+                        }
+                    }
+                }
+            }
+        } catch (final Throwable e) {
+            Log.exception(e);
+        }
+        return ret;
+    }
+
     public static HTTPProxy parseHTTPProxy(final String s) {
         if (StringUtils.isEmpty(s)) { return null; }
         final String type = new Regex(s, "(https?|socks5|socks4|direct)://").getMatch(0);
@@ -235,6 +299,15 @@ public class HTTPProxy {
             if (!StringUtils.isEmpty(ret.host)) { return ret; }
         }
         return null;
+    }
+
+    private static byte[] toCstr(final String str) {
+        final byte[] result = new byte[str.length() + 1];
+        for (int i = 0; i < str.length(); i++) {
+            result[i] = (byte) str.charAt(i);
+        }
+        result[str.length()] = 0;
+        return result;
     }
 
     private InetAddress localIP          = null;
@@ -307,6 +380,10 @@ public class HTTPProxy {
         return this.user;
     }
 
+    public boolean isConnectMethodPrefered() {
+        return this.useConnectMethod;
+    }
+
     /**
      * this proxy is DIRECT = using a local bound IP
      * 
@@ -314,10 +391,6 @@ public class HTTPProxy {
      */
     public boolean isDirect() {
         return this.type == TYPE.DIRECT;
-    }
-
-    public boolean isConnectMethodPrefered() {
-        return this.useConnectMethod;
     }
 
     public boolean isLocal() {
@@ -359,6 +432,10 @@ public class HTTPProxy {
         return true;
     }
 
+    public void setConnectMethodPrefered(final boolean value) {
+        this.useConnectMethod = value;
+    }
+
     public void setHost(final String host) {
         this.host = host;
     }
@@ -385,10 +462,6 @@ public class HTTPProxy {
 
     public void setUser(final String user) {
         this.user = user;
-    }
-
-    public void setConnectMethodPrefered(final boolean value) {
-        this.useConnectMethod = value;
     }
 
     @Override

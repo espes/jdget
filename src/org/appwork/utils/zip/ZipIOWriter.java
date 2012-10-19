@@ -160,7 +160,7 @@ public class ZipIOWriter {
      * @throws IOException
      * @throws FileNotFoundException
      */
-    public void addFile(final File addFile, final boolean compress, final String fullPath) throws ZipIOException, IOException, FileNotFoundException {
+    public synchronized void addFile(final File addFile, final boolean compress, final String fullPath) throws ZipIOException, IOException, FileNotFoundException {
         FileInputStream fin = null;
         boolean zipEntryAdded = false;
         try {
@@ -215,7 +215,7 @@ public class ZipIOWriter {
         this.addFileInternal(addFile, compress, path);
     }
 
-    public void addFolder(String fullPath) throws IOException {
+    public synchronized void addFolder(String fullPath) throws IOException {
         if (!fullPath.endsWith("/")) {
             fullPath = fullPath + "/";
         }

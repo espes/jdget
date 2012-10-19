@@ -126,11 +126,11 @@ public class LogSink extends Logger {
         if (this.fileHandler != null && this.fileHandler == handler) {
             this.close();
         } else if (this.consoleHandler != null && handler == this.consoleHandler) {
-            this.consoleHandler = null;
             final java.util.List<LogSource> sources = this.getLogSources();
             for (final LogSource source : sources) {
                 source.removeHandler(this.consoleHandler);
             }
+            this.consoleHandler = null;
         }
     }
 

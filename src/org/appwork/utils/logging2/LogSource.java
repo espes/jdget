@@ -164,7 +164,7 @@ public class LogSource extends Logger {
                 }
             }
             return;
-        } else if (this.maxLogRecordsInMemory > 0 && this.records.size() == this.maxLogRecordsInMemory) {
+        } else if (this.maxLogRecordsInMemory > 0 && this.records != null && this.records.size() == this.maxLogRecordsInMemory) {
             /* maxLogRecordsInMemory >0 we have limited max records in memory */
             /* we flush in case we reached maxLogRecordsInMemory */
             this.flush();

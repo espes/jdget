@@ -18,6 +18,14 @@ import java.security.spec.X509EncodedKeySpec;
 import org.appwork.utils.encoding.Base64;
 
 public class AWSign {
+    private static SecureRandom sr;
+    static {
+        try {
+            AWSign.sr = new SecureRandom();
+        } catch (final Throwable e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void createKeyPair() throws NoSuchAlgorithmException {
         final KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -129,8 +137,9 @@ public class AWSign {
         if (!salt) { return null; }
 
         final byte[] saltBytes = new byte[16];
-        final SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
-        sr.nextBytes(saltBytes);
+        if (AWSign.sr != null) {
+            AWSign.sr.nextBytes(saltBytes);
+        }
         return saltBytes;
 
     }

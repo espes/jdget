@@ -16,6 +16,7 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.txtresource.TranslationFactory;
@@ -52,10 +53,10 @@ public class BasicHTTP {
     private int                           readTimeout    = 30000;
 
     private HTTPProxy                     proxy;
+    private Logger                        logger         = null;
 
     public BasicHTTP() {
         this.requestHeader = new HashMap<String, String>();
-
     }
 
     /**
@@ -204,7 +205,12 @@ public class BasicHTTP {
                 this.connection.disconnect();
             } catch (final Throwable e) {
             }
-
+            try {
+                if (this.logger != null) {
+                    this.logger.info(this.connection.toString());
+                }
+            } catch (final Throwable e) {
+            }
         }
     }
 
@@ -218,6 +224,10 @@ public class BasicHTTP {
 
     public int getConnectTimeout() {
         return this.connectTimeout;
+    }
+
+    public Logger getLogger() {
+        return this.logger;
     }
 
     public String getPage(final URL url) throws IOException, InterruptedException {
@@ -274,6 +284,12 @@ public class BasicHTTP {
                 }
                 try {
                     this.connection.disconnect();
+                } catch (final Throwable e) {
+                }
+                try {
+                    if (this.logger != null) {
+                        this.logger.info(this.connection.toString());
+                    }
                 } catch (final Throwable e) {
                 }
 
@@ -351,6 +367,12 @@ public class BasicHTTP {
                     }
                 } catch (final Throwable e2) {
                 }
+                try {
+                    if (this.logger != null) {
+                        this.logger.info(this.connection.toString());
+                    }
+                } catch (final Throwable e) {
+                }
 
             }
         }
@@ -359,7 +381,6 @@ public class BasicHTTP {
     public HTTPConnection openPostConnection(final URL url, final InputStream is, final HashMap<String, String> header) throws IOException, InterruptedException {
         boolean close = true;
         synchronized (BasicHTTP.CALL_LOCK) {
-            final OutputStreamWriter writer = null;
             OutputStream outputStream = null;
             final byte[] buffer = new byte[32767];
             try {
@@ -402,6 +423,7 @@ public class BasicHTTP {
                 while ((read = is.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, read);
                 }
+                outputStream.flush();
                 this.connection.finalizeConnect();
                 this.checkResponseCode();
                 close = false;
@@ -414,11 +436,9 @@ public class BasicHTTP {
                 } catch (final Throwable e2) {
                 }
                 try {
-                    writer.close();
-                } catch (final Throwable e) {
-                }
-                try {
-                    outputStream.close();
+                    if (this.logger != null) {
+                        this.logger.info(this.connection.toString());
+                    }
                 } catch (final Throwable e) {
                 }
             }
@@ -487,6 +507,12 @@ public class BasicHTTP {
                 }
                 try {
                     outputStream.close();
+                } catch (final Throwable e) {
+                }
+                try {
+                    if (this.logger != null) {
+                        this.logger.info(this.connection.toString());
+                    }
                 } catch (final Throwable e) {
                 }
             }
@@ -620,6 +646,12 @@ public class BasicHTTP {
                     this.connection.disconnect();
                 } catch (final Throwable e) {
                 }
+                try {
+                    if (this.logger != null) {
+                        this.logger.info(this.connection.toString());
+                    }
+                } catch (final Throwable e) {
+                }
 
             }
         }
@@ -652,6 +684,10 @@ public class BasicHTTP {
 
     public void setConnectTimeout(final int connectTimeout) {
         this.connectTimeout = Math.max(1000, connectTimeout);
+    }
+
+    public void setLogger(final Logger logger) {
+        this.logger = logger;
     }
 
     public void setProxy(final HTTPProxy proxy) {
