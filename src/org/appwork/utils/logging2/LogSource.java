@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 import org.appwork.utils.Exceptions;
 import org.appwork.utils.logging.ExceptionDefaultLogLevel;
 
-public class LogSource extends Logger {
+public class LogSource extends Logger implements LogInterface {
 
     public static void exception(final Logger logger, final Throwable e) {
 
