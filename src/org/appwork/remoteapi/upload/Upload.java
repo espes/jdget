@@ -19,6 +19,7 @@ import org.appwork.utils.Regex;
 import org.appwork.utils.formatter.HexFormatter;
 import org.appwork.utils.net.LimitedInputStream;
 import org.appwork.utils.net.BasicHTTP.BasicHTTP;
+import org.appwork.utils.net.BasicHTTP.BasicHTTPException;
 import org.appwork.utils.net.httpconnection.HTTPConnection;
 
 public abstract class Upload {
@@ -46,6 +47,8 @@ public abstract class Upload {
     protected abstract BasicHTTP getBasicHTTP();
 
     public String getETag() {
+        final String ret = new Regex(this.eTag, "\"(.*?)\"").getMatch(0);
+        if (ret != null) { return ret; }
         return this.eTag;
     }
 
@@ -61,13 +64,19 @@ public abstract class Upload {
         return this.getFile().length();
     }
 
+    protected String getQuotedEtag() {
+        final String ret = this.getETag();
+        if (ret == null) { return null; }
+        return "\"" + ret + "\"";
+    }
+
     public long getRemoteSize(final boolean fetchOnline) throws FileNotFoundException, IOException, InterruptedException {
         if (fetchOnline == false && this.remoteSize > 0) { return this.remoteSize; }
         final BasicHTTP shttp = this.getBasicHTTP();
         HTTPConnection con = null;
         try {
             final HashMap<String, String> header = new HashMap<String, String>();
-            final String eTag = this.getETag();
+            final String eTag = this.getQuotedEtag();
             if (eTag != null) {
                 header.put(HTTPConstants.HEADER_REQUEST_IF_MATCH, eTag);
             }
@@ -116,7 +125,7 @@ public abstract class Upload {
             }
             return;
         }
-        throw new IOException("Unknown responsecode " + con.getResponseCode());
+        throw new BasicHTTPException(con, new IOException("Unknown responsecode " + con.getResponseCode()));
     }
 
     public void setKnownErrorFreeRemoteSize(final long knownErrorFreeRemoteSize) {
@@ -205,7 +214,7 @@ public abstract class Upload {
 
             };
             final DigestInputStream is = new DigestInputStream(new LimitedInputStream(fis, uploadSize), md);
-            header.put(HTTPConstants.HEADER_REQUEST_IF_MATCH, this.getETag());
+            header.put(HTTPConstants.HEADER_REQUEST_IF_MATCH, this.getQuotedEtag());
             header.put(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "" + uploadSize);
             header.put(HTTPConstants.HEADER_REQUEST_CONTENT_RANGE, "bytes " + remoteSize + "-" + rangeEnd + "/" + this.file.length());
             con = shttp.openPostConnection(this.getUploadURL(), is, header);
