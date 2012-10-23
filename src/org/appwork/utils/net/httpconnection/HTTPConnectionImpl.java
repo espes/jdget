@@ -159,7 +159,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     protected synchronized void connectInputStream() throws IOException {
         if (this.httpMethod == RequestMethod.POST) {
             final long done = ((CountingOutputStream) this.outputStream).transferedBytes();
-            if (done != this.postTodoLength) { throw new IOException("Content-Length" + this.postTodoLength + " does not match send " + done + " bytes"); }
+            if (done != this.postTodoLength) { throw new IOException("Content-Length " + this.postTodoLength + " does not match send " + done + " bytes"); }
         }
         if (this.inputStreamConnected) { return; }
         if (this.httpMethod == RequestMethod.POST) {
