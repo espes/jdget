@@ -49,6 +49,10 @@ public class HTTPConstants {
          */
         REDIRECT_FOUND(302, "Found"),
         /**
+         * http://code.google.com/p/gears/wiki/ResumableHttpRequestsProposal
+         */
+        RESUME_INCOMPLETE(308, "Resume Incomplete"),
+        /**
          * The request cannot be fulfilled due to bad syntax.[2
          */
         ERROR_BAD_REQUEST(400, "Bad Request"),
@@ -162,6 +166,8 @@ public class HTTPConstants {
      * requests) Content-Type: application/x-www-form-urlencoded
      */
     public static final String HEADER_REQUEST_CONTENT_TYPE                 = "Content-Type";
+
+    public static final String HEADER_REQUEST_CONTENT_RANGE                = "Content-Range";
     /**
      * The date and time that the message was sent Date: Tue, 15 Nov 1994
      * 08:12:31 GMT
@@ -227,6 +233,8 @@ public class HTTPConstants {
      * along the request-response chain. Pragma: no-cache
      */
     public static final String HEADER_REQUEST_RANGE                        = "Range";
+
+    public static final String HEADER_ETAG                                 = "ETag";
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
