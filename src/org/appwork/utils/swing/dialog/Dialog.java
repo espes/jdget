@@ -848,4 +848,20 @@ public class Dialog implements WindowFocusListener {
 
     }
 
+    /**
+     * @param i
+     * @param dialog_error_title
+     * @param dialog_error_noconnection
+     * @return 
+     */
+    public int showErrorDialog(int flags, String title, String message) {
+        try {
+            return this.showConfirmDialog(flags, title, message, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
+        } catch (final DialogClosedException e) {
+            return Dialog.RETURN_CLOSED;
+        } catch (final DialogCanceledException e) {
+            return Dialog.RETURN_CANCEL;
+        }
+    }
+
 }

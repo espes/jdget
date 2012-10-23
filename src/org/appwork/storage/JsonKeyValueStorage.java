@@ -78,9 +78,9 @@ public class JsonKeyValueStorage extends Storage {
         this.file = file;
         this.name = file.getName();
         this.key = key;
-      
-        if (resource != null) {
 
+        if (resource != null) {
+            Log.L.info("Load JSon Storage from Classpath url: " + resource);
             try {
                 final HashMap<String, Object> load = JSonStorage.restoreFromString(IO.readURL(resource), plain, key, new TypeRef<HashMap<String, Object>>() {
                 }, new HashMap<String, Object>());
@@ -90,6 +90,7 @@ public class JsonKeyValueStorage extends Storage {
             }
         }
         if (file.exists()) {
+            Log.L.info("Prefer (merged) JSon Storage from File: " + file);
             final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
             }, new HashMap<String, Object>());
 
