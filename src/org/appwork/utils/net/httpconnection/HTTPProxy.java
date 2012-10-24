@@ -1,17 +1,23 @@
 package org.appwork.utils.net.httpconnection;
 
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.prefs.Preferences;
+import java.util.Locale;
 
+import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.processes.ProcessBuilderFactory;
 
 public class HTTPProxy {
+
+    /**
+     * 
+     */
+    private static final int KEY_READ = 0x20019;
 
     public static enum TYPE {
         NONE,
@@ -192,42 +198,34 @@ public class HTTPProxy {
      * Checks windows registry for proxy settings
      */
     public static List<HTTPProxy> getWindowsRegistryProxies() {
+
         final java.util.List<HTTPProxy> ret = new ArrayList<HTTPProxy>();
         try {
-            final Preferences userRoot = Preferences.userRoot();
-            final Class<?> clz = userRoot.getClass();
-            final Method openKey = clz.getDeclaredMethod("openKey", byte[].class, int.class, int.class);
-            openKey.setAccessible(true);
+            final ProcessBuilder pb = ProcessBuilderFactory.create(new String[] { "reg", "query", "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" });
 
-            final Method closeKey = clz.getDeclaredMethod("closeKey", int.class);
-            closeKey.setAccessible(true);
-            final Method winRegQueryValue = clz.getDeclaredMethod("WindowsRegQueryValueEx", int.class, byte[].class);
-            winRegQueryValue.setAccessible(true);
+            Process process = pb.start();
+            String result = IO.readInputStreamToString(process.getInputStream());
+            process.destroy();
 
-            byte[] valb = null;
-            String val = null;
-            String key = null;
-            Integer handle = -1;
-
-            // Query Internet Settings for Proxy
-            key = "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
-            try {
-                handle = (Integer) openKey.invoke(userRoot, HTTPProxy.toCstr(key), 0x20019, 0x20019);
-                valb = (byte[]) winRegQueryValue.invoke(userRoot, handle.intValue(), HTTPProxy.toCstr("ProxyServer"));
-                val = valb != null ? new String(valb).trim() : null;
-            } finally {
-                closeKey.invoke(Preferences.userRoot(), handle);
+            String enabledString = new Regex(result, "ProxyEnable\\s+REG_DWORD\\s+(\\d+x\\d+)").getMatch(0);
+            if ("0x0".equals(enabledString)) {
+                // proxy disabled
+                return ret;
             }
+            String val = new Regex(result, " ProxyServer\\s+REG_SZ\\s+([^\r\n]+)").getMatch(0);
             if (val != null) {
                 for (final String vals : val.split(";")) {
+                    if (vals.toLowerCase(Locale.ENGLISH).startsWith("ftp=")) continue;
+                    if (vals.toLowerCase(Locale.ENGLISH).startsWith("https=")) continue;
                     /* parse ip */
                     String proxyurl = new Regex(vals, "(\\d+\\.\\d+\\.\\d+\\.\\d+)").getMatch(0);
                     if (proxyurl == null) {
                         /* parse domain name */
-                        proxyurl = new Regex(vals, "=(.*?)($|:)").getMatch(0);
+                        proxyurl = new Regex(vals, "=?(.*?)($|:)").getMatch(0);
                     }
                     final String port = new Regex(vals, ":(\\d+)").getMatch(0);
                     if (proxyurl != null) {
+
                         if (vals.trim().contains("socks")) {
                             final int rPOrt = port != null ? Integer.parseInt(port) : 1080;
                             final HTTPProxy pd = new HTTPProxy(HTTPProxy.TYPE.SOCKS5);
