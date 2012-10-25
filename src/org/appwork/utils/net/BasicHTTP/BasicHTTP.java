@@ -138,8 +138,8 @@ public class BasicHTTP {
      */
     public void download(final URL url, final DownloadProgress progress, final long maxSize, final OutputStream baos, final long resumePosition) throws IOException, InterruptedException {
         InputStream input = null;
+        int ioExceptionWhere = 0;
         try {
-
             this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
             this.connection.setConnectTimeout(this.getConnectTimeout());
             this.connection.setReadTimeout(this.getReadTimeout());
@@ -160,30 +160,26 @@ public class BasicHTTP {
             if (progress != null) {
                 progress.setTotal(this.connection.getCompleteContentLength());
             }
-            final byte[] b = new byte[32767];
+            final byte[] b = new byte[512 * 1024];
             int len = 0;
             long loaded = Math.max(0, resumePosition);
             if (progress != null) {
                 progress.setLoaded(loaded);
             }
             while (true) {
-                try {
-                    if ((len = input.read(b)) == -1) {
-                        break;
-                    }
-                } catch (final IOException e) {
-                    throw new ReadIOException(e);
+                ioExceptionWhere = 1;
+                if ((len = input.read(b)) == -1) {
+                    break;
                 }
                 if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
                 if (len > 0) {
-                    try {
-                        if (progress != null) {
-                            progress.onBytesLoaded(b, len);
-                        }
-                        baos.write(b, 0, len);
-                    } catch (final IOException e) {
-                        throw new WriteIOException(e);
+                    if (progress != null) {
+                        ioExceptionWhere = 0;
+                        progress.onBytesLoaded(b, len);
                     }
+                    ioExceptionWhere = 2;
+                    baos.write(b, 0, len);
+
                     loaded += len;
                     if (maxSize > 0 && loaded > maxSize) { throw new IOException("Max size exeeded!"); }
                     if (progress != null) {
@@ -191,10 +187,13 @@ public class BasicHTTP {
                     }
                 }
             }
+            ioExceptionWhere = 0;
             if (loaded != this.connection.getCompleteContentLength()) { throw new IOException("Incomplete download!"); }
         } catch (final WriteIOException e) {
             throw e;
         } catch (final IOException e) {
+            if (ioExceptionWhere == 1) { throw new BasicHTTPException(this.connection, new ReadIOException(e)); }
+            if (ioExceptionWhere == 2) { throw new BasicHTTPException(this.connection, new WriteIOException(e)); }
             throw new BasicHTTPException(this.connection, e);
         } finally {
             try {
