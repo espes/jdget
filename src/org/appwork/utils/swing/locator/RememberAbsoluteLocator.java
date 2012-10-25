@@ -73,7 +73,7 @@ public class RememberAbsoluteLocator implements Locator {
      * @return
      */
     private LocationStorage createConfig(JFrame dialog) {
-        return JsonConfig.create(Application.getResource("cfg/" + RememberAbsoluteLocator.class.getName() + "-" + getID(dialog) + ".json"), LocationStorage.class);
+        return JsonConfig.create(Application.getResource("cfg/" + RememberAbsoluteLocator.class.getName() + "-" + getID(dialog)), LocationStorage.class);
     }
 
     /**
@@ -100,6 +100,7 @@ public class RememberAbsoluteLocator implements Locator {
             Point loc = frame.getLocationOnScreen();
             cfg.setX(loc.x);
             cfg.setY(loc.y);
+            cfg.getStorageHandler().write();
         }
 
     }
