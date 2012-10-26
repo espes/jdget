@@ -2,10 +2,16 @@ package org.appwork.utils.crypto;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -14,6 +20,18 @@ import java.security.Signature;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.appwork.utils.encoding.Base64;
 
@@ -31,7 +49,6 @@ public class AWSign {
         final KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(2048);
         final KeyPair keyPair = keyPairGenerator.genKeyPair();
-
         System.out.println("PUBLIC  " + Base64.encodeToString(keyPair.getPublic().getEncoded(), false));
         System.out.println("PRIVATE " + Base64.encodeToString(keyPair.getPrivate().getEncoded(), false));
     }
@@ -118,6 +135,145 @@ public class AWSign {
         }
     }
 
+    public static void decryptRSA_AES(final File srcFile, final File dstFile, final PublicKey pk) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+        FileInputStream fis = null;
+        FileOutputStream fos = null;
+        boolean deleteDst = true;
+        try {
+            fis = new FileInputStream(srcFile);
+            fos = new FileOutputStream(dstFile);
+            final byte[] wrappedKey = new byte[256];
+            final byte[] wrappedIV = new byte[256];
+            final byte[] readDigest = new byte[32];
+            int done = 0;
+            int read = 0;
+            while (done < 256 && (read = fis.read()) != -1) {
+                wrappedKey[done++] = (byte) read;
+            }
+            done = 0;
+            while (done < 256 && (read = fis.read()) != -1) {
+                wrappedIV[done++] = (byte) read;
+            }
+            done = 0;
+            while (done < 32 && (read = fis.read()) != -1) {
+                readDigest[done++] = (byte) read;
+            }
+            Cipher cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.DECRYPT_MODE, pk);
+            final SecretKey key = new SecretKeySpec(cipher.doFinal(wrappedKey), "AES");
+            cipher.init(Cipher.DECRYPT_MODE, pk);
+            final byte[] iv = cipher.doFinal(wrappedIV);
+            cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
+            final MessageDigest md = MessageDigest.getInstance("SHA-256");
+            final CipherInputStream cis = new CipherInputStream(fis, cipher);
+            final byte[] buffer = new byte[32767];
+            final int maxReadSize = buffer.length;
+            while ((read = cis.read(buffer, 0, maxReadSize)) != -1) {
+                if (read > 0) {
+                    fos.write(buffer, 0, read);
+                    md.update(buffer, 0, read);
+                }
+            }
+            final byte[] generatedDigest = md.digest();
+            if (Arrays.equals(generatedDigest, readDigest) == false) { throw new IOException("Hash failed!"); }
+            fos.close();
+            deleteDst = false;
+        } finally {
+            try {
+                fis.close();
+            } catch (final Throwable e) {
+            }
+            try {
+                fos.close();
+            } catch (final Throwable e) {
+            }
+            if (deleteDst) {
+                dstFile.delete();
+            }
+        }
+    }
+
+    public static void encryptRSA_AES(final File srcFile, final File dstFile, final PrivateKey pk) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+        FileInputStream fis = null;
+        FileOutputStream fos = null;
+        boolean deleteDst = true;
+        try {
+            fis = new FileInputStream(srcFile);
+            fos = new FileOutputStream(dstFile);
+            final KeyGenerator keygen = KeyGenerator.getInstance("AES");
+            if (AWSign.sr != null) {
+                keygen.init(AWSign.sr);
+            }
+            byte[] iv = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            if (AWSign.sr != null) {
+                iv = AWSign.sr.generateSeed(16);
+            }
+            keygen.init(128);
+            final SecretKey key = keygen.generateKey();
+            Cipher cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.ENCRYPT_MODE, pk);
+            fos.write(cipher.doFinal(key.getEncoded()));
+            cipher.init(Cipher.ENCRYPT_MODE, pk);
+            fos.write(cipher.doFinal(iv));
+            fos.write(new byte[32]);
+            cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
+            final CipherOutputStream cos = new CipherOutputStream(new FilterOutputStream(fos) {
+
+                @Override
+                public void close() throws IOException {
+                }
+
+                @Override
+                public void flush() throws IOException {
+                    this.out.flush();
+                }
+
+                @Override
+                public void write(final byte[] b) throws IOException {
+                    this.out.write(b);
+                }
+
+                @Override
+                public void write(final byte[] b, final int off, final int len) throws IOException {
+                    this.out.write(b, off, len);
+                }
+
+                @Override
+                public void write(final int b) throws IOException {
+                    this.out.write(b);
+                }
+
+            }, cipher);
+            final MessageDigest md = MessageDigest.getInstance("SHA-256");
+            int read = 0;
+            final byte[] buffer = new byte[32767];
+            while ((read = fis.read(buffer)) != -1) {
+                if (read > 0) {
+                    cos.write(buffer, 0, read);
+                    md.update(buffer, 0, read);
+                }
+            }
+            cos.close();
+            fos.getChannel().position(2 * 256);
+            fos.write(md.digest());
+            deleteDst = false;
+        } finally {
+            try {
+                fis.close();
+            } catch (final Throwable e) {
+            }
+            try {
+                fos.close();
+            } catch (final Throwable e) {
+            }
+            if (deleteDst) {
+                dstFile.delete();
+            }
+        }
+    }
+
     public static PublicKey getPublicKey(final String base64Encoded) throws SignatureViolationException {
         try {
             return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(base64Encoded)));
@@ -144,7 +300,7 @@ public class AWSign {
 
     }
 
-    public static void main(final String[] args) throws NoSuchAlgorithmException {
+    public static void main(final String[] args) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException {
         // AWSign.createKeyPair();
 
         // PUBLIC
