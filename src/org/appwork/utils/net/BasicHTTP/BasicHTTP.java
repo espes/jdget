@@ -153,6 +153,18 @@ public class BasicHTTP {
             }
             this.connection.setRequestProperty("Connection", "Close");
             this.connection.connect();
+            if (this.connection.getResponseCode() == 302) {
+                final String red = this.connection.getHeaderField("Location");
+                if (red != null) {
+                    try {
+                        this.connection.disconnect();
+                    } catch (final Throwable e) {
+                    }
+                    this.download(new URL(red), progress, maxSize, baos, resumePosition);
+                    return;
+                }
+                throw new IOException("302 without locationHeader!");
+            }
             this.checkResponseCode();
             input = this.connection.getInputStream();
 

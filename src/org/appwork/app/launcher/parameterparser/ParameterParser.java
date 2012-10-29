@@ -46,7 +46,6 @@ public class ParameterParser {
      * @return
      */
     public CommandSwitch getCommandSwitch(final String string) {
-
         return this.map.get(string);
     }
 
@@ -111,7 +110,9 @@ public class ParameterParser {
                 }
                 if (switchCommand != null || params.size() > 0) {
                     CommandSwitch cs;
-                    if (switchCommand != null) switchCommand = switchCommand.toLowerCase(Locale.ENGLISH);
+                    if (switchCommand != null) {
+                        switchCommand = switchCommand.toLowerCase(Locale.ENGLISH);
+                    }
                     this.getEventSender().fireEvent(cs = new CommandSwitch(switchCommand, params.toArray(new String[] {})));
                     this.map.put(switchCommand, cs);
                 }
@@ -124,7 +125,9 @@ public class ParameterParser {
         }
         if (switchCommand != null || params.size() > 0) {
             CommandSwitch cs;
-            if (switchCommand != null) switchCommand = switchCommand.toLowerCase(Locale.ENGLISH);
+            if (switchCommand != null) {
+                switchCommand = switchCommand.toLowerCase(Locale.ENGLISH);
+            }
             this.getEventSender().fireEvent(cs = new CommandSwitch(switchCommand, params.toArray(new String[] {})));
             this.map.put(switchCommand, cs);
         }
