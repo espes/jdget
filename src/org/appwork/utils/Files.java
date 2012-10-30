@@ -203,26 +203,40 @@ public class Files {
         return Files.getRelativePath(root.getAbsolutePath(), file.getAbsolutePath());
     }
 
-    public static String getRelativePath(final String root, final String file) {
+    public static String getRelativePath(String root, final String file) {
+
         final String rootPath, filePath;
         if (CrossSystem.isWindows()) {
+            root = root.replace("/", "\\");
+            if (!root.endsWith("\\")) {
+                root += "\\";
+            }
             rootPath = root.toLowerCase(Locale.ENGLISH);
-            filePath = file.toLowerCase(Locale.ENGLISH);
+            filePath = file.toLowerCase(Locale.ENGLISH).replace("/", "\\");
         } else {
+            if (!root.endsWith("/")) {
+                root += "/";
+            }
             rootPath = root;
             filePath = file;
         }
         if (!filePath.startsWith(rootPath)) { return null; }
         if (rootPath.equals(filePath)) { return "/"; }
+
         if (CrossSystem.isWindows()) {
-            return file.substring(rootPath.length() + 1).replace("\\", "/");
+            return file.substring(rootPath.length()).replace("\\", "/");
         } else {
-            return file.substring(rootPath.length() + 1);
+            return file.substring(rootPath.length());
         }
     }
 
-    public static void main(final String[] args) {
+    public static void main(final String[] args) {     
+        System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/test 1/eins/zwei/drei.vier")));
         System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/test/eins/zwei/drei.vier")));
+        System.out.println(Files.getRelativePath(new File("C:/"), new File("c:/test/eins/zwei/drei.vier")));
+        System.out.println(Files.getRelativePath("C:\\test/", "c:/test/eins\\zwei\\drei.vier\\"));
+        System.out.println(Files.getRelativePath("/home/Daniel", "/home/Daniel/testfl"));
+
     }
 
     public static <T extends Exception> void walkThroughStructure(final Handler<T> handler, final File f) throws T {
