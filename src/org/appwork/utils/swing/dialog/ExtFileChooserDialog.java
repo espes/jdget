@@ -503,17 +503,18 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         // public void propertyChange(PropertyChangeEvent evt) {
         // System.out.println(evt);
         // }
-        // });
+        // }); 
+        if (fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
+                    ((JComponent) fc.getComponent(3)).getComponent(1).setVisible(false);
+                    ((JComponent) fc.getComponent(3)).getComponent(2).setVisible(false);
+                }
         if (quickSelectionList != null && multiSelection == false) {
             try {
                 // wraps the textfield to enter a path in a SearchCombobox
                 // FilePane filepane = (sun.swing.FilePane)fc.getComponent(2);
 
                 JPanel namePanel = (JPanel) ((JComponent) fc.getComponent(3)).getComponent(0);
-                if (fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
-                    ((JComponent) fc.getComponent(3)).getComponent(1).setVisible(false);
-                    ((JComponent) fc.getComponent(3)).getComponent(2).setVisible(false);
-                }
+              
                 final JTextField oldTextField = (JTextField) namePanel.getComponent(1);
                 namePanel.remove(1);
 
