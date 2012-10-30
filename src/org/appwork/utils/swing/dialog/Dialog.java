@@ -15,6 +15,7 @@ import java.awt.Window;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.io.File;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -500,6 +501,8 @@ public class Dialog implements WindowFocusListener {
         return ret;
     }
 
+ 
+
     public int showErrorDialog(final String s) {
 
         try {
@@ -520,7 +523,7 @@ public class Dialog implements WindowFocusListener {
     public int showExceptionDialog(final String title, final String message, final Throwable e) {
 
         try {
-            final ExceptionDialog dialog = new ExceptionDialog(Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN | Dialog.BUTTONS_HIDE_CANCEL, title, message, e, null, null);
+            final ExceptionDialog dialog = new ExceptionDialog(Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT | Dialog.BUTTONS_HIDE_CANCEL, title, message, e, null, null);
             this.showDialog(dialog);
         } catch (final DialogClosedException e1) {
             return Dialog.RETURN_CLOSED;
@@ -852,7 +855,7 @@ public class Dialog implements WindowFocusListener {
      * @param i
      * @param dialog_error_title
      * @param dialog_error_noconnection
-     * @return 
+     * @return
      */
     public int showErrorDialog(int flags, String title, String message) {
         try {

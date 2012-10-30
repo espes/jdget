@@ -34,6 +34,33 @@ import sun.awt.shell.ShellFolder;
  * 
  */
 public class ExtFileSystemView extends FileSystemView {
+    private static boolean SAMBA_SCANNED = false;
+
+    public static void runSambaScanner() {
+        if (SAMBA_SCANNED) return;
+        SAMBA_SCANNED = true;
+
+        final long tt = System.currentTimeMillis();
+        new Thread("Networkfolder Loader") {
+            public void run() {
+                ExtFileSystemView view = new ExtFileSystemView();
+                view.getRoots();
+
+                try {
+
+                    if (view.networkFolder != null) {
+
+                        SAMBA_FOLDERS = view.networkFolder.listFiles();
+                        Log.L.info("List Networkfolder done " + (System.currentTimeMillis() - tt));
+                    }
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+
+    }
 
     private FileSystemView     org;
     private File[]             roots;
@@ -49,6 +76,10 @@ public class ExtFileSystemView extends FileSystemView {
      */
     public ExtFileSystemView() {
         org = FileSystemView.getFileSystemView();
+        if (SAMBA_SCANNED) {
+            new Exception("run ExtFileSystemView.runSambaScanner() as early as possible in your app!");
+            runSambaScanner();
+        }
 
     }
 
@@ -169,21 +200,13 @@ public class ExtFileSystemView extends FileSystemView {
 
             }
 
-            HomeFolder[] homeFolders = new HomeFolder[] { new HomeFolder(HomeFolder.PICTURES, "images"), new HomeFolder(HomeFolder.VIDEOS, "images"), new HomeFolder(HomeFolder.DOWNLOADS, "downloads"), new HomeFolder(HomeFolder.MUSIC, "music") };
+            HomeFolder[] homeFolders = new HomeFolder[] { new HomeFolder(HomeFolder.DOCUMENTS, "documents"), new HomeFolder(HomeFolder.PICTURES, "images"), new HomeFolder(HomeFolder.VIDEOS, "videos"), new HomeFolder(HomeFolder.DOWNLOADS, "downloads"), new HomeFolder(HomeFolder.MUSIC, "music") };
 
             for (HomeFolder hf : homeFolders) {
                 if (hf.exists()) newRoots.add(hf);
             }
-            if (networkFolder != null) {
-                Log.L.info("List Networkfolder " + (System.currentTimeMillis() - t));
-                final long tt = t;
-                new Thread("Networkfolder Loader") {
-                    public void run() {                        
-                        SAMBA_FOLDERS = networkFolder.listFiles();
-                        Log.L.info("List Networkfolder done " + (System.currentTimeMillis() - tt));
-                    }
-                }.start();
-
+            if (SAMBA_FOLDERS == null) {
+                Log.L.warning("Did not run SAMBA_ SCANNER YET");
             }
 
             if (networkFolder != null && (SAMBA_FOLDERS != null && SAMBA_FOLDERS.length > 0)) {

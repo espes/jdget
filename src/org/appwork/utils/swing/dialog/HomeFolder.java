@@ -34,6 +34,8 @@ public class HomeFolder extends File {
      * 
      */
     public static final String MUSIC = "Music";
+    
+    public static final String DOCUMENTS = "Documents";
 
     /**
      * @param string
