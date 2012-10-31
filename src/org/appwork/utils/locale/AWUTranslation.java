@@ -396,4 +396,8 @@ public interface AWUTranslation extends TranslateInterface {
     String DIALOG_FILECHOOSER_directoryOpenButtonToolTipText();
     // FileChooser =Open selected directory
 
+    @Default(lngs = { "en", "de" }, values = { "Network", "Netzwerk" })
+    
+    String DIALOG_FILECHOOSER_networkfolder();
+
 }

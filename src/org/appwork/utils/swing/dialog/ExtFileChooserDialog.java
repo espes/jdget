@@ -11,7 +11,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -116,12 +115,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     private BasicFileChooserUI       fcUI;
 
-    private java.util.List<String>        quickSelectionList;
+    private java.util.List<String>   quickSelectionList;
 
     protected boolean                selecting;
 
-    private HashMap<String, File>    sambaFolders      = new HashMap<String, File>();
-
+   
     private SearchComboBox<String>   destination;
 
     private ExtFileSystemView        fileSystemView;
@@ -352,14 +350,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
         // find samba library
 
-        if (fileSystemView.getSAMBA_FOLDERS() != null) {
-
-            // File[] list = windowsNetworkFolder.listFiles();
-            for (File f : fileSystemView.getSAMBA_FOLDERS()) {
-                sambaFolders.put(f.getPath(), f);
-            }
-
-        }
+     
         // main: for (File r : fc.getFileSystemView().getRoots()) {
         // System.out.println(r.getPath());
         //
@@ -466,9 +457,9 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             }
 
         }
-        if(orgPresel!=null&&!orgPresel.isDirectory()){
-            if(fc.getSelectedFile()==null||!fc.getSelectedFile().equals(orgPresel)){
-                fc.setSelectedFile(new File(fc.getCurrentDirectory(),orgPresel.getName()));
+        if (orgPresel != null && !orgPresel.isDirectory()) {
+            if (fc.getSelectedFile() == null || !fc.getSelectedFile().equals(orgPresel)) {
+                fc.setSelectedFile(new File(fc.getCurrentDirectory(), orgPresel.getName()));
             }
         }
         updateView();
@@ -503,18 +494,18 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         // public void propertyChange(PropertyChangeEvent evt) {
         // System.out.println(evt);
         // }
-        // }); 
+        // });
         if (fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
-                    ((JComponent) fc.getComponent(3)).getComponent(1).setVisible(false);
-                    ((JComponent) fc.getComponent(3)).getComponent(2).setVisible(false);
-                }
+            ((JComponent) fc.getComponent(3)).getComponent(1).setVisible(false);
+            ((JComponent) fc.getComponent(3)).getComponent(2).setVisible(false);
+        }
         if (quickSelectionList != null && multiSelection == false) {
             try {
                 // wraps the textfield to enter a path in a SearchCombobox
                 // FilePane filepane = (sun.swing.FilePane)fc.getComponent(2);
 
                 JPanel namePanel = (JPanel) ((JComponent) fc.getComponent(3)).getComponent(0);
-              
+
                 final JTextField oldTextField = (JTextField) namePanel.getComponent(1);
                 namePanel.remove(1);
 
@@ -612,7 +603,10 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
                             private File getFile(String txt) {
                                 if (fileSystemView.getNetworkFolder() != null && "\\".equals(txt)) { return fileSystemView.getNetworkFolder(); }
-                                File ret = sambaFolders.get(new File(txt).getAbsolutePath());
+                                
+                           
+                                File ret=null;
+                                if(fileSystemView.getNetworkFolder()!=null)ret=fileSystemView.getNetworkFolder().get(new File(txt).getAbsolutePath());
 
                                 return ret != null ? ret : new File(txt);
                             }
@@ -812,7 +806,9 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     protected boolean isSambaFolder(File f) {
-        return sambaFolders.containsKey(f.getPath());
+        if(fileSystemView.getNetworkFolder()!=null)return fileSystemView.getNetworkFolder().get(f.getAbsolutePath())!=null;
+
+        return false;
     }
 
     /**

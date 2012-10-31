@@ -10,14 +10,17 @@
 package org.appwork.utils.swing.dialog;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.filechooser.FileSystemView;
 
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
@@ -34,7 +37,7 @@ import sun.awt.shell.ShellFolder;
  * 
  */
 public class ExtFileSystemView extends FileSystemView {
-    private static boolean SAMBA_SCANNED = false;
+    public static boolean SAMBA_SCANNED = false;
 
     public static void runSambaScanner() {
         if (ExtFileSystemView.SAMBA_SCANNED) { return; }
@@ -51,7 +54,7 @@ public class ExtFileSystemView extends FileSystemView {
 
                     if (view.networkFolder != null) {
 
-                        ExtFileSystemView.SAMBA_FOLDERS = view.networkFolder.listFiles();
+                        view.networkFolder.listFiles();
                         Log.L.info("List Networkfolder done " + (System.currentTimeMillis() - tt));
                     }
                 } catch (final Exception e) {
@@ -64,8 +67,8 @@ public class ExtFileSystemView extends FileSystemView {
 
     private final FileSystemView org;
     private File[]               roots;
-    private File                 networkFolder;
-    private static File[]        SAMBA_FOLDERS            = null;
+    private NetWorkFolder        networkFolder;
+
     /**
      * 
      */
@@ -118,17 +121,26 @@ public class ExtFileSystemView extends FileSystemView {
     }
 
     @Override
-    public File[] getFiles(final File dir, final boolean useFileHiding) {
+    public File[] getFiles(File dir, final boolean useFileHiding) {
         final long t = System.currentTimeMillis();
         try {
-            final File[] ret = this.org.getFiles(dir, useFileHiding);
+
+            final File[] ret;
+
+            if (dir == networkFolder) {
+
+                ret = this.getFilesShellfolder((NetWorkFolder) dir, useFileHiding);
+            } else {
+                ret = this.org.getFiles(dir, useFileHiding);
+            }
+
             final java.util.List<File> filtered = new ArrayList<File>();
             for (final File f : ret) {
                 if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
-                    filtered.add(f);
+                    filtered.add(new NetWorkFolder(f));
                     continue;
                 } else if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP)) {
-                    filtered.add(f);
+                    filtered.add(new NetWorkFolder(f));
                     continue;
                 } else if (f.getName().startsWith("::{")) {
                     continue;
@@ -142,6 +154,41 @@ public class ExtFileSystemView extends FileSystemView {
         }
     }
 
+    public File[] getFilesShellfolder(NetWorkFolder network, boolean useFileHiding) {
+        List<File> files = new ArrayList<File>();
+
+        File[] names = network.listFiles(useFileHiding);
+        if (names == null) { return new File[0]; }
+
+        for (File f : names) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
+
+            if (!(f instanceof ShellFolder)) {
+                if (isFileSystemRoot(f)) {
+                    f = createFileSystemRoot(f);
+                }
+                try {
+                    f = ShellFolder.getShellFolder(f);
+                } catch (FileNotFoundException e) {
+                    // Not a valid file (wouldn't show in native file chooser)
+                    // Example: C:\pagefile.sys
+                    continue;
+                } catch (InternalError e) {
+                    // Not a valid file (wouldn't show in native file chooser)
+                    // Example C:\Winnt\Profiles\joe\history\History.IE5
+                    continue;
+                }
+            }
+            if (!useFileHiding || !isHiddenFile(f)) {
+                files.add(f);
+            }
+        }
+
+        return files.toArray(new File[files.size()]);
+    }
+
     @Override
     public File getHomeDirectory() {
 
@@ -151,9 +198,9 @@ public class ExtFileSystemView extends FileSystemView {
     /**
      * @return
      */
-    public File getNetworkFolder() {
+    public NetWorkFolder getNetworkFolder() {
         // TODO Auto-generated method stub
-        return null;
+        return networkFolder;
     }
 
     @Override
@@ -195,9 +242,9 @@ public class ExtFileSystemView extends FileSystemView {
                 if (f.getParentFile() == null || !f.getParentFile().equals(home)) {
                     newRoots.add(f);
                 } else if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
-                    this.networkFolder = f;
+                    this.networkFolder = new NetWorkFolder(f);
                 } else if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP)) {
-                    this.networkFolder = f;
+                    this.networkFolder = new NetWorkFolder(f);
                 }
                 Log.L.info("Basefolder: " + f.getName() + " - " + CrossSystem.getOSString());
 
@@ -210,11 +257,8 @@ public class ExtFileSystemView extends FileSystemView {
                     newRoots.add(hf);
                 }
             }
-            if (ExtFileSystemView.SAMBA_FOLDERS == null) {
-                Log.L.warning("Did not run SAMBA_ SCANNER YET");
-            }
 
-            if (this.networkFolder != null && ExtFileSystemView.SAMBA_FOLDERS != null && ExtFileSystemView.SAMBA_FOLDERS.length > 0) {
+            if (this.networkFolder != null) {
                 newRoots.add(this.networkFolder);
             }
             this.roots = newRoots.toArray(new File[] {});
@@ -225,13 +269,9 @@ public class ExtFileSystemView extends FileSystemView {
         }
     }
 
-    public File[] getSAMBA_FOLDERS() {
-        return ExtFileSystemView.SAMBA_FOLDERS;
-    }
-
     @Override
     public String getSystemDisplayName(final File f) {
-
+        if (f == networkFolder) { return _AWU.T.DIALOG_FILECHOOSER_networkfolder(); }
         return this.org.getSystemDisplayName(f);
     }
 
