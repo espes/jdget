@@ -62,7 +62,7 @@ public class LogSink extends Logger {
 
     protected synchronized void close() {
         try {
-            this.flushSources();
+            this.flushSources(true);
             if (this.fileHandler != null) {
                 super.removeHandler(this.fileHandler);
             }
@@ -85,9 +85,9 @@ public class LogSink extends Logger {
         }
     }
 
-    protected void flushSources() {
+    protected void flushSources(final boolean finalFlush) {
         for (final LogSource source : this.getLogSources()) {
-            if (source.isAllowTimeoutFlush()) {
+            if (source.isAllowTimeoutFlush() || finalFlush && source.isFlushOnFinalize()) {
                 source.flush();
             }
         }

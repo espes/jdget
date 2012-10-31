@@ -95,7 +95,7 @@ public abstract class LogSourceProvider {
 
             @Override
             public void run() {
-                LogSourceProvider.this.flushSinks(false);
+                LogSourceProvider.this.flushSinks(false, true);
             }
 
             @Override
@@ -160,7 +160,7 @@ public abstract class LogSourceProvider {
         return new LogSource(name, i);
     }
 
-    public void flushSinks(final boolean flushOnly) {
+    public void flushSinks(final boolean flushOnly, final boolean finalFlush) {
         java.util.List<LogSink> logSinks2Flush = null;
         java.util.List<LogSink> logSinks2Close = null;
         synchronized (this.logSinks) {
@@ -187,7 +187,7 @@ public abstract class LogSourceProvider {
         }
         for (final LogSink sink : logSinks2Flush) {
             try {
-                sink.flushSources();
+                sink.flushSources(finalFlush);
             } catch (final Throwable e) {
             }
         }
@@ -307,7 +307,7 @@ public abstract class LogSourceProvider {
                             Thread.sleep(LogSourceProvider.this.logTimeout);
                         } catch (final InterruptedException e) {
                         }
-                        LogSourceProvider.this.flushSinks(true);
+                        LogSourceProvider.this.flushSinks(true, false);
                     } catch (final Throwable e) {
                     }
                 }
