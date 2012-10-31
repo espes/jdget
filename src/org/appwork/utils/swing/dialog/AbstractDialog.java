@@ -56,6 +56,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     public static final Locator                   LOCATE_CENTER_OF_SCREEN = new CenterOfScreenLocator();
 
+    private static int                            BUTTON_HEIGHT           = -1;
+
     public static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
         if (ret == null) { return -1; }
@@ -431,7 +433,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     protected JPanel createBottomButtonPanel() {
         // TODO Auto-generated method stub
-        return new JPanel(new MigLayout("ins 0", "[]", "0[]0"));
+        if (BUTTON_HEIGHT <= 0) {
+            return new JPanel(new MigLayout("ins 0", "[]", "0[grow,fill]0"));
+        } else {
+            return new JPanel(new MigLayout("ins 0", "[]", "0[grow,fill," + BUTTON_HEIGHT + "!]0"));
+        }
     }
 
     /**
@@ -763,5 +769,17 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     public void windowOpened(final WindowEvent arg0) {
+    }
+
+    /**
+     * @param i
+     */
+    public static void setButtonHeight(int height) {
+        BUTTON_HEIGHT = height;
+
+    }
+
+    public static int getButtonHeight() {
+        return BUTTON_HEIGHT;
     }
 }
