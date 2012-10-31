@@ -91,10 +91,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
      */
     @Override
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
-        java.util.List<HttpSessionRequestHandler<T>> handlers = null;
-        synchronized (this.handler) {
-            handlers = this.handler;
-        }
+        final java.util.List<HttpSessionRequestHandler<T>> handlers = this.handler;
         final T session = this.getSession(this.extractSessionID(request.getRequestedURLParameters()));
         for (final HttpSessionRequestHandler<T> handler : handlers) {
             if (handler.onGetSessionRequest(session, request, response)) { return true; }
@@ -112,10 +109,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
      */
     @Override
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) {
-        java.util.List<HttpSessionRequestHandler<T>> handlers = null;
-        synchronized (this.handler) {
-            handlers = this.handler;
-        }
+        final java.util.List<HttpSessionRequestHandler<T>> handlers = this.handler;
         final T session = this.getSession(this.extractSessionID(request.getRequestedURLParameters()));
         for (final HttpSessionRequestHandler<T> handler : handlers) {
             if (handler.onPostSessionRequest(session, request, response)) { return true; }
