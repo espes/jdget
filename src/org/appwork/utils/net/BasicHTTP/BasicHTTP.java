@@ -63,7 +63,7 @@ public class BasicHTTP {
      * @throws IOException
      * 
      */
-    private void checkResponseCode() throws InvalidResponseCode {
+    protected void checkResponseCode() throws InvalidResponseCode {
         if (this.allowedResponseCodes != null && !this.allowedResponseCodes.contains(this.connection.getResponseCode())) { throw new InvalidResponseCode(this.connection); }
 
     }
