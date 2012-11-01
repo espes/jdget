@@ -63,6 +63,10 @@ public class RemoteAPIRequest implements HttpRequestInterface {
         }
     }
 
+    public HttpRequest getHttpRequest() {
+        return this.request;
+    }
+
     public InterfaceHandler<?> getIface() {
         return this.iface;
     }
