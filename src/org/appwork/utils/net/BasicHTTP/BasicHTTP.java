@@ -22,6 +22,7 @@ import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.txtresource.TranslationFactory;
 import org.appwork.utils.Application;
 import org.appwork.utils.net.DownloadProgress;
+import org.appwork.utils.net.UploadProgress;
 import org.appwork.utils.net.httpconnection.HTTPConnection;
 import org.appwork.utils.net.httpconnection.HTTPConnection.RequestMethod;
 import org.appwork.utils.net.httpconnection.HTTPConnectionFactory;
@@ -35,11 +36,6 @@ public class BasicHTTP {
 
         final BasicHTTP client = new BasicHTTP();
         System.out.println(client.getPage(new URL("http://ipcheck0.jdownloader.org")));
-        // client.download(new URL("http://update3.jdownloader.org/speed.avi"),
-        // null, new File("/home/daniel/speed.avi"));
-
-        // System.out.println(new BasicHTTP().postPage(new
-        // URL("http://ipcheck0.jdownloader.org"), "BKA"));
     }
 
     private HashSet<Integer>              allowedResponseCodes;
@@ -65,7 +61,6 @@ public class BasicHTTP {
      */
     protected void checkResponseCode() throws InvalidResponseCode {
         if (this.allowedResponseCodes != null && !this.allowedResponseCodes.contains(this.connection.getResponseCode())) { throw new InvalidResponseCode(this.connection); }
-
     }
 
     public void clearRequestHeader() {
@@ -110,7 +105,6 @@ public class BasicHTTP {
         } catch (final WriteIOException e) {
             throw e;
         } catch (final IOException e) {
-
             if (baos.size() > 0) {
                 throw new BasicHTTPException(this.connection, e);
             } else {
@@ -389,73 +383,6 @@ public class BasicHTTP {
         }
     }
 
-    public HTTPConnection openPostConnection(final URL url, final InputStream is, final HashMap<String, String> header) throws IOException, InterruptedException {
-        boolean close = true;
-        synchronized (BasicHTTP.CALL_LOCK) {
-            OutputStream outputStream = null;
-            final byte[] buffer = new byte[32767];
-            try {
-
-                this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
-                this.connection.setConnectTimeout(this.getConnectTimeout());
-                this.connection.setReadTimeout(this.getReadTimeout());
-                this.connection.setRequestMethod(RequestMethod.POST);
-
-                this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
-                this.connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
-                this.connection.setRequestProperty("Connection", "Close");
-                /* connection specific headers */
-                if (header != null) {
-                    for (final Entry<String, String> next : header.entrySet()) {
-                        this.connection.setRequestProperty(next.getKey(), next.getValue());
-                    }
-                }
-                for (final Entry<String, String> next : this.requestHeader.entrySet()) {
-                    this.connection.setRequestProperty(next.getKey(), next.getValue());
-                }
-
-                int lookupTry = 0;
-                try {
-                    while (true) {
-                        try {
-                            this.connection.connect();
-                            break;
-                        } catch (final UnknownHostException e) {
-                            if (++lookupTry > 3) { throw e; }
-                            /* dns lookup failed, short wait and try again */
-                            Thread.sleep(200);
-                        }
-                    }
-                } catch (final IOException e) {
-                    throw new ReadIOException(e);
-                }
-                outputStream = this.connection.getOutputStream();
-                int read = 0;
-                while ((read = is.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, read);
-                }
-                outputStream.flush();
-                this.connection.finalizeConnect();
-                this.checkResponseCode();
-                close = false;
-                return this.connection;
-            } finally {
-                try {
-                    if (close) {
-                        this.connection.disconnect();
-                    }
-                } catch (final Throwable e2) {
-                }
-                try {
-                    if (this.logger != null) {
-                        this.logger.info(this.connection.toString());
-                    }
-                } catch (final Throwable e) {
-                }
-            }
-        }
-    }
-
     public HTTPConnection openPostConnection(final URL url, final String postData, final HashMap<String, String> header) throws IOException, InterruptedException {
         boolean close = true;
         synchronized (BasicHTTP.CALL_LOCK) {
@@ -519,6 +446,77 @@ public class BasicHTTP {
                 try {
                     outputStream.close();
                 } catch (final Throwable e) {
+                }
+                try {
+                    if (this.logger != null) {
+                        this.logger.info(this.connection.toString());
+                    }
+                } catch (final Throwable e) {
+                }
+            }
+        }
+    }
+
+    public HTTPConnection openPostConnection(final URL url, final UploadProgress progress, final InputStream is, final HashMap<String, String> header) throws IOException, InterruptedException {
+        boolean close = true;
+        synchronized (BasicHTTP.CALL_LOCK) {
+            OutputStream outputStream = null;
+            final byte[] buffer = new byte[32767];
+            try {
+                this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
+                this.connection.setConnectTimeout(this.getConnectTimeout());
+                this.connection.setReadTimeout(this.getReadTimeout());
+                this.connection.setRequestMethod(RequestMethod.POST);
+
+                this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
+                this.connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
+                this.connection.setRequestProperty("Connection", "Close");
+                /* connection specific headers */
+                if (header != null) {
+                    for (final Entry<String, String> next : header.entrySet()) {
+                        this.connection.setRequestProperty(next.getKey(), next.getValue());
+                    }
+                }
+                for (final Entry<String, String> next : this.requestHeader.entrySet()) {
+                    this.connection.setRequestProperty(next.getKey(), next.getValue());
+                }
+
+                int lookupTry = 0;
+                try {
+                    while (true) {
+                        try {
+                            this.connection.connect();
+                            break;
+                        } catch (final UnknownHostException e) {
+                            if (++lookupTry > 3) { throw e; }
+                            /* dns lookup failed, short wait and try again */
+                            Thread.sleep(200);
+                        }
+                    }
+                } catch (final IOException e) {
+                    throw new ReadIOException(e);
+                }
+                outputStream = this.connection.getOutputStream();
+                int read = 0;
+                while ((read = is.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, read);
+                    if (progress != null) {
+                        progress.onBytesUploaded(buffer, read);
+                        progress.increaseUploaded(read);
+                    }
+                    if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
+                }
+                outputStream.flush();
+                this.connection.finalizeConnect();
+                this.checkResponseCode();
+                close = false;
+                return this.connection;
+            } finally {
+                try {
+                    if (close) {
+                        this.connection.disconnect();
+                    }
+                } catch (final Throwable e2) {
                 }
                 try {
                     if (this.logger != null) {

@@ -12,23 +12,23 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
-import org.appwork.exceptions.WTFException;
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.formatter.HexFormatter;
 import org.appwork.utils.net.LimitedInputStream;
+import org.appwork.utils.net.UploadProgress;
 import org.appwork.utils.net.BasicHTTP.BasicHTTP;
-import org.appwork.utils.net.BasicHTTP.BasicHTTPException;
 import org.appwork.utils.net.httpconnection.HTTPConnection;
 
 public abstract class Upload {
 
-    private String     eTag                     = null;
-    private final File file;
-    private long       uploadChunkSize          = -1;
-    private long       remoteSize               = -1;
-    private long       knownErrorFreeRemoteSize = 0;
+    protected String     eTag                     = null;
+    protected final File file;
+    protected long       uploadChunkSize          = -1;
+    protected long       remoteSize               = -1;
+    protected long       knownErrorFreeRemoteSize = 0;
 
     public Upload(final File file) {
         this(file, null);
@@ -41,6 +41,16 @@ public abstract class Upload {
             this.eTag = eTag;
         } else {
             this.eTag = ret;
+        }
+    }
+
+    protected void checkInterrupted() throws InterruptedException {
+        if (Thread.currentThread().isInterrupted()) {
+            try {
+                this.getBasicHTTP().getConnection().disconnect();
+            } catch (final Throwable e) {
+            }
+            throw new InterruptedException();
         }
     }
 
@@ -83,7 +93,8 @@ public abstract class Upload {
             header.put(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0");
             if (this.file.exists() == false) { throw new FileNotFoundException("Local file does not exist: " + this.file); }
             header.put(HTTPConstants.HEADER_REQUEST_CONTENT_RANGE, "bytes */" + this.file.length());
-            con = shttp.openPostConnection(this.getUploadURL(), new ByteArrayInputStream(new byte[0]), header);
+            this.checkInterrupted();
+            con = shttp.openPostConnection(this.getUploadURL(), null, new ByteArrayInputStream(new byte[0]), header);
             this.parseResponse(con);
             return this.remoteSize;
         } finally {
@@ -101,18 +112,23 @@ public abstract class Upload {
         return this.uploadChunkSize;
     }
 
+    public UploadProgress getUploadProgress() {
+        return null;
+    }
+
     protected abstract URL getUploadURL();
 
-    public boolean isUploadComplete() {
+    public boolean isUploadComplete() throws FileNotFoundException {
         if (this.remoteSize <= 0) { return false; }
-        if (this.remoteSize > this.file.length()) { throw new WTFException("RemoteSize > LocalSize"); }
+        if (this.remoteSize > this.file.length()) { throw new FileNotFoundException("RemoteSize > LocalSize"); }
         return this.file.length() == this.remoteSize;
     }
 
-    private void parseResponse(final HTTPConnection con) throws IOException {
+    protected void parseResponse(final HTTPConnection con) throws IOException {
         if (con.getResponseCode() == 404) { throw new FileNotFoundException("Remote file does not exist: " + this.eTag); }
         if (con.getResponseCode() == 308 || con.getResponseCode() == 200) {
             this.eTag = con.getHeaderField(HTTPConstants.HEADER_ETAG);
+            if (StringUtils.isEmpty(this.eTag)) { throw new IOException("No ETag!"); }
             if (con.getResponseCode() == 308) {
                 this.remoteSize = 0;
                 final String range = con.getHeaderField(HTTPConstants.HEADER_REQUEST_RANGE);
@@ -125,7 +141,20 @@ public abstract class Upload {
             }
             return;
         }
-        throw new BasicHTTPException(con, new IOException("Unknown responsecode " + con.getResponseCode()));
+        throw new IOException("Unknown responsecode " + con.getResponseCode());
+    }
+
+    public void setETag(final String eTag) {
+        if (StringUtils.isEmpty(eTag)) {
+            this.eTag = null;
+            return;
+        }
+        final String ret = new Regex(eTag, "\"(.*?)\"").getMatch(0);
+        if (ret == null) {
+            this.eTag = eTag;
+        } else {
+            this.eTag = ret;
+        }
     }
 
     public void setKnownErrorFreeRemoteSize(final long knownErrorFreeRemoteSize) {
@@ -144,22 +173,39 @@ public abstract class Upload {
         final BasicHTTP shttp = this.getBasicHTTP();
         RandomAccessFile raf = null;
         HTTPConnection con = null;
+        final UploadProgress uploadProgress = this.getUploadProgress();
         try {
             final HashMap<String, String> header = new HashMap<String, String>();
             raf = new RandomAccessFile(this.file, "r");
             final RandomAccessFile fraf = raf;
             long uploadSize = this.file.length();
-            final long remoteSize = Math.min(this.getRemoteSize(true), this.getKnownErrorFreeRemoteSize());
+            if (uploadProgress != null) {
+                uploadProgress.setTotal(uploadSize);
+            }
+            long existingRemoteSize;
+            long remoteSize = Math.min(existingRemoteSize = this.getRemoteSize(true), this.getKnownErrorFreeRemoteSize());
+            if (remoteSize < 0) {
+                remoteSize = 0;
+            }
+            if (uploadProgress != null) {
+                uploadProgress.setUploaded(remoteSize);
+            }
+            if (existingRemoteSize > uploadSize || remoteSize > uploadSize) { throw new FileNotFoundException("RemoteSize > UploadSize"); }
+            if (remoteSize == uploadSize) {
+                /* upload already finished */
+                return true;
+            }
             if (remoteSize > 0) {
                 /* we resume the upload */
                 raf.seek(remoteSize);
                 uploadSize = this.file.length() - remoteSize;
             }
             final long maxChunkSize = this.getUploadChunkSize();
-            if (maxChunkSize > 0) {
+            if (maxChunkSize > 1024) {
                 /* uploadChunkSize is set */
                 uploadSize = Math.min(maxChunkSize, uploadSize);
             }
+            this.checkInterrupted();
             final long rangeEnd = remoteSize + uploadSize - 1;
             final MessageDigest md = MessageDigest.getInstance("SHA-1");
             final InputStream fis = new InputStream() {
@@ -217,12 +263,16 @@ public abstract class Upload {
             header.put(HTTPConstants.HEADER_REQUEST_IF_MATCH, this.getQuotedEtag());
             header.put(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "" + uploadSize);
             header.put(HTTPConstants.HEADER_REQUEST_CONTENT_RANGE, "bytes " + remoteSize + "-" + rangeEnd + "/" + this.file.length());
-            con = shttp.openPostConnection(this.getUploadURL(), is, header);
+            this.checkInterrupted();
+            con = shttp.openPostConnection(this.getUploadURL(), uploadProgress, is, header);
             this.parseResponse(con);
             final String remoteHash = new String(IO.readStream(1024, con.getInputStream()), "UTF-8");
             final String localHash = HexFormatter.byteArrayToHex(is.getMessageDigest().digest());
-            if (!localHash.equalsIgnoreCase(remoteHash)) { throw new IOException("Upload error: hash missmatch"); }
+            if (!localHash.equalsIgnoreCase(remoteHash)) { throw new UploadHashException("Upload error: hash missmatch"); }
             this.setKnownErrorFreeRemoteSize(remoteSize + uploadSize);
+            if (uploadProgress != null) {
+                uploadProgress.setUploaded(remoteSize + uploadSize);
+            }
             return this.isUploadComplete();
         } finally {
             try {
