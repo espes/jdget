@@ -434,4 +434,15 @@ public class AWSign {
 
     }
 
+    /**
+     * @param privateKey
+     * @return
+     * @throws NoSuchAlgorithmException 
+     * @throws InvalidKeySpecException 
+     */
+    public static PrivateKey getPrivateKey(String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+      
+        return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(Base64.decode(privateKey)));
+    }
+
 }
