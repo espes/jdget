@@ -274,6 +274,17 @@ public class AWSign {
         }
     }
 
+    /**
+     * @param privateKey
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
+    public static PrivateKey getPrivateKey(final String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+
+        return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(Base64.decode(privateKey)));
+    }
+
     public static PublicKey getPublicKey(final String base64Encoded) throws SignatureViolationException {
         try {
             return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(base64Encoded)));
@@ -411,7 +422,7 @@ public class AWSign {
             if (additionalBytes != null) {
                 sig.update(additionalBytes);
             }
-            final byte[] buffer = new byte[16384];
+            final byte[] buffer = new byte[32767];
             int len;
             while ((len = input.read(buffer)) != -1) {
                 if (len > 0) {
@@ -432,17 +443,6 @@ public class AWSign {
 
         }
 
-    }
-
-    /**
-     * @param privateKey
-     * @return
-     * @throws NoSuchAlgorithmException 
-     * @throws InvalidKeySpecException 
-     */
-    public static PrivateKey getPrivateKey(String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
-      
-        return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(Base64.decode(privateKey)));
     }
 
 }

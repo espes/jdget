@@ -29,8 +29,10 @@ public class Tester {
      * @param args
      * @throws IOException
      * @throws NoSuchAlgorithmException
+     * @throws InterruptedException
      */
-    public static void main(final String[] args) throws IOException, NoSuchAlgorithmException {
+    public static void main(final String[] args) throws IOException, NoSuchAlgorithmException, InterruptedException {
+
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         final MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] buffer;
@@ -74,5 +76,6 @@ public class Tester {
         }
         zos.close();
         System.out.println("Size: " + bos.size() + " " + (System.currentTimeMillis() - a));
+
     }
 }

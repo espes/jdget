@@ -32,6 +32,7 @@ public class AWFCOutputStream extends OutputStream {
     private final MessageDigest  md;
     private boolean              headerWritten               = false;
     private final AWFCUtils      utils;
+    private boolean              closing                     = false;
 
     public AWFCOutputStream(final OutputStream os, final MessageDigest md) {
         this.os = os;
@@ -48,6 +49,10 @@ public class AWFCOutputStream extends OutputStream {
 
     @Override
     public synchronized void close() throws IOException {
+        if (this.headerWritten == false) {
+            this.closing = true;
+            this.writeAWFCHeader();
+        }
         this.getCurrentOutputStream().close();
     }
 
@@ -73,6 +78,7 @@ public class AWFCOutputStream extends OutputStream {
     protected synchronized OutputStream getCurrentOutputStream() throws IOException {
         if (this.currentCountingOutputStream != null) { return this.currentCountingOutputStream; }
         if (this.currentEntry != null) { return this.os; }
+        if (this.closing) { return this.os; }
         throw new IOException("No Entry added yet!");
     }
 
