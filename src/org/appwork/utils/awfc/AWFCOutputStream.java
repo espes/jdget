@@ -23,74 +23,103 @@ import org.appwork.utils.net.CountingOutputStream;
 public class AWFCOutputStream extends OutputStream {
 
     /**
-     * Appwork FileContainer     * 
-     
+     * Appwork FileContainer *
      */
     private final OutputStream   os;
     private AWFCEntry            currentEntry                = null;
     private CountingOutputStream currentCountingOutputStream = null;
-    private byte                 writeBuffer[]               = new byte[10];
+    private final byte           writeBuffer[]               = new byte[10];
     private final MessageDigest  md;
     private boolean              headerWritten               = false;
+    private final AWFCUtils      utils;
 
-    public AWFCOutputStream(OutputStream os, MessageDigest md) {
+    public AWFCOutputStream(final OutputStream os, final MessageDigest md) {
         this.os = os;
         this.md = md;
+        this.utils = new AWFCUtils() {
+
+            @Override
+            public OutputStream getCurrentOutputStream() throws IOException {
+                return AWFCOutputStream.this.getCurrentOutputStream();
+            }
+
+        };
     }
 
     @Override
-    public synchronized void write(int b) throws IOException {
-        getCurrentOutputStream().write(b);
+    public synchronized void close() throws IOException {
+        this.getCurrentOutputStream().close();
     }
 
     private synchronized void closeLastEntry() throws IOException {
-        if (currentEntry != null) {
+        if (this.currentEntry != null) {
             /* verify if currentEntry is complete */
-            long bytesWritten = currentCountingOutputStream.transferedBytes();
-            if (currentEntry.getSize() != bytesWritten) throw new IOException("Wrong size for Entry: " + currentEntry + " != " + bytesWritten);
-            if (md != null && !Arrays.equals(currentEntry.getHash(), md.digest())) throw new IOException("Wrong hash for Entry: " + currentEntry);
+            final long bytesWritten = this.currentCountingOutputStream.transferedBytes();
+            if (this.currentEntry.getSize() != bytesWritten) { throw new IOException("Wrong size for Entry: " + this.currentEntry + " != " + bytesWritten); }
+            if (this.md != null && !Arrays.equals(this.currentEntry.getHash(), this.md.digest())) { throw new IOException("Wrong hash for Entry: " + this.currentEntry); }
             /* we want to write on original OutputStream again */
-            currentCountingOutputStream = null;
-            currentEntry = null;
+            this.currentCountingOutputStream = null;
+            this.currentEntry = null;
         } else {
             throw new IOException("No lastEntry to close!");
         }
     }
 
-    public synchronized void putNextEntry(AWFCEntry e) throws IOException {
-        if (currentEntry != null) {
-            closeLastEntry();
+    @Override
+    public synchronized void flush() throws IOException {
+        this.getCurrentOutputStream().flush();
+    }
+
+    protected synchronized OutputStream getCurrentOutputStream() throws IOException {
+        if (this.currentCountingOutputStream != null) { return this.currentCountingOutputStream; }
+        if (this.currentEntry != null) { return this.os; }
+        throw new IOException("No Entry added yet!");
+    }
+
+    public synchronized void putNextEntry(final AWFCEntry e) throws IOException {
+        if (this.currentEntry != null) {
+            this.closeLastEntry();
         }
-        currentEntry = e;
-        if (headerWritten == false) writeAWFCHeader();
-        writeAWFCEntry(e);
-        if (md != null) md.reset();
-        currentCountingOutputStream = new CountingOutputStream(os) {
-
-            @Override
-            public void write(byte[] b) throws IOException {
-                super.write(b);
-                if (md != null) md.update(b);
-            }
-
-            @Override
-            public void write(byte[] b, int off, int len) throws IOException {
-                super.write(b, off, len);
-                if (md != null) md.update(b, off, len);
-            }
-
-            @Override
-            public void write(int b) throws IOException {
-                super.write(b);
-                if (md != null) md.update((byte) b);
-            }
+        this.currentEntry = e;
+        if (this.headerWritten == false) {
+            this.writeAWFCHeader();
+        }
+        this.writeAWFCEntry(e);
+        if (this.md != null) {
+            this.md.reset();
+        }
+        this.currentCountingOutputStream = new CountingOutputStream(this.os) {
 
             @Override
             public void close() throws IOException {
                 try {
-                    closeLastEntry();
+                    AWFCOutputStream.this.closeLastEntry();
                 } finally {
                     super.close();
+                }
+            }
+
+            @Override
+            public void write(final byte[] b) throws IOException {
+                super.write(b);
+                if (AWFCOutputStream.this.md != null) {
+                    AWFCOutputStream.this.md.update(b);
+                }
+            }
+
+            @Override
+            public void write(final byte[] b, final int off, final int len) throws IOException {
+                super.write(b, off, len);
+                if (AWFCOutputStream.this.md != null) {
+                    AWFCOutputStream.this.md.update(b, off, len);
+                }
+            }
+
+            @Override
+            public void write(final int b) throws IOException {
+                super.write(b);
+                if (AWFCOutputStream.this.md != null) {
+                    AWFCOutputStream.this.md.update((byte) b);
                 }
             }
 
@@ -98,129 +127,42 @@ public class AWFCOutputStream extends OutputStream {
 
     }
 
-    private void writeAWFCEntry(AWFCEntry e) throws IOException {        
-        writeString(e.getPath());
+    @Override
+    public synchronized void write(final byte b[]) throws IOException {
+        this.getCurrentOutputStream().write(b);
+    }
+
+    @Override
+    public synchronized void write(final byte[] b, final int off, final int len) throws IOException {
+        this.getCurrentOutputStream().write(b, off, len);
+    }
+
+    @Override
+    public synchronized void write(final int b) throws IOException {
+        this.getCurrentOutputStream().write(b);
+    }
+
+    private void writeAWFCEntry(final AWFCEntry e) throws IOException {
+        this.utils.writeString(e.getPath());
         if (e.isFile()) {
-            writeLongOptimized(e.getSize());
-            if (md != null) {
+            this.utils.writeLongOptimized(e.getSize());
+            if (this.md != null) {
                 /* only write Hash when MessageDigest is set */
-                if (e.getHash() == null) throw new IOException("Hash is missing for Entry: " + currentEntry);
-                if (e.getHash().length != md.getDigestLength()) throw new IOException("Hashlength does not match for Entry: " + currentEntry);
-                write(e.getHash());
+                if (e.getHash() == null) { throw new IOException("Hash is missing for Entry: " + this.currentEntry); }
+                if (e.getHash().length != this.md.getDigestLength()) { throw new IOException("Hashlength does not match for Entry: " + this.currentEntry); }
+                this.write(e.getHash());
             }
         }
-    }
-
-    @Override
-    public synchronized void write(byte b[]) throws IOException {
-        getCurrentOutputStream().write(b);
-    }
-
-    @Override
-    public synchronized void write(byte[] b, int off, int len) throws IOException {
-        getCurrentOutputStream().write(b, off, len);
-    }
-
-    @Override
-    public synchronized void flush() throws IOException {
-        getCurrentOutputStream().flush();
-    }
-
-    @Override
-    public synchronized void close() throws IOException {
-        getCurrentOutputStream().close();
-    }
-
-    private void writeString(String string) throws IOException {
-        if (string == null) throw new IOException("string == null");
-        byte[] stringBytes = string.getBytes("UTF-8");
-        writeShort(stringBytes.length);
-        getCurrentOutputStream().write(stringBytes);
     }
 
     private synchronized void writeAWFCHeader() throws IOException {
-        headerWritten = true;
-        write(1);
-        writeBoolean(md != null);
-        if (md != null) {
-            writeString(md.getAlgorithm());
-            writeShort(md.getDigestLength());
+        this.headerWritten = true;
+        this.write(1);
+        this.utils.writeBoolean(this.md != null);
+        if (this.md != null) {
+            this.utils.writeString(this.md.getAlgorithm());
+            this.utils.writeShort(this.md.getDigestLength());
         }
-    }
-
-    protected synchronized OutputStream getCurrentOutputStream() throws IOException {
-        if (currentCountingOutputStream != null) { return currentCountingOutputStream; }
-        if (currentEntry != null) return os;
-        throw new IOException("No Entry added yet!");
-    }
-
-    private void writeLong(long l) throws IOException {
-        writeBuffer[0] = (byte) (l >>> 56);
-        writeBuffer[1] = (byte) (l >>> 48);
-        writeBuffer[2] = (byte) (l >>> 40);
-        writeBuffer[3] = (byte) (l >>> 32);
-        writeBuffer[4] = (byte) (l >>> 24);
-        writeBuffer[5] = (byte) (l >>> 16);
-        writeBuffer[6] = (byte) (l >>> 8);
-        writeBuffer[7] = (byte) (l >>> 0);
-        getCurrentOutputStream().write(writeBuffer, 0, 8);
-    }
-
-    private void writeLongOptimized(long l) throws IOException {
-        if (l >= 0) {
-            if (l <= 127) {
-                writeBuffer[0] = (byte) (1);
-                writeBuffer[1] = (byte) ((l >>> 0) & 0xFF);
-                getCurrentOutputStream().write(writeBuffer, 0, 2);
-                return;
-            }
-            if (l <= 32.767) {
-                writeBuffer[0] = (byte) (2);
-                writeBuffer[1] = (byte) ((l >>> 8) & 0xFF);
-                writeBuffer[2] = (byte) ((l >>> 0) & 0xFF);
-                getCurrentOutputStream().write(writeBuffer, 0, 3);
-                return;
-            }
-            if (l <= 8388607) {
-                writeBuffer[0] = (byte) (3);
-                writeBuffer[1] = (byte) (l >>> 16);
-                writeBuffer[2] = (byte) (l >>> 8);
-                writeBuffer[3] = (byte) (l >>> 0);
-                getCurrentOutputStream().write(writeBuffer, 0, 4);
-                return;
-            }
-            if (l <= 2147483647) {
-                writeBuffer[0] = (byte) (4);
-                writeBuffer[1] = (byte) (l >>> 24);
-                writeBuffer[2] = (byte) (l >>> 16);
-                writeBuffer[3] = (byte) (l >>> 8);
-                writeBuffer[4] = (byte) (l >>> 0);
-                getCurrentOutputStream().write(writeBuffer, 0, 5);
-                return;
-            }
-            if (l <= 549755813887l) {
-                writeBuffer[0] = (byte) (5);
-                writeBuffer[1] = (byte) (l >>> 32);
-                writeBuffer[2] = (byte) (l >>> 24);
-                writeBuffer[3] = (byte) (l >>> 16);
-                writeBuffer[4] = (byte) (l >>> 8);
-                writeBuffer[5] = (byte) (l >>> 0);
-                getCurrentOutputStream().write(writeBuffer, 0, 6);
-                return;
-            }
-        }
-        write(8);
-        writeLong(l);
-    }
-
-    private void writeShort(int v) throws IOException {
-        writeBuffer[0] = (byte) ((v >>> 8) & 0xFF);
-        writeBuffer[1] = (byte) ((v >>> 0) & 0xFF);
-        getCurrentOutputStream().write(writeBuffer, 0, 2);
-    }
-
-    private void writeBoolean(boolean b) throws IOException {
-        getCurrentOutputStream().write(b ? 1 : 0);
     }
 
 }

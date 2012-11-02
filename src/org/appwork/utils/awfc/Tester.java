@@ -12,13 +12,12 @@ package org.appwork.utils.awfc;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
-import org.appwork.utils.net.CountingOutputStream;
-import org.appwork.utils.net.NullOutputStream;
+import org.appwork.utils.Hash;
 
 /**
  * @author Daniel Wilhelm
@@ -31,38 +30,49 @@ public class Tester {
      * @throws IOException
      * @throws NoSuchAlgorithmException
      */
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
+    public static void main(final String[] args) throws IOException, NoSuchAlgorithmException {
+        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        final MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] buffer;
-        byte[] hash = md.digest(buffer=new byte[65000]);
+        final byte[] hash = md.digest(buffer = new byte[32769]);
+        final long crc32 = Hash.getCRC32(buffer);
         long a = System.currentTimeMillis();
-        AWFCOutputStream cos = new AWFCOutputStream(bos, md);
-        AWFCEntry entry = new AWFCEntry("test", buffer.length, hash);
-        cos.putNextEntry(entry);
-        cos.write(buffer);
-        for (int i = 0; i < 2 * 1024; i++) {
-            entry = new AWFCEntry("test2", buffer.length, hash);
+        final AWFCOutputStream cos = new AWFCOutputStream(bos, null);
+        AWFCEntry entry = null;
+        for (int i = 0; i < 1; i++) {
+            entry = new AWFCEntry("test" + i, buffer.length, hash);
             cos.putNextEntry(entry);
-            cos.write(buffer);            
+            cos.write(buffer);
         }
         cos.close();
-        System.out.println(System.currentTimeMillis() - a);
-        byte[] b = bos.toByteArray();
+        System.out.println("Size: " + bos.size() + " " + (System.currentTimeMillis() - a));
+        final byte[] b = bos.toByteArray();
         // b[31312] = 9;
-         //b[75312] = 9;
-        ByteArrayInputStream bis = new ByteArrayInputStream(b);
+        // b[75312] = 9;
+        final ByteArrayInputStream bis = new ByteArrayInputStream(b);
         a = System.currentTimeMillis();
-        AWFCInputStream cis = new AWFCInputStream(bis);
+        final AWFCInputStream cis = new AWFCInputStream(bis);
         entry = null;
         long i = 0;
-        
         while ((entry = cis.getNextEntry()) != null) {
-            while (cis.read(buffer) != -1)
+            while (cis.read(buffer) != -1) {
                 ;
-
+            }
         }
         System.out.println(System.currentTimeMillis() - a);
-
+        a = System.currentTimeMillis();
+        final ZipOutputStream zos = new ZipOutputStream(bos);
+        ZipEntry zentry = null;
+        for (i = 0; i < 1; i++) {
+            zentry = new ZipEntry("test" + i);
+            zentry.setMethod(ZipEntry.STORED);
+            zentry.setCompressedSize(buffer.length);
+            zentry.setSize(buffer.length);
+            zentry.setCrc(crc32);
+            zos.putNextEntry(zentry);
+            zos.write(buffer);
+        }
+        zos.close();
+        System.out.println("Size: " + bos.size() + " " + (System.currentTimeMillis() - a));
     }
 }
