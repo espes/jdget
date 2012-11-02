@@ -162,9 +162,14 @@ public class BasicHTTP {
             this.checkResponseCode();
             input = this.connection.getInputStream();
 
-            if (maxSize > 0 && this.connection.getCompleteContentLength() > maxSize) { throw new IOException("Max size exeeded!"); }
-            if (progress != null) {
-                progress.setTotal(this.connection.getCompleteContentLength());
+            if (this.connection.getCompleteContentLength() >= 0) {
+                /* contentLength is known */
+                if (maxSize > 0 && this.connection.getCompleteContentLength() > maxSize) { throw new IOException("Max size exeeded!"); }
+                if (progress != null) {
+                    progress.setTotal(this.connection.getCompleteContentLength());
+                }
+            } else {
+                /* no contentLength is known */
             }
             final byte[] b = new byte[512 * 1024];
             int len = 0;
@@ -194,7 +199,9 @@ public class BasicHTTP {
                 }
             }
             ioExceptionWhere = 0;
-            if (loaded != this.connection.getCompleteContentLength()) { throw new IOException("Incomplete download!"); }
+            if (this.connection.getCompleteContentLength() >= 0) {
+                if (loaded != this.connection.getCompleteContentLength()) { throw new IOException("Incomplete download!"); }
+            }
         } catch (final WriteIOException e) {
             throw e;
         } catch (final IOException e) {
