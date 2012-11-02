@@ -23,6 +23,10 @@ public class MeteredInputStream extends InputStream implements SpeedMeterInterfa
     private InputStream in;
     private SpeedMeterInterface speedmeter = null;
     private long transfered = 0;
+    public long getTransfered() {
+        return transfered;
+    }
+
     private long transfered2 = 0;
     private long time = 0;
     private int readTmp1;
