@@ -19,6 +19,7 @@ import java.io.InputStream;
 public class LimitedInputStream extends CountingInputStream {
 
     private final long limit;
+    protected byte[]   skipBuffer = new byte[32767];
 
     public LimitedInputStream(final InputStream in, final long limit) {
         super(in);
@@ -43,6 +44,15 @@ public class LimitedInputStream extends CountingInputStream {
             len = (int) left;
         }
         return super.read(b, off, len);
+    }
+
+    @Override
+    public long skip(long n) throws IOException {
+        if (n < skipBuffer.length) {
+            return read(skipBuffer, 0, (int) n);
+        } else {
+            return read(skipBuffer);
+        }
     }
 
 }

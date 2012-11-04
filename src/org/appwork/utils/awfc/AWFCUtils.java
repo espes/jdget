@@ -17,6 +17,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.appwork.exceptions.WTFException;
+import org.appwork.utils.ReusableByteArrayOutputStreamPool;
+import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 
 /**
  * @author daniel
@@ -31,15 +33,11 @@ public class AWFCUtils {
         utils.writeShort(10);
         utils.writeShort(32765);
         utils.writeString("HALLO DU");
-        utils.writeLongOptimized(10);
-        utils.writeLongOptimized(127);
-        utils.writeLongOptimized(128);
-        utils.writeLongOptimized(32769);
-        utils.writeLongOptimized(8388607);
-        utils.writeLongOptimized(8388608);
-        utils.writeLongOptimized(2147483647);
-        utils.writeLongOptimized(2147483648l);
-        utils.writeLongOptimized(-2147483648l);
+
+        long[] testValues = new long[] { Long.MAX_VALUE };
+        for (long value : testValues) {
+            utils.writeLongOptimized(value);
+        }
         final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
         utils = new AWFCUtils(bis);
         int read = 0;
@@ -47,15 +45,75 @@ public class AWFCUtils {
         if (utils.readShort() != 10) { throw new WTFException(); }
         if ((read = utils.readShort()) != 32765) { throw new WTFException("" + read); }
         if (!"HALLO DU".equals(utils.readString())) { throw new WTFException(); }
-        if (utils.readLongOptimized() != 10) { throw new WTFException(); }
-        if (utils.readLongOptimized() != 127) { throw new WTFException(); }
-        if (utils.readLongOptimized() != 128) { throw new WTFException(); }
-        if (utils.readLongOptimized() != 32769) { throw new WTFException(); }
-        if (utils.readLongOptimized() != 8388607) { throw new WTFException(); }
-        if (utils.readLongOptimized() != 8388608) { throw new WTFException(); }
-        if (utils.readLongOptimized() != 2147483647) { throw new WTFException(); }
-        if (utils.readLongOptimized() != 2147483648l) { throw new WTFException(); }
-        if (utils.readLongOptimized() != -2147483648l) { throw new WTFException(); }
+        for (long value : testValues) {
+            long ret = utils.readLongOptimized();
+            if (value != ret) { throw new WTFException(); }
+        }
+        final ReusableByteArrayOutputStream rbos = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream();
+        final InputStream is = new InputStream() {
+
+            protected int pos;
+
+            public synchronized int read() {
+                return (pos < rbos.size()) ? (rbos.getInternalBuffer()[pos++] & 0xff) : -1;
+            }
+
+            @Override
+            public synchronized int read(byte b[], int off, int len) {
+                if (b == null) {
+                    throw new NullPointerException();
+                } else if (off < 0 || len < 0 || len > b.length - off) { throw new IndexOutOfBoundsException(); }
+
+                if (pos >= rbos.size()) { return -1; }
+
+                int avail = rbos.size() - pos;
+                if (len > avail) {
+                    len = avail;
+                }
+                if (len <= 0) { return 0; }
+                System.arraycopy(rbos.getInternalBuffer(), pos, b, off, len);
+                pos += len;
+                return len;
+            }
+
+            /*
+             * (non-Javadoc)
+             * 
+             * @see java.io.InputStream#reset()
+             */
+            @Override
+            public synchronized void reset() throws IOException {
+                pos = 0;
+            }
+
+        };
+
+        AWFCUtils utils2 = new AWFCUtils() {
+
+            @Override
+            public InputStream getCurrentInputStream() throws IOException {
+                // TODO Auto-generated method stub
+                return is;
+            }
+
+            @Override
+            public OutputStream getCurrentOutputStream() throws IOException {
+                return rbos;
+            }
+
+        };
+        long size = 0;
+        long l = 0;
+        for (l = 0; l < Integer.MAX_VALUE; l++) {
+            rbos.reset();
+            is.reset();
+            utils2.writeLongOptimized(l);
+            if (utils2.readLongOptimized() != l) {
+                break;
+            }
+            size += rbos.size();
+            System.out.println(l + " " + size);
+        }
 
     }
 
@@ -122,30 +180,6 @@ public class AWFCUtils {
         return ((long) this.buffer[0] << 56) + ((long) (this.buffer[1] & 255) << 48) + ((long) (this.buffer[2] & 255) << 40) + ((long) (this.buffer[3] & 255) << 32) + ((long) (this.buffer[4] & 255) << 24) + ((this.buffer[5] & 255) << 16) + ((this.buffer[6] & 255) << 8) + ((this.buffer[7] & 255) << 0);
     }
 
-    public long readLongOptimized() throws IOException {
-        final int read = this.ensureRead();
-        switch (read) {
-        case 1:
-            return (this.ensureRead() & 255) << 0;
-        case 2:
-            this.ensureRead(2, this.buffer);
-            return ((this.buffer[0] & 255) << 8) + ((this.buffer[1] & 255) << 0);
-        case 3:
-            this.ensureRead(3, this.buffer);
-            return ((this.buffer[0] & 255) << 16) + ((this.buffer[1] & 255) << 8) + ((this.buffer[2] & 255) << 0);
-        case 4:
-            this.ensureRead(4, this.buffer);
-            return ((long) (this.buffer[0] & 255) << 24) + ((this.buffer[1] & 255) << 16) + ((this.buffer[2] & 255) << 8) + ((this.buffer[3] & 255) << 0);
-        case 5:
-            this.ensureRead(5, this.buffer);
-            return ((long) (this.buffer[0] & 255) << 32) + ((long) (this.buffer[1] & 255) << 24) + ((this.buffer[2] & 255) << 16) + ((this.buffer[3] & 255) << 8) + ((this.buffer[4] & 255) << 0);
-        case 8:
-            return this.readLong();
-        default:
-            throw new IOException("Invalid optimizedLong " + read);
-        }
-    }
-
     public int readShort() throws IOException {
         this.ensureRead(2, this.buffer);
         return ((this.buffer[0] & 255) << 8) + ((this.buffer[1] & 255) << 0);
@@ -175,51 +209,33 @@ public class AWFCUtils {
         this.getCurrentOutputStream().write(this.buffer, 0, 8);
     }
 
-    public void writeLongOptimized(final long l) throws IOException {
-        if (l >= 0) {
-            if (l <= 127) {
-                this.buffer[0] = (byte) 1;
-                this.buffer[1] = (byte) (l >>> 0 & 0xFF);
-                this.getCurrentOutputStream().write(this.buffer, 0, 2);
-                return;
-            }
-            if (l <= 32.767) {
-                this.buffer[0] = (byte) 2;
-                this.buffer[1] = (byte) (l >>> 8 & 0xFF);
-                this.buffer[2] = (byte) (l >>> 0 & 0xFF);
-                this.getCurrentOutputStream().write(this.buffer, 0, 3);
-                return;
-            }
-            if (l <= 8388607) {
-                this.buffer[0] = (byte) 3;
-                this.buffer[1] = (byte) (l >>> 16);
-                this.buffer[2] = (byte) (l >>> 8);
-                this.buffer[3] = (byte) (l >>> 0);
-                this.getCurrentOutputStream().write(this.buffer, 0, 4);
-                return;
-            }
-            if (l <= 2147483647) {
-                this.buffer[0] = (byte) 4;
-                this.buffer[1] = (byte) (l >>> 24);
-                this.buffer[2] = (byte) (l >>> 16);
-                this.buffer[3] = (byte) (l >>> 8);
-                this.buffer[4] = (byte) (l >>> 0);
-                this.getCurrentOutputStream().write(this.buffer, 0, 5);
-                return;
-            }
-            if (l <= 549755813887l) {
-                this.buffer[0] = (byte) 5;
-                this.buffer[1] = (byte) (l >>> 32);
-                this.buffer[2] = (byte) (l >>> 24);
-                this.buffer[3] = (byte) (l >>> 16);
-                this.buffer[4] = (byte) (l >>> 8);
-                this.buffer[5] = (byte) (l >>> 0);
-                this.getCurrentOutputStream().write(this.buffer, 0, 6);
-                return;
-            }
+    public long readLongOptimized() throws IOException {
+        long ret = 0;
+        long read = 0;
+        int position = 0;
+        while (true) {
+            read = ensureRead();
+            ret = ret + (read >>> 1 << (position * 7));
+            if ((read & 1) == 0) return ret;
+            position++;
         }
-        this.getCurrentOutputStream().write(8);
-        this.writeLong(l);
+    }
+
+    public void writeLongOptimized(final long value) throws IOException {
+        if (value < 0) throw new NumberFormatException("value must be >=0");
+        long rest = value;
+        int bufferPosition = 0;
+        while (true) {
+            int write = (int) (((rest & 127) << 1) & 0xFF);
+            this.buffer[bufferPosition] = (byte) write;
+            rest = rest >>> 7;
+            if (rest == 0) {
+                this.getCurrentOutputStream().write(this.buffer, 0, bufferPosition + 1);
+                return;
+            }
+            this.buffer[bufferPosition] = (byte) (this.buffer[bufferPosition] | 1);
+            bufferPosition++;
+        }
     }
 
     public void writeShort(final int v) throws IOException {
@@ -231,6 +247,7 @@ public class AWFCUtils {
     public void writeString(final String string) throws IOException {
         if (string == null) { throw new IOException("string == null"); }
         final byte[] stringBytes = string.getBytes("UTF-8");
+        if (stringBytes.length > 32767) throw new IllegalArgumentException("StringSize must not be greater than 32767 bytes");
         this.writeShort(stringBytes.length);
         this.getCurrentOutputStream().write(stringBytes);
     }

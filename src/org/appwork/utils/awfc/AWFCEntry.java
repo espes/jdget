@@ -15,22 +15,24 @@ package org.appwork.utils.awfc;
  */
 public class AWFCEntry {
 
-    private byte[]        hash = null;
+    private final byte[]  hash;   ;
     private final String  path;
     private final boolean isFile;
-    private long          size = -1;
+    private final long    size;
 
     public AWFCEntry(final String path, long size, final byte[] hash) {
         if (path.endsWith("/")) {
+            this.path = path.substring(0, path.length() - 1);
             this.isFile = false;
-            size = 0;
+            this.size = 0;
+            this.hash = null;
         } else {
-            size = Math.max(0, size);
+            if (size < 0) throw new IllegalArgumentException("Size must be >=0");
+            this.size = size;
             this.isFile = true;
+            this.path = path;
+            this.hash = hash;
         }
-        this.path = path;
-        this.size = size;
-        this.hash = hash;
     }
 
     public byte[] getHash() {

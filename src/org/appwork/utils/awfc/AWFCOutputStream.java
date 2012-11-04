@@ -28,7 +28,6 @@ public class AWFCOutputStream extends OutputStream {
     private final OutputStream   os;
     private AWFCEntry            currentEntry                = null;
     private CountingOutputStream currentCountingOutputStream = null;
-    private final byte           writeBuffer[]               = new byte[10];
     private final MessageDigest  md;
     private boolean              headerWritten               = false;
     private final AWFCUtils      utils;
@@ -150,6 +149,9 @@ public class AWFCOutputStream extends OutputStream {
 
     private void writeAWFCEntry(final AWFCEntry e) throws IOException {
         this.utils.writeString(e.getPath());
+        int entryOptions = 0;
+        if (e.isFile()) entryOptions = entryOptions | 1;
+        write(entryOptions);
         if (e.isFile()) {
             this.utils.writeLongOptimized(e.getSize());
             if (this.md != null) {

@@ -155,8 +155,9 @@ public class AWFCInputStream extends InputStream {
             return null;
         }
         final String path = this.utils.readString(stringSize);
-        if (path.endsWith("/")) {
-            return new AWFCEntry(path, 0, null);
+        int entryOptions = this.utils.ensureRead();
+        if ((entryOptions & 1) == 0) {
+            return new AWFCEntry(path + "/", 0, null);
         } else {
             final long size = this.utils.readLongOptimized();
             byte[] hash = null;

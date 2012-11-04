@@ -36,15 +36,23 @@ public class Tester {
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         final MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] buffer;
-        final byte[] hash = md.digest(buffer = new byte[32769]);
+        final byte[] hash = md.digest(buffer = new byte[32]);
         final long crc32 = Hash.getCRC32(buffer);
         long a = System.currentTimeMillis();
         final AWFCOutputStream cos = new AWFCOutputStream(bos, null);
         AWFCEntry entry = null;
-        for (int i = 0; i < 1; i++) {
-            entry = new AWFCEntry("test" + i, buffer.length, hash);
-            cos.putNextEntry(entry);
-            cos.write(buffer);
+        boolean file = false;
+        for (int i = 0; i < 1024 * 1024; i++) {
+            if (file == false) {
+                entry = new AWFCEntry("test" + i, buffer.length, hash);
+                cos.putNextEntry(entry);
+                cos.write(buffer);
+                file = true;
+            } else {
+                entry = new AWFCEntry("test" + i + "/", 0, hash);
+                cos.putNextEntry(entry);
+                file = false;
+            }
         }
         cos.close();
         System.out.println("Size: " + bos.size() + " " + (System.currentTimeMillis() - a));
@@ -65,14 +73,23 @@ public class Tester {
         a = System.currentTimeMillis();
         final ZipOutputStream zos = new ZipOutputStream(bos);
         ZipEntry zentry = null;
-        for (i = 0; i < 1; i++) {
-            zentry = new ZipEntry("test" + i);
-            zentry.setMethod(ZipEntry.STORED);
-            zentry.setCompressedSize(buffer.length);
-            zentry.setSize(buffer.length);
-            zentry.setCrc(crc32);
-            zos.putNextEntry(zentry);
-            zos.write(buffer);
+        file = false;
+        for (i = 0; i < 1024 * 1024; i++) {
+            if (file == false) {
+                zentry = new ZipEntry("test" + i);
+                zentry.setMethod(ZipEntry.STORED);
+                zentry.setCompressedSize(buffer.length);
+                zentry.setSize(buffer.length);
+                zentry.setCrc(crc32);
+                zos.putNextEntry(zentry);
+                zos.write(buffer);
+                file = true;
+            } else {
+                zentry = new ZipEntry("test" + i+"/");
+                
+                zos.putNextEntry(zentry);
+                file = false;
+            }
         }
         zos.close();
         System.out.println("Size: " + bos.size() + " " + (System.currentTimeMillis() - a));
