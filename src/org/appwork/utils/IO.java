@@ -110,6 +110,7 @@ public class IO {
             @Override
             public void onFile(final File f) throws IOException {
                 final String path = Files.getRelativePath(src, f);
+                if(path==null)throw new IOException("No rel Path "+src+"-"+f);
                 if (f.isDirectory()) {
                     new File(dest, path).mkdirs();
                 } else {

@@ -213,12 +213,14 @@ public class Files {
             }
             rootPath = root.toLowerCase(Locale.ENGLISH);
             filePath = file.toLowerCase(Locale.ENGLISH).replace("/", "\\");
+            if(rootPath.equals(filePath+"\\"))return "";
         } else {
             if (!root.endsWith("/")) {
                 root += "/";
             }
             rootPath = root;
             filePath = file;
+            if(rootPath.equals(filePath+"/"))return "";
         }
         if (!filePath.startsWith(rootPath)) { return null; }
         if (rootPath.equals(filePath)) { return "/"; }
@@ -231,7 +233,7 @@ public class Files {
     }
 
     public static void main(final String[] args) {     
-        System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/test 1/eins/zwei/drei.vier")));
+        System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/Test/")));
         System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/test/eins/zwei/drei.vier")));
         System.out.println(Files.getRelativePath(new File("C:/"), new File("c:/test/eins/zwei/drei.vier")));
         System.out.println(Files.getRelativePath("C:\\test/", "c:/test/eins\\zwei\\drei.vier\\"));
