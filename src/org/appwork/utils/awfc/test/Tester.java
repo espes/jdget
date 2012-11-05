@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.awfc;
+package org.appwork.utils.awfc.test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,6 +18,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.appwork.utils.Hash;
+import org.appwork.utils.awfc.AWFCEntry;
+import org.appwork.utils.awfc.AWFCInputStream;
+import org.appwork.utils.awfc.AWFCOutputStream;
 
 /**
  * @author Daniel Wilhelm
