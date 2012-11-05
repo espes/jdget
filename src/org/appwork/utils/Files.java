@@ -39,14 +39,14 @@ public class Files {
      * @throws IOException
      */
     public static void deleteRecursiv(final File file) throws IOException {
-        if (!file.exists()) throw new FileNotFoundException(file.getAbsolutePath());
+        if (!file.exists()) { throw new FileNotFoundException(file.getAbsolutePath()); }
         if (file.isDirectory()) {
-            for (File f : file.listFiles()) {
-                deleteRecursiv(f);
+            for (final File f : file.listFiles()) {
+                Files.deleteRecursiv(f);
             }
         }
-        boolean fd = file.delete();
-        if (file.exists() && !fd) throw new IOException("Could not delete " + file);
+        final boolean fd = file.delete();
+        if (file.exists() && !fd) { throw new IOException("Could not delete " + file); }
 
     }
 
@@ -232,7 +232,7 @@ public class Files {
         }
     }
 
-    public static void main(final String[] args) {     
+    public static void main(final String[] args) {
         System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/Test/")));
         System.out.println(Files.getRelativePath(new File("C:/Test/"), new File("c:/test/eins/zwei/drei.vier")));
         System.out.println(Files.getRelativePath(new File("C:/"), new File("c:/test/eins/zwei/drei.vier")));
@@ -242,14 +242,11 @@ public class Files {
     }
 
     public static <T extends Exception> void walkThroughStructure(final Handler<T> handler, final File f) throws T {
-
         handler.onFile(f);
-
         if (f.isDirectory()) {
             for (final File sf : f.listFiles()) {
                 Files.walkThroughStructure(handler, sf);
             }
-
         }
 
     }

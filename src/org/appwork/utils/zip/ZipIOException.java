@@ -9,26 +9,27 @@
  */
 package org.appwork.utils.zip;
 
+import java.io.IOException;
 import java.util.zip.ZipEntry;
 
 /**
  * @author daniel
  * 
  */
-public class ZipIOException extends Exception {
+public class ZipIOException extends IOException {
 
     private static final long serialVersionUID = 3395166938053581997L;
     private ZipEntry          entry            = null;
 
-    public ZipIOException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ZipIOException(String message) {
+    public ZipIOException(final String message) {
         super(message);
     }
 
-    public ZipIOException(String message, ZipEntry entry) {
+    public ZipIOException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
+
+    public ZipIOException(final String message, final ZipEntry entry) {
         super(message);
         this.entry = entry;
     }
@@ -36,7 +37,7 @@ public class ZipIOException extends Exception {
     /**
      * @param signatureViolation
      */
-    public ZipIOException(Throwable e) {
+    public ZipIOException(final Throwable e) {
         super(e);
     }
 
@@ -44,12 +45,12 @@ public class ZipIOException extends Exception {
      * @param signatureViolation
      * @param entry2
      */
-    public ZipIOException(Throwable e, ZipEntry entry) {
-    super(e);
-    this.entry=entry;
+    public ZipIOException(final Throwable e, final ZipEntry entry) {
+        super(e);
+        this.entry = entry;
     }
 
     public ZipEntry getZipEntry() {
-        return entry;
+        return this.entry;
     }
 }

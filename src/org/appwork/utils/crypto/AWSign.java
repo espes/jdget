@@ -89,7 +89,6 @@ public class AWSign {
 
     public static byte[] createSign(final File f, final PrivateKey publicKey, final boolean salt, final byte[] addInfo) throws SignatureViolationException {
         try {
-
             final Signature sig = Signature.getInstance("Sha256WithRSA");
 
             sig.initSign(publicKey);
