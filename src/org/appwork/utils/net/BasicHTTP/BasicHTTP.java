@@ -468,7 +468,7 @@ public class BasicHTTP {
         boolean close = true;
         synchronized (BasicHTTP.CALL_LOCK) {
             OutputStream outputStream = null;
-            final byte[] buffer = new byte[32767];
+            final byte[] buffer = new byte[64000];
             try {
                 this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
                 this.connection.setConnectTimeout(this.getConnectTimeout());
