@@ -5,6 +5,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
 import javax.swing.JPopupMenu;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.event.CaretEvent;
@@ -18,6 +19,7 @@ import org.appwork.app.gui.copycutpaste.CutAction;
 import org.appwork.app.gui.copycutpaste.DeleteAction;
 import org.appwork.app.gui.copycutpaste.PasteAction;
 import org.appwork.app.gui.copycutpaste.SelectAction;
+import org.appwork.utils.swing.SwingUtils;
 
 public class ExtTextField extends JTextField implements CaretListener, FocusListener, DocumentListener, ContextMenuAdapter, TextComponentInterface {
     /**
@@ -63,7 +65,12 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
         this.setForeground(this.defaultColor);
 
     }
-
+    public void setLabelMode(final boolean b) {
+        this.setEditable(!b);
+        this.setFocusable(!b);
+        this.setBorder(b ? null : new JTextArea().getBorder());
+        SwingUtils.setOpaque(this, !b);
+    }
     public void focusLost(final FocusEvent arg0) {
 
         if (this.getDocument().getLength() == 0 || super.getText().equals(this.helpText)) {

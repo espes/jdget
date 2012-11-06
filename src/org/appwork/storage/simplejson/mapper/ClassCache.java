@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import org.appwork.storage.simplejson.Ignore;
 import org.appwork.storage.simplejson.Ignores;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.reflection.Clazz;
 
 /**
  * @author thomas
@@ -37,6 +38,7 @@ public class ClassCache {
      * @throws SecurityException
      */
     protected static ClassCache create(final Class<? extends Object> clazz) throws SecurityException, NoSuchMethodException {
+      
         final ClassCache cc = new ClassCache(clazz);
         Getter g;
         Setter s;

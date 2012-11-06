@@ -174,7 +174,7 @@ public class JSonMapper {
                 Entry<Object, Object> next;
                 for (final Iterator<Entry<Object, Object>> it = ((Map<Object, Object>) obj).entrySet().iterator(); it.hasNext();) {
                     next = it.next();
-                    if (!(next.getKey() instanceof String)) { throw new MapperException("Map keys have to be Strings: " + clazz+" Keyclass:"+(next.getKey()==null?"<null>":next.getKey().getClass())); }
+                    if (!(next.getKey() instanceof String)) { throw new MapperException("Map keys have to be Strings: " + clazz + " Keyclass:" + (next.getKey() == null ? "<null>" : next.getKey().getClass())); }
                     ret.put(next.getKey().toString(), this.create(next.getValue()));
                 }
                 return ret;
@@ -354,6 +354,14 @@ public class JSonMapper {
 
                     } else {
                         final JSonObject obj = (JSonObject) json;
+                        if (Clazz.isPrimitive(clazz)) {
+                            //
+                            if (this.isIgnoreIllegalArgumentMappings()) {
+                            return null;
+                            } else {
+                                throw new IllegalArgumentException("Cannot Map " + obj + " to " + clazz);
+                            }
+                        }
                         cc = ClassCache.getClassCache(clazz);
 
                         final Object inst = cc.getInstance();
@@ -425,7 +433,7 @@ public class JSonMapper {
     /**
      * @param class1
      * @return
-     * @throws MapperException 
+     * @throws MapperException
      */
     private Class<?> mapClasses(Class<?> class1) throws MapperException {
         if (class1.isInterface()) {
