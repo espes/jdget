@@ -1,5 +1,6 @@
 package org.appwork.swing.exttable.columns;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -8,6 +9,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.CompoundBorder;
 
@@ -20,15 +22,17 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
 
     private static final long    serialVersionUID = 2114805529462086691L;
 
-    private JComboBox            editor;
+    protected JComboBox          editor;
 
     private ComboBoxModel        dataModel;
 
     private DefaultComboBoxModel emptyModel;
 
-    private JComboBox            renderer;
+    protected JComboBox          renderer;
 
-    private CompoundBorder       border;
+    protected CompoundBorder     border;
+
+    private Color defaultColor;
 
     public ExtComboColumn(final String name, final ComboBoxModel model) {
         this(name, null, model);
@@ -41,7 +45,7 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
         if (model == null) {
             model = this.emptyModel;
         }
-
+        defaultColor = new JLabel().getForeground();
         this.dataModel = model;
         this.renderer = new RendererComboBox();
         this.renderer.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
@@ -52,7 +56,8 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
 
         this.editor = new JComboBox(model);
         this.editor.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
-        this.border = BorderFactory.createCompoundBorder(this.editor.getBorder(), BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        this.border = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 2, 1), this.editor.getBorder());
+
         // comboBoxEdit.setRenderer(new DefaultCellEditor(comboBox))
 
         this.setRowSorter(new ExtDefaultRowSorter<E>() {
@@ -178,10 +183,14 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
     @Override
     public void resetRenderer() {
         super.resetRenderer();
-        this.renderer.setBorder(ExtColumn.DEFAULT_BORDER);
-        super.rendererField.setBorder(ExtColumn.DEFAULT_BORDER);
+        this.renderer.setBorder(border);
+        this.editor.setBorder(border);
         this.renderer.setOpaque(true);
         this.renderer.setBackground(null);
+        renderer.setOpaque(false);
+        renderer.setForeground(defaultColor);
+        editor.setForeground(defaultColor);
+        editor.setOpaque(false);
 
     }
 

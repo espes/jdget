@@ -123,7 +123,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
         setLocator(LOCATE_CENTER_OF_SCREEN);
-        setDimensor(null);
+    
         this.title = title;
         this.flagMask = flag;
 
@@ -132,13 +132,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.cancelOption = cancelOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
     }
 
-    /**
-     * @param object
-     */
-    public void setDimensor(Dimensor dimensor) {
-        // TODO Auto-generated method stub
-
-    }
+  
 
     /**
      * @param locateCenterOfScreen
