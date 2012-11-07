@@ -310,6 +310,10 @@ public class AWSign {
 
     }
 
+    public static SecureRandom getSecureRandom() {
+        return AWSign.sr;
+    }
+
     public static void main(final String[] args) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException {
         // AWSign.createKeyPair();
 
