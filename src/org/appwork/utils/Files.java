@@ -110,7 +110,8 @@ public class Files {
      * @return
      */
     public static String getExtension(final String name) {
-        if (name == null) { return null; }
+        if (StringUtils.isEmpty(name))return null;
+
         final int index = name.lastIndexOf(".");
         if (index < 0) { return null; }
         return name.substring(index + 1).toLowerCase();

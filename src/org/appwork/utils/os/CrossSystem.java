@@ -211,13 +211,7 @@ public class CrossSystem {
         return CrossSystem.FILE_COMMANDLINE;
     }
 
-    public static String getFileExtension(final String str) {
-        if (StringUtils.isEmpty(str)) { return null; }
-        final int lastPoint = str.lastIndexOf(".");
-        if (lastPoint > 0 && lastPoint != str.length()) { return str.substring(lastPoint + 1); }
-        return null;
-    }
-
+  
     public static byte getID() {
         return CrossSystem.OS_ID;
     }
