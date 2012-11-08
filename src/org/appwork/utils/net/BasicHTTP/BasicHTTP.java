@@ -200,7 +200,7 @@ public class BasicHTTP {
             }
             ioExceptionWhere = 0;
             if (this.connection.getCompleteContentLength() >= 0) {
-                if (loaded != this.connection.getCompleteContentLength()) { throw new IOException("Incomplete download!"); }
+                if (loaded != this.connection.getCompleteContentLength()) { throw new IOException("Incomplete download! " + loaded + " from " + this.connection.getCompleteContentLength()); }
             }
         } catch (final WriteIOException e) {
             throw e;
@@ -222,6 +222,7 @@ public class BasicHTTP {
                     this.logger.info(this.connection.toString());
                 }
             } catch (final Throwable e) {
+                e.printStackTrace();
             }
         }
     }
