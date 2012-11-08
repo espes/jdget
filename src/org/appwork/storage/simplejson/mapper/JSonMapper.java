@@ -357,7 +357,7 @@ public class JSonMapper {
                         if (Clazz.isPrimitive(clazz)) {
                             //
                             if (this.isIgnoreIllegalArgumentMappings()) {
-                            return null;
+                                return null;
                             } else {
                                 throw new IllegalArgumentException("Cannot Map " + obj + " to " + clazz);
                             }

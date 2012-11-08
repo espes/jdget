@@ -74,7 +74,7 @@ public class CrossSystem {
     /**
      * Cache to store the OS ID in
      */
-    public final static byte     OS_ID;
+    public final static byte      OS_ID;
 
     /**
      * Cache to store the Mime Class in
@@ -211,9 +211,25 @@ public class CrossSystem {
         return CrossSystem.FILE_COMMANDLINE;
     }
 
-  
     public static byte getID() {
         return CrossSystem.OS_ID;
+    }
+
+    public static double getSystemCPUUsage() {
+
+        try {
+            java.lang.management.OperatingSystemMXBean operatingSystemMXBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+            double sysload = operatingSystemMXBean.getSystemLoadAverage();
+            if (sysload < 0) {
+                java.lang.reflect.Method method = operatingSystemMXBean.getClass().getDeclaredMethod("getSystemCpuLoad", new Class[] {});
+                method.setAccessible(true);
+                sysload = (Double) method.invoke(operatingSystemMXBean, new Object[] {});
+
+            }
+            return sysload;
+        } catch (Throwable e) {
+            return -1;
+        }
     }
 
     public static String getJavaBinary() {
