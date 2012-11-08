@@ -588,9 +588,16 @@ public class BasicHTTP {
                 if (uploadProgress != null) {
                     uploadProgress.setTotal(byteData.length);
                 }
-                if (downloadProgress != null) {
-                    downloadProgress.setTotal(this.connection.getCompleteContentLength());
+
+                if (this.connection.getCompleteContentLength() >= 0) {
+                    /* contentLength is known */
+                    if (downloadProgress != null) {
+                        downloadProgress.setTotal(this.connection.getCompleteContentLength());
+                    }
+                } else {
+                    /* no contentLength is known */
                 }
+
                 // write upload in 50*1024 steps
                 int offset = 0;
                 while (true) {
@@ -638,7 +645,9 @@ public class BasicHTTP {
                         }
                     }
                 }
-                if (loaded != this.connection.getCompleteContentLength()) { throw new IOException("Incomplete download!"); }
+                if (this.connection.getCompleteContentLength() >= 0) {
+                    if (loaded != this.connection.getCompleteContentLength()) { throw new IOException("Incomplete download! " + loaded + " from " + this.connection.getCompleteContentLength()); }
+                }
                 return;
             } catch (final IOException e) {
                 throw new BasicHTTPException(this.connection, new ReadIOException(e));
