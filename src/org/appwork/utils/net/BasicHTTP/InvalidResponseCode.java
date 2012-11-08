@@ -11,11 +11,12 @@ package org.appwork.utils.net.BasicHTTP;
 
 import java.io.IOException;
 
+import org.appwork.utils.Exceptions;
 import org.appwork.utils.net.httpconnection.HTTPConnection;
 
 /**
  * @author Thomas
- *
+ * 
  */
 public class InvalidResponseCode extends IOException {
 
@@ -24,14 +25,28 @@ public class InvalidResponseCode extends IOException {
     /**
      * @param connection
      */
-    public InvalidResponseCode(HTTPConnection connection) {
-        super("Invalid ResponseCode: "+connection.getResponseCode());
-        this.connection=connection;
-     
+    public InvalidResponseCode(final HTTPConnection connection) {
+        super("Invalid ResponseCode: " + connection.getResponseCode());
+        this.connection = connection;
+
     }
 
     public HTTPConnection getConnection() {
-        return connection;
+        return this.connection;
+    }
+
+    @Override
+    public String getMessage() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("Invalid ResponseCode: " + this.connection.getResponseCode());
+        try {
+            if (this.connection != null) {
+                sb.append(this.connection);
+            }
+        } catch (final Throwable e) {
+            sb.append(Exceptions.getStackTrace(e));
+        }
+        return sb.toString();
     }
 
 }
