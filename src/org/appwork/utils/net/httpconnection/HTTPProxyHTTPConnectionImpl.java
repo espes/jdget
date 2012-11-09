@@ -27,6 +27,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
     public HTTPProxyHTTPConnectionImpl(final URL url, final HTTPProxy p) {
         super(url, p);
         this.preferConnectMethod = p.isConnectMethodPrefered();
+        this.setRequestProperty("Proxy-Connection", "close");
     }
 
     /*
