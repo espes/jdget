@@ -631,4 +631,30 @@ public class CrossSystem {
         return new String[] { name, extension };
     }
 
+    public static void main(String[] args) {
+        showInExplorer(new File("C:\\Users\\Thomas\\.jd_home\\tmp\\hosts.json"));
+    }
+
+    /**
+     * @param saveTo
+     */
+    public static void showInExplorer(File saveTo) {
+        if (CrossSystem.isWindows()) {
+            try {
+                ProcessBuilderFactory.create("explorer.exe", "/select," + saveTo.getAbsolutePath()).start();
+                return;
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } 
+            if (saveTo.isDirectory()) {
+                openFile(saveTo);
+            } else {
+                openFile(saveTo.getParentFile());
+            }
+
+        
+
+    }
 }
