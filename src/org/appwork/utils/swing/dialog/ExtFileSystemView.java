@@ -147,9 +147,10 @@ public class ExtFileSystemView extends FileSystemView {
                 }
                 filtered.add(f);
             }
+            Log.L.info("Return Files for "+dir+"("+useFileHiding+"): "+filtered.size());
             return filtered.toArray(new File[] {});
         } finally {
-            Log.L.info("getFiles: " + (System.currentTimeMillis() - t) + " " + dir);
+            Log.L.info("getFiles: ms:" + (System.currentTimeMillis() - t) + " " + dir);
 
         }
     }

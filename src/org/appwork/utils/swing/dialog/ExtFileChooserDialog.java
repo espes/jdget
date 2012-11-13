@@ -10,9 +10,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.util.HashMap;
 import java.util.Locale;
+import java.util.logging.Level;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListSelectionModel;
@@ -30,6 +32,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.plaf.basic.BasicDirectoryModel;
 import javax.swing.plaf.basic.BasicFileChooserUI;
 
 import org.appwork.storage.config.JsonConfig;
@@ -119,7 +122,6 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     protected boolean                selecting;
 
-   
     private SearchComboBox<String>   destination;
 
     private ExtFileSystemView        fileSystemView;
@@ -127,6 +129,8 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     protected View                   view              = View.DETAILS;
     private FileChooserType          type              = FileChooserType.SAVE_DIALOG;
     private String                   storageID;
+    private boolean                  duringInit;
+    protected PropertyChangeListener directoryModel;
 
     public void setType(FileChooserType type) {
         this.type = type;
@@ -209,7 +213,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     public static void main(String[] args) {
         try {
-
+            Log.L.setLevel(Level.ALL);
             // FileDialog dd = new FileDialog((java.awt.Dialog) null, "TEST",
             // FileDialog.LOAD);
             // dd.show(true);
@@ -295,10 +299,27 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             parentGlassPane.setCursor(BUSY_CURSOR);
             parentGlassPane.setVisible(true);
         }
+        // forwardPropertyChanges=false;
+        duringInit = true;
         fc = new JFileChooser(fileSystemView = new ExtFileSystemView()) {
             private Insets nullInsets;
             {
                 nullInsets = new Insets(0, 0, 0, 0);
+            }
+
+    
+
+
+            @Override
+            public void addPropertyChangeListener(PropertyChangeListener listener) {
+          
+                if (listener instanceof BasicDirectoryModel && directoryModel == null) {
+                    // this is a workaround to avoid multiple init scans of the
+                    // filedirectory during the filechooser setup.
+                    directoryModel = listener;
+                    return;
+                }
+                super.addPropertyChangeListener(listener);
             }
 
             public Icon getIcon(File f) {
@@ -348,37 +369,6 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
         };
 
-        // find samba library
-
-     
-        // main: for (File r : fc.getFileSystemView().getRoots()) {
-        // System.out.println(r.getPath());
-        //
-        // for (File mybenetwork : r.listFiles()) {
-        //
-        // // works a least on windows7
-        // switch(CrossSystem.getID()){
-        // case CrossSystem.OS_WINDOWS_7:
-        // case CrossSystem.OS_WINDOWS_8:
-        // case CrossSystem.OS_WINDOWS_VISTA:
-        // if
-        // (mybenetwork.getName().equalsIgnoreCase(ExtFileSystemView.VIRTUAL_NETWORKFOLDER))
-        // {
-        //
-        // // break main;
-        // }
-        // break;
-        // case CrossSystem.OS_WINDOWS_2000:
-        // case CrossSystem.OS_WINDOWS_2003:
-        // case CrossSystem.OS_WINDOWS_NT:
-        // case CrossSystem.OS_WINDOWS_OTHER:
-        // case CrossSystem.OS_WINDOWS_SERVER_2008:
-        // case CrossSystem.OS_WINDOWS_XP:
-        // }
-        //
-        //
-        // }
-        // }
         fc.addActionListener(new ActionListener() {
 
             @Override
@@ -488,13 +478,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             // detailsview thingy is part of the ui/LAF
             Log.exception(t);
         }
-        // fc.addPropertyChangeListener(new PropertyChangeListener() {
-        //
-        // @Override
-        // public void propertyChange(PropertyChangeEvent evt) {
-        // System.out.println(evt);
-        // }
-        // });
+
         if (fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
             ((JComponent) fc.getComponent(3)).getComponent(1).setVisible(false);
             ((JComponent) fc.getComponent(3)).getComponent(2).setVisible(false);
@@ -603,10 +587,9 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
                             private File getFile(String txt) {
                                 if (fileSystemView.getNetworkFolder() != null && "\\".equals(txt)) { return fileSystemView.getNetworkFolder(); }
-                                
-                           
-                                File ret=null;
-                                if(fileSystemView.getNetworkFolder()!=null)ret=fileSystemView.getNetworkFolder().get(new File(txt).getAbsolutePath());
+
+                                File ret = null;
+                                if (fileSystemView.getNetworkFolder() != null) ret = fileSystemView.getNetworkFolder().get(new File(txt).getAbsolutePath());
 
                                 return ret != null ? ret : new File(txt);
                             }
@@ -703,6 +686,14 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 Log.exception(e);
             }
         }
+        if (directoryModel != null) {
+            // this is a workaround to avoid multiple init scans of the
+            // filedirectory during the filechooser setup.
+            fc.addPropertyChangeListener(directoryModel);
+            directoryModel.propertyChange(new PropertyChangeEvent(this, JFileChooser.FILE_FILTER_CHANGED_PROPERTY, null, null));
+
+        }
+        duringInit = false;
 
         return fc;
     }
@@ -806,7 +797,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     protected boolean isSambaFolder(File f) {
-        if(fileSystemView.getNetworkFolder()!=null)return fileSystemView.getNetworkFolder().get(f.getAbsolutePath())!=null;
+        if (fileSystemView.getNetworkFolder() != null) return fileSystemView.getNetworkFolder().get(f.getAbsolutePath()) != null;
 
         return false;
     }
