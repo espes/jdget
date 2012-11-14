@@ -9,7 +9,6 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -355,11 +354,11 @@ public class IO {
      */
     public static void secureWrite(final File file, final byte[] bytes) throws IOException {
         final File bac = new File(file.getAbsolutePath() + ".bac");
-        bac.delete();
         file.getParentFile().mkdirs();
+        if (bac.exists() && bac.delete() == false) { throw new IOException("could not remove " + bac); }
         try {
             IO.writeToFile(bac, bytes);
-            file.delete();
+            if (file.exists() && file.delete() == false) { throw new IOException("could not remove " + file); }
             if (!bac.renameTo(file)) { throw new IOException("COuld not rename " + bac + " to " + file); }
         } finally {
             bac.delete();
@@ -384,19 +383,17 @@ public class IO {
             file.createNewFile();
             if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
             if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
-            final FileWriter fw = null;
 
-            final Writer output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
-
+            FileOutputStream fos = null;
+            Writer output = null;
+            boolean deleteFile = true;
             try {
+                output = new BufferedWriter(new OutputStreamWriter(fos = new FileOutputStream(file), "UTF-8"));
                 output.write(string);
+                deleteFile = false;
             } finally {
                 try {
                     output.flush();
-                } catch (final Throwable e) {
-                }
-                try {
-                    fw.flush();
                 } catch (final Throwable e) {
                 }
                 try {
@@ -404,8 +401,11 @@ public class IO {
                 } catch (final Throwable e) {
                 }
                 try {
-                    fw.close();
+                    fos.close();
                 } catch (final Throwable e) {
+                }
+                if (deleteFile) {
+                    file.delete();
                 }
             }
         } catch (final IOException e) {
@@ -437,13 +437,18 @@ public class IO {
             if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
 
             FileOutputStream out = null;
+            boolean deleteFile = true;
             try {
                 out = new FileOutputStream(file);
                 out.write(data);
+                deleteFile = false;
             } finally {
                 try {
                     out.close();
                 } catch (final Throwable e) {
+                }
+                if (deleteFile) {
+                    file.delete();
                 }
             }
         } catch (final IOException e) {
