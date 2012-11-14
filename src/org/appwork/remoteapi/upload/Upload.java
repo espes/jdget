@@ -116,7 +116,7 @@ public abstract class Upload {
         return null;
     }
 
-    protected abstract URL getUploadURL();
+    protected abstract URL getUploadURL() throws IOException;
 
     public boolean isUploadComplete() throws FileNotFoundException {
         if (this.remoteSize <= 0) { return false; }

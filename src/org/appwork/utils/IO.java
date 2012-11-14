@@ -110,7 +110,7 @@ public class IO {
             @Override
             public void onFile(final File f) throws IOException {
                 final String path = Files.getRelativePath(src, f);
-                if(path==null)throw new IOException("No rel Path "+src+"-"+f);
+                if (path == null) { throw new IOException("No rel Path " + src + "-" + f); }
                 if (f.isDirectory()) {
                     new File(dest, path).mkdirs();
                 } else {
@@ -436,9 +436,9 @@ public class IO {
             if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
             if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
 
-            final FileOutputStream out = new FileOutputStream(file);
+            FileOutputStream out = null;
             try {
-
+                out = new FileOutputStream(file);
                 out.write(data);
             } finally {
                 try {

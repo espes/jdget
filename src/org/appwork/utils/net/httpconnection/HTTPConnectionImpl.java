@@ -540,11 +540,11 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 try {
                     Thread.sleep(500);
                 } catch (final InterruptedException e1) {
-                    throw new IOException(e1);
+                    throw new UnknownHostException("Could not resolv " + host);
                 }
             }
         }
-        throw new UnknownHostException(host);
+        throw new UnknownHostException("Could not resolv " + host);
     }
 
     protected void sendRequest() throws UnsupportedEncodingException, IOException {
