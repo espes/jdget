@@ -209,7 +209,7 @@ public class HTTPProxy {
             process.destroy();
             try {
                 String autoProxy = new Regex(result, "AutoConfigURL\\s+REG_SZ\\s+([^\r\n]+)").getMatch(0);
-                System.out.println(12);
+          
                 if (!StringUtils.isEmpty(autoProxy)) {
                     Log.L.info("AutoProxy.pac Script found: " + autoProxy);
                     String script = IO.readInputStreamToString(new URL(autoProxy).openStream());
@@ -230,7 +230,7 @@ public class HTTPProxy {
 
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                
             }
             String enabledString = new Regex(result, "ProxyEnable\\s+REG_DWORD\\s+(\\d+x\\d+)").getMatch(0);
             if ("0x0".equals(enabledString)) {
