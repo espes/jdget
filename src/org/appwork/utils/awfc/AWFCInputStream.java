@@ -25,11 +25,12 @@ import org.appwork.utils.net.LimitedInputStream;
 public class AWFCInputStream extends InputStream {
 
     private final InputStream  is;
-    private LimitedInputStream lis          = null;
-    private MessageDigest      md           = null;
-    private boolean            headerRead   = false;
-    private AWFCEntry          currentEntry = null;
-    private final byte[]       skipBuffer   = new byte[32767];
+    private LimitedInputStream lis              = null;
+    private MessageDigest      md               = null;
+    private boolean            headerRead       = false;
+    private AWFCEntry          currentEntry     = null;
+    private byte[]             currentEntryHash = null;
+    private final byte[]       skipBuffer       = new byte[32767];
     private AWFCUtils          utils;
 
     public AWFCInputStream(final InputStream is) {
@@ -69,6 +70,7 @@ public class AWFCInputStream extends InputStream {
             }
             this.lis = null;
             this.currentEntry = null;
+            this.currentEntryHash = null;
         }
         this.currentEntry = this.readAWFCEntry();
         if (this.currentEntry == null) { return null; }
@@ -91,7 +93,8 @@ public class AWFCInputStream extends InputStream {
                     if (ret != -1) {
                         AWFCInputStream.this.md.update((byte) ret);
                     } else if (ret == -1) {
-                        if (!Arrays.equals(AWFCInputStream.this.md.digest(), AWFCInputStream.this.currentEntry.getHash())) { throw new IOException("Wrong hash for Entry: " + AWFCInputStream.this.currentEntry); }
+                        if (currentEntryHash == null) currentEntryHash = AWFCInputStream.this.md.digest();
+                        if (!Arrays.equals(currentEntryHash, AWFCInputStream.this.currentEntry.getHash())) { throw new IOException("Wrong hash for Entry: " + AWFCInputStream.this.currentEntry); }
                     }
                 }
                 return ret;
@@ -104,7 +107,8 @@ public class AWFCInputStream extends InputStream {
                     if (ret > 0) {
                         AWFCInputStream.this.md.update(b, off, ret);
                     } else if (ret == -1) {
-                        if (!Arrays.equals(AWFCInputStream.this.md.digest(), AWFCInputStream.this.currentEntry.getHash())) { throw new IOException("Wrong hash for Entry: " + AWFCInputStream.this.currentEntry); }
+                        if (currentEntryHash == null) currentEntryHash = AWFCInputStream.this.md.digest();
+                        if (!Arrays.equals(currentEntryHash, AWFCInputStream.this.currentEntry.getHash())) { throw new IOException("Wrong hash for Entry: " + AWFCInputStream.this.currentEntry); }
                     }
                 }
                 return ret;
