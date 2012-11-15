@@ -21,10 +21,13 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
+import java.util.Enumeration;
+import java.util.Properties;
 import java.util.logging.Level;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.logging2.LogInterface;
 import org.appwork.utils.os.CrossSystem;
 
 /**
@@ -483,5 +486,23 @@ public class Application {
     public synchronized static void setApplication(final String newAppFolder) {
         Application.ROOT = null;
         Application.APP_FOLDER = newAppFolder;
+    }
+
+    /**
+     * @param logger
+     */
+    public static void printSystemProperties(LogInterface logger) {
+        Properties p = System.getProperties();
+        Enumeration keys = p.keys();
+        StringBuilder sb = new StringBuilder();
+        String key;
+        while (keys.hasMoreElements()) {
+            key = (String) keys.nextElement();
+            sb.append(key).append(": ").append((String) p.get(key));
+
+            logger.info(sb.toString());
+            sb.setLength(0);
+        }
+
     }
 }
