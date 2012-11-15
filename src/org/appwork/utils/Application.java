@@ -22,6 +22,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.util.Enumeration;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -498,8 +499,15 @@ public class Application {
         String key;
         while (keys.hasMoreElements()) {
             key = (String) keys.nextElement();
-            sb.append(key).append(": ").append((String) p.get(key));
+            sb.append("SysProp: ").append(key).append(": ").append((String) p.get(key));
 
+            logger.info(sb.toString());
+            sb.setLength(0);
+        }
+
+        for (Entry<String, String> e : System.getenv().entrySet()) {
+
+            sb.append("SysEnv: ").append(e.getKey()).append(": ").append(e.getValue());
             logger.info(sb.toString());
             sb.setLength(0);
         }

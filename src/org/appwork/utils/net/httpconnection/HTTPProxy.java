@@ -1,6 +1,7 @@
 package org.appwork.utils.net.httpconnection;
 
 import java.net.InetAddress;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -206,7 +207,31 @@ public class HTTPProxy {
             Process process = pb.start();
             String result = IO.readInputStreamToString(process.getInputStream());
             process.destroy();
+            try {
+                String autoProxy = new Regex(result, "AutoConfigURL\\s+REG_SZ\\s+([^\r\n]+)").getMatch(0);
+                System.out.println(12);
+                if (!StringUtils.isEmpty(autoProxy)) {
+                    Log.L.info("AutoProxy.pac Script found: " + autoProxy);
+                    String script = IO.readInputStreamToString(new URL(autoProxy).openStream());
+                    Log.L.info("Content of autoproxy: " + script);
 
+                    // BrowserProxyInfo b = new BrowserProxyInfo();
+                    // b.setType(ProxyType.AUTO);
+                    // b.setAutoConfigURL(autoProxy);
+                    // AbstractAutoProxyHandler handler = new
+                    // SunAutoProxyHandler();
+                    // handler.init(b);
+                    //
+                    // URL url = new URL("http://grooveshark.com/blkdsabldsa");
+                    // ProxyInfo[] ps = handler.getProxyInfo(url);
+                    // for (ProxyInfo p : ps) {
+                    // System.out.println(p.toString());
+                    // }
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             String enabledString = new Regex(result, "ProxyEnable\\s+REG_DWORD\\s+(\\d+x\\d+)").getMatch(0);
             if ("0x0".equals(enabledString)) {
                 // proxy disabled
