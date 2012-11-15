@@ -60,7 +60,7 @@ public class AWFCOutputStream extends OutputStream {
             /* verify if currentEntry is complete */
             final long bytesWritten = this.currentCountingOutputStream.transferedBytes();
             if (this.currentEntry.getSize() != bytesWritten) { throw new IOException("Wrong size for Entry: " + this.currentEntry + " != " + bytesWritten); }
-            if (this.md != null && !Arrays.equals(this.currentEntry.getHash(), this.md.digest())) { throw new IOException("Wrong hash for Entry: " + this.currentEntry); }
+            if (this.currentEntry.isFile() && this.md != null && !Arrays.equals(this.currentEntry.getHash(), this.md.digest())) { throw new IOException("Wrong hash for Entry: " + this.currentEntry); }
             /* we want to write on original OutputStream again */
             this.currentCountingOutputStream = null;
             this.currentEntry = null;
@@ -150,8 +150,10 @@ public class AWFCOutputStream extends OutputStream {
     private void writeAWFCEntry(final AWFCEntry e) throws IOException {
         this.utils.writeString(e.getPath());
         int entryOptions = 0;
-        if (e.isFile()) entryOptions = entryOptions | 1;
-        write(entryOptions);
+        if (e.isFile()) {
+            entryOptions = entryOptions | 1;
+        }
+        this.write(entryOptions);
         if (e.isFile()) {
             this.utils.writeLongOptimized(e.getSize());
             if (this.md != null) {
