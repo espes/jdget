@@ -71,6 +71,26 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         return (T) v;
     }
 
+    /**
+     * @param string
+     * @param type
+     * @return
+     */
+    private static Object convert(String string, final Type type) {
+        if ((type == String.class || type instanceof Class && ((Class<?>) type).isEnum()) && !string.startsWith("\"")) {
+            /* workaround if strings are not escaped, same for enums */
+            string = "\"" + string.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+        }
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        final Object v = JSonStorage.restoreFromString(string, new TypeRef(type) {
+        }, null);
+        if (type instanceof Class && Clazz.isPrimitive(type)) {
+            return RemoteAPI.cast(v, (Class<?>) type);
+        } else {
+            return v;
+        }
+    }
+
     public static OutputStream getOutputStream(final RemoteAPIResponse response, final RemoteAPIRequest request, final boolean gzip, final boolean wrapJQuery) throws IOException {
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CACHE_CONTROL, "no-store, no-cache"));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
@@ -233,7 +253,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                     parameters[i] = response;
                 } else {
                     try {
-                        parameters[i] = this.convert(request.getParameters()[count], method.getGenericParameterTypes()[i]);
+                        parameters[i] = RemoteAPI.convert(request.getParameters()[count], method.getGenericParameterTypes()[i]);
                     } catch (final Throwable e) {
                         throw new BadParameterException(request.getParameters()[count], e);
                     }
@@ -311,26 +331,6 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         }
         final byte[] bytes = text.getBytes("UTF-8");
         RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), true, bytes);
-    }
-
-    /**
-     * @param string
-     * @param type
-     * @return
-     */
-    private Object convert(String string, final Type type) {
-        if ((type == String.class || type instanceof Class && ((Class<?>) type).isEnum()) && !string.startsWith("\"")) {
-            /* workaround if strings are not escaped, same for enums */
-            string = "\"" + string + "\"";
-        }
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        final Object v = JSonStorage.restoreFromString(string, new TypeRef(type) {
-        }, null);
-        if (type instanceof Class && Clazz.isPrimitive(type)) {
-            return RemoteAPI.cast(v, (Class<?>) type);
-        } else {
-            return v;
-        }
     }
 
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
