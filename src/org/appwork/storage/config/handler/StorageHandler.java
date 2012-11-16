@@ -80,8 +80,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 
-        
-        
         this.path = name;
         if (name.getName().endsWith(".json") || name.getName().endsWith(".ejs")) {
             Log.L.warning(name + " should not have an extension!!");
@@ -529,6 +527,16 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.getKeyHandler(key).getValue();
     }
 
+    private WriteStrategy writeStrategy = null;
+
+    public WriteStrategy getWriteStrategy() {
+        return writeStrategy;
+    }
+
+    public void setWriteStrategy(WriteStrategy writeStrategy) {
+        this.writeStrategy = writeStrategy;
+    }
+
     @SuppressWarnings("unchecked")
     public Object invoke(final Object instance, final Method m, final Object[] parameter) throws Throwable {
         final long t = StorageHandler.PROFILER_MAP == null ? 0 : System.nanoTime();
@@ -548,6 +556,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
                 } else {
                     ((KeyHandler<Object>) handler).setValue(parameter[0]);
+                    if (writeStrategy != null) {
+                        writeStrategy.write(this,handler);
+                    }
 
                     return null;
                 }
