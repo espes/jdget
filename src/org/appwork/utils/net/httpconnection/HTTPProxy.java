@@ -206,6 +206,7 @@ public class HTTPProxy {
 
             Process process = pb.start();
             String result = IO.readInputStreamToString(process.getInputStream());
+            Log.L.info(result);
             process.destroy();
             try {
                 String autoProxy = new Regex(result, "AutoConfigURL\\s+REG_SZ\\s+([^\r\n]+)").getMatch(0);
