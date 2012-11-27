@@ -275,15 +275,15 @@ public class JSonStorage {
         }
     }
 
-    public static <E> E restoreFrom(final File file, final E def) {
+    public static <E> E restoreFromFile(final File file, final E def) {
         final E ret = JSonStorage.restoreFrom(file, true, null, null, def);
         if (ret == null) { return def; }
         return ret;
     }
 
-    public static <E> E restoreFrom(final String string, final E def) {
-        final boolean plain = string.toLowerCase().endsWith(".json");
-        return JSonStorage.restoreFrom(Application.getResource(string), plain, JSonStorage.KEY, null, def);
+    public static <E> E restoreFromFile(final String relPath, final E def) {
+        final boolean plain = relPath.toLowerCase().endsWith(".json");
+        return JSonStorage.restoreFrom(Application.getResource(relPath), plain, JSonStorage.KEY, null, def);
     }
 
     /**

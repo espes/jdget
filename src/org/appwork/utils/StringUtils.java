@@ -49,8 +49,22 @@ public class StringUtils {
      * @param value
      * @return
      */
-    public static boolean isNotEmpty(String value) {        
+    public static boolean isNotEmpty(String value) {
         return !isEmpty(value);
+    }
+
+
+    public static String fillPost(String string, String filler, int minCount) {
+        if (string.length() >= minCount) return string;
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(string);
+        while (sb.length() < minCount) {
+            sb.append(filler);
+        }
+
+        return sb.toString();
     }
 
 }
