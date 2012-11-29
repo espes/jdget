@@ -13,7 +13,6 @@ import java.awt.Dimension;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
-import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -34,22 +33,22 @@ public abstract class AbstractLocator implements Locator {
 
         GraphicsDevice biggestInteresctionScreem = null;
         int biggestIntersection = -1;
-        Point mouse = MouseInfo.getPointerInfo().getLocation();
+
         for (final GraphicsDevice screen : screens) {
             final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
-           Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(screen.getDefaultConfiguration());
-           bounds.x+=insets.left;
-           bounds.y+=insets.top;
-           bounds.width-=insets.left+insets.right;
-           bounds.height-=insets.top+insets.bottom;
+            Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(screen.getDefaultConfiguration());
+            bounds.x += insets.left;
+            bounds.y += insets.top;
+            bounds.width -= insets.left + insets.right;
+            bounds.height -= insets.top + insets.bottom;
             Rectangle interSec = bounds.intersection(preferedRect);
-        
+
             if (interSec.width * interSec.height > biggestIntersection || biggestInteresctionScreem == null) {
                 biggestIntersection = interSec.width * interSec.height;
                 biggestInteresctionScreem = screen;
-                if(interSec.equals(prefSize))break;
+                if (interSec.equals(prefSize)) break;
             }
-        
+
         }
 
         final Rectangle bounds = biggestInteresctionScreem.getDefaultConfiguration().getBounds();
@@ -59,11 +58,11 @@ public abstract class AbstractLocator implements Locator {
         if (preferedRect.y + preferedRect.height > bounds.y + bounds.height) {
             preferedRect.y = bounds.y + bounds.height - preferedRect.height;
         }
-        if (preferedRect.x < bounds.x){
+        if (preferedRect.x < bounds.x) {
             preferedRect.x = bounds.x;
         }
 
-        if (preferedRect.y < bounds.y){
+        if (preferedRect.y < bounds.y) {
             preferedRect.y = bounds.y;
         }
 
