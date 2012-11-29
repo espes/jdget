@@ -50,6 +50,7 @@ public class Application {
     public static long     JAVA15      = 15000000;
     public static long     JAVA16      = 16000000;
     public static long     JAVA17      = 17000000;
+    public static long     JAVA18      = 18000000;
     private static Boolean JVM64BIT    = null;
 
     private static boolean REDIRECTED  = false;
@@ -453,6 +454,31 @@ public class Application {
     }
 
     /**
+     * @param logger
+     */
+    public static void printSystemProperties(final LogInterface logger) {
+        final Properties p = System.getProperties();
+        final Enumeration keys = p.keys();
+        final StringBuilder sb = new StringBuilder();
+        String key;
+        while (keys.hasMoreElements()) {
+            key = (String) keys.nextElement();
+            sb.append("SysProp: ").append(key).append(": ").append((String) p.get(key));
+
+            logger.info(sb.toString());
+            sb.setLength(0);
+        }
+
+        for (final Entry<String, String> e : System.getenv().entrySet()) {
+
+            sb.append("SysEnv: ").append(e.getKey()).append(": ").append(e.getValue());
+            logger.info(sb.toString());
+            sb.setLength(0);
+        }
+
+    }
+
+    /**
      * 
      */
     public static void redirectOutputStreams() {
@@ -487,30 +513,5 @@ public class Application {
     public synchronized static void setApplication(final String newAppFolder) {
         Application.ROOT = null;
         Application.APP_FOLDER = newAppFolder;
-    }
-
-    /**
-     * @param logger
-     */
-    public static void printSystemProperties(LogInterface logger) {
-        Properties p = System.getProperties();
-        Enumeration keys = p.keys();
-        StringBuilder sb = new StringBuilder();
-        String key;
-        while (keys.hasMoreElements()) {
-            key = (String) keys.nextElement();
-            sb.append("SysProp: ").append(key).append(": ").append((String) p.get(key));
-
-            logger.info(sb.toString());
-            sb.setLength(0);
-        }
-
-        for (Entry<String, String> e : System.getenv().entrySet()) {
-
-            sb.append("SysEnv: ").append(e.getKey()).append(": ").append(e.getValue());
-            logger.info(sb.toString());
-            sb.setLength(0);
-        }
-
     }
 }
