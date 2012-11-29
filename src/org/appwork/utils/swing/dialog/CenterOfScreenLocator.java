@@ -26,7 +26,7 @@ import org.appwork.utils.swing.dialog.TimerDialog.InternDialog;
  * @author Thomas
  * 
  */
-public class CenterOfScreenLocator implements Locator {
+public class CenterOfScreenLocator extends AbstractLocator {
 
     /*
      * (non-Javadoc)
@@ -54,17 +54,24 @@ public class CenterOfScreenLocator implements Locator {
                 screen.getDefaultConfiguration().getDevice();
 
                 Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(screen.getDefaultConfiguration());
-                if (bounds.contains(MouseInfo.getPointerInfo().getLocation())) { return (new Point((int) (bounds.x + bounds.getWidth() - dialog.getWidth() - 20 - insets.right), (int) (bounds.y + bounds.getHeight() - dialog.getHeight() - 20 - insets.bottom))); }
+                if (bounds.contains(MouseInfo.getPointerInfo().getLocation())) {
+                    
+                    return correct(new Point((int) (bounds.x + bounds.getWidth() - dialog.getWidth() - 20 - insets.right), (int) (bounds.y + bounds.getHeight() - dialog.getHeight() - 20 - insets.bottom)),d); 
+                    
+                
+                }
 
             }
             final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            return (new Point((int) (screenSize.getWidth() - dialog.getWidth() - 20), (int) (screenSize.getHeight() - dialog.getHeight() - 60)));
+            return correct(new Point((int) (screenSize.getWidth() - dialog.getWidth() - 20), (int) (screenSize.getHeight() - dialog.getHeight() - 60)),d);
         } else {
-            return SwingUtils.getCenter(dialog.getParent(), dialog);
+            Point ret = SwingUtils.getCenter(dialog.getParent(), dialog);
+            
+           return  correct(ret,d);
         }
 
     }
-
+   
     /*
      * (non-Javadoc)
      * 

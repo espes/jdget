@@ -9,7 +9,13 @@
  */
 package org.appwork.utils.swing.dialog;
 
+import java.awt.Dimension;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
+import java.awt.Rectangle;
+
+import org.appwork.utils.swing.dialog.TimerDialog.InternDialog;
 
 /**
  * @author Thomas
@@ -24,5 +30,9 @@ public interface Locator {
     Point getLocationOnScreen(AbstractDialog<?> abstractDialog);
 
     void onClose(AbstractDialog<?> abstractDialog);
+
+  
+  
+
 
 }

@@ -99,11 +99,13 @@ public class IO {
     }
 
     /**
+     * @param overwriteFiles
+     *            TODO
      * @param dist
      * @param dist2
      * @throws IOException
      */
-    public static void copyFolderRecursive(final File src, final File dest) throws IOException {
+    public static void copyFolderRecursive(final File src, final File dest, final boolean overwriteFiles) throws IOException {
         Files.walkThroughStructure(new Handler<IOException>() {
 
             @Override
@@ -113,7 +115,9 @@ public class IO {
                 if (f.isDirectory()) {
                     new File(dest, path).mkdirs();
                 } else {
-                    IO.copyFile(f, new File(dest, path));
+                    File dst = new File(dest, path);
+                    if (overwriteFiles && dst.exists()) if (!dst.delete()) throw new IOException("Cannot overwrite " + dst);
+                    IO.copyFile(f, dst);
                 }
 
             }
