@@ -45,7 +45,7 @@ public interface LogConfig extends ConfigInterface {
     int getMaxLogFiles();
 
     @AboutConfig
-    @DefaultIntValue(1024 * 1024)
+    @DefaultIntValue(10 * 1024 * 1024)
     @SpinnerValidator(min = 100 * 1024, max = Integer.MAX_VALUE)
     @DescriptionForConfigEntry("Max logfile size in bytes")
     @RequiresRestart
