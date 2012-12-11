@@ -514,4 +514,24 @@ public class Application {
         Application.ROOT = null;
         Application.APP_FOLDER = newAppFolder;
     }
+
+    /**
+     * @param object
+     * @return
+     */
+    public static String getJarName(Class<?> clazz) {
+        if (clazz == null) clazz = Application.class;
+        final String name = clazz.getName().replaceAll("\\.", "/") + ".class";
+        final String url = Application.getRessourceURL(name).toString();
+
+        final int index = url.indexOf(".jar!");
+        if (index < 0) { throw new IllegalStateException("No JarName Found"); }
+        try {
+            return new File(new URL(url.substring(4, index + 4)).toURI()).getName();
+        } catch (final Exception e) {
+
+        }
+        throw new IllegalStateException("No JarName Found");
+
+    }
 }

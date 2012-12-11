@@ -58,6 +58,7 @@ public class SyntheticaHelper {
             UIManager.put("Synthetica.license.info", li);
             UIManager.put("Synthetica.license.key", key);
         }
+
         de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setLookAndFeel(laf);
         de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setExtendedFileChooserEnabled(false);
 
