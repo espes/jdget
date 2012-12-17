@@ -17,6 +17,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -39,6 +40,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
     protected String            httpHost;
     protected StringBuilder     proxyRequest           = null;
     protected InetSocketAddress proxyInetSocketAddress = null;
+    private SSLException        sslException           = null;
 
     public SocksHTTPconnection(final URL url, final HTTPProxy proxy) {
         super(url, proxy);
@@ -104,6 +106,10 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
                 try {
                     final SSLSocketFactory socketFactory = TrustALLSSLFactory.getSSLFactoryTrustALL();
                     sslSocket = (SSLSocket) socketFactory.createSocket(establishedConnection, this.httpHost, this.httpPort, true);
+                    if (this.sslException != null && this.sslException.getMessage().contains("bad_record_mac")) {
+                        /* workaround for SSLv3 only hosts */
+                        sslSocket.setEnabledProtocols(new String[] { "SSLv3" });
+                    }
                     sslSocket.startHandshake();
                 } catch (final SSLHandshakeException e) {
                     try {
@@ -125,6 +131,14 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
             }
             /* now send Request */
             this.sendRequest();
+        } catch (final javax.net.ssl.SSLException e) {
+            if (this.sslException != null) {
+                throw new ProxyConnectException(e, this.proxy);
+            } else {
+                this.disconnect(true);
+                this.sslException = e;
+                this.connect();
+            }
         } catch (final IOException e) {
             try {
                 this.disconnect();
@@ -141,6 +155,17 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
         try {
             this.sockssocket.close();
         } catch (final Throwable e) {
+        }
+    }
+
+    @Override
+    public void disconnect(final boolean freeConnection) {
+        try {
+            super.disconnect(freeConnection);
+        } finally {
+            if (freeConnection) {
+                this.sockssocket = null;
+            }
         }
     }
 

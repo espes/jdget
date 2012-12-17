@@ -19,6 +19,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSocket;
+
 import org.appwork.utils.LowerCaseHashMap;
 import org.appwork.utils.Regex;
 import org.appwork.utils.net.Base64InputStream;
@@ -56,6 +59,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     private int[]                            allowedResponseCodes       = new int[0];
     private InetSocketAddress                proxyInetSocketAddress     = null;
     protected InetSocketAddress              connectedInetSocketAddress = null;
+    private SSLException                     sslException               = null;
 
     public HTTPConnectionImpl(final URL url) {
         this(url, null);
@@ -90,6 +94,10 @@ public class HTTPConnectionImpl implements HTTPConnection {
             if (this.httpURL.getProtocol().startsWith("https")) {
                 /* https */
                 this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
+                if (this.sslException != null && this.sslException.getMessage().contains("bad_record_mac")) {
+                    /* workaround for SSLv3 only hosts */
+                    ((SSLSocket) this.httpSocket).setEnabledProtocols(new String[] { "SSLv3" });
+                }
                 /*
                  * http://twelve-programmers.blogspot.de/2010/01/limitations-in-jsse
                  * -tls-implementation.html
@@ -153,7 +161,17 @@ public class HTTPConnectionImpl implements HTTPConnection {
             this.httpPath = "/";
         }
         /* now send Request */
-        this.sendRequest();
+        try {
+            this.sendRequest();
+        } catch (final javax.net.ssl.SSLException e) {
+            if (this.sslException != null) {
+                throw e;
+            } else {
+                this.disconnect(true);
+                this.sslException = e;
+                this.connect();
+            }
+        }
     }
 
     protected synchronized void connectInputStream() throws IOException {
@@ -245,10 +263,18 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     public void disconnect() {
+        this.disconnect(false);
+    }
+
+    public void disconnect(final boolean freeConnection) {
         if (this.isConnected()) {
             try {
                 this.httpSocket.close();
             } catch (final Throwable e) {
+            } finally {
+                if (freeConnection) {
+                    this.httpSocket = null;
+                }
             }
         }
     }
