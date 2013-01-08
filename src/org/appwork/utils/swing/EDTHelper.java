@@ -30,28 +30,29 @@ public abstract class EDTHelper<T> implements Runnable {
     /**
      * flag. If Runnable has terminated yet
      */
-    private volatile boolean done                  = false;
+    private volatile boolean     done                  = false;
 
     /**
      * flag, has runnable already started, invoked in edt
      */
-    private volatile boolean started               = false;
+    private volatile boolean     started               = false;
     /**
      * lock used for EDT waiting
      */
-    private final Object     lock                  = new Object();
+    private final Object         lock                  = new Object();
 
-    private volatile boolean callThreadInterrupted = false;
-    private Thread           callThread            = null;
+    private volatile boolean     callThreadInterrupted = false;
+    private Thread               callThread            = null;
+    private InterruptedException iException            = null;
 
     /**
      * Stores The returnvalue. This Value if of the Generic Datatype T
      */
-    private T                returnValue;
+    private T                    returnValue;
 
-    private RuntimeException exception;
+    private RuntimeException     exception;
 
-    private Error            error;
+    private Error                error;
 
     /**
      * Implement this method. Gui code should be used ONLY in this Method.
@@ -59,6 +60,10 @@ public abstract class EDTHelper<T> implements Runnable {
      * @return
      */
     public abstract T edtRun();
+
+    public InterruptedException getInterruptException() {
+        return this.iException;
+    }
 
     /**
      * Call this method if you want to wait for the EDT to finish the runnable.
@@ -70,6 +75,10 @@ public abstract class EDTHelper<T> implements Runnable {
     public T getReturnValue() {
         this.waitForEDT();
         return this.returnValue;
+    }
+
+    public boolean isInterrupted() {
+        return this.iException != null;
     }
 
     /**
@@ -142,10 +151,10 @@ public abstract class EDTHelper<T> implements Runnable {
                     Thread.sleep(1000);
                 } catch (final InterruptedException e) {
                     if (!this.done && !this.callThreadInterrupted) {
+                        this.iException = e;
                         org.appwork.utils.logging.Log.exception(Level.WARNING, e);
                     }
                     return;
-
                 }
             }
         } finally {
@@ -163,7 +172,7 @@ public abstract class EDTHelper<T> implements Runnable {
                 this.callThread = null;
             }
             if (this.exception != null) { throw this.exception; }
-            if (error != null) throw error;
+            if (this.error != null) { throw this.error; }
         }
     }
 
