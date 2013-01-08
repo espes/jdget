@@ -16,6 +16,7 @@ import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.crypto.Crypto;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.reflection.Clazz;
@@ -127,11 +128,10 @@ public class JSonStorage {
             if (Map.class.isAssignableFrom(type)) { return;
 
             }
-            
+
             if (HashSet.class.isAssignableFrom(type)) { return;
 
             }
-            
 
         } else if (gType instanceof ParameterizedTypeImpl) {
             final ParameterizedTypeImpl ptype = (ParameterizedTypeImpl) gType;
@@ -275,17 +275,6 @@ public class JSonStorage {
         }
     }
 
-    public static <E> E restoreFromFile(final File file, final E def) {
-        final E ret = JSonStorage.restoreFrom(file, true, null, null, def);
-        if (ret == null) { return def; }
-        return ret;
-    }
-
-    public static <E> E restoreFromFile(final String relPath, final E def) {
-        final boolean plain = relPath.toLowerCase().endsWith(".json");
-        return JSonStorage.restoreFrom(Application.getResource(relPath), plain, JSonStorage.KEY, null, def);
-    }
-
     /**
      * restores a store json object
      * 
@@ -305,6 +294,41 @@ public class JSonStorage {
     public static <E> E restoreFrom(final String string, final TypeRef<E> type, final E def) {
         final boolean plain = string.toLowerCase().endsWith(".json");
         return JSonStorage.restoreFrom(Application.getResource(string), plain, JSonStorage.KEY, type, def);
+    }
+
+    public static <E> E restoreFromFile(final File file, final E def) {
+        final E ret = JSonStorage.restoreFrom(file, true, null, null, def);
+        if (ret == null) { return def; }
+        return ret;
+    }
+
+    public static <E> E restoreFromFile(final String relPath, final E def) {
+        final boolean plain = relPath.toLowerCase().endsWith(".json");
+        return JSonStorage.restoreFrom(Application.getResource(relPath), plain, JSonStorage.KEY, null, def);
+    }
+
+    public static <E> E restoreFromString(final byte[] data, final boolean plain, final byte[] key, final TypeRef<E> type, final E def) {
+        if (data == null) { return def; }
+        String string = null;
+        try {
+
+            if (!plain) {
+                string = Crypto.decrypt(data, key);
+            } else {
+                string = new String(data, "UTF-8");
+            }
+            synchronized (JSonStorage.LOCK) {
+                if (type != null) {
+                    return JSonStorage.JSON_MAPPER.stringToObject(string, type);
+                } else {
+                    return (E) JSonStorage.JSON_MAPPER.stringToObject(string, def.getClass());
+                }
+            }
+        } catch (final Exception e) {
+            Log.exception(Level.WARNING, e);
+            Log.L.warning(string);
+            return def;
+        }
     }
 
     /**
@@ -329,30 +353,6 @@ public class JSonStorage {
         if (string == null || "".equals(string)) { return null; }
         synchronized (JSonStorage.LOCK) {
             return JSonStorage.JSON_MAPPER.stringToObject(string, type);
-        }
-    }
-
-    public static <E> E restoreFromString(byte[] data, boolean plain, byte[] key, TypeRef<E> type, E def) {
-        if (data == null) { return def; }
-        String string = null;
-        try {
-
-            if (!plain) {
-                string = Crypto.decrypt(data, key);
-            } else {
-                string = new String(data, "UTF-8");
-            }
-            synchronized (JSonStorage.LOCK) {
-                if (type != null) {
-                    return JSonStorage.JSON_MAPPER.stringToObject(string, type);
-                } else {
-                    return (E) JSonStorage.JSON_MAPPER.stringToObject(string, def.getClass());
-                }
-            }
-        } catch (final Exception e) {
-            Log.exception(Level.WARNING, e);
-            Log.L.warning(string);
-            return def;
         }
     }
 
@@ -501,6 +501,25 @@ public class JSonStorage {
                 throw new StorageException(e);
             } finally {
 
+            }
+        }
+    }
+
+    /**
+     * This method throws Exceptions
+     * 
+     * @param string
+     * @param type
+     * @param def
+     * @return
+     */
+    public static <E> E stringToObject(final String string, final TypeRef<E> type, final E def) {
+        if (StringUtils.isEmpty(string)) { throw new IllegalArgumentException("cannot stringToObject from empty string"); }
+        synchronized (JSonStorage.LOCK) {
+            if (type != null) {
+                return JSonStorage.JSON_MAPPER.stringToObject(string, type);
+            } else {
+                return (E) JSonStorage.JSON_MAPPER.stringToObject(string, def.getClass());
             }
         }
     }
