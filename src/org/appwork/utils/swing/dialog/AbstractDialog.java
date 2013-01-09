@@ -48,6 +48,7 @@ import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
+import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
 
 public abstract class AbstractDialog<T> extends TimerDialog implements ActionListener, WindowListener {
@@ -57,6 +58,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     public static final Locator                   LOCATE_CENTER_OF_SCREEN = new CenterOfScreenLocator();
 
     private static int                            BUTTON_HEIGHT           = -1;
+
+    public static int getButtonHeight() {
+        return AbstractDialog.BUTTON_HEIGHT;
+    }
 
     public static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
@@ -74,9 +79,18 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         }
     }
 
+    /**
+     * @param i
+     */
+    public static void setButtonHeight(final int height) {
+        AbstractDialog.BUTTON_HEIGHT = height;
+
+    }
+
     protected JButton          cancelButton;
 
     private final String       cancelOption;
+
     private JPanel             defaultButtons;
 
     protected JCheckBox        dontshowagain;
@@ -107,38 +121,16 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private Locator            locator;
 
-    public Locator getLocator() {
-        if (locator == null) return LOCATE_CENTER_OF_SCREEN;
-        return locator;
-    }
-
-    public void onSetVisible(boolean b) {
-
-        if (!b && getDialog().isVisible()) {
-            getLocator().onClose(AbstractDialog.this);
-        }
-
-    }
-
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
-        setLocator(LOCATE_CENTER_OF_SCREEN);
-    
+        this.setLocator(AbstractDialog.LOCATE_CENTER_OF_SCREEN);
+
         this.title = title;
         this.flagMask = flag;
 
         this.icon = BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON) ? null : icon;
         this.okOption = okOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_OK() : okOption;
         this.cancelOption = cancelOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
-    }
-
-  
-
-    /**
-     * @param locateCenterOfScreen
-     */
-    public void setLocator(Locator locator) {
-        this.locator = locator;
     }
 
     /**
@@ -174,7 +166,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             this.setTitle(this.title);
 
             dont: if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-                String key = this.getDontShowAgainKey();
+                final String key = this.getDontShowAgainKey();
                 try {
                     final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(key) : JSonStorage.getPlainStorage("Dialogs").get(key, -1);
 
@@ -343,11 +335,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // this.setSize(this.getDesiredSize());
             // }
 
-            Point loc = getLocator().getLocationOnScreen(this);
+            final Point loc = this.getLocator().getLocationOnScreen(this);
             if (loc != null) {
                 this.getDialog().setLocation(loc);
             } else {
-                this.getDialog().setLocation(LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(this));
+                this.getDialog().setLocation(AbstractDialog.LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(this));
             }
             // register an escape listener to cancel the dialog
             this.registerEscape(focus);
@@ -427,10 +419,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     protected JPanel createBottomButtonPanel() {
         // TODO Auto-generated method stub
-        if (BUTTON_HEIGHT <= 0) {
+        if (AbstractDialog.BUTTON_HEIGHT <= 0) {
             return new JPanel(new MigLayout("ins 0", "[]", "0[grow,fill]0"));
         } else {
-            return new JPanel(new MigLayout("ins 0", "[]", "0[grow,fill," + BUTTON_HEIGHT + "!]0"));
+            return new JPanel(new MigLayout("ins 0", "[]", "0[grow,fill," + AbstractDialog.BUTTON_HEIGHT + "!]0"));
         }
     }
 
@@ -460,21 +452,21 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
         if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
 
-        new EDTRunner() {
+        new EDTHelper<Void>() {
 
             @Override
-            protected void runInEDT() {
-                if (getDialog().isVisible()) {
-                    getLocator().onClose(AbstractDialog.this);
+            public Void edtRun() {
+                if (AbstractDialog.this.getDialog().isVisible()) {
+                    AbstractDialog.this.getLocator().onClose(AbstractDialog.this);
                 }
                 AbstractDialog.super.dispose();
                 if (AbstractDialog.this.timer != null) {
                     AbstractDialog.this.timer.interrupt();
                     AbstractDialog.this.timer = null;
                 }
+                return null;
             }
-        };
-
+        }.waitForEDT();
     }
 
     /**
@@ -537,6 +529,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         return "gapright 10,gaptop 2";
     }
 
+    public Locator getLocator() {
+        if (this.locator == null) { return AbstractDialog.LOCATE_CENTER_OF_SCREEN; }
+        return this.locator;
+    }
+
     /**
      * Return the returnbitmask
      * 
@@ -566,6 +563,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     }
 
+    public boolean isDontShowAgainSelected() {
+        if (this.isHiddenByDontShowAgain() || this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) { return true; }
+        return false;
+
+    }
+
     public boolean isHiddenByDontShowAgain() {
         if (this.dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) { return false; }
         final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getPlainStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
@@ -577,12 +580,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     public boolean isInitialized() {
         return this.initialized;
-    }
-
-    public boolean isDontShowAgainSelected() {
-        if (isHiddenByDontShowAgain() || (this.dontshowagain.isSelected() && this.dontshowagain.isEnabled())) { return true; }
-        return false;
-
     }
 
     /**
@@ -613,6 +610,15 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @return musst return a JComponent
      */
     abstract public JComponent layoutDialogContent();
+
+    @Override
+    public void onSetVisible(final boolean b) {
+
+        if (!b && this.getDialog().isVisible()) {
+            this.getLocator().onClose(AbstractDialog.this);
+        }
+
+    }
 
     /**
      * Handle timeout
@@ -693,6 +699,13 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     /**
+     * @param locateCenterOfScreen
+     */
+    public void setLocator(final Locator locator) {
+        this.locator = locator;
+    }
+
+    /**
      * Sets the returnvalue and saves the don't show again states to the
      * database
      * 
@@ -763,17 +776,5 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     public void windowOpened(final WindowEvent arg0) {
-    }
-
-    /**
-     * @param i
-     */
-    public static void setButtonHeight(int height) {
-        BUTTON_HEIGHT = height;
-
-    }
-
-    public static int getButtonHeight() {
-        return BUTTON_HEIGHT;
     }
 }

@@ -15,7 +15,6 @@ import java.awt.Window;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.io.File;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -495,13 +494,28 @@ public class Dialog implements WindowFocusListener {
             }
 
         }.getReturnValue();
+
         final int mask = dialog.getReturnmask();
         if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
         if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
         return ret;
     }
 
- 
+    /**
+     * @param i
+     * @param dialog_error_title
+     * @param dialog_error_noconnection
+     * @return
+     */
+    public int showErrorDialog(final int flags, final String title, final String message) {
+        try {
+            return this.showConfirmDialog(flags, title, message, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
+        } catch (final DialogClosedException e) {
+            return Dialog.RETURN_CLOSED;
+        } catch (final DialogCanceledException e) {
+            return Dialog.RETURN_CANCEL;
+        }
+    }
 
     public int showErrorDialog(final String s) {
 
@@ -849,22 +863,6 @@ public class Dialog implements WindowFocusListener {
     public void windowLostFocus(final WindowEvent e) {
         // TODO Auto-generated method stub
 
-    }
-
-    /**
-     * @param i
-     * @param dialog_error_title
-     * @param dialog_error_noconnection
-     * @return
-     */
-    public int showErrorDialog(int flags, String title, String message) {
-        try {
-            return this.showConfirmDialog(flags, title, message, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
-        } catch (final DialogClosedException e) {
-            return Dialog.RETURN_CLOSED;
-        } catch (final DialogCanceledException e) {
-            return Dialog.RETURN_CANCEL;
-        }
     }
 
 }
