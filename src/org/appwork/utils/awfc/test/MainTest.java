@@ -34,8 +34,8 @@ public class MainTest {
         utils.writeShort(32765);
         utils.writeString("HALLO DU");
 
-        long[] testValues = new long[] { Long.MAX_VALUE };
-        for (long value : testValues) {
+        final long[] testValues = new long[] { Long.MAX_VALUE };
+        for (final long value : testValues) {
             utils.writeLongOptimized(value);
         }
         final ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
@@ -45,8 +45,8 @@ public class MainTest {
         if (utils.readShort() != 10) { throw new WTFException(); }
         if ((read = utils.readShort()) != 32765) { throw new WTFException("" + read); }
         if (!"HALLO DU".equals(utils.readString())) { throw new WTFException(); }
-        for (long value : testValues) {
-            long ret = utils.readLongOptimized();
+        for (final long value : testValues) {
+            final long ret = utils.readLongOptimized();
             if (value != ret) { throw new WTFException(); }
         }
         final ReusableByteArrayOutputStream rbos = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream();
@@ -54,25 +54,26 @@ public class MainTest {
 
             protected int pos;
 
+            @Override
             public synchronized int read() {
-                return (pos < rbos.size()) ? (rbos.getInternalBuffer()[pos++] & 0xff) : -1;
+                return this.pos < rbos.size() ? rbos.getInternalBuffer()[this.pos++] & 0xff : -1;
             }
 
             @Override
-            public synchronized int read(byte b[], int off, int len) {
+            public synchronized int read(final byte b[], final int off, int len) {
                 if (b == null) {
                     throw new NullPointerException();
                 } else if (off < 0 || len < 0 || len > b.length - off) { throw new IndexOutOfBoundsException(); }
 
-                if (pos >= rbos.size()) { return -1; }
+                if (this.pos >= rbos.size()) { return -1; }
 
-                int avail = rbos.size() - pos;
+                final int avail = rbos.size() - this.pos;
                 if (len > avail) {
                     len = avail;
                 }
                 if (len <= 0) { return 0; }
-                System.arraycopy(rbos.getInternalBuffer(), pos, b, off, len);
-                pos += len;
+                System.arraycopy(rbos.getInternalBuffer(), this.pos, b, off, len);
+                this.pos += len;
                 return len;
             }
 
@@ -83,12 +84,12 @@ public class MainTest {
              */
             @Override
             public synchronized void reset() throws IOException {
-                pos = 0;
+                this.pos = 0;
             }
 
         };
 
-        AWFCUtils utils2 = new AWFCUtils() {
+        final AWFCUtils utils2 = new AWFCUtils() {
 
             @Override
             public InputStream getCurrentInputStream() throws IOException {
