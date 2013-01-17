@@ -26,7 +26,7 @@ public class AWFCOutputStream extends OutputStream {
      * Appwork FileContainer *
      */
     private final OutputStream   os;
-    private AWFCEntry            currentEntry                = null;
+    private AWFCEntryOptions     currentEntry                = null;
     private CountingOutputStream currentCountingOutputStream = null;
     private final MessageDigest  md;
     private boolean              headerWritten               = false;
@@ -59,8 +59,13 @@ public class AWFCOutputStream extends OutputStream {
         if (this.currentEntry != null) {
             /* verify if currentEntry is complete */
             final long bytesWritten = this.currentCountingOutputStream.transferedBytes();
-            if (this.currentEntry.getSize() != bytesWritten) { throw new IOException("Wrong size for Entry: " + this.currentEntry + " != " + bytesWritten); }
-            if (this.currentEntry.isFile() && this.md != null && !Arrays.equals(this.currentEntry.getHash(), this.md.digest())) { throw new IOException("Wrong hash for Entry: " + this.currentEntry); }
+            final AWFCEntry entry = this.currentEntry.getEntry();
+            if (this.currentEntry.hasPayLoad()) {
+                if (entry.getSize() != bytesWritten) { throw new IOException("Wrong size for Entry: " + entry + " != " + bytesWritten); }
+                if (entry.isFile() && this.md != null && !Arrays.equals(entry.getHash(), this.md.digest())) { throw new IOException("Wrong hash for Entry: " + entry); }
+            } else {
+                if (bytesWritten > 0) { throw new IOException("Entry must not have payLoad: " + entry + " != " + bytesWritten); }
+            }
             /* we want to write on original OutputStream again */
             this.currentCountingOutputStream = null;
             this.currentEntry = null;
@@ -82,14 +87,24 @@ public class AWFCOutputStream extends OutputStream {
     }
 
     public synchronized void putNextEntry(final AWFCEntry e) throws IOException {
+        this.putNextEntry(e, false);
+    }
+
+    public synchronized void putNextEntry(final AWFCEntry entry, boolean noPayLoad) throws IOException {
         if (this.currentEntry != null) {
             this.closeLastEntry();
         }
-        this.currentEntry = e;
+        if (entry.isFile() == false) {
+            /* folders do not have any payload */
+            noPayLoad = true;
+        }
+        /* wrap AWFCEntry into AWFCEntryOptions */
+        this.currentEntry = new AWFCEntryOptions(entry, noPayLoad);
         if (this.headerWritten == false) {
             this.writeAWFCHeader();
         }
-        this.writeAWFCEntry(e);
+        /* write AWFCHeader */
+        this.writeAWFCEntry(this.currentEntry);
         if (this.md != null) {
             this.md.reset();
         }
@@ -147,30 +162,43 @@ public class AWFCOutputStream extends OutputStream {
         this.getCurrentOutputStream().write(b);
     }
 
-    private void writeAWFCEntry(final AWFCEntry e) throws IOException {
-        this.utils.writeString(e.getPath());
+    private void writeAWFCEntry(final AWFCEntryOptions awfcEntryOptions) throws IOException {
+        final AWFCEntry entry = awfcEntryOptions.getEntry();
+        /* write filePath */
+        this.utils.writeString(entry.getPath());
         int entryOptions = 0;
-        if (e.isFile()) {
+        if (entry.isFile()) {
+            /* entry is a File */
             entryOptions = entryOptions | 1;
         }
+        if (awfcEntryOptions.hasPayLoad() == false) {
+            /* entry has no payLoad */
+            entryOptions = entryOptions | 2;
+        }
+        /* write entryOptions */
         this.write(entryOptions);
-        if (e.isFile()) {
-            this.utils.writeLongOptimized(e.getSize());
+        if (entry.isFile()) {
+            /* write entrySize */
+            this.utils.writeLongOptimized(entry.getSize());
             if (this.md != null) {
                 /* only write Hash when MessageDigest is set */
-                if (e.getHash() == null) { throw new IOException("Hash is missing for Entry: " + this.currentEntry); }
-                if (e.getHash().length != this.md.getDigestLength()) { throw new IOException("Hashlength does not match for Entry: " + this.currentEntry); }
-                this.write(e.getHash());
+                if (entry.getHash() == null) { throw new IOException("Hash is missing for Entry: " + entry); }
+                if (entry.getHash().length != this.md.getDigestLength()) { throw new IOException("Hashlength does not match for Entry: " + entry); }
+                this.write(entry.getHash());
             }
         }
     }
 
     private synchronized void writeAWFCHeader() throws IOException {
         this.headerWritten = true;
+        /* write AWFC Version 1 */
         this.write(1);
+        /* write MessageDigest set */
         this.utils.writeBoolean(this.md != null);
         if (this.md != null) {
+            /* write MessageDigest Type */
             this.utils.writeString(this.md.getAlgorithm());
+            /* write MessageDigest Length */
             this.utils.writeShort(this.md.getDigestLength());
         }
     }

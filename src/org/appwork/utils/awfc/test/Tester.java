@@ -39,17 +39,21 @@ public class Tester {
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         final MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] buffer;
-        final byte[] hash = md.digest(buffer = new byte[32]);
+        final byte[] hash = md.digest(buffer = new byte[1024]);
         final long crc32 = Hash.getCRC32(buffer);
         long a = System.currentTimeMillis();
         final AWFCOutputStream cos = new AWFCOutputStream(bos, null);
         AWFCEntry entry = null;
         boolean file = false;
+        boolean noPayLoad = false;
         for (int i = 0; i < 1024 * 1024; i++) {
             if (file == false) {
                 entry = new AWFCEntry("test" + i, buffer.length, hash);
-                cos.putNextEntry(entry);
-                cos.write(buffer);
+                cos.putNextEntry(entry, noPayLoad);
+                if (noPayLoad == false) {
+                    cos.write(buffer);
+                }
+                noPayLoad = !noPayLoad;
                 file = true;
             } else {
                 entry = new AWFCEntry("test" + i + "/", 0, hash);
@@ -64,15 +68,18 @@ public class Tester {
         // b[75312] = 9;
         final ByteArrayInputStream bis = new ByteArrayInputStream(b);
         a = System.currentTimeMillis();
+        System.out.println("next");
         final AWFCInputStream cis = new AWFCInputStream(bis);
         entry = null;
         long i = 0;
+        final byte[] buffer2 = new byte[2048];
         while ((entry = cis.getNextEntry()) != null) {
-            while (cis.read(buffer) != -1) {
+            while (cis.read(buffer2) != -1) {
                 ;
             }
         }
         System.out.println(System.currentTimeMillis() - a);
+        if (true) { return; }
         a = System.currentTimeMillis();
         final ZipOutputStream zos = new ZipOutputStream(bos);
         ZipEntry zentry = null;
@@ -88,8 +95,8 @@ public class Tester {
                 zos.write(buffer);
                 file = true;
             } else {
-                zentry = new ZipEntry("test" + i+"/");
-                
+                zentry = new ZipEntry("test" + i + "/");
+
                 zos.putNextEntry(zentry);
                 file = false;
             }
