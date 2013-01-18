@@ -7,21 +7,17 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.swing.dialog;
+package org.appwork.utils.swing.dialog.locator;
 
-import java.awt.Dimension;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.Point;
-import java.awt.Rectangle;
 
-import org.appwork.utils.swing.dialog.TimerDialog.InternDialog;
+import org.appwork.utils.swing.dialog.AbstractDialog;
 
 /**
  * @author Thomas
  * 
  */
-public interface Locator {
+public interface DialogLocator {
 
     /**
      * @param abstractDialog
@@ -30,9 +26,5 @@ public interface Locator {
     Point getLocationOnScreen(AbstractDialog<?> abstractDialog);
 
     void onClose(AbstractDialog<?> abstractDialog);
-
-  
-  
-
 
 }

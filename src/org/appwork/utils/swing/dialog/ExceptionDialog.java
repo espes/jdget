@@ -40,16 +40,27 @@ import org.appwork.utils.os.CrossSystem;
  */
 public class ExceptionDialog extends AbstractDialog<Integer> {
 
-    private final String      message;
-    private JTextPane         textField;
+    private final String    message;
+    private JTextPane       textField;
 
-    private final Throwable   exception;
+    private final Throwable exception;
 
-    private JTextArea         logField;
+    private JTextArea       logField;
 
-    private JScrollPane       scrollPane;
+    private JScrollPane     scrollPane;
 
-    private JLabel            logLabel;
+    private JLabel          logLabel;
+    private JButton         more;
+    private boolean         expanded = false;
+    private String          moreString;
+
+    public boolean isExpanded() {
+        return expanded;
+    }
+
+    public void setExpanded(boolean expanded) {
+        this.expanded = expanded;
+    }
 
     public ExceptionDialog(final int flag, final String title, final String message, final Throwable exception, final String okOption, final String cancelOption) {
         super(flag, title, null, okOption, cancelOption);
@@ -59,10 +70,14 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
         this.exception = exception;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
     @Override
     protected void addButtons(final JPanel buttonBar) {
 
-        final JButton more = new JButton(_AWU.T.ExceptionDialog_layoutDialogContent_more_button());
+        more = new JButton(_AWU.T.ExceptionDialog_layoutDialogContent_more_button());
 
         more.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
@@ -72,16 +87,14 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
 
             public void actionPerformed(final ActionEvent e) {
 
-                ExceptionDialog.this.scrollPane.setVisible(true);
-                ExceptionDialog.this.logField.setText(Exceptions.getStackTrace(ExceptionDialog.this.exception));
-                ExceptionDialog.this.logLabel.setVisible(true);
-                more.setVisible(false);
-                ExceptionDialog.this.setResizable(true);
-                ExceptionDialog.this.pack();
+                expand();
             }
         });
         more.setHorizontalAlignment(SwingConstants.RIGHT);
         buttonBar.add(more, "hidemode 3");
+        if (expanded) {
+            expand();
+        }
     }
 
     @Override
@@ -163,6 +176,28 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
     @Override
     public String toString() {
         return ("dialog-" + this.getTitle() + "_" + this.message).replaceAll("\\W", "_");
+    }
+
+    public void expand() {
+        ExceptionDialog.this.scrollPane.setVisible(true);
+        if (moreString != null) {
+            logField.setText(moreString);
+        } else {
+            ExceptionDialog.this.logField.setText(Exceptions.getStackTrace(ExceptionDialog.this.exception));
+        }
+        ExceptionDialog.this.logLabel.setVisible(true);
+
+        more.setVisible(false);
+        ExceptionDialog.this.setResizable(true);
+        ExceptionDialog.this.pack();
+    }
+
+    /**
+     * @param string
+     */
+    public void setMore(String string) {
+        moreString = string;
+
     }
 
 }

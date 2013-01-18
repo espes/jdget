@@ -151,6 +151,10 @@ public abstract class LogSourceProvider {
         }.start();
     }
 
+    public ConsoleHandler getConsoleHandler() {
+        return consoleHandler;
+    }
+
     /**
      * @param name
      * @param i

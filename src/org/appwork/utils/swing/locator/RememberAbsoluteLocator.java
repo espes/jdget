@@ -1,18 +1,13 @@
 package org.appwork.utils.swing.locator;
 
-import java.awt.Dimension;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.Point;
-import java.awt.Rectangle;
-
-import javax.swing.JFrame;
+import java.awt.Window;
 
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.Application;
 import org.appwork.utils.swing.dialog.LocationStorage;
 
-public class RememberAbsoluteLocator implements Locator {
+public class RememberAbsoluteLocator extends AbstractLocator {
 
     private String id;
 
@@ -25,7 +20,7 @@ public class RememberAbsoluteLocator implements Locator {
     }
 
     @Override
-    public Point getLocationOnScreen(JFrame dialog) {
+    public Point getLocationOnScreen(Window dialog) {
         LocationStorage cfg = createConfig(dialog);
         if (cfg.isValid()) {
 
@@ -37,42 +32,10 @@ public class RememberAbsoluteLocator implements Locator {
     }
 
     /**
-     * @param point
      * @param dialog
      * @return
      */
-    private Point validate(Point point, JFrame dialog) {
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        final GraphicsDevice[] screens = ge.getScreenDevices();
-
-        // for (final GraphicsDevice screen : screens) {
-        Dimension dimension = dialog.getPreferredSize();
-        for (final GraphicsDevice screen : screens) {
-            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
-            if (point.x >= bounds.x && point.x < bounds.x + bounds.width) {
-                if (point.y >= bounds.y && point.y < bounds.y + bounds.height) {
-                    // found point on screen
-                    if (point.x + dimension.width <= bounds.x + bounds.width) {
-
-                        if (point.y + dimension.height <= bounds.y + bounds.height) {
-                            // dialog is completly visible on this screen
-                            return point;
-                        }
-                    }
-
-                }
-            }
-        }
-
-        return new CenterOfScreenLocator().getLocationOnScreen(dialog);
-
-    }
-
-    /**
-     * @param dialog
-     * @return
-     */
-    private LocationStorage createConfig(JFrame dialog) {
+    private LocationStorage createConfig(Window dialog) {
         return JsonConfig.create(Application.getResource("cfg/" + RememberAbsoluteLocator.class.getName() + "-" + getID(dialog)), LocationStorage.class);
     }
 
@@ -80,7 +43,7 @@ public class RememberAbsoluteLocator implements Locator {
      * @param dialog
      * @return
      */
-    protected String getID(JFrame dialog) {
+    protected String getID(Window dialog) {
         if (id == null) return dialog.toString();
         return id;
     }
@@ -93,7 +56,7 @@ public class RememberAbsoluteLocator implements Locator {
      * .dialog.frame)
      */
     @Override
-    public void onClose(JFrame frame) {
+    public void onClose(Window frame) {
         if (frame.isShowing()) {
             LocationStorage cfg = createConfig(frame);
             cfg.setValid(true);

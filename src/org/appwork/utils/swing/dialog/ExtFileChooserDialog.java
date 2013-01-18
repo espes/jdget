@@ -131,6 +131,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     private String                   storageID;
     private boolean                  duringInit;
     protected PropertyChangeListener directoryModel;
+    private File[]                   selection         = null;
+
+    public void setSelection(File[] selection) {
+        this.selection = selection;
+    }
 
     public void setType(FileChooserType type) {
         this.type = type;
@@ -307,12 +312,9 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 nullInsets = new Insets(0, 0, 0, 0);
             }
 
-    
-
-
             @Override
             public void addPropertyChangeListener(PropertyChangeListener listener) {
-          
+
                 if (listener instanceof BasicDirectoryModel && directoryModel == null) {
                     // this is a workaround to avoid multiple init scans of the
                     // filedirectory during the filechooser setup.
@@ -890,7 +892,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     public File[] getSelection() {
-
+        if (selection != null) return selection;
         return createReturnValue();
     }
 

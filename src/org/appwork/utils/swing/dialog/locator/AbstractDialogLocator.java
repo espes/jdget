@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.swing.dialog;
+package org.appwork.utils.swing.dialog.locator;
 
 import java.awt.Dimension;
 import java.awt.GraphicsDevice;
@@ -17,11 +17,13 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 
+import org.appwork.utils.swing.dialog.AbstractDialog;
+
 /**
  * @author Thomas
  * 
  */
-public abstract class AbstractLocator implements Locator {
+public abstract class AbstractDialogLocator implements DialogLocator {
     public Point correct(Point point, AbstractDialog<?> d) {
 
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();

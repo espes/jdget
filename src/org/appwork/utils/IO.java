@@ -19,7 +19,7 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 
-import org.appwork.utils.Files.Handler;
+import org.appwork.utils.Files.AbstractHandler;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 import org.appwork.utils.os.CrossSystem;
 
@@ -106,7 +106,7 @@ public class IO {
      * @throws IOException
      */
     public static void copyFolderRecursive(final File src, final File dest, final boolean overwriteFiles) throws IOException {
-        Files.walkThroughStructure(new Handler<IOException>() {
+        Files.walkThroughStructure(new AbstractHandler<IOException>() {
 
             @Override
             public void onFile(final File f) throws IOException {
@@ -116,7 +116,11 @@ public class IO {
                     new File(dest, path).mkdirs();
                 } else {
                     File dst = new File(dest, path);
-                    if (overwriteFiles && dst.exists()) if (!dst.delete()) throw new IOException("Cannot overwrite " + dst);
+                    if (overwriteFiles && dst.exists()) if (!dst.delete()){
+                        //
+                        throw new IOException("Cannot overwrite " + dst);
+                    }
+                    
                     IO.copyFile(f, dst);
                 }
 

@@ -30,9 +30,9 @@ public class JSonFactory {
         this.counter = 0;
     }
 
-    private ParserException bam( String expected) {
-         String pre = this.str.substring(Math.max(this.global - 20, 0), this.global);
-        pre=pre.replace("\r", "\\r").replace("\n", "\\n");
+    private ParserException bam(String expected) {
+        String pre = this.str.substring(Math.max(this.global - 20, 0), this.global);
+        pre = pre.replace("\r", "\\r").replace("\n", "\\n");
         final StringBuilder sb = new StringBuilder();
         sb.append(expected);
         sb.append("\r\n\t");
@@ -89,7 +89,7 @@ public class JSonFactory {
                         case 'u':
                             this.sb2.delete(0, this.sb2.length());
 
-//                            this.global++;
+                            // this.global++;
                             this.counter = this.global + 4;
                             for (; this.global < this.counter; this.global++) {
                                 this.c = this.getChar();
@@ -97,7 +97,7 @@ public class JSonFactory {
                                     this.sb2.append(this.c);
                                 }
                             }
-//                            this.global--;
+                            // this.global--;
                             this.sb.append((char) Short.parseShort(this.sb2.toString(), 16));
                             continue;
                         default:
@@ -127,9 +127,7 @@ public class JSonFactory {
             this.debug += '\u2934';
             System.err.println(this.debug);
         }
-        if(global>=str.length()){
-            throw this.bam("Ended unexpected");
-        }
+        if (global >= str.length()) { throw this.bam("Ended unexpected"); }
         return this.str.charAt(this.global);
     }
 
@@ -214,14 +212,18 @@ public class JSonFactory {
         String key;
         this.global++;
         final JSonObject ret = new JSonObject();
+
+        this.skipWhiteSpace();
+        this.c = this.getChar();
+        if (c == '}') {
+            this.global++;
+            return ret;
+        }
         while (true) {
             // check for object end markers
-            this.skipWhiteSpace();
-            this.c = this.getChar();
-            switch (this.c) {
-            case '}':
-                this.global++;
-                return ret;
+
+            bs: switch (this.c) {
+
             case '"':
                 key = this.findString();
                 this.skipWhiteSpace();
@@ -232,25 +234,26 @@ public class JSonFactory {
                 this.skipWhiteSpace();
                 ret.put(key, this.parseValue());
                 this.skipWhiteSpace();
-                if(global>=str.length()){
-                    throw this.bam("} or , expected");
-                }
+                if (global >= str.length()) { throw this.bam("} or , expected"); }
                 this.c = this.getChar();
                 switch (this.c) {
                 case ',':
                     // ok another value...probably
                     this.global++;
-                    continue;
+                    break bs;
                 case '}':
                     // end of object:
                     this.global++;
                     return ret;
                 default:
-                    throw this.bam("', or }' expected");
+                    throw this.bam(", or }' expected");
                 }
             default:
-                throw this.bam("\", or }' expected");
+                throw this.bam("\" expected");
             }
+
+            this.skipWhiteSpace();
+            this.c = this.getChar();
         }
     }
 

@@ -73,6 +73,10 @@ public class ParameterParser {
         return this.map.containsKey(string);
     }
 
+    public HashMap<String, CommandSwitch> getMap() {
+        return map;
+    }
+
     /**
      * parses the command row. and fires {@link CommandSwitch} for each switch
      * command

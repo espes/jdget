@@ -17,6 +17,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -27,6 +28,7 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.HTTPHeader;
+import org.appwork.utils.net.httpserver.requests.HttpRequest;
 
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
@@ -79,7 +81,7 @@ public class InterfaceHandler<T> {
     }
 
     private final RemoteAPIInterface                        impl;
-    private final java.util.List<Class<T>>                       interfaceClasses;
+    private final java.util.List<Class<T>>                  interfaceClasses;
     private final TreeMap<String, TreeMap<Integer, Method>> methods;
     private final HashMap<Method, Integer>                  parameterCountMap;
     private final HashMap<Method, Integer>                  methodsAuthLevel;
@@ -100,10 +102,9 @@ public class InterfaceHandler<T> {
         interfaceClasses.add(c);
         this.impl = x;
         this.methods = new TreeMap<String, TreeMap<Integer, Method>>();
-   
 
         this.defaultAuthLevel = defaultAuthLevel;
- 
+
         this.methodsAuthLevel = new HashMap<Method, Integer>();
         this.parameterCountMap = new HashMap<Method, Integer>();
         this.rawMethods = new HashMap<String, Method>();
@@ -142,6 +143,12 @@ public class InterfaceHandler<T> {
     }
 
     public void help(final RemoteAPIRequest request, final RemoteAPIResponse response) throws InstantiationException, IllegalAccessException, UnsupportedEncodingException, IOException {
+
+        if ("true".equals(HttpRequest.getParameterbyKey(request.getHttpRequest(), "json"))) {
+            helpJSON(request, response);
+            return;
+        }
+
         final StringBuilder sb = new StringBuilder();
         for (Class<T> interfaceClass : interfaceClasses) {
             sb.append(interfaceClass.getName());
@@ -212,6 +219,46 @@ public class InterfaceHandler<T> {
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
         response.getOutputStream().write(text.getBytes("UTF-8"));
+    }
+
+    private void helpJSON(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
+
+        List<RemoteAPIMethodDefinition> methodDefinitions = new ArrayList<RemoteAPIMethodDefinition>();
+
+        Entry<String, TreeMap<Integer, Method>> next;
+        for (final Iterator<Entry<String, TreeMap<Integer, Method>>> it = this.methods.entrySet().iterator(); it.hasNext();) {
+            next = it.next();
+            for (final Method m : next.getValue().values()) {
+                RemoteAPIMethodDefinition mDef = new RemoteAPIMethodDefinition();
+                mDef.setMethodName(m.getName());
+
+                final ApiDoc an = m.getAnnotation(ApiDoc.class);
+                if (an != null) {
+                    mDef.setDescription(an.value());
+                }
+
+                List<String> parameters = new ArrayList<String>();
+
+                for (int i = 0; i < m.getGenericParameterTypes().length; i++) {
+                    if (m.getParameterTypes()[i] == RemoteAPIRequest.class || m.getParameterTypes()[i] == RemoteAPIResponse.class) {
+                        continue;
+                    }
+                    parameters.add(m.getParameterTypes()[i].getSimpleName());
+                }
+                mDef.setParameters(parameters);
+
+                methodDefinitions.add(mDef);
+            }
+        }
+
+        String responseText = JSonStorage.serializeToJson(methodDefinitions);
+
+        response.setResponseCode(ResponseCode.SUCCESS_OK);
+
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, responseText.getBytes("UTF-8").length + ""));
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
+
+        response.getOutputStream().write(responseText.getBytes("UTF-8"));
     }
 
     /**

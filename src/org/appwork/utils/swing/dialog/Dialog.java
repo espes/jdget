@@ -129,6 +129,7 @@ public class Dialog implements WindowFocusListener {
      * if user closed the window
      */
     public static final int     RETURN_CLOSED                        = 1 << 6;
+    public static final int     RETURN_INTERRUPT                     = 1 << 8;
     /**
      * this return flag can be set in two situations:<br>
      * a) The user selected the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option<br>
@@ -256,6 +257,10 @@ public class Dialog implements WindowFocusListener {
 
     private final java.util.List<Window> parents;
 
+    private LAFManagerInterface          lafManager;
+
+    private DialogHandler                handler       = null;
+
     private Dialog() {
         this.parents = new ArrayList<Window>();
     }
@@ -326,6 +331,7 @@ public class Dialog implements WindowFocusListener {
      * @see Dialog#owner
      */
     public void setParentOwner(final Component parent) {
+        if (owner == parent) return;
         this.owner = parent;
 
         if (parent == null) {
@@ -485,15 +491,27 @@ public class Dialog implements WindowFocusListener {
      * @throws DialogCanceledException
      */
     public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
+
+        if (handler != null) { return handler.showDialog(dialog); }
         if (dialog == null) { return null; }
-        final T ret = new EDTHelper<T>() {
+        EDTHelper<T> edth = new EDTHelper<T>() {
             @Override
             public T edtRun() {
                 dialog.displayDialog();
                 return dialog.getReturnValue();
             }
 
-        }.getReturnValue();
+        };
+        final T ret = edth.getReturnValue();
+
+        if (edth.isInterrupted()) {
+            try {
+                // close dialog if open
+                dialog.dispose();
+            } catch (Exception e) {
+            }
+            throw new DialogClosedException(Dialog.RETURN_INTERRUPT, edth.getInterruptException());
+        }
 
         final int mask = dialog.getReturnmask();
         if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
@@ -501,20 +519,36 @@ public class Dialog implements WindowFocusListener {
         return ret;
     }
 
-    /**
-     * @param i
-     * @param dialog_error_title
-     * @param dialog_error_noconnection
-     * @return
-     */
-    public int showErrorDialog(final int flags, final String title, final String message) {
-        try {
-            return this.showConfirmDialog(flags, title, message, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
-        } catch (final DialogClosedException e) {
-            return Dialog.RETURN_CLOSED;
-        } catch (final DialogCanceledException e) {
-            return Dialog.RETURN_CANCEL;
-        }
+    public DialogHandler getHandler() {
+        return handler;
+    }
+
+    public void setHandler(DialogHandler handler) {
+        this.handler = handler;
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+
+        Thread th = new Thread() {
+            public void run() {
+                try {
+                    getInstance().showConfirmDialog(0, "Blabla?");
+
+                    System.out.println("RETURNED OK");
+                } catch (DialogClosedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (DialogCanceledException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        th.start();
+        Thread.sleep(5000);
+        th.interrupt();
+
     }
 
     public int showErrorDialog(final String s) {
@@ -865,4 +899,43 @@ public class Dialog implements WindowFocusListener {
 
     }
 
+    /**
+     * @param i
+     * @param dialog_error_title
+     * @param dialog_error_noconnection
+     * @return
+     */
+    public int showErrorDialog(int flags, String title, String message) {
+        try {
+            return this.showConfirmDialog(flags, title, message, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
+        } catch (final DialogClosedException e) {
+            return Dialog.RETURN_CLOSED;
+        } catch (final DialogCanceledException e) {
+            return Dialog.RETURN_CANCEL;
+        }
+    }
+
+    public LAFManagerInterface getLafManager() {
+        synchronized (this) {
+            return lafManager;
+        }
+    }
+
+    public void setLafManager(LAFManagerInterface lafManager) {
+        synchronized (this) {
+            this.lafManager = lafManager;
+        }
+    }
+
+    /**
+     * 
+     */
+    public void initLaf() {
+        synchronized (this) {
+            if (lafManager != null) {
+                lafManager.init();
+                setLafManager(null);
+            }
+        }
+    }
 }

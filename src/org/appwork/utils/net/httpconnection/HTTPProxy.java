@@ -1,6 +1,9 @@
 package org.appwork.utils.net.httpconnection;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -209,12 +212,29 @@ public class HTTPProxy {
             Log.L.info(result);
             process.destroy();
             try {
-                String autoProxy = new Regex(result, "AutoConfigURL\\s+REG_SZ\\s+([^\r\n]+)").getMatch(0);
-          
+                final String autoProxy = new Regex(result, "AutoConfigURL\\s+REG_SZ\\s+([^\r\n]+)").getMatch(0);
+
                 if (!StringUtils.isEmpty(autoProxy)) {
-                    Log.L.info("AutoProxy.pac Script found: " + autoProxy);
-                    String script = IO.readInputStreamToString(new URL(autoProxy).openStream());
-                    Log.L.info("Content of autoproxy: " + script);
+                    new Thread("AutoProxy Loader") {
+                        public void run() {
+                            Log.L.info("AutoProxy.pac Script found: " + autoProxy);
+                            String script;
+                            try {
+                                script = IO.readInputStreamToString(new URL(autoProxy).openStream());
+
+                                Log.L.info("Content of autoproxy: " + script);
+                            } catch (UnsupportedEncodingException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            } catch (MalformedURLException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+                        }
+                    }.start();
 
                     // BrowserProxyInfo b = new BrowserProxyInfo();
                     // b.setType(ProxyType.AUTO);
@@ -231,7 +251,7 @@ public class HTTPProxy {
 
                 }
             } catch (Exception e) {
-                
+
             }
             String enabledString = new Regex(result, "ProxyEnable\\s+REG_DWORD\\s+(\\d+x\\d+)").getMatch(0);
             if ("0x0".equals(enabledString)) {

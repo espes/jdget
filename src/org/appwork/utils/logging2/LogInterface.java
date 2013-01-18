@@ -25,4 +25,9 @@ public interface LogInterface {
      */
     void log(Throwable e);
 
+    /**
+     * @param string
+     */
+    void fine(String string);
+
 }

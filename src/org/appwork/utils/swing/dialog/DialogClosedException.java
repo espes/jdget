@@ -21,7 +21,15 @@ public class DialogClosedException extends DialogNoAnswerException implements Ex
     private static final long serialVersionUID = -6193184564008529988L;
 
     public DialogClosedException(final int mask) {
-        super(mask);
+        this(mask, null);
+    }
+
+    /**
+     * @param returnInterrupt
+     * @param interruptException
+     */
+    public DialogClosedException(int mask, Throwable cause) {
+        super(mask, cause);
     }
 
     @Override

@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.logging2;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -254,5 +255,12 @@ public class LogSource extends Logger implements LogInterface {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * @param errorStream
+     */
+    public void logAsynch(InputStream is) {
+        new InputStreamLogger(is, this).start();
     }
 }

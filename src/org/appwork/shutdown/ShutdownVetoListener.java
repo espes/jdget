@@ -51,4 +51,10 @@ public interface ShutdownVetoListener {
      */
     public void onSilentShutdownVetoRequest(ShutdownVetoException[] shutdownVetoExceptions) throws ShutdownVetoException;
 
+    /**
+     * the higher the priority, the earlier the veto listener will be called
+     * @return
+     */
+    public long getShutdownVetoPriority();
+
 }

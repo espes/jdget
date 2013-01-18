@@ -24,7 +24,7 @@ import org.appwork.utils.swing.SwingUtils;
 
 public abstract class TimerDialog {
 
-    protected class InternDialog extends JDialog {
+    public class InternDialog extends JDialog {
 
         /**
          * 
@@ -147,7 +147,7 @@ public abstract class TimerDialog {
         return this.countdownTime;
     }
 
-    protected InternDialog getDialog() {
+    public InternDialog getDialog() {
         if (this.dialog == null) { throw new NullPointerException("Call #org.appwork.utils.swing.dialog.AbstractDialog.displayDialog() first"); }
         return this.dialog;
     }
@@ -265,6 +265,8 @@ public abstract class TimerDialog {
     }
 
     protected void layoutDialog() {
+        Dialog.getInstance().initLaf();
+     
         this.dialog = new InternDialog();
 
         if (this.preferredSize != null) {

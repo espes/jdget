@@ -2,6 +2,7 @@ package org.appwork.shutdown;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -109,12 +110,12 @@ public class ShutdownController extends Thread {
         });
     }
 
-    private final LinkedList<ShutdownEvent>       hooks;
+    private final LinkedList<ShutdownEvent>            hooks;
     private final java.util.List<ShutdownVetoListener> vetoListeners;
 
-    private int                                   exitCode           = 0;
-    private final AtomicInteger                   requestedShutDowns = new AtomicInteger(0);
-    private boolean                               silentShutDown     = false;
+    private int                                        exitCode           = 0;
+    private final AtomicInteger                        requestedShutDowns = new AtomicInteger(0);
+    private boolean                                    silentShutDown     = false;
 
     /**
      * Create a new instance of ShutdownController. This is a singleton class.
@@ -218,6 +219,14 @@ public class ShutdownController extends Thread {
             if (this.vetoListeners.contains(listener)) { return; }
             Log.L.finest("ADD " + listener);
             this.vetoListeners.add(listener);
+            java.util.Collections.sort(vetoListeners, new Comparator<ShutdownVetoListener>() {
+
+                @Override
+                public int compare(ShutdownVetoListener o1, ShutdownVetoListener o2) {
+
+                    return new Long(o1.getShutdownVetoPriority()).compareTo(new Long(o2.getShutdownVetoPriority()));
+                }
+            });
         }
     }
 
@@ -352,7 +361,7 @@ public class ShutdownController extends Thread {
                 final Thread th = new Thread("ShutdownThread") {
                     @Override
                     public void run() {
-                        Log.L.info("Exit Now");
+                        Log.L.info("Exit Now: Code: " + getExitCode());
                         System.exit(ShutdownController.this.getExitCode());
                     }
                 };

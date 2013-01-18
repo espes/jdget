@@ -10,8 +10,7 @@
 package org.appwork.utils.swing.locator;
 
 import java.awt.Point;
-
-import javax.swing.JFrame;
+import java.awt.Window;
 
 /**
  * @author Thomas
@@ -23,8 +22,8 @@ public interface Locator {
      * @param abstractDialog
      * @return
      */
-    Point getLocationOnScreen(JFrame frame);
+    Point getLocationOnScreen(Window frame);
 
-    void onClose(JFrame frame);
+    void onClose(Window frame);
 
 }

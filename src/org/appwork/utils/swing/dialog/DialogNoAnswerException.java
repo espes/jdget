@@ -27,13 +27,28 @@ public class DialogNoAnswerException extends Exception implements ExceptionDefau
     private final boolean     causedByTimeout;
     private final boolean     causedByESC;
     private final boolean     causedByClosed;
+    private final boolean     causedByInterrupt;
+
+    public boolean isCausedByInterrupt() {
+        return causedByInterrupt;
+    }
 
     public DialogNoAnswerException(final int mask) {
+        this(mask, null);
+    }
+
+    /**
+     * @param mask
+     * @param cause
+     */
+    public DialogNoAnswerException(int mask, Throwable cause) {
+        super(cause);
         this.causedByDontShowAgain = BinaryLogic.containsSome(mask, Dialog.RETURN_SKIPPED_BY_DONT_SHOW);
         this.causedByTimeout = BinaryLogic.containsSome(mask, Dialog.RETURN_TIMEOUT);
         this.causedByESC = BinaryLogic.containsSome(mask, Dialog.RETURN_ESC);
         this.causedByClosed = BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED);
-        this.setStackTrace(new StackTraceElement[] {});
+        this.causedByInterrupt = BinaryLogic.containsSome(mask, Dialog.RETURN_INTERRUPT);
+        if (cause == null) this.setStackTrace(new StackTraceElement[] {});
     }
 
     public Level getDefaultLogLevel() {

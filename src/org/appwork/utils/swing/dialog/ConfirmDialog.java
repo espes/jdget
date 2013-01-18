@@ -33,6 +33,10 @@ public class ConfirmDialog extends AbstractDialog<Integer> {
         this.message = message;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
     @Override
     protected Integer createReturnValue() {
         // TODO Auto-generated method stub

@@ -1,8 +1,10 @@
-package org.appwork.utils.swing.dialog;
+package org.appwork.utils.swing.dialog.locator;
 
 import java.awt.Point;
 
-public class PointOnScreenLocator implements Locator {
+import org.appwork.utils.swing.dialog.AbstractDialog;
+
+public class PointOnScreenLocator implements DialogLocator {
 
     private Point point;
 

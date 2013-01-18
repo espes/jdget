@@ -24,7 +24,7 @@ public class EscapeTest {
             String toString = value.toString();
             JSonValue paresed;
             paresed = (JSonValue) new JSonFactory(toString).parse();
-            System.out.println(paresed.getValue().equals(value.getValue()));
+            System.out.println("Test OK: "+paresed.getValue().equals(value.getValue()));
         } catch (ParserException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
