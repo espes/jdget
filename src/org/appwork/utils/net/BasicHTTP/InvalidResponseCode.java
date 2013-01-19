@@ -21,13 +21,24 @@ import org.appwork.utils.net.httpconnection.HTTPConnection;
 public class InvalidResponseCode extends IOException {
 
     final private HTTPConnection connection;
+    private String               message;
 
     /**
      * @param connection
      */
-    public InvalidResponseCode(final HTTPConnection connection) {
+    public InvalidResponseCode(final HTTPConnection connection, String message) {
         super("Invalid ResponseCode: " + connection.getResponseCode());
         this.connection = connection;
+        this.message = message;
+
+    }
+
+    /**
+     * @param connection2
+     * @param str
+     */
+    public InvalidResponseCode(HTTPConnection connection) {
+        this(connection, null);
 
     }
 
@@ -45,6 +56,9 @@ public class InvalidResponseCode extends IOException {
             }
         } catch (final Throwable e) {
             sb.append(Exceptions.getStackTrace(e));
+        }
+        if (message != null) {
+            sb.append("\r\nResponseBody:\r\n").append(message);
         }
         return sb.toString();
     }

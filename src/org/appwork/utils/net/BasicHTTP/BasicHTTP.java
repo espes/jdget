@@ -60,7 +60,16 @@ public class BasicHTTP {
      * 
      */
     protected void checkResponseCode() throws InvalidResponseCode {
-        if (this.allowedResponseCodes != null && !this.allowedResponseCodes.contains(this.connection.getResponseCode())) { throw new InvalidResponseCode(this.connection); }
+        if (this.allowedResponseCodes != null && !this.allowedResponseCodes.contains(this.connection.getResponseCode())) {
+
+        throw createInvalidResponseCodeException(); }
+    }
+
+    /**
+     * @return
+     */
+    protected InvalidResponseCode createInvalidResponseCodeException() {
+        return new InvalidResponseCode(this.connection);
     }
 
     public void clearRequestHeader() {
