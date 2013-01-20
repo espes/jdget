@@ -53,7 +53,7 @@ import org.appwork.utils.swing.dialog.Dialog;
  * 
  */
 public class StorageHandler<T extends ConfigInterface> implements InvocationHandler {
-    public final static ScheduledThreadPoolExecutor TIMINGQUEUE          = new ScheduledThreadPoolExecutor(1);
+    public final static ScheduledThreadPoolExecutor TIMINGQUEUE            = new ScheduledThreadPoolExecutor(1);
     static {
         TIMINGQUEUE.setKeepAliveTime(30000, TimeUnit.MILLISECONDS);
     }
@@ -64,18 +64,22 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     protected final JsonKeyValueStorage             primitiveStorage;
     private boolean                                 crypted;
 
-    private byte[]                                  key                  = JSonStorage.KEY;
+    private byte[]                                  key                    = JSonStorage.KEY;
     private File                                    path;
     private ConfigEventSender<Object>               eventSender;
     private String                                  relativCPPath;
-    protected boolean                               save                 = true;
+    protected boolean                               save                   = true;
     private DelayedRunnable                         delayedSaver;
-    private long delayedSaveMaxInterval;
+    private long                                    delayedSaveMaxInterval = 5 * 60 * 1000;
+
     /**
-     * The Keyvalue storage in this handler can write itself to disk based on an interval.
+     * The Keyvalue storage in this handler can write itself to disk based on an
+     * interval.
      * 
-     * <br> 
-     * we write to disk {@link #getDelayedSaveInterval()} MS after the last change, but at least {@link #getDelayedSaveMaxInterval()} after a change
+     * <br>
+     * we write to disk {@link #getDelayedSaveInterval()} MS after the last
+     * change, but at least {@link #getDelayedSaveMaxInterval()} after a change
+     * 
      * @param delayedSaveMaxInterval
      */
     public void setDelayedSaveMaxInterval(long delayedSaveMaxInterval) {
@@ -83,9 +87,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     // set externaly to start profiling
-    public static HashMap<String, Long>             PROFILER_MAP         = null;
+    public static HashMap<String, Long> PROFILER_MAP         = null;
 
-    public static HashMap<String, Long>             PROFILER_CALLNUM_MAP = null;
+    public static HashMap<String, Long> PROFILER_CALLNUM_MAP = null;
 
     public void disableSaveAtEnd() {
         save = false;
@@ -221,11 +225,11 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     protected void updateSaveDelayer() {
         synchronized (this) {
             final int interval = getDelayedSaveInterval();
-            long maxInterval=getDelayedSaveMaxInterval();
+            long maxInterval = getDelayedSaveMaxInterval();
             if (interval < 0) {
                 delayedSaver = null;
             } else {
-              
+
                 delayedSaver = new DelayedRunnable(TIMINGQUEUE, interval, maxInterval) {
 
                     @Override
@@ -246,7 +250,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     public void write() {
-        Log.L.info("Save "+configInterface);
+        Log.L.info("Save " + configInterface);
         primitiveStorage.save();
     }
 
@@ -585,10 +589,13 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private int           delayedSaveInterval = 10000;
 
     /**
-     * The Keyvalue storage in this handler can write itself to disk based on an interval.
+     * The Keyvalue storage in this handler can write itself to disk based on an
+     * interval.
      * 
-     * <br> 
-     * we write to disk {@link #getDelayedSaveInterval()} MS after the last change, but at least {@link #getDelayedSaveMaxInterval()} after a change
+     * <br>
+     * we write to disk {@link #getDelayedSaveInterval()} MS after the last
+     * change, but at least {@link #getDelayedSaveMaxInterval()} after a change
+     * 
      * @param delayedSaveMaxInterval
      */
     public void setDelayedSaveMinInterval(int delayedSaveInterval) {
@@ -872,7 +879,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private void delayedSave() {
         if (getDelayedSaveInterval() < 0) return;
         DelayedRunnable del = delayedSaver;
-        if(del!=null)del.resetAndStart();
+        if (del != null) del.resetAndStart();
     }
 
     /**
