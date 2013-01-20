@@ -250,7 +250,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     public void write() {
-        Log.L.info("Save " + configInterface);
+      
         primitiveStorage.save();
     }
 
