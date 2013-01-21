@@ -29,6 +29,10 @@ public class APIQuery extends HashMap<String, Object> implements Storable {
         T result = (T) super.get(key);
         return result != null ? result : defaultValue;
     }
+    
+    public Boolean fieldRequested(String field){
+        return _getQueryParam(field, Boolean.class, false);
+    }
 
     public Integer getStartAt() {
         return _getQueryParam("startAt", Integer.class, -1);
