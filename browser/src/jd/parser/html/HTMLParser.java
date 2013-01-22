@@ -155,16 +155,16 @@ public class HTMLParser {
             /* combine baseURL and href url */
             if (pro == null) {
                 final String base = new Regex(baseUrl, "(.*?\\..*?(/|$))").getMatch(0);
-                if (url.startsWith("/") || url.startsWith("#")) {
+                if (url.startsWith("/") /* || url.startsWith("#") */) {
                     /* absolut from root url or anchor from root */
                     if (base != null) {
-                        url = Browser.correctURL(base + "/" + url);
+                        url = mergeUrl(base, url);
                     } else {
-                        url = Browser.correctURL(baseUrl + "/" + url);
+                        url = mergeUrl(baseUrl, url);
                     }
-                } else if (url.startsWith("./")) {
+                } else /* if (url.startsWith("./")) */{
                     /* relativ url */
-                    url = Browser.correctURL(baseUrl + "/" + url);
+                    url = mergeUrl(baseUrl, url);
                 }
             }
             pro = HTMLParser.getProtocol(url);
@@ -229,6 +229,27 @@ public class HTMLParser {
             }
         }
         return results;
+    }
+
+    private static String mergeUrl(String base, String path) {
+        StringBuilder sb = new StringBuilder();
+
+        int end = base.length();
+        while (base.charAt(end - 1) == '/') {
+            end--;
+        }
+
+        sb.append(base, 0, end);
+        sb.append("/");
+
+        end = 0;
+        if (path.startsWith("./")) end = 2;
+        while (path.charAt(end) == '/') {
+            end++;
+        }
+        sb.append(path, end, path.length());
+        
+        return Browser.correctURL(sb.toString());
     }
 
     private static HashSet<String> _getHttpLinksWalker(String data, final String url, HashSet<String> results) {
