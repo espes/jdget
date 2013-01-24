@@ -1,15 +1,17 @@
 package org.appwork.swing.synthetica;
 
+import java.awt.Font;
 import java.io.UnsupportedEncodingException;
 
 import javax.swing.UIManager;
 
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.swing.components.ExtPasswordField;
+import org.appwork.txtresource.TranslationFactory;
+import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
 public class SyntheticaHelper {
-
 
     /**
      * @throws UnsupportedEncodingException
@@ -20,21 +22,37 @@ public class SyntheticaHelper {
 
     }
 
+    public static int getFontScaleFaktor(SyntheticaSettings config, LanguageFileSetup translationFileConfig) {
+        int fontScale = -1;
+        try {
+            fontScale = Integer.parseInt(translationFileConfig.config_fontscale_faktor());
+        } catch (Exception e) {
+        }
+        if (config.getFontScaleFactor() != 100 || fontScale <= 0) {
+            fontScale = config.getFontScaleFactor();
+        }
+        return fontScale;
+    }
+
     /**
      * @param string
      * @throws UnsupportedEncodingException
      */
     public static void init(String laf) throws UnsupportedEncodingException {
 
+        LanguageFileSetup locale = TranslationFactory.create(LanguageFileSetup.class);
         SyntheticaSettings config = JsonConfig.create(SyntheticaSettings.class);
+
         UIManager.put("Synthetica.window.decoration", false);
         UIManager.put("Synthetica.text.antialias", config.isTextAntiAliasEnabled());
+
         /* http://www.jyloo.com/news/?pubId=1297681728000 */
         /* we want our own FontScaling, not SystemDPI */
         UIManager.put("Synthetica.font.respectSystemDPI", config.isFontRespectsSystemDPI());
-        UIManager.put("Synthetica.font.scaleFactor", config.getFontScaleFactor());
-        if (config.isFontRespectsSystemDPI() && config.getFontScaleFactor() != 100) {
-
+        int fontScale = getFontScaleFaktor(config, locale);
+        UIManager.put("Synthetica.font.scaleFactor", fontScale);
+        if (config.isFontRespectsSystemDPI() && fontScale != 100) {
+            Log.L.warning("SystemDPI might interfere with JD's FontScaling");
         }
         UIManager.put("Synthetica.animation.enabled", config.isAnimationEnabled());
         if (CrossSystem.isWindows()) {
@@ -62,8 +80,47 @@ public class SyntheticaHelper {
         de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setLookAndFeel(laf);
         de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setExtendedFileChooserEnabled(false);
 
+        String fontName = getFontName(config, locale);
+
+     
+        int fontSize = de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.getFont().getSize();
+        fontSize = (fontScale * fontSize) / 100;
+
+        if (fontName != null) {
+
+            /* change Font */
+            int oldStyle = de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.getFont().getStyle();
+            Font newFont = new Font(fontName, oldStyle, fontSize);
+            de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setFont(newFont, false);
+        }
+        UIManager.put("ExtTable.SuggestedFontHeight", fontSize);
+
         ExtPasswordField.MASK = "*******";
 
+    }
+
+    /**
+     * @param config
+     * @param locale
+     * @return
+     */
+    private static String getFontName(SyntheticaSettings config, LanguageFileSetup locale) {
+        String fontName = config.getFontName();
+        String fontFromTranslation = locale.config_fontname();
+
+        String newFontName = null;
+
+        if (fontFromTranslation != null && !"default".equalsIgnoreCase(fontFromTranslation)) {
+            /* we have customized fontName in translation */
+            /* lower priority than fontName in settings */
+            newFontName = fontFromTranslation;
+        }
+        if (fontName != null && !"default".equalsIgnoreCase(fontName)) {
+            /* we have customized fontName in settings, it has highest priority */
+            newFontName = fontName;
+        }
+
+        return newFontName;
     }
 
 }

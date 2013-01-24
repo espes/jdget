@@ -22,6 +22,12 @@ import org.appwork.storage.config.annotations.RequiresRestart;
  * 
  */
 public interface SyntheticaSettings extends ConfigInterface {
+    @RequiresRestart
+    @AboutConfig
+    void setLanguage(String lng);
+
+
+    String getLanguage();
 
     @AboutConfig
     @DescriptionForConfigEntry("Font to be used. Default value is default. For foreign chars use e.g. Dialog")
@@ -47,11 +53,7 @@ public interface SyntheticaSettings extends ConfigInterface {
     @RequiresRestart
     boolean isFontRespectsSystemDPI();
 
-    @AboutConfig
-    @DescriptionForConfigEntry("Paint all labels/text with or without antialias. Default value is false.")
-    @DefaultBooleanValue(false)
-    @RequiresRestart
-    boolean isTextAntiAliasEnabled();
+
 
     @AboutConfig
     @DescriptionForConfigEntry("Enable/disable window opacity on Java 6u10 and above. A value of 'false' disables window opacity which means that the window corner background which is visible for non-rectangular windows disappear. Furthermore the shadow for popupMenus makes use of real translucent window. Some themes like SyntheticaSimple2D support translucent titlePanes if opacity is disabled. The property is ignored on JRE's below 6u10. Note: It is recommended to activate this feature only if your graphics hardware acceleration is supported by the JVM - a value of 'false' can affect application performance. Default value is false which means the translucency feature is enabled")
@@ -59,7 +61,6 @@ public interface SyntheticaSettings extends ConfigInterface {
     @RequiresRestart
     boolean isWindowOpaque();
 
-  
     void setAnimationEnabled(boolean b);
 
     void setWindowOpaque(boolean b);
@@ -69,7 +70,11 @@ public interface SyntheticaSettings extends ConfigInterface {
     void setFontRespectsSystemDPI(boolean b);
 
     void setFontScaleFactor(int b);
-
+    @AboutConfig
+    @DescriptionForConfigEntry("Paint all labels/text with or without antialias. Default value is false.")
+    @DefaultBooleanValue(false)
+    @RequiresRestart
+    boolean isTextAntiAliasEnabled();
     void setTextAntiAliasEnabled(boolean b);
 
 }

@@ -48,7 +48,7 @@ public class BasicHTTP {
 
     private int                           readTimeout    = 30000;
 
-    private HTTPProxy                     proxy;
+    private HTTPProxy                     proxy=HTTPProxy.NONE;
     private Logger                        logger         = null;
 
     public BasicHTTP() {

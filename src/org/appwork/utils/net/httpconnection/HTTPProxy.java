@@ -140,6 +140,37 @@ public class HTTPProxy {
         return ret;
     }
 
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || !(obj instanceof HTTPProxy)) return false;
+
+        HTTPProxy p = (HTTPProxy) obj;
+        if (type != p.type) return false;
+        switch (type) {
+        case DIRECT:
+            if (localIP == null && p.localIP == null) return true;
+            if (localIP != null && localIP.equals(p.localIP)) return true;
+            return false;
+
+        default:
+            return StringUtils.equals(host, p.host) && StringUtils.equals(user, p.user) && StringUtils.equals(pass, p.pass) && port == p.port;
+
+        }
+
+    }
+
+    public int hashCode() {
+        switch (type) {
+        case DIRECT:
+            return ("DIRECT://" + localIP).hashCode();
+
+        default:
+            return (type + "://" + user + ":" + pass + "@" + host + ":" + port).hashCode();
+
+        }
+
+    }
+
     private static String[] getInfo(final String host, final String port) {
         final String[] info = new String[2];
         if (host == null) { return info; }
@@ -459,21 +490,29 @@ public class HTTPProxy {
         return !this.isDirect() && !this.isNone();
     }
 
+    /**
+     * @Deprecated use {@link #equals(Object)} instead
+     * @param proxy
+     * @return
+     */
+    @Deprecated()
     public boolean sameProxy(final HTTPProxy proxy) {
-        if (proxy == null) { return false; }
-        if (this == proxy) { return true; }
-        if (!proxy.getType().equals(this.type)) { return false; }
-        if (proxy.getType().equals(TYPE.DIRECT)) {
-            /* Direct Proxies only differ in IP */
-            if (!proxy.getLocalIP().equals(this.localIP)) { return false; }
-            return true;
-        } else {
-            if (!proxy.getHost().equalsIgnoreCase(this.host)) { return false; }
-        }
-        if (!StringUtils.equals(proxy.getPass(), this.pass)) { return false; }
-        if (!StringUtils.equals(proxy.getUser(), this.user)) { return false; }
-        if (proxy.getPort() != this.port) { return false; }
-        return true;
+        // if (proxy == null) { return false; }
+        // if (this == proxy) { return true; }
+        // if (!proxy.getType().equals(this.type)) { return false; }
+        // if (proxy.getType().equals(TYPE.DIRECT)) {
+        // /* Direct Proxies only differ in IP */
+        // if (!proxy.getLocalIP().equals(this.localIP)) { return false; }
+        // return true;
+        // } else {
+        // if (!proxy.getHost().equalsIgnoreCase(this.host)) { return false; }
+        // }
+        // if (!StringUtils.equals(proxy.getPass(), this.pass)) { return false;
+        // }
+        // if (!StringUtils.equals(proxy.getUser(), this.user)) { return false;
+        // }
+        // if (proxy.getPort() != this.port) { return false; }
+        return equals(proxy);
     }
 
     public void setConnectMethodPrefered(final boolean value) {
