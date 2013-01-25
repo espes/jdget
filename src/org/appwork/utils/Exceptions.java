@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.HashSet;
 
 /**
  * @author $Author: unknown$
@@ -114,6 +115,26 @@ public class Exceptions {
         thrown.printStackTrace(pw);
         pw.close();
         return sw.toString();
+    }
+
+    /**
+     * 
+     * returns true of e instanceof class1 or any causes of e instanceof class1
+     * 
+     * @param e
+     * @param class1
+     * @return
+     */
+    public static boolean containsInstanceOf(Throwable e, Class<? extends Throwable> class1) {
+        Throwable cause;
+        HashSet<Throwable> dupe = new HashSet<Throwable>();
+        while (true) {
+            if (class1.isAssignableFrom(e.getClass())) return true;
+            cause = e.getCause();
+            if (cause == null || !dupe.add(cause)) return false;
+            e = cause;
+        }
+
     }
 
 }
