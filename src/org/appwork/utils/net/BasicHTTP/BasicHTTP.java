@@ -155,6 +155,7 @@ public class BasicHTTP {
                 this.connection.setRequestProperty("Range", "bytes=" + resumePosition + "-");
             }
             this.connection.setRequestProperty("Connection", "Close");
+          
             this.connection.connect();
             if (this.connection.getResponseCode() == 302) {
                 final String red = this.connection.getHeaderField("Location");
