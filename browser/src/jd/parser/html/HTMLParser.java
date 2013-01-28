@@ -27,6 +27,7 @@ import jd.http.Browser;
 import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
 
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.encoding.Hex;
 import org.appwork.utils.logging.Log;
 
@@ -158,13 +159,13 @@ public class HTMLParser {
                 if (url.startsWith("/") /* || url.startsWith("#") */) {
                     /* absolut from root url or anchor from root */
                     if (base != null) {
-                        url = mergeUrl(base, url);
+                        url = HTMLParser.mergeUrl(base, url);
                     } else {
-                        url = mergeUrl(baseUrl, url);
+                        url = HTMLParser.mergeUrl(baseUrl, url);
                     }
                 } else /* if (url.startsWith("./")) */{
                     /* relativ url */
-                    url = mergeUrl(baseUrl, url);
+                    url = HTMLParser.mergeUrl(baseUrl, url);
                 }
             }
             pro = HTMLParser.getProtocol(url);
@@ -229,27 +230,6 @@ public class HTMLParser {
             }
         }
         return results;
-    }
-
-    private static String mergeUrl(String base, String path) {
-        StringBuilder sb = new StringBuilder();
-
-        int end = base.length();
-        while (base.charAt(end - 1) == '/') {
-            end--;
-        }
-
-        sb.append(base, 0, end);
-        sb.append("/");
-
-        end = 0;
-        if (path.startsWith("./")) end = 2;
-        while (path.charAt(end) == '/') {
-            end++;
-        }
-        sb.append(path, end, path.length());
-        
-        return Browser.correctURL(sb.toString());
     }
 
     private static HashSet<String> _getHttpLinksWalker(String data, final String url, HashSet<String> results) {
@@ -585,6 +565,34 @@ public class HTMLParser {
             buffer.append(entry.getValue());
         }
         return buffer.toString();
+    }
+
+    private static String mergeUrl(final String base, final String path) {
+        final StringBuilder sb = new StringBuilder();
+        int end = 0;
+        if (StringUtils.isEmpty(base) == false) {
+            end = base.length();
+            while (base.charAt(end - 1) == '/') {
+                end--;
+            }
+
+            sb.append(base, 0, end);
+        } else {
+            sb.append(base);
+        }
+        sb.append("/");
+        if (StringUtils.isEmpty(path) == false) {
+            end = 0;
+            if (path.startsWith("./")) {
+                end = 2;
+            }
+            while (path.charAt(end) == '/') {
+                end++;
+            }
+            sb.append(path, end, path.length());
+        }
+
+        return Browser.correctURL(sb.toString());
     }
 
 }
