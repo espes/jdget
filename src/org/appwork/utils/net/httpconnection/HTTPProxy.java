@@ -246,26 +246,27 @@ public class HTTPProxy {
                 final String autoProxy = new Regex(result, "AutoConfigURL\\s+REG_SZ\\s+([^\r\n]+)").getMatch(0);
 
                 if (!StringUtils.isEmpty(autoProxy)) {
-                    new Thread("AutoProxy Loader") {
-                        public void run() {
-                            Log.L.info("AutoProxy.pac Script found: " + autoProxy);
-                            String script;
-                            try {
-                                script = IO.readInputStreamToString(new URL(autoProxy).openStream());
-
-                                Log.L.info("Content of autoproxy: " + script);
-                            } catch (UnsupportedEncodingException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            } catch (MalformedURLException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            }
-                        }
-                    }.start();
+                    Log.L.info("AutoProxy.pac Script found: " + autoProxy);
+//                    new Thread("AutoProxy Loader") {
+//                        public void run() {
+//                            Log.L.info("AutoProxy.pac Script found: " + autoProxy);
+//                            String script;
+//                            try {
+//                                script = IO.readInputStreamToString(new URL(autoProxy).openStream());
+//
+//                                Log.L.info("Content of autoproxy: " + script);
+//                            } catch (UnsupportedEncodingException e) {
+//                                // TODO Auto-generated catch block
+//                                e.printStackTrace();
+//                            } catch (MalformedURLException e) {
+//                                // TODO Auto-generated catch block
+//                                e.printStackTrace();
+//                            } catch (IOException e) {
+//                                // TODO Auto-generated catch block
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }.start();
 
                     // BrowserProxyInfo b = new BrowserProxyInfo();
                     // b.setType(ProxyType.AUTO);
@@ -298,7 +299,11 @@ public class HTTPProxy {
                     String proxyurl = new Regex(vals, "(\\d+\\.\\d+\\.\\d+\\.\\d+)").getMatch(0);
                     if (proxyurl == null) {
                         /* parse domain name */
-                        proxyurl = new Regex(vals, "=?(.*?)($|:)").getMatch(0);
+                        proxyurl = new Regex(vals, ".+=(.*?)($|:)").getMatch(0);
+                        if (proxyurl == null) {
+                            /* parse domain name */
+                            proxyurl = new Regex(vals, "=?(.*?)($|:)").getMatch(0);
+                        }
                     }
                     final String port = new Regex(vals, ":(\\d+)").getMatch(0);
                     if (proxyurl != null) {
