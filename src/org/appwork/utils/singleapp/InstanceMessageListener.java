@@ -16,4 +16,9 @@ package org.appwork.utils.singleapp;
 public interface InstanceMessageListener {
 
     public void parseMessage(String[] message);
+
+    /**
+     * @param args
+     */
+
 }
