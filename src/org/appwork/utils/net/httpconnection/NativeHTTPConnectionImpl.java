@@ -118,9 +118,6 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
             if ("Content-Length".equalsIgnoreCase(next.getKey())) {
                 /* content length to check if we send out all data */
                 this.postTodoLength = Long.parseLong(next.getValue().trim());
-                if (RequestMethod.POST.equals(this.httpMethod)) {
-                    this.con.setFixedLengthStreamingMode(this.postTodoLength);
-                }
             }
             this.con.setRequestProperty(next.getKey(), next.getValue());
         }
