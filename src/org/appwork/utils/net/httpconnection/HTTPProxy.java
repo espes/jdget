@@ -1,10 +1,6 @@
 package org.appwork.utils.net.httpconnection;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -18,11 +14,6 @@ import org.appwork.utils.processes.ProcessBuilderFactory;
 
 public class HTTPProxy {
 
-    /**
-     * 
-     */
-    private static final int KEY_READ = 0x20019;
-
     public static enum TYPE {
         NONE,
         DIRECT,
@@ -31,33 +22,38 @@ public class HTTPProxy {
         HTTP
     }
 
-    public static final HTTPProxy NONE = new HTTPProxy(TYPE.NONE) {
+    /**
+     * 
+     */
+    private static final int      KEY_READ = 0x20019;
 
-                                           @Override
-                                           public void setConnectMethodPrefered(final boolean value) {
-                                           }
+    public static final HTTPProxy NONE     = new HTTPProxy(TYPE.NONE) {
 
-                                           @Override
-                                           public void setLocalIP(final InetAddress localIP) {
-                                           }
+                                               @Override
+                                               public void setConnectMethodPrefered(final boolean value) {
+                                               }
 
-                                           @Override
-                                           public void setPass(final String pass) {
-                                           }
+                                               @Override
+                                               public void setLocalIP(final InetAddress localIP) {
+                                               }
 
-                                           @Override
-                                           public void setPort(final int port) {
-                                           }
+                                               @Override
+                                               public void setPass(final String pass) {
+                                               }
 
-                                           @Override
-                                           public void setType(final TYPE type) {
-                                           }
+                                               @Override
+                                               public void setPort(final int port) {
+                                               }
 
-                                           @Override
-                                           public void setUser(final String user) {
-                                           }
+                                               @Override
+                                               public void setType(final TYPE type) {
+                                               }
 
-                                       };
+                                               @Override
+                                               public void setUser(final String user) {
+                                               }
+
+                                           };
 
     public static List<HTTPProxy> getFromSystemProperties() {
         final java.util.List<HTTPProxy> ret = new ArrayList<HTTPProxy>();
@@ -140,37 +136,6 @@ public class HTTPProxy {
         return ret;
     }
 
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || !(obj instanceof HTTPProxy)) return false;
-
-        HTTPProxy p = (HTTPProxy) obj;
-        if (type != p.type) return false;
-        switch (type) {
-        case DIRECT:
-            if (localIP == null && p.localIP == null) return true;
-            if (localIP != null && localIP.equals(p.localIP)) return true;
-            return false;
-
-        default:
-            return StringUtils.equals(host, p.host) && StringUtils.equals(user, p.user) && StringUtils.equals(pass, p.pass) && port == p.port;
-
-        }
-
-    }
-
-    public int hashCode() {
-        switch (type) {
-        case DIRECT:
-            return ("DIRECT://" + localIP).hashCode();
-
-        default:
-            return (type + "://" + user + ":" + pass + "@" + host + ":" + port).hashCode();
-
-        }
-
-    }
-
     private static String[] getInfo(final String host, final String port) {
         final String[] info = new String[2];
         if (host == null) { return info; }
@@ -238,8 +203,8 @@ public class HTTPProxy {
         try {
             final ProcessBuilder pb = ProcessBuilderFactory.create(new String[] { "reg", "query", "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" });
 
-            Process process = pb.start();
-            String result = IO.readInputStreamToString(process.getInputStream());
+            final Process process = pb.start();
+            final String result = IO.readInputStreamToString(process.getInputStream());
             Log.L.info(result);
             process.destroy();
             try {
@@ -247,26 +212,27 @@ public class HTTPProxy {
 
                 if (!StringUtils.isEmpty(autoProxy)) {
                     Log.L.info("AutoProxy.pac Script found: " + autoProxy);
-//                    new Thread("AutoProxy Loader") {
-//                        public void run() {
-//                            Log.L.info("AutoProxy.pac Script found: " + autoProxy);
-//                            String script;
-//                            try {
-//                                script = IO.readInputStreamToString(new URL(autoProxy).openStream());
-//
-//                                Log.L.info("Content of autoproxy: " + script);
-//                            } catch (UnsupportedEncodingException e) {
-//                                // TODO Auto-generated catch block
-//                                e.printStackTrace();
-//                            } catch (MalformedURLException e) {
-//                                // TODO Auto-generated catch block
-//                                e.printStackTrace();
-//                            } catch (IOException e) {
-//                                // TODO Auto-generated catch block
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }.start();
+                    // new Thread("AutoProxy Loader") {
+                    // public void run() {
+                    // Log.L.info("AutoProxy.pac Script found: " + autoProxy);
+                    // String script;
+                    // try {
+                    // script = IO.readInputStreamToString(new
+                    // URL(autoProxy).openStream());
+                    //
+                    // Log.L.info("Content of autoproxy: " + script);
+                    // } catch (UnsupportedEncodingException e) {
+                    // // TODO Auto-generated catch block
+                    // e.printStackTrace();
+                    // } catch (MalformedURLException e) {
+                    // // TODO Auto-generated catch block
+                    // e.printStackTrace();
+                    // } catch (IOException e) {
+                    // // TODO Auto-generated catch block
+                    // e.printStackTrace();
+                    // }
+                    // }
+                    // }.start();
 
                     // BrowserProxyInfo b = new BrowserProxyInfo();
                     // b.setType(ProxyType.AUTO);
@@ -282,19 +248,23 @@ public class HTTPProxy {
                     // }
 
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
 
             }
-            String enabledString = new Regex(result, "ProxyEnable\\s+REG_DWORD\\s+(\\d+x\\d+)").getMatch(0);
+            final String enabledString = new Regex(result, "ProxyEnable\\s+REG_DWORD\\s+(\\d+x\\d+)").getMatch(0);
             if ("0x0".equals(enabledString)) {
                 // proxy disabled
                 return ret;
             }
-            String val = new Regex(result, " ProxyServer\\s+REG_SZ\\s+([^\r\n]+)").getMatch(0);
+            final String val = new Regex(result, " ProxyServer\\s+REG_SZ\\s+([^\r\n]+)").getMatch(0);
             if (val != null) {
                 for (final String vals : val.split(";")) {
-                    if (vals.toLowerCase(Locale.ENGLISH).startsWith("ftp=")) continue;
-                    if (vals.toLowerCase(Locale.ENGLISH).startsWith("https=")) continue;
+                    if (vals.toLowerCase(Locale.ENGLISH).startsWith("ftp=")) {
+                        continue;
+                    }
+                    if (vals.toLowerCase(Locale.ENGLISH).startsWith("https=")) {
+                        continue;
+                    }
                     /* parse ip */
                     String proxyurl = new Regex(vals, "(\\d+\\.\\d+\\.\\d+\\.\\d+)").getMatch(0);
                     if (proxyurl == null) {
@@ -390,18 +360,20 @@ public class HTTPProxy {
         return result;
     }
 
-    private InetAddress localIP          = null;
+    private InetAddress localIP                    = null;
 
-    private String      user             = null;
+    private String      user                       = null;
 
-    private String      pass             = null;
-    private int         port             = 80;
+    private String      pass                       = null;
 
-    protected String    host             = null;
+    private int         port                       = 80;
 
-    private TYPE        type             = TYPE.DIRECT;
+    protected String    host                       = null;
+    private TYPE        type                       = TYPE.DIRECT;
 
-    private boolean     useConnectMethod = false;
+    private boolean     useConnectMethod           = false;
+
+    private boolean     preferNativeImplementation = false;
 
     protected HTTPProxy() {
     }
@@ -433,6 +405,26 @@ public class HTTPProxy {
         this.useConnectMethod = proxy.useConnectMethod;
     }
 
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null || !(obj instanceof HTTPProxy)) { return false; }
+
+        final HTTPProxy p = (HTTPProxy) obj;
+        if (this.type != p.type) { return false; }
+        switch (this.type) {
+        case DIRECT:
+            if (this.localIP == null && p.localIP == null) { return true; }
+            if (this.localIP != null && this.localIP.equals(p.localIP)) { return true; }
+            return false;
+
+        default:
+            return StringUtils.equals(this.host, p.host) && StringUtils.equals(this.user, p.user) && StringUtils.equals(this.pass, p.pass) && this.port == p.port;
+
+        }
+
+    }
+
     public String getHost() {
         return this.host;
     }
@@ -460,6 +452,19 @@ public class HTTPProxy {
         return this.user;
     }
 
+    @Override
+    public int hashCode() {
+        switch (this.type) {
+        case DIRECT:
+            return ("DIRECT://" + this.localIP).hashCode();
+
+        default:
+            return (this.type + "://" + this.user + ":" + this.pass + "@" + this.host + ":" + this.port).hashCode();
+
+        }
+
+    }
+
     public boolean isConnectMethodPrefered() {
         return this.useConnectMethod;
     }
@@ -484,6 +489,13 @@ public class HTTPProxy {
      */
     public boolean isNone() {
         return this.type == TYPE.NONE;
+    }
+
+    /**
+     * @return the preferNativeImplementation
+     */
+    public boolean isPreferNativeImplementation() {
+        return this.preferNativeImplementation;
     }
 
     /**
@@ -517,7 +529,7 @@ public class HTTPProxy {
         // if (!StringUtils.equals(proxy.getUser(), this.user)) { return false;
         // }
         // if (proxy.getPort() != this.port) { return false; }
-        return equals(proxy);
+        return this.equals(proxy);
     }
 
     public void setConnectMethodPrefered(final boolean value) {
@@ -542,6 +554,14 @@ public class HTTPProxy {
 
     public void setPort(final int port) {
         this.port = port;
+    }
+
+    /**
+     * @param preferNativeImplementation
+     *            the preferNativeImplementation to set
+     */
+    public void setPreferNativeImplementation(final boolean preferNativeImplementation) {
+        this.preferNativeImplementation = preferNativeImplementation;
     }
 
     public void setType(final TYPE type) {

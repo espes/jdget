@@ -267,14 +267,12 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     public void disconnect(final boolean freeConnection) {
-        if (this.isConnected()) {
-            try {
-                this.httpSocket.close();
-            } catch (final Throwable e) {
-            } finally {
-                if (freeConnection) {
-                    this.httpSocket = null;
-                }
+        try {
+            this.httpSocket.close();
+        } catch (final Throwable e) {
+        } finally {
+            if (freeConnection) {
+                this.httpSocket = null;
             }
         }
     }

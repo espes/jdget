@@ -17,6 +17,7 @@ import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
@@ -93,7 +94,7 @@ public class HttpConnection implements Runnable {
      * @return
      * @throws IOException
      */
-    private HttpRequest buildRequest() throws IOException {
+    protected HttpRequest buildRequest() throws IOException {
         HttpRequest request = null;
         /* read request Method and Path */
         ByteBuffer header = HTTPConnectionUtils.readheader(this.is, true);
@@ -185,6 +186,12 @@ public class HttpConnection implements Runnable {
         }
     }
 
+    public List<HttpRequestHandler> getHandler() {
+        synchronized (this.server.getHandler()) {
+            return this.server.getHandler();
+        }
+    }
+
     /**
      * @return
      * @throws IOException
@@ -217,11 +224,7 @@ public class HttpConnection implements Runnable {
             this.response = new HttpResponse(this);
             this.requestReceived(request);
             boolean handled = false;
-            java.util.List<HttpRequestHandler> handlers = null;
-            synchronized (this.server.getHandler()) {
-                handlers = this.server.getHandler();
-            }
-            for (final HttpRequestHandler handler : handlers) {
+            for (final HttpRequestHandler handler : this.getHandler()) {
                 if (request instanceof GetRequest || request instanceof HeadRequest) {
                     if (handler.onGetRequest((GetRequest) request, this.response)) {
                         handled = true;
@@ -245,6 +248,7 @@ public class HttpConnection implements Runnable {
                 closeConnection = false;
             }
         } catch (final Throwable e) {
+            e.printStackTrace();
             Log.L.severe(e.getMessage());
             try {
                 this.response = new HttpResponse(this);

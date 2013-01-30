@@ -48,7 +48,7 @@ public class BasicHTTP {
 
     private int                           readTimeout    = 30000;
 
-    private HTTPProxy                     proxy=HTTPProxy.NONE;
+    private HTTPProxy                     proxy          = HTTPProxy.NONE;
     private Logger                        logger         = null;
 
     public BasicHTTP() {
@@ -62,7 +62,11 @@ public class BasicHTTP {
     protected void checkResponseCode() throws InvalidResponseCode {
         if (this.allowedResponseCodes != null && !this.allowedResponseCodes.contains(this.connection.getResponseCode())) {
 
-        throw createInvalidResponseCodeException(); }
+        throw this.createInvalidResponseCodeException(); }
+    }
+
+    public void clearRequestHeader() {
+        this.requestHeader.clear();
     }
 
     /**
@@ -70,10 +74,6 @@ public class BasicHTTP {
      */
     protected InvalidResponseCode createInvalidResponseCodeException() {
         return new InvalidResponseCode(this.connection);
-    }
-
-    public void clearRequestHeader() {
-        this.requestHeader.clear();
     }
 
     /**
@@ -155,7 +155,7 @@ public class BasicHTTP {
                 this.connection.setRequestProperty("Range", "bytes=" + resumePosition + "-");
             }
             this.connection.setRequestProperty("Connection", "Close");
-          
+
             this.connection.connect();
             if (this.connection.getResponseCode() == 302) {
                 final String red = this.connection.getHeaderField("Location");
@@ -224,15 +224,15 @@ public class BasicHTTP {
             } catch (final Exception e) {
             }
             try {
-                this.connection.disconnect();
-            } catch (final Throwable e) {
-            }
-            try {
                 if (this.logger != null) {
                     this.logger.info(this.connection.toString());
                 }
             } catch (final Throwable e) {
                 e.printStackTrace();
+            }
+            try {
+                this.connection.disconnect();
+            } catch (final Throwable e) {
             }
         }
     }
@@ -306,13 +306,13 @@ public class BasicHTTP {
                 } catch (final Throwable e) {
                 }
                 try {
-                    this.connection.disconnect();
-                } catch (final Throwable e) {
-                }
-                try {
                     if (this.logger != null) {
                         this.logger.info(this.connection.toString());
                     }
+                } catch (final Throwable e) {
+                }
+                try {
+                    this.connection.disconnect();
                 } catch (final Throwable e) {
                 }
 
@@ -385,18 +385,17 @@ public class BasicHTTP {
                 return this.connection;
             } finally {
                 try {
-                    if (close) {
-                        this.connection.disconnect();
-                    }
-                } catch (final Throwable e2) {
-                }
-                try {
                     if (this.logger != null) {
                         this.logger.info(this.connection.toString());
                     }
                 } catch (final Throwable e) {
                 }
-
+                try {
+                    if (close) {
+                        this.connection.disconnect();
+                    }
+                } catch (final Throwable e2) {
+                }
             }
         }
     }
@@ -452,6 +451,12 @@ public class BasicHTTP {
                 return this.connection;
             } finally {
                 try {
+                    if (this.logger != null) {
+                        this.logger.info(this.connection.toString());
+                    }
+                } catch (final Throwable e) {
+                }
+                try {
                     if (close) {
                         this.connection.disconnect();
                     }
@@ -463,12 +468,6 @@ public class BasicHTTP {
                 }
                 try {
                     outputStream.close();
-                } catch (final Throwable e) {
-                }
-                try {
-                    if (this.logger != null) {
-                        this.logger.info(this.connection.toString());
-                    }
                 } catch (final Throwable e) {
                 }
             }
@@ -531,16 +530,16 @@ public class BasicHTTP {
                 return this.connection;
             } finally {
                 try {
-                    if (close) {
-                        this.connection.disconnect();
-                    }
-                } catch (final Throwable e2) {
-                }
-                try {
                     if (this.logger != null) {
                         this.logger.info(this.connection.toString());
                     }
                 } catch (final Throwable e) {
+                }
+                try {
+                    if (close) {
+                        this.connection.disconnect();
+                    }
+                } catch (final Throwable e2) {
                 }
             }
         }
@@ -679,13 +678,13 @@ public class BasicHTTP {
                 } catch (final Throwable e) {
                 }
                 try {
-                    this.connection.disconnect();
-                } catch (final Throwable e) {
-                }
-                try {
                     if (this.logger != null) {
                         this.logger.info(this.connection.toString());
                     }
+                } catch (final Throwable e) {
+                }
+                try {
+                    this.connection.disconnect();
                 } catch (final Throwable e) {
                 }
 
