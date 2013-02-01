@@ -1,5 +1,5 @@
 //    jDownloader - Downloadmanager
-//    Copyright (C) 2009  JD-Team support@jdownloader.org
+//    Copyright (C) 2013  JD-Team support@jdownloader.org
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 package jd.parser.html;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import jd.nutils.encoding.Encoding;
@@ -26,14 +27,26 @@ public class InputField extends HashMap<String, String> {
 
     private static final long serialVersionUID = 7859094911920903660L;
 
-    public static InputField parse(final String data) {
-        /* first we try values with " at start/end */
-        String[][] matches = new Regex(data, "[\"' ](\\w+?)[ ]*=[ ]*[\"](.*?)[\"]").getMatches();
-        if (matches == null || matches.length == 0) {
-            /* then we try values with ' at start/end */
-            matches = new Regex(data, "[\"' ](\\w+?)[ ]*=[ ]*['](.*?)[']").getMatches();
+    public static InputField parse(String data) {
+       // lets make all quotation marks within 'data' the same. As it's hard to make consistent regex 'matches' when quote marks are not the same, without using lazy regex!.
+        ArrayList<String> cleanupRegex = new ArrayList<String>();
+        cleanupRegex.add("(\\w+\\s*=\\s*\"[^\"]+\")");
+        cleanupRegex.add("(\\w+\\s*=\\s*'[^']+')");
+        for (String reg : cleanupRegex) {
+            String results[] = new Regex(data, reg).getColumn(0);
+            if (results != null) {
+                String quote = new Regex(reg, "(\"|')").getMatch(0);
+                for (String result : results) {
+                    String cleanedResult = result.replaceAll(quote, "\\\"");
+                    data = data.replaceAll(result, cleanedResult);
+                }
+            }
         }
-        final String[][] matches2 = new Regex(data, "[\"' ](\\w+?)[ ]*=[ ]*([^>^ ^\"^']+)").getMatches();
+        
+        // no longer have to worry about forms with miss matched quotation marks!
+        String[][] matches = new Regex(data, "[\"' ](\\w+?)\\s*=\\s*\"(.*?)\"").getMatches();
+        // find values when quotation marks are not used! don't forget to exit on space!
+        final String[][] matches2 = new Regex(data, "[\"' ](\\w+?)\\s*=\\s*([^ >\"']+)").getMatches();
         final InputField ret = new InputField();
 
         for (final String[] match : matches) {
@@ -59,13 +72,6 @@ public class InputField extends HashMap<String, String> {
                 ret.put(Encoding.formEncoding(match[0]), Encoding.formEncoding(match[1]));
             }
         }
-
-        // if (ret.getType() != null && ret.getType().equalsIgnoreCase("file"))
-        // {
-        // // method = METHOD_FILEPOST;
-        //
-        // }
-
         return ret;
     }
 
