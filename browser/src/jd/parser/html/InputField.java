@@ -43,7 +43,7 @@ public class InputField extends HashMap<String, String> {
             }
         }
         
-        // no longer have to worry about forms with miss matched quotation marks!
+        // no longer have to worry about 'data' with miss matched quotation marks!
         String[][] matches = new Regex(data, "[\"' ](\\w+?)\\s*=\\s*\"(.*?)\"").getMatches();
         // find values when quotation marks are not used! don't forget to exit on space!
         final String[][] matches2 = new Regex(data, "[\"' ](\\w+?)\\s*=\\s*([^ >\"']+)").getMatches();
