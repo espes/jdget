@@ -64,7 +64,7 @@ public class HTMLParser {
         }
         if (data == null || (data = data.trim()).length() == 0) { return results; }
         if ((data.startsWith("directhttp://") || data.startsWith("httpviajd://") || data.startsWith("httpsviajd://")) && results.contains(data)) {
-            /* we dont have to further check urls with those prefixes */
+            /* we don't have to further check urls with those prefixes */
             return results;
         }
         final int sizeBefore = results.size();
@@ -157,14 +157,17 @@ public class HTMLParser {
             if (pro == null) {
                 final String base = new Regex(baseUrl, "(.*?\\..*?(/|$))").getMatch(0);
                 if (url.startsWith("/") /* || url.startsWith("#") */) {
-                    /* absolut from root url or anchor from root */
-                    if (base != null) {
+                    if (url.equals("/")) {
+                        /* invalid url, will cause out of range */
+                    }
+                    /* absolute from root url or anchor from root */
+                    else if (base != null) {
                         url = HTMLParser.mergeUrl(base, url);
                     } else {
                         url = HTMLParser.mergeUrl(baseUrl, url);
                     }
                 } else /* if (url.startsWith("./")) */{
-                    /* relativ url */
+                    /* relative url */
                     url = HTMLParser.mergeUrl(baseUrl, url);
                 }
             }
@@ -210,7 +213,7 @@ public class HTMLParser {
                 final Matcher mlinks = HTMLParser.protocols.matcher(link);
                 int start = -1;
                 /*
-                 * special handling if we have multiple links without newline seperation
+                 * special handling if we have multiple links without newline separation
                  */
                 while (mlinks.find()) {
                     if (start == -1) {
@@ -290,7 +293,7 @@ public class HTMLParser {
         }
         /* find normal */
         if (!data.contains("://") && !data.contains("%3A%2F%2") || data.length() < 10) {
-            /* data must contain at least the protocol seperator */
+            /* data must contain at least the protocol separator */
             /* a://b.c/d == minimum 10 length */
             if (!data.contains("href") && !data.contains("unescape") && !data.contains("src=")) {
                 /* maybe easy encrypted website or a href */
@@ -410,21 +413,21 @@ public class HTMLParser {
     /*
      * return tmplinks.toArray(new String[tmplinks.size()]); }
      * 
-     * /* parses data for available links and returns a stringarray which does not contain any duplicates
+     * /* parses data for available links and returns a string array which does not contain any duplicates
      */
     public static HashSet<String> getHttpLinksIntern(String data, final String url) {
         data = data.trim();
         if (data.length() == 0) { return null; }
         /*
-         * replace urlencoded br tags, so we can find all links seperated by those
+         * replace urlencoded br tags, so we can find all links separated by those
          */
         /* find a better solution for this html codings */
         data = data.replaceAll("&lt;", ">");
         data = data.replaceAll("&gt;", "<");
         data = data.replaceAll("&amp;", "&");
         data = data.replaceAll("&quot;", "\"");
-        /* place all replaces here that seperates links */
-        /* replace <br> tags with space so we we can seperate the links */
+        /* place all replaces here that separates links */
+        /* replace <br> tags with space so we we can separate the links */
         /* we replace the complete br tag with a newline */
         data = data.replaceAll("<br.*?>", "\r\n");
         /* remove word breaks */
@@ -462,7 +465,7 @@ public class HTMLParser {
 
         };
         HTMLParser._getHttpLinksWalker(data, url, results);
-        /* we dont want baseurl to be included in result set */
+        /* we don't want baseurl to be included in result set */
         results.remove(url);
         if (results.isEmpty()) { return null; }
         return results;
