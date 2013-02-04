@@ -157,11 +157,8 @@ public class HTMLParser {
             if (pro == null) {
                 final String base = new Regex(baseUrl, "(.*?\\..*?(/|$))").getMatch(0);
                 if (url.startsWith("/") /* || url.startsWith("#") */) {
-                    if (url.equals("/")) {
-                        /* invalid url, will cause out of range */
-                    }
                     /* absolute from root url or anchor from root */
-                    else if (base != null) {
+                    if (base != null) {
                         url = HTMLParser.mergeUrl(base, url);
                     } else {
                         url = HTMLParser.mergeUrl(baseUrl, url);
@@ -575,11 +572,13 @@ public class HTMLParser {
         int end = 0;
         if (StringUtils.isEmpty(base) == false) {
             end = base.length();
-            while (base.charAt(end - 1) == '/') {
+            while (end >= 0 && base.charAt(end - 1) == '/') {
                 end--;
             }
 
-            sb.append(base, 0, end);
+            if (end > 0) {
+                sb.append(base, 0, end);
+            }
         } else {
             sb.append(base);
         }
@@ -589,7 +588,7 @@ public class HTMLParser {
             if (path.startsWith("./")) {
                 end = 2;
             }
-            while (path.charAt(end) == '/') {
+            while (path.length() <= end && path.charAt(end) == '/') {
                 end++;
             }
             sb.append(path, end, path.length());
