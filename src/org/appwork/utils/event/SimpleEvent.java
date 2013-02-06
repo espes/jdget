@@ -32,15 +32,13 @@ public class SimpleEvent<C, P, T> extends DefaultEvent {
 
     }
 
-
-
     @Override
     public C getCaller() {
         return this.callerImpl;
     }
 
     public P getParameter() {
-
+        if (this.parameters.length == 0) { return null; }
         return this.parameters[0];
     }
 

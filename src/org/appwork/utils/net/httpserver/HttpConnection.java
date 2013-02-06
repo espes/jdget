@@ -100,7 +100,7 @@ public class HttpConnection implements Runnable {
         ByteBuffer header = HTTPConnectionUtils.readheader(this.is, true);
         byte[] bytesRequestLine = new byte[header.limit()];
         header.get(bytesRequestLine);
-        String requestLine = new String(bytesRequestLine, "ISO-8859-1").trim();
+        String requestLine = this.preProcessRequestLine(new String(bytesRequestLine, "ISO-8859-1").trim());
         String method = new Regex(requestLine, "(GET|POST|HEAD)").getMatch(0);
         final String requestedURL = new Regex(requestLine, " (/.*?) ").getMatch(0);
         final String requestedPath = new Regex(requestedURL, "(/.*?)($|\\?)").getMatch(0);
@@ -210,6 +210,10 @@ public class HttpConnection implements Runnable {
     public synchronized OutputStream getOutputStream() throws IOException {
         this.sendResponseHeaders();
         return this.os;
+    }
+
+    protected String preProcessRequestLine(final String requestLine) {
+        return requestLine;
     }
 
     protected void requestReceived(final HttpRequest request) {
