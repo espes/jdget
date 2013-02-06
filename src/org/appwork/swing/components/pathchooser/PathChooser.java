@@ -71,10 +71,10 @@ public class PathChooser extends MigPanel {
      */
     private static final long      serialVersionUID = -3651657642011425583L;
 
-    private ExtTextField           txt;
-    private ExtButton              bt;
+    protected ExtTextField           txt;
+    protected ExtButton              bt;
     private String                 id;
-    private SearchComboBox<String> destination;
+    protected SearchComboBox<String> destination;
 
     public PathChooser(final String id) {
         this(id, false);
@@ -83,7 +83,7 @@ public class PathChooser extends MigPanel {
     public PathChooser(final String id, final boolean useQuickLIst) {
         super("ins 0", "[grow,fill][]", "[grow,fill]");
         this.id = id;
-
+        setOpaque(false);
         this.txt = new ExtTextField() {
 
             /**
