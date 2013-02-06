@@ -22,11 +22,11 @@ public class SyntheticaHelper {
 
     }
 
-    public static int getFontScaleFaktor(SyntheticaSettings config, LanguageFileSetup translationFileConfig) {
+    public static int getFontScaleFaktor(final SyntheticaSettings config, final LanguageFileSetup translationFileConfig) {
         int fontScale = -1;
         try {
             fontScale = Integer.parseInt(translationFileConfig.config_fontscale_faktor());
-        } catch (Exception e) {
+        } catch (final Exception e) {
         }
         if (config.getFontScaleFactor() != 100 || fontScale <= 0) {
             fontScale = config.getFontScaleFactor();
@@ -38,10 +38,11 @@ public class SyntheticaHelper {
      * @param string
      * @throws UnsupportedEncodingException
      */
-    public static void init(String laf) throws UnsupportedEncodingException {
+    public static void init(final String laf) throws UnsupportedEncodingException {
 
-        LanguageFileSetup locale = TranslationFactory.create(LanguageFileSetup.class);
-        SyntheticaSettings config = JsonConfig.create(SyntheticaSettings.class);
+        final LanguageFileSetup locale = TranslationFactory.create(LanguageFileSetup.class);
+        final SyntheticaSettings config = JsonConfig.create(SyntheticaSettings.class);
+        de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setWindowsDecorated(false);
 
         UIManager.put("Synthetica.window.decoration", false);
         UIManager.put("Synthetica.text.antialias", config.isTextAntiAliasEnabled());
@@ -49,7 +50,7 @@ public class SyntheticaHelper {
         /* http://www.jyloo.com/news/?pubId=1297681728000 */
         /* we want our own FontScaling, not SystemDPI */
         UIManager.put("Synthetica.font.respectSystemDPI", config.isFontRespectsSystemDPI());
-        int fontScale = getFontScaleFaktor(config, locale);
+        final int fontScale = getFontScaleFaktor(config, locale);
         UIManager.put("Synthetica.font.scaleFactor", fontScale);
         if (config.isFontRespectsSystemDPI() && fontScale != 100) {
             Log.L.warning("SystemDPI might interfere with JD's FontScaling");
@@ -70,9 +71,9 @@ public class SyntheticaHelper {
          */
 
         /* we save around x-400 ms here by not using AES */
-        String key = new String(new byte[] { 67, 49, 52, 49, 48, 50, 57, 52, 45, 54, 49, 66, 54, 52, 65, 65, 67, 45, 52, 66, 55, 68, 51, 48, 51, 57, 45, 56, 51, 52, 65, 56, 50, 65, 49, 45, 51, 55, 69, 53, 68, 54, 57, 53 }, "UTF-8");
+        final String key = new String(new byte[] { 67, 49, 52, 49, 48, 50, 57, 52, 45, 54, 49, 66, 54, 52, 65, 65, 67, 45, 52, 66, 55, 68, 51, 48, 51, 57, 45, 56, 51, 52, 65, 56, 50, 65, 49, 45, 51, 55, 69, 53, 68, 54, 57, 53 }, "UTF-8");
         if (key != null) {
-            String[] li = { "Licensee=AppWork UG", "LicenseRegistrationNumber=289416475", "Product=Synthetica", "LicenseType=Small Business License", "ExpireDate=--.--.----", "MaxVersion=2.999.999" };
+            final String[] li = { "Licensee=AppWork UG", "LicenseRegistrationNumber=289416475", "Product=Synthetica", "LicenseType=Small Business License", "ExpireDate=--.--.----", "MaxVersion=2.999.999" };
             UIManager.put("Synthetica.license.info", li);
             UIManager.put("Synthetica.license.key", key);
         }
@@ -80,7 +81,7 @@ public class SyntheticaHelper {
         de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setLookAndFeel(laf);
         de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setExtendedFileChooserEnabled(false);
 
-        String fontName = getFontName(config, locale);
+        final String fontName = getFontName(config, locale);
 
      
         int fontSize = de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.getFont().getSize();
@@ -89,8 +90,8 @@ public class SyntheticaHelper {
         if (fontName != null) {
 
             /* change Font */
-            int oldStyle = de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.getFont().getStyle();
-            Font newFont = new Font(fontName, oldStyle, fontSize);
+            final int oldStyle = de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.getFont().getStyle();
+            final Font newFont = new Font(fontName, oldStyle, fontSize);
             de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setFont(newFont, false);
         }
         UIManager.put("ExtTable.SuggestedFontHeight", fontSize);
@@ -104,9 +105,9 @@ public class SyntheticaHelper {
      * @param locale
      * @return
      */
-    private static String getFontName(SyntheticaSettings config, LanguageFileSetup locale) {
-        String fontName = config.getFontName();
-        String fontFromTranslation = locale.config_fontname();
+    private static String getFontName(final SyntheticaSettings config, final LanguageFileSetup locale) {
+        final String fontName = config.getFontName();
+        final String fontFromTranslation = locale.config_fontname();
 
         String newFontName = null;
 
