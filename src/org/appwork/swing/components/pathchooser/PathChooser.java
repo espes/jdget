@@ -45,7 +45,8 @@ public class PathChooser extends MigPanel {
         private static final long serialVersionUID = -4350861121298607806L;
 
         BrowseAction() {
-            this.putValue(Action.NAME, PathChooser.this.getBrowseLabel());
+            
+            putValue(Action.NAME, getBrowseLabel());
         }
 
         /*
@@ -58,9 +59,9 @@ public class PathChooser extends MigPanel {
         @Override
         public void actionPerformed(final ActionEvent e) {
 
-            final File file = PathChooser.this.doFileChooser();
+            final File file = doFileChooser();
             if (file == null) { return; }
-            PathChooser.this.setFile(file);
+            setFile(file);
 
         }
 
@@ -84,7 +85,7 @@ public class PathChooser extends MigPanel {
         super("ins 0", "[grow,fill][]", "[grow,fill]");
         this.id = id;
         setOpaque(false);
-        this.txt = new ExtTextField() {
+        txt = new ExtTextField() {
 
             /**
              * 
@@ -93,7 +94,7 @@ public class PathChooser extends MigPanel {
 
             @Override
             public JPopupMenu getPopupMenu(final CutAction cutAction, final CopyAction copyAction, final PasteAction pasteAction, final DeleteAction deleteAction, final SelectAction selectAction) {
-                final JPopupMenu self = PathChooser.this.getPopupMenu(PathChooser.this.txt, cutAction, copyAction, pasteAction, deleteAction, selectAction);
+                final JPopupMenu self = PathChooser.this.getPopupMenu(txt, cutAction, copyAction, pasteAction, deleteAction, selectAction);
 
                 if (self == null) { return super.getPopupMenu(cutAction, copyAction, pasteAction, deleteAction, selectAction); }
                 return self;
@@ -101,16 +102,16 @@ public class PathChooser extends MigPanel {
             }
 
         };
-        this.txt.setHelpText(this.getHelpText());
-        this.bt = new ExtButton(new BrowseAction());
+        txt.setHelpText(getHelpText());
+        bt = new ExtButton(new BrowseAction());
 
         if (useQuickLIst) {
-            this.destination = new SearchComboBox<String>() {
+            destination = new SearchComboBox<String>() {
 
                 @Override
                 public JTextField createTextField() {
 
-                    return PathChooser.this.txt;
+                    return txt;
                 }
 
                 @Override
@@ -130,44 +131,44 @@ public class PathChooser extends MigPanel {
 
                 @Override
                 public void onChanged() {
-                    PathChooser.this.onChanged(PathChooser.this.txt);
+                    PathChooser.this.onChanged(txt);
                 }
 
             };
             // this code makes enter leave the dialog.
 
-            this.destination.getTextField().getInputMap().put(KeyStroke.getKeyStroke("pressed TAB"), "auto");
+            destination.getTextField().getInputMap().put(KeyStroke.getKeyStroke("pressed TAB"), "auto");
 
-            this.destination.getTextField().setFocusTraversalKeysEnabled(false);
+            destination.getTextField().setFocusTraversalKeysEnabled(false);
 
-            this.destination.getTextField().getActionMap().put("auto", new AbstractAction() {
+            destination.getTextField().getActionMap().put("auto", new AbstractAction() {
 
                 @Override
                 public void actionPerformed(final ActionEvent e) {
-                    PathChooser.this.auto(PathChooser.this.txt);
+                    PathChooser.this.auto(txt);
                 }
             });
-            this.destination.setUnkownTextInputAllowed(true);
-            this.destination.setBadColor(null);
-            this.destination.setSelectedItem(null);
+            destination.setUnkownTextInputAllowed(true);
+            destination.setBadColor(null);
+            destination.setSelectedItem(null);
 
-            this.add(this.destination);
+            this.add(destination);
         } else {
-            this.add(this.txt);
+            this.add(txt);
         }
-        this.add(this.bt);
+        this.add(bt);
 
-        final String preSelection = JSonStorage.getStorage(Dialog.FILECHOOSER).get(Dialog.LASTSELECTION + id, this.getDefaultPreSelection());
+        final String preSelection = JSonStorage.getStorage(Dialog.FILECHOOSER).get(Dialog.LASTSELECTION + id, getDefaultPreSelection());
         if (preSelection != null) {
-            this.setFile(new File(preSelection));
+            setFile(new File(preSelection));
         }
 
     }
 
     @Override
     public synchronized void addMouseListener(final MouseListener l) {
-        this.txt.addMouseListener(l);
-        this.bt.addMouseListener(l);
+        txt.addMouseListener(l);
+        bt.addMouseListener(l);
         super.addMouseListener(l);
 
     }
@@ -201,7 +202,7 @@ public class PathChooser extends MigPanel {
                 continue;
             }
 
-            if (found && this.startsWith(f.getName(), name)) {
+            if (found && startsWith(f.getName(), name)) {
 
                 oldTextField.setText(f.getAbsolutePath());
                 oldTextField.setSelectionStart(selstart);
@@ -219,19 +220,19 @@ public class PathChooser extends MigPanel {
      */
     public File doFileChooser() {
 
-        ExtFileChooserDialog d = new ExtFileChooserDialog(0, getDialogTitle(), null, null);
+        final ExtFileChooserDialog d = new ExtFileChooserDialog(0, getDialogTitle(), null, null);
         d.setStorageID(getID());
         d.setFileSelectionMode(getSelectionMode());
         d.setFileFilter(getFileFilter());
-        d.setType(this.getType());
+        d.setType(getType());
         d.setMultiSelection(false);
         d.setPreSelection(getFile());
         try {
             Dialog.I().showDialog(d);
-        } catch (DialogClosedException e) {
+        } catch (final DialogClosedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (DialogCanceledException e) {
+        } catch (final DialogCanceledException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -273,9 +274,9 @@ public class PathChooser extends MigPanel {
      * @return
      */
     public JButton getButton() {
-        this.remove(this.bt);
-        this.setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
-        return this.bt;
+        this.remove(bt);
+        setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
+        return bt;
     }
 
     /**
@@ -298,8 +299,8 @@ public class PathChooser extends MigPanel {
      * @return
      */
     public File getFile() {
-        if (StringUtils.isEmpty(this.txt.getText())) { return null; }
-        return this.textToFile(this.txt.getText());
+        if (StringUtils.isEmpty(txt.getText())) { return null; }
+        return textToFile(txt.getText());
     }
 
     /**
@@ -321,7 +322,7 @@ public class PathChooser extends MigPanel {
      * @return
      */
     public String getID() {
-        return this.id;
+        return id;
     }
 
     /**
@@ -329,7 +330,7 @@ public class PathChooser extends MigPanel {
      */
     public String getPath() {
 
-        return this.txt.getText();
+        return txt.getText();
     }
 
     public JPopupMenu getPopupMenu(final ExtTextField txt, final CutAction cutAction, final CopyAction copyAction, final PasteAction pasteAction, final DeleteAction deleteAction, final SelectAction selectAction) {
@@ -361,31 +362,31 @@ public class PathChooser extends MigPanel {
 
     @Override
     public synchronized void removeMouseListener(final MouseListener l) {
-        this.txt.removeMouseListener(l);
-        this.bt.removeMouseListener(l);
+        txt.removeMouseListener(l);
+        bt.removeMouseListener(l);
         super.removeMouseListener(l);
     }
 
     @Override
     public void setEnabled(final boolean b) {
-        this.txt.setEnabled(b);
-        this.bt.setEnabled(b);
-        if (this.destination != null) {
-            this.destination.setEnabled(b);
+        txt.setEnabled(b);
+        bt.setEnabled(b);
+        if (destination != null) {
+            destination.setEnabled(b);
         }
 
     }
 
     public void setFile(final File file) {
 
-        this.txt.setText(this.fileToText(file));
+        txt.setText(fileToText(file));
     }
 
     /**
      * @param packagizerFilterRuleDialog_layoutDialogContent_dest_help
      */
     public void setHelpText(final String helpText) {
-        this.txt.setHelpText(helpText);
+        txt.setHelpText(helpText);
 
     }
 
@@ -393,13 +394,13 @@ public class PathChooser extends MigPanel {
      * @param downloadDestination
      */
     public void setPath(final String downloadDestination) {
-        this.txt.setText(downloadDestination);
+        txt.setText(downloadDestination);
 
     }
 
     public void setQuickSelectionList(final List<String> quickSelectionList) {
 
-        this.destination.setList(quickSelectionList);
+        destination.setList(quickSelectionList);
     }
 
     /**
