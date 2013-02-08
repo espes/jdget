@@ -80,23 +80,23 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
      */
     public ExtTooltip() {
         super();
-        this.setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
-        this.config = ExtTooltip.createConfig(this.getID());
+        setLayout(new MigLayout("ins 0", "[grow,fill]", "[grow,fill]"));
+        config = ExtTooltip.createConfig(getID());
 
-        this.panel = this.createContent();
+        panel = createContent();
 
         // this.add(con);
-        this.setTipText("");
+        setTipText("");
 
         // this.setUI(null);
 
         // this.setOpaque(true);
         // this.setBackground(null);
 
-        if (this.panel != null) {
-            this.add(this.panel);
+        if (panel != null) {
+            this.add(panel);
         }
-        this.addAncestorListener(this);
+        addAncestorListener(this);
     }
 
     @Override
@@ -111,10 +111,10 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
     @Override
     public void ancestorAdded(final AncestorEvent event) {
 
-        this.h = 0;
-        this.w = 0;
-        this.lastResize = 0;
-        this.lastResizeH = 0;
+        h = 0;
+        w = 0;
+        lastResize = 0;
+        lastResizeH = 0;
     }
 
     @Override
@@ -146,33 +146,34 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
     }
 
     public ExtTooltipSettings getConfig() {
-        return this.config;
+        return config;
     }
 
     @Override
     public int getHeight() {
+        if (panel == null) { return 0; }
         final Insets insets = this.getInsets();
-        final int th = this.panel.getPreferredSize().height + insets.top + insets.bottom;
-        if (th > this.h) {
-            this.h = th;
-            final Container parent = this.getParent();
+        final int th = panel.getPreferredSize().height + insets.top + insets.bottom;
+        if (th > h) {
+            h = th;
+            final Container parent = getParent();
             if (parent != null) {
                 final Rectangle b = parent.getBounds();
-                parent.setBounds(b.x, b.y, this.w, this.h);
+                parent.setBounds(b.x, b.y, w, h);
             }
 
-        } else if (th < this.h) {
-            if (System.currentTimeMillis() - this.lastResizeH > 1000) {
-                this.h -= (this.h - th) * (System.currentTimeMillis() - this.lastResizeH - 1000) / 10000;
-                final Container parent = this.getParent();
+        } else if (th < h) {
+            if (System.currentTimeMillis() - lastResizeH > 1000) {
+                h -= (h - th) * (System.currentTimeMillis() - lastResizeH - 1000) / 10000;
+                final Container parent = getParent();
                 if (parent != null) {
                     final Rectangle b = parent.getBounds();
-                    parent.setBounds(b.x, b.y, this.w, this.h);
+                    parent.setBounds(b.x, b.y, w, h);
                 }
             }
         }
 
-        return this.h;
+        return h;
     }
 
     /**
@@ -185,7 +186,8 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
 
     @Override
     public Dimension getPreferredSize() {
-        final Dimension dim = this.panel.getPreferredSize();
+        if (panel == null) { return new Dimension(0, 0); }
+        final Dimension dim = panel.getPreferredSize();
         final Insets insets = this.getInsets();
         dim.width += insets.left + insets.right;
         dim.height += insets.top + insets.bottom;
@@ -195,29 +197,30 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
 
     @Override
     public int getWidth() {
+        if (panel == null) { return 0; }
         final Insets insets = this.getInsets();
-        final int tw = this.panel.getPreferredSize().width + insets.left + insets.right;
-        if (tw > this.w) {
-            this.w = tw;
-            final Container parent = this.getParent();
+        final int tw = panel.getPreferredSize().width + insets.left + insets.right;
+        if (tw > w) {
+            w = tw;
+            final Container parent = getParent();
             if (parent != null) {
                 final Rectangle b = parent.getBounds();
-                parent.setBounds(b.x, b.y, this.w, this.h);
+                parent.setBounds(b.x, b.y, w, h);
             }
-            this.lastResize = System.currentTimeMillis();
+            lastResize = System.currentTimeMillis();
 
-        } else if (tw < this.w) {
-            if (System.currentTimeMillis() - this.lastResize > 1000) {
-                this.w -= (this.w - tw) * (System.currentTimeMillis() - this.lastResize - 1000) / 10000;
-                final Container parent = this.getParent();
+        } else if (tw < w) {
+            if (System.currentTimeMillis() - lastResize > 1000) {
+                w -= (w - tw) * (System.currentTimeMillis() - lastResize - 1000) / 10000;
+                final Container parent = getParent();
                 if (parent != null) {
                     final Rectangle b = parent.getBounds();
-                    parent.setBounds(b.x, b.y, this.w, this.h);
+                    parent.setBounds(b.x, b.y, w, h);
                 }
             }
         }
 
-        return this.w;
+        return w;
 
     }
 
@@ -252,9 +255,11 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
     @Override
     public void paint(final Graphics g) {
         // this.getLayout().layoutContainer(this);
-        this.panel.setSize(this.panel.getPreferredSize());
-        final Insets insets = this.getInsets();
-        this.panel.setLocation(insets.left, insets.top);
+        if (panel != null) {
+            panel.setSize(panel.getPreferredSize());
+            final Insets insets = this.getInsets();
+            panel.setLocation(insets.left, insets.top);
+        }
         super.paint(g);
 
     }
