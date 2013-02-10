@@ -80,7 +80,7 @@ public class ConfirmDialog extends AbstractDialog<Integer> {
 
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
 
-            p.add(new JScrollPane(this.textField));
+            p.add(new JScrollPane(this.textField),"pushx,growx");
         } else {
 
             p.add(textField);
