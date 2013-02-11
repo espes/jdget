@@ -15,15 +15,28 @@ public class ConfigUtils {
     /**
      * @param class1
      */
+    /**
+     * @param class1
+     * @param resource
+     */
     public static void printStaticMappings(final Class<? extends ConfigInterface> configInterface) {
+        printStaticMappings(configInterface, null);
+    }
+
+    public static void printStaticMappings(final Class<? extends ConfigInterface> configInterface, final String resource) {
         // TODO Auto-generated method stub
-        StringBuilder strBuild = new StringBuilder();
+        final StringBuilder strBuild = new StringBuilder();
         System.err.println(configInterface);
         System.err.flush();
         strBuild.append("\r\n");
         strBuild.append("//Static Mappings for " + configInterface);
         strBuild.append("\r\n");
+        if(resource==null){
         strBuild.append("public static final " + configInterface.getSimpleName() + "                 CFG                               = JsonConfig.create(" + configInterface.getSimpleName() + ".class);");
+        }else{
+            strBuild.append("public static final " + configInterface.getSimpleName() + "                 CFG                               = JsonConfig.create("+resource+", " + configInterface.getSimpleName() + ".class);");
+               
+        }
         strBuild.append("\r\n");
         strBuild.append("public static final StorageHandler<" + configInterface.getSimpleName() + ">                 SH                               = (StorageHandler<" + configInterface.getSimpleName() + ">) CFG.getStorageHandler();");
         strBuild.append("\r\n");
@@ -31,15 +44,17 @@ public class ConfigUtils {
 
         // public static final BooleanKeyHandler LINK_FILTER_ENABLED =
         // SH.getKeyHandler("LinkFilterEnabled", BooleanKeyHandler.class);
-        HashSet<KeyHandler<?>> unique = new HashSet<KeyHandler<?>>();
-        HashMap<Method, KeyHandler<?>> map = JsonConfig.create(configInterface).getStorageHandler().getMap();
-        for (KeyHandler<?> kh : map.values()) {
-            if (!unique.add(kh)) continue;
+        final HashSet<KeyHandler<?>> unique = new HashSet<KeyHandler<?>>();
+        final HashMap<Method, KeyHandler<?>> map = JsonConfig.create(configInterface).getStorageHandler().getMap();
+        for (final KeyHandler<?> kh : map.values()) {
+            if (!unique.add(kh)) {
+                continue;
+            }
             strBuild.append("\r\n");
             strBuild.append("// " + kh);
             // String key = kh.getKey();
-            String methodname = kh.getGetter().getMethod().getName().startsWith("is")?kh.getGetter().getMethod().getName().substring(2):kh.getGetter().getMethod().getName().substring(3);
-            StringBuilder sb = new StringBuilder();
+            final String methodname = kh.getGetter().getMethod().getName().startsWith("is") ? kh.getGetter().getMethod().getName().substring(2) : kh.getGetter().getMethod().getName().substring(3);
+            final StringBuilder sb = new StringBuilder();
             char c, lastc;
             lastc = ' ';
             for (int i = 0; i < methodname.length(); i++) {
@@ -75,10 +90,10 @@ public class ConfigUtils {
         System.err.flush();
         try {
             Dialog.getInstance().showInputDialog(Dialog.STYLE_LARGE, configInterface.toString(), strBuild.toString());
-        } catch (DialogClosedException e) {
+        } catch (final DialogClosedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (DialogCanceledException e) {
+        } catch (final DialogCanceledException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }

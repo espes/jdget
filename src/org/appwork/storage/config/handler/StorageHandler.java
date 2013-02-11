@@ -82,7 +82,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * 
      * @param delayedSaveMaxInterval
      */
-    public void setDelayedSaveMaxInterval(long delayedSaveMaxInterval) {
+    public void setDelayedSaveMaxInterval(final long delayedSaveMaxInterval) {
         this.delayedSaveMaxInterval = delayedSaveMaxInterval;
     }
 
@@ -144,7 +144,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
             @Override
             public void run() {
-                if (save) StorageHandler.this.primitiveStorage.save();
+                if (save) {
+                    StorageHandler.this.primitiveStorage.save();
+                }
             }
 
             @Override
@@ -208,7 +210,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
             @Override
             public void run() {
-                if (save) StorageHandler.this.primitiveStorage.save();
+                if (save) {
+                    StorageHandler.this.primitiveStorage.save();
+                }
             }
 
             @Override
@@ -225,7 +229,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     protected void updateSaveDelayer() {
         synchronized (this) {
             final int interval = getDelayedSaveInterval();
-            long maxInterval = getDelayedSaveMaxInterval();
+            final long maxInterval = getDelayedSaveMaxInterval();
             if (interval < 0) {
                 delayedSaver = null;
             } else {
@@ -598,7 +602,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * 
      * @param delayedSaveMaxInterval
      */
-    public void setDelayedSaveMinInterval(int delayedSaveInterval) {
+    public void setDelayedSaveMinInterval(final int delayedSaveInterval) {
         this.delayedSaveInterval = delayedSaveInterval;
         updateSaveDelayer();
     }
@@ -607,7 +611,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return writeStrategy;
     }
 
-    public void setWriteStrategy(WriteStrategy writeStrategy) {
+    public void setWriteStrategy(final WriteStrategy writeStrategy) {
         this.writeStrategy = writeStrategy;
     }
 
@@ -868,6 +872,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @param object
      */
     protected void putPrimitive(final String key, final Boolean value) {
+        System.out.println(this+" - "+key+" - "+value);
         this.primitiveStorage.put(key, value);
         delayedSave();
 
@@ -877,9 +882,13 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * 
      */
     private void delayedSave() {
-        if (getDelayedSaveInterval() < 0) return;
-        DelayedRunnable del = delayedSaver;
-        if (del != null) del.resetAndStart();
+        if (getDelayedSaveInterval() < 0) {
+            return;
+        }
+        final DelayedRunnable del = delayedSaver;
+        if (del != null) {
+            del.resetAndStart();
+        }
     }
 
     /**
