@@ -83,7 +83,6 @@ public class SyntheticaHelper {
 
         final String fontName = getFontName(config, locale);
 
-     
         int fontSize = de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.getFont().getSize();
         fontSize = (fontScale * fontSize) / 100;
 
@@ -107,6 +106,7 @@ public class SyntheticaHelper {
      */
     private static String getFontName(final SyntheticaSettings config, final LanguageFileSetup locale) {
         final String fontName = config.getFontName();
+
         final String fontFromTranslation = locale.config_fontname();
 
         String newFontName = null;
@@ -120,7 +120,14 @@ public class SyntheticaHelper {
             /* we have customized fontName in settings, it has highest priority */
             newFontName = fontName;
         }
-
+        if (newFontName == null) {
+            switch (CrossSystem.OS_ID) {
+            case CrossSystem.OS_WINDOWS_7:
+            case CrossSystem.OS_WINDOWS_8:
+            case CrossSystem.OS_WINDOWS_VISTA:
+                return "Segoe UI";
+            }
+        }
         return newFontName;
     }
 
