@@ -36,7 +36,6 @@ public class StringKeyHandler extends KeyHandler<String> {
 
     @Override
     protected Class<? extends Annotation> getDefaultAnnotation() {
-
         return DefaultStringValue.class;
     }
 
@@ -59,6 +58,11 @@ public class StringKeyHandler extends KeyHandler<String> {
     @Override
     protected void putValue(final String object) {
         this.primitiveStorage.put(this.getKey(), object);
+    }
+
+    @Override
+    public String toString() {
+        return this.getValue();
 
     }
 
@@ -72,12 +76,6 @@ public class StringKeyHandler extends KeyHandler<String> {
     protected void validateValue(final String object) throws Throwable {
         // TODO Auto-generated method stub
 
-    }
-    
-    
-    public String toString(){
-        return getValue();
-       
     }
 
 }

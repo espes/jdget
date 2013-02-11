@@ -43,6 +43,7 @@ public class SimpleEvent<C, P, T> extends DefaultEvent {
     }
 
     public P getParameter(final int i) {
+        if (i < 0 || this.parameters.length == 0 || i > this.parameters.length - 1) { return null; }
         return this.parameters[i];
     }
 

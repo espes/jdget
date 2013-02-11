@@ -20,9 +20,11 @@ import org.appwork.storage.config.InterfaceParseException;
 import org.appwork.storage.config.MethodHandler;
 import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.AboutConfig;
+import org.appwork.storage.config.annotations.AbstractCustomValueGetter;
 import org.appwork.storage.config.annotations.AbstractValidator;
 import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.storage.config.annotations.CryptedStorage;
+import org.appwork.storage.config.annotations.CustomValueGetter;
 import org.appwork.storage.config.annotations.DefaultFactory;
 import org.appwork.storage.config.annotations.DefaultJsonObject;
 import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
@@ -40,22 +42,23 @@ import org.appwork.utils.reflection.Clazz;
  */
 public abstract class KeyHandler<RawClass> {
 
-    private static final String         ANNOTATION_PACKAGE_NAME = CryptedStorage.class.getPackage().getName();
-    private static final String         PACKAGE_NAME            = PlainStorage.class.getPackage().getName();
-    private final String                key;
-    private MethodHandler               getter;
+    private static final String                 ANNOTATION_PACKAGE_NAME = CryptedStorage.class.getPackage().getName();
+    private static final String                 PACKAGE_NAME            = PlainStorage.class.getPackage().getName();
+    private final String                        key;
+    private MethodHandler                       getter;
 
-    protected MethodHandler             setter;
-    protected final StorageHandler<?>   storageHandler;
-    private boolean                     primitive;
-    protected RawClass                  defaultValue;
+    protected MethodHandler                     setter;
+    protected final StorageHandler<?>           storageHandler;
+    private boolean                             primitive;
+    protected RawClass                          defaultValue;
 
-    protected boolean                   crypted;
+    protected boolean                           crypted;
 
-    protected byte[]                    cryptKey;
-    protected JsonKeyValueStorage       primitiveStorage;
-    private ConfigEventSender<RawClass> eventSender;
-    private AbstractValidator<RawClass> validatorFactory;
+    protected byte[]                            cryptKey;
+    protected JsonKeyValueStorage               primitiveStorage;
+    private ConfigEventSender<RawClass>         eventSender;
+    private AbstractValidator<RawClass>         validatorFactory;
+    private AbstractCustomValueGetter<RawClass> customValueGetter;
 
     /**
      * @param storageHandler
@@ -70,7 +73,6 @@ public abstract class KeyHandler<RawClass> {
         this.cryptKey = storageHandler.getKey();
         this.primitiveStorage = storageHandler.primitiveStorage;
         // this.refQueue = new ReferenceQueue<Object>();
-   
 
     }
 
@@ -102,7 +104,7 @@ public abstract class KeyHandler<RawClass> {
         /**
          * This main mark is important!!
          */
-        final Class<?>[] okForAll = new Class<?>[] { ValidatorFactory.class, DefaultJsonObject.class, DefaultFactory.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, DescriptionForConfigEntry.class, CryptedStorage.class, PlainStorage.class };
+        final Class<?>[] okForAll = new Class<?>[] { CustomValueGetter.class, ValidatorFactory.class, DefaultJsonObject.class, DefaultFactory.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, DescriptionForConfigEntry.class, CryptedStorage.class, PlainStorage.class };
         final Class<?>[] clazzes = new Class<?>[classes.length + okForAll.length];
         System.arraycopy(classes, 0, clazzes, 0, classes.length);
         System.arraycopy(okForAll, 0, clazzes, classes.length, okForAll.length);
@@ -241,8 +243,13 @@ public abstract class KeyHandler<RawClass> {
     }
 
     public RawClass getValue() {
+        final RawClass value = this.getValueStorage();
+        if (this.customValueGetter != null) { return this.customValueGetter.getValue(value); }
+        return value;
+    }
 
-        if (this.primitiveStorage.hasProperty(this.getKey())) { return this.primitiveStorage.get(this.getKey(), (RawClass) this.defaultValue); }
+    public RawClass getValueStorage() {
+        if (this.primitiveStorage.hasProperty(this.getKey())) { return this.primitiveStorage.get(this.getKey(), this.defaultValue); }
         return this.primitiveStorage.get(this.getKey(), this.getDefaultValue());
     }
 
@@ -253,7 +260,7 @@ public abstract class KeyHandler<RawClass> {
     @SuppressWarnings("unchecked")
     protected void init() throws Throwable {
 
-        if (getter == null) { throw new InterfaceParseException("Getter Method is Missing for " + setter.getMethod()); }
+        if (this.getter == null) { throw new InterfaceParseException("Getter Method is Missing for " + this.setter.getMethod()); }
 
         // read local cryptinfos
         this.primitive = JSonStorage.canStorePrimitive(this.getter.getMethod().getReturnType());
@@ -284,18 +291,22 @@ public abstract class KeyHandler<RawClass> {
 
         try {
             this.validatorFactory = (AbstractValidator<RawClass>) this.getAnnotation(ValidatorFactory.class).value().newInstance();
-        } catch (final NullPointerException e) {
+        } catch (final Throwable e) {
+        }
+        try {
+            this.customValueGetter = (AbstractCustomValueGetter<RawClass>) this.getAnnotation(CustomValueGetter.class).value().newInstance();
+        } catch (final Throwable e) {
         }
         this.checkBadAnnotations(this.getAllowedAnnotations());
         this.initDefaults();
         this.initHandler();
-        
-        String kk = "CFG:" + storageHandler.getConfigInterface().getName() + "." + key;
-        String sys = System.getProperty(kk);
+
+        final String kk = "CFG:" + this.storageHandler.getConfigInterface().getName() + "." + this.key;
+        final String sys = System.getProperty(kk);
         if (sys != null) {
             // Set configvalud because of JVM Parameter
-            System.out.println(kk+"="+sys);
-            setValue((RawClass) JSonStorage.restoreFromString(sys, new TypeRef<Object>(this.getRawClass()) {
+            System.out.println(kk + "=" + sys);
+            this.setValue((RawClass) JSonStorage.restoreFromString(sys, new TypeRef<Object>(this.getRawClass()) {
             }, null));
         }
     }
@@ -382,7 +393,7 @@ public abstract class KeyHandler<RawClass> {
             } else if (oldValue != null && newValue == null) {
                 /* new is null, but old is not */
                 changed = true;
-            } else if (!Clazz.isPrimitive(this.getRawClass()) && getRawClass() != String.class) {
+            } else if (!Clazz.isPrimitive(this.getRawClass()) && this.getRawClass() != String.class) {
                 /* no primitive, we cannot detect changes 100% */
                 changed = true;
             } else if (!newValue.equals(oldValue)) {
@@ -414,7 +425,7 @@ public abstract class KeyHandler<RawClass> {
 
     @Override
     public String toString() {
-        RawClass ret = getValue();
+        final RawClass ret = this.getValue();
         return ret == null ? null : ret.toString();
     }
 
