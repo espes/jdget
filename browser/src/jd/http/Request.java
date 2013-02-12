@@ -37,8 +37,8 @@ import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
 
 import org.appwork.utils.Application;
+import org.appwork.utils.ReusableByteArrayOutputStream;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool;
-import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
