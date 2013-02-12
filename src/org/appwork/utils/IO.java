@@ -20,7 +20,6 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 
 import org.appwork.utils.Files.AbstractHandler;
-import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 import org.appwork.utils.os.CrossSystem;
 
 public class IO {
@@ -115,12 +114,14 @@ public class IO {
                 if (f.isDirectory()) {
                     new File(dest, path).mkdirs();
                 } else {
-                    File dst = new File(dest, path);
-                    if (overwriteFiles && dst.exists()) if (!dst.delete()){
-                        //
-                        throw new IOException("Cannot overwrite " + dst);
+                    final File dst = new File(dest, path);
+                    if (overwriteFiles && dst.exists()) {
+                        if (!dst.delete()) {
+                            //
+                            throw new IOException("Cannot overwrite " + dst);
+                        }
                     }
-                    
+
                     IO.copyFile(f, dst);
                 }
 

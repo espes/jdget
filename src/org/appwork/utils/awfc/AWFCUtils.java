@@ -9,23 +9,16 @@
  */
 package org.appwork.utils.awfc;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import org.appwork.exceptions.WTFException;
-import org.appwork.utils.ReusableByteArrayOutputStreamPool;
-import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 
 /**
  * @author daniel
  * 
  */
 public class AWFCUtils {
-   
 
     private final byte[]       buffer = new byte[16];
     private final OutputStream os;
@@ -90,6 +83,18 @@ public class AWFCUtils {
         return ((long) this.buffer[0] << 56) + ((long) (this.buffer[1] & 255) << 48) + ((long) (this.buffer[2] & 255) << 40) + ((long) (this.buffer[3] & 255) << 32) + ((long) (this.buffer[4] & 255) << 24) + ((this.buffer[5] & 255) << 16) + ((this.buffer[6] & 255) << 8) + ((this.buffer[7] & 255) << 0);
     }
 
+    public long readLongOptimized() throws IOException {
+        long ret = 0;
+        long read = 0;
+        int position = 0;
+        while (true) {
+            read = this.ensureRead();
+            ret = ret + (read >>> 1 << position * 7);
+            if ((read & 1) == 0) { return ret; }
+            position++;
+        }
+    }
+
     public int readShort() throws IOException {
         this.ensureRead(2, this.buffer);
         return ((this.buffer[0] & 255) << 8) + ((this.buffer[1] & 255) << 0);
@@ -119,24 +124,12 @@ public class AWFCUtils {
         this.getCurrentOutputStream().write(this.buffer, 0, 8);
     }
 
-    public long readLongOptimized() throws IOException {
-        long ret = 0;
-        long read = 0;
-        int position = 0;
-        while (true) {
-            read = ensureRead();
-            ret = ret + (read >>> 1 << (position * 7));
-            if ((read & 1) == 0) return ret;
-            position++;
-        }
-    }
-
     public void writeLongOptimized(final long value) throws IOException {
-        if (value < 0) throw new NumberFormatException("value must be >=0");
+        if (value < 0) { throw new NumberFormatException("value must be >=0"); }
         long rest = value;
         int bufferPosition = 0;
         while (true) {
-            int write = (int) (((rest & 127) << 1) & 0xFF);
+            final int write = (int) ((rest & 127) << 1 & 0xFF);
             this.buffer[bufferPosition] = (byte) write;
             rest = rest >>> 7;
             if (rest == 0) {
@@ -157,7 +150,7 @@ public class AWFCUtils {
     public void writeString(final String string) throws IOException {
         if (string == null) { throw new IOException("string == null"); }
         final byte[] stringBytes = string.getBytes("UTF-8");
-        if (stringBytes.length > 32767) throw new IllegalArgumentException("StringSize must not be greater than 32767 bytes");
+        if (stringBytes.length > 32767) { throw new IllegalArgumentException("StringSize must not be greater than 32767 bytes"); }
         this.writeShort(stringBytes.length);
         this.getCurrentOutputStream().write(stringBytes);
     }

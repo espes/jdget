@@ -16,8 +16,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.appwork.exceptions.WTFException;
+import org.appwork.utils.ReusableByteArrayOutputStream;
 import org.appwork.utils.ReusableByteArrayOutputStreamPool;
-import org.appwork.utils.ReusableByteArrayOutputStreamPool.ReusableByteArrayOutputStream;
 import org.appwork.utils.awfc.AWFCUtils;
 
 /**

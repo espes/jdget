@@ -1,38 +1,10 @@
 package org.appwork.utils;
 
-import java.io.ByteArrayOutputStream;
 import java.lang.ref.SoftReference;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 public class ReusableByteArrayOutputStreamPool {
-    public static class ReusableByteArrayOutputStream extends ByteArrayOutputStream {
-
-        protected ReusableByteArrayOutputStream(final int size) {
-            super(size);
-        }
-
-        public int bufferSize() {
-            return this.buf.length;
-        }
-
-        public synchronized int free() {
-            return this.buf.length - this.count;
-        }
-
-        public byte[] getInternalBuffer() {
-            return this.buf;
-        }
-
-        public synchronized void increaseUsed(final int increase) {
-            this.count = this.count + increase;
-        }
-
-        public synchronized void setUsed(final int used) {
-            this.count = used;
-        }
-
-    }
 
     private static final LinkedList<SoftReference<ReusableByteArrayOutputStream>> pool = new LinkedList<SoftReference<ReusableByteArrayOutputStream>>();
 
