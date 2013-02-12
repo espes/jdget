@@ -264,6 +264,12 @@ public class Application {
      */
     public static String getRoot(final Class<?> rootOfClazz) {
         if (Application.ROOT != null) { return Application.ROOT; }
+        final String key="awuhome" + Application.APP_FOLDER;
+        final String sysProp = System.getProperty(key);
+        if (sysProp != null) {
+            Application.ROOT = sysProp;
+            return ROOT;
+        }
         if (Application.isJared(rootOfClazz)) {
             // this is the jar file
             URL loc;
@@ -520,7 +526,9 @@ public class Application {
      * @return
      */
     public static String getJarName(Class<?> clazz) {
-        if (clazz == null) clazz = Application.class;
+        if (clazz == null) {
+            clazz = Application.class;
+        }
         final String name = clazz.getName().replaceAll("\\.", "/") + ".class";
         final String url = Application.getRessourceURL(name).toString();
 
