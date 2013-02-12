@@ -130,6 +130,8 @@ public class HTTPProxy {
             ret.host = storable.getAddress();
             break;
         }
+        ret.setPreferNativeImplementation(storable.isPreferNativeImplementation());
+        ret.setConnectMethodPrefered(storable.isConnectMethodPrefered());
         ret.setPass(storable.getPassword());
         ret.setUser(storable.getUsername());
         ret.setPort(storable.getPort());
@@ -188,6 +190,8 @@ public class HTTPProxy {
             ret.setAddress(proxy.getHost());
             break;
         }
+        ret.setConnectMethodPrefered(proxy.isConnectMethodPrefered());
+        ret.setPreferNativeImplementation(proxy.isPreferNativeImplementation());
         ret.setPort(proxy.getPort());
         ret.setPassword(proxy.getPass());
         ret.setUsername(proxy.getUser());
@@ -403,6 +407,7 @@ public class HTTPProxy {
         this.type = proxy.type;
         this.localIP = proxy.localIP;
         this.useConnectMethod = proxy.useConnectMethod;
+        this.preferNativeImplementation = proxy.preferNativeImplementation;
     }
 
     @Override

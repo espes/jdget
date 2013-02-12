@@ -9,9 +9,6 @@
  */
 package org.appwork.utils.net.httpconnection;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.appwork.storage.Storable;
 
 /**
@@ -28,13 +25,14 @@ public class HTTPProxyStorable implements Storable {
         HTTP
     }
 
-    private String username = null;
-    private String password = null;
-    private int    port     = -1;
-    private String address  = null;
-    private TYPE   type     = null;
-    private boolean useConnectMethod = false;
-    
+    private String  username                   = null;
+    private String  password                   = null;
+    private int     port                       = -1;
+    private String  address                    = null;
+    private TYPE    type                       = null;
+    private boolean useConnectMethod           = false;
+    private boolean preferNativeImplementation = false;
+
     public String getAddress() {
         return this.address;
     }
@@ -54,13 +52,21 @@ public class HTTPProxyStorable implements Storable {
     public String getUsername() {
         return this.username;
     }
-    
+
     public boolean isConnectMethodPrefered() {
         return this.useConnectMethod;
     }
-    
+
+    public boolean isPreferNativeImplementation() {
+        return this.preferNativeImplementation;
+    }
+
     public void setAddress(final String address) {
         this.address = address;
+    }
+
+    public void setConnectMethodPrefered(final boolean value) {
+        this.useConnectMethod = value;
     }
 
     public void setPassword(final String password) {
@@ -71,15 +77,15 @@ public class HTTPProxyStorable implements Storable {
         this.port = port;
     }
 
+    public void setPreferNativeImplementation(final boolean preferNativeImplementation) {
+        this.preferNativeImplementation = preferNativeImplementation;
+    }
+
     public void setType(final TYPE type) {
         this.type = type;
     }
 
     public void setUsername(final String username) {
         this.username = username;
-    }
-    
-    public void setConnectMethodPrefered(final boolean value) {
-        this.useConnectMethod = value;
     }
 }
