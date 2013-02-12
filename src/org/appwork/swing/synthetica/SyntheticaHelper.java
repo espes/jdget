@@ -114,7 +114,7 @@ public class SyntheticaHelper {
      * @param locale
      * @return
      */
-    private static String getFontName(final SyntheticaSettings config, final LanguageFileSetup locale) {
+    public static String getFontName(final SyntheticaSettings config, final LanguageFileSetup locale) {
         final String fontName = config.getFontName();
 
         final String fontFromTranslation = locale.config_fontname();
@@ -131,14 +131,20 @@ public class SyntheticaHelper {
             newFontName = fontName;
         }
         if (newFontName == null) {
-            switch (CrossSystem.OS_ID) {
-            case CrossSystem.OS_WINDOWS_7:
-            case CrossSystem.OS_WINDOWS_8:
-            case CrossSystem.OS_WINDOWS_VISTA:
-                return "Segoe UI";
-            }
+            newFontName = getDefaultFont();
         }
         return newFontName;
+    }
+
+    public static String getDefaultFont() {
+        switch (CrossSystem.OS_ID) {
+        case CrossSystem.OS_WINDOWS_7:
+        case CrossSystem.OS_WINDOWS_8:
+        case CrossSystem.OS_WINDOWS_VISTA:
+            return "Segoe UI";
+        }
+
+        return null;
     }
 
 }
