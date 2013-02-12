@@ -64,6 +64,8 @@ public class HTTPConstants {
          * will make no difference.[2
          */
         ERROR_FORBIDDEN(403, "Forbidden"),
+        
+        PROXY_AUTH_REQUIRED(407, "Forbidden"),
         /**
          * The requested resource could not be found but may be available again
          * in the future.[2] Subsequent requests by the client are permissible.
@@ -99,23 +101,23 @@ public class HTTPConstants {
 
         private ResponseCode(final int code, final String desc) {
             this.code = code;
-            this.description = desc;
-            this.bytes = (code + " " + desc).getBytes();
+            description = desc;
+            bytes = (code + " " + desc).getBytes();
         }
 
         /**
          * @return
          */
         public byte[] getBytes() {
-            return this.bytes;
+            return bytes;
         }
 
         public int getCode() {
-            return this.code;
+            return code;
         }
 
         public String getDescription() {
-            return this.description;
+            return description;
         }
     }
 

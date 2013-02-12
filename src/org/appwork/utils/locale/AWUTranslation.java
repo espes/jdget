@@ -400,4 +400,36 @@ public interface AWUTranslation extends TranslateInterface {
     
     String DIALOG_FILECHOOSER_networkfolder();
 
+    @Default(lngs = { "en", "de" }, values = { "No Connection to the Internet", "Keine Internetverbindung" })
+    String proxydialog_title();
+
+    @Default(lngs = { "en", "de" }, values = { "Save", "Speichern" })
+    String lit_save();
+
+    @Default(lngs = { "en" }, values = { "Host/Port:" })
+    String ProxyDialog_hostport();
+
+    @Default(lngs = { "en" }, values = { "HTTP" })
+    String ProxyDialog_http();
+
+    @Default(lngs = { "en" }, values = { "Password:" })
+    String ProxyDialog_password();
+
+    @Default(lngs = { "en" }, values = { "Socks5" })
+    String ProxyDialog_socks5();
+
+    @Default(lngs = { "en" }, values = { "Socks4" })
+    String ProxyDialog_socks4();
+
+    @Default(lngs = { "en" }, values = { "Direct" })
+    String ProxyDialog_direct();
+
+    @Default(lngs = { "en" }, values = { "Add new Proxy" })
+    String ProxyDialog_title();
+
+    @Default(lngs = { "en" }, values = { "Type:" })
+    String ProxyDialog_type();
+
+    @Default(lngs = { "en" }, values = { "Username:" })
+    String ProxyDialog_username();
 }
