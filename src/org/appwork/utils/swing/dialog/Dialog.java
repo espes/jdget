@@ -21,7 +21,6 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.ListCellRenderer;
-import javax.swing.UIManager;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.utils.BinaryLogic;
@@ -45,12 +44,7 @@ public class Dialog implements WindowFocusListener {
      */
     public static final String  FILECHOOSER                          = "FILECHOOSER";
 
-    static {
 
-        // AWU has their own filechooser extensions
-        UIManager.put("Synthetica.extendedFileChooser.rememberPreferences", Boolean.FALSE);
-        UIManager.put("Synthetica.extendedFileChooser.rememberLastDirectory", Boolean.FALSE);
-    }
 
     /**
      * Hide the cancel Button
@@ -262,7 +256,7 @@ public class Dialog implements WindowFocusListener {
     private DialogHandler                handler       = null;
 
     private Dialog() {
-        this.parents = new ArrayList<Window>();
+        parents = new ArrayList<Window>();
     }
 
     /**
@@ -270,14 +264,14 @@ public class Dialog implements WindowFocusListener {
      * @see Dialog#countdownTime
      */
     protected int getCountdownTime() {
-        return this.countdownTime;
+        return countdownTime;
     }
 
     /**
      * @return
      */
     public List<? extends Image> getIconList() {
-        return this.iconList;
+        return iconList;
     }
 
     /**
@@ -286,7 +280,7 @@ public class Dialog implements WindowFocusListener {
      */
     public Component getParentOwner() {
 
-        return this.owner;
+        return owner;
     }
 
     /**
@@ -296,7 +290,7 @@ public class Dialog implements WindowFocusListener {
      * @return
      */
     public java.util.List<Window> getRegisteredParents() {
-        return this.parents;
+        return parents;
     }
 
     /**
@@ -308,7 +302,7 @@ public class Dialog implements WindowFocusListener {
     public void registerFrame(final Window frame) {
         frame.addWindowFocusListener(this);
 
-        this.parents.add(frame);
+        parents.add(frame);
     }
 
     /**
@@ -331,8 +325,10 @@ public class Dialog implements WindowFocusListener {
      * @see Dialog#owner
      */
     public void setParentOwner(final Component parent) {
-        if (owner == parent) return;
-        this.owner = parent;
+        if (owner == parent) {
+            return;
+        }
+        owner = parent;
 
         if (parent == null) {
             Log.exception(new NullPointerException("parent == null"));
@@ -494,7 +490,7 @@ public class Dialog implements WindowFocusListener {
 
         if (handler != null) { return handler.showDialog(dialog); }
         if (dialog == null) { return null; }
-        EDTHelper<T> edth = new EDTHelper<T>() {
+        final EDTHelper<T> edth = new EDTHelper<T>() {
             @Override
             public T edtRun() {
                 dialog.displayDialog();
@@ -508,7 +504,7 @@ public class Dialog implements WindowFocusListener {
             try {
                 // close dialog if open
                 dialog.dispose();
-            } catch (Exception e) {
+            } catch (final Exception e) {
             }
             throw new DialogClosedException(Dialog.RETURN_INTERRUPT, edth.getInterruptException());
         }
@@ -523,22 +519,22 @@ public class Dialog implements WindowFocusListener {
         return handler;
     }
 
-    public void setHandler(DialogHandler handler) {
+    public void setHandler(final DialogHandler handler) {
         this.handler = handler;
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(final String[] args) throws InterruptedException {
 
-        Thread th = new Thread() {
+        final Thread th = new Thread() {
             public void run() {
                 try {
                     getInstance().showConfirmDialog(0, "Blabla?");
 
                     System.out.println("RETURNED OK");
-                } catch (DialogClosedException e) {
+                } catch (final DialogClosedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
-                } catch (DialogCanceledException e) {
+                } catch (final DialogCanceledException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
@@ -839,7 +835,7 @@ public class Dialog implements WindowFocusListener {
      */
     public void unregisterFrame(final Window win) {
         win.removeWindowFocusListener(this);
-        this.parents.remove(win);
+        parents.remove(win);
 
     }
 
@@ -882,7 +878,7 @@ public class Dialog implements WindowFocusListener {
 
         if (e.getSource() instanceof Window) {
 
-            this.setParentOwner((Component) e.getSource());
+            setParentOwner((Component) e.getSource());
         }
     }
 
@@ -905,7 +901,7 @@ public class Dialog implements WindowFocusListener {
      * @param dialog_error_noconnection
      * @return
      */
-    public int showErrorDialog(int flags, String title, String message) {
+    public int showErrorDialog(final int flags, final String title, final String message) {
         try {
             return this.showConfirmDialog(flags, title, message, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
         } catch (final DialogClosedException e) {
@@ -921,7 +917,7 @@ public class Dialog implements WindowFocusListener {
         }
     }
 
-    public void setLafManager(LAFManagerInterface lafManager) {
+    public void setLafManager(final LAFManagerInterface lafManager) {
         synchronized (this) {
             this.lafManager = lafManager;
         }
