@@ -17,7 +17,7 @@ import org.appwork.utils.swing.dialog.DialogClosedException;
  * @author thomas
  * 
  */
-public class ConfirmDialog {
+public class ConfirmDialogTest {
 
     /**
      * @param args

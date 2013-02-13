@@ -21,7 +21,7 @@ import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
-public class ConfirmDialog extends AbstractDialog<Integer> {
+public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDialogInterface {
 
     private String message;
 
@@ -85,9 +85,7 @@ public class ConfirmDialog extends AbstractDialog<Integer> {
 
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
 
-
-       
-            p.add(new JScrollPane(textField),"pushx,growx");
+            p.add(new JScrollPane(textField), "pushx,growx");
 
         } else {
 
