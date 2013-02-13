@@ -8,6 +8,7 @@ import java.util.Date;
 import org.appwork.swing.exttable.ExtColumn;
 import org.appwork.swing.exttable.ExtDefaultRowSorter;
 import org.appwork.swing.exttable.ExtTableModel;
+import org.appwork.utils.locale._AWU;
 
 public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
 
@@ -64,7 +65,7 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
             };
         }
 
-        this.setRowSorter(new ExtDefaultRowSorter<E>() {
+        setRowSorter(new ExtDefaultRowSorter<E>() {
 
             private long       a    = 0;
             private long       b    = 0;
@@ -85,7 +86,7 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
                     this.b = 0;
                 }
                 if (this.a == this.b) { return 0; }
-                if (this.getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
+                if (getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
                     return this.a > this.b ? -1 : 1;
                 } else {
                     return this.b > this.a ? -1 : 1;
@@ -134,7 +135,7 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
      */
     protected String getDateFormatString() {
 
-        return "dd.MM.yy HH:mm";
+        return _AWU.T.extdatecolumn_dateandtimeformat();
     }
 
     @Override

@@ -432,4 +432,8 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en" }, values = { "Username:" })
     String ProxyDialog_username();
+
+    @Default(lngs = { "en" }, values = { "dd.MM.yy HH:mm" })
+   
+    String extdatecolumn_dateandtimeformat();
 }
