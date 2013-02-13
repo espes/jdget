@@ -59,6 +59,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
     private final boolean                    contentDecoded       = false;
     private Proxy                            nativeProxy;
     private boolean                          connected            = false;
+    private boolean                          wasConnected         = false;
 
     public NativeHTTPConnectionImpl(final URL url) {
         this.httpURL = url;
@@ -78,6 +79,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
     public void connect() throws IOException {
         if (this.isConnected()) { return;/* oder fehler */
         }
+        this.wasConnected = false;
         final long startTime = System.currentTimeMillis();
         if (this.proxy != null) {
             switch (this.proxy.getType()) {
@@ -123,6 +125,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         }
         this.con.connect();
         this.connected = true;
+        this.wasConnected = true;
         this.requestTime = System.currentTimeMillis() - startTime;
         if (this.httpMethod != RequestMethod.POST) {
             this.outputStream = new NullOutputStream();
@@ -312,7 +315,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         sb.append("Connection-Timeout: ").append(this.connectTimeout + "ms").append("\r\n");
         sb.append("Read-Timeout: ").append(this.readTimeout + "ms").append("\r\n");
         sb.append("----------------(Native)Request-------------------------\r\n");
-        if (this.isConnected()) {
+        if (this.isConnected() || this.wasConnected()) {
             sb.append(this.httpMethod.toString()).append(' ').append(this.getURL().getPath()).append(" HTTP/1.1\r\n");
 
             final Iterator<Entry<String, String>> it = this.getRequestProperties().entrySet().iterator();
@@ -361,7 +364,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         final StringBuilder sb = new StringBuilder();
         sb.append("----------------Response Information------------\r\n");
         try {
-            if (this.isConnected()) {
+            if (this.isConnected() || this.wasConnected()) {
                 sb.append("Connection-Time: ").append(this.requestTime + "ms").append("\r\n");
                 sb.append("----------------Response------------------------\r\n");
                 this.connectInputStream();
@@ -471,7 +474,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
     @Override
     public void setConnectTimeout(final int connectTimeout) {
         this.connectTimeout = connectTimeout;
-    };
+    }
 
     @Override
     public void setContentDecoded(final boolean b) {
@@ -479,7 +482,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         // if (this.convertedInputStream != null) { throw new
         // IllegalStateException("InputStream already in use!"); }
         // this.contentDecoded = b;
-    }
+    };
 
     @Override
     public void setReadTimeout(final int readTimeout) {
@@ -509,6 +512,13 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         sb.append(this.getRequestInfo());
         sb.append(this.getResponseInfo());
         return sb.toString();
+    }
+
+    /**
+     * @return
+     */
+    private boolean wasConnected() {
+        return this.wasConnected;
     }
 
 }
