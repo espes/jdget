@@ -14,5 +14,6 @@ package org.appwork;
  * 
  */
 public class Counter {
-    public static final int VALUE = 1;
+    /** final? no no never! ever!!*/
+    public static int VALUE = 1;
 }
