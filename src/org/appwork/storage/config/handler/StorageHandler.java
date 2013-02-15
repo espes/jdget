@@ -872,7 +872,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @param object
      */
     protected void putPrimitive(final String key, final Boolean value) {
-        System.out.println(this+" - "+key+" - "+value);
+     
         this.primitiveStorage.put(key, value);
         delayedSave();
 
