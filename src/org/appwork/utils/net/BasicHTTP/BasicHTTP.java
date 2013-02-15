@@ -147,6 +147,7 @@ public class BasicHTTP {
         InputStream input = null;
         int ioExceptionWhere = 0;
         try {
+ 
             connection = HTTPConnectionFactory.createHTTPConnection(url, proxy);
             connection.setConnectTimeout(getConnectTimeout());
             connection.setReadTimeout(getReadTimeout());

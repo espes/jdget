@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.net.httpconnection;
 
+import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storable;
 
 /**
@@ -25,6 +26,10 @@ public class HTTPProxyStorable implements Storable {
         HTTP
     }
 
+    public static void main(final String[] args) {
+        System.out.println(JSonStorage.toString(new HTTPProxyStorable()));
+    }
+
     private String  username                   = null;
     private String  password                   = null;
     private int     port                       = -1;
@@ -34,31 +39,31 @@ public class HTTPProxyStorable implements Storable {
     private boolean preferNativeImplementation = false;
 
     public String getAddress() {
-        return this.address;
+        return address;
     }
 
     public String getPassword() {
-        return this.password;
+        return password;
     }
 
     public int getPort() {
-        return this.port;
+        return port;
     }
 
     public TYPE getType() {
-        return this.type;
+        return type;
     }
 
     public String getUsername() {
-        return this.username;
+        return username;
     }
 
     public boolean isConnectMethodPrefered() {
-        return this.useConnectMethod;
+        return useConnectMethod;
     }
 
     public boolean isPreferNativeImplementation() {
-        return this.preferNativeImplementation;
+        return preferNativeImplementation;
     }
 
     public void setAddress(final String address) {
@@ -66,7 +71,7 @@ public class HTTPProxyStorable implements Storable {
     }
 
     public void setConnectMethodPrefered(final boolean value) {
-        this.useConnectMethod = value;
+        useConnectMethod = value;
     }
 
     public void setPassword(final String password) {
