@@ -81,12 +81,11 @@ public class InputField extends HashMap<String, String> {
                 } else if (match[0].equalsIgnoreCase("value")) {
                     ret.setValue(Encoding.formEncoding(match[1]));
                     if (cbr) {
-                            ret.put("<INPUTFIELD:TYPEVALUE>", Encoding.formEncoding(match[1]));
-                            ret.setValue(Encoding.formEncoding(match[1]));
                             if (checked) {
-                                ret.put("<INPUTFIELD:CHECKED>", "true");
+                                //ret.put("<INPUTFIELD:CHECKED>", "true");
                             } else {
                                 ret.put("<INPUTFIELD:CHECKED>", "false");
+                                ret.put("<INPUTFIELD:TYPEVALUE>", Encoding.formEncoding(match[1]));
                                 ret.setValue(Encoding.formEncoding(null));
                             }
                         }
@@ -94,6 +93,7 @@ public class InputField extends HashMap<String, String> {
                         //ret.put("CKBOX_RADIO_DISABLED", "false");
                     } else {
                         ret.put("<INPUTFIELD:DISABLED>", "true");
+                        ret.put("<INPUTFIELD:TYPEVALUE>", Encoding.formEncoding(match[1]));
                         ret.setValue(Encoding.formEncoding(null));
                     }
                 } else {
