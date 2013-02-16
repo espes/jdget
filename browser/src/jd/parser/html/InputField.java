@@ -42,42 +42,72 @@ public class InputField extends HashMap<String, String> {
                 }
             }
         }
-        
         // no longer have to worry about 'data' with miss matched quotation marks!
-        String[][] matches = new Regex(data, "[\"' ](\\w+?)\\s*=\\s*\"(.*?)\"").getMatches();
-        // find values when quotation marks are not used! don't forget to exit on space!
-        final String[][] matches2 = new Regex(data, "[\"' ](\\w+?)\\s*=\\s*([^ >\"']+)").getMatches();
+        
+        // Note: input form correction for 'checked' and 'disabled' fields.
+        // 'disabled' can be for any input field type. Can not be changed! Value shouldn't been submitted with form, .:. null value.
+        // 'checked' states current value, can can be re-sent with current request. .:. null value.
+        //  when 'checked' not present value shouldn't be sent/set within forms input field.
+        boolean cbr = false;
+        boolean checked = false;
+        boolean disabled = false;
+        
+        ArrayList<String> matches = new ArrayList<String>();
+        matches.add("\\s?+type\\s?+=\\s?+\"?(checkbox|radio)?\"");
+        matches.add("\\s+(checked)\\s?+");
+        matches.add("\\s+(disabled)\\s?+");
+        for (String reg : matches) {
+            String result = new Regex(data, reg).getMatch(0);
+            if (result != null && result.matches("(?i)disabled"))  
+                disabled = true;
+            if (result != null && result.matches("(?i)checked"))
+                checked = true;
+            if (result != null && result.matches("(?i)checkbox|radio"))
+               cbr = true;
+        }
+
         final InputField ret = new InputField();
-
-        for (final String[] match : matches) {
-            if (match[0].equalsIgnoreCase("type")) {
-                ret.setType(match[1]);
-            } else if (match[0].equalsIgnoreCase("name")) {
-                ret.setKey(Encoding.formEncoding(match[1]));
-            } else if (match[0].equalsIgnoreCase("value")) {
-                ret.setValue(Encoding.formEncoding(match[1]));
-            } else {
-                ret.put(Encoding.formEncoding(match[0]), Encoding.formEncoding(match[1]));
+        
+        ArrayList<String> input = new ArrayList<String>();
+        input.add("[\"' ](\\w+?)\\s*=\\s*\"(.*?)\"");
+        input.add("[\"' ](\\w+?)\\s*=\\s*([^ >\"']+)");
+        for (String reg : input) {
+            String[][] results = new Regex(data, reg).getMatches();
+            for (final String[] match : results) {
+                if (match[0].equalsIgnoreCase("type")) {
+                    ret.setType(match[1]);
+                } else if (match[0].equalsIgnoreCase("name")) {
+                    ret.setKey(Encoding.formEncoding(match[1]));
+                } else if (match[0].equalsIgnoreCase("value")) {
+                    ret.setValue(Encoding.formEncoding(match[1]));
+                    if (cbr) {
+                            ret.put("<INPUTFIELD:TYPEVALUE>", Encoding.formEncoding(match[1]));
+                            ret.setValue(Encoding.formEncoding(match[1]));
+                            if (checked) {
+                                ret.put("<INPUTFIELD:CHECKED>", "true");
+                            } else {
+                                ret.put("<INPUTFIELD:CHECKED>", "false");
+                                ret.setValue(Encoding.formEncoding(null));
+                            }
+                        }
+                    if (!disabled) {
+                        //ret.put("CKBOX_RADIO_DISABLED", "false");
+                    } else {
+                        ret.put("<INPUTFIELD:DISABLED>", "true");
+                        ret.setValue(Encoding.formEncoding(null));
+                    }
+                } else {
+                    ret.put(Encoding.formEncoding(match[0]), Encoding.formEncoding(match[1]));
+                }
             }
         }
-
-        for (final String[] match : matches2) {
-            if (match[0].equalsIgnoreCase("type")) {
-                ret.setType(match[1]);
-            } else if (match[0].equalsIgnoreCase("name")) {
-                ret.setKey(Encoding.formEncoding(match[1]));
-            } else if (match[0].equalsIgnoreCase("value")) {
-                ret.setValue(Encoding.formEncoding(match[1]));
-            } else {
-                ret.put(Encoding.formEncoding(match[0]), Encoding.formEncoding(match[1]));
-            }
-        }
+        
         return ret;
     }
 
     private String key = null;
     private String value = null;
-
+    
     private String type = null;
 
     public InputField() {
@@ -88,7 +118,7 @@ public class InputField extends HashMap<String, String> {
         this.key = key;
         this.value = value;
     }
-
+    
     public File getFileToPost() {
         if (!type.equalsIgnoreCase("file")) { throw new IllegalStateException("No file post field"); }
 

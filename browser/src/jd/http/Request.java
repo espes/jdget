@@ -100,7 +100,7 @@ public abstract class Request {
         final InputStream is = con.getInputStream();
         byte[] ret = null;
         if (is == null) {
-            // TODO: check if we have t close con here
+            // TODO: check if we have to close con here
             return null;
         }
         ReusableByteArrayOutputStream tmpOut;

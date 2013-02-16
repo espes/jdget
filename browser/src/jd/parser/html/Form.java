@@ -94,15 +94,11 @@ public class Form {
     }
 
     public void addInputField(final InputField nv) {
-
         this.inputfields.add(nv);
-
     }
 
     public void addInputFieldAt(final InputField nv, final int i) {
-
         this.inputfields.add(i, nv);
-
     }
 
     /**
@@ -197,7 +193,6 @@ public class Form {
             }
         }
         return best;
-
     }
 
     public String getEncoding() {
@@ -355,7 +350,6 @@ public class Form {
             } else {
                 ret.add(new RequestVariable(ipf.getKey(), ipf.getValue()));
             }
-
         }
         return ret;
     }
@@ -401,7 +395,6 @@ public class Form {
         // requestInfo.getConnection().getURL().toString();
         // }
         // form.vars.add(form.getInputFields(inForm));
-
     }
 
     private void parseHeader(final String[][] headerEntries) {
@@ -455,7 +448,6 @@ public class Form {
      * @param key
      * @param value
      */
-
     public void put(final String key, final String value) {
         final InputField ipf = this.getInputField(key);
         if (ipf != null) {
@@ -501,7 +493,6 @@ public class Form {
 
     public void setMethod(final MethodType method) {
         this.method = method;
-
     }
 
     /**
@@ -517,9 +508,7 @@ public class Form {
                 return;
             }
         }
-
         throw new IllegalArgumentException("No such Submitfield: " + i);
-
     }
 
     /**
