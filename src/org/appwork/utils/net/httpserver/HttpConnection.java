@@ -177,7 +177,7 @@ public class HttpConnection implements Runnable {
     public void closeConnection() {
         if (this.clientSocket == null) { return; }
         try {
-            this.clientSocket.getOutputStream().flush();
+            this.clientSocket.shutdownOutput();
         } catch (final Throwable nothing) {
         }
         try {
@@ -212,6 +212,14 @@ public class HttpConnection implements Runnable {
         return this.os;
     }
 
+    /**
+     * @param response2
+     * @return
+     */
+    protected HttpResponse preProcessHttpResponse(final HttpResponse response) {
+        return response;
+    }
+
     protected String preProcessRequestLine(final String requestLine) {
         return requestLine;
     }
@@ -226,6 +234,7 @@ public class HttpConnection implements Runnable {
             final HttpRequest request = this.buildRequest();
             // if(Log.L.isLoggable(Level.FINER)) Log.L.finer(request+"");
             this.response = new HttpResponse(this);
+            this.response = this.preProcessHttpResponse(this.response);
             this.requestReceived(request);
             boolean handled = false;
             for (final HttpRequestHandler handler : this.getHandler()) {

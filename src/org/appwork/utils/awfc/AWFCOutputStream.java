@@ -48,8 +48,8 @@ public class AWFCOutputStream extends OutputStream {
 
     @Override
     public synchronized void close() throws IOException {
+        this.closing = true;
         if (this.headerWritten == false) {
-            this.closing = true;
             this.writeAWFCHeader();
         }
         this.getCurrentOutputStream().close();

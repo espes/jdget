@@ -19,9 +19,9 @@ import java.io.InputStream;
 public class ChunkedInputStream extends InputStream {
 
     private final InputStream is;
-    private int               nextChunkSize = 0;
-    private int               nextChunkLeft = 0;
-    private long              completeSize  = 0;
+    private volatile int      nextChunkSize = 0;
+    private volatile int      nextChunkLeft = 0;
+    private volatile long     completeSize  = 0;
 
     public ChunkedInputStream(final InputStream is) {
         this.is = is;

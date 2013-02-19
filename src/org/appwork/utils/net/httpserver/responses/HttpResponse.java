@@ -50,6 +50,24 @@ public class HttpResponse implements HttpResponseInterface {
         this.responseHeaders.add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_SERVER, "AppWork GmbH HttpServer"));
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.net.httpserver.responses.HttpResponseInterface#
+     * closeConnection()
+     */
+    @Override
+    public void closeConnection() {
+        if (this.asyncResponse) {
+            try {
+                this.connection.closeConnection();
+            } finally {
+                this.connection.close();
+            }
+        }
+
+    }
+
     /**
      * returns this HttpResonse's OutputStream. NOTE: set ResponseHeaders/Code
      * before first call of this. once the OutputStream is available you cannot
@@ -79,37 +97,22 @@ public class HttpResponse implements HttpResponseInterface {
         return this.responseHeaders;
     }
 
+    @Override
+    public boolean isResponseAsync() {
+        return this.asyncResponse;
+    }
+
+    @Override
+    public void setResponseAsync(final boolean b) {
+        this.asyncResponse = b;
+    }
+
     /**
      * @param responseCode
      *            the responseCode to set
      */
     public void setResponseCode(final ResponseCode responseCode) {
         this.responseCode = responseCode;
-    }
-
-    @Override
-    public boolean isResponseAsync() {
-        return asyncResponse;
-    }
-
-    @Override
-    public void setResponseAsync(boolean b) {
-        asyncResponse = b;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.net.httpserver.responses.HttpResponseInterface#
-     * closeConnection()
-     */
-    @Override
-    public void closeConnection() {
-        if (asyncResponse) {
-            connection.closeConnection();
-            connection.close();
-        }
-
     }
 
 }

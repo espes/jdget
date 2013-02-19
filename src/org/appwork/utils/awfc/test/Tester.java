@@ -46,7 +46,7 @@ public class Tester {
         AWFCEntry entry = null;
         boolean file = false;
         boolean noPayLoad = false;
-        for (int i = 0; i < 1024 * 1024; i++) {
+        for (int i = 0; i < 1024 * 500; i++) {
             if (file == false) {
                 entry = new AWFCEntry("test" + i, buffer.length, hash);
                 cos.putNextEntry(entry, noPayLoad);
@@ -74,11 +74,12 @@ public class Tester {
         long i = 0;
         final byte[] buffer2 = new byte[2048];
         while ((entry = cis.getNextEntry()) != null) {
+            i++;
             while (cis.read(buffer2) != -1) {
                 ;
             }
         }
-        System.out.println(System.currentTimeMillis() - a);
+        System.out.println(System.currentTimeMillis() - a + " = " + i);
         if (true) { return; }
         a = System.currentTimeMillis();
         final ZipOutputStream zos = new ZipOutputStream(bos);
