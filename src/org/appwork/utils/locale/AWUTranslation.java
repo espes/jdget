@@ -406,13 +406,13 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Save", "Speichern" })
     String lit_save();
 
-    @Default(lngs = { "en" }, values = { "Host/Port:" })
+    @Default(lngs = { "en" }, values = { "Host:Port" })
     String ProxyDialog_hostport();
 
     @Default(lngs = { "en" }, values = { "HTTP" })
     String ProxyDialog_http();
 
-    @Default(lngs = { "en" }, values = { "Password:" })
+    @Default(lngs = { "en" }, values = { "Password" })
     String ProxyDialog_password();
 
     @Default(lngs = { "en" }, values = { "Socks5" })
@@ -427,13 +427,28 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en" }, values = { "Add new Proxy" })
     String ProxyDialog_title();
 
-    @Default(lngs = { "en" }, values = { "Type:" })
+    @Default(lngs = { "en" }, values = { "Type" })
     String ProxyDialog_type();
 
-    @Default(lngs = { "en" }, values = { "Username:" })
+    @Default(lngs = { "en" }, values = { "Username" })
     String ProxyDialog_username();
 
     @Default(lngs = { "en" }, values = { "dd.MM.yy HH:mm" })
    
     String extdatecolumn_dateandtimeformat();
+
+    @Default(lngs = { "en" }, values = { "Authorization required" })
+    String ProxyDialog_requires_auth();
+
+    @Default(lngs = { "en" }, values = { "Enter hostname or IP address..." })
+    String ProxyDialog_hostport_help();
+
+    @Default(lngs = { "en" }, values = { "Enter username..." })
+    String ProxyDialog_username_help();
+
+    @Default(lngs = { "en" }, values = { "Enter password..." })
+    String ProxyDialog_password_help();
+
+    @Default(lngs = { "en" }, values = { "Continue" })
+    String lit_continue();
 }

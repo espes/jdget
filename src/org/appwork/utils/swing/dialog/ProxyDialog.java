@@ -18,6 +18,8 @@ import javax.swing.event.CaretListener;
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.scheduler.DelayedRunnable;
+import org.appwork.swing.MigPanel;
+import org.appwork.swing.components.ExtCheckBox;
 import org.appwork.swing.components.ExtPasswordField;
 import org.appwork.swing.components.ExtTextArea;
 import org.appwork.swing.components.ExtTextField;
@@ -38,7 +40,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
     private ExtTextField     txtUser;
     private ExtPasswordField txtPass;
 
-    private final String[]   types = new String[] { _AWU.T.ProxyDialog_http(), _AWU.T.ProxyDialog_socks5(), _AWU.T.ProxyDialog_socks4(), _AWU.T.ProxyDialog_direct() };
+    private final String[]   types        = new String[] { _AWU.T.ProxyDialog_http(), _AWU.T.ProxyDialog_socks5(), _AWU.T.ProxyDialog_socks4(), _AWU.T.ProxyDialog_direct() };
     private JLabel           lblUser;
     private JLabel           lblPass;
     private JLabel           lblPort;
@@ -48,6 +50,12 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
     private HTTPProxy        proxy;
     private ExtTextArea      desc;
     private String           message;
+    private ExtCheckBox      cbAuth;
+    private boolean          authRequired = false;
+
+    public boolean isAuthRequired() {
+        return authRequired;
+    }
 
     public ProxyDialog(final HTTPProxy usedProxy, final String message) {
         super(Dialog.STYLE_HIDE_ICON, _AWU.T.proxydialog_title(), null, _AWU.T.lit_save(), _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL());
@@ -61,12 +69,11 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
         desc = new ExtTextArea();
         desc.setText(message);
         desc.setLabelMode(true);
-        panel.add(desc, "spanx,pushx,growx");
-        panel.add(new JLabel(_AWU.T.ProxyDialog_type()));
-        panel.add(cmbType = new JComboBox(types), "spanx");
+        cmbType = new JComboBox(types);
         cmbType.addActionListener(this);
-        panel.add(lblHost = new JLabel(_AWU.T.ProxyDialog_hostport()));
-        panel.add(txtHost = new ExtTextField() {
+        lblHost = new JLabel(_AWU.T.ProxyDialog_hostport());
+        desc.setFont(lblHost.getFont());
+        txtHost = new ExtTextField() {
             @Override
             public void onChanged() {
 
@@ -74,7 +81,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
 
             }
 
-        });
+        };
 
         delayer = new DelayedRunnable(ToolTipController.EXECUTER, 2000) {
 
@@ -93,25 +100,53 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
 
         };
         txtHost.addCaretListener(this);
-        panel.add(lblPort = new JLabel(":"));
-        panel.add(txtPort = new ExtTextField(), "shrinkx");
-        // txtHost.setHelpText(_AWU.T.ProxyDialog_hostport());
+        lblPort = new JLabel(":");
+        txtPort = new ExtTextField();
+
         txtPort.setText("8080");
         txtPort.addCaretListener(this);
-   
-        panel.add(lblUser = new JLabel(_AWU.T.ProxyDialog_username()));
-        panel.add(txtUser = new ExtTextField(), "spanx");
-        // txtUser.setHelpText(_AWU.T.ProxyDialog_username());
+        lblUser = new JLabel(_AWU.T.ProxyDialog_username());
+        txtUser = new ExtTextField();
 
-        panel.add(lblPass = new JLabel(_AWU.T.ProxyDialog_password()));
-        panel.add(txtPass = new ExtPasswordField(), "spanx");
-        // txtPass.setHelpText(_AWU.T.ProxyDialog_password());
+        lblPass = new JLabel(_AWU.T.ProxyDialog_password());
+        txtPass = new ExtPasswordField();
+
+        ;
+        cbAuth = new ExtCheckBox(txtUser, lblPass, txtPass, lblUser);
+
+        txtHost.setHelpText(_AWU.T.ProxyDialog_hostport_help());
+        txtUser.setHelpText(_AWU.T.ProxyDialog_username_help());
+        txtPass.setHelpText(_AWU.T.ProxyDialog_password_help());
+
+        final JLabel lblCheckBox = new JLabel(_AWU.T.ProxyDialog_requires_auth());
+        final MigPanel cbPanel = new MigPanel("ins 0", "[][grow]", "[]");
+
+        cbPanel.add(cbAuth);
+        cbPanel.add(lblCheckBox);
+        // Layout#
+
+        panel.add(desc, "spanx,pushx,growx,gapbottom 10");
+        panel.add(new JLabel(_AWU.T.ProxyDialog_type()), "gapleft 10");
+        panel.add(cmbType, "spanx");
+        panel.add(lblHost, "gapleft 10");
+        panel.add(txtHost);
+        panel.add(lblPort);
+        panel.add(txtPort, "shrinkx");
+        panel.add(cbPanel, "spanx,gaptop 5,gapleft 5");
+        panel.add(lblUser, "gapleft 10");
+        panel.add(txtUser, "spanx");
+
+        panel.add(lblPass, "gapleft 10");
+        panel.add(txtPass, "spanx");
+
         okButton.setEnabled(true);
         registerFocus(txtPort);
         registerFocus(txtUser);
         registerFocus(txtHost);
         // set(ClipboardMonitoring.getINSTANCE().getCurrentContent());
         set(proxy);
+        cbAuth.setSelected(isAuthRequired());
+        cbAuth.updateDependencies();
         return panel;
     }
 
@@ -275,6 +310,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
                     txtPort.setText("1080");
                 }
             }
+            cbAuth.updateDependencies();
 
         } else {
             super.actionPerformed(e);
@@ -410,11 +446,39 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
     public HTTPProxy getProxy() {
         final HTTPProxy ret = new HTTPProxy(getType());
         ret.setHost(getHost());
-        ret.setUser(getUser());
         ret.setPort(getPort());
+        if (isAuthEnabled()) {
+            ret.setUser(getUser());
 
-        ret.setPass(getPass());
+            ret.setPass(getPass());
+        }
         return ret;
+    }
+
+    /**
+     * @return
+     */
+    private boolean isAuthEnabled() {
+      
+        return cbAuth.isSelected();
+    }
+
+    /**
+     * @param b
+     */
+    public void setAuthRequired(final boolean b) {
+        authRequired = b;
+        if (cbAuth != null) {
+            new EDTRunner() {
+
+                @Override
+                protected void runInEDT() {
+                    cbAuth.setSelected(b);
+
+                }
+            };
+        }
+
     }
 
 }

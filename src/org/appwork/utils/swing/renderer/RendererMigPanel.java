@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing.renderer;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Rectangle;
 
@@ -36,7 +37,19 @@ public class RendererMigPanel extends MigPanel {
         super(constraints, columns, rows);
 
     }
-
+    public void setBackground(final Color bg) {
+       super.setBackground(bg);
+       for (final Component c : getComponents()) {
+           c.setBackground(bg);
+       }
+   
+    }
+    public void setForeground(final Color fg) {
+        super.setForeground(fg);
+        for (final Component c : getComponents()) {
+            c.setForeground(fg);
+        }
+    }
     // /**
     // * * Overridden for performance reasons.
     // */
@@ -48,7 +61,7 @@ public class RendererMigPanel extends MigPanel {
 
     @Override
     public boolean isEnabled() {
-        return this._enabled;
+        return _enabled;
     }
 
     /**
@@ -94,8 +107,8 @@ public class RendererMigPanel extends MigPanel {
 
     @Override
     public void setEnabled(final boolean enabled) {
-        this._enabled = enabled;
-        for (final Component c : this.getComponents()) {
+        _enabled = enabled;
+        for (final Component c : getComponents()) {
             c.setEnabled(enabled);
         }
     }

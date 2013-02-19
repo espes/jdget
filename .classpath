@@ -16,5 +16,6 @@
 	<classpathentry kind="lib" path="libs/sequence-library-1.0.0.jar"/>
 	<classpathentry kind="lib" path="libs/svnkit.jar"/>
 	<classpathentry kind="lib" path="dev_libs/synthetica.jar"/>
+	<classpathentry kind="lib" path="libs/proxyVole.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

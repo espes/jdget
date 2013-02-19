@@ -64,7 +64,7 @@ public class HTTPConstants {
          * will make no difference.[2
          */
         ERROR_FORBIDDEN(403, "Forbidden"),
-        
+
         PROXY_AUTH_REQUIRED(407, "Forbidden"),
         /**
          * The requested resource could not be found but may be available again
@@ -118,6 +118,20 @@ public class HTTPConstants {
 
         public String getDescription() {
             return description;
+        }
+
+        /**
+         * @param responseCode
+         * @return
+         */
+        public static ResponseCode get(final int responseCode) {
+            for (final ResponseCode rc : values()) {
+                if (responseCode == rc.getCode()) {
+                    return rc;
+                }
+            }
+            return null;
+
         }
     }
 

@@ -722,7 +722,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     /**
      * @param title2
      */
-    protected void setTitle(final String title2) {
+    public void setTitle(final String title2) {
         try {
             getDialog().setTitle(title2);
         } catch (final NullPointerException e) {
