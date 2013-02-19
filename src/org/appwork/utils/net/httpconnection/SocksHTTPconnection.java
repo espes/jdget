@@ -59,7 +59,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
             long startTime = System.currentTimeMillis();
             for (final InetAddress host : hosts) {
                 this.sockssocket = new Socket();
-                this.sockssocket.setSoTimeout(this.readTimeout);
+                this.sockssocket.setSoTimeout(this.connectTimeout);
                 try {
                     /* create and connect to socks5 proxy */
                     startTime = System.currentTimeMillis();
@@ -123,6 +123,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
                 /* we can continue to use the socks connection */
                 this.httpSocket = establishedConnection;
             }
+            this.sockssocket.setSoTimeout(this.readTimeout);
             this.httpResponseCode = -1;
             this.requestTime = System.currentTimeMillis() - startTime;
             this.httpPath = new org.appwork.utils.Regex(this.httpURL.toString(), "https?://.*?(/.+)").getMatch(0);
