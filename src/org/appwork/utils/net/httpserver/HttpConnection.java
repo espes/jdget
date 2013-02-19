@@ -67,13 +67,13 @@ public class HttpConnection implements Runnable {
         return requestedURLParameters;
     }
 
-    private final HttpServer server;
-    private Socket           clientSocket        = null;
-    private boolean          responseHeadersSent = false;
+    protected final HttpServer server;
+    protected Socket           clientSocket        = null;
+    protected boolean          responseHeadersSent = false;
 
-    private HttpResponse     response            = null;
-    private InputStream      is                  = null;
-    private OutputStream     os                  = null;
+    protected HttpResponse     response            = null;
+    protected InputStream      is                  = null;
+    protected OutputStream     os                  = null;
 
     public HttpConnection(final HttpServer server, final InputStream is, final OutputStream os) {
         this.server = server;
@@ -220,7 +220,7 @@ public class HttpConnection implements Runnable {
         return response;
     }
 
-    protected String preProcessRequestLine(final String requestLine) {
+    protected String preProcessRequestLine(final String requestLine) throws IOException {
         return requestLine;
     }
 
@@ -286,7 +286,7 @@ public class HttpConnection implements Runnable {
      * 
      * @throws IOException
      */
-    private synchronized void sendResponseHeaders() throws IOException {
+    protected synchronized void sendResponseHeaders() throws IOException {
         try {
             if (this.responseHeadersSent == true) { throw new IOException("Headers already send!"); }
             if (this.response != null) {
