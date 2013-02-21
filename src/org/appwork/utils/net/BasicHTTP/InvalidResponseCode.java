@@ -57,4 +57,15 @@ public class InvalidResponseCode extends IOException {
         return sb.toString();
     }
 
+    /**
+     * @return
+     */
+    public int getCode() {
+        try {
+            return connection.getResponseCode();
+        } catch (final Exception e) {
+        }
+        return -1;
+    }
+
 }
