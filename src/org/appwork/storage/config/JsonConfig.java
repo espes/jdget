@@ -81,13 +81,13 @@ public class JsonConfig {
                         ret = JsonConfig.CACHE.get(configInterface.getName());
                         if (ret == null) {
 
-                            ret = (T) Proxy.newProxyInstance(JsonConfig.class.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(Application.getResource("cfg/" + configInterface.getName()), configInterface));
+                            ret = (T) Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(Application.getResource("cfg/" + configInterface.getName()), configInterface));
 
                             JsonConfig.CACHE.put(configInterface.getName(), ret);
                         }
                     }
                 }
-            } catch (RuntimeException e) {
+            } catch (final RuntimeException e) {
                 Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
                 throw e;
             }
@@ -112,15 +112,15 @@ public class JsonConfig {
 
                 ConfigInterface ret = JsonConfig.CACHE.get(id);
                 if (ret == null) {
-
-                    ret = (T) Proxy.newProxyInstance(configInterface.getClassLoader(), new Class<?>[] { configInterface }, new StorageHandler<T>(path, configInterface));
+                    final ClassLoader cl = configInterface.getClassLoader();
+                    ret = (T) Proxy.newProxyInstance(cl, new Class<?>[] { configInterface }, new StorageHandler<T>(path, configInterface));
 
                     JsonConfig.CACHE.put(id, ret);
                 }
                 return (T) ret;
 
             }
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
             throw e;
         }
@@ -149,10 +149,10 @@ public class JsonConfig {
                 return (T) ret;
 
             }
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
             throw e;
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
             throw new WTFException(e);
         }

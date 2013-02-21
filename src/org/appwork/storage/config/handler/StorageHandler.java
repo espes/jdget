@@ -17,6 +17,7 @@ import java.lang.reflect.Type;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -95,11 +96,18 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         save = false;
     }
 
+    private static final HashSet<String> DUPE_SET = new HashSet<String>();
+
     /**
      * @param name
      * @param configInterface
      */
     public StorageHandler(final File name, final Class<T> configInterface) {
+
+        if (!DUPE_SET.add(configInterface.getName()+"."+name.getAbsolutePath())) {
+            throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice");
+        }
+
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 
@@ -254,7 +262,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     public void write() {
-      
+
         primitiveStorage.save();
     }
 
@@ -872,7 +880,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @param object
      */
     protected void putPrimitive(final String key, final Boolean value) {
-     
+
         this.primitiveStorage.put(key, value);
         delayedSave();
 
@@ -882,9 +890,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * 
      */
     private void delayedSave() {
-        if (getDelayedSaveInterval() < 0) {
-            return;
-        }
+        if (getDelayedSaveInterval() < 0) { return; }
         final DelayedRunnable del = delayedSaver;
         if (del != null) {
             del.resetAndStart();
