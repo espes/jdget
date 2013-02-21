@@ -11,7 +11,7 @@ package org.appwork.utils.net.BasicHTTP;
 
 import java.io.IOException;
 
-import org.appwork.utils.Exceptions;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.httpconnection.HTTPConnection;
 
 /**
@@ -26,7 +26,7 @@ public class InvalidResponseCode extends IOException {
     /**
      * @param connection
      */
-    public InvalidResponseCode(final HTTPConnection connection, String message) {
+    public InvalidResponseCode(final HTTPConnection connection, final String message) {
         super("Invalid ResponseCode: " + connection.getResponseCode());
         this.connection = connection;
         this.message = message;
@@ -37,27 +37,21 @@ public class InvalidResponseCode extends IOException {
      * @param connection2
      * @param str
      */
-    public InvalidResponseCode(HTTPConnection connection) {
+    public InvalidResponseCode(final HTTPConnection connection) {
         this(connection, null);
 
     }
 
     public HTTPConnection getConnection() {
-        return this.connection;
+        return connection;
     }
 
     @Override
     public String getMessage() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("Invalid ResponseCode: " + this.connection.getResponseCode());
-        try {
-            if (this.connection != null) {
-                sb.append(this.connection);
-            }
-        } catch (final Throwable e) {
-            sb.append(Exceptions.getStackTrace(e));
-        }
-        if (message != null) {
+        sb.append("Invalid ResponseCode: " + connection.getResponseCode());
+
+        if (StringUtils.isNotEmpty(message)) {
             sb.append("\r\nResponseBody:\r\n").append(message);
         }
         return sb.toString();
