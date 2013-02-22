@@ -151,10 +151,6 @@ public abstract class LogSourceProvider {
         }.start();
     }
 
-    public ConsoleHandler getConsoleHandler() {
-        return consoleHandler;
-    }
-
     /**
      * @param name
      * @param i
@@ -199,6 +195,10 @@ public abstract class LogSourceProvider {
 
     public LogSource getClassLogger(final Class<?> clazz) {
         return this.getLogger(clazz.getSimpleName());
+    }
+
+    public ConsoleHandler getConsoleHandler() {
+        return this.consoleHandler;
     }
 
     /**
@@ -274,6 +274,10 @@ public abstract class LogSourceProvider {
         source.setInstantFlush(this.instantFlushDefault);
         sink.addLogSource(source);
         return source;
+    }
+
+    protected LogSource getPreviousThreadLogSource() {
+        return LogSource.getPreviousThreadLogSource();
     }
 
     public void removeConsoleHandler() {

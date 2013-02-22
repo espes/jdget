@@ -36,15 +36,25 @@ public class LogSource extends Logger implements LogInterface {
         }
     }
 
+    public static LogSource getPreviousThreadLogSource() {
+        synchronized (LogSource.LASTTHREADLOGSOURCE) {
+            final Thread thread = Thread.currentThread();
+            final WeakReference<LogSource> prevLogSource = LogSource.LASTTHREADLOGSOURCE.get(thread);
+            if (prevLogSource != null) { return prevLogSource.get(); }
+        }
+        return null;
+    }
+
     private java.util.List<LogRecord> records           = new ArrayList<LogRecord>();
     private int                       maxLogRecordsInMemory;
     private int                       flushCounter      = 0;
     private int                       recordsCounter    = 0;
     private boolean                   closed            = false;
-    private boolean                   allowTimeoutFlush = true;
 
+    private boolean                   allowTimeoutFlush = true;
     private boolean                   instantFlush      = false;
     private boolean                   flushOnFinalize   = false;
+
     private Logger                    parent            = null;
 
     public LogSource(final String name) {
@@ -72,6 +82,7 @@ public class LogSource extends Logger implements LogInterface {
 
     protected LogSource(final String name, final String resourceBundleName) {
         super(name, resourceBundleName);
+        this.setCurrentThreadLogSource();
     }
 
     public synchronized void clear() {
@@ -128,15 +139,6 @@ public class LogSource extends Logger implements LogInterface {
         return this.parent;
     }
 
-    public LogSource getPreviousThreadLogSource() {
-        synchronized (LogSource.LASTTHREADLOGSOURCE) {
-            final Thread thread = Thread.currentThread();
-            final WeakReference<LogSource> prevLogSource = LogSource.LASTTHREADLOGSOURCE.get(thread);
-            if (prevLogSource != null) { return prevLogSource.get(); }
-        }
-        return null;
-    }
-
     public boolean isAllowTimeoutFlush() {
         return this.allowTimeoutFlush;
     }
@@ -162,13 +164,7 @@ public class LogSource extends Logger implements LogInterface {
     @Override
     public synchronized void log(final LogRecord record) {
         if (this.closed || record == null) { return; }
-        synchronized (LogSource.LASTTHREADLOGSOURCE) {
-            final Thread thread = Thread.currentThread();
-            final WeakReference<LogSource> prevLogSource = LogSource.LASTTHREADLOGSOURCE.get(thread);
-            if (prevLogSource == null || prevLogSource.get() != null) {
-                LogSource.LASTTHREADLOGSOURCE.put(Thread.currentThread(), new WeakReference<LogSource>(this));
-            }
-        }
+        this.setCurrentThreadLogSource();
         /* make sure we have gathered all information about current class/method */
         /* this will collect current class/method if net set yet */
         record.getSourceClassName();
@@ -221,6 +217,16 @@ public class LogSource extends Logger implements LogInterface {
 
     public void setAllowTimeoutFlush(final boolean allowTimeoutFlush) {
         this.allowTimeoutFlush = allowTimeoutFlush;
+    }
+
+    private void setCurrentThreadLogSource() {
+        synchronized (LogSource.LASTTHREADLOGSOURCE) {
+            final Thread thread = Thread.currentThread();
+            final WeakReference<LogSource> prevLogSource = LogSource.LASTTHREADLOGSOURCE.get(thread);
+            if (prevLogSource == null || prevLogSource.get() != null) {
+                LogSource.LASTTHREADLOGSOURCE.put(Thread.currentThread(), new WeakReference<LogSource>(this));
+            }
+        }
     }
 
     /**
