@@ -10,7 +10,9 @@
 package org.appwork.utils.logging2;
 
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.WeakHashMap;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -21,6 +23,8 @@ import org.appwork.utils.Exceptions;
 import org.appwork.utils.logging.ExceptionDefaultLogLevel;
 
 public class LogSource extends Logger implements LogInterface {
+
+    private static WeakHashMap<Thread, WeakReference<LogSource>> LASTTHREADLOGSOURCE = new WeakHashMap<Thread, WeakReference<LogSource>>();
 
     public static void exception(final Logger logger, final Throwable e) {
         if (logger == null || e == null) { return; }
@@ -124,6 +128,15 @@ public class LogSource extends Logger implements LogInterface {
         return this.parent;
     }
 
+    public LogSource getPreviousThreadLogSource() {
+        synchronized (LogSource.LASTTHREADLOGSOURCE) {
+            final Thread thread = Thread.currentThread();
+            final WeakReference<LogSource> prevLogSource = LogSource.LASTTHREADLOGSOURCE.get(thread);
+            if (prevLogSource != null) { return prevLogSource.get(); }
+        }
+        return null;
+    }
+
     public boolean isAllowTimeoutFlush() {
         return this.allowTimeoutFlush;
     }
@@ -149,6 +162,13 @@ public class LogSource extends Logger implements LogInterface {
     @Override
     public synchronized void log(final LogRecord record) {
         if (this.closed || record == null) { return; }
+        synchronized (LogSource.LASTTHREADLOGSOURCE) {
+            final Thread thread = Thread.currentThread();
+            final WeakReference<LogSource> prevLogSource = LogSource.LASTTHREADLOGSOURCE.get(thread);
+            if (prevLogSource == null || prevLogSource.get() != null) {
+                LogSource.LASTTHREADLOGSOURCE.put(Thread.currentThread(), new WeakReference<LogSource>(this));
+            }
+        }
         /* make sure we have gathered all information about current class/method */
         /* this will collect current class/method if net set yet */
         record.getSourceClassName();
@@ -190,6 +210,13 @@ public class LogSource extends Logger implements LogInterface {
             lvl = Level.SEVERE;
         }
         this.log(new LogRecord(lvl, Exceptions.getStackTrace(e)));
+    }
+
+    /**
+     * @param errorStream
+     */
+    public void logAsynch(final InputStream is) {
+        new InputStreamLogger(is, this).start();
     }
 
     public void setAllowTimeoutFlush(final boolean allowTimeoutFlush) {
@@ -255,12 +282,5 @@ public class LogSource extends Logger implements LogInterface {
             }
         }
         return sb.toString();
-    }
-
-    /**
-     * @param errorStream
-     */
-    public void logAsynch(InputStream is) {
-        new InputStreamLogger(is, this).start();
     }
 }
