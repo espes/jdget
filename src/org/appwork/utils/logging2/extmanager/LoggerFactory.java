@@ -9,12 +9,18 @@
  */
 package org.appwork.utils.logging2.extmanager;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Enumeration;
+import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+import org.appwork.utils.logging.Log;
+import org.appwork.utils.logging2.LogSource;
 import org.appwork.utils.logging2.LogSourceProvider;
 
 /**
@@ -83,8 +89,51 @@ public class LoggerFactory extends LogSourceProvider {
         return INSTANCE;
     }
 
+    private LogSource defaultLogger;
+
     private LoggerFactory() {
         super(System.currentTimeMillis());
+        try {
+            Log.closeLogfile();
+        } catch (final Throwable e) {
+        }
+        try {
+            for (final Handler handler : Log.L.getHandlers()) {
+                Log.L.removeHandler(handler);
+            }
+        } catch (final Throwable e) {
+        }
+        Log.L.setUseParentHandlers(true);
+        Log.L.setLevel(Level.ALL);
+        defaultLogger = getLogger("Log.L");
+        Log.L.addHandler(new Handler() {
+
+            @Override
+            public void close() throws SecurityException {
+            }
+
+            @Override
+            public void flush() {
+            }
+
+            @Override
+            public void publish(final LogRecord record) {
+                final LogSource logger = defaultLogger;
+                logger.log(record);
+            }
+        });
+        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(final Thread t, final Throwable e) {
+                final LogSource logger = getLogger("UncaughtExceptionHandler");
+                logger.severe("Uncaught Exception in: " + t.getId() + "=" + t.getName());
+                logger.log(e);
+                logger.close();
+            }
+        });
     }
+
+
 
 }
