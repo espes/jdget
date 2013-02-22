@@ -11,6 +11,7 @@ package org.appwork.storage.config.handler;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -21,6 +22,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.scheduler.DelayedRunnable;
@@ -54,59 +56,64 @@ import org.appwork.utils.swing.dialog.Dialog;
  * 
  */
 public class StorageHandler<T extends ConfigInterface> implements InvocationHandler {
-    public final static ScheduledThreadPoolExecutor TIMINGQUEUE            = new ScheduledThreadPoolExecutor(1);
+    public final static ScheduledThreadPoolExecutor                   TIMINGQUEUE            = new ScheduledThreadPoolExecutor(1);
     static {
-        TIMINGQUEUE.setKeepAliveTime(30000, TimeUnit.MILLISECONDS);
+        StorageHandler.TIMINGQUEUE.setKeepAliveTime(30000, TimeUnit.MILLISECONDS);
     }
-    private final Class<T>                          configInterface;
-    private HashMap<Method, KeyHandler<?>>          methodMap;
-    private HashMap<String, KeyHandler<?>>          keyHandlerMap;
+    private final Class<T>                                            configInterface;
+    private HashMap<Method, KeyHandler<?>>                            methodMap;
+    private HashMap<String, KeyHandler<?>>                            keyHandlerMap;
 
-    protected final JsonKeyValueStorage             primitiveStorage;
-    private boolean                                 crypted;
+    protected final JsonKeyValueStorage                               primitiveStorage;
+    private boolean                                                   crypted;
 
-    private byte[]                                  key                    = JSonStorage.KEY;
-    private File                                    path;
-    private ConfigEventSender<Object>               eventSender;
-    private String                                  relativCPPath;
-    protected boolean                               save                   = true;
-    private DelayedRunnable                         delayedSaver;
-    private long                                    delayedSaveMaxInterval = 5 * 60 * 1000;
-
-    /**
-     * The Keyvalue storage in this handler can write itself to disk based on an
-     * interval.
-     * 
-     * <br>
-     * we write to disk {@link #getDelayedSaveInterval()} MS after the last
-     * change, but at least {@link #getDelayedSaveMaxInterval()} after a change
-     * 
-     * @param delayedSaveMaxInterval
-     */
-    public void setDelayedSaveMaxInterval(final long delayedSaveMaxInterval) {
-        this.delayedSaveMaxInterval = delayedSaveMaxInterval;
-    }
+    private byte[]                                                    key                    = JSonStorage.KEY;
+    private File                                                      path;
+    private ConfigEventSender<Object>                                 eventSender;
+    private String                                                    relativCPPath;
+    protected boolean                                                 save                   = true;
+    private DelayedRunnable                                           delayedSaver;
+    private long                                                      delayedSaveMaxInterval = 5 * 60 * 1000;
 
     // set externaly to start profiling
-    public static HashMap<String, Long> PROFILER_MAP         = null;
+    public static HashMap<String, Long>                               PROFILER_MAP           = null;
 
-    public static HashMap<String, Long> PROFILER_CALLNUM_MAP = null;
+    public static HashMap<String, Long>                               PROFILER_CALLNUM_MAP   = null;
 
-    public void disableSaveAtEnd() {
-        save = false;
+    private static final HashSet<String>                              DUPE_SET               = new HashSet<String>();
+
+    private WriteStrategy                                             writeStrategy          = null;
+
+    private int                                                       delayedSaveInterval    = 10000;
+    private final int                                                 id;
+    private static AtomicInteger                                      IDCOUNTER              = new AtomicInteger(0);
+    private static HashMap<Integer, WeakReference<StorageHandler<?>>> STORAGEMAP             = new HashMap<Integer, WeakReference<StorageHandler<?>>>();
+
+    public static StorageHandler<?> getStorageHandler(final int id) {
+        StorageHandler<?> ret = null;
+        synchronized (StorageHandler.STORAGEMAP) {
+            final WeakReference<StorageHandler<?>> wret = StorageHandler.STORAGEMAP.get(id);
+            if (wret != null) {
+                if ((ret = wret.get()) != null) {
+                    return ret;
+                } else {
+                    StorageHandler.STORAGEMAP.remove(id);
+                }
+            }
+        }
+        return null;
     }
-
-    private static final HashSet<String> DUPE_SET = new HashSet<String>();
 
     /**
      * @param name
      * @param configInterface
      */
     public StorageHandler(final File name, final Class<T> configInterface) {
-
-        if (!DUPE_SET.add(configInterface.getName()+"."+name.getAbsolutePath())) {
-            throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice");
+        this.id = StorageHandler.IDCOUNTER.incrementAndGet();
+        synchronized (StorageHandler.STORAGEMAP) {
+            StorageHandler.STORAGEMAP.put(this.id, new WeakReference<StorageHandler<?>>(this));
         }
+        if (!StorageHandler.DUPE_SET.add(configInterface.getName() + "." + name.getAbsolutePath())) { throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice"); }
 
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
@@ -142,7 +149,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             throw new InterfaceParseException(e);
         }
         Log.L.finer("Load Storage: " + this.path);
-        updateSaveDelayer();
+        this.updateSaveDelayer();
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
 
             @Override
@@ -152,7 +159,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
             @Override
             public void run() {
-                if (save) {
+                if (StorageHandler.this.save) {
                     StorageHandler.this.primitiveStorage.save();
                 }
             }
@@ -171,6 +178,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @throws URISyntaxException
      */
     public StorageHandler(final String classPath, final Class<T> configInterface) throws URISyntaxException {
+        this.id = StorageHandler.IDCOUNTER.incrementAndGet();
+        synchronized (StorageHandler.STORAGEMAP) {
+            StorageHandler.STORAGEMAP.put(this.id, new WeakReference<StorageHandler<?>>(this));
+        }
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 
@@ -207,7 +218,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         }
         Log.L.finer("Load Storage: " + this.path);
 
-        updateSaveDelayer();
+        this.updateSaveDelayer();
 
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
 
@@ -218,7 +229,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
             @Override
             public void run() {
-                if (save) {
+                if (StorageHandler.this.save) {
                     StorageHandler.this.primitiveStorage.save();
                 }
             }
@@ -229,41 +240,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
         });
 
-    }
-
-    /**
-     * 
-     */
-    protected void updateSaveDelayer() {
-        synchronized (this) {
-            final int interval = getDelayedSaveInterval();
-            final long maxInterval = getDelayedSaveMaxInterval();
-            if (interval < 0) {
-                delayedSaver = null;
-            } else {
-
-                delayedSaver = new DelayedRunnable(TIMINGQUEUE, interval, maxInterval) {
-
-                    @Override
-                    public void delayedrun() {
-                        write();
-                    }
-                };
-            }
-        }
-    }
-
-    /**
-     * @return
-     */
-    public long getDelayedSaveMaxInterval() {
-        // TODO Auto-generated method stub
-        return delayedSaveMaxInterval;
-    }
-
-    public void write() {
-
-        primitiveStorage.save();
     }
 
     /**
@@ -434,6 +410,21 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     /**
+     * 
+     */
+    private void delayedSave() {
+        if (this.getDelayedSaveInterval() < 0) { return; }
+        final DelayedRunnable del = this.delayedSaver;
+        if (del != null) {
+            del.resetAndStart();
+        }
+    }
+
+    public void disableSaveAtEnd() {
+        this.save = false;
+    }
+
+    /**
      * @param e
      */
     private void error(final Throwable e) {
@@ -463,8 +454,28 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.key;
     }
 
+    /**
+     * @return
+     */
+    private int getDelayedSaveInterval() {
+        // TODO Auto-generated method stub
+        return this.delayedSaveInterval;
+    }
+
+    /**
+     * @return
+     */
+    public long getDelayedSaveMaxInterval() {
+        // TODO Auto-generated method stub
+        return this.delayedSaveMaxInterval;
+    }
+
     public ConfigEventSender<Object> getEventSender() {
         return this.eventSender;
+    }
+
+    public int getId() {
+        return this.id;
     }
 
     public byte[] getKey() {
@@ -597,30 +608,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.getKeyHandler(key).getValue();
     }
 
-    private WriteStrategy writeStrategy       = null;
-    private int           delayedSaveInterval = 10000;
-
-    /**
-     * The Keyvalue storage in this handler can write itself to disk based on an
-     * interval.
-     * 
-     * <br>
-     * we write to disk {@link #getDelayedSaveInterval()} MS after the last
-     * change, but at least {@link #getDelayedSaveMaxInterval()} after a change
-     * 
-     * @param delayedSaveMaxInterval
-     */
-    public void setDelayedSaveMinInterval(final int delayedSaveInterval) {
-        this.delayedSaveInterval = delayedSaveInterval;
-        updateSaveDelayer();
-    }
-
     public WriteStrategy getWriteStrategy() {
-        return writeStrategy;
-    }
-
-    public void setWriteStrategy(final WriteStrategy writeStrategy) {
-        this.writeStrategy = writeStrategy;
+        return this.writeStrategy;
     }
 
     @SuppressWarnings("unchecked")
@@ -642,8 +631,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
                 } else {
                     ((KeyHandler<Object>) handler).setValue(parameter[0]);
-                    if (writeStrategy != null) {
-                        writeStrategy.write(this, handler);
+                    if (this.writeStrategy != null) {
+                        this.writeStrategy.write(this, handler);
                     }
 
                     return null;
@@ -882,27 +871,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     protected void putPrimitive(final String key, final Boolean value) {
 
         this.primitiveStorage.put(key, value);
-        delayedSave();
+        this.delayedSave();
 
-    }
-
-    /**
-     * 
-     */
-    private void delayedSave() {
-        if (getDelayedSaveInterval() < 0) { return; }
-        final DelayedRunnable del = delayedSaver;
-        if (del != null) {
-            del.resetAndStart();
-        }
-    }
-
-    /**
-     * @return
-     */
-    private int getDelayedSaveInterval() {
-        // TODO Auto-generated method stub
-        return delayedSaveInterval;
     }
 
     /**
@@ -911,7 +881,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
     protected void putPrimitive(final String key2, final Byte object) {
         this.primitiveStorage.put(key2, object);
-        delayedSave();
+        this.delayedSave();
     }
 
     /**
@@ -920,7 +890,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
     protected void putPrimitive(final String key2, final Double object) {
         this.primitiveStorage.put(key2, object);
-        delayedSave();
+        this.delayedSave();
     }
 
     /**
@@ -929,8 +899,61 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
     protected void putPrimitive(final String key2, final Enum<?> object) {
         this.primitiveStorage.put(key2, object);
-        delayedSave();
+        this.delayedSave();
 
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    protected void putPrimitive(final String key2, final Float object) {
+        this.primitiveStorage.put(key2, object);
+        this.delayedSave();
+
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    protected void putPrimitive(final String key2, final Integer object) {
+        this.primitiveStorage.put(key2, object);
+        this.delayedSave();
+
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    protected void putPrimitive(final String key2, final Long object) {
+        this.primitiveStorage.put(key2, object);
+        this.delayedSave();
+    }
+
+    /**
+     * @param key2
+     * @param object
+     */
+    protected void putPrimitive(final String key2, final String object) {
+        this.primitiveStorage.put(key2, object);
+        this.delayedSave();
+
+    }
+
+    /**
+     * The Keyvalue storage in this handler can write itself to disk based on an
+     * interval.
+     * 
+     * <br>
+     * we write to disk {@link #getDelayedSaveInterval()} MS after the last
+     * change, but at least {@link #getDelayedSaveMaxInterval()} after a change
+     * 
+     * @param delayedSaveMaxInterval
+     */
+    public void setDelayedSaveMaxInterval(final long delayedSaveMaxInterval) {
+        this.delayedSaveMaxInterval = delayedSaveMaxInterval;
     }
 
     /*
@@ -941,42 +964,22 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
 
     /**
-     * @param key2
-     * @param object
+     * The Keyvalue storage in this handler can write itself to disk based on an
+     * interval.
+     * 
+     * <br>
+     * we write to disk {@link #getDelayedSaveInterval()} MS after the last
+     * change, but at least {@link #getDelayedSaveMaxInterval()} after a change
+     * 
+     * @param delayedSaveMaxInterval
      */
-    protected void putPrimitive(final String key2, final Float object) {
-        this.primitiveStorage.put(key2, object);
-        delayedSave();
-
+    public void setDelayedSaveMinInterval(final int delayedSaveInterval) {
+        this.delayedSaveInterval = delayedSaveInterval;
+        this.updateSaveDelayer();
     }
 
-    /**
-     * @param key2
-     * @param object
-     */
-    protected void putPrimitive(final String key2, final Integer object) {
-        this.primitiveStorage.put(key2, object);
-        delayedSave();
-
-    }
-
-    /**
-     * @param key2
-     * @param object
-     */
-    protected void putPrimitive(final String key2, final Long object) {
-        this.primitiveStorage.put(key2, object);
-        delayedSave();
-    }
-
-    /**
-     * @param key2
-     * @param object
-     */
-    protected void putPrimitive(final String key2, final String object) {
-        this.primitiveStorage.put(key2, object);
-        delayedSave();
-
+    public void setWriteStrategy(final WriteStrategy writeStrategy) {
+        this.writeStrategy = writeStrategy;
     }
 
     @Override
@@ -993,6 +996,33 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
         }
         return JSonStorage.toString(ret);
+    }
+
+    /**
+     * 
+     */
+    protected void updateSaveDelayer() {
+        synchronized (this) {
+            final int interval = this.getDelayedSaveInterval();
+            final long maxInterval = this.getDelayedSaveMaxInterval();
+            if (interval < 0) {
+                this.delayedSaver = null;
+            } else {
+
+                this.delayedSaver = new DelayedRunnable(StorageHandler.TIMINGQUEUE, interval, maxInterval) {
+
+                    @Override
+                    public void delayedrun() {
+                        StorageHandler.this.write();
+                    }
+                };
+            }
+        }
+    }
+
+    public void write() {
+
+        this.primitiveStorage.save();
     }
 
     /**
