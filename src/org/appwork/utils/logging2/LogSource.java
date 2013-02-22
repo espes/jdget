@@ -40,7 +40,10 @@ public class LogSource extends Logger implements LogInterface {
         synchronized (LogSource.LASTTHREADLOGSOURCE) {
             final Thread thread = Thread.currentThread();
             final WeakReference<LogSource> prevLogSource = LogSource.LASTTHREADLOGSOURCE.get(thread);
-            if (prevLogSource != null) { return prevLogSource.get(); }
+            if (prevLogSource != null) {
+                final LogSource previousLogger = prevLogSource.get();
+                if (previousLogger.isClosed() == false) { return previousLogger; }
+            }
         }
         return null;
     }
