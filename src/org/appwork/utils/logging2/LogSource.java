@@ -42,7 +42,7 @@ public class LogSource extends Logger implements LogInterface {
             final WeakReference<LogSource> prevLogSource = LogSource.LASTTHREADLOGSOURCE.get(thread);
             if (prevLogSource != null) {
                 final LogSource previousLogger = prevLogSource.get();
-                if (previousLogger.isClosed() == false) { return previousLogger; }
+                if (previousLogger!=null&&previousLogger.isClosed() == false) { return previousLogger; }
             }
         }
         return null;

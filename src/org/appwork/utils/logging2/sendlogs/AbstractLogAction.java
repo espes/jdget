@@ -14,13 +14,17 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.swing.action.BasicAction;
 import org.appwork.utils.Application;
 import org.appwork.utils.Files;
+import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
 import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
@@ -128,9 +132,7 @@ public abstract class AbstractLogAction extends BasicAction {
         Dialog.getInstance().showDialog(d);
 
         final java.util.List<LogFolder> selection = d.getSelectedFolders();
-        if(selection.size()==0) {
-            return;
-        }
+        if (selection.size() == 0) { return; }
         total = selection.size();
         current = 0;
         final ProgressDialog p = new ProgressDialog(new ProgressGetter() {
@@ -177,6 +179,9 @@ public abstract class AbstractLogAction extends BasicAction {
             zip.delete();
             zip.getParentFile().mkdirs();
             ZipIOWriter writer = null;
+            
+            String name =lf.getFolder().getName()+"-"+ format(lf.getCreated()) + " to " + format(lf.getLastModified());
+            File folder = Application.getResource("tmp/logs/" + name);
             try {
                 if (lf.isNeedsFlush()) {
 
@@ -189,8 +194,10 @@ public abstract class AbstractLogAction extends BasicAction {
                         super.addFile(addFile, compress, fullPath);
                     }
                 };
-
-                writer.addDirectory(lf.getFolder(), true, null);
+               
+                if (folder.exists()) Files.deleteRecursiv(folder);
+                IO.copyFolderRecursive(lf.getFolder(), folder, true);
+                writer.addDirectory(folder, true, null);
             } finally {
                 try {
                     writer.close();
@@ -198,10 +205,21 @@ public abstract class AbstractLogAction extends BasicAction {
                 }
             }
 
-            onNewPackage(zip);
+            onNewPackage(zip,format(lf.getCreated()) + "-" + format(lf.getLastModified()));
 
             current++;
         }
+    }
+
+    /**
+     * @param created
+     * @return
+     */
+    private String format(long created) {
+        Date date = new Date(created);
+        
+        return new SimpleDateFormat("dd.MM.yy HH.mm.ss",Locale.GERMANY).format(date);
+    
     }
 
     /**
@@ -212,9 +230,10 @@ public abstract class AbstractLogAction extends BasicAction {
 
     /**
      * @param zip
+     * @param string 
      * @throws IOException
      */
-    abstract protected void onNewPackage(File zip) throws IOException;
+    abstract protected void onNewPackage(File zip, String string) throws IOException;
 
     /**
      * 

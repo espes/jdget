@@ -74,8 +74,10 @@ public abstract class LogSourceProvider {
     protected ConsoleHandler                 consoleHandler;
 
     protected boolean                        instantFlushDefault;
+    private long initTime;
 
     public LogSourceProvider(final long timeStamp) {
+        this.initTime=timeStamp;
         this.consoleHandler = new ConsoleHandler();
         this.consoleHandler.setLevel(Level.ALL);
         this.consoleHandler.setFormatter(new LogFormatter());
@@ -149,6 +151,10 @@ public abstract class LogSourceProvider {
             }
 
         }.start();
+    }
+
+    public long getInitTime() {
+        return initTime;
     }
 
     /**
@@ -276,7 +282,7 @@ public abstract class LogSourceProvider {
         return source;
     }
 
-    protected LogSource getPreviousThreadLogSource() {
+    public LogSource getPreviousThreadLogSource() {
         return LogSource.getPreviousThreadLogSource();
     }
 
