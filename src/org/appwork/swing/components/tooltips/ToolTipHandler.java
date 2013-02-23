@@ -64,4 +64,10 @@ public interface ToolTipHandler {
      */
     boolean isTooltipWithoutFocusEnabled();
 
+    /**
+     * @param mousePositionOnScreen TODO
+     * @return
+     */
+    int getTooltipDelay(Point mousePositionOnScreen);
+
 }

@@ -168,7 +168,7 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
      * .appwork.swing.components.tooltips.ExtTooltip, java.awt.event.MouseEvent)
      */
     @Override
-    public boolean updateTooltip(ExtTooltip activeToolTip, MouseEvent e) {
+    public int getTooltipDelay(Point mousePositionOnScreen) {  return 0;    }  @Override public boolean updateTooltip(ExtTooltip activeToolTip, MouseEvent e) {
         // TODO Auto-generated method stub
         return false;
     }

@@ -309,7 +309,7 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
      * .appwork.swing.components.tooltips.ExtTooltip, java.awt.event.MouseEvent)
      */
     @Override
-    public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
+    public int getTooltipDelay(Point mousePositionOnScreen) {  return 0;    }  @Override public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
 
         return false;
     }

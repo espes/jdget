@@ -9,6 +9,7 @@
  */
 package org.appwork.swing.components.tooltips;
 
+import java.awt.AWTEvent;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
@@ -35,7 +36,8 @@ import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 
-import org.appwork.scheduler.DelayedRunnable;
+import org.appwork.swing.event.AWTEventListener;
+import org.appwork.swing.event.AWTEventQueueLinker;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTRunner;
 
@@ -43,7 +45,7 @@ import org.appwork.utils.swing.EDTRunner;
  * @author thomas
  * 
  */
-public class ToolTipController implements MouseListener, MouseMotionListener, WindowFocusListener, PropertyChangeListener {
+public class ToolTipController implements MouseListener, MouseMotionListener, WindowFocusListener, PropertyChangeListener, AWTEventListener {
 
     public static final ScheduledExecutorService EXECUTER            = Executors.newSingleThreadScheduledExecutor();
     // order is important. EXECUTER has to be available
@@ -59,22 +61,23 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         return ToolTipController.INSTANCE;
     }
 
-    private DelayedRunnable delayer;
+    private ToolTipDelayer   delayer;
 
-    private JComponent      activeComponent;
+    private JComponent       activeComponent;
 
-    private Point           mousePosition;
-    private long            lastHidden  = 0;
+    private Point            mousePosition;
+    private long             lastHidden  = 0;
 
     /*
      * (non-Javadoc)
      * 
      * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
      */
-    private int             changeDelay = 500;
-    private Popup           activePopup;
-    private ExtTooltip      activeToolTipPanel;
-    private ToolTipPainter  handler;
+    private int              changeDelay = 500;
+    private Popup            activePopup;
+    private ExtTooltip       activeToolTipPanel;
+    private ToolTipPainter   handler;
+    protected ToolTipDelayer defaultDelayer;
 
     // private Window parentWindow;
 
@@ -84,6 +87,10 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      */
     private ToolTipController() {
         this.setDelay(2500);
+        AWTEventQueueLinker.link();
+
+        AWTEventQueueLinker.getInstance().getEventSender().addListener(this);
+
     }
 
     protected ExtTooltip getActiveToolTipPanel() {
@@ -145,14 +152,47 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
     /*
      * (non-Javadoc)
      * 
+     * @see
+     * org.appwork.swing.event.AWTEventListener#onAWTEventAfterDispatch(java
+     * .awt.AWTEvent)
+     */
+    @Override
+    public void onAWTEventAfterDispatch(AWTEvent parameter) {
+        if (parameter instanceof MouseEvent) {
+            switch (parameter.getID()) {
+            case MouseEvent.MOUSE_PRESSED:
+                this.hideTooltip();
+                // reset last Hidden. if we clicked to remove a tooltip it
+                // should
+                // not
+                // popup again immediatly after
+                this.lastHidden = 0;
+                break;
+            }
+
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.swing.event.AWTEventListener#onAWTEventBeforeDispatch(java
+     * .awt.AWTEvent)
+     */
+    @Override
+    public void onAWTEventBeforeDispatch(AWTEvent parameter) {
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
      */
     @Override
     public void mouseClicked(final MouseEvent e) {
-        this.hideTooltip();
-        // reset last Hidden. if we clicked to remove a tooltip it should not
-        // popup again immediatly after
-        this.lastHidden = 0;
+
     }
 
     /*
@@ -215,26 +255,47 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      */
     @Override
     public void mouseMoved(final MouseEvent e) {
-        if (!this.isTooltipVisible() && this.activeComponent != null) {
+
+        JComponent ac = activeComponent;
+        if (!this.isTooltipVisible() && ac != null) {
             this.mousePosition = e.getLocationOnScreen();
             if (System.currentTimeMillis() - this.lastHidden < this.getChangeDelay()) {
 
                 this.showTooltip();
             } else {
-                this.delayer.resetAndStart();
-            }
-        } else if (this.activeComponent != null) {
+                restartDelayer(ac,mousePosition);
 
-            if (((ToolTipHandler) this.activeComponent).updateTooltip(this.activeToolTipPanel, e)) {
+            }
+        } else if (ac != null) {
+
+            if (((ToolTipHandler) ac).updateTooltip(this.activeToolTipPanel, e)) {
                 if (activeToolTipPanel == null || activeToolTipPanel.isLastHiddenEnabled()) {
                     this.mousePosition = e.getLocationOnScreen();
                     this.showTooltip();
-                }else{
+                } else {
                     hideTooltip();
                 }
 
             }
         }
+    }
+
+    /**
+     * @param ac
+     * @param mousePosition2 
+     */
+    private void restartDelayer(JComponent ac, Point mousePosition2) {
+
+        int newDelayer = ((ToolTipHandler) ac).getTooltipDelay(new Point(mousePosition2.x,mousePosition2.y));
+        if (newDelayer > 0 && newDelayer != delayer.getDelay()) {
+            delayer.stop();
+            delayer = new ToolTipDelayer(newDelayer);
+        } else if (defaultDelayer != delayer && newDelayer <= 0) {
+            delayer.stop();
+            delayer = defaultDelayer;
+        }
+        this.delayer.resetAndStart();
+
     }
 
     /**
@@ -279,27 +340,6 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
     /*
      * (non-Javadoc)
      * 
-     * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
-     */
-    @Override
-    public void mousePressed(final MouseEvent e) {
-        this.hideTooltip();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
-     */
-    @Override
-    public void mouseReleased(final MouseEvent e) {
-        this.hideTooltip();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see java.beans.PropertyChangeListener#propertyChange(java.beans.
      * PropertyChangeEvent)
      */
@@ -331,25 +371,18 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
      * @param i
      */
     public synchronized void setDelay(final int delay) {
-        if (this.delayer != null) {
-            this.delayer.stop();
-        }
-        this.delayer = new DelayedRunnable(ToolTipController.EXECUTER, delay) {
+        new EDTRunner() {
 
             @Override
-            public void delayedrun() {
-                new EDTRunner() {
-
-                    @Override
-                    protected void runInEDT() {
-                        ToolTipController.this.showTooltip();
-
-                    }
-                };
-
+            protected void runInEDT() {
+                if (delayer != null) {
+                    delayer.stop();
+                }
+                delayer = new ToolTipDelayer(delay);
+                defaultDelayer = delayer;
             }
+        }.waitForEDT();
 
-        };
     }
 
     public void setHandler(final ToolTipPainter handler) {
@@ -516,4 +549,28 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         this.hideTooltip();
 
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void mousePressed(MouseEvent e) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        // TODO Auto-generated method stub
+
+    }
+
 }

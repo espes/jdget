@@ -518,7 +518,7 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
         }
     }
 
-    public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
+    public int getTooltipDelay(Point mousePositionOnScreen) {  return 0;    }  @Override public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
         return false;
     }
 

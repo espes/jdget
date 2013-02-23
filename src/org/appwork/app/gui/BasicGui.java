@@ -18,11 +18,11 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
 
-import org.appwork.app.gui.copycutpaste.CopyCutPasteHandler;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storage;
 import org.appwork.swing.action.BasicAction;
 import org.appwork.swing.components.ExtButton;
+import org.appwork.swing.event.AWTEventQueueLinker;
 import org.appwork.swing.trayicon.AWTrayIcon;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.LockPanel;
@@ -88,7 +88,7 @@ public abstract class BasicGui {
     private final Storage storage;
 
     protected BasicGui(final String title) {
-
+        AWTEventQueueLinker.link();
         this.frame = new JFrame(title) {
             /**
              * 
@@ -173,7 +173,6 @@ public abstract class BasicGui {
         this.frame.pack();
 
         this.frame.setVisible(true);
-        Toolkit.getDefaultToolkit().getSystemEventQueue().push(CopyCutPasteHandler.getInstance());
 
     }
 

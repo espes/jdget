@@ -1,8 +1,16 @@
+/**
+ * Copyright (c) 2009 - 2013 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
+ * 
+ * This file is part of org.appwork.app.gui.copycutpaste
+ * 
+ * This software is licensed under the Artistic License 2.0,
+ * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
+ * for details
+ */
 package org.appwork.app.gui.copycutpaste;
 
 import java.awt.AWTEvent;
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 
@@ -13,19 +21,13 @@ import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
+import org.appwork.swing.event.AWTEventListener;
+
 /**
- * This class creates a copy paste cut select delete contecxtmenu for every
- * textcomponent.
+ * @author thomas
  * 
- * @author $Author: unknown$
  */
-public class CopyCutPasteHandler extends EventQueue {
-    private static final CopyCutPasteHandler INSTANCE = new CopyCutPasteHandler();
-
-    public static CopyCutPasteHandler getInstance() {
-        return INSTANCE;
-    }
-
+public class CopyPasteSupport implements AWTEventListener {
     private long startupTime = System.currentTimeMillis();
 
     public long getStartupTime() {
@@ -38,17 +40,19 @@ public class CopyCutPasteHandler extends EventQueue {
         return lastMouseEvent;
     }
 
-    private CopyCutPasteHandler() {
-        super();
-    }
-
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.swing.event.EDTBasicListener#onAWTEventAfterDispatch(java
+     * .awt.AWTEvent)
+     */
     @Override
-    protected void dispatchEvent(AWTEvent event) {
-
-        super.dispatchEvent(event);
+    public void onAWTEventAfterDispatch(AWTEvent event) {
         if (!(event instanceof MouseEvent)) return;
         lastMouseEvent = System.currentTimeMillis();
         MouseEvent mouseEvent = (MouseEvent) event;
+
         if (!mouseEvent.isPopupTrigger() && mouseEvent.getButton() != MouseEvent.BUTTON3) return;
         if (mouseEvent.getComponent() == null) return;
         // get deepest component
@@ -88,5 +92,20 @@ public class CopyCutPasteHandler extends EventQueue {
         }
         Point pt = SwingUtilities.convertPoint(mouseEvent.getComponent(), mouseEvent.getPoint(), c);
         menu.show(c, pt.x, pt.y);
+
     }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.swing.event.EDTBasicListener#onAWTEventBeforeDispatch(java
+     * .awt.AWTEvent)
+     */
+    @Override
+    public void onAWTEventBeforeDispatch(AWTEvent parameter) {
+        // TODO Auto-generated method stub
+
+    }
+
 }

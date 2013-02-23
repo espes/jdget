@@ -1540,7 +1540,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * .appwork.swing.components.tooltips.ExtTooltip, java.awt.event.MouseEvent)
      */
     @Override
-    public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
+    public int getTooltipDelay(Point mousePositionOnScreen) {  return 0;    }  @Override public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
         final int row = this.getRowIndexByPoint(e.getPoint());
         final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
         return this.lastTooltipCol != col || this.lastTooltipRow != row;

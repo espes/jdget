@@ -116,6 +116,7 @@ public class ShutdownController extends Thread {
     private int                                        exitCode           = 0;
     private final AtomicInteger                        requestedShutDowns = new AtomicInteger(0);
     private boolean                                    silentShutDown     = false;
+    private Thread exitThread;
 
     /**
      * Create a new instance of ShutdownController. This is a singleton class.
@@ -123,7 +124,13 @@ public class ShutdownController extends Thread {
      */
     private ShutdownController() {
         super(ShutdownController.class.getSimpleName());
-
+         exitThread = new Thread("ShutdownThread") {
+            @Override
+            public void run() {
+                Log.L.info("Exit Now: Code: " + getExitCode());
+                System.exit(ShutdownController.this.getExitCode());
+            }
+        };;
         this.hooks = new LinkedList<ShutdownEvent>();
         this.vetoListeners = new ArrayList<ShutdownVetoListener>();
         try {
@@ -351,6 +358,8 @@ public class ShutdownController extends Thread {
                 synchronized (this.vetoListeners) {
                     localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
                 }
+           
+                Log.L.info("Fire onShutDownEvents");
                 for (final ShutdownVetoListener v : localList) {
                     try {
                         v.onShutdown(silent);
@@ -358,17 +367,13 @@ public class ShutdownController extends Thread {
                         e.printStackTrace();
                     }
                 }
-                final Thread th = new Thread("ShutdownThread") {
-                    @Override
-                    public void run() {
-                        Log.L.info("Exit Now: Code: " + getExitCode());
-                        System.exit(ShutdownController.this.getExitCode());
-                    }
-                };
+                Log.L.info("Create ExitThread");
+             
 
-                th.start();
+                exitThread.start();
+                Log.L.info("Wait");
                 this.silentShutDown = silent;
-                while (th.isAlive()) {
+                while (exitThread.isAlive()) {
                     try {
                         Thread.sleep(500);
                     } catch (final InterruptedException e) {
