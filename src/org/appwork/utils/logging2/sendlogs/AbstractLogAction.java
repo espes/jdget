@@ -215,7 +215,7 @@ public abstract class AbstractLogAction extends BasicAction {
      * @param created
      * @return
      */
-    private String format(long created) {
+    protected String format(long created) {
         Date date = new Date(created);
         
         return new SimpleDateFormat("dd.MM.yy HH.mm.ss",Locale.GERMANY).format(date);

@@ -60,6 +60,7 @@ public class BasicHTTP {
      * 
      */
     protected void checkResponseCode() throws InvalidResponseCode {
+        System.out.println(1);
         if (allowedResponseCodes != null && !allowedResponseCodes.contains(connection.getResponseCode())) {
 
         throw createInvalidResponseCodeException(); }
