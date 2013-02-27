@@ -69,6 +69,21 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
         }
     }
 
+    /**
+     * @param uploadUnit
+     */
+    protected void onComplete(final UploadUnit uploadUnit) {
+    }
+
+    protected void onCreate(final UploadUnit uploadUnit) {
+    }
+
+    /**
+     * @param uploadUnit
+     */
+    protected void onResume(final UploadUnit uploadUnit) {
+    }
+
     @Override
     public boolean remove(final String eTag) {
         synchronized (this.uploadUnits) {
@@ -157,6 +172,7 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
                     final File uploadFile = new File(this.uploadFolder, uploadUnit.getETag());
                     uploadUnit._setFile(uploadFile);
                     this.uploadUnits.put(uploadUnit._getQuotedETag(), uploadUnit);
+                    this.onCreate(uploadUnit);
                     return;
                 case RESUME:
                     if (uploadUnit.getExpectedFinalSize() != contentSize) {
@@ -172,6 +188,7 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
                     uploadUnit.setLastAccess(System.currentTimeMillis());
                     processUpload = true;
                     uploadUnit.setIsUploading(true);
+                    this.onResume(uploadUnit);
                 }
             }
             /* now we handle the upload */
@@ -201,6 +218,7 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
             final String chunkHash = HexFormatter.byteArrayToHex(md.digest());
             if (uploadUnit.isComplete()) {
                 /* upload is complete */
+                this.onComplete(uploadUnit);
                 response.setResponseCode(ResponseCode.SUCCESS_OK);
             } else {
                 /* add Range Header to signal current received contentSize */
