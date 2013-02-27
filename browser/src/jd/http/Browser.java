@@ -468,7 +468,9 @@ public class Browser {
     }
 
     /**
-     * Clears all cookies for the given url. URL has to be a valid url if url==null,all cookies were cleared
+     * Clears all cookies for the given URL.
+     * URL has to be a valid.
+     * if (url == null), all cookies are cleared.
      * 
      * @param url
      */
@@ -619,7 +621,7 @@ public class Browser {
      * Creates a new GET request.
      * 
      * @param string
-     *            a string including an url
+     *            a string including an URL
      * 
      * @return the created GET request
      * 
@@ -634,7 +636,7 @@ public class Browser {
      * Creates a new GET request.
      * 
      * @param string
-     *            a string including an url
+     *            a string including an URL
      * @param oldRequest
      *            the old request for forwarding cookies to the new request. Can be null, to ignore old cookies.
      * 
@@ -724,7 +726,7 @@ public class Browser {
     }
 
     /**
-     * Creates a new postrequest based an an requestVariable Arraylist
+     * Creates a new postrequest based an an requestVariable ArrayList
      */
     private Request createPostRequest(String url, final java.util.List<RequestVariable> post, final String encoding) throws IOException {
         url = this.getURL(url);
@@ -771,7 +773,7 @@ public class Browser {
     }
 
     /**
-     * Creates a new POstrequest based on a variable hashmap
+     * Creates a new POstrequest based on a variable HashMap
      */
     public Request createPostRequest(final String url, final LinkedHashMap<String, String> post) throws IOException {
         return this.createPostRequest(url, PostRequest.variableMaptoArray(post), null);
@@ -838,7 +840,7 @@ public class Browser {
     }
 
     /**
-     * Downloads the contents behind con to file. if(con ==null), the latest request is downloaded. Usefull for redirects
+     * Downloads the contents behind con to file. if(con ==null), the latest request is downloaded. Useful for redirects
      * 
      * @param file
      * @param con
@@ -1116,7 +1118,7 @@ public class Browser {
     }
 
     /**
-     * If automatic redirectfollowing is disabled, you can get the redirect url if there is any.
+     * If automatic redirectfollowing is disabled, you can get the redirect URL if there is any.
      * 
      * @return
      */
@@ -1159,7 +1161,7 @@ public class Browser {
     }
 
     /**
-     * TRies to get a fuill url out of string
+     * Tries to get a full URL out of string
      * 
      * @throws BrowserException
      */
@@ -1212,7 +1214,7 @@ public class Browser {
     }
 
     /**
-     * Reads the content behind a con and returns them. Note: if con==null, the current request is read. This is usefull for redirects. Note
+     * Reads the content behind a con and returns them. Note: if con==null, the current request is read. This is useful for redirects. Note
      * #2: if a connection is loaded, data is not stored in the browser instance.
      * 
      * @param con
@@ -1309,7 +1311,7 @@ public class Browser {
     }
 
     /**
-     * Opens a Post COnnection based on a variable hashmap
+     * Opens a Post COnnection based on a variable HashMap
      */
     public URLConnectionAdapter openPostConnection(final String url, final LinkedHashMap<String, String> post) throws IOException {
         return this.openRequestConnection(this.createPostRequest(url, post));
@@ -1323,7 +1325,7 @@ public class Browser {
     }
 
     /**
-     * Opens a connection based on the requets object
+     * Opens a connection based on the request object
      */
     public URLConnectionAdapter openRequestConnection(final Request request) throws IOException {
         this.connect(request);
@@ -1385,7 +1387,7 @@ public class Browser {
     }
 
     /**
-     * loads a new page (post) the postdata is given by the poststring. it wiull be send as it is
+     * loads a new page (post) the postdata is given by the poststring. It will be sent as is
      */
     public String postPageRaw(final String url, final String post) throws IOException {
         final PostRequest request = (PostRequest) this.createPostRequest(url, new ArrayList<RequestVariable>(), null);
@@ -1446,7 +1448,10 @@ public class Browser {
         }
     }
 
-    /* sets current URL, if null we dont send referer! */
+    /** sets current URL, if null we don't send referer!
+     *  @param string 
+     *  @since JD2
+     * */
     public void setCurrentURL(final String string) throws MalformedURLException {
         if (string == null || string.length() == 0) {
             this.currentURL = null;
@@ -1467,7 +1472,9 @@ public class Browser {
         this.doRedirects = b;
     }
 
-    /* do not below revision 10000 */
+    /** do not below revision 10000 
+     * @since JD2
+     * */
     public void setHeader(final String field, final String value) {
         this.getHeaders().put(field, value);
     }
