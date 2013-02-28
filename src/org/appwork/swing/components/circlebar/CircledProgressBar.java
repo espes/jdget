@@ -1,5 +1,6 @@
 package org.appwork.swing.components.circlebar;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
@@ -27,7 +28,7 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
     /**
      * 
      */
-    private static final long serialVersionUID = -3518805542131925575L;
+    private static final long       serialVersionUID = -3518805542131925575L;
 
     private BoundedRangeModel       model;
 
@@ -40,7 +41,7 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
     /**
      * @see #getUIClassID
      */
-    private static final String     UI_CLASS_ID = "CircleProgressBarUI";
+    private static final String     UI_CLASS_ID      = "CircleProgressBarUI";
 
     /*
      * (non-Javadoc)
@@ -55,22 +56,24 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
      */
     public CircledProgressBar() {
         this(new DefaultBoundedRangeModel());
-      
+
     }
+
     public boolean isFocusable() {
         return false;
     }
+
     /**
      * @param model
      */
     public CircledProgressBar(final BoundedRangeModel model) {
-        this.eventSender = new ChangeEventSender();
-        this.tooltipFactory = new TooltipTextDelegateFactory(this);
-        this.installPainer();
-        this.setModel(model);
+        eventSender = new ChangeEventSender();
+        tooltipFactory = new TooltipTextDelegateFactory(this);
+        installPainer();
+        setModel(model);
         BasicProgressBarUI.class.getAnnotations();
-        this.updateUI();
-        this.setIndeterminate(false);
+        updateUI();
+        setIndeterminate(false);
 
     }
 
@@ -86,11 +89,12 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
 
             @Override
             public void stateChanged(final ChangeEvent e) {
-                CircledProgressBar.this.eventSender.fireEvent(new org.appwork.utils.event.predefined.changeevent.ChangeEvent(e.getSource()));
+                eventSender.fireEvent(new org.appwork.utils.event.predefined.changeevent.ChangeEvent(e.getSource()));
             }
 
         };
     }
+
     @Override
     public boolean isTooltipWithoutFocusEnabled() {
         // TODO Auto-generated method stub
@@ -106,7 +110,7 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
      */
     @Override
     public ExtTooltip createExtTooltip(final Point mousePosition) {
-        return this.tooltipFactory.createTooltip();
+        return tooltipFactory.createTooltip();
     }
 
     /**
@@ -125,27 +129,45 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
     }
 
     public ChangeEventSender getEventSender() {
-        return this.eventSender;
+        return eventSender;
     }
 
     public int getMaximum() {
-        return this.getModel().getMaximum();
+        return getModel().getMaximum();
     }
 
     public int getMinimum() {
-        return this.getModel().getMinimum();
+        return getModel().getMinimum();
     }
 
     public BoundedRangeModel getModel() {
-        return this.model;
+        return model;
     }
 
     public IconPainter getNonvalueClipPainter() {
-        return this.nonvalueClipPainter;
+        return nonvalueClipPainter;
     }
 
     public TooltipFactory getTooltipFactory() {
-        return this.tooltipFactory;
+        return tooltipFactory;
+    }
+
+    @Override
+    public Dimension getSize() {
+        // TODO Auto-generated method stub
+        return super.getSize();
+    }
+
+    @Override
+    public void setSize(final int width, final int height) {
+        // TODO Auto-generated method stub
+        super.setSize(width, height);
+    }
+
+    @Override
+    public void setSize(final Dimension d) {
+        // TODO Auto-generated method stub
+        super.setSize(d);
     }
 
     @Override
@@ -154,18 +176,18 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
     }
 
     public int getValue() {
-        return this.getModel().getValue();
+        return getModel().getValue();
     }
 
     public IconPainter getValueClipPainter() {
-        return this.valueClipPainter;
+        return valueClipPainter;
     }
 
     /**
      * 
      */
     private void installPainer() {
-        this.valueClipPainter = new IconPainter() {
+        valueClipPainter = new IconPainter() {
 
             @Override
             public void paint(final CircledProgressBar bar, final Graphics2D g2, final Shape shape, final int diameter, final double progress) {
@@ -176,6 +198,16 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
 
                 g2.fill(a);
 
+            }
+
+            private Dimension dimension;
+            {
+                dimension = new Dimension(32, 32);
+            }
+
+            @Override
+            public Dimension getPreferredSize() {
+                return dimension;
             }
         };
 
@@ -188,14 +220,14 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
      */
     protected void invertPainter() {
 
-        final IconPainter fg = this.valueClipPainter;
-        this.valueClipPainter = this.nonvalueClipPainter;
-        this.nonvalueClipPainter = fg;
+        final IconPainter fg = valueClipPainter;
+        valueClipPainter = nonvalueClipPainter;
+        nonvalueClipPainter = fg;
 
     }
 
     public boolean isIndeterminate() {
-        return this.indeterminate;
+        return indeterminate;
     }
 
     /*
@@ -214,18 +246,18 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
      * @param b
      */
     public void setIndeterminate(final boolean newValue) {
-        final boolean oldValue = this.indeterminate;
+        final boolean oldValue = indeterminate;
         if (oldValue == newValue) { return; }
-        this.indeterminate = newValue;
-        this.firePropertyChange("indeterminate", oldValue, this.indeterminate);
+        indeterminate = newValue;
+        this.firePropertyChange("indeterminate", oldValue, indeterminate);
     }
 
     public void setMaximum(final int n) {
-        this.getModel().setMaximum(n);
+        getModel().setMaximum(n);
     }
 
     public void setMinimum(final int n) {
-        this.getModel().setMinimum(n);
+        getModel().setMinimum(n);
     }
 
     /**
@@ -234,10 +266,10 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
     public synchronized void setModel(final BoundedRangeModel model) {
         if (this.model == model) { return; }
         if (this.model != null) {
-            model.removeChangeListener(this.changeListener);
+            model.removeChangeListener(changeListener);
         }
-        this.changeListener = this.createChangeListener();
-        model.addChangeListener(this.changeListener);
+        changeListener = createChangeListener();
+        model.addChangeListener(changeListener);
         this.model = model;
 
         this.repaint();
@@ -245,7 +277,7 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
     }
 
     public void setNonvalueClipPainter(final IconPainter backgroundPainter) {
-        this.nonvalueClipPainter = backgroundPainter;
+        nonvalueClipPainter = backgroundPainter;
     }
 
     /**
@@ -272,7 +304,7 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
     @Override
     public void setToolTipText(final String text) {
 
-        this.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, text);
+        putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, text);
 
         if (text == null || text.length() == 0) {
             ToolTipController.getInstance().unregister(this);
@@ -287,7 +319,7 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
     }
 
     public void setValue(final int n) {
-        final BoundedRangeModel brm = this.getModel();
+        final BoundedRangeModel brm = getModel();
         final int oldValue = brm.getValue();
         brm.setValue(n);
 
@@ -297,7 +329,7 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
      * @param iconPainter
      */
     public void setValueClipPainter(final IconPainter iconPainter) {
-        this.valueClipPainter = iconPainter;
+        valueClipPainter = iconPainter;
 
     }
 
@@ -309,7 +341,12 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
      * .appwork.swing.components.tooltips.ExtTooltip, java.awt.event.MouseEvent)
      */
     @Override
-    public int getTooltipDelay(Point mousePositionOnScreen) {  return 0;    }  @Override public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
+    public int getTooltipDelay(final Point mousePositionOnScreen) {
+        return 0;
+    }
+
+    @Override
+    public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
 
         return false;
     }

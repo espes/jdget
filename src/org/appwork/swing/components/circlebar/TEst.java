@@ -10,6 +10,7 @@
 package org.appwork.swing.components.circlebar;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
@@ -35,164 +36,173 @@ public class TEst {
     private static boolean RUNNING = true;
 
     public static void main(final String[] args) {
-        new BasicGui("CircledProgressBar") {
+        new EDTRunner() {
 
             @Override
-            protected void layoutPanel() {
-
-                final JProgressBar bar = new JProgressBar(0, 100);
-                bar.setToolTipText("BLA");
-                final BoundedRangeModel model = bar.getModel();
-
-                final CircledProgressBar cbar = new CircledProgressBar(model);
-                cbar.setTooltipFactory(new TooltipFactory() {
+            protected void runInEDT() {
+                new BasicGui("CircledProgressBar") {
 
                     @Override
-                    public ExtTooltip createTooltip() {
-                        final ExtTooltip tt = new ExtTooltip() {
+                    protected void layoutPanel() {
 
-                            /**
-                             * 
-                             */
-                            private static final long serialVersionUID = -1978297969679347066L;
+                        final JProgressBar bar = new JProgressBar(0, 100);
+                        bar.setToolTipText("BLA");
+                        final BoundedRangeModel model = bar.getModel();
+
+                        final CircledProgressBar cbar = new CircledProgressBar(model);
+                        cbar.setTooltipFactory(new TooltipFactory() {
 
                             @Override
-                            public TooltipPanel createContent() {
-                                final TooltipPanel p = new TooltipPanel("ins 5,wrap 1", "[]", "[]");
-                                p.add(new JButton(new AbstractAction() {
+                            public ExtTooltip createTooltip() {
+                                final ExtTooltip tt = new ExtTooltip() {
+
                                     /**
                                      * 
                                      */
-                                    private static final long serialVersionUID = 5385975776993345514L;
+                                    private static final long serialVersionUID = -1978297969679347066L;
 
-                                    {
-                                        this.putValue(Action.NAME, "Drück mich alder!");
+                                    @Override
+                                    public TooltipPanel createContent() {
+                                        final TooltipPanel p = new TooltipPanel("ins 5,wrap 1", "[]", "[]");
+                                        p.add(new JButton(new AbstractAction() {
+                                            /**
+                                             * 
+                                             */
+                                            private static final long serialVersionUID = 5385975776993345514L;
+
+                                            {
+                                                putValue(Action.NAME, "Drück mich alder!");
+                                            }
+
+                                            @Override
+                                            public void actionPerformed(final ActionEvent e) {
+
+                                            }
+                                        }));
+
+                                        return p;
                                     }
 
                                     @Override
-                                    public void actionPerformed(final ActionEvent e) {
-
+                                    public String toText() {
+                                        // TODO Auto-generated method stub
+                                        return null;
                                     }
-                                }));
+                                };
 
-                                return p;
+                                return tt;
+                            }
+                        });
+                        cbar.setOpaque(false);
+                        final CircledProgressBar iconBar = new CircledProgressBar(model);
+                        iconBar.setPreferredSize(new Dimension(48, 32));
+                        final ImagePainter painter = new ImagePainter(AWUTheme.I().getIcon("close", 32).getImage(), 1.0f);
+                        iconBar.setValueClipPainter(painter);
+                        painter.setBackground(Color.GREEN);
+                        iconBar.setNonvalueClipPainter(new ImagePainter(AWUTheme.I().getIcon("close", 32).getImage(), 0.3f));
+
+                        getFrame().getContentPane().setLayout(new MigLayout("ins 4, wrap 3", "[][][grow,fill]", "[grow,fill,32!]"));
+                        getFrame().getContentPane().add(cbar, "height 32!,width 32!");
+                        getFrame().getContentPane().add(iconBar);
+                        painter.setForeground(Color.RED);
+                        getFrame().getContentPane().add(bar);
+
+                        final CircledProgressBar test = new CircledProgressBar();
+                        final ImagePainter valuePainter = new ImagePainter(AWUTheme.I().getIcon("dev", 32).getImage(), 1.0f);
+                        // valuePainter.setForeground(Color.BLACK);
+                        final ImagePainter nonvaluePainter = new ImagePainter(AWUTheme.I().getIcon("dev", 32).getImage(), 0.3f);
+                        test.setValueClipPainter(valuePainter);
+                        test.setNonvalueClipPainter(nonvaluePainter);
+                        test.setMaximum(360);
+                        test.setToolTipText("Blabla Leberkäs");
+                        test.setValue(90);
+                        getFrame().getContentPane().add(test, "height 64!,width 64!");
+
+                        getFrame().getContentPane().add(new JButton(new AbstractAction() {
+                            /**
+                             * 
+                             */
+                            private static final long serialVersionUID = -7967957296219315456L;
+
+                            {
+                                putValue(Action.NAME, "Toggle Indeterminated");
                             }
 
                             @Override
-                            public String toText() {
-                                // TODO Auto-generated method stub
-                                return null;
+                            public void actionPerformed(final ActionEvent e) {
+                                final boolean in = !iconBar.isIndeterminate();
+                                iconBar.setIndeterminate(in);
+                                bar.setIndeterminate(in);
+                                cbar.setIndeterminate(in);
                             }
-                        };
+                        }));
 
-                        return tt;
-                    }
-                });
-                cbar.setOpaque(false);
-                final CircledProgressBar iconBar = new CircledProgressBar(model);
-                final ImagePainter painter = new ImagePainter(AWUTheme.I().getIcon("close", 32).getImage(), 1.0f);
-                iconBar.setValueClipPainter(painter);
-                painter.setBackground(Color.GREEN);
-                iconBar.setNonvalueClipPainter(new ImagePainter(AWUTheme.I().getIcon("close", 32).getImage(), 0.3f));
+                        JButton bt;
+                        getFrame().getContentPane().add(bt = new JButton(new AbstractAction() {
+                            /**
+                             * 
+                             */
+                            private static final long serialVersionUID = -7726007502976853379L;
 
-                this.getFrame().getContentPane().setLayout(new MigLayout("ins 4, wrap 3", "[][][grow,fill]", "[grow,fill,32!]"));
-                this.getFrame().getContentPane().add(cbar, "height 32!,width 32!");
-                this.getFrame().getContentPane().add(iconBar);
-                painter.setForeground(Color.RED);
-                this.getFrame().getContentPane().add(bar);
+                            {
+                                putValue(Action.NAME, "Toggle RUN");
+                            }
 
-                final CircledProgressBar test = new CircledProgressBar();
-                final ImagePainter valuePainter = new ImagePainter(AWUTheme.I().getIcon("dev", 32).getImage(), 1.0f);
-                // valuePainter.setForeground(Color.BLACK);
-                final ImagePainter nonvaluePainter = new ImagePainter(AWUTheme.I().getIcon("dev", 32).getImage(), 0.3f);
-                test.setValueClipPainter(valuePainter);
-                test.setNonvalueClipPainter(nonvaluePainter);
-                test.setMaximum(360);
-                test.setToolTipText("Blabla Leberkäs");
-                test.setValue(90);
-                this.getFrame().getContentPane().add(test, "height 64!,width 64!");
+                            @Override
+                            public void actionPerformed(final ActionEvent e) {
+                                TEst.RUNNING = !TEst.RUNNING;
+                            }
+                        }));
+                        bt.setToolTipText("BLA2");
 
-                this.getFrame().getContentPane().add(new JButton(new AbstractAction() {
-                    /**
-                     * 
-                     */
-                    private static final long serialVersionUID = -7967957296219315456L;
+                        new Thread(new Runnable() {
 
-                    {
-                        this.putValue(Action.NAME, "Toggle Indeterminated");
-                    }
+                            @Override
+                            public void run() {
+                                final int direction = 1;
+                                while (true) {
+                                    try {
+                                        Thread.sleep(200);
+                                        if (TEst.RUNNING) {
+                                            new EDTRunner() {
 
-                    @Override
-                    public void actionPerformed(final ActionEvent e) {
-                        final boolean in = !iconBar.isIndeterminate();
-                        iconBar.setIndeterminate(in);
-                        bar.setIndeterminate(in);
-                        cbar.setIndeterminate(in);
-                    }
-                }));
+                                                @Override
+                                                protected void runInEDT() {
+                                                    model.setValue(model.getValue() + direction);
+                                                    iconBar.setToolTipText((int) (Math.random() * 100) + " %");
+                                                    if (Math.random() < 0.1) {
+                                                        iconBar.setToolTipText("lfdsifgsdkbfd sdkf jhdsafjhsafgj sdafsjdhfga jsdfgahjd gkj");
+                                                    }
+                                                    if (Math.random() < 0.1) {
+                                                        iconBar.setToolTipText("lfd\r\nsifgs\r\ndkb\r\nfd sdkf\r\n jhdsafj\r\nhsafgj\r\n sdafsjd\r\nhfga \r\njsdfgahj\r\nd gkj");
+                                                    }
+                                                    if (model.getValue() == model.getMaximum() || model.getValue() == model.getMinimum()) {
+                                                        model.setValue(0);
 
-                JButton bt;
-                this.getFrame().getContentPane().add(bt = new JButton(new AbstractAction() {
-                    /**
-                     * 
-                     */
-                    private static final long serialVersionUID = -7726007502976853379L;
+                                                    }
+                                                }
+                                            };
 
-                    {
-                        this.putValue(Action.NAME, "Toggle RUN");
-                    }
-
-                    @Override
-                    public void actionPerformed(final ActionEvent e) {
-                        TEst.RUNNING = !TEst.RUNNING;
-                    }
-                }));
-                bt.setToolTipText("BLA2");
-
-                new Thread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        final int direction = 1;
-                        while (true) {
-                            try {
-                                Thread.sleep(200);
-                                if (TEst.RUNNING) {
-                                    new EDTRunner() {
-
-                                        @Override
-                                        protected void runInEDT() {
-                                            model.setValue(model.getValue() + direction);
-                                            iconBar.setToolTipText((int) (Math.random() * 100) + " %");
-                                            if (Math.random() < 0.1) {
-                                                iconBar.setToolTipText("lfdsifgsdkbfd sdkf jhdsafjhsafgj sdafsjdhfga jsdfgahjd gkj");
-                                            }
-                                            if (Math.random() < 0.1) {
-                                                iconBar.setToolTipText("lfd\r\nsifgs\r\ndkb\r\nfd sdkf\r\n jhdsafj\r\nhsafgj\r\n sdafsjd\r\nhfga \r\njsdfgahj\r\nd gkj");
-                                            }
-                                            if (model.getValue() == model.getMaximum() || model.getValue() == model.getMinimum()) {
-                                                model.setValue(0);
-
-                                            }
                                         }
-                                    };
 
+                                    } catch (final InterruptedException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                    }
                                 }
-
-                            } catch (final InterruptedException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
                             }
-                        }
+                        }).start();
+
                     }
-                }).start();
 
-            }
+                    @Override
+                    protected void requestExit() {
+                        System.exit(1);
+                    }
+                };
 
-            @Override
-            protected void requestExit() {
-                System.exit(1);
             }
         };
+
     }
 }

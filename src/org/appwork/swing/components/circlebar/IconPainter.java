@@ -9,6 +9,7 @@
  */
 package org.appwork.swing.components.circlebar;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 
@@ -28,5 +29,10 @@ public interface IconPainter {
      *            TODO
      */
     void paint(CircledProgressBar bar, Graphics2D g2, Shape shape, int diameter, double progress);
+
+    /**
+     * @return
+     */
+    Dimension getPreferredSize();
 
 }

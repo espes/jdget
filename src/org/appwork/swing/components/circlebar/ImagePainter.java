@@ -13,6 +13,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Composite;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
@@ -32,6 +33,7 @@ public class ImagePainter implements IconPainter {
     private Color                foreground;
 
     private Color                background;
+    private Dimension            preferredSize;
 
     /**
      * @param image
@@ -45,8 +47,9 @@ public class ImagePainter implements IconPainter {
      * @param instance
      */
     public ImagePainter(final Image image2, final AlphaComposite instance) {
-        this.image = image2;
-        this.composite = instance;
+        image = image2;
+        composite = instance;
+        preferredSize = new Dimension(image.getWidth(null), image.getHeight(null));
     }
 
     /**
@@ -58,19 +61,19 @@ public class ImagePainter implements IconPainter {
     }
 
     public Color getBackground() {
-        return this.background;
+        return background;
     }
 
     public AlphaComposite getComposite() {
-        return this.composite;
+        return composite;
     }
 
     public Color getForeground() {
-        return this.foreground;
+        return foreground;
     }
 
     public Image getImage() {
-        return this.image;
+        return image;
     }
 
     /*
@@ -84,28 +87,42 @@ public class ImagePainter implements IconPainter {
     @Override
     public void paint(final CircledProgressBar bar, final Graphics2D g2, final Shape shape, final int diameter, final double progress) {
         final Composite comp = g2.getComposite();
-        if (this.composite != null) {
-            g2.setComposite(this.composite);
+        if (composite != null) {
+            g2.setComposite(composite);
         }
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        final Shape circle = new Ellipse2D.Float(0, 0, diameter, diameter);
-        final Area a = new Area(circle);
-        a.intersect(new Area(shape));
-        if (this.getBackground() != null) {
-            g2.setColor(this.getBackground());
+        Area a = null;
+
+        if (getBackground() != null) {
+            if (a == null) {
+                final Shape circle = new Ellipse2D.Float((bar.getWidth()-diameter)/2+1, (bar.getHeight()-diameter)/2+1, diameter-2, diameter-2);
+                a = new Area(circle);
+                a.intersect(new Area(shape));
+            }
+            g2.setColor(getBackground());
             g2.fill(a);
         }
         g2.setClip(shape);
 
-        g2.drawImage(this.image, (diameter - this.image.getWidth(null)) / 2, (diameter - this.image.getHeight(null)) / 2, this.image.getWidth(null), this.image.getHeight(null), null);
+        // g2.drawImage(image, (diameter - image.getWidth(null)) / 2, (diameter
+        // - image.getHeight(null)) / 2, image.getWidth(null),
+        // image.getHeight(null), null);
+    final Dimension dim = bar.getSize();
+//    System.out.println((bar.getWidth() - image.getWidth(null)) / 2+" - "+((bar.getHeight() - image.getHeight(null)) / 2));
+        g2.drawImage(image, (bar.getWidth() - image.getWidth(null)) / 2, (bar.getHeight() - image.getHeight(null)) / 2, image.getWidth(null), image.getHeight(null), null);
         g2.setClip(null);
-        if (this.getForeground() != null) {
+        if (getForeground() != null) {
+            if (a == null) {
+                final Shape circle = new Ellipse2D.Float((bar.getWidth()-diameter)/2+1, (bar.getHeight()-diameter)/2+1, diameter-2, diameter-2);
+                a = new Area(circle);
+                a.intersect(new Area(shape));
+            }
             // g2.draw(shape);
             g2.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.CAP_ROUND));
-            g2.setColor(this.getForeground());
+            g2.setColor(getForeground());
             g2.draw(a);
         }
-        if (this.composite != null) {
+        if (composite != null) {
             g2.setComposite(comp);
         }
     }
@@ -116,6 +133,18 @@ public class ImagePainter implements IconPainter {
 
     public void setForeground(final Color foreground) {
         this.foreground = foreground;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.swing.components.circlebar.IconPainter#getPreferredSize()
+     */
+    @Override
+    public Dimension getPreferredSize() {
+        // TODO Auto-generated method stub
+        return preferredSize;
     }
 
 }

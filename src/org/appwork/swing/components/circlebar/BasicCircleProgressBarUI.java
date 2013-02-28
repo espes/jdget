@@ -50,15 +50,15 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
          */
         @Override
         public void actionPerformed(final ActionEvent e) {
-            if (!BasicCircleProgressBarUI.this.circleBar.isDisplayable()) {
-                BasicCircleProgressBarUI.this.cleanUpIndeterminateValues();
+            if (!circleBar.isDisplayable()) {
+                cleanUpIndeterminateValues();
             }
 
             // if bar is showing, or the bar is part of a renderer
-            if (BasicCircleProgressBarUI.this.circleBar.isShowing() || BasicCircleProgressBarUI.this.circleBar instanceof org.appwork.swing.exttable.columns.ExtCircleProgressColumn.IndeterminatedCircledProgressBar) {
-                BasicCircleProgressBarUI.this.animatedProgress += BasicCircleProgressBarUI.this.animationStepSize;
-                BasicCircleProgressBarUI.this.animatedProgress %= 2.f;
-                BasicCircleProgressBarUI.this.circleBar.repaint();
+            if (circleBar.isShowing() || circleBar instanceof org.appwork.swing.exttable.columns.ExtCircleProgressColumn.IndeterminatedCircledProgressBar) {
+                animatedProgress += animationStepSize;
+                animatedProgress %= 2.f;
+                circleBar.repaint();
             }
 
         }
@@ -75,8 +75,8 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
          */
         @Override
         public void onChangeEvent(final ChangeEvent event) {
-            if (!BasicCircleProgressBarUI.this.circleBar.isIndeterminate()) {
-                BasicCircleProgressBarUI.this.circleBar.repaint();
+            if (!circleBar.isIndeterminate()) {
+                circleBar.repaint();
             }
         }
 
@@ -90,16 +90,16 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
         public void propertyChange(final PropertyChangeEvent e) {
             final String prop = e.getPropertyName();
             if ("indeterminate" == prop) {
-                if (BasicCircleProgressBarUI.this.circleBar.isIndeterminate()) {
-                    BasicCircleProgressBarUI.this.initIndeterminate();
+                if (circleBar.isIndeterminate()) {
+                    initIndeterminate();
                 } else {
                     // clean up
-                    BasicCircleProgressBarUI.this.cleanUpIndeterminateValues();
+                    cleanUpIndeterminateValues();
                 }
-                BasicCircleProgressBarUI.this.circleBar.repaint();
+                circleBar.repaint();
             }
 
-            BasicCircleProgressBarUI.this.animationStepSize = 1.0f / (BasicCircleProgressBarUI.this.circleBar.getAnimationFPS() / BasicCircleProgressBarUI.this.circleBar.getCyclesPerSecond());
+            animationStepSize = 1.0f / (circleBar.getAnimationFPS() / circleBar.getCyclesPerSecond());
         }
 
     }
@@ -116,35 +116,37 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
     private CircledProgressBar circleBar;
 
     private Handler            handler;
-    private float              animatedProgress = 0.0f;
+    private float              animatedProgress  = 0.0f;
 
     /**
      * 
      */
     public void cleanUpIndeterminateValues() {
-        final Timer ltimer = this.timer;
+        final Timer ltimer = timer;
         if (ltimer != null) {
             ltimer.stop();
         }
-        this.timer = null;
-        this.animatedProgress = 0.0f;
+        timer = null;
+        animatedProgress = 0.0f;
     }
 
     /**
+     * @param size
      * @param diameter
      * @param degree
      * @return
      */
-    private Shape createClip(final int diameter, final double progress) {
+    private Shape createClip(final Dimension size, final int diameter, final double progress) {
         if (progress == 0.0f) { return null; }
         Area a = null;
         if (progress == 1.0f) {
-            return a = new Area(new Ellipse2D.Float(-diameter / 2 + 1, -diameter / 2 + 1, diameter * 2, diameter * 2));
+            return a = new Area(new Ellipse2D.Float((size.width - diameter * 2) / 2 + 1, (size.height - diameter * 2) / 2 + 1, diameter * 2, diameter * 2));
         } else {
-            a = new Area(new Arc2D.Float(-diameter / 2 + 1, -diameter / 2 + 1, diameter * 2, diameter * 2, 90, (float) (-progress * 360), Arc2D.PIE));
+
+            a = new Area(new Arc2D.Float((size.width - diameter * 2) / 2 + 1, (size.height - diameter * 2) / 2 + 1, diameter * 2, diameter * 2, 90, (float) (-progress * 360), Arc2D.PIE));
 
         }
-        a.intersect(new Area(new Rectangle2D.Float(0, 0, diameter, diameter)));
+        a.intersect(new Area(new Rectangle2D.Float(0, 0, size.width , size.height)));
         return a;
     }
 
@@ -163,7 +165,7 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
      * @return
      */
     private Color getForeground() {
-        final Color fg = this.circleBar.getForeground();
+        final Color fg = circleBar.getForeground();
 
         return fg == null ? BasicCircleProgressBarUI.FOREGROUND : fg;
     }
@@ -183,15 +185,15 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
     @Override
     public Dimension getPreferredSize(final JComponent c) {
 
-        return new Dimension(32, 32);
+        return circleBar.getValueClipPainter().getPreferredSize();
     }
 
     /**
      * 
      */
     public void initIndeterminate() {
-        if (this.timer != null) { return; }
-        final javax.swing.Timer timer = new javax.swing.Timer(1000 / this.circleBar.getAnimationFPS(), new AnimationListener());
+        if (timer != null) { return; }
+        final javax.swing.Timer timer = new javax.swing.Timer(1000 / circleBar.getAnimationFPS(), new AnimationListener());
         timer.setInitialDelay(0);
         timer.setRepeats(true);
         timer.start();
@@ -203,16 +205,16 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
      * 
      */
     private void installListeners() {
-        this.handler = new Handler();
-        this.circleBar.addPropertyChangeListener(this.handler);
-        this.circleBar.getEventSender().addListener(this.handler);
+        handler = new Handler();
+        circleBar.addPropertyChangeListener(handler);
+        circleBar.getEventSender().addListener(handler);
     }
 
     @Override
     public void installUI(final JComponent c) {
-        this.circleBar = (CircledProgressBar) c;
-        this.installListeners();
-        if (this.circleBar.isIndeterminate()) {
+        circleBar = (CircledProgressBar) c;
+        installListeners();
+        if (circleBar.isIndeterminate()) {
 
             BasicCircleProgressBarUI.this.initIndeterminate();
         }
@@ -224,19 +226,19 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 
-        final Insets b = this.circleBar.getInsets(); // area for border
-        final Dimension size = this.circleBar.getSize();
-        final int diameter = Math.min(size.height - b.top - b.bottom, size.width - b.left - b.right) - 2;
+        final Insets b = circleBar.getInsets(); // area for border
+        final Dimension size = circleBar.getSize();
+        final int diameter = Math.min(size.height - b.top - b.bottom, size.width - b.left - b.right);
 
-        g2.translate(b.left + 1, b.top + 1);
-        final Shape clip = this.createClip(diameter, progress);
+        g2.translate(b.left, b.top);
+        final Shape clip = createClip(size, diameter, progress);
         if (bgi != null) {
-            final Area a = new Area(new Rectangle2D.Double(0, 0, diameter, diameter));
+            final Area a = new Area(new Rectangle2D.Double(0, 0, size.getWidth(), size.getHeight()));
             if (clip != null) {
                 a.subtract(new Area(clip));
             }
             // g2.setClip(a);
-            bgi.paint(this.circleBar, g2, a, diameter, progress);
+            bgi.paint(circleBar, g2, a, diameter, progress);
         }
 
         // Create the Polygon for the "upper" Icon
@@ -244,20 +246,20 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
         // g2.setClip(clip);
 
         if (clipIcon != null && clip != null) {
-            clipIcon.paint(this.circleBar, g2, clip, diameter, progress);
+            clipIcon.paint(circleBar, g2, clip, diameter, progress);
         }
 
-        g2.translate(-b.left + 1, -b.top + 1);
+        g2.translate(-b.left, -b.top);
         // g2.setColor(Color.BLACK);
         // g2.drawArc(0, 0, diameter, diameter, 0, 360);
     }
 
     @Override
     public void paint(final Graphics g, final JComponent c) {
-        if (this.circleBar.isIndeterminate()) {
+        if (circleBar.isIndeterminate()) {
             this.paintIndeterminate(g);
         } else {
-            this.paintDeterminate(g);
+            paintDeterminate(g);
         }
 
     }
@@ -266,10 +268,10 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
      * @param g
      */
     private void paintDeterminate(final Graphics g) {
-        final BoundedRangeModel model = this.circleBar.getModel();
+        final BoundedRangeModel model = circleBar.getModel();
         final double progress = model.getValue() / (double) model.getMaximum();
 
-        this.paint(g, progress, this.circleBar.getNonvalueClipPainter(), this.circleBar.getValueClipPainter());
+        this.paint(g, progress, circleBar.getNonvalueClipPainter(), circleBar.getValueClipPainter());
 
     }
 
@@ -277,11 +279,11 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
      * @param g
      */
     private void paintIndeterminate(final Graphics g) {
-        if (this.animatedProgress > 1.0) {
-            this.paint(g, this.animatedProgress - 1.0, this.circleBar.getValueClipPainter(), this.circleBar.getNonvalueClipPainter());
+        if (animatedProgress > 1.0) {
+            this.paint(g, animatedProgress - 1.0, circleBar.getValueClipPainter(), circleBar.getNonvalueClipPainter());
 
         } else {
-            this.paint(g, this.animatedProgress, this.circleBar.getNonvalueClipPainter(), this.circleBar.getValueClipPainter());
+            this.paint(g, animatedProgress, circleBar.getNonvalueClipPainter(), circleBar.getValueClipPainter());
 
         }
         // if (this.animatedProgress > 1.0) {
@@ -310,8 +312,8 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 
-        final Insets b = this.circleBar.getInsets(); // area for border
-        final Dimension size = this.circleBar.getSize();
+        final Insets b = circleBar.getInsets(); // area for border
+        final Dimension size = circleBar.getSize();
         final int diameter = Math.min(size.height - b.top - b.bottom, size.width - b.left - b.right);
 
         g2.translate(b.left, b.top);
@@ -321,7 +323,7 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
             final Area a = new Area(new Rectangle2D.Double(0, 0, diameter, diameter));
             a.subtract(new Area(clip));
             g2.setClip(a);
-            bgi.paint(this.circleBar, g2, null, diameter, progress);
+            bgi.paint(circleBar, g2, null, diameter, progress);
         }
 
         // Create the Polygon for the "upper" Icon
@@ -329,7 +331,7 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
         g2.setClip(clip);
 
         if (clipIcon != null) {
-            clipIcon.paint(this.circleBar, g2, null, diameter, progress);
+            clipIcon.paint(circleBar, g2, null, diameter, progress);
         }
 
         g2.translate(-b.left, -b.top);
@@ -341,14 +343,14 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
      * 
      */
     private void uninstallListeners() {
-        this.circleBar.removePropertyChangeListener(this.handler);
-        this.circleBar.getEventSender().removeListener(this.handler);
+        circleBar.removePropertyChangeListener(handler);
+        circleBar.getEventSender().removeListener(handler);
     }
 
     @Override
     public void uninstallUI(final JComponent c) {
-        this.circleBar = null;
-        this.uninstallListeners();
+        circleBar = null;
+        uninstallListeners();
 
     }
 
