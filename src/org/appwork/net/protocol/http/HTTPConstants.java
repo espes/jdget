@@ -95,211 +95,211 @@ public class HTTPConstants {
         SERVERERROR_SERVICE_UNAVAILABLE(503, "Service Unavailable"),
 
         SUCCESS_PARTIAL_CONTENT(206, "Partial Content");
+        /**
+         * @param responseCode
+         * @return
+         */
+        public static ResponseCode get(final int responseCode) {
+            for (final ResponseCode rc : ResponseCode.values()) {
+                if (responseCode == rc.getCode()) { return rc; }
+            }
+            return null;
+
+        }
+
         private final int    code;
         private final String description;
+
         private final byte[] bytes;
 
         private ResponseCode(final int code, final String desc) {
             this.code = code;
-            description = desc;
-            bytes = (code + " " + desc).getBytes();
+            this.description = desc;
+            this.bytes = (code + " " + desc).getBytes();
         }
 
         /**
          * @return
          */
         public byte[] getBytes() {
-            return bytes;
+            return this.bytes;
         }
 
         public int getCode() {
-            return code;
+            return this.code;
         }
 
         public String getDescription() {
-            return description;
-        }
-
-        /**
-         * @param responseCode
-         * @return
-         */
-        public static ResponseCode get(final int responseCode) {
-            for (final ResponseCode rc : values()) {
-                if (responseCode == rc.getCode()) {
-                    return rc;
-                }
-            }
-            return null;
-
+            return this.description;
         }
     }
 
     /**
      * Content-Types that are acceptable Accept: text/plain
      */
-    public static final String HEADER_REQUEST_ACCEPT                       = "Accept";
+    public static final String HEADER_REQUEST_ACCEPT                        = "Accept";
     /**
      * Character sets that are acceptable Accept-Charset: utf-8
      */
-    public static final String HEADER_REQUEST_ACCEPT_CHARSET               = "Accept-Charset";
+    public static final String HEADER_REQUEST_ACCEPT_CHARSET                = "Accept-Charset";
     /**
      * Acceptable encodings Accept-Encoding: <compress | gzip | deflate |
      * identity>
      */
-    public static final String HEADER_REQUEST_ACCEPT_ENCODING              = "Accept-Encoding";
+    public static final String HEADER_REQUEST_ACCEPT_ENCODING               = "Accept-Encoding";
     /**
      * Acceptable languages for response Accept-Language: en-US
      */
-    public static final String HEADER_REQUEST_ACCEPT_LANGUAGE              = "Accept-Language";
+    public static final String HEADER_REQUEST_ACCEPT_LANGUAGE               = "Accept-Language";
     /**
      * Authentication credentials for HTTP authentication Authorization: Basic
      * QWxhZGRpbjpvcGVuIHNlc2FtZQ="="
      */
-    public static final String HEADER_REQUEST_AUTHORIZATION                = "Authorization";
+    public static final String HEADER_REQUEST_AUTHORIZATION                 = "Authorization";
     /**
      * Used to specify directives that MUST be obeyed by all caching mechanisms
      * along the request/response chain Cache-Control: no-cache
      */
-    public static final String HEADER_REQUEST_CACHE_CONTROL                = "Cache-Control";
+    public static final String HEADER_REQUEST_CACHE_CONTROL                 = "Cache-Control";
     /**
      * Used to specify directives that MUST be obeyed by all caching mechanisms
      * along the request/response chain Cache-Control: no-cache
      */
-    public static final String HEADER_REQUEST_CONNECTION                   = "Connection";
+    public static final String HEADER_REQUEST_CONNECTION                    = "Connection";
     /**
      * an HTTP cookie previously sent by the server with Set-Cookie (below)
      * Cookie: $Version="1; Skin="new;
      */
-    public static final String HEADER_REQUEST_COOKIE                       = "Cookie";
+    public static final String HEADER_REQUEST_COOKIE                        = "Cookie";
     /**
      * The length of the request body in octets (8-bit bytes) Content-Length:
      * 348
      */
-    public static final String HEADER_REQUEST_CONTENT_LENGTH               = "Content-Length";
+    public static final String HEADER_REQUEST_CONTENT_LENGTH                = "Content-Length";
     /**
      * The mime type of the body of the request (used with POST and PUT
      * requests) Content-Type: application/x-www-form-urlencoded
      */
-    public static final String HEADER_REQUEST_CONTENT_TYPE                 = "Content-Type";
+    public static final String HEADER_REQUEST_CONTENT_TYPE                  = "Content-Type";
 
-    public static final String HEADER_REQUEST_CONTENT_RANGE                = "Content-Range";
+    public static final String HEADER_REQUEST_CONTENT_RANGE                 = "Content-Range";
     /**
      * The date and time that the message was sent Date: Tue, 15 Nov 1994
      * 08:12:31 GMT
      */
-    public static final String HEADER_REQUEST_DATE                         = "Date";
+    public static final String HEADER_REQUEST_DATE                          = "Date";
     /**
      * The date and time that the message was sent Date: Tue, 15 Nov 1994
      * 08:12:31 GMT
      */
-    public static final String HEADER_REQUEST_EXPECT                       = "Expect";
+    public static final String HEADER_REQUEST_EXPECT                        = "Expect";
     /**
      * The date and time that the message was sent Date: Tue, 15 Nov 1994
      * 08:12:31 GMT
      */
-    public static final String HEADER_REQUEST_FROM                         = "From";
+    public static final String HEADER_REQUEST_FROM                          = "From";
     /**
      * The date and time that the message was sent Date: Tue, 15 Nov 1994
      * 08:12:31 GMT
      */
-    public static final String HEADER_REQUEST_HOST                         = "Host";
+    public static final String HEADER_REQUEST_HOST                          = "Host";
     /**
      * The date and time that the message was sent Date: Tue, 15 Nov 1994
      * 08:12:31 GMT
      */
-    public static final String HEADER_REQUEST_IF_MATCH                     = "If-Match";
+    public static final String HEADER_REQUEST_IF_MATCH                      = "If-Match";
     /**
      * The date and time that the message was sent Date: Tue, 15 Nov 1994
      * 08:12:31 GMT
      */
-    public static final String HEADER_REQUEST_IF_MODIFIED_SINCE            = "If-Modified-Since";
+    public static final String HEADER_REQUEST_IF_MODIFIED_SINCE             = "If-Modified-Since";
     /**
      * The date and time that the message was sent Date: Tue, 15 Nov 1994
      * 08:12:31 GMT
      */
-    public static final String HEADER_REQUEST_IF_NON_MATCH                 = "If-None-Match";
+    public static final String HEADER_REQUEST_IF_NON_MATCH                  = "If-None-Match";
     /**
      * The date and time that the message was sent Date: Tue, 15 Nov 1994
      * 08:12:31 GMT
      */
-    public static final String HEADER_REQUEST_ID_RANGE                     = "If-Range";
+    public static final String HEADER_REQUEST_ID_RANGE                      = "If-Range";
     /**
      * Only send the response if the entity has not been modified since a
      * specific time. If-Unmodified-Since: Sat, 29 Oct 1994 19:43:31 GMT
      */
-    public static final String HEADER_REQUEST_ID_MODIFIED_SINCE            = "If-Unmodified-Since";
+    public static final String HEADER_REQUEST_ID_MODIFIED_SINCE             = "If-Unmodified-Since";
     /**
      * Only send the response if the entity has not been modified since a
      * specific time. If-Unmodified-Since: Sat, 29 Oct 1994 19:43:31 GMT
      */
-    public static final String HEADER_REQUEST_MAX_FORWARDS                 = "Max-Forwards";
+    public static final String HEADER_REQUEST_MAX_FORWARDS                  = "Max-Forwards";
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
      */
-    public static final String HEADER_REQUEST_PRAGMA                       = "Pragma";
+    public static final String HEADER_REQUEST_PRAGMA                        = "Pragma";
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
      */
-    public static final String HEADER_REQUEST_PROXY_AUTHORIZATION          = "Proxy-Authorization";
+    public static final String HEADER_REQUEST_PROXY_AUTHORIZATION           = "Proxy-Authorization";
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
      */
-    public static final String HEADER_REQUEST_RANGE                        = "Range";
+    public static final String HEADER_REQUEST_RANGE                         = "Range";
 
-    public static final String HEADER_ETAG                                 = "ETag";
+    public static final String HEADER_ETAG                                  = "ETag";
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
      */
-    public static final String HEADER_REQUEST_REFERER                      = "Referer";
+    public static final String HEADER_REQUEST_REFERER                       = "Referer";
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
      */
-    public static final String HEADER_REQUEST_TE                           = "TE";
+    public static final String HEADER_REQUEST_TE                            = "TE";
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
      */
-    public static final String HEADER_REQUEST_UPGRADE                      = "Upgrade";
+    public static final String HEADER_REQUEST_UPGRADE                       = "Upgrade";
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
      */
-    public static final String HEADER_REQUEST_USER_AGENT                   = "User-Agent";
+    public static final String HEADER_REQUEST_USER_AGENT                    = "User-Agent";
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
      */
-    public static final String HEADER_REQUEST_VIA                          = "Via";
-    public static final String HEADER_REQUEST_LOCATION                     = "Location";
-    public static final String HEADER_REQUEST_X_FORWARDED_FOR              = "X-Forwarded-For";
-    public static final String HEADER_REQUEST_X_CLIENT_IP                  = "X-Client-IP";
+    public static final String HEADER_REQUEST_VIA                           = "Via";
+    public static final String HEADER_REQUEST_LOCATION                      = "Location";
+    public static final String HEADER_REQUEST_X_FORWARDED_FOR               = "X-Forwarded-For";
+    public static final String HEADER_REQUEST_X_CLIENT_IP                   = "X-Client-IP";
 
     /**
      * Implementation-specific headers that may have various effects anywhere
      * along the request-response chain. Pragma: no-cache
      */
-    public static final String HEADER_REQUEST_WARNING                      = "Warning";
-    public static final String HTTP_KEEP_ALIVE                             = "Keep-Alive";
+    public static final String HEADER_REQUEST_WARNING                       = "Warning";
+    public static final String HTTP_KEEP_ALIVE                              = "Keep-Alive";
     /**
      * The mime type of the body of the request (used with POST and PUT
      * requests) Content-Type: application/x-www-form-urlencoded
      */
-    public static final String HEADER_RESPONSE_CONTENT_TYPE                = "Content-Type";
+    public static final String HEADER_RESPONSE_CONTENT_TYPE                 = "Content-Type";
     /**
      * In case we have dynamic content-length or content-length is not known in
      * advance
      */
-    public static final String HEADER_RESPONSE_TRANSFER_ENCODING           = "Transfer-Encoding";
-    public static final String HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED   = "chunked";
-    public static final String HEADER_REQUEST_ACCEPT_RANGES                = "Accept-Ranges";
-    public static final String HEADER_RESPONSE_CONTENT_ENCODING            = "Content-Encoding";
-    public static final String HEADER_RESPONSE_LOCATION                    = "Location";
-    public static final String HEADER_RESPONSE_SERVER                      = "Server";
-    public static final String HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+    public static final String HEADER_RESPONSE_TRANSFER_ENCODING            = "Transfer-Encoding";
+    public static final String HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED    = "chunked";
+    public static final String HEADER_REQUEST_ACCEPT_RANGES                 = "Accept-Ranges";
+    public static final String HEADER_RESPONSE_CONTENT_ENCODING             = "Content-Encoding";
+    public static final String HEADER_RESPONSE_LOCATION                     = "Location";
+    public static final String HEADER_RESPONSE_SERVER                       = "Server";
+    public static final String HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_ORIGIN  = "Access-Control-Allow-Origin";
+    public static final String HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods";
 }

@@ -267,9 +267,14 @@ public class IO {
         try {
             os = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(32767);
             int len;
+            int done = 0;
             while ((len = input.read(os.getInternalBuffer())) != -1) {
                 if (len > 0) {
+                    done += len;
                     baos.write(os.getInternalBuffer(), 0, len);
+                    if (maxSize > 0 && done >= maxSize) {
+                        break;
+                    }
                     if (maxSize > 0 && baos.size() > maxSize) { throw new IOException("Max size exeeded!"); }
                 }
             }
