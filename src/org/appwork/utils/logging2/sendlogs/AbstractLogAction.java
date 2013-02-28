@@ -140,7 +140,7 @@ public abstract class AbstractLogAction extends BasicAction {
             @Override
             public int getProgress() {
                 if (current == 0) { return -1; }
-                return current * 100 / total;
+                return Math.min(99,current * 100 / total);
             }
 
             @Override
@@ -180,8 +180,8 @@ public abstract class AbstractLogAction extends BasicAction {
             zip.getParentFile().mkdirs();
             ZipIOWriter writer = null;
             
-            String name =lf.getFolder().getName()+"-"+ format(lf.getCreated()) + " to " + format(lf.getLastModified());
-            File folder = Application.getResource("tmp/logs/" + name);
+            final String name =lf.getFolder().getName()+"-"+ format(lf.getCreated()) + " to " + format(lf.getLastModified());
+            final File folder = Application.getResource("tmp/logs/" + name);
             try {
                 if (lf.isNeedsFlush()) {
 
@@ -195,7 +195,9 @@ public abstract class AbstractLogAction extends BasicAction {
                     }
                 };
                
-                if (folder.exists()) Files.deleteRecursiv(folder);
+                if (folder.exists()) {
+                    Files.deleteRecursiv(folder);
+                }
                 IO.copyFolderRecursive(lf.getFolder(), folder, true);
                 writer.addDirectory(folder, true, null);
             } finally {
@@ -215,8 +217,8 @@ public abstract class AbstractLogAction extends BasicAction {
      * @param created
      * @return
      */
-    protected String format(long created) {
-        Date date = new Date(created);
+    protected String format(final long created) {
+        final Date date = new Date(created);
         
         return new SimpleDateFormat("dd.MM.yy HH.mm.ss",Locale.GERMANY).format(date);
     
