@@ -20,6 +20,7 @@ import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HeadRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequestInterface;
+import org.appwork.utils.net.httpserver.requests.OptionsRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 
 /**
@@ -31,6 +32,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
     public static enum REQUESTTYPE {
         HEAD,
         POST,
+        OPTIONS,
         GET,
         UNKNOWN
     }
@@ -144,6 +146,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
     }
 
     public REQUESTTYPE getRequestType() {
+        if (this.request instanceof OptionsRequest) { return REQUESTTYPE.OPTIONS; }
         if (this.request instanceof HeadRequest) { return REQUESTTYPE.HEAD; }
         if (this.request instanceof PostRequest) { return REQUESTTYPE.POST; }
         if (this.request instanceof GetRequest) { return REQUESTTYPE.GET; }

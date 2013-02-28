@@ -32,6 +32,7 @@ import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HeadRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
+import org.appwork.utils.net.httpserver.requests.OptionsRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
 
@@ -101,7 +102,7 @@ public class HttpConnection implements Runnable {
         byte[] bytesRequestLine = new byte[header.limit()];
         header.get(bytesRequestLine);
         String requestLine = this.preProcessRequestLine(new String(bytesRequestLine, "ISO-8859-1").trim());
-        String method = new Regex(requestLine, "(GET|POST|HEAD)").getMatch(0);
+        String method = new Regex(requestLine, "(GET|POST|HEAD|OPTIONS)").getMatch(0);
         final String requestedURL = new Regex(requestLine, " (/.*?) ").getMatch(0);
         final String requestedPath = new Regex(requestedURL, "(/.*?)($|\\?)").getMatch(0);
         final String requestedParameters = new Regex(requestedURL, "\\?(.+)").getMatch(0);
@@ -142,6 +143,8 @@ public class HttpConnection implements Runnable {
             request = new PostRequest(this);
         } else if ("HEAD".equalsIgnoreCase(method)) {
             request = new HeadRequest();
+        } else if ("OPTIONS".equalsIgnoreCase(method)) {
+            request = new OptionsRequest();
         } else {
             throw new IOException("Unsupported " + requestLine);
         }
