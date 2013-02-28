@@ -60,7 +60,7 @@ public class Encoding {
     }
 
     /**
-     * Wenden htmlDecode an, bis es keine Änderungen mehr gibt. Aber max 50 mal!
+     * Wendet htmlDecode an, bis es keine Änderungen mehr gibt. Aber max 50 mal!
      * 
      * @param string
      * @return
@@ -75,12 +75,12 @@ public class Encoding {
                 System.err.println("Max Decodeingloop 50 reached!!!");
                 return tmp;
             }
-        } 
+        }
         return tmp;
     }
 
     /**
-     * Filtert alle nicht lesbaren zeichen aus str
+     * Filtert alle nicht lesbaren Zeichen aus str
      * 
      * @param str
      * @return
@@ -91,7 +91,7 @@ public class Encoding {
     }
 
     /**
-     * Filtert alle zeichen aus str die in filter nicht auftauchen
+     * Filtert alle Zeichen aus str die in filter nicht auftauchen
      * 
      * @param str
      * @param filter
@@ -104,7 +104,7 @@ public class Encoding {
         final byte[] mask = filter.getBytes();
         final byte[] ret = new byte[org.length];
         int count = 0;
-        int i;  
+        int i;
         for (i = 0; i < org.length; i++) {
             final byte letter = org[i];
             for (final byte element : mask) {
@@ -119,8 +119,7 @@ public class Encoding {
     }
 
     /**
-     * WARNING: we MUST use the encoding given in charset info by webserver!
-     * else missmatch will happen eg UTF8 vs ISO-8859-15
+     * WARNING: we MUST use the encoding given in charset info by webserver! else missmatch will happen eg UTF8 vs ISO-8859-15
      **/
     public static String formEncoding(final String str) {
         /* Form Variablen dürfen keine Leerzeichen haben */
@@ -176,9 +175,10 @@ public class Encoding {
     }
 
     public static void main(String[] args) {
-        String test=  "new encoding &#39";
+        String test = "new encoding &#39";
         System.out.println((test));
     }
+
     public static boolean isUrlCoded(final String str) {
         if (str == null) { return false; }
         try {
@@ -212,8 +212,7 @@ public class Encoding {
     }
 
     /**
-     * WARNING: we MUST use the encoding given in charset info by webserver!
-     * else missmatch will happen eg UTF8 vs ISO-8859-15
+     * WARNING: we MUST use the encoding given in charset info by webserver! else missmatch will happen eg UTF8 vs ISO-8859-15
      **/
     public static String urlEncode(final String str) {
         if (str == null) { return null; }
@@ -259,18 +258,30 @@ public class Encoding {
         return sb.toString();
     }
 
+    /**
+     * Wandelt String in 'HTML URL Encode' um. Es werden alle Zeichen, nicht nur Sonderzeichen oder Umlaute kodiert. Beispielsweise wird "ä"
+     * zu "%E4" und "(auto)" zu "%28%61%75%74%6F%29".
+     * 
+     * @see http://www.w3schools.com/tags/ref_urlencode.asp
+     * @param string
+     * @return ein nach w3c 'HTML URL Encode' kodierter String.
+     */
     public static String urlTotalEncode(final String string) {
-        final byte[] org = string.getBytes();
+        byte[] org = new byte[0];
+        try {
+            org = string.getBytes("ISO-8859-1");
+        } catch (UnsupportedEncodingException e) {
+            org = string.getBytes();
+        }
         final StringBuilder sb = new StringBuilder();
         String code;
         for (final byte element : org) {
-
             sb.append('%');
             code = Integer.toHexString(element);
+            if ((int) element < 16) code = "0" + code; // Workaround for hex-numbers with only one char
             sb.append(code.substring(code.length() - 2));
-
         }
-        return sb + "";
+        return sb.toString();
     }
 
     /**
@@ -308,7 +319,7 @@ public class Encoding {
         } catch (final Exception e) {
             Log.exception(e);
             return null;
-        } 
+        }
     }
 
 }
