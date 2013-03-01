@@ -14,7 +14,10 @@ public class AWTEventQueueLinker extends EventQueue {
 
     private static AWTEventQueueLinker INSTANCE;
 
-    public static void link() {
+    public synchronized static void link() {
+        if (INSTANCE != null) {
+            return;
+        }
         INSTANCE = new AWTEventQueueLinker();
 
     }
@@ -33,7 +36,7 @@ public class AWTEventQueueLinker extends EventQueue {
     }
 
     @Override
-    protected void dispatchEvent(AWTEvent event) {
+    protected void dispatchEvent(final AWTEvent event) {
         eventSender.fireEvent(new AWTDispatchEvent(this, AWTDispatchEvent.Type.PRE_DISPATCH, event));
         super.dispatchEvent(event);
         eventSender.fireEvent(new AWTDispatchEvent(this, AWTDispatchEvent.Type.POST_DISPATCH, event));
