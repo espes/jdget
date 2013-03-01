@@ -30,7 +30,6 @@ public class RemoteAPIResponse implements HttpResponseInterface {
     public RemoteAPIResponse(final HttpResponse response) {
         this.response = response;
         // Remote API requests are available via CORS by default.
-        this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_METHODS, "GET, POST"));
         this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
     }
 
