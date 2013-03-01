@@ -175,7 +175,7 @@ public class LogSource extends Logger implements LogInterface {
         final LogSource prev = getPreviousThreadLogSource();
 
         setCurrentThreadLogSource();
-        if (prev != this && isLogDupeToThreadLoggerEnabled()) {
+        if (prev!=null&&prev != this && isLogDupeToThreadLoggerEnabled()) {
 //            final String txt = record.getMessage();
 //            String org = record.getLoggerName();
             try{
