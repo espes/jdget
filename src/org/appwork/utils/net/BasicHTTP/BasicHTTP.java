@@ -60,8 +60,7 @@ public class BasicHTTP {
      * 
      */
     protected void checkResponseCode() throws InvalidResponseCode {
-        System.out.println(1);
-        if (allowedResponseCodes != null && !allowedResponseCodes.contains(connection.getResponseCode())) {
+          if (allowedResponseCodes != null && !allowedResponseCodes.contains(connection.getResponseCode())) {
 
         throw createInvalidResponseCodeException(); }
     }
@@ -210,6 +209,7 @@ public class BasicHTTP {
                     }
                     ioExceptionWhere = 2;
                     baos.write(b, 0, len);
+                
 
                     loaded += len;
                     if (maxSize > 0 && loaded > maxSize) { throw new IOException("Max size exeeded!"); }
