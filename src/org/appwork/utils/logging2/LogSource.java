@@ -48,22 +48,17 @@ public class LogSource extends Logger implements LogInterface {
         return null;
     }
 
-    private java.util.List<LogRecord> records                      = new ArrayList<LogRecord>();
+    private java.util.List<LogRecord> records           = new ArrayList<LogRecord>();
     private int                       maxLogRecordsInMemory;
-    private int                       flushCounter                 = 0;
-    private int                       recordsCounter               = 0;
-    private boolean                   closed                       = false;
+    private int                       flushCounter      = 0;
+    private int                       recordsCounter    = 0;
+    private boolean                   closed            = false;
 
-    private boolean                   allowTimeoutFlush            = true;
-    private boolean                   instantFlush                 = false;
-    private boolean                   flushOnFinalize              = false;
+    private boolean                   allowTimeoutFlush = true;
+    private boolean                   instantFlush      = false;
+    private boolean                   flushOnFinalize   = false;
 
-    private Logger                    parent                       = null;
-    private boolean                   logDupeToThreadLoggerEnabled = false;
-
-    public void setLogDupeToThreadLoggerEnabled(final boolean logDupeToThreadLoggerEnabled) {
-        this.logDupeToThreadLoggerEnabled = logDupeToThreadLoggerEnabled;
-    }
+    private Logger                    parent            = null;
 
     public LogSource(final String name) {
         this(name, -1);
@@ -172,20 +167,9 @@ public class LogSource extends Logger implements LogInterface {
     @Override
     public synchronized void log(final LogRecord record) {
         if (closed || record == null) { return; }
-        final LogSource prev = getPreviousThreadLogSource();
 
         setCurrentThreadLogSource();
-        if (prev!=null&&prev != this && isLogDupeToThreadLoggerEnabled()) {
-//            final String txt = record.getMessage();
-//            String org = record.getLoggerName();
-            try{
-//                record.setMessage(txt);
-            prev.log(record);
-            
-            }finally{
-//                record.setMessage(txt);
-            }
-        }
+
         record.setLoggerName(getName());
         /* make sure we have gathered all information about current class/method */
         /* this will collect current class/method if net set yet */
@@ -214,14 +198,6 @@ public class LogSource extends Logger implements LogInterface {
         records.add(record);
         recordsCounter++;
         super.log(record);
-    }
-
-    /**
-     * @return
-     */
-    private boolean isLogDupeToThreadLoggerEnabled() {
-        // TODO Auto-generated method stub
-        return logDupeToThreadLoggerEnabled;
     }
 
     public void log(Throwable e) {
