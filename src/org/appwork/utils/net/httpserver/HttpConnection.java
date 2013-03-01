@@ -29,6 +29,7 @@ import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.HeaderCollection;
 import org.appwork.utils.net.httpconnection.HTTPConnectionUtils;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
+import org.appwork.utils.net.httpserver.requests.AESJSonRequest;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HeadRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
@@ -189,6 +190,14 @@ public class HttpConnection implements Runnable {
         }
     }
 
+    public byte[] getAESJSon_IV(final String ID) {
+        return null;
+    }
+
+    public byte[] getAESJSon_KEY(final String ID) {
+        return null;
+    }
+
     public List<HttpRequestHandler> getHandler() {
         synchronized (this.server.getHandler()) {
             return this.server.getHandler();
@@ -213,6 +222,14 @@ public class HttpConnection implements Runnable {
     public synchronized OutputStream getOutputStream() throws IOException {
         this.sendResponseHeaders();
         return this.os;
+    }
+
+    /**
+     * @param aesJsonRequest
+     * @return
+     */
+    public boolean isAESJsonRequestValid(final AESJSonRequest aesJsonRequest) {
+        return false;
     }
 
     /**

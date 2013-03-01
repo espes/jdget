@@ -9,16 +9,28 @@
  */
 package org.appwork.utils.net.httpserver.requests;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.appwork.net.protocol.http.HTTPConstants;
+import org.appwork.storage.JSonStorage;
+import org.appwork.storage.TypeRef;
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
+import org.appwork.utils.net.Base64InputStream;
 import org.appwork.utils.net.ChunkedInputStream;
 import org.appwork.utils.net.HTTPHeader;
+import org.appwork.utils.net.LimitedInputStream;
 import org.appwork.utils.net.httpserver.HttpConnection;
 
 /**
@@ -26,6 +38,12 @@ import org.appwork.utils.net.httpserver.HttpConnection;
  * 
  */
 public class PostRequest extends HttpRequest {
+
+    private static enum CONTENT_TYPE {
+        X_WWW_FORM_URLENCODED,
+        JSON,
+        AESJSON
+    }
 
     protected InputStream        inputStream         = null;
     private final HttpConnection connection;
@@ -38,11 +56,17 @@ public class PostRequest extends HttpRequest {
 
     public synchronized InputStream getInputStream() throws IOException {
         if (this.inputStream == null) {
-            HTTPHeader transferEncoding = null;
-            if ((transferEncoding = this.getRequestHeaders().get(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING)) != null && "chunked".equalsIgnoreCase(transferEncoding.getValue())) {
-                this.inputStream = new ChunkedInputStream(this.connection.getInputStream());
+            final HTTPHeader transferEncoding = this.getRequestHeaders().get(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING);
+            if (transferEncoding != null) {
+                if ("chunked".equalsIgnoreCase(transferEncoding.getValue())) {
+                    this.inputStream = new ChunkedInputStream(this.connection.getInputStream());
+                } else {
+                    throw new IOException("Unknown Transfer-Encoding " + transferEncoding.getValue());
+                }
             } else {
-                this.inputStream = this.connection.getInputStream();
+                final HTTPHeader contentLength = this.getRequestHeaders().get(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH);
+                if (contentLength == null) { throw new IOException("No Content-Length given!"); }
+                this.inputStream = new LimitedInputStream(this.connection.getInputStream(), Long.parseLong(contentLength.getValue()));
             }
         }
         return this.inputStream;
@@ -57,44 +81,62 @@ public class PostRequest extends HttpRequest {
     public synchronized LinkedList<String[]> getPostParameter() throws IOException {
         if (this.postParameterParsed) { return this.postParameters; }
         final String type = this.getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE);
+        CONTENT_TYPE content_type = null;
         if (new Regex(type, "(application/x-www-form-urlencoded)").matches()) {
+            content_type = CONTENT_TYPE.X_WWW_FORM_URLENCODED;
+        } else if (new Regex(type, "(application/json)").matches()) {
+            content_type = CONTENT_TYPE.JSON;
+        } else if (new Regex(type, "(application/aesjson-)").matches()) {
+            content_type = CONTENT_TYPE.AESJSON;
+        }
+        if (content_type != null) {
             String charSet = new Regex(type, "charset=(.*?)($| )").getMatch(0);
             if (charSet == null) {
                 charSet = "UTF-8";
             }
-            final String contentLength = this.getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH);
-            int length = contentLength == null ? -1 : Integer.parseInt(contentLength);
-            HTTPHeader chunkedTransfer = null;
-            if ((chunkedTransfer = this.getRequestHeaders().get(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING)) == null || !"chunked".equalsIgnoreCase(chunkedTransfer.getValue())) {
-                chunkedTransfer = null;
+            switch (content_type) {
+            case JSON: {
+                final byte[] jsonBytes = IO.readStream(-1, this.getInputStream());
+                this.postParameters = new LinkedList<String[]>();
+                this.postParameters.add(new String[] { new String(jsonBytes, charSet), null });
             }
-            if (length <= 0 && chunkedTransfer == null) { throw new IOException("application/x-www-form-urlencoded without content-length"); }
-            final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            final byte[] tmp = new byte[128];
-            int read = 0;
-            /* TODO: check this for custom encoding */
-            while ((read = this.getInputStream().read(tmp, 0, Math.min(tmp.length, length))) >= 0) {
-                if (read > 0) {
-                    bos.write(tmp, 0, read);
-                    length -= read;
-                    if (length == 0) {
-                        break;
+                break;
+            case X_WWW_FORM_URLENCODED: {
+                final byte[] jsonBytes = IO.readStream(-1, this.getInputStream());
+                this.postParameters = HttpConnection.parseParameterList(new String(jsonBytes, charSet));
+            }
+                break;
+            case AESJSON: {
+                try {
+                    final String ID = new Regex(type, "application/aesjson-([a-zA-Z0-9]+)").getMatch(0);
+                    final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                    final byte[] IV = this.connection.getAESJSon_IV(ID);
+                    if (IV == null) { throw new IOException("Invalid AESJSON Request"); }
+                    final IvParameterSpec ivSpec = new IvParameterSpec(IV);
+                    final byte[] KEY = this.connection.getAESJSon_KEY(ID);
+                    if (KEY == null) { throw new IOException("Invalid AESJSON Request"); }
+                    final SecretKeySpec skeySpec = new SecretKeySpec(KEY, "AES");
+                    cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
+                    final byte[] jsonBytes = IO.readStream(-1, new CipherInputStream(new Base64InputStream(this.getInputStream()), cipher));
+                    final AESJSonRequest aesJsonRequest = JSonStorage.restoreFromString(new String(jsonBytes, charSet), new TypeRef<AESJSonRequest>() {
+                    });
+                    if (!this.connection.isAESJsonRequestValid(aesJsonRequest)) { throw new IOException("Invalid AESJSON Request"); }
+                    this.postParameters = new LinkedList<String[]>();
+                    for (final Object parameter : aesJsonRequest.getParam()) {
+                        this.postParameters.add(new String[] { parameter.toString(), null });
                     }
+                } catch (final NoSuchPaddingException e) {
+                    throw new IOException(e);
+                } catch (final NoSuchAlgorithmException e) {
+                    throw new IOException(e);
+                } catch (final InvalidKeyException e) {
+                    throw new IOException(e);
+                } catch (final InvalidAlgorithmParameterException e) {
+                    throw new IOException(e);
                 }
             }
-            final String postData = new String(bos.toByteArray(), charSet);
-            this.postParameters = HttpConnection.parseParameterList(postData);
-        } else if (new Regex(type, "(application/json)").matches()) {
-            String charSet = new Regex(type, "charset=(.*?)($| )").getMatch(0);
-            if (charSet == null) {
-                charSet = "UTF-8";
+                break;
             }
-            /* TODO: rework */
-            final String contentLength = this.getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH);
-            final int length = contentLength == null ? -1 : Integer.parseInt(contentLength);
-            final byte[] jsonBytes = IO.readStream(length, this.getInputStream());
-            this.postParameters = new LinkedList<String[]>();
-            this.postParameters.add(new String[] { new String(jsonBytes, charSet), null });
         }
         this.postParameterParsed = true;
         return this.postParameters;

@@ -375,13 +375,28 @@ public class InterfaceHandler<T> {
             }
         } else {
             try {
+                if (RemoteAPICustomResponse.class.isAssignableFrom(m.getReturnType())) { return; }
                 if (RemoteAPIProcess.class.isAssignableFrom(m.getReturnType())) {
                     final Type t = m.getReturnType().getGenericSuperclass();
                     if (t instanceof ParameterizedTypeImpl) {
                         final ParameterizedTypeImpl p = (ParameterizedTypeImpl) t;
                         final Type[] oo = p.getActualTypeArguments();
                         for (final Type o : oo) {
-                            JSonStorage.canStore(o);
+                            try {
+                                JSonStorage.canStore(o);
+                            } catch (final InvalidTypeException e) {
+                                final AllowStorage allow = m.getAnnotation(AllowStorage.class);
+                                boolean found = false;
+                                if (allow != null) {
+                                    for (final Class<?> c : allow.value()) {
+                                        if (e.getType() == c) {
+                                            found = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (!found) { throw new InvalidTypeException(e); }
+                            }
                         }
                     } else {
                         throw new ParseException("return Type of " + m + " is invalid");

@@ -28,6 +28,7 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -312,6 +313,13 @@ public class AWSign {
 
     public static SecureRandom getSecureRandom() {
         return AWSign.sr;
+    }
+
+    public static byte[] HMACSHA256(final byte[] key, final byte[] content) throws NoSuchAlgorithmException, InvalidKeyException {
+        final Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+        final SecretKeySpec secret_key = new SecretKeySpec(key, "HmacSHA256");
+        sha256_HMAC.init(secret_key);
+        return sha256_HMAC.doFinal(content);
     }
 
     public static void main(final String[] args) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException {

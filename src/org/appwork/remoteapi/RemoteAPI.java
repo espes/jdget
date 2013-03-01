@@ -303,6 +303,10 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         String text = "";
         response.setResponseCode(ResponseCode.SUCCESS_OK);
         if (method != null && responseData != null) {
+            if (RemoteAPICustomResponse.class.isAssignableFrom(responseData.getClass())) {
+                ((RemoteAPICustomResponse) responseData).sendCustomResponse(request, response, ((RemoteAPICustomResponse) responseData).getResponseContent());
+                return;
+            }
             /* no exception thrown and method available */
             if (Clazz.isVoid(method.getReturnType())) {
                 /* no content */
