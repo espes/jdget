@@ -42,23 +42,28 @@ public class LogSource extends Logger implements LogInterface {
             final WeakReference<LogSource> prevLogSource = LogSource.LASTTHREADLOGSOURCE.get(thread);
             if (prevLogSource != null) {
                 final LogSource previousLogger = prevLogSource.get();
-                if (previousLogger!=null&&previousLogger.isClosed() == false) { return previousLogger; }
+                if (previousLogger != null && previousLogger.isClosed() == false) { return previousLogger; }
             }
         }
         return null;
     }
 
-    private java.util.List<LogRecord> records           = new ArrayList<LogRecord>();
+    private java.util.List<LogRecord> records                      = new ArrayList<LogRecord>();
     private int                       maxLogRecordsInMemory;
-    private int                       flushCounter      = 0;
-    private int                       recordsCounter    = 0;
-    private boolean                   closed            = false;
+    private int                       flushCounter                 = 0;
+    private int                       recordsCounter               = 0;
+    private boolean                   closed                       = false;
 
-    private boolean                   allowTimeoutFlush = true;
-    private boolean                   instantFlush      = false;
-    private boolean                   flushOnFinalize   = false;
+    private boolean                   allowTimeoutFlush            = true;
+    private boolean                   instantFlush                 = false;
+    private boolean                   flushOnFinalize              = false;
 
-    private Logger                    parent            = null;
+    private Logger                    parent                       = null;
+    private boolean                   logDupeToThreadLoggerEnabled = false;
+
+    public void setLogDupeToThreadLoggerEnabled(final boolean logDupeToThreadLoggerEnabled) {
+        this.logDupeToThreadLoggerEnabled = logDupeToThreadLoggerEnabled;
+    }
 
     public LogSource(final String name) {
         this(name, -1);
@@ -80,29 +85,29 @@ public class LogSource extends Logger implements LogInterface {
         this(name, (String) null);
         this.maxLogRecordsInMemory = maxLogRecordsInMemory;
         super.setUseParentHandlers(false);
-        this.setLevel(Level.ALL);
+        setLevel(Level.ALL);
     }
 
     protected LogSource(final String name, final String resourceBundleName) {
         super(name, resourceBundleName);
-        this.setCurrentThreadLogSource();
+        setCurrentThreadLogSource();
     }
 
     public synchronized void clear() {
-        this.records = null;
+        records = null;
     }
 
     public synchronized void close() {
-        this.flush();
-        this.closed = true;
-        this.records = null;
+        flush();
+        closed = true;
+        records = null;
     }
 
     @Override
     protected void finalize() throws Throwable {
         try {
-            if (this.allowTimeoutFlush || this.flushOnFinalize) {
-                this.close();
+            if (allowTimeoutFlush || flushOnFinalize) {
+                close();
             }
         } finally {
             super.finalize();
@@ -110,12 +115,12 @@ public class LogSource extends Logger implements LogInterface {
     }
 
     public synchronized void flush() {
-        if (this.closed) { return; }
-        if (this.records == null || this.records.size() == 0) {
-            this.records = null;
+        if (closed) { return; }
+        if (records == null || records.size() == 0) {
+            records = null;
             return;
         }
-        final Logger parent = this.getParent();
+        final Logger parent = getParent();
         if (parent != null) {
             for (final Handler handler : parent.getHandlers()) {
                 if (handler instanceof ConsoleHandler) {
@@ -123,58 +128,72 @@ public class LogSource extends Logger implements LogInterface {
                     continue;
                 }
                 synchronized (handler) {
-                    for (final LogRecord record : this.records) {
+                    for (final LogRecord record : records) {
                         handler.publish(record);
                     }
                 }
             }
-            this.flushCounter++;
+            flushCounter++;
         }
-        this.records = null;
+        records = null;
     }
 
     public int getMaxLogRecordsInMemory() {
-        return this.maxLogRecordsInMemory;
+        return maxLogRecordsInMemory;
     }
 
     @Override
     public Logger getParent() {
-        return this.parent;
+        return parent;
     }
 
     public boolean isAllowTimeoutFlush() {
-        return this.allowTimeoutFlush;
+        return allowTimeoutFlush;
     }
 
     protected boolean isClosed() {
-        return this.closed;
+        return closed;
     }
 
     /**
      * @return the flushOnFinalize
      */
     public boolean isFlushOnFinalize() {
-        return this.flushOnFinalize;
+        return flushOnFinalize;
     }
 
     /**
      * @return the instantFlush
      */
     public boolean isInstantFlush() {
-        return this.instantFlush;
+        return instantFlush;
     }
 
     @Override
     public synchronized void log(final LogRecord record) {
-        if (this.closed || record == null) { return; }
-        this.setCurrentThreadLogSource();
+        if (closed || record == null) { return; }
+        final LogSource prev = getPreviousThreadLogSource();
+
+        setCurrentThreadLogSource();
+        if (prev != this && isLogDupeToThreadLoggerEnabled()) {
+//            final String txt = record.getMessage();
+//            String org = record.getLoggerName();
+            try{
+//                record.setMessage(txt);
+            prev.log(record);
+            
+            }finally{
+//                record.setMessage(txt);
+            }
+        }
+        record.setLoggerName(getName());
         /* make sure we have gathered all information about current class/method */
         /* this will collect current class/method if net set yet */
         record.getSourceClassName();
-        record.setLoggerName(Thread.currentThread().getName());
-        if (this.maxLogRecordsInMemory == 0 || this.instantFlush) {
+        // record.setLoggerName(Thread.currentThread().getName());
+        if (maxLogRecordsInMemory == 0 || instantFlush) {
             /* maxLogRecordsInMemory == 0, we want to use parent's handlers */
-            final Logger parent = this.getParent();
+            final Logger parent = getParent();
             if (parent != null) {
                 for (final Handler handler : parent.getHandlers()) {
                     synchronized (handler) {
@@ -183,18 +202,26 @@ public class LogSource extends Logger implements LogInterface {
                 }
             }
             return;
-        } else if (this.maxLogRecordsInMemory > 0 && this.records != null && this.records.size() == this.maxLogRecordsInMemory) {
+        } else if (maxLogRecordsInMemory > 0 && records != null && records.size() == maxLogRecordsInMemory) {
             /* maxLogRecordsInMemory >0 we have limited max records in memory */
             /* we flush in case we reached maxLogRecordsInMemory */
-            this.flush();
+            flush();
         }
-        if (this.records == null) {
+        if (records == null) {
             /* records will be null at first use or after a flush */
-            this.records = new ArrayList<LogRecord>();
+            records = new ArrayList<LogRecord>();
         }
-        this.records.add(record);
-        this.recordsCounter++;
+        records.add(record);
+        recordsCounter++;
         super.log(record);
+    }
+
+    /**
+     * @return
+     */
+    private boolean isLogDupeToThreadLoggerEnabled() {
+        // TODO Auto-generated method stub
+        return logDupeToThreadLoggerEnabled;
     }
 
     public void log(Throwable e) {
@@ -208,7 +235,9 @@ public class LogSource extends Logger implements LogInterface {
         if (lvl == null) {
             lvl = Level.SEVERE;
         }
-        this.log(new LogRecord(lvl, Exceptions.getStackTrace(e)));
+        final LogRecord lr = new LogRecord(lvl, Exceptions.getStackTrace(e));
+        lr.setLoggerName(getName());
+        this.log(lr);
     }
 
     /**
@@ -247,15 +276,15 @@ public class LogSource extends Logger implements LogInterface {
     public void setInstantFlush(final boolean instantFlush) {
         if (this.instantFlush == instantFlush) { return; }
         if (instantFlush) {
-            this.flush();
+            flush();
         }
         this.instantFlush = instantFlush;
     }
 
     public synchronized void setMaxLogRecordsInMemory(final int newMax) {
-        if (this.maxLogRecordsInMemory == newMax) { return; }
-        this.flush();
-        this.maxLogRecordsInMemory = newMax;
+        if (maxLogRecordsInMemory == newMax) { return; }
+        flush();
+        maxLogRecordsInMemory = newMax;
     }
 
     @Override
@@ -276,17 +305,17 @@ public class LogSource extends Logger implements LogInterface {
     public String toString(final int lastXEntries) {
         final StringBuilder sb = new StringBuilder();
         synchronized (this) {
-            sb.append("Log:" + this.getName() + " Records:" + this.recordsCounter + " Flushed:" + this.flushCounter);
-            if (this.records != null && this.records.size() > 0) {
+            sb.append("Log:" + getName() + " Records:" + recordsCounter + " Flushed:" + flushCounter);
+            if (records != null && records.size() > 0) {
                 sb.append("\r\n");
                 final LogSourceFormatter formatter = new LogSourceFormatter();
                 formatter.setFormatterStringBuilder(sb);
                 int index = 0;
-                if (lastXEntries > 0 && this.records.size() > lastXEntries) {
-                    index = this.records.size() - lastXEntries;
+                if (lastXEntries > 0 && records.size() > lastXEntries) {
+                    index = records.size() - lastXEntries;
                 }
-                for (; index < this.records.size(); index++) {
-                    sb.append(formatter.format(this.records.get(index)));
+                for (; index < records.size(); index++) {
+                    sb.append(formatter.format(records.get(index)));
                 }
             }
         }
