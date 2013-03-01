@@ -23,7 +23,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -35,7 +34,6 @@ import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.Regex;
-import org.appwork.utils.logging.LogFormatter;
 import org.appwork.utils.os.CrossSystem;
 
 public abstract class LogSourceProvider {
@@ -71,16 +69,14 @@ public abstract class LogSourceProvider {
     protected long                           logTimeout;
     protected Thread                         flushThread = null;
     protected File                           logFolder;
-    protected ConsoleHandler                 consoleHandler;
+    protected LogConsoleHandler              consoleHandler;
 
     protected boolean                        instantFlushDefault;
-    private long initTime;
+    private long                             initTime;
 
     public LogSourceProvider(final long timeStamp) {
-        this.initTime=timeStamp;
-        this.consoleHandler = new ConsoleHandler();
-        this.consoleHandler.setLevel(Level.ALL);
-        this.consoleHandler.setFormatter(new LogFormatter());
+        this.initTime = timeStamp;
+        this.consoleHandler = new LogConsoleHandler();
         this.maxSize = JsonConfig.create(LogConfig.class).getMaxLogFileSize();
         this.maxLogs = JsonConfig.create(LogConfig.class).getMaxLogFiles();
         this.logTimeout = JsonConfig.create(LogConfig.class).getLogFlushTimeout() * 1000l;
@@ -153,10 +149,6 @@ public abstract class LogSourceProvider {
         }.start();
     }
 
-    public long getInitTime() {
-        return initTime;
-    }
-
     /**
      * @param name
      * @param i
@@ -203,7 +195,7 @@ public abstract class LogSourceProvider {
         return this.getLogger(clazz.getSimpleName());
     }
 
-    public ConsoleHandler getConsoleHandler() {
+    public LogConsoleHandler getConsoleHandler() {
         return this.consoleHandler;
     }
 
@@ -248,6 +240,10 @@ public abstract class LogSourceProvider {
          */
         logger.log(stackTrace);
         return logger;
+    }
+
+    public long getInitTime() {
+        return this.initTime;
     }
 
     public LogSource getLogger(String name) {
