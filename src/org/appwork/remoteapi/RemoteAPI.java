@@ -33,9 +33,7 @@ import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
-import org.appwork.utils.net.httpserver.requests.HeadRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
-import org.appwork.utils.net.httpserver.requests.OptionsRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
 import org.appwork.utils.reflection.Clazz;
@@ -237,7 +235,14 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         Object responseData = null;
         Object responseException = null;
         final Method method = request.getMethod();
+        final Method rawMethod = request.getRawMethod();
         try {
+            if (rawMethod != null) {
+                /* maybe this request is handled by rawMethodHandler */
+                final Object[] parameters = new Object[] { request, response };
+                responseData = request.getIface().invoke(rawMethod, parameters);
+                if (Boolean.TRUE.equals(responseData)) { return; }
+            }
             if (method == null) { throw new ApiCommandNotAvailable(); }
             if (!this.isAllowed(request)) {
                 response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
@@ -443,28 +448,6 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
      * @return
      */
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
-        final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
-        if (apiRequest == null) { return false; }
-        try {
-            this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
-        } catch (final Throwable e) {
-            throw new RuntimeException(e);
-        }
-        return true;
-    }
-
-    public boolean onHeadRequest(final HeadRequest request, final HttpResponse response) {
-        final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
-        if (apiRequest == null) { return false; }
-        try {
-            this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
-        } catch (final Throwable e) {
-            throw new RuntimeException(e);
-        }
-        return true;
-    }
-
-    public boolean onOptionsRequest(final OptionsRequest request, final HttpResponse response) {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return false; }
         try {

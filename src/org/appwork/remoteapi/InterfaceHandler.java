@@ -63,31 +63,14 @@ public class InterfaceHandler<T> {
         return ret;
     }
 
-    /**
-     * @param c
-     * @param defaultAuthLevel2
-     * @param process
-     * @throws ParseException
-     */
-    public void add(Class<T> c, RemoteAPIInterface process, int defaultAuthLevel) throws ParseException {
-
-        if (sessionRequired != (c.getAnnotation(ApiSessionRequired.class) != null)) { throw new ParseException("Check SessionRequired for " + this); }
-
-        if (defaultAuthLevel != getDefaultAuthLevel()) throw new ParseException("Check Authlevel " + c + " " + this);
-        if (process != this.impl) throw new ParseException(process + "!=" + impl);
-        interfaceClasses.add(c);
-        parse();
-
-    }
-
     private final RemoteAPIInterface                        impl;
+
     private final java.util.List<Class<T>>                  interfaceClasses;
     private final TreeMap<String, TreeMap<Integer, Method>> methods;
     private final HashMap<Method, Integer>                  parameterCountMap;
     private final HashMap<Method, Integer>                  methodsAuthLevel;
     private final HashMap<String, Method>                   rawMethods;
     private final int                                       defaultAuthLevel;
-
     private boolean                                         sessionRequired = false;
 
     /**
@@ -99,7 +82,7 @@ public class InterfaceHandler<T> {
      */
     private InterfaceHandler(final Class<T> c, final RemoteAPIInterface x, final int defaultAuthLevel) throws SecurityException, NoSuchMethodException {
         this.interfaceClasses = new ArrayList<Class<T>>();
-        interfaceClasses.add(c);
+        this.interfaceClasses.add(c);
         this.impl = x;
         this.methods = new TreeMap<String, TreeMap<Integer, Method>>();
 
@@ -110,8 +93,21 @@ public class InterfaceHandler<T> {
         this.rawMethods = new HashMap<String, Method>();
     }
 
-    public int getDefaultAuthLevel() {
-        return defaultAuthLevel;
+    /**
+     * @param c
+     * @param defaultAuthLevel2
+     * @param process
+     * @throws ParseException
+     */
+    public void add(final Class<T> c, final RemoteAPIInterface process, final int defaultAuthLevel) throws ParseException {
+
+        if (this.sessionRequired != (c.getAnnotation(ApiSessionRequired.class) != null)) { throw new ParseException("Check SessionRequired for " + this); }
+
+        if (defaultAuthLevel != this.getDefaultAuthLevel()) { throw new ParseException("Check Authlevel " + c + " " + this); }
+        if (process != this.impl) { throw new ParseException(process + "!=" + this.impl); }
+        this.interfaceClasses.add(c);
+        this.parse();
+
     }
 
     public int getAuthLevel(final Method m) {
@@ -120,17 +116,23 @@ public class InterfaceHandler<T> {
         return this.defaultAuthLevel;
     }
 
+    public int getDefaultAuthLevel() {
+        return this.defaultAuthLevel;
+    }
+
     /**
      * @param length
      * @param methodName
      * @return
      */
-    public Method getMethod(String methodName, final int length) {
+    public Method getMethod(final String methodName, final int length) {
         if (methodName.equals(InterfaceHandler.HELP.getName())) { return InterfaceHandler.HELP; }
         final TreeMap<Integer, Method> methodsByName = this.methods.get(methodName);
         if (methodsByName == null) { return null; }
         Method ret = methodsByName.get(length);
-        if (ret == null) ret = rawMethods.get(methodName);
+        if (ret == null) {
+            ret = this.rawMethods.get(methodName);
+        }
         return ret;
     }
 
@@ -145,12 +147,12 @@ public class InterfaceHandler<T> {
     public void help(final RemoteAPIRequest request, final RemoteAPIResponse response) throws InstantiationException, IllegalAccessException, UnsupportedEncodingException, IOException {
 
         if ("true".equals(HttpRequest.getParameterbyKey(request.getHttpRequest(), "json"))) {
-            helpJSON(request, response);
+            this.helpJSON(request, response);
             return;
         }
 
         final StringBuilder sb = new StringBuilder();
-        for (Class<T> interfaceClass : interfaceClasses) {
+        for (final Class<T> interfaceClass : this.interfaceClasses) {
             sb.append(interfaceClass.getName());
             sb.append("\r\n");
         }
@@ -223,13 +225,13 @@ public class InterfaceHandler<T> {
 
     private void helpJSON(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
 
-        List<RemoteAPIMethodDefinition> methodDefinitions = new ArrayList<RemoteAPIMethodDefinition>();
+        final List<RemoteAPIMethodDefinition> methodDefinitions = new ArrayList<RemoteAPIMethodDefinition>();
 
         Entry<String, TreeMap<Integer, Method>> next;
         for (final Iterator<Entry<String, TreeMap<Integer, Method>>> it = this.methods.entrySet().iterator(); it.hasNext();) {
             next = it.next();
             for (final Method m : next.getValue().values()) {
-                RemoteAPIMethodDefinition mDef = new RemoteAPIMethodDefinition();
+                final RemoteAPIMethodDefinition mDef = new RemoteAPIMethodDefinition();
                 mDef.setMethodName(m.getName());
 
                 final ApiDoc an = m.getAnnotation(ApiDoc.class);
@@ -237,7 +239,7 @@ public class InterfaceHandler<T> {
                     mDef.setDescription(an.value());
                 }
 
-                List<String> parameters = new ArrayList<String>();
+                final List<String> parameters = new ArrayList<String>();
 
                 for (int i = 0; i < m.getGenericParameterTypes().length; i++) {
                     if (m.getParameterTypes()[i] == RemoteAPIRequest.class || m.getParameterTypes()[i] == RemoteAPIResponse.class) {
@@ -251,7 +253,7 @@ public class InterfaceHandler<T> {
             }
         }
 
-        String responseText = JSonStorage.serializeToJson(methodDefinitions);
+        final String responseText = JSonStorage.serializeToJson(methodDefinitions);
 
         response.setResponseCode(ResponseCode.SUCCESS_OK);
 
@@ -289,17 +291,17 @@ public class InterfaceHandler<T> {
      * 
      */
     private void parse() throws ParseException {
-        methods.clear();
-        rawMethods.clear();
-        parameterCountMap.clear();
-        methodsAuthLevel.clear();
+        this.methods.clear();
+        this.rawMethods.clear();
+        this.parameterCountMap.clear();
+        this.methodsAuthLevel.clear();
         TreeMap<Integer, Method> map;
         this.methods.put("help", map = new TreeMap<Integer, Method>());
         map.put(0, InterfaceHandler.HELP);
         this.parameterCountMap.put(InterfaceHandler.HELP, 0);
 
         this.methodsAuthLevel.put(InterfaceHandler.HELP, 0);
-        for (Class<T> interfaceClass : interfaceClasses) {
+        for (final Class<T> interfaceClass : this.interfaceClasses) {
             for (final Method m : interfaceClass.getMethods()) {
                 final ApiHiddenMethod hidden = m.getAnnotation(ApiHiddenMethod.class);
                 if (hidden != null) {
@@ -368,7 +370,9 @@ public class InterfaceHandler<T> {
             }
         }
         if (responseIsParamater) {
-            if (m.getGenericReturnType() != void.class && m.getGenericReturnType() != Void.class) { throw new ParseException("Response in Parameters. " + m + " must return void, and has to handle the response itself"); }
+            if (m.getGenericReturnType() != void.class && m.getGenericReturnType() != Void.class) {
+                if (!RemoteAPIRawInterface.class.isAssignableFrom(m.getDeclaringClass())) { throw new ParseException("Response in Parameters. " + m + " must return void, and has to handle the response itself"); }
+            }
         } else {
             try {
                 if (RemoteAPIProcess.class.isAssignableFrom(m.getReturnType())) {

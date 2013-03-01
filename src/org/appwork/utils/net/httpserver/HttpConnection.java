@@ -241,7 +241,7 @@ public class HttpConnection implements Runnable {
             this.requestReceived(request);
             boolean handled = false;
             for (final HttpRequestHandler handler : this.getHandler()) {
-                if (request instanceof GetRequest || request instanceof HeadRequest) {
+                if (request instanceof GetRequest) {
                     if (handler.onGetRequest((GetRequest) request, this.response)) {
                         handled = true;
                         break;

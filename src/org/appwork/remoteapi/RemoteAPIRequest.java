@@ -42,6 +42,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
     private final String[]            parameters;
     private final HttpRequest         request;
 
+    private final Method              rawMethod;
     private Method                    method;
 
     private int                       parameterCount;
@@ -54,9 +55,10 @@ public class RemoteAPIRequest implements HttpRequestInterface {
         this.iface = iface;
         this.parameters = parameters;
         this.request = request;
-        this.jqueryCallback = jqueryCallback;
         this.methodName = methodName;
 
+        this.rawMethod = this.iface.getMethod("handleRAWRemoteAPI", 0);
+        this.jqueryCallback = jqueryCallback;
         this.method = this.iface.getMethod(methodName, this.parameters.length);
         try {
             this.parameterCount = iface.getParameterCount(this.method);
@@ -117,6 +119,10 @@ public class RemoteAPIRequest implements HttpRequestInterface {
     @Override
     public LinkedList<String[]> getPostParameter() throws IOException {
         return this.request.getPostParameter();
+    }
+
+    public Method getRawMethod() {
+        return this.rawMethod;
     }
 
     /**
