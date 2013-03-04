@@ -16,15 +16,16 @@ import org.appwork.utils.net.HTTPHeader;
  * 
  */
 public class HeadRequest extends GetRequest {
-    public String toString(){
+    @Override
+    public String toString() {
         final StringBuilder sb = new StringBuilder();
-      
+
         sb.append("\r\n----------------Request-------------------------\r\n");
 
-        sb.append("HEAD ").append(getRequestedPath()).append(" HTTP/1.1\r\n");
+        sb.append("HEAD ").append(this.getRequestedURL()).append(" HTTP/1.1\r\n");
 
         for (final HTTPHeader key : this.getRequestHeaders()) {
-   
+
             sb.append(key.getKey());
             sb.append(": ");
             sb.append(key.getValue());

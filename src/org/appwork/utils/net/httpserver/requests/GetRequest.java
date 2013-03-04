@@ -30,15 +30,17 @@ public class GetRequest extends HttpRequest {
     public LinkedList<String[]> getPostParameter() throws IOException {
         return null;
     }
-    public String toString(){
+
+    @Override
+    public String toString() {
         final StringBuilder sb = new StringBuilder();
-      
+
         sb.append("\r\n----------------Request-------------------------\r\n");
 
-        sb.append("GET ").append(getRequestedPath()).append(" HTTP/1.1\r\n");
+        sb.append("GET ").append(this.getRequestedURL()).append(" HTTP/1.1\r\n");
 
         for (final HTTPHeader key : this.getRequestHeaders()) {
-   
+
             sb.append(key.getKey());
             sb.append(": ");
             sb.append(key.getValue());

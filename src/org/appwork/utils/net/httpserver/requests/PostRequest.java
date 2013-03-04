@@ -54,6 +54,14 @@ public class PostRequest extends HttpRequest {
         this.connection = connection;
     }
 
+    protected byte[] getAESJSON_IV(final String ID) {
+        return this.connection.getAESJSon_IV(ID);
+    }
+
+    protected byte[] getAESJSON_KEY(final String ID) {
+        return this.connection.getAESJSon_KEY(ID);
+    }
+
     public synchronized InputStream getInputStream() throws IOException {
         if (this.inputStream == null) {
             final HTTPHeader transferEncoding = this.getRequestHeaders().get(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING);
@@ -110,10 +118,10 @@ public class PostRequest extends HttpRequest {
                 try {
                     final String ID = new Regex(type, "application/aesjson-([a-zA-Z0-9]+)").getMatch(0);
                     final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                    final byte[] IV = this.connection.getAESJSon_IV(ID);
+                    final byte[] IV = this.getAESJSON_IV(ID);
                     if (IV == null) { throw new IOException("Invalid AESJSON Request"); }
                     final IvParameterSpec ivSpec = new IvParameterSpec(IV);
-                    final byte[] KEY = this.connection.getAESJSon_KEY(ID);
+                    final byte[] KEY = this.getAESJSON_KEY(ID);
                     if (KEY == null) { throw new IOException("Invalid AESJSON Request"); }
                     final SecretKeySpec skeySpec = new SecretKeySpec(KEY, "AES");
                     cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
@@ -149,7 +157,7 @@ public class PostRequest extends HttpRequest {
 
             sb.append("\r\n----------------Request-------------------------\r\n");
 
-            sb.append("POST ").append(this.getRequestedPath()).append(" HTTP/1.1\r\n");
+            sb.append("POST ").append(this.getRequestedURL()).append(" HTTP/1.1\r\n");
 
             for (final HTTPHeader key : this.getRequestHeaders()) {
 

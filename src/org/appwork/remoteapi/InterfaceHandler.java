@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -70,8 +71,11 @@ public class InterfaceHandler<T> {
     private final HashMap<Method, Integer>                  parameterCountMap;
     private final HashMap<Method, Integer>                  methodsAuthLevel;
     private final HashMap<String, Method>                   rawMethods;
+    private final HashSet<Method>                           signatureRequiredMethods;
+    private Method                                          rawHandler       = null;
+    private Method                                          signatureHandler = null;
     private final int                                       defaultAuthLevel;
-    private boolean                                         sessionRequired = false;
+    private boolean                                         sessionRequired  = false;
 
     /**
      * @param <T>
@@ -91,6 +95,7 @@ public class InterfaceHandler<T> {
         this.methodsAuthLevel = new HashMap<Method, Integer>();
         this.parameterCountMap = new HashMap<Method, Integer>();
         this.rawMethods = new HashMap<String, Method>();
+        this.signatureRequiredMethods = new HashSet<Method>();
     }
 
     /**
@@ -105,8 +110,14 @@ public class InterfaceHandler<T> {
 
         if (defaultAuthLevel != this.getDefaultAuthLevel()) { throw new ParseException("Check Authlevel " + c + " " + this); }
         if (process != this.impl) { throw new ParseException(process + "!=" + this.impl); }
-        this.interfaceClasses.add(c);
-        this.parse();
+        try {
+            this.interfaceClasses.add(c);
+            this.parse();
+        } catch (final ParseException e) {
+            this.interfaceClasses.remove(c);
+            this.parse();
+            throw e;
+        }
 
     }
 
@@ -142,6 +153,14 @@ public class InterfaceHandler<T> {
      */
     public int getParameterCount(final Method method) {
         return this.parameterCountMap.get(method);
+    }
+
+    public Method getRawHandler() {
+        return this.rawHandler;
+    }
+
+    public Method getSignatureHandler() {
+        return this.signatureHandler;
     }
 
     public void help(final RemoteAPIRequest request, final RemoteAPIResponse response) throws InstantiationException, IllegalAccessException, UnsupportedEncodingException, IOException {
@@ -286,6 +305,10 @@ public class InterfaceHandler<T> {
         return this.sessionRequired;
     }
 
+    public boolean isSignatureRequired(final Method m) {
+        return this.signatureRequiredMethods.contains(m);
+    }
+
     /**
      * @throws ParseException
      * 
@@ -299,16 +322,32 @@ public class InterfaceHandler<T> {
         this.methods.put("help", map = new TreeMap<Integer, Method>());
         map.put(0, InterfaceHandler.HELP);
         this.parameterCountMap.put(InterfaceHandler.HELP, 0);
-
         this.methodsAuthLevel.put(InterfaceHandler.HELP, 0);
+        this.signatureHandler = null;
+        this.rawHandler = null;
+        Class<T> signatureHandlerNeededClass = null;
         for (final Class<T> interfaceClass : this.interfaceClasses) {
             for (final Method m : interfaceClass.getMethods()) {
                 final ApiHiddenMethod hidden = m.getAnnotation(ApiHiddenMethod.class);
                 if (hidden != null) {
                     continue;
                 }
+                final ApiSignatureRequired signature = m.getAnnotation(ApiSignatureRequired.class);
                 this.validateMethod(m);
+                int l = 0;
+                for (final Class<?> c : m.getParameterTypes()) {
+                    if (c != RemoteAPIRequest.class && c != RemoteAPIResponse.class) {
+                        l++;
+                    }
+                }
                 String name = m.getName();
+                if ("handleRAWRemoteAPI".equals(name) && l == 0) {
+                    this.rawHandler = m;
+                    continue;
+                } else if ("handleRemoteAPISignature".equals(name) && l == 0) {
+                    this.signatureHandler = m;
+                    continue;
+                }
                 final ApiMethodName methodname = m.getAnnotation(ApiMethodName.class);
                 if (methodname != null) {
                     name = methodname.value();
@@ -321,12 +360,6 @@ public class InterfaceHandler<T> {
                 if (m.getAnnotation(ApiRawMethod.class) != null) {
                     this.rawMethods.put(name, m);
                 }
-                int l = 0;
-                for (final Class<?> c : m.getParameterTypes()) {
-                    if (c != RemoteAPIRequest.class && c != RemoteAPIResponse.class) {
-                        l++;
-                    }
-                }
                 this.parameterCountMap.put(m, l);
                 if (methodsByName.containsKey(l)) { throw new ParseException(interfaceClass + " Contains ambiguous methods: \r\n" + m + "\r\n" + methodsByName.get(l)); }
                 methodsByName.put(l, m);
@@ -334,8 +367,13 @@ public class InterfaceHandler<T> {
                 if (auth != null) {
                     this.methodsAuthLevel.put(m, auth.value());
                 }
+                if (signature != null) {
+                    signatureHandlerNeededClass = interfaceClass;
+                    this.signatureRequiredMethods.add(m);
+                }
             }
         }
+        if (signatureHandlerNeededClass != null && this.signatureHandler == null) { throw new ParseException(signatureHandlerNeededClass + " Contains methods that need validated Signatures but no Validator provided"); }
     }
 
     /**
@@ -371,7 +409,7 @@ public class InterfaceHandler<T> {
         }
         if (responseIsParamater) {
             if (m.getGenericReturnType() != void.class && m.getGenericReturnType() != Void.class) {
-                if (!RemoteAPIRawInterface.class.isAssignableFrom(m.getDeclaringClass())) { throw new ParseException("Response in Parameters. " + m + " must return void, and has to handle the response itself"); }
+                if (!RemoteAPIRawInterface.class.isAssignableFrom(m.getDeclaringClass()) && !RemoteAPISignatureHandler.class.isAssignableFrom(m.getDeclaringClass())) { throw new ParseException("Response in Parameters. " + m + " must return void, and has to handle the response itself"); }
             }
         } else {
             try {

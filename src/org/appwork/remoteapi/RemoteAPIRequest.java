@@ -42,7 +42,6 @@ public class RemoteAPIRequest implements HttpRequestInterface {
     private final String[]            parameters;
     private final HttpRequest         request;
 
-    private final Method              rawMethod;
     private Method                    method;
 
     private int                       parameterCount;
@@ -51,13 +50,14 @@ public class RemoteAPIRequest implements HttpRequestInterface {
 
     private final String              methodName;
 
-    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request, final String jqueryCallback) {
+    private final String              signature;
+
+    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request, final String jqueryCallback, final String signature) {
         this.iface = iface;
         this.parameters = parameters;
         this.request = request;
         this.methodName = methodName;
-
-        this.rawMethod = this.iface.getMethod("handleRAWRemoteAPI", 0);
+        this.signature = signature;
         this.jqueryCallback = jqueryCallback;
         this.method = this.iface.getMethod(methodName, this.parameters.length);
         try {
@@ -121,10 +121,6 @@ public class RemoteAPIRequest implements HttpRequestInterface {
         return this.request.getPostParameter();
     }
 
-    public Method getRawMethod() {
-        return this.rawMethod;
-    }
-
     /**
      * @return
      */
@@ -157,6 +153,10 @@ public class RemoteAPIRequest implements HttpRequestInterface {
         if (this.request instanceof PostRequest) { return REQUESTTYPE.POST; }
         if (this.request instanceof GetRequest) { return REQUESTTYPE.GET; }
         return REQUESTTYPE.UNKNOWN;
+    }
+
+    public String getSignature() {
+        return this.signature;
     }
 
 }

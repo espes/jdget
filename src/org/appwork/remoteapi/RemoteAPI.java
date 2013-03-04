@@ -235,16 +235,25 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         Object responseData = null;
         Object responseException = null;
         final Method method = request.getMethod();
-        final Method rawMethod = request.getRawMethod();
         try {
-            if (rawMethod != null) {
+            if (request.getIface().getRawHandler() != null) {
                 /* maybe this request is handled by rawMethodHandler */
                 final Object[] parameters = new Object[] { request, response };
-                responseData = request.getIface().invoke(rawMethod, parameters);
+                responseData = request.getIface().invoke(request.getIface().getRawHandler(), parameters);
                 if (Boolean.TRUE.equals(responseData)) { return; }
             }
             if (method == null) { throw new ApiCommandNotAvailable(); }
-            if (!this.isAllowed(request)) {
+            if (request.getIface().getSignatureHandler() != null && request.getIface().isSignatureRequired(method)) {
+                /* maybe this request is handled by rawMethodHandler */
+                final Object[] parameters = new Object[] { request, response };
+                responseData = request.getIface().invoke(request.getIface().getSignatureHandler(), parameters);
+                if (!Boolean.TRUE.equals(responseData)) {
+                    response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
+                    response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
+                    return;
+                }
+            }
+            if (!this.isAllowed(request, response)) {
                 response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
                 response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
                 return;
@@ -372,6 +381,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         if (interfaceHandler == null) { return null; }
         final java.util.List<String> parameters = new ArrayList<String>();
         String jqueryCallback = null;
+        String signature = null;
         /* convert GET parameters to methodParameters */
         for (final String[] param : request.getRequestedURLParameters()) {
             if (param[1] != null) {
@@ -379,6 +389,10 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                 if ("callback".equalsIgnoreCase(param[0])) {
                     /* filter jquery callback */
                     jqueryCallback = param[1];
+                    continue;
+                } else if ("signature".equalsIgnoreCase(param[0])) {
+                    /* filter url signature */
+                    signature = param[1];
                     continue;
                 }
                 parameters.add(param[1]);
@@ -414,7 +428,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         if (jqueryCallback != null) {
             // System.out.println("found jquery callback: " + jqueryCallback);
         }
-        return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback);
+        return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback, signature);
     }
 
     /**
@@ -423,7 +437,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
      * @param request
      * @return
      */
-    protected boolean isAllowed(final RemoteAPIRequest request) {
+    protected boolean isAllowed(final RemoteAPIRequest request, final RemoteAPIResponse response) {
         return true;
     }
 

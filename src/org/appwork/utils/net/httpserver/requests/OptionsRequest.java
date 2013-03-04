@@ -22,7 +22,7 @@ public class OptionsRequest extends GetRequest {
 
         sb.append("\r\n----------------Request-------------------------\r\n");
 
-        sb.append("OPTIONS ").append(this.getRequestedPath()).append(" HTTP/1.1\r\n");
+        sb.append("OPTIONS ").append(this.getRequestedURL()).append(" HTTP/1.1\r\n");
 
         for (final HTTPHeader key : this.getRequestHeaders()) {
 
