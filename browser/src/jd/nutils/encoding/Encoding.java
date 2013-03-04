@@ -60,6 +60,20 @@ public class Encoding {
     }
 
     /**
+     * 
+     * Wandelt HTML in CDATA um
+     * 
+     * @param str
+     * @return decoded string
+     */
+    public static String cdataEncode(String str) {
+        if (str == null) { return null; }
+        str = str.replaceAll("<", "&lt;");
+        str = str.replaceAll(">", "&gt;");
+        return str;
+    }
+
+    /**
      * Wendet htmlDecode an, bis es keine Änderungen mehr gibt. Aber max 50 mal!
      * 
      * @param string
@@ -160,25 +174,6 @@ public class Encoding {
         return str;
     }
 
-    /**
-     * 
-     * Wandelt HTML in CDATA um
-     * 
-     * @param str
-     * @return decoded string
-     */
-    public static String cdataEncode(String str) {
-        if (str == null) { return null; }
-        str = str.replaceAll("<", "&lt;");
-        str = str.replaceAll(">", "&gt;");
-        return str;
-    }
-
-    public static void main(String[] args) {
-        String test = "new encoding &#39";
-        System.out.println((test));
-    }
-
     public static boolean isUrlCoded(final String str) {
         if (str == null) { return false; }
         try {
@@ -192,15 +187,22 @@ public class Encoding {
         }
     }
 
+    public static void main(final String[] args) {
+        final String test = "new encoding &#39";
+        System.out.println(test);
+    }
+
     public static String urlDecode(String urlcoded, final boolean isUrl) {
         if (urlcoded == null) { return null; }
         if (isUrl) {
-            urlcoded = urlcoded.replaceAll("%2F", "/");
-            urlcoded = urlcoded.replaceAll("%3A", ":");
-            urlcoded = urlcoded.replaceAll("%3F", "?");
-            urlcoded = urlcoded.replaceAll("%3D", "=");
-            urlcoded = urlcoded.replaceAll("%26", "&");
-            urlcoded = urlcoded.replaceAll("%23", "#");
+            if (!urlcoded.startsWith("http://") && !urlcoded.startsWith("https://")) {
+                urlcoded = urlcoded.replaceAll("%2F", "/");
+                urlcoded = urlcoded.replaceAll("%3A", ":");
+                urlcoded = urlcoded.replaceAll("%3F", "?");
+                urlcoded = urlcoded.replaceAll("%3D", "=");
+                urlcoded = urlcoded.replaceAll("%26", "&");
+                urlcoded = urlcoded.replaceAll("%23", "#");
+            }
         } else {
             try {
                 urlcoded = URLDecoder.decode(urlcoded, "UTF-8");
@@ -270,7 +272,7 @@ public class Encoding {
         byte[] org = new byte[0];
         try {
             org = string.getBytes("ISO-8859-1");
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             org = string.getBytes();
         }
         final StringBuilder sb = new StringBuilder();
@@ -278,7 +280,9 @@ public class Encoding {
         for (final byte element : org) {
             sb.append('%');
             code = Integer.toHexString(element);
-            if ((int) element < 16) code = "0" + code; // Workaround for hex-numbers with only one char
+            if (element < 16) {
+                code = "0" + code; // Workaround for hex-numbers with only one char
+            }
             sb.append(code.substring(code.length() - 2));
         }
         return sb.toString();
