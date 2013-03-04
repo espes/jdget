@@ -36,6 +36,7 @@ public class LogSink extends Logger {
 
     @Override
     public void addHandler(final Handler handler) throws SecurityException {
+        if (handler == null) { return; }
         super.addHandler(handler);
         if (this.fileHandler == null && handler instanceof FileHandler) {
             this.fileHandler = (FileHandler) handler;
@@ -50,6 +51,7 @@ public class LogSink extends Logger {
     }
 
     protected void addLogSource(final LogSource source) {
+        if (source == null) { return; }
         synchronized (this.logSources) {
             this.logSources.add(new WeakReference<LogSource>(source));
             source.setParent(this);
@@ -122,6 +124,7 @@ public class LogSink extends Logger {
 
     @Override
     public void removeHandler(final Handler handler) throws SecurityException {
+        if (handler == null) { return; }
         super.removeHandler(handler);
         if (this.fileHandler != null && this.fileHandler == handler) {
             this.close();

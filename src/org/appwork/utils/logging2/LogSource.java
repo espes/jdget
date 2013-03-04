@@ -80,29 +80,29 @@ public class LogSource extends Logger implements LogInterface {
         this(name, (String) null);
         this.maxLogRecordsInMemory = maxLogRecordsInMemory;
         super.setUseParentHandlers(false);
-        setLevel(Level.ALL);
+        this.setLevel(Level.ALL);
     }
 
     protected LogSource(final String name, final String resourceBundleName) {
         super(name, resourceBundleName);
-        setCurrentThreadLogSource();
+        this.setCurrentThreadLogSource();
     }
 
     public synchronized void clear() {
-        records = null;
+        this.records = null;
     }
 
     public synchronized void close() {
-        flush();
-        closed = true;
-        records = null;
+        this.flush();
+        this.closed = true;
+        this.records = null;
     }
 
     @Override
     protected void finalize() throws Throwable {
         try {
-            if (allowTimeoutFlush || flushOnFinalize) {
-                close();
+            if (this.allowTimeoutFlush || this.flushOnFinalize) {
+                this.close();
             }
         } finally {
             super.finalize();
@@ -110,93 +110,97 @@ public class LogSource extends Logger implements LogInterface {
     }
 
     public synchronized void flush() {
-        if (closed) { return; }
-        if (records == null || records.size() == 0) {
-            records = null;
+        if (this.closed) { return; }
+        if (this.records == null || this.records.size() == 0) {
+            this.records = null;
             return;
         }
-        final Logger parent = getParent();
+        final Logger parent = this.getParent();
         if (parent != null) {
             for (final Handler handler : parent.getHandlers()) {
-                if (handler instanceof ConsoleHandler) {
-                    /* we dont want logRecords to appear twice on console */
-                    continue;
-                }
-                synchronized (handler) {
-                    for (final LogRecord record : records) {
-                        handler.publish(record);
+                if (handler != null) {
+                    if (handler instanceof ConsoleHandler) {
+                        /* we dont want logRecords to appear twice on console */
+                        continue;
+                    }
+                    synchronized (handler) {
+                        for (final LogRecord record : this.records) {
+                            handler.publish(record);
+                        }
                     }
                 }
             }
-            flushCounter++;
+            this.flushCounter++;
         }
-        records = null;
+        this.records = null;
     }
 
     public int getMaxLogRecordsInMemory() {
-        return maxLogRecordsInMemory;
+        return this.maxLogRecordsInMemory;
     }
 
     @Override
     public Logger getParent() {
-        return parent;
+        return this.parent;
     }
 
     public boolean isAllowTimeoutFlush() {
-        return allowTimeoutFlush;
+        return this.allowTimeoutFlush;
     }
 
     protected boolean isClosed() {
-        return closed;
+        return this.closed;
     }
 
     /**
      * @return the flushOnFinalize
      */
     public boolean isFlushOnFinalize() {
-        return flushOnFinalize;
+        return this.flushOnFinalize;
     }
 
     /**
      * @return the instantFlush
      */
     public boolean isInstantFlush() {
-        return instantFlush;
+        return this.instantFlush;
     }
 
     @Override
     public synchronized void log(final LogRecord record) {
-        if (closed || record == null) { return; }
+        if (this.closed || record == null) { return; }
 
-        setCurrentThreadLogSource();
+        this.setCurrentThreadLogSource();
 
-        record.setLoggerName(getName());
+        record.setLoggerName(this.getName());
         /* make sure we have gathered all information about current class/method */
         /* this will collect current class/method if net set yet */
         record.getSourceClassName();
         // record.setLoggerName(Thread.currentThread().getName());
-        if (maxLogRecordsInMemory == 0 || instantFlush) {
+        if (this.maxLogRecordsInMemory == 0 || this.instantFlush) {
             /* maxLogRecordsInMemory == 0, we want to use parent's handlers */
-            final Logger parent = getParent();
+            final Logger parent = this.getParent();
             if (parent != null) {
                 for (final Handler handler : parent.getHandlers()) {
-                    synchronized (handler) {
-                        handler.publish(record);
+                    if (handler != null) {
+                        synchronized (handler) {
+                            handler.publish(record);
+                        }
                     }
                 }
             }
             return;
-        } else if (maxLogRecordsInMemory > 0 && records != null && records.size() == maxLogRecordsInMemory) {
+        } else if (this.maxLogRecordsInMemory > 0 && this.records != null && this.records.size() == this.maxLogRecordsInMemory) {
             /* maxLogRecordsInMemory >0 we have limited max records in memory */
             /* we flush in case we reached maxLogRecordsInMemory */
-            flush();
+            this.flush();
         }
-        if (records == null) {
+        if (this.records == null) {
             /* records will be null at first use or after a flush */
-            records = new ArrayList<LogRecord>();
+            this.records = new ArrayList<LogRecord>();
         }
-        records.add(record);
-        recordsCounter++;
+        this.records.add(record);
+        this.recordsCounter++;
         super.log(record);
     }
 
@@ -212,7 +216,7 @@ public class LogSource extends Logger implements LogInterface {
             lvl = Level.SEVERE;
         }
         final LogRecord lr = new LogRecord(lvl, Exceptions.getStackTrace(e));
-        lr.setLoggerName(getName());
+        lr.setLoggerName(this.getName());
         this.log(lr);
     }
 
@@ -252,15 +256,15 @@ public class LogSource extends Logger implements LogInterface {
     public void setInstantFlush(final boolean instantFlush) {
         if (this.instantFlush == instantFlush) { return; }
         if (instantFlush) {
-            flush();
+            this.flush();
         }
         this.instantFlush = instantFlush;
     }
 
     public synchronized void setMaxLogRecordsInMemory(final int newMax) {
-        if (maxLogRecordsInMemory == newMax) { return; }
-        flush();
-        maxLogRecordsInMemory = newMax;
+        if (this.maxLogRecordsInMemory == newMax) { return; }
+        this.flush();
+        this.maxLogRecordsInMemory = newMax;
     }
 
     @Override
@@ -281,17 +285,17 @@ public class LogSource extends Logger implements LogInterface {
     public String toString(final int lastXEntries) {
         final StringBuilder sb = new StringBuilder();
         synchronized (this) {
-            sb.append("Log:" + getName() + " Records:" + recordsCounter + " Flushed:" + flushCounter);
-            if (records != null && records.size() > 0) {
+            sb.append("Log:" + this.getName() + " Records:" + this.recordsCounter + " Flushed:" + this.flushCounter);
+            if (this.records != null && this.records.size() > 0) {
                 sb.append("\r\n");
                 final LogSourceFormatter formatter = new LogSourceFormatter();
                 formatter.setFormatterStringBuilder(sb);
                 int index = 0;
-                if (lastXEntries > 0 && records.size() > lastXEntries) {
-                    index = records.size() - lastXEntries;
+                if (lastXEntries > 0 && this.records.size() > lastXEntries) {
+                    index = this.records.size() - lastXEntries;
                 }
-                for (; index < records.size(); index++) {
-                    sb.append(formatter.format(records.get(index)));
+                for (; index < this.records.size(); index++) {
+                    sb.append(formatter.format(this.records.get(index)));
                 }
             }
         }
