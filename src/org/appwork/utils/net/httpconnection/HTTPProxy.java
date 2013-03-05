@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
@@ -209,7 +210,7 @@ public class HTTPProxy {
 
             final Process process = pb.start();
             final String result = IO.readInputStreamToString(process.getInputStream());
-            
+
             process.destroy();
             try {
                 final String autoProxy = new Regex(result, "AutoConfigURL\\s+REG_SZ\\s+([^\r\n]+)").getMatch(0);
@@ -364,27 +365,29 @@ public class HTTPProxy {
         return result;
     }
 
-    private InetAddress localIP                    = null;
+    private InetAddress      localIP                      = null;
 
-    private String      user                       = null;
+    private String           user                         = null;
 
-    private String      pass                       = null;
+    private String           pass                         = null;
 
-    private int         port                       = 80;
+    private int              port                         = 80;
 
-    protected String    host                       = null;
-    private TYPE        type                       = TYPE.DIRECT;
+    protected String         host                         = null;
+    private TYPE             type                         = TYPE.DIRECT;
 
-    private boolean     useConnectMethod           = false;
+    private boolean          useConnectMethod             = false;
 
-    private boolean     preferNativeImplementation = false;
+    private boolean          preferNativeImplementation   = false;
+
+    private final AtomicLong nativeAuthRedirectWorkaround = new AtomicLong(0);
 
     protected HTTPProxy() {
     }
 
     public HTTPProxy(final InetAddress direct) {
-        type = TYPE.DIRECT;
-        localIP = direct;
+        this.type = TYPE.DIRECT;
+        this.localIP = direct;
     }
 
     public HTTPProxy(final TYPE type) {
@@ -399,15 +402,15 @@ public class HTTPProxy {
 
     protected void cloneProxy(final HTTPProxy proxy) {
         if (proxy == null) { return; }
-        user = proxy.user;
-        host = proxy.host;
-        localIP = proxy.localIP;
-        pass = proxy.pass;
-        port = proxy.port;
-        type = proxy.type;
-        localIP = proxy.localIP;
-        useConnectMethod = proxy.useConnectMethod;
-        preferNativeImplementation = proxy.preferNativeImplementation;
+        this.user = proxy.user;
+        this.host = proxy.host;
+        this.localIP = proxy.localIP;
+        this.pass = proxy.pass;
+        this.port = proxy.port;
+        this.type = proxy.type;
+        this.localIP = proxy.localIP;
+        this.useConnectMethod = proxy.useConnectMethod;
+        this.preferNativeImplementation = proxy.preferNativeImplementation;
     }
 
     @Override
@@ -416,62 +419,66 @@ public class HTTPProxy {
         if (obj == null || !(obj instanceof HTTPProxy)) { return false; }
 
         final HTTPProxy p = (HTTPProxy) obj;
-        if (type != p.type) { return false; }
-        switch (type) {
+        if (this.type != p.type) { return false; }
+        switch (this.type) {
         case DIRECT:
-            if (localIP == null && p.localIP == null) { return true; }
-            if (localIP != null && localIP.equals(p.localIP)) { return true; }
+            if (this.localIP == null && p.localIP == null) { return true; }
+            if (this.localIP != null && this.localIP.equals(p.localIP)) { return true; }
             return false;
 
         default:
-            return StringUtils.equals(host, p.host) && StringUtils.equals(user, p.user) && StringUtils.equals(pass, p.pass) && port == p.port;
+            return StringUtils.equals(this.host, p.host) && StringUtils.equals(this.user, p.user) && StringUtils.equals(this.pass, p.pass) && this.port == p.port;
 
         }
 
     }
 
     public String getHost() {
-        return host;
+        return this.host;
     }
 
     /**
      * @return the localIP
      */
     public InetAddress getLocalIP() {
-        return localIP;
+        return this.localIP;
+    }
+
+    protected AtomicLong getNativeAuthRedirectWorkaround() {
+        return this.nativeAuthRedirectWorkaround;
     }
 
     public String getPass() {
-        return pass;
+        return this.pass;
     }
 
     public int getPort() {
-        return port;
+        return this.port;
     }
 
     public TYPE getType() {
-        return type;
+        return this.type;
     }
 
     public String getUser() {
-        return user;
+        return this.user;
     }
 
     @Override
     public int hashCode() {
-        switch (type) {
+        switch (this.type) {
         case DIRECT:
-            return ("DIRECT://" + localIP).hashCode();
+            return ("DIRECT://" + this.localIP).hashCode();
 
         default:
-            return (type + "://" + user + ":" + pass + "@" + host + ":" + port).hashCode();
+            return (this.type + "://" + this.user + ":" + this.pass + "@" + this.host + ":" + this.port).hashCode();
 
         }
 
     }
 
     public boolean isConnectMethodPrefered() {
-        return useConnectMethod;
+        return this.useConnectMethod;
     }
 
     /**
@@ -480,11 +487,11 @@ public class HTTPProxy {
      * @return
      */
     public boolean isDirect() {
-        return type == TYPE.DIRECT;
+        return this.type == TYPE.DIRECT;
     }
 
     public boolean isLocal() {
-        return isDirect() || isNone();
+        return this.isDirect() || this.isNone();
     }
 
     /**
@@ -493,14 +500,14 @@ public class HTTPProxy {
      * @return
      */
     public boolean isNone() {
-        return type == TYPE.NONE;
+        return this.type == TYPE.NONE;
     }
 
     /**
      * @return the preferNativeImplementation
      */
     public boolean isPreferNativeImplementation() {
-        return preferNativeImplementation;
+        return this.preferNativeImplementation;
     }
 
     /**
@@ -509,7 +516,7 @@ public class HTTPProxy {
      * @return
      */
     public boolean isRemote() {
-        return !isDirect() && !isNone();
+        return !this.isDirect() && !this.isNone();
     }
 
     /**
@@ -534,11 +541,11 @@ public class HTTPProxy {
         // if (!StringUtils.equals(proxy.getUser(), this.user)) { return false;
         // }
         // if (proxy.getPort() != this.port) { return false; }
-        return equals(proxy);
+        return this.equals(proxy);
     }
 
     public void setConnectMethodPrefered(final boolean value) {
-        useConnectMethod = value;
+        this.useConnectMethod = value;
     }
 
     public void setHost(final String host) {
@@ -579,16 +586,16 @@ public class HTTPProxy {
 
     @Override
     public String toString() {
-        if (type == TYPE.NONE) {
+        if (this.type == TYPE.NONE) {
             return _AWU.T.proxy_none();
-        } else if (type == TYPE.DIRECT) {
-            return _AWU.T.proxy_direct(localIP.getHostAddress());
-        } else if (type == TYPE.HTTP) {
-            return _AWU.T.proxy_http(getHost(), getPort());
-        } else if (type == TYPE.SOCKS5) {
-            return _AWU.T.proxy_socks5(getHost(), getPort());
-        } else if (type == TYPE.SOCKS4) {
-            return _AWU.T.proxy_socks4(getHost(), getPort());
+        } else if (this.type == TYPE.DIRECT) {
+            return _AWU.T.proxy_direct(this.localIP.getHostAddress());
+        } else if (this.type == TYPE.HTTP) {
+            return _AWU.T.proxy_http(this.getHost(), this.getPort());
+        } else if (this.type == TYPE.SOCKS5) {
+            return _AWU.T.proxy_socks5(this.getHost(), this.getPort());
+        } else if (this.type == TYPE.SOCKS4) {
+            return _AWU.T.proxy_socks4(this.getHost(), this.getPort());
         } else {
             return "UNKNOWN";
         }

@@ -13,14 +13,18 @@ package org.appwork.utils.net.httpconnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.SocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,6 +33,7 @@ import java.util.Map.Entry;
 
 import org.appwork.utils.LowerCaseHashMap;
 import org.appwork.utils.Regex;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.CountingOutputStream;
 import org.appwork.utils.net.NullOutputStream;
 
@@ -37,29 +42,97 @@ import org.appwork.utils.net.NullOutputStream;
  * 
  */
 public class NativeHTTPConnectionImpl implements HTTPConnection {
-    protected URL                            httpURL              = null;
-    protected HTTPProxy                      proxy                = null;
-    protected LinkedHashMap<String, String>  requestProperties    = null;
-    protected LowerCaseHashMap<List<String>> headers              = null;
-    private HttpURLConnection                con;
-    protected int                            readTimeout          = 30000;
-    protected int                            connectTimeout       = 30000;
-    private int[]                            allowedResponseCodes = new int[0];
-    protected long                           postTodoLength       = -1;
-    protected RequestMethod                  httpMethod           = RequestMethod.GET;
-    protected OutputStream                   outputStream         = null;
-    protected InputStream                    inputStream          = null;
-    protected boolean                        inputStreamConnected = false;
-    protected boolean                        outputClosed         = false;
-    protected int                            httpResponseCode     = -1;
-    protected String                         httpResponseMessage  = "";
-    protected String                         customcharset        = null;
-    protected long                           requestTime          = -1;
-    protected long[]                         ranges;
-    private final boolean                    contentDecoded       = false;
-    private Proxy                            nativeProxy;
-    private boolean                          connected            = false;
-    private boolean                          wasConnected         = false;
+    protected URL                                    httpURL              = null;
+    protected HTTPProxy                              proxy                = null;
+    protected LinkedHashMap<String, String>          requestProperties    = null;
+    protected LowerCaseHashMap<List<String>>         headers              = null;
+    private HttpURLConnection                        con;
+    protected int                                    readTimeout          = 30000;
+    protected int                                    connectTimeout       = 30000;
+    private int[]                                    allowedResponseCodes = new int[0];
+    protected long                                   postTodoLength       = -1;
+    protected RequestMethod                          httpMethod           = RequestMethod.GET;
+    protected OutputStream                           outputStream         = null;
+    protected InputStream                            inputStream          = null;
+    protected boolean                                inputStreamConnected = false;
+    protected boolean                                outputClosed         = false;
+    protected int                                    httpResponseCode     = -1;
+    protected String                                 httpResponseMessage  = "";
+    protected String                                 customcharset        = null;
+    protected long                                   requestTime          = -1;
+    protected long[]                                 ranges;
+    private final boolean                            contentDecoded       = false;
+    private Proxy                                    nativeProxy;
+    private boolean                                  connected            = false;
+    private boolean                                  wasConnected         = false;
+
+    private static HashSet<WeakReference<HTTPProxy>> availableProxies     = new HashSet<WeakReference<HTTPProxy>>();
+
+    static {
+        try {
+            HttpURLConnection.setFollowRedirects(false);
+        } catch (final Throwable e) {
+            e.printStackTrace();
+        }
+        try {
+            Authenticator.setDefault(new Authenticator() {
+
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    HashSet<HTTPProxy> currentAvailableProxies = null;
+                    synchronized (NativeHTTPConnectionImpl.availableProxies) {
+                        currentAvailableProxies = new HashSet<HTTPProxy>();
+                        final Iterator<WeakReference<HTTPProxy>> it = NativeHTTPConnectionImpl.availableProxies.iterator();
+                        while (it.hasNext()) {
+                            final WeakReference<HTTPProxy> next = it.next();
+                            final HTTPProxy proxy = next.get();
+                            if (proxy == null) {
+                                it.remove();
+                            } else {
+                                currentAvailableProxies.add(proxy);
+                            }
+                        }
+                    }
+                    if (RequestorType.PROXY.equals(this.getRequestorType())) {
+                        for (final HTTPProxy proxy : currentAvailableProxies) {
+                            if (proxy.getPort() != this.getRequestingPort()) {
+                                continue;
+                            }
+                            if (proxy.getHost() != null && !proxy.getHost().equalsIgnoreCase(this.getRequestingHost())) {
+                                continue;
+                            }
+                            String user = proxy.getUser();
+                            if (StringUtils.isEmpty(user)) {
+                                user = "";
+                            }
+                            String pass = proxy.getPass();
+                            if (StringUtils.isEmpty(pass)) {
+                                pass = "";
+                            }
+
+                            synchronized (NativeHTTPConnectionImpl.availableProxies) {
+                                if (proxy.getNativeAuthRedirectWorkaround().get() == 0) {
+                                    // System.out.println("found valid proxy " +
+                                    // proxy + " but not again");
+                                    return null;
+                                } else {
+                                    proxy.getNativeAuthRedirectWorkaround().decrementAndGet();
+                                    // System.out.println("found valid proxy " +
+                                    // proxy);
+                                    return new PasswordAuthentication(user, pass.toCharArray());
+                                }
+                            }
+                        }
+                    }
+                    // System.out.println("found no valid proxy ");
+                    return null;
+                }
+
+            });
+        } catch (final Throwable e) {
+            e.printStackTrace();
+        }
+    }
 
     public NativeHTTPConnectionImpl(final URL url) {
         this.httpURL = url;
@@ -84,10 +157,17 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         if (this.proxy != null) {
             switch (this.proxy.getType()) {
             case HTTP:
+                synchronized (NativeHTTPConnectionImpl.availableProxies) {
+                    this.proxy.getNativeAuthRedirectWorkaround().incrementAndGet();
+                    NativeHTTPConnectionImpl.availableProxies.add(new WeakReference<HTTPProxy>(this.proxy));
+                }
                 this.nativeProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(this.proxy.getHost(), this.proxy.getPort()));
                 break;
             case SOCKS4:
             case SOCKS5:
+                synchronized (NativeHTTPConnectionImpl.availableProxies) {
+                    NativeHTTPConnectionImpl.availableProxies.add(new WeakReference<HTTPProxy>(this.proxy));
+                }
                 this.nativeProxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(this.proxy.getHost(), this.proxy.getPort()));
                 break;
             case DIRECT:
@@ -102,9 +182,11 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         } else {
             this.con = (HttpURLConnection) this.httpURL.openConnection();
         }
+
         this.con.setConnectTimeout(this.connectTimeout);
         this.con.setReadTimeout(this.readTimeout);
         this.con.setRequestMethod(this.httpMethod.name());
+        this.con.setAllowUserInteraction(false);
         if (RequestMethod.POST.equals(this.httpMethod)) {
             this.con.setDoOutput(true);
         } else {
@@ -146,10 +228,11 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
             /* flush outputstream in case some buffers are not flushed yet */
             this.outputStream.flush();
         }
-
+        IOException inputException = null;
         try {
             this.inputStream = this.con.getInputStream();
         } catch (final IOException e) {
+            inputException = e;
             this.inputStream = this.con.getErrorStream();
         }
         this.inputStreamConnected = true;
@@ -167,6 +250,10 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
                 this.headers.put(key, list);
             }
             list.addAll(value);
+        }
+        if (this.inputStream == null && inputException != null) {
+            /* in case we dont have an error Stream */
+            throw inputException;
         }
     }
 
