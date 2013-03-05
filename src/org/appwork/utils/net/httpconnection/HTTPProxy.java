@@ -4,7 +4,6 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
@@ -365,22 +364,20 @@ public class HTTPProxy {
         return result;
     }
 
-    private InetAddress      localIP                      = null;
+    private InetAddress localIP                    = null;
 
-    private String           user                         = null;
+    private String      user                       = null;
 
-    private String           pass                         = null;
+    private String      pass                       = null;
 
-    private int              port                         = 80;
+    private int         port                       = 80;
 
-    protected String         host                         = null;
-    private TYPE             type                         = TYPE.DIRECT;
+    protected String    host                       = null;
+    private TYPE        type                       = TYPE.DIRECT;
 
-    private boolean          useConnectMethod             = false;
+    private boolean     useConnectMethod           = false;
 
-    private boolean          preferNativeImplementation   = false;
-
-    private final AtomicLong nativeAuthRedirectWorkaround = new AtomicLong(0);
+    private boolean     preferNativeImplementation = false;
 
     protected HTTPProxy() {
     }
@@ -442,10 +439,6 @@ public class HTTPProxy {
      */
     public InetAddress getLocalIP() {
         return this.localIP;
-    }
-
-    protected AtomicLong getNativeAuthRedirectWorkaround() {
-        return this.nativeAuthRedirectWorkaround;
     }
 
     public String getPass() {
