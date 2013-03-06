@@ -337,7 +337,11 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                     /* only data */
                     responseJSON.put("data", responseData);
                 }
-                text = JSonStorage.toString(responseJSON);
+                if (method.getAnnotation(ApiRawJsonResponse.class) != null) {
+                    text = JSonStorage.toString(responseData);
+                } else {
+                    text = JSonStorage.toString(responseJSON);
+                }
             }
         } else {
             /* caught an exception */
