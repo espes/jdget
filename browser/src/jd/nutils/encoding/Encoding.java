@@ -195,7 +195,8 @@ public class Encoding {
     public static String urlDecode(String urlcoded, final boolean isUrl) {
         if (urlcoded == null) { return null; }
         if (isUrl) {
-            if (!urlcoded.startsWith("http://") && !urlcoded.startsWith("https://")) {
+            final boolean seemsValidURL = urlcoded.startsWith("http://") || urlcoded.startsWith("https://");
+            if (seemsValidURL == false) {
                 urlcoded = urlcoded.replaceAll("%2F", "/");
                 urlcoded = urlcoded.replaceAll("%3A", ":");
                 urlcoded = urlcoded.replaceAll("%3F", "?");
