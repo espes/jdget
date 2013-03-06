@@ -1,47 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-	<title>QUnit Tests</title>
-	<link rel="stylesheet" href="qunit/qunit.css" media="screen">
-
-<!-- reference your own javascript files here -->
-
-
-  
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script> 
-  <script>window.jQuery || document.write("<script src='../libs/jquery-1.7.1.js'>\x3C/script>")</script>
-  
-  <script src="../libs/json.jquery.js"></script>
-  
-  <script type="text/javascript">
-  /*
-  function success(){
-	  $.getScript("qunit/qunit.js",
-			  function() {
-		  $.getScript("tests.js");
-	  } );
-  }
-  >*/
-  if(location.hash =="#min")
-	  document.write("<script src='../dist/jdapi.jquery.min.js'>\x3C/script>");
-  else
-	  document.write("<script src='../src/jdapi.jquery.js'>\x3C/script>");
-	  
-  </script>
-  
-  	<script src="../src/jdapi.jquery.js"></script> 
-	<script src="qunit/qunit.js"></script>
-	<script src="tests.js"></script>
- 
-
-
+  <meta charset="utf-8">
+  <title>JDAPI QUnit Test</title>
+  <link rel="stylesheet" href="resources/qunit-1.11.0.css">
 </head>
-<body class="flora">
-	<h1 id="qunit-header">QUnit Test Suite</h1>
-	<h2 id="qunit-banner"></h2>
-	<div id="qunit-testrunner-toolbar"></div>
-	<h2 id="qunit-userAgent"></h2>
-	<ol id="qunit-tests"></ol>
-	<div id="qunit-fixture">test markup</div>
-	</body>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="resources/qunit-1.11.0.js"></script>
+  <script src="../libs/jquery-latest.js"></script>
+  <script src="../libs/cryptojs.js"></script>
+  <script src="../src/jdapi.js"></script>
+  <script src="../src/jdapi.local.js"></script>
+  <script src="../src/jdapi.remote.js"></script>
+  <script src="resources/tests.js"></script>
+</body>
 </html>
