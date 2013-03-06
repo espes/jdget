@@ -13,7 +13,6 @@ package org.appwork.utils.net.httpconnection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.ref.WeakReference;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -29,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.WeakHashMap;
 
 import org.appwork.utils.LowerCaseHashMap;
 import org.appwork.utils.Regex;
@@ -41,31 +41,31 @@ import org.appwork.utils.net.NullOutputStream;
  * 
  */
 public class NativeHTTPConnectionImpl implements HTTPConnection {
-    protected URL                                      httpURL              = null;
-    protected HTTPProxy                                proxy                = null;
-    protected LinkedHashMap<String, String>            requestProperties    = null;
-    protected LowerCaseHashMap<List<String>>           headers              = null;
-    private HttpURLConnection                          con;
-    protected int                                      readTimeout          = 30000;
-    protected int                                      connectTimeout       = 30000;
-    private int[]                                      allowedResponseCodes = new int[0];
-    protected long                                     postTodoLength       = -1;
-    protected RequestMethod                            httpMethod           = RequestMethod.GET;
-    protected OutputStream                             outputStream         = null;
-    protected InputStream                              inputStream          = null;
-    protected boolean                                  inputStreamConnected = false;
-    protected boolean                                  outputClosed         = false;
-    protected int                                      httpResponseCode     = -1;
-    protected String                                   httpResponseMessage  = "";
-    protected String                                   customcharset        = null;
-    protected long                                     requestTime          = -1;
-    protected long[]                                   ranges;
-    private final boolean                              contentDecoded       = false;
-    private Proxy                                      nativeProxy;
-    private boolean                                    connected            = false;
-    private boolean                                    wasConnected         = false;
+    protected URL                                 httpURL              = null;
+    protected HTTPProxy                           proxy                = null;
+    protected LinkedHashMap<String, String>       requestProperties    = null;
+    protected LowerCaseHashMap<List<String>>      headers              = null;
+    private HttpURLConnection                     con;
+    protected int                                 readTimeout          = 30000;
+    protected int                                 connectTimeout       = 30000;
+    private int[]                                 allowedResponseCodes = new int[0];
+    protected long                                postTodoLength       = -1;
+    protected RequestMethod                       httpMethod           = RequestMethod.GET;
+    protected OutputStream                        outputStream         = null;
+    protected InputStream                         inputStream          = null;
+    protected boolean                             inputStreamConnected = false;
+    protected boolean                             outputClosed         = false;
+    protected int                                 httpResponseCode     = -1;
+    protected String                              httpResponseMessage  = "";
+    protected String                              customcharset        = null;
+    protected long                                requestTime          = -1;
+    protected long[]                              ranges;
+    private final boolean                         contentDecoded       = false;
+    private Proxy                                 nativeProxy;
+    private boolean                               connected            = false;
+    private boolean                               wasConnected         = false;
 
-    private static ArrayList<WeakReference<HTTPProxy>> availableProxies     = new ArrayList<WeakReference<HTTPProxy>>();
+    private static WeakHashMap<Thread, HTTPProxy> availableProxies     = new WeakHashMap<Thread, HTTPProxy>();
 
     static {
         try {
@@ -75,40 +75,21 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
                 protected PasswordAuthentication getPasswordAuthentication() {
                     HTTPProxy foundProxy = null;
                     synchronized (NativeHTTPConnectionImpl.availableProxies) {
-                        final Iterator<WeakReference<HTTPProxy>> it = NativeHTTPConnectionImpl.availableProxies.iterator();
-                        while (it.hasNext()) {
-                            final WeakReference<HTTPProxy> next = it.next();
-                            final HTTPProxy proxy = next.get();
-                            if (proxy == null) {
-                                it.remove();
-                            } else {
-                                if (proxy.getPort() != this.getRequestingPort()) {
-                                    continue;
-                                }
-                                if (proxy.getHost() != null && !proxy.getHost().equalsIgnoreCase(this.getRequestingHost())) {
-                                    continue;
-                                }
-                                if (foundProxy == null) {
-                                    it.remove();
-                                    foundProxy = proxy;
-                                }
-                            }
-                        }
+                        foundProxy = NativeHTTPConnectionImpl.availableProxies.remove(Thread.currentThread());
                     }
                     if (foundProxy != null) {
                         String user = foundProxy.getUser();
-                        if (StringUtils.isEmpty(user)) {
-                            user = "";
-                        }
                         String pass = foundProxy.getPass();
-                        if (StringUtils.isEmpty(pass)) {
-                            pass = "";
+                        if (user != null || pass != null) {
+                            if (StringUtils.isEmpty(user)) {
+                                user = "";
+                            }
+                            if (StringUtils.isEmpty(pass)) {
+                                pass = "";
+                            }
+                            return new PasswordAuthentication(user, pass.toCharArray());
                         }
-                        System.out.println("found valid proxy " + foundProxy + " " + user + " " + pass);
-                        return new PasswordAuthentication(user, pass.toCharArray());
-
                     }
-                    // System.out.println("found no valid proxy ");
                     return null;
                 }
 
@@ -130,6 +111,13 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         this.proxy = p;
         this.requestProperties = new LinkedHashMap<String, String>();
         this.headers = new LowerCaseHashMap<List<String>>();
+        if (this.proxy != null) {
+            switch (this.proxy.getType()) {
+            case HTTP:
+                this.setRequestProperty("Proxy-Connection", "close");
+                break;
+            }
+        }
     }
 
     @Override
@@ -141,16 +129,10 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         if (this.proxy != null) {
             switch (this.proxy.getType()) {
             case HTTP:
-                synchronized (NativeHTTPConnectionImpl.availableProxies) {
-                    NativeHTTPConnectionImpl.availableProxies.add(new WeakReference<HTTPProxy>(this.proxy));
-                }
                 this.nativeProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(this.proxy.getHost(), this.proxy.getPort()));
                 break;
             case SOCKS4:
             case SOCKS5:
-                synchronized (NativeHTTPConnectionImpl.availableProxies) {
-                    NativeHTTPConnectionImpl.availableProxies.add(new WeakReference<HTTPProxy>(this.proxy));
-                }
                 this.nativeProxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(this.proxy.getHost(), this.proxy.getPort()));
                 break;
             case DIRECT:
@@ -161,8 +143,24 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
             }
         }
         if (this.nativeProxy != null) {
+            synchronized (NativeHTTPConnectionImpl.availableProxies) {
+                NativeHTTPConnectionImpl.availableProxies.put(Thread.currentThread(), this.proxy);
+            }
+            try {
+                /** http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6626700 **/
+                /**
+                 * Request for ability to turn off authentication caching in
+                 * HttpURLConnection
+                 **/
+                sun.net.www.protocol.http.AuthCacheValue.setAuthCache(new sun.net.www.protocol.http.AuthCacheImpl());
+            } catch (final Throwable e) {
+                /* sun/oracle java only? */
+            }
             this.con = (HttpURLConnection) this.httpURL.openConnection(this.nativeProxy);
         } else {
+            synchronized (NativeHTTPConnectionImpl.availableProxies) {
+                NativeHTTPConnectionImpl.availableProxies.remove(Thread.currentThread());
+            }
             this.con = (HttpURLConnection) this.httpURL.openConnection();
         }
 
@@ -170,6 +168,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         this.con.setReadTimeout(this.readTimeout);
         this.con.setRequestMethod(this.httpMethod.name());
         this.con.setAllowUserInteraction(false);
+        this.con.setInstanceFollowRedirects(false);
         if (RequestMethod.POST.equals(this.httpMethod)) {
             this.con.setDoOutput(true);
         } else {
@@ -220,18 +219,6 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         }
         this.inputStreamConnected = true;
         this.httpResponseCode = this.con.getResponseCode();
-        if (407 == this.httpResponseCode) {
-            synchronized (NativeHTTPConnectionImpl.availableProxies) {
-                final Iterator<WeakReference<HTTPProxy>> it = NativeHTTPConnectionImpl.availableProxies.iterator();
-                while (it.hasNext()) {
-                    final WeakReference<HTTPProxy> next = it.next();
-                    final HTTPProxy proxy = next.get();
-                    if (proxy == null || proxy == this.proxy) {
-                        it.remove();
-                    }
-                }
-            }
-        }
         this.httpResponseMessage = this.con.getResponseMessage();
 
         final Iterator<Entry<String, List<String>>> it = this.con.getHeaderFields().entrySet().iterator();
