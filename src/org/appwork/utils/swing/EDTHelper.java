@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import javax.swing.SwingUtilities;
@@ -41,9 +42,10 @@ public abstract class EDTHelper<T> implements Runnable {
      */
     private final Object         lock                  = new Object();
 
-    private volatile boolean     callThreadInterrupted = false;
-    private Thread               callThread            = null;
+    private volatile boolean     waitThreadInterrupted = false;
+    private Thread               waitThread            = null;
     private InterruptedException iException            = null;
+    private static AtomicLong    THREADCOUNTER         = new AtomicLong(0);
 
     /**
      * Stores The returnvalue. This Value if of the Generic Datatype T
@@ -96,9 +98,9 @@ public abstract class EDTHelper<T> implements Runnable {
             Log.exception(e);
         } finally {
             synchronized (this.lock) {
-                final Thread lcallThread = this.callThread;
+                final Thread lcallThread = this.waitThread;
                 if (lcallThread != null) {
-                    this.callThreadInterrupted = true;
+                    this.waitThreadInterrupted = true;
                 }
                 this.done = true;
                 if (lcallThread != null) {
@@ -142,19 +144,46 @@ public abstract class EDTHelper<T> implements Runnable {
             synchronized (this.lock) {
                 if (this.done) { return; }
                 if (!SwingUtilities.isEventDispatchThread()) {
-                    this.callThread = Thread.currentThread();
+                    this.waitThread = new Thread("waitForEDT:" + EDTHelper.THREADCOUNTER.incrementAndGet() + "_" + Thread.currentThread().getName()) {
+                        /*
+                         * (non-Javadoc)
+                         * 
+                         * @see java.lang.Thread#run()
+                         */
+                        @Override
+                        public void run() {
+                            while (EDTHelper.this.done == false) {
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (final InterruptedException e) {
+                                    if (EDTHelper.this.done && !EDTHelper.this.waitThreadInterrupted) {
+                                        EDTHelper.this.iException = e;
+                                        org.appwork.utils.logging.Log.exception(Level.WARNING, e);
+                                    }
+                                    return;
+                                }
+                            }
+                        };
+                    };
+                    this.waitThread.setDaemon(true);
                 }
             }
             // c = System.currentTimeMillis();
-            while (this.done == false) {
-                try {
-                    Thread.sleep(1000);
-                } catch (final InterruptedException e) {
-                    if (!this.done && !this.callThreadInterrupted) {
-                        this.iException = e;
-                        org.appwork.utils.logging.Log.exception(Level.WARNING, e);
+            if (this.waitThread != null) {
+                if (this.done == false) {
+                    this.waitThread.run();
+                }
+            } else {
+                while (this.done == false) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (final InterruptedException e) {
+                        if (!this.done && !this.waitThreadInterrupted) {
+                            this.iException = e;
+                            org.appwork.utils.logging.Log.exception(Level.WARNING, e);
+                        }
+                        return;
                     }
-                    return;
                 }
             }
         } finally {
@@ -164,16 +193,15 @@ public abstract class EDTHelper<T> implements Runnable {
             // }
             /* make sure we remove the interrupted flag */
             synchronized (this.lock) {
-                if (this.callThreadInterrupted) {
+                if (this.waitThreadInterrupted) {
                     Thread.interrupted();
                 } else {
                     // System.out.println("not interrupted");
                 }
-                this.callThread = null;
+                this.waitThread = null;
             }
             if (this.exception != null) { throw this.exception; }
             if (this.error != null) { throw this.error; }
         }
     }
-
 }

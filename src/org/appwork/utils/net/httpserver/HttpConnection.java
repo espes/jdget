@@ -171,6 +171,10 @@ public class HttpConnection implements Runnable {
         return request;
     }
 
+    public boolean closableStreams() {
+        return this.clientSocket == null;
+    }
+
     public void close() {
     }
 
@@ -308,7 +312,10 @@ public class HttpConnection implements Runnable {
      */
     protected synchronized void sendResponseHeaders() throws IOException {
         try {
-            if (this.responseHeadersSent == true) { throw new IOException("Headers already send!"); }
+            if (this.responseHeadersSent == true) {
+                //
+                throw new IOException("Headers already send!");
+            }
             if (this.response != null) {
                 final OutputStream out = this.os;
                 out.write(HttpResponse.HTTP11);

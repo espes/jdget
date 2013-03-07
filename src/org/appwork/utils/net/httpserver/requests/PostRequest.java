@@ -67,14 +67,73 @@ public class PostRequest extends HttpRequest {
             final HTTPHeader transferEncoding = this.getRequestHeaders().get(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING);
             if (transferEncoding != null) {
                 if ("chunked".equalsIgnoreCase(transferEncoding.getValue())) {
-                    this.inputStream = new ChunkedInputStream(this.connection.getInputStream());
+                    this.inputStream = new ChunkedInputStream(this.connection.getInputStream()) {
+
+                        volatile boolean closed = false;
+
+                        @Override
+                        public void close() throws IOException {
+                            this.closed = true;
+                            if (PostRequest.this.connection.closableStreams()) {
+                                super.close();
+                            }
+                        }
+
+                        @Override
+                        public int read() throws IOException {
+                            if (this.closed) { return -1; }
+                            return super.read();
+                        }
+
+                        @Override
+                        public int read(final byte[] b) throws IOException {
+                            if (this.closed) { return -1; }
+                            return super.read(b);
+                        }
+
+                        @Override
+                        public int read(final byte[] b, final int off, final int len) throws IOException {
+                            if (this.closed) { return -1; }
+                            return super.read(b, off, len);
+                        }
+                    };
                 } else {
                     throw new IOException("Unknown Transfer-Encoding " + transferEncoding.getValue());
                 }
             } else {
                 final HTTPHeader contentLength = this.getRequestHeaders().get(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH);
                 if (contentLength == null) { throw new IOException("No Content-Length given!"); }
-                this.inputStream = new LimitedInputStream(this.connection.getInputStream(), Long.parseLong(contentLength.getValue()));
+                this.inputStream = new LimitedInputStream(this.connection.getInputStream(), Long.parseLong(contentLength.getValue())) {
+
+                    volatile boolean closed = false;
+
+                    @Override
+                    public void close() throws IOException {
+                        this.closed = true;
+                        if (PostRequest.this.connection.closableStreams()) {
+                            super.close();
+                        }
+                    }
+
+                    @Override
+                    public int read() throws IOException {
+                        if (this.closed) { return -1; }
+                        return super.read();
+                    }
+
+                    @Override
+                    public int read(final byte[] b) throws IOException {
+                        if (this.closed) { return -1; }
+                        return super.read(b);
+                    }
+
+                    @Override
+                    public int read(final byte[] b, final int off, final int len) throws IOException {
+                        if (this.closed) { return -1; }
+                        return super.read(b, off, len);
+                    }
+
+                };
             }
         }
         return this.inputStream;
