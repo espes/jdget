@@ -166,14 +166,15 @@ public class PostRequest extends HttpRequest {
             switch (content_type) {
             case JSON: {
                 final byte[] jsonBytes = IO.readStream(-1, this.getInputStream());
-                jsonRequest = JSonStorage.restoreFromString(new String(jsonBytes, charSet), new TypeRef<JSonRequest>() {
+                final String json = new String(jsonBytes, charSet);
+                jsonRequest = JSonStorage.restoreFromString(json, new TypeRef<JSonRequest>() {
                 });
             }
                 break;
             case X_WWW_FORM_URLENCODED: {
                 final byte[] jsonBytes = IO.readStream(-1, this.getInputStream());
-
-                this.postParameters = HttpConnection.parseParameterList(new String(jsonBytes, charSet));
+                final String params = new String(jsonBytes, charSet);
+                this.postParameters = HttpConnection.parseParameterList(params);
             }
                 break;
             case AESJSON: {
@@ -188,7 +189,8 @@ public class PostRequest extends HttpRequest {
                     final SecretKeySpec skeySpec = new SecretKeySpec(KEY, "AES");
                     cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
                     final byte[] jsonBytes = IO.readStream(-1, new CipherInputStream(new Base64InputStream(this.getInputStream()), cipher));
-                    jsonRequest = JSonStorage.restoreFromString(new String(jsonBytes, charSet), new TypeRef<JSonRequest>() {
+                    final String json = new String(jsonBytes, charSet);
+                    jsonRequest = JSonStorage.restoreFromString(json, new TypeRef<JSonRequest>() {
                     });
                     if (!this.connection.isJSonRequestValid(jsonRequest)) { throw new IOException("Invalid AESJSON Request"); }
                 } catch (final NoSuchPaddingException e) {
@@ -206,7 +208,7 @@ public class PostRequest extends HttpRequest {
         }
         if (jsonRequest != null) {
             this.postParameters = new LinkedList<String[]>();
-            for (final Object parameter : jsonRequest.getParam()) {
+            for (final Object parameter : jsonRequest.getParams()) {
                 if (parameter instanceof JSonObject) {
                     /*
                      * JSonObject has customized .toString which converts Map to

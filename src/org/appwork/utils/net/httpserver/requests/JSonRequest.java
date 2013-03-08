@@ -19,13 +19,13 @@ public class JSonRequest implements Storable {
 
     private String   url;
     private long     timestamp;
-    private Object[] param;
+    private Object[] params;
 
     public JSonRequest(/* Storable */) {
     }
 
-    public Object[] getParam() {
-        return this.param;
+    public Object[] getParams() {
+        return this.params;
     }
 
     public long getTimestamp() {
@@ -36,8 +36,8 @@ public class JSonRequest implements Storable {
         return this.url;
     }
 
-    public void setParam(final Object[] param) {
-        this.param = param;
+    public void setParams(final Object[] params) {
+        this.params = params;
     }
 
     public void setTimestamp(final long timestamp) {
