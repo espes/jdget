@@ -29,7 +29,7 @@ import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.HeaderCollection;
 import org.appwork.utils.net.httpconnection.HTTPConnectionUtils;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
-import org.appwork.utils.net.httpserver.requests.AESJSonRequest;
+import org.appwork.utils.net.httpserver.requests.JSonRequest;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HeadRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
@@ -232,7 +232,7 @@ public class HttpConnection implements Runnable {
      * @param aesJsonRequest
      * @return
      */
-    public boolean isAESJsonRequestValid(final AESJSonRequest aesJsonRequest) {
+    public boolean isJSonRequestValid(final JSonRequest aesJsonRequest) {
         return false;
     }
 

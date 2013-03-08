@@ -25,6 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
+import org.appwork.storage.simplejson.JSonObject;
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
 import org.appwork.utils.net.Base64InputStream;
@@ -156,6 +157,7 @@ public class PostRequest extends HttpRequest {
         } else if (new Regex(type, "(application/aesjson-)").matches()) {
             content_type = CONTENT_TYPE.AESJSON;
         }
+        JSonRequest jsonRequest = null;
         if (content_type != null) {
             String charSet = new Regex(type, "charset=(.*?)($| )").getMatch(0);
             if (charSet == null) {
@@ -164,12 +166,13 @@ public class PostRequest extends HttpRequest {
             switch (content_type) {
             case JSON: {
                 final byte[] jsonBytes = IO.readStream(-1, this.getInputStream());
-                this.postParameters = new LinkedList<String[]>();
-                this.postParameters.add(new String[] { new String(jsonBytes, charSet), null });
+                jsonRequest = JSonStorage.restoreFromString(new String(jsonBytes, charSet), new TypeRef<JSonRequest>() {
+                });
             }
                 break;
             case X_WWW_FORM_URLENCODED: {
                 final byte[] jsonBytes = IO.readStream(-1, this.getInputStream());
+
                 this.postParameters = HttpConnection.parseParameterList(new String(jsonBytes, charSet));
             }
                 break;
@@ -185,13 +188,9 @@ public class PostRequest extends HttpRequest {
                     final SecretKeySpec skeySpec = new SecretKeySpec(KEY, "AES");
                     cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
                     final byte[] jsonBytes = IO.readStream(-1, new CipherInputStream(new Base64InputStream(this.getInputStream()), cipher));
-                    final AESJSonRequest aesJsonRequest = JSonStorage.restoreFromString(new String(jsonBytes, charSet), new TypeRef<AESJSonRequest>() {
+                    jsonRequest = JSonStorage.restoreFromString(new String(jsonBytes, charSet), new TypeRef<JSonRequest>() {
                     });
-                    if (!this.connection.isAESJsonRequestValid(aesJsonRequest)) { throw new IOException("Invalid AESJSON Request"); }
-                    this.postParameters = new LinkedList<String[]>();
-                    for (final Object parameter : aesJsonRequest.getParam()) {
-                        this.postParameters.add(new String[] { parameter.toString(), null });
-                    }
+                    if (!this.connection.isJSonRequestValid(jsonRequest)) { throw new IOException("Invalid AESJSON Request"); }
                 } catch (final NoSuchPaddingException e) {
                     throw new IOException(e);
                 } catch (final NoSuchAlgorithmException e) {
@@ -203,6 +202,18 @@ public class PostRequest extends HttpRequest {
                 }
             }
                 break;
+            }
+        }
+        if (jsonRequest != null) {
+            this.postParameters = new LinkedList<String[]>();
+            for (final Object parameter : jsonRequest.getParam()) {
+                if (parameter instanceof JSonObject) {
+                    this.postParameters.add(new String[] { parameter.toString(), null });
+                } else {
+                    final String jsonParameter = JSonStorage.toString(parameter);
+                    this.postParameters.add(new String[] { jsonParameter, null });
+                }
+
             }
         }
         this.postParameterParsed = true;

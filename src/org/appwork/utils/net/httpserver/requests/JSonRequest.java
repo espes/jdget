@@ -15,13 +15,13 @@ import org.appwork.storage.Storable;
  * @author daniel
  * 
  */
-public class AESJSonRequest implements Storable {
+public class JSonRequest implements Storable {
 
     private String   url;
     private long     timestamp;
     private Object[] param;
 
-    public AESJSonRequest(/* Storable */) {
+    public JSonRequest(/* Storable */) {
     }
 
     public Object[] getParam() {
