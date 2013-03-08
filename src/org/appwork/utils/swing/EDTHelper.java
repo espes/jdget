@@ -9,9 +9,6 @@
  */
 package org.appwork.utils.swing;
 
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-
 import javax.swing.SwingUtilities;
 
 import org.appwork.utils.logging.Log;
@@ -31,21 +28,15 @@ public abstract class EDTHelper<T> implements Runnable {
     /**
      * flag. If Runnable has terminated yet
      */
-    private volatile boolean     done                  = false;
+    private volatile boolean     done    = false;
 
     /**
      * flag, has runnable already started, invoked in edt
      */
-    private volatile boolean     started               = false;
+    private volatile boolean     started = false;
     /**
      * lock used for EDT waiting
      */
-    private final Object         lock                  = new Object();
-
-    private volatile boolean     waitThreadInterrupted = false;
-    private Thread               waitThread            = null;
-    private InterruptedException iException            = null;
-    private static AtomicLong    THREADCOUNTER         = new AtomicLong(0);
 
     /**
      * Stores The returnvalue. This Value if of the Generic Datatype T
@@ -53,6 +44,7 @@ public abstract class EDTHelper<T> implements Runnable {
     private T                    returnValue;
 
     private RuntimeException     exception;
+    private InterruptedException interruptException;
 
     private Error                error;
 
@@ -64,7 +56,7 @@ public abstract class EDTHelper<T> implements Runnable {
     public abstract T edtRun();
 
     public InterruptedException getInterruptException() {
-        return this.iException;
+        return this.interruptException;
     }
 
     /**
@@ -80,7 +72,7 @@ public abstract class EDTHelper<T> implements Runnable {
     }
 
     public boolean isInterrupted() {
-        return this.iException != null;
+        return this.interruptException != null;
     }
 
     /**
@@ -97,16 +89,7 @@ public abstract class EDTHelper<T> implements Runnable {
             this.error = e;
             Log.exception(e);
         } finally {
-            synchronized (this.lock) {
-                final Thread lcallThread = this.waitThread;
-                if (lcallThread != null) {
-                    this.waitThreadInterrupted = true;
-                }
-                this.done = true;
-                if (lcallThread != null) {
-                    lcallThread.interrupt();
-                }
-            }
+            this.done = true;
         }
 
     }
@@ -137,54 +120,24 @@ public abstract class EDTHelper<T> implements Runnable {
     public void waitForEDT() {
         // long c = -1;
         try {
-            synchronized (this.lock) {
-                if (this.done) { return; }
-            }
+            if (this.done) { return; }
             this.start(false);
-            synchronized (this.lock) {
-                if (this.done) { return; }
-                if (!SwingUtilities.isEventDispatchThread()) {
-                    this.waitThread = new Thread("waitForEDT:" + EDTHelper.THREADCOUNTER.incrementAndGet() + "_" + Thread.currentThread().getName()) {
-                        /*
-                         * (non-Javadoc)
-                         * 
-                         * @see java.lang.Thread#run()
-                         */
-                        @Override
-                        public void run() {
-                            while (EDTHelper.this.done == false) {
-                                try {
-                                    Thread.sleep(1000);
-                                } catch (final InterruptedException e) {
-                                    if (EDTHelper.this.done && !EDTHelper.this.waitThreadInterrupted) {
-                                        EDTHelper.this.iException = e;
-                                        org.appwork.utils.logging.Log.exception(Level.WARNING, e);
-                                    }
-                                    return;
-                                }
-                            }
-                        };
-                    };
-                    this.waitThread.setDaemon(true);
-                }
-            }
+            if (this.done) { return; }
             // c = System.currentTimeMillis();
-            if (this.waitThread != null) {
-                if (this.done == false) {
-                    this.waitThread.run();
-                }
-            } else {
+            try {
                 while (this.done == false) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (final InterruptedException e) {
-                        if (!this.done && !this.waitThreadInterrupted) {
-                            this.iException = e;
-                            org.appwork.utils.logging.Log.exception(Level.WARNING, e);
-                        }
-                        return;
-                    }
+                    /* ASK daniel why we use Sleep(1) here */
+                    /* Thread.yield can use too much cpu */
+                    /*
+                     * Thread.interrupt can cause side-effects! overwritten
+                     * interrupt method in current Thread can do bad things
+                     */
+                    /* Object.wait releases all locks! */
+                    Thread.sleep(1);
                 }
+            } catch (final InterruptedException e) {
+                this.interruptException = e;
+                return;
             }
         } finally {
             // if (c != -1 && System.currentTimeMillis() - c > 1000) {
@@ -192,14 +145,6 @@ public abstract class EDTHelper<T> implements Runnable {
             // WTFException("EDT blocked longer than 1sec!").printStackTrace();
             // }
             /* make sure we remove the interrupted flag */
-            synchronized (this.lock) {
-                if (this.waitThreadInterrupted) {
-                    Thread.interrupted();
-                } else {
-                    // System.out.println("not interrupted");
-                }
-                this.waitThread = null;
-            }
             if (this.exception != null) { throw this.exception; }
             if (this.error != null) { throw this.error; }
         }
