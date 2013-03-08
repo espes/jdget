@@ -208,6 +208,10 @@ public class PostRequest extends HttpRequest {
             this.postParameters = new LinkedList<String[]>();
             for (final Object parameter : jsonRequest.getParam()) {
                 if (parameter instanceof JSonObject) {
+                    /*
+                     * JSonObject has customized .toString which converts Map to
+                     * Json!
+                     */
                     this.postParameters.add(new String[] { parameter.toString(), null });
                 } else {
                     final String jsonParameter = JSonStorage.toString(parameter);
