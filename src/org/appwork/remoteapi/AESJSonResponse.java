@@ -33,15 +33,20 @@ import org.appwork.utils.net.HTTPHeader;
  */
 public class AESJSonResponse<T> extends RemoteAPICustomResponse<T> {
 
-    protected byte[] IV;
-    protected byte[] KEY;
-    protected String ID;
+    protected byte[]       IV;
+    protected byte[]       KEY;
+    protected String       ID;
+    protected ResponseCode responseCode = ResponseCode.SUCCESS_OK;
 
     public AESJSonResponse(final T content, final byte[] IV, final byte[] KEY, final String ID) {
         super(content);
         this.IV = IV;
         this.KEY = KEY;
         this.ID = ID;
+    }
+
+    public ResponseCode getResponseCode() {
+        return this.responseCode;
     }
 
     @Override
@@ -55,7 +60,7 @@ public class AESJSonResponse<T> extends RemoteAPICustomResponse<T> {
             /* set chunked transfer header */
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING, HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/aesjson-" + this.ID + "; charset=utf-8"));
-            response.setResponseCode(ResponseCode.SUCCESS_OK);
+            response.setResponseCode(this.responseCode);
             final CipherOutputStream os = new CipherOutputStream(new Base64OutputStream(new ChunkedOutputStream(response.getOutputStream())), cipher);
             os.write(json.getBytes("UTF-8"));
             os.close();
@@ -68,6 +73,10 @@ public class AESJSonResponse<T> extends RemoteAPICustomResponse<T> {
         } catch (final InvalidAlgorithmParameterException e) {
             throw new IOException(e);
         }
+    }
+
+    public void setResponseCode(final ResponseCode responseCode) {
+        this.responseCode = responseCode;
     }
 
 }

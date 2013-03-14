@@ -192,7 +192,10 @@ public class PostRequest extends HttpRequest {
                     final String json = new String(jsonBytes, charSet);
                     jsonRequest = JSonStorage.restoreFromString(json, new TypeRef<JSonRequest>() {
                     });
-                    if (!this.connection.isJSonRequestValid(jsonRequest)) { throw new IOException("Invalid AESJSON Request"); }
+                    if (!this.connection.isJSonRequestValid(jsonRequest)) {
+                        //
+                        throw new IOException("Invalid AESJSON Request");
+                    }
                 } catch (final NoSuchPaddingException e) {
                     throw new IOException(e);
                 } catch (final NoSuchAlgorithmException e) {
@@ -206,7 +209,7 @@ public class PostRequest extends HttpRequest {
                 break;
             }
         }
-        if (jsonRequest != null) {
+        if (jsonRequest != null && jsonRequest.getParams() != null) {
             this.postParameters = new LinkedList<String[]>();
             for (final Object parameter : jsonRequest.getParams()) {
                 if (parameter instanceof JSonObject) {

@@ -29,10 +29,10 @@ import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.HeaderCollection;
 import org.appwork.utils.net.httpconnection.HTTPConnectionUtils;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
-import org.appwork.utils.net.httpserver.requests.JSonRequest;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HeadRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
+import org.appwork.utils.net.httpserver.requests.JSonRequest;
 import org.appwork.utils.net.httpserver.requests.OptionsRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
@@ -75,7 +75,9 @@ public class HttpConnection implements Runnable {
 
     protected HttpResponse     response            = null;
     protected InputStream      is                  = null;
+
     protected OutputStream     os                  = null;
+    protected HttpRequest      request;
 
     public HttpConnection(final HttpServer server, final InputStream is, final OutputStream os) {
         this.server = server;
@@ -171,6 +173,13 @@ public class HttpConnection implements Runnable {
         return request;
     }
 
+    /**
+     * @return
+     */
+    protected HttpResponse buildResponse() {
+        return new HttpResponse(this);
+    }
+
     public boolean closableStreams() {
         return this.clientSocket == null;
     }
@@ -228,20 +237,20 @@ public class HttpConnection implements Runnable {
         return this.os;
     }
 
+    public HttpRequest getRequest() {
+        return this.request;
+    }
+
+    public HttpResponse getResponse() {
+        return this.response;
+    }
+
     /**
      * @param aesJsonRequest
      * @return
      */
     public boolean isJSonRequestValid(final JSonRequest aesJsonRequest) {
         return false;
-    }
-
-    /**
-     * @param response2
-     * @return
-     */
-    protected HttpResponse preProcessHttpResponse(final HttpResponse response) {
-        return response;
     }
 
     protected String preProcessRequestLine(final String requestLine) throws IOException {
@@ -255,20 +264,19 @@ public class HttpConnection implements Runnable {
     public void run() {
         boolean closeConnection = true;
         try {
-            final HttpRequest request = this.buildRequest();
+            this.request = this.buildRequest();
             // if(Log.L.isLoggable(Level.FINER)) Log.L.finer(request+"");
-            this.response = new HttpResponse(this);
-            this.response = this.preProcessHttpResponse(this.response);
-            this.requestReceived(request);
+            this.response = this.buildResponse();
+            this.requestReceived(this.request);
             boolean handled = false;
             for (final HttpRequestHandler handler : this.getHandler()) {
-                if (request instanceof GetRequest) {
-                    if (handler.onGetRequest((GetRequest) request, this.response)) {
+                if (this.request instanceof GetRequest) {
+                    if (handler.onGetRequest((GetRequest) this.request, this.response)) {
                         handled = true;
                         break;
                     }
-                } else if (request instanceof PostRequest) {
-                    if (handler.onPostRequest((PostRequest) request, this.response)) {
+                } else if (this.request instanceof PostRequest) {
+                    if (handler.onPostRequest((PostRequest) this.request, this.response)) {
                         handled = true;
                         break;
                     }

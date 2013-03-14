@@ -44,6 +44,10 @@ public class RemoteAPIResponse implements HttpResponseInterface {
         this.response.closeConnection();
     }
 
+    public HttpResponse getHttpResponse() {
+        return this.response;
+    }
+
     public OutputStream getOutputStream() throws IOException {
         return this.response.getOutputStream();
     }
