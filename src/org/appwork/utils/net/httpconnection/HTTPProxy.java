@@ -584,7 +584,11 @@ public class HTTPProxy {
         } else if (this.type == TYPE.DIRECT) {
             return _AWU.T.proxy_direct(this.localIP.getHostAddress());
         } else if (this.type == TYPE.HTTP) {
-            return _AWU.T.proxy_http(this.getHost(), this.getPort());
+            String ret = _AWU.T.proxy_http(this.getHost(), this.getPort());
+            if (this.isPreferNativeImplementation()) {
+                ret = ret + "(prefer native)";
+            }
+            return ret;
         } else if (this.type == TYPE.SOCKS5) {
             return _AWU.T.proxy_socks5(this.getHost(), this.getPort());
         } else if (this.type == TYPE.SOCKS4) {
