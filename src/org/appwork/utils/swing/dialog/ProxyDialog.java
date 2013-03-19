@@ -409,35 +409,44 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
      * @param proxy2
      */
     private void set(final HTTPProxy p) {
-        this.txtUser.setText(p.getUser());
-        switch (p.getType()) {
-        case DIRECT:
-        case NONE:
-            this.cmbType.setSelectedIndex(3);
-            this.txtHost.setText(p.getLocalIP() == null ? "" : p.getLocalIP().getHostAddress());
+        if (p == null) { return; }
+        new EDTRunner() {
+            /*
+             * (non-Javadoc)
+             * 
+             * @see org.appwork.utils.swing.EDTRunner#runInEDT()
+             */
+            @Override
+            protected void runInEDT() {
+                ProxyDialog.this.txtUser.setText(p.getUser());
+                switch (p.getType()) {
+                case DIRECT:
+                case NONE:
+                    ProxyDialog.this.cmbType.setSelectedIndex(3);
+                    ProxyDialog.this.txtHost.setText(p.getLocalIP() == null ? "" : p.getLocalIP().getHostAddress());
 
-            break;
-        case HTTP:
-            this.cmbType.setSelectedIndex(0);
-            this.txtHost.setText(p.getHost());
-            this.txtPort.setText(p.getPort() + "");
-            this.txtUser.setText(p.getUser());
-            break;
+                    break;
+                case HTTP:
+                    ProxyDialog.this.cmbType.setSelectedIndex(0);
+                    ProxyDialog.this.txtHost.setText(p.getHost());
+                    ProxyDialog.this.txtPort.setText(p.getPort() + "");
+                    ProxyDialog.this.txtUser.setText(p.getUser());
+                    break;
 
-        case SOCKS4:
-            this.cmbType.setSelectedIndex(2);
-            this.txtHost.setText(p.getHost());
-            this.txtPort.setText(p.getPort() + "");
-            break;
-        case SOCKS5:
-            this.cmbType.setSelectedIndex(1);
-            this.txtHost.setText(p.getHost());
-            this.txtPort.setText(p.getPort() + "");
-            this.txtUser.setText(p.getUser());
-            break;
-
-        }
-
+                case SOCKS4:
+                    ProxyDialog.this.cmbType.setSelectedIndex(2);
+                    ProxyDialog.this.txtHost.setText(p.getHost());
+                    ProxyDialog.this.txtPort.setText(p.getPort() + "");
+                    break;
+                case SOCKS5:
+                    ProxyDialog.this.cmbType.setSelectedIndex(1);
+                    ProxyDialog.this.txtHost.setText(p.getHost());
+                    ProxyDialog.this.txtPort.setText(p.getPort() + "");
+                    ProxyDialog.this.txtUser.setText(p.getUser());
+                    break;
+                }
+            }
+        };
     }
 
     protected void set(final String text) {
