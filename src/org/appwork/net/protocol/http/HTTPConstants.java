@@ -94,6 +94,8 @@ public class HTTPConstants {
          */
         SERVERERROR_SERVICE_UNAVAILABLE(503, "Service Unavailable"),
 
+        GATEWAY_TIMEOUT(504, "Gateway Time-out"),
+
         SUCCESS_PARTIAL_CONTENT(206, "Partial Content");
         /**
          * @param responseCode

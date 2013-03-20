@@ -33,7 +33,7 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
     @Override
     public boolean onGetSessionRequest(final T session, final GetRequest request, final HttpResponse response) {
         RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
-        if (apiRequest == null) { return false; }
+        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         apiRequest = new SessionRemoteAPIRequest<T>(request, apiRequest, session);
         if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) {
             response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
@@ -59,7 +59,7 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
     @Override
     public boolean onPostSessionRequest(final T session, final PostRequest request, final HttpResponse response) {
         RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
-        if (apiRequest == null) { return false; }
+        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         apiRequest = new SessionRemoteAPIRequest<T>(request, apiRequest, session);
         if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) {
             response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);

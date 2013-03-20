@@ -471,7 +471,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
      */
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
-        if (apiRequest == null) { return false; }
+        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         try {
             this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
@@ -482,13 +482,17 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
 
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
-        if (apiRequest == null) { return false; }
+        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         try {
             this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
             throw new RuntimeException(e);
         }
         return true;
+    }
+
+    protected boolean onUnknownRequest(final HttpRequest request, final HttpResponse response) {
+        return false;
     }
 
     @SuppressWarnings("unchecked")
