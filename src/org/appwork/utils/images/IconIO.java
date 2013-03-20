@@ -108,6 +108,10 @@ public class IconIO {
      * @return
      */
     public static BufferedImage getImage(final URL resource) {
+        return IconIO.getImage(resource, true);
+    }
+
+    public static BufferedImage getImage(final URL resource, final boolean allowDummy) {
         if (resource != null) {
             InputStream is = null;
             /*
@@ -120,7 +124,8 @@ public class IconIO {
              */
             try {
                 is = resource.openStream();
-                return ImageIO.read(is);
+                final BufferedImage ret = ImageIO.read(is);
+                if (ret != null) { return ret; }
             } catch (final IOException e) {
                 Log.exception(Level.WARNING, e);
             } finally {
@@ -130,7 +135,8 @@ public class IconIO {
                 }
             }
         }
-        return ImageProvider.createIcon("DUMMY", 48, 48);
+        if (allowDummy) { return ImageProvider.createIcon("DUMMY", 48, 48); }
+        return null;
     }
 
     /**
@@ -148,7 +154,6 @@ public class IconIO {
      * @return
      */
     public static ImageIcon getImageIcon(final URL resource, final int size) {
-
         if (size <= 0) {
             return new ImageIcon(IconIO.getImage(resource));
         } else {
