@@ -24,7 +24,6 @@ import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.utils.Exceptions;
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
-import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.HeaderCollection;
 import org.appwork.utils.net.httpconnection.HTTPConnectionUtils;
@@ -253,6 +252,20 @@ public class HttpConnection implements Runnable {
         return false;
     }
 
+    protected void onException(final Throwable e, final HttpRequest request, final HttpResponse response) throws IOException {
+        this.response = new HttpResponse(this);
+        this.response.setResponseCode(ResponseCode.SERVERERROR_INTERNAL);
+        final byte[] bytes = Exceptions.getStackTrace(e).getBytes("UTF-8");
+        this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text; charset=UTF-8"));
+        this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
+        this.response.getOutputStream().write(bytes);
+        this.response.getOutputStream().flush();
+    }
+
+    protected void onUnhandled(final HttpRequest request, final HttpResponse response) throws IOException {
+        response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
+    }
+
     protected String preProcessRequestLine(final String requestLine) throws IOException {
         return requestLine;
     }
@@ -265,7 +278,6 @@ public class HttpConnection implements Runnable {
         boolean closeConnection = true;
         try {
             this.request = this.buildRequest();
-            // if(Log.L.isLoggable(Level.FINER)) Log.L.finer(request+"");
             this.response = this.buildResponse();
             this.requestReceived(this.request);
             boolean handled = false;
@@ -284,7 +296,7 @@ public class HttpConnection implements Runnable {
             }
             if (!handled) {
                 /* generate error handler */
-                this.response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
+                this.onUnhandled(this.request, this.response);
             }
             /* send response headers if they have not been sent yet send yet */
             if (this.response.isResponseAsync() == false) {
@@ -294,15 +306,8 @@ public class HttpConnection implements Runnable {
             }
         } catch (final Throwable e) {
             e.printStackTrace();
-            Log.L.severe(e.getMessage());
             try {
-                this.response = new HttpResponse(this);
-                this.response.setResponseCode(ResponseCode.SERVERERROR_INTERNAL);
-                final byte[] bytes = Exceptions.getStackTrace(e).getBytes("UTF-8");
-                this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text; charset=UTF-8"));
-                this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
-                this.response.getOutputStream().write(bytes);
-                this.response.getOutputStream().flush();
+                this.onException(e, this.request, this.response);
             } catch (final Throwable nothing) {
             }
         } finally {

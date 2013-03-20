@@ -231,7 +231,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         }
     }
 
-    protected void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws IOException {
+    protected void _handleRemoteAPICall(final RemoteAPIRequest request, final RemoteAPIResponse response) throws Throwable {
         Object responseData = null;
         Object responseException = null;
         final Method method = request.getMethod();
@@ -279,6 +279,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             responseData = request.getIface().invoke(method, parameters);
             if (responseIsParameter) { return; }
         } catch (final Throwable e) {
+            if (this.throwException(e)) { throw e; }
             final Throwable cause = e.getCause();
             if (cause instanceof RemoteAPICustomHandler) {
                 ((RemoteAPICustomHandler) cause).handle(request, response);
@@ -605,6 +606,14 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         ret.put("data", process.getResponse());
         ret.put("pid", process.getPID());
         return ret;
+    }
+
+    /**
+     * @param e
+     * @return
+     */
+    protected boolean throwException(final Throwable e) {
+        return false;
     }
 
     public void unregister(final RemoteAPIInterface x) {
