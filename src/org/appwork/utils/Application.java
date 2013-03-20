@@ -264,7 +264,7 @@ public class Application {
      */
     public static String getRoot(final Class<?> rootOfClazz) {
         if (Application.ROOT != null) { return Application.ROOT; }
-        final String key="awuhome" + Application.APP_FOLDER;
+        final String key = "awuhome" + Application.APP_FOLDER;
         final String sysProp = System.getProperty(key);
         if (sysProp != null) {
             Application.ROOT = sysProp;
@@ -542,4 +542,5 @@ public class Application {
         throw new IllegalStateException("No JarName Found");
 
     }
+
 }
