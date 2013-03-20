@@ -234,8 +234,18 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
             list.addAll(value);
         }
         if (this.inputStream == null && inputException != null) {
-            /* in case we dont have an error Stream */
-            throw inputException;
+            if (this.getContentLength() == 0) {
+                this.inputStream = new InputStream() {
+
+                    @Override
+                    public int read() throws IOException {
+                        return -1;
+                    }
+                };
+            } else {
+                /* in case we dont have an error Stream */
+                throw inputException;
+            }
         }
     }
 
