@@ -4,9 +4,9 @@ package org.appwork.uio;
 
 public class UIOManager {
 
-    private static UserIOHandlerInterface USERIO = null;
+    private static UserIOHandlerInterface USERIO = new BasicDialogHandler();
 
-    public static void setUserIO(UserIOHandlerInterface io) {
+    public static void setUserIO(final UserIOHandlerInterface io) {
         USERIO = io;
     }
 
