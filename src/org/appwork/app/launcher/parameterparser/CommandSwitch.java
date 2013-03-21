@@ -50,4 +50,17 @@ public class CommandSwitch extends DefaultEvent {
         return switchCommand;
     }
 
+    /**
+     * @param string
+     * @return
+     */
+    public boolean hasParameter(final String string) {
+       for(final String p:getParameters()){
+           if(p.equals(string)) {
+            return true;
+        }
+       }
+        return false;
+    }
+
 }
