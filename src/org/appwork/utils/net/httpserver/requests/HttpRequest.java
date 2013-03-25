@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.appwork.utils.net.HeaderCollection;
+import org.appwork.utils.net.httpserver.HttpConnection;
 
 /**
  * @author daniel
@@ -47,6 +48,16 @@ public abstract class HttpRequest implements HttpRequestInterface {
     protected LinkedList<String[]> requestedURLParameters = null;
 
     private List<String>           remoteAddress          = new ArrayList<String>();
+
+    protected final HttpConnection   connection;
+
+    public HttpConnection getConnection() {
+        return connection;
+    }
+
+    public HttpRequest(HttpConnection connection) {
+        this.connection = connection;
+    }
 
     public List<String> getRemoteAddress() {
         return this.remoteAddress;

@@ -10,12 +10,20 @@
 package org.appwork.utils.net.httpserver.requests;
 
 import org.appwork.utils.net.HTTPHeader;
+import org.appwork.utils.net.httpserver.HttpConnection;
 
 /**
  * @author daniel
  * 
  */
 public class HeadRequest extends GetRequest {
+    /**
+     * @param connection
+     */
+    public HeadRequest(HttpConnection connection) {
+        super(connection);       
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();

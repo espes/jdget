@@ -113,7 +113,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
         final T session = this.getSession(request, this.extractSessionID(request.getRequestedURLParameters()));
         for (final HttpSessionRequestHandler<T> handler : handlers) {
             if (handler.onPostSessionRequest(session, request, response)) { return true; }
-        }
+        }        
         return false;
     }
 

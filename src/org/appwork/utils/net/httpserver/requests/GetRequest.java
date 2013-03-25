@@ -13,12 +13,20 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 import org.appwork.utils.net.HTTPHeader;
+import org.appwork.utils.net.httpserver.HttpConnection;
 
 /**
  * @author daniel
  * 
  */
 public class GetRequest extends HttpRequest {
+
+    /**
+     * @param connection
+     */
+    public GetRequest(HttpConnection connection) {
+        super(connection);        
+    }
 
     /*
      * (non-Javadoc)

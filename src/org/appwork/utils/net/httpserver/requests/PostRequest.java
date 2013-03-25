@@ -40,20 +40,23 @@ import org.appwork.utils.net.httpserver.HttpConnection;
  */
 public class PostRequest extends HttpRequest {
 
+    /**
+     * @param connection
+     */
+    public PostRequest(HttpConnection connection) {
+        super(connection);        
+    }
+
     private static enum CONTENT_TYPE {
         X_WWW_FORM_URLENCODED,
         JSON,
         AESJSON
     }
-
-    protected InputStream        inputStream         = null;
-    private final HttpConnection connection;
+    protected InputStream        inputStream         = null;   
     private boolean              postParameterParsed = false;
     private LinkedList<String[]> postParameters      = null;
 
-    public PostRequest(final HttpConnection connection) {
-        this.connection = connection;
-    }
+   
 
     protected byte[] getAESJSON_IV(final String ID) {
         return this.connection.getAESJSon_IV(ID);

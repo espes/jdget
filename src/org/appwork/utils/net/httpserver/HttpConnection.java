@@ -140,13 +140,13 @@ public class HttpConnection implements Runnable {
         headerStrings = null;
         /* create Request and fill it */
         if ("GET".equalsIgnoreCase(method)) {
-            request = new GetRequest();
+            request = new GetRequest(this);
         } else if ("POST".equalsIgnoreCase(method)) {
             request = new PostRequest(this);
         } else if ("HEAD".equalsIgnoreCase(method)) {
-            request = new HeadRequest();
+            request = new HeadRequest(this);
         } else if ("OPTIONS".equalsIgnoreCase(method)) {
-            request = new OptionsRequest();
+            request = new OptionsRequest(this);
         } else {
             throw new IOException("Unsupported " + requestLine);
         }
