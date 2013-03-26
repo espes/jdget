@@ -28,6 +28,7 @@ import org.appwork.utils.interfaces.ValueConverter;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
+import org.appwork.utils.swing.EDTRunner;
 
 /**
  * A Dialog Instance which provides extended Dialog features and thus replaces
@@ -43,8 +44,6 @@ public class Dialog implements WindowFocusListener {
      * 
      */
     public static final String  FILECHOOSER                          = "FILECHOOSER";
-
-
 
     /**
      * Hide the cancel Button
@@ -325,9 +324,7 @@ public class Dialog implements WindowFocusListener {
      * @see Dialog#owner
      */
     public void setParentOwner(final Component parent) {
-        if (owner == parent) {
-            return;
-        }
+        if (owner == parent) { return; }
         owner = parent;
 
         if (parent == null) {
@@ -501,11 +498,21 @@ public class Dialog implements WindowFocusListener {
         final T ret = edth.getReturnValue();
 
         if (edth.isInterrupted()) {
-            try {
-                // close dialog if open
-                dialog.dispose();
-            } catch (final Exception e) {
-            }
+            
+            //Use a edtrunner here. AbstractCaptcha.dispose is edt save... however there may be several CaptchaDialog classes with overriddden unsave dispose methods...
+    
+            new EDTRunner() {
+
+                @Override
+                protected void runInEDT() {
+                    try {
+                        // close dialog if open
+                        dialog.dispose();
+                    } catch (final Exception e) {
+                    }
+                }
+            };
+
             throw new DialogClosedException(Dialog.RETURN_INTERRUPT, edth.getInterruptException());
         }
 

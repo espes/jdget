@@ -104,7 +104,7 @@ public class ExceptionDialog extends AbstractDialog<Integer> {
     }
 
     @Override
-    protected String getDontShowAgainKey() {
+    public String getDontShowAgainKey() {
         return "ABSTRACTDIALOG_DONT_SHOW_AGAIN_" + this.exception.hashCode() + "_" + this.toString();
     }
 

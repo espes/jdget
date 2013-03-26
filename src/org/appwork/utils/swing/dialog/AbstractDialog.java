@@ -504,7 +504,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * 
      * @return
      */
-    protected String getDontShowAgainKey() {
+    public String getDontShowAgainKey() {
         return "ABSTRACTDIALOG_DONT_SHOW_AGAIN_" + this.getClass().getSimpleName() + "_" + this.toString();
     }
 
