@@ -19,6 +19,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.appwork.storage.simplejson.JSonNode;
 import org.jdownloader.myjdownloader.client.exceptions.APIException;
 import org.jdownloader.myjdownloader.client.exceptions.InvalidResponseCodeException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderAuthException;
@@ -223,7 +224,12 @@ public abstract class AbstractMyJDClient {
             final ObjectData data = jsonToObject(dec, ObjectData.class);
 
             // ugly!!! but this will be changed when we have a proper remoteAPI response format
-            return jsonToObject(objectToJSon(data.getData()), returnType);
+            if (data.getData() instanceof JSonNode) {
+                // simplejson
+                return jsonToObject(data.getData() + "", returnType);
+            } else {
+                return jsonToObject(objectToJSon(data.getData()) + "", returnType);
+            }
         } catch (final InvalidResponseCodeException e) {
             handleInvalidResponseCodes(e);
             throw e;
