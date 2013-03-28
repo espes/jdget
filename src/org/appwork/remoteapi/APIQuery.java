@@ -23,6 +23,10 @@ public class APIQuery extends HashMap<String, Object> implements Storable {
      * 
      */
     private static final long serialVersionUID = 1L;
+    
+    private APIQuery(){
+        /* Storable */
+    }
 
     @SuppressWarnings("unchecked")
     public <T> T _getQueryParam(String key, Class<T> clazz, T defaultValue) {
