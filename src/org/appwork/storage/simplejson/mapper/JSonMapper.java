@@ -336,6 +336,11 @@ public class JSonMapper {
                     }
                     return arr;
                 } else {
+
+                    if (Object.class.equals(clazz)) {
+                        //
+                        return json;
+                    }
                     if (json instanceof JSonArray) {
 
                         final java.util.List<Object> inst = new ArrayList<Object>();
@@ -362,10 +367,7 @@ public class JSonMapper {
                                 throw new IllegalArgumentException("Cannot Map " + obj + " to " + clazz);
                             }
                         }
-                        if (Object.class.equals(clazz)) {
-                            //
-                            return obj;
-                        }
+
                         cc = ClassCache.getClassCache(clazz);
 
                         final Object inst = cc.getInstance();
