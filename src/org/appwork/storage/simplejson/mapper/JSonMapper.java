@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -239,9 +240,10 @@ public class JSonMapper {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public Object jsonToObject(final JSonNode json, final Type type) throws MapperException {
+    public Object jsonToObject(final JSonNode json, Type type) throws MapperException {
         final ClassCache cc;
         try {
+
             Class<?> clazz = null;
             if (type instanceof ParameterizedTypeImpl) {
                 clazz = ((ParameterizedTypeImpl) type).getRawType();
@@ -249,6 +251,31 @@ public class JSonMapper {
                 clazz = (Class) type;
             }
 
+            if (clazz == null || clazz == Object.class) {
+
+                if (json instanceof JSonArray) {
+                    type = clazz = LinkedList.class;
+                } else if (json instanceof JSonObject) {
+                    type = clazz = HashMap.class;
+                } else if (json instanceof JSonValue) {
+                    switch (((JSonValue) json).getType()) {
+                    case BOOLEAN:
+                        type = clazz = boolean.class;
+                        break;
+                    case DOUBLE:
+                        type = clazz = double.class;
+                        break;
+                    case LONG:
+                        type = clazz = long.class;
+                        break;
+                    case NULL:
+                    case STRING:
+                        type = clazz = String.class;
+
+                    }
+
+                }
+            }
             final TypeMapper<?> tm = typeMapper.get(clazz);
             if (tm != null) {
 
@@ -291,6 +318,15 @@ public class JSonMapper {
             }
 
             if (type instanceof Class) {
+                if (type == Object.class) {
+                    // guess type
+                    if (json instanceof JSonArray) {
+                        type = LinkedList.class;
+                    } else if (json instanceof JSonObject) {
+                        type = HashMap.class;
+                    }
+
+                }
                 clazz = (Class<?>) type;
                 if (Collection.class.isAssignableFrom(clazz)) {
                     final Collection<Object> inst = (Collection<Object>) mapClasses(clazz).newInstance();
@@ -337,10 +373,6 @@ public class JSonMapper {
                     return arr;
                 } else {
 
-                    if (Object.class.equals(clazz)) {
-                        //
-                        return json;
-                    }
                     if (json instanceof JSonArray) {
 
                         final java.util.List<Object> inst = new ArrayList<Object>();
