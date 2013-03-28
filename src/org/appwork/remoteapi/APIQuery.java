@@ -24,17 +24,17 @@ public class APIQuery extends HashMap<String, Object> implements Storable {
      */
     private static final long serialVersionUID = 1L;
     
-    private APIQuery(){
+    public APIQuery(){
         /* Storable */
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T _getQueryParam(String key, Class<T> clazz, T defaultValue) {
-        T result = (T) super.get(key);
+    public <T> T _getQueryParam(final String key, final Class<T> clazz, final T defaultValue) {
+        final T result = (T) super.get(key);
         return result != null ? result : defaultValue;
     }
     
-    public Boolean fieldRequested(String field){
+    public Boolean fieldRequested(final String field){
         return _getQueryParam(field, Boolean.class, false);
     }
 
