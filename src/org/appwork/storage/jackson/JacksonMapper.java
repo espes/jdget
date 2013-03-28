@@ -32,9 +32,9 @@ public class JacksonMapper implements JSONMapper {
 
     public JacksonMapper() {
 
-        this.mapper = new ObjectMapper(new ExtJsonFactory());
+        mapper = new ObjectMapper(new ExtJsonFactory());
 
-        this.mapper.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     }
 
@@ -54,7 +54,7 @@ public class JacksonMapper implements JSONMapper {
     public String objectToString(final Object o) throws JSonMapperException {
 
         try {
-            return this.mapper.writeValueAsString(o);
+            return mapper.writeValueAsString(o);
         } catch (final JsonGenerationException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {
@@ -68,7 +68,7 @@ public class JacksonMapper implements JSONMapper {
     public <T> T stringToObject(final String jsonString, final Class<T> clazz) throws JSonMapperException {
 
         try {
-            return this.mapper.readValue(jsonString, clazz);
+            return mapper.readValue(jsonString, clazz);
         } catch (final JsonParseException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {
@@ -100,7 +100,7 @@ public class JacksonMapper implements JSONMapper {
             // this (T) is required because of java bug
             // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6302954
             // (compiles in eclipse, but not with javac)
-            return (T) this.mapper.readValue(jsonString, tr);
+            return (T) mapper.readValue(jsonString, tr);
         } catch (final JsonParseException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {

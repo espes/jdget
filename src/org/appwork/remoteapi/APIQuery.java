@@ -24,8 +24,9 @@ public class APIQuery extends HashMap<String, Object> implements Storable {
      */
     private static final long serialVersionUID = 1L;
     
-    public APIQuery(){
-        /* Storable */
+    public APIQuery(   /* Storable */){
+        super();
+     
     }
 
     @SuppressWarnings("unchecked")

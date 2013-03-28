@@ -9,34 +9,48 @@
  */
 package org.appwork.storage.simplejson;
 
+import org.appwork.storage.Storable;
+
 /**
  * @author thomas
  * 
  */
-public class JSonValue implements JSonNode {
+public class JSonValue implements JSonNode, Storable {
 
-    private final Object value;
-    private final Type   type;
+    private Object value;
+
+    public void setValue(final Object value) {
+        this.value = value;
+    }
+
+    public void setType(final Type type) {
+        this.type = type;
+    }
+
+    private Type type;
+
+    private JSonValue(/* Storable */) {
+    }
 
     /**
      * @param b
      */
     public JSonValue(final boolean b) {
-        this.value = b;
-        this.type = Type.BOOLEAN;
+        value = b;
+        type = Type.BOOLEAN;
     }
 
     /**
      * @param parseDouble
      */
     public JSonValue(final double d) {
-        this.value = d;
-        this.type = Type.DOUBLE;
+        value = d;
+        type = Type.DOUBLE;
     }
 
     public JSonValue(final long l) {
-        this.value = l;
-        this.type = Type.LONG;
+        value = l;
+        type = Type.LONG;
     }
 
     /**
@@ -44,31 +58,31 @@ public class JSonValue implements JSonNode {
      */
     public JSonValue(final String str) {
         if (str == null) {
-            this.value = null;
-            this.type = Type.NULL;
+            value = null;
+            type = Type.NULL;
         } else {
-            this.value = str;
-            this.type = Type.STRING;
+            value = str;
+            type = Type.STRING;
         }
     }
 
     public Type getType() {
-        return this.type;
+        return type;
     }
 
     public Object getValue() {
-        return this.value;
+        return value;
     }
 
     @Override
     public String toString() {
-        switch (this.type) {
+        switch (type) {
         case BOOLEAN:
         case DOUBLE:
         case LONG:
-            return this.value.toString();
+            return value.toString();
         case STRING:
-            return "\"" + JSonUtils.escape(this.value.toString()) + "\"";
+            return "\"" + JSonUtils.escape(value.toString()) + "\"";
         case NULL:
             return "null";
 
