@@ -71,10 +71,10 @@ public class SwingUtils {
      * @param descriptionField
      * @param b
      */
-    public static void setOpaque(final JComponent descriptionField, final boolean b) {
+    public static JComponent setOpaque(final JComponent descriptionField, final boolean b) {
         descriptionField.setOpaque(b);
         descriptionField.putClientProperty("Synthetica.opaque", b ? Boolean.TRUE : Boolean.FALSE);
-
+return descriptionField;
     }
 
     /**
@@ -109,7 +109,7 @@ public class SwingUtils {
     /**
      * @param fc
      */
-    public static void printComponentTree(JComponent fc) {
+    public static void printComponentTree(final JComponent fc) {
         printComponentTree(fc, "");
 
     }
@@ -118,11 +118,11 @@ public class SwingUtils {
      * @param fc
      * @param string
      */
-    private static void printComponentTree(JComponent fc, String string) {
+    private static void printComponentTree(final JComponent fc, final String string) {
 
         // c.setVisible(false);
         for (int i = 0; i < fc.getComponentCount(); i++) {
-            Component cc = fc.getComponent(i);
+            final Component cc = fc.getComponent(i);
             System.out.println(string + "[" + i + "]" + cc.getClass().getSuperclass().getSimpleName() + ":" + cc+ " Opaque: "+cc.isOpaque());
 
             if (cc instanceof JComponent) {
@@ -138,9 +138,9 @@ public class SwingUtils {
      * @param j
      * @param k
      */
-    public static JComponent getParent(JComponent parent, int... path) {
+    public static JComponent getParent(JComponent parent, final int... path) {
 
-        for (int i : path) {
+        for (final int i : path) {
             parent = (JComponent) parent.getComponent(i);
         }
         return parent;
