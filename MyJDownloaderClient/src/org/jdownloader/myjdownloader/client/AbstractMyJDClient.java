@@ -78,14 +78,15 @@ public abstract class AbstractMyJDClient {
 
         final String query = "/my/disconnect?clienttoken=" + authInfo.getToken();
 
-        callServer(query, AuthInfo.class);
+        callServer(query, null, AuthInfo.class);
 
     }
 
-    protected <T> T callServer(String query, final Class<T> class1) throws MyJDownloaderException {
+    protected <T> T callServer(String query, String postData, final Class<T> class1) throws MyJDownloaderException {
         try {
-            query += "&timestamp=" + inc();
-            final String encrypted = post(query + "&signature=" + sign(serverSecret, query), null);
+            query += query.contains("?=") ? "&" : "?";
+            query += "timestamp=" + inc();
+            final String encrypted = post(query + "&signature=" + sign(serverSecret, query), postData);
             return jsonToObject(decrypt(encrypted, serverSecret), class1);
         } catch (final InvalidResponseCodeException e) {
             handleInvalidResponseCodes(e);
@@ -109,10 +110,22 @@ public abstract class AbstractMyJDClient {
         }
     }
 
+    public CaptchaChallenge getChallenge() throws MyJDownloaderException {
+        return jsonToObject(post("/captcha/getCaptcha", ""), CaptchaChallenge.class);
+    }
+
+    public void register(final String email, final String pass, CaptchaChallenge challenge) throws APIException, MyJDownloaderException {
+        init(email, pass);
+
+        final String encrypted = post("/my/register", objectToJSon(new RegisterPayload(email, byteArrayToHex(serverSecret), challenge.getCaptchaChallenge(), challenge.getCaptchaResponse())));
+        RegisterResponse ret = jsonToObject(encrypted, RegisterResponse.class);
+        System.out.println(encrypted);
+    }
+
     public void connect(final String email, final String pass) throws MyJDownloaderException, APIException {
         try {
             init(email, pass);
-            authInfo = callServer("/my/clientconnect?user=" + username, AuthInfo.class);
+            authInfo = callServer("/my/clientconnect?user=" + username, null, AuthInfo.class);
             transferCryptoToken = calcTransferCryptoToken();
         } catch (final MyJDownloaderException e) {
             throw e;
