@@ -26,7 +26,7 @@ public class SessionRemoteAPIRequest<T extends HttpSession> extends RemoteAPIReq
      * @return
      */
     protected SessionRemoteAPIRequest(final HttpRequest request, final RemoteAPIRequest apiRequest, final T session) {
-        super(apiRequest.getIface(), apiRequest.getMethodName(), apiRequest.getParameters(), request, apiRequest.getJqueryCallback(), apiRequest.getSignature());
+        super(apiRequest.getIface(), apiRequest.getMethodName(), apiRequest.getParameters(), request, apiRequest.getJqueryCallback(), apiRequest.getSignature(), apiRequest.getRequestID());
         this.session = session;
     }
 

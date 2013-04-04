@@ -52,12 +52,19 @@ public class RemoteAPIRequest implements HttpRequestInterface {
 
     private final String              signature;
 
-    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request, final String jqueryCallback, final String signature) {
+    private final Long                requestID;
+
+    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request, final String jqueryCallback, final String signature, final Long requestID) {
         this.iface = iface;
         this.parameters = parameters;
         this.request = request;
         this.methodName = methodName;
         this.signature = signature;
+        if (requestID == null) {
+            this.requestID = -1l;
+        } else {
+            this.requestID = requestID;
+        }
         this.jqueryCallback = jqueryCallback;
         this.method = this.iface.getMethod(methodName, this.parameters.length);
         try {
@@ -145,6 +152,10 @@ public class RemoteAPIRequest implements HttpRequestInterface {
 
     public HeaderCollection getRequestHeaders() {
         return this.request.getRequestHeaders();
+    }
+
+    public Long getRequestID() {
+        return this.requestID;
     }
 
     public REQUESTTYPE getRequestType() {

@@ -387,6 +387,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         final java.util.List<String> parameters = new ArrayList<String>();
         String jqueryCallback = null;
         String signature = null;
+        Long requestID = null;
         /* convert GET parameters to methodParameters */
         for (final String[] param : request.getRequestedURLParameters()) {
             if (param[1] != null) {
@@ -398,6 +399,9 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                 } else if ("signature".equalsIgnoreCase(param[0])) {
                     /* filter url signature */
                     signature = param[1];
+                    continue;
+                } else if ("rid".equalsIgnoreCase(param[0])) {
+                    requestID = Long.parseLong(param[1]);
                     continue;
                 }
                 parameters.add(param[1]);
@@ -433,7 +437,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         if (jqueryCallback != null) {
             // System.out.println("found jquery callback: " + jqueryCallback);
         }
-        return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback, signature);
+        return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback, signature, requestID);
     }
 
     /**

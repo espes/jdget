@@ -33,14 +33,19 @@ public class Base64OutputStream extends FilterOutputStream {
     }
 
     @Override
+    public void close() throws IOException {
+        this.flush(true);
+        super.close();
+    }
+
+    @Override
     public void flush() throws IOException {
-        if (this.index == 0 || this.endFlush) {
+        if (this.index == 0 || !this.endFlush) {
             this.out.flush();
             return;
         }
-        if (this.endFlush == false) {
+        if (this.endFlush == true) {
             /* a Base64 Stream can only be padded once at the end! */
-            this.endFlush = true;
             this.writebuffer[2] = Base64OutputStream.PADDING;
             this.writebuffer[3] = Base64OutputStream.PADDING;
             switch (this.index) {
@@ -59,6 +64,13 @@ public class Base64OutputStream extends FilterOutputStream {
         }
         this.index = 0;
         this.out.flush();
+    }
+
+    public void flush(final boolean padding) throws IOException {
+        if (padding) {
+            this.endFlush = true;
+        }
+        this.flush();
     }
 
     @Override
