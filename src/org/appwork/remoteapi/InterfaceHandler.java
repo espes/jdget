@@ -24,9 +24,9 @@ import java.util.TreeMap;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
+import org.appwork.remoteapi.annotations.AllowNonStorableObjects;
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
-import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
@@ -392,6 +392,7 @@ public class InterfaceHandler<T> {
      */
     private void validateMethod(final Method m) throws ParseException {
         if (m == InterfaceHandler.HELP) { throw new ParseException(m + " is reserved for internal usage"); }
+
         boolean responseIsParamater = false;
         for (final Type t : m.getGenericParameterTypes()) {
             if (RemoteAPIRequest.class == t) {
@@ -401,7 +402,7 @@ public class InterfaceHandler<T> {
                 continue;
             } else {
                 try {
-                    JSonStorage.canStore(t);
+                    JSonStorage.canStore(t, m.getAnnotation(AllowNonStorableObjects.class) != null);
                 } catch (final InvalidTypeException e) {
                     throw new ParseException("Parameter " + t + " of " + m + " is invalid", e);
                 }
@@ -420,41 +421,17 @@ public class InterfaceHandler<T> {
                         final ParameterizedTypeImpl p = (ParameterizedTypeImpl) t;
                         final Type[] oo = p.getActualTypeArguments();
                         for (final Type o : oo) {
-                            try {
-                                JSonStorage.canStore(o);
-                            } catch (final InvalidTypeException e) {
-                                final AllowStorage allow = m.getAnnotation(AllowStorage.class);
-                                boolean found = false;
-                                if (allow != null) {
-                                    for (final Class<?> c : allow.value()) {
-                                        if (e.getType() == c) {
-                                            found = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!found) { throw new InvalidTypeException(e); }
-                            }
+
+                            JSonStorage.canStore(o, m.getAnnotation(AllowNonStorableObjects.class) != null);
+
                         }
                     } else {
                         throw new ParseException("return Type of " + m + " is invalid");
                     }
                 } else {
-                    try {
-                        JSonStorage.canStore(m.getGenericReturnType());
-                    } catch (final InvalidTypeException e) {
-                        final AllowStorage allow = m.getAnnotation(AllowStorage.class);
-                        boolean found = false;
-                        if (allow != null) {
-                            for (final Class<?> c : allow.value()) {
-                                if (e.getType() == c) {
-                                    found = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (!found) { throw new InvalidTypeException(e); }
-                    }
+
+                    JSonStorage.canStore(m.getGenericReturnType(), m.getAnnotation(AllowNonStorableObjects.class) != null);
+
                 }
             } catch (final InvalidTypeException e) {
                 throw new ParseException("return Type of " + m + " is invalid", e);

@@ -71,20 +71,22 @@ public class JSonStorage {
 
     /**
      * Cecks of the JSOn Mapper can map this Type
-     * 
+     * @param allowNonStorableObjects TODO
      * @param genericReturnType
+     * 
      * @throws InvalidTypeException
      */
-    public static void canStore(final Type gType) throws InvalidTypeException {
-        JSonStorage.canStoreIntern(gType, gType.toString());
+    public static void canStore(final Type gType, final boolean allowNonStorableObjects) throws InvalidTypeException {
+        JSonStorage.canStoreIntern(gType, gType.toString(), allowNonStorableObjects);
     }
 
     /**
      * @param gType
+     * @param allowNonStorableObjects TODO
      * @param string
      * @throws InvalidTypeException
      */
-    private static void canStoreIntern(final Type gType, final String path) throws InvalidTypeException {
+    private static void canStoreIntern(final Type gType, final String path, final boolean allowNonStorableObjects) throws InvalidTypeException {
 
         if (gType instanceof Class) {
             final Class<?> type = (Class<?>) gType;
@@ -96,12 +98,12 @@ public class JSonStorage {
             if (type.isArray()) {
                 final Class<?> arrayType = type.getComponentType();
 
-                JSonStorage.canStoreIntern(arrayType, path + "[" + arrayType + "]");
+                JSonStorage.canStoreIntern(arrayType, path + "[" + arrayType + "]", allowNonStorableObjects);
                 return;
             }
             // we need an empty constructor
 
-            if (Storable.class.isAssignableFrom(type)) {
+            if (Storable.class.isAssignableFrom(type)||allowNonStorableObjects) {
                 try {
 
                     type.getDeclaredConstructor(new Class[] {});
@@ -109,7 +111,7 @@ public class JSonStorage {
                         if (m.getName().startsWith("get")) {
 
                             if (m.getParameterTypes().length > 0) { throw new InvalidTypeException(gType, "Getter " + path + "." + m + " has parameters."); }
-                            JSonStorage.canStoreIntern(m.getGenericReturnType(), path + "->" + m.getGenericReturnType());
+                            JSonStorage.canStoreIntern(m.getGenericReturnType(), path + "->" + m.getGenericReturnType(), allowNonStorableObjects);
 
                         } else if (m.getName().startsWith("set")) {
                             if (m.getParameterTypes().length != 1) { throw new InvalidTypeException(gType, "Setter " + path + "." + m + " has != 1 Parameters."); }
@@ -137,16 +139,16 @@ public class JSonStorage {
             final ParameterizedTypeImpl ptype = (ParameterizedTypeImpl) gType;
 
             final Class<?> raw = ((ParameterizedTypeImpl) gType).getRawType();
-            JSonStorage.canStoreIntern(raw, path);
+            JSonStorage.canStoreIntern(raw, path, allowNonStorableObjects);
             for (final Type t : ptype.getActualTypeArguments()) {
-                JSonStorage.canStoreIntern(t, path + "(" + t + ")");
+                JSonStorage.canStoreIntern(t, path + "(" + t + ")", allowNonStorableObjects);
             }
             return;
 
         } else if (gType instanceof GenericArrayTypeImpl) {
             final GenericArrayTypeImpl atype = (GenericArrayTypeImpl) gType;
             final Type t = atype.getGenericComponentType();
-            JSonStorage.canStoreIntern(t, path + "[" + t + "]");
+            JSonStorage.canStoreIntern(t, path + "[" + t + "]", allowNonStorableObjects);
             return;
         } else {
             throw new InvalidTypeException(gType, "Generic Type Structure not implemented: " + gType.getClass() + " in " + path);

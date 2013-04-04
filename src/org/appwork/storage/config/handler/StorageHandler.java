@@ -711,7 +711,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         continue;
                     }
                     try {
-                        JSonStorage.canStore(m.getGenericReturnType());
+                        JSonStorage.canStore(m.getGenericReturnType(), false);
                     } catch (final InvalidTypeException e) {
                         final AllowStorage allow = m.getAnnotation(AllowStorage.class);
                         boolean found = false;
@@ -761,7 +761,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         continue;
                     }
                     try {
-                        JSonStorage.canStore(m.getGenericReturnType());
+                        JSonStorage.canStore(m.getGenericReturnType(), false);
                     } catch (final InvalidTypeException e) {
                         this.error(new InterfaceParseException(e));
                         keyGetterMap.remove(key);
@@ -798,7 +798,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         continue;
                     }
                     try {
-                        JSonStorage.canStore(m.getGenericParameterTypes()[0]);
+                        JSonStorage.canStore(m.getGenericParameterTypes()[0], false);
                     } catch (final InvalidTypeException e) {
                         final AllowStorage allow = m.getAnnotation(AllowStorage.class);
                         boolean found = false;

@@ -73,9 +73,9 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
 
                 if (!dupe.add(m.getName())) { throw new InterfaceParseException("Method " + m.getName() + " is avlailable twice in " + clazz); }
                 try {
-                    if (m.getGenericReturnType() != void.class) JSonStorage.canStore(m.getGenericReturnType());
+                    if (m.getGenericReturnType() != void.class) JSonStorage.canStore(m.getGenericReturnType(), false);
                     for (Type t : m.getGenericParameterTypes()) {
-                        JSonStorage.canStore(t);
+                        JSonStorage.canStore(t, false);
                     }
                 } catch (final InvalidTypeException e) {
                     Log.exception(e);
