@@ -73,6 +73,8 @@ public class HTTPConstants {
         ERROR_NOT_FOUND(404, "Not Found"),
 
         ERROR_RANGE_NOT_SUPPORTED(416, "Range requests not supported"),
+
+        TOO_MANY_REQUESTS(429, "Too Many Requests"),
         /**
          * A generic error message, given when no more specific message is
          * suitable.[2
