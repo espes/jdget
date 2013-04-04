@@ -26,6 +26,7 @@ import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderInvalidTokenException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderOverloadException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderUnconfirmedAccountException;
+import org.jdownloader.myjdownloader.client.exceptions.RegisterException;
 import org.jdownloader.myjdownloader.client.json.CaptchaChallenge;
 import org.jdownloader.myjdownloader.client.json.ConnectResponse;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
@@ -124,6 +125,18 @@ public abstract class AbstractMyJDClient {
 
         final String encrypted = post("/my/register", objectToJSon(new RegisterPayload(email, byteArrayToHex(serverSecret), challenge.getCaptchaChallenge(), challenge.getCaptchaResponse())));
         final RegisterResponse ret = jsonToObject(encrypted, RegisterResponse.class);
+        switch (ret.getStatus()) {
+        case EMAIL_EXISTS:
+            throw new RegisterException(ret);
+        case INVALID_CAPTCHA:
+            throw new RegisterException(ret);
+        case INVALID_EMAIL:
+            throw new RegisterException(ret);
+        case UNKNOWN:
+            throw new RegisterException(ret);
+        case WAIT_FOR_CONFIRMATION:
+
+        }
         System.out.println(encrypted);
     }
 
@@ -267,5 +280,8 @@ public abstract class AbstractMyJDClient {
     protected abstract String base64Encode(byte[] encryptedBytes);
 
     protected abstract String objectToJSon(Object payload);
+
+    public void requestConfirmationEmail(CaptchaChallenge challenge) {
+    }
 
 }

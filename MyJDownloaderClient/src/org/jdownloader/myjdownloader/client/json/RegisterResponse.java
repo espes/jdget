@@ -2,7 +2,7 @@ package org.jdownloader.myjdownloader.client.json;
 
 public class RegisterResponse {
 
-    public static enum MSG {
+    public static enum Status {
         INVALID_EMAIL,
         INVALID_CAPTCHA,
         EMAIL_EXISTS,
@@ -11,25 +11,17 @@ public class RegisterResponse {
     }
 
     private boolean success = false;
-    private MSG     message = MSG.UNKNOWN;
+    private Status  status  = Status.UNKNOWN;
 
     public RegisterResponse(/* storable */) {
     }
 
-    public MSG getMessage() {
-        return message;
+    public Status getStatus() {
+        return status;
     }
 
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setMessage(final MSG message) {
-        this.message = message;
-    }
-
-    public void setSuccess(final boolean success) {
-        this.success = success;
+    public void setStatus(final Status message) {
+        this.status = message;
     }
 
 }
