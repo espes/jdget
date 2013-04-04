@@ -1,4 +1,4 @@
-package org.jdownloader.myjdownloader.client;
+package org.jdownloader.myjdownloader.client.json;
 
 public class RegisterPayload {
     public RegisterPayload() {

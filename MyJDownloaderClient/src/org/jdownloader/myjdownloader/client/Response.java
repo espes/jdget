@@ -1,5 +1,7 @@
 package org.jdownloader.myjdownloader.client;
 
+import org.jdownloader.myjdownloader.client.json.Data;
+
 public class Response {
     public Response(/* keep empty constructor json */) {
 

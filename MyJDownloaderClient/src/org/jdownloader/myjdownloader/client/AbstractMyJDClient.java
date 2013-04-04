@@ -26,16 +26,21 @@ import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderInvalidTokenException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderOverloadException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderUnconfirmedAccountException;
+import org.jdownloader.myjdownloader.client.json.CaptchaChallenge;
+import org.jdownloader.myjdownloader.client.json.ConnectResponse;
+import org.jdownloader.myjdownloader.client.json.ObjectData;
+import org.jdownloader.myjdownloader.client.json.RegisterPayload;
+import org.jdownloader.myjdownloader.client.json.RegisterResponse;
 
 public abstract class AbstractMyJDClient {
 
-    private byte[]   localSecret;
-    private byte[]   serverSecret;
-    private String   serverRoot = "http://api.jdownloader.org";
-    private String   username;
-    private long     counter;
-    private AuthInfo authInfo;
-    private byte[]   transferCryptoToken;
+    private byte[]          localSecret;
+    private byte[]          serverSecret;
+    private String          serverRoot = "http://api.jdownloader.org";
+    private String          username;
+    private long            counter;
+    private ConnectResponse connectInfo;
+    private byte[]          transferCryptoToken;
 
     public String getServerRoot() {
         return serverRoot;
@@ -76,13 +81,13 @@ public abstract class AbstractMyJDClient {
 
     public void disconnect() throws MyJDownloaderException {
 
-        final String query = "/my/disconnect?clienttoken=" + authInfo.getToken();
+        final String query = "/my/disconnect?clienttoken=" + connectInfo.getToken();
 
-        callServer(query, null, AuthInfo.class);
+        callServer(query, null, ConnectResponse.class);
 
     }
 
-    protected <T> T callServer(String query, String postData, final Class<T> class1) throws MyJDownloaderException {
+    protected <T> T callServer(String query, final String postData, final Class<T> class1) throws MyJDownloaderException {
         try {
             query += query.contains("?=") ? "&" : "?";
             query += "timestamp=" + inc();
@@ -114,18 +119,18 @@ public abstract class AbstractMyJDClient {
         return jsonToObject(post("/captcha/getCaptcha", ""), CaptchaChallenge.class);
     }
 
-    public void register(final String email, final String pass, CaptchaChallenge challenge) throws APIException, MyJDownloaderException {
+    public void register(final String email, final String pass, final CaptchaChallenge challenge) throws APIException, MyJDownloaderException {
         init(email, pass);
 
         final String encrypted = post("/my/register", objectToJSon(new RegisterPayload(email, byteArrayToHex(serverSecret), challenge.getCaptchaChallenge(), challenge.getCaptchaResponse())));
-        RegisterResponse ret = jsonToObject(encrypted, RegisterResponse.class);
+        final RegisterResponse ret = jsonToObject(encrypted, RegisterResponse.class);
         System.out.println(encrypted);
     }
 
     public void connect(final String email, final String pass) throws MyJDownloaderException, APIException {
         try {
             init(email, pass);
-            authInfo = callServer("/my/clientconnect?user=" + username, null, AuthInfo.class);
+            connectInfo = callServer("/my/clientconnect?user=" + username, null, ConnectResponse.class);
             transferCryptoToken = calcTransferCryptoToken();
         } catch (final MyJDownloaderException e) {
             throw e;
@@ -137,7 +142,7 @@ public abstract class AbstractMyJDClient {
     private byte[] calcTransferCryptoToken() throws NoSuchAlgorithmException {
         final MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(localSecret);
-        md.update(hexToByteArray(authInfo.getToken()));
+        md.update(hexToByteArray(connectInfo.getToken()));
         return md.digest();
     }
 
@@ -221,7 +226,7 @@ public abstract class AbstractMyJDClient {
 
     protected Object callActionInternal(final String action, final Type returnType, final Object... args) throws MyJDownloaderException, APIException {
         try {
-            final String query = "/t_" + authInfo.getToken() + action;
+            final String query = "/t_" + connectInfo.getToken() + action;
             final String[] params = new String[args != null ? args.length : 0];
             if (args != null) {
                 for (int i = 0; i < args.length; i++) {

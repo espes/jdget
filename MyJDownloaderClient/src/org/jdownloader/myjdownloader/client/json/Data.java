@@ -1,4 +1,4 @@
-package org.jdownloader.myjdownloader.client;
+package org.jdownloader.myjdownloader.client.json;
 
 public class Data {
     public Data(/* keep empty constructor json */) {
