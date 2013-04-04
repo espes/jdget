@@ -20,12 +20,16 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.jdownloader.myjdownloader.client.exceptions.APIException;
+import org.jdownloader.myjdownloader.client.exceptions.AuthException;
+import org.jdownloader.myjdownloader.client.exceptions.ChallengeFailedException;
+import org.jdownloader.myjdownloader.client.exceptions.EmailInvalidException;
+import org.jdownloader.myjdownloader.client.exceptions.EmailNotAllowedException;
+import org.jdownloader.myjdownloader.client.exceptions.EmailNotValidatedException;
 import org.jdownloader.myjdownloader.client.exceptions.ExceptionResponse;
-import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderAuthException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderException;
-import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderInvalidTokenException;
-import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderOverloadException;
-import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderUnconfirmedAccountException;
+import org.jdownloader.myjdownloader.client.exceptions.OverloadException;
+import org.jdownloader.myjdownloader.client.exceptions.TokenException;
+import org.jdownloader.myjdownloader.client.exceptions.TooManyRequestsException;
 import org.jdownloader.myjdownloader.client.json.CaptchaChallenge;
 import org.jdownloader.myjdownloader.client.json.ConnectResponse;
 import org.jdownloader.myjdownloader.client.json.ErrorResponse;
@@ -206,44 +210,57 @@ public abstract class AbstractMyJDClient {
         return this.serverRoot;
     }
 
-    protected void handleInvalidResponseCodes(final ExceptionResponse e) throws MyJDownloaderAuthException, MyJDownloaderOverloadException, MyJDownloaderUnconfirmedAccountException, MyJDownloaderInvalidTokenException {
+    protected void handleInvalidResponseCodes(final ExceptionResponse e) throws MyJDownloaderException {
         if (e != null && e.getContent() != null && e.getContent().trim().length() != 0) {
             final ErrorResponse error = this.jsonToObject(e.getContent(), ErrorResponse.class);
-            switch (error.getSrc()) {
+            try {
+                switch (error.getSrc()) {
 
-            case DEVICE:
+                case DEVICE:
 
-                break;
+                    break;
 
-            case MYJD:
-                switch (error.getType()) {
-                case AUTH_FAILED:
-                    throw new MyJDownloaderAuthException();
-                case ERROR_EMAIL_NOT_CONFIRMED:
-                    throw new MyJDownloaderUnconfirmedAccountException();
-                case OFFLINE:
-                    throw new RuntimeException("Not Implemented: offline");
-                case TOKEN_INVALID:
-                    throw new MyJDownloaderInvalidTokenException();
-                case UNKNOWN:
-                    throw new RuntimeException("Not Implemented: unkown");
+                case MYJD:
+                    switch (error.getType()) {
+                    case AUTH_FAILED:
+                        throw new AuthException();
+                    case ERROR_EMAIL_NOT_CONFIRMED:
+                        throw new EmailNotValidatedException();
+                    case OFFLINE:
+                        throw new RuntimeException("Not Implemented: offline");
+                    case TOKEN_INVALID:
+                        throw new TokenException();
+                    case UNKNOWN:
+                        throw new RuntimeException("Not Implemented: unkown");
+                    case CHALLENGE_FAILED:
+                        throw new ChallengeFailedException();
+                    case EMAIL_FORBIDDEN:
+                        throw new EmailNotAllowedException();
+                    case EMAIL_INVALID:
+                        throw new EmailInvalidException();
+                    case OVERLOAD:
+                        throw new OverloadException();
+                    case TOO_MANY_REQUESTS:
+                        throw new TooManyRequestsException();
+                    }
+                    break;
 
                 }
-                break;
-
+            } catch (MyJDownloaderException e1) {
+                e1.setSource(error.getSrc());
+                throw e1;
             }
-
         }
 
         switch (e.getResponseCode()) {
         case 403:
-            throw new MyJDownloaderAuthException();
+            throw new AuthException();
         case 503:
-            throw new MyJDownloaderOverloadException();
+            throw new OverloadException();
         case 401:
-            throw new MyJDownloaderUnconfirmedAccountException();
+            throw new EmailNotValidatedException();
         case 407:
-            throw new MyJDownloaderInvalidTokenException();
+            throw new TokenException();
 
         }
     }
