@@ -37,6 +37,7 @@ import org.jdownloader.myjdownloader.client.json.ObjectData;
 import org.jdownloader.myjdownloader.client.json.RegisterPayload;
 import org.jdownloader.myjdownloader.client.json.RegisterResponse;
 import org.jdownloader.myjdownloader.client.json.SuccessfulResponse;
+import org.jdownloader.myjdownloader.client.json.TimestampValidator;
 
 public abstract class AbstractMyJDClient {
 
@@ -82,7 +83,7 @@ public abstract class AbstractMyJDClient {
 
     public AbstractMyJDClient() {
 
-        this.counter = System.currentTimeMillis();
+        counter = System.currentTimeMillis();
 
     }
 
@@ -92,39 +93,39 @@ public abstract class AbstractMyJDClient {
 
     private byte[] calcTransferCryptoToken() throws NoSuchAlgorithmException {
         final MessageDigest md = MessageDigest.getInstance("SHA-256");
-        md.update(this.localSecret);
-        md.update(AbstractMyJDClient.hexToByteArray(this.connectInfo.getToken()));
+        md.update(localSecret);
+        md.update(AbstractMyJDClient.hexToByteArray(connectInfo.getToken()));
         return md.digest();
     }
 
     @SuppressWarnings("unchecked")
     public <T> T callAction(final String action, final Class<T> returnType, final Object... args) throws MyJDownloaderException, APIException {
-        return (T) this.callActionInternal(action, returnType, args);
+        return (T) callActionInternal(action, returnType, args);
 
     }
 
     protected Object callActionInternal(final String action, final Type returnType, final Object... args) throws MyJDownloaderException, APIException {
         try {
-            final String query = "/t_" + this.connectInfo.getToken() + action;
+            final String query = "/t_" + connectInfo.getToken() + action;
             final String[] params = new String[args != null ? args.length : 0];
             if (args != null) {
                 for (int i = 0; i < args.length; i++) {
-                    params[i] = this.objectToJSon(args[i]);
+                    params[i] = objectToJSon(args[i]);
                 }
             }
-            final Payload payload = new Payload(action, this.inc(), params);
-            final String json = this.objectToJSon(payload);
-            final String ret = this.internalPost(query, this.encrypt(json, this.transferCryptoToken));
-            final String dec = this.decrypt(ret, this.transferCryptoToken);
+            final Payload payload = new Payload(action, inc(), params);
+            final String json = objectToJSon(payload);
+            final String ret = internalPost(query, encrypt(json, transferCryptoToken));
+            final String dec = decrypt(ret, transferCryptoToken);
 
             final ObjectData data = this.jsonToObject(dec, ObjectData.class);
 
             // ugly!!! but this will be changed when we have a proper remoteAPI response format
 
-            return this.jsonToObject(this.objectToJSon(data.getData()) + "", returnType);
+            return this.jsonToObject(objectToJSon(data.getData()) + "", returnType);
 
         } catch (final ExceptionResponse e) {
-            this.handleInvalidResponseCodes(e);
+            handleInvalidResponseCodes(e);
             throw e;
         } catch (final MyJDownloaderException e) {
             throw e;
@@ -133,14 +134,20 @@ public abstract class AbstractMyJDClient {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected <T> T callServer(String query, final String postData, final Class<T> class1) throws MyJDownloaderException {
         try {
             query += query.contains("?") ? "&" : "?";
-            query += "timestamp=" + this.inc();
-            final String encrypted = this.internalPost(query + "&signature=" + this.sign(this.serverSecret, query), postData);
-            return this.jsonToObject(this.decrypt(encrypted, this.serverSecret), class1);
+            final long i = inc();
+            query += "timestamp=" + i;
+            final String encrypted = internalPost(query + "&signature=" + sign(serverSecret, query), postData);
+            final Object ret = this.jsonToObject(decrypt(encrypted, serverSecret), class1);
+            if (ret instanceof TimestampValidator) {
+                if (((TimestampValidator) ret).getTimestamp() != i) { throw new BadResponseException(); }
+            }
+            return (T) ret;
         } catch (final ExceptionResponse e) {
-            this.handleInvalidResponseCodes(e);
+            handleInvalidResponseCodes(e);
             throw e;
         } catch (final Exception e) {
             throw MyJDownloaderException.get(e);
@@ -150,8 +157,8 @@ public abstract class AbstractMyJDClient {
     public void connect() throws MyJDownloaderException, APIException {
         try {
 
-            this.connectInfo = this.callServer("/my/clientconnect?email=" + this.email, null, ConnectResponse.class);
-            this.transferCryptoToken = this.calcTransferCryptoToken();
+            connectInfo = this.callServer("/my/clientconnect?email=" + email, null, ConnectResponse.class);
+            transferCryptoToken = calcTransferCryptoToken();
         } catch (final MyJDownloaderException e) {
             throw e;
         } catch (final Exception e) {
@@ -169,7 +176,7 @@ public abstract class AbstractMyJDClient {
         final IvParameterSpec ivSpec = new IvParameterSpec(Arrays.copyOfRange(keyAndIV, 0, 16));
         final SecretKeySpec skeySpec = new SecretKeySpec(Arrays.copyOfRange(keyAndIV, 16, 32), "AES");
         cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
-        final byte[] crypted = this.base64decode(encrypted);
+        final byte[] crypted = base64decode(encrypted);
         final byte[] decryptedBytes = cipher.doFinal(crypted);
         return new String(decryptedBytes, "UTF-8");
     }
@@ -181,7 +188,7 @@ public abstract class AbstractMyJDClient {
 
     public void disconnect() throws MyJDownloaderException {
 
-        final String query = "/my/disconnect?clienttoken=" + this.connectInfo.getToken();
+        final String query = "/my/disconnect?clienttoken=" + connectInfo.getToken();
 
         this.callServer(query, null, ConnectResponse.class);
 
@@ -194,7 +201,7 @@ public abstract class AbstractMyJDClient {
         cipher.init(Cipher.ENCRYPT_MODE, skeySpec, ivSpec);
 
         final byte[] encryptedBytes = cipher.doFinal(createPayloadString.getBytes("UTF-8"));
-        return this.base64Encode(encryptedBytes);
+        return base64Encode(encryptedBytes);
     }
 
     /**
@@ -204,11 +211,11 @@ public abstract class AbstractMyJDClient {
      * @throws MyJDownloaderException
      */
     public CaptchaChallenge getChallenge() throws MyJDownloaderException {
-        return this.jsonToObject(this.internalPost("/captcha/getCaptcha", ""), CaptchaChallenge.class);
+        return this.jsonToObject(internalPost("/captcha/getCaptcha", ""), CaptchaChallenge.class);
     }
 
     public String getServerRoot() {
-        return this.serverRoot;
+        return serverRoot;
     }
 
     protected void handleInvalidResponseCodes(final ExceptionResponse e) throws MyJDownloaderException {
@@ -247,7 +254,7 @@ public abstract class AbstractMyJDClient {
                     break;
 
                 }
-            } catch (MyJDownloaderException e1) {
+            } catch (final MyJDownloaderException e1) {
                 e1.setSource(error.getSrc());
                 throw e1;
             }
@@ -267,15 +274,15 @@ public abstract class AbstractMyJDClient {
     }
 
     private long inc() {
-        return this.counter++;
+        return counter++;
     }
 
     private void init(final String username, final String password) {
-        this.email = username;
+        email = username;
         try {
-            this.localSecret = this.createSecret(username, password, "jd");
+            localSecret = createSecret(username, password, "jd");
 
-            this.serverSecret = this.createSecret(username, password, "server");
+            serverSecret = createSecret(username, password, "server");
         } catch (final Exception e) {
             throw new RuntimeException(e);
         }
@@ -306,10 +313,10 @@ public abstract class AbstractMyJDClient {
 
     protected abstract String objectToJSon(Object payload);
 
-    private String internalPost(String url, String objectToJSon) throws MyJDownloaderException {
+    private String internalPost(final String url, final String objectToJSon) throws MyJDownloaderException {
         try {
             return post(url, objectToJSon);
-        } catch (ExceptionResponse e) {
+        } catch (final ExceptionResponse e) {
             handleInvalidResponseCodes(e);
             throw e;
         }
@@ -331,7 +338,7 @@ public abstract class AbstractMyJDClient {
      */
     public void register(final CaptchaChallenge challenge) throws MyJDownloaderException {
 
-        final String encrypted = this.internalPost("/my/register", this.objectToJSon(new RegisterPayload(email, AbstractMyJDClient.byteArrayToHex(this.serverSecret), challenge.getCaptchaChallenge(), challenge.getCaptchaResponse())));
+        final String encrypted = internalPost("/my/register", objectToJSon(new RegisterPayload(email, AbstractMyJDClient.byteArrayToHex(serverSecret), challenge.getCaptchaChallenge(), challenge.getCaptchaResponse())));
 
         final RegisterResponse ret = this.jsonToObject(encrypted, RegisterResponse.class);
 
@@ -339,7 +346,7 @@ public abstract class AbstractMyJDClient {
 
     public void requestConfirmationEmail() throws MyJDownloaderException {
 
-        SuccessfulResponse response = this.callServer("/my/requestvalidationemail?email=" + email, null, SuccessfulResponse.class);
+        final SuccessfulResponse response = this.callServer("/my/requestvalidationemail?email=" + email, null, SuccessfulResponse.class);
         System.out.println(response);
 
     }
@@ -352,7 +359,7 @@ public abstract class AbstractMyJDClient {
         return AbstractMyJDClient.byteArrayToHex(AbstractMyJDClient.hmac(key, data.getBytes("UTF-8")));
     }
 
-    public void setLogins(String email, String password) {
+    public void setLogins(final String email, final String password) {
         init(email, password);
     }
 
