@@ -13,7 +13,7 @@ public class ErrorResponse {
         TOKEN_INVALID(407),
         OFFLINE,
         UNKNOWN,
-        AUTH_FAILED(403), EMAIL_INVALID, CHALLENGE_FAILED, EMAIL_FORBIDDEN;
+        AUTH_FAILED(403), EMAIL_INVALID, CHALLENGE_FAILED, EMAIL_FORBIDDEN, FAILED;
 
         private int code;
 
