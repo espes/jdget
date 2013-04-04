@@ -281,7 +281,8 @@ public abstract class AbstractMyJDClient {
 
     protected abstract String objectToJSon(Object payload);
 
-    public void requestConfirmationEmail(CaptchaChallenge challenge) {
+    public void requestConfirmationEmail(final CaptchaChallenge challenge) {
+        System.out.println(1);
     }
 
 }
