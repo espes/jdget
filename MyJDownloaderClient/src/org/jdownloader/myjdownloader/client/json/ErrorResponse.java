@@ -8,16 +8,17 @@ public class ErrorResponse {
 
     public static enum Type {
         OVERLOAD(503),
+        TOO_MANY_REQUESTS(429),
         ERROR_EMAIL_NOT_CONFIRMED(401),
         TOKEN_INVALID(407),
         OFFLINE,
         UNKNOWN,
-        AUTH_FAILED(403);
+        AUTH_FAILED(403), EMAIL_INVALID, CHALLENGE_FAILED, EMAIL_FORBIDDEN;
 
         private int code;
 
         private Type() {
-            this.code = 500;
+            code = 500;
         }
 
         private Type(final int code) {
@@ -25,7 +26,7 @@ public class ErrorResponse {
         }
 
         public int getCode() {
-            return this.code;
+            return code;
         }
     }
 
@@ -39,21 +40,21 @@ public class ErrorResponse {
     }
 
     public ErrorResponse(final Source string, final Type error, final Object data) {
-        this.src = string;
-        this.type = error;
+        src = string;
+        type = error;
         this.data = data;
     }
 
     public Object getData() {
-        return this.data;
+        return data;
     }
 
     public Source getSrc() {
-        return this.src;
+        return src;
     }
 
     public Type getType() {
-        return this.type;
+        return type;
     }
 
     public void setData(final Object data) {
