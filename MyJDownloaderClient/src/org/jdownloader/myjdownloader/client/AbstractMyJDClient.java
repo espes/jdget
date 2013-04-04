@@ -19,6 +19,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.appwork.exceptions.WTFException;
+import org.appwork.utils.StringUtils;
 import org.jdownloader.myjdownloader.client.exceptions.APIException;
 import org.jdownloader.myjdownloader.client.exceptions.InvalidResponseCodeException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderAuthException;
@@ -29,6 +31,7 @@ import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderUnconfirmedA
 import org.jdownloader.myjdownloader.client.exceptions.RegisterException;
 import org.jdownloader.myjdownloader.client.json.CaptchaChallenge;
 import org.jdownloader.myjdownloader.client.json.ConnectResponse;
+import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
 import org.jdownloader.myjdownloader.client.json.RegisterPayload;
 import org.jdownloader.myjdownloader.client.json.RegisterResponse;
@@ -57,14 +60,14 @@ public abstract class AbstractMyJDClient {
 
     }
 
-    private void init(final String username, final String password) throws APIException {
+    private void init(final String username, final String password) {
         this.username = username;
         try {
             localSecret = createSecret(username, password, "jd");
 
             serverSecret = createSecret(username, password, "server");
         } catch (final Exception e) {
-            throw APIException.get(e);
+            throw new WTFException(e);
         }
     }
 
@@ -90,7 +93,7 @@ public abstract class AbstractMyJDClient {
 
     protected <T> T callServer(String query, final String postData, final Class<T> class1) throws MyJDownloaderException {
         try {
-            query += query.contains("?=") ? "&" : "?";
+            query += query.contains("?") ? "&" : "?";
             query += "timestamp=" + inc();
             final String encrypted = post(query + "&signature=" + sign(serverSecret, query), postData);
             return jsonToObject(decrypt(encrypted, serverSecret), class1);
@@ -103,6 +106,34 @@ public abstract class AbstractMyJDClient {
     }
 
     protected void handleInvalidResponseCodes(final InvalidResponseCodeException e) throws MyJDownloaderAuthException, MyJDownloaderOverloadException, MyJDownloaderUnconfirmedAccountException, MyJDownloaderInvalidTokenException {
+        if (StringUtils.isNotEmpty(e.getContent())) {
+            ErrorResponse error = jsonToObject(e.getContent(), ErrorResponse.class);
+            switch (error.getSrc()) {
+
+            case DEVICE:
+
+                break;
+
+            case MYJD:
+                switch (error.getType()) {
+                case AUTH_FAILED:
+                    throw new MyJDownloaderAuthException();
+                case ERROR_EMAIL_NOT_CONFIRMED:
+                    throw new MyJDownloaderUnconfirmedAccountException();
+                case OFFLINE:
+                    throw new WTFException("Not Implemented: offline");
+                case TOKEN_INVALID:
+                    throw new MyJDownloaderInvalidTokenException();
+                case UNKNOWN:
+                    throw new WTFException("Not Implemented: unkown");
+
+                }
+                break;
+
+            }
+
+        }
+
         switch (e.getResponseCode()) {
         case 403:
             throw new MyJDownloaderAuthException();
@@ -116,11 +147,28 @@ public abstract class AbstractMyJDClient {
         }
     }
 
+    /**
+     * Downloads a CaptchaChallenge from the server
+     * 
+     * @return
+     * @throws MyJDownloaderException
+     */
     public CaptchaChallenge getChallenge() throws MyJDownloaderException {
         return jsonToObject(post("/captcha/getCaptcha", ""), CaptchaChallenge.class);
     }
 
-    public void register(final String email, final String pass, final CaptchaChallenge challenge) throws APIException, MyJDownloaderException {
+    /**
+     * register for a new MyJDownloader Account. If there is a registration problem, this method throws an MyJDownloaderException
+     * 
+     * @see #getChallenge()
+     * @see #requestConfirmationEmail(CaptchaChallenge);
+     * @param email
+     * @param pass
+     * @param challenge
+     * @throws APIException
+     * @throws MyJDownloaderException
+     */
+    public void register(final String email, final String pass, final CaptchaChallenge challenge) throws MyJDownloaderException {
         init(email, pass);
 
         final String encrypted = post("/my/register", objectToJSon(new RegisterPayload(email, byteArrayToHex(serverSecret), challenge.getCaptchaChallenge(), challenge.getCaptchaResponse())));
@@ -137,13 +185,13 @@ public abstract class AbstractMyJDClient {
         case WAIT_FOR_CONFIRMATION:
 
         }
-        System.out.println(encrypted);
+
     }
 
     public void connect(final String email, final String pass) throws MyJDownloaderException, APIException {
         try {
             init(email, pass);
-            connectInfo = callServer("/my/clientconnect?user=" + username, null, ConnectResponse.class);
+            connectInfo = callServer("/my/clientconnect?email=" + username, null, ConnectResponse.class);
             transferCryptoToken = calcTransferCryptoToken();
         } catch (final MyJDownloaderException e) {
             throw e;
