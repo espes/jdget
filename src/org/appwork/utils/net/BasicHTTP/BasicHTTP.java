@@ -13,6 +13,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -149,6 +150,7 @@ public class BasicHTTP {
         try {
 
             this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
+            this.setAllowedResponseCodes(this.connection);
             this.connection.setConnectTimeout(this.getConnectTimeout());
             this.connection.setReadTimeout(this.getReadTimeout());
             this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
@@ -269,6 +271,7 @@ public class BasicHTTP {
             try {
 
                 this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
+                this.setAllowedResponseCodes(this.connection);
                 this.connection.setConnectTimeout(this.getConnectTimeout());
                 this.connection.setReadTimeout(this.getReadTimeout());
                 this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
@@ -365,6 +368,7 @@ public class BasicHTTP {
         synchronized (BasicHTTP.CALL_LOCK) {
             try {
                 this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
+                this.setAllowedResponseCodes(this.connection);
                 this.connection.setConnectTimeout(this.getConnectTimeout());
                 this.connection.setReadTimeout(readTimeout < 0 ? this.readTimeout : readTimeout);
                 this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
@@ -416,10 +420,10 @@ public class BasicHTTP {
             final byte[] buffer = new byte[64000];
             try {
                 this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
+                this.setAllowedResponseCodes(this.connection);
                 this.connection.setConnectTimeout(this.getConnectTimeout());
                 this.connection.setReadTimeout(this.getReadTimeout());
                 this.connection.setRequestMethod(RequestMethod.POST);
-
                 this.connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
                 this.connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
                 this.connection.setRequestProperty("Connection", "Close");
@@ -505,6 +509,7 @@ public class BasicHTTP {
             final InputStreamReader isr = null;
             try {
                 this.connection = HTTPConnectionFactory.createHTTPConnection(url, this.proxy);
+                this.setAllowedResponseCodes(this.connection);
                 this.connection.setConnectTimeout(this.getConnectTimeout());
                 this.connection.setReadTimeout(this.getReadTimeout());
                 this.connection.setRequestMethod(RequestMethod.POST);
@@ -643,6 +648,14 @@ public class BasicHTTP {
 
     public void putRequestHeader(final String key, final String value) {
         this.requestHeader.put(key, value);
+    }
+
+    protected void setAllowedResponseCodes(final HTTPConnection connection) {
+        final ArrayList<Integer> allowed = new ArrayList<Integer>(this.getAllowedResponseCodes());
+        final int[] ret = new int[allowed.size()];
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = allowed.get(i);
+        }
     }
 
     public void setAllowedResponseCodes(final int... codes) {
