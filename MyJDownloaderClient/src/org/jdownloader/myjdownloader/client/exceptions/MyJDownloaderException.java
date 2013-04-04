@@ -27,7 +27,7 @@ public class MyJDownloaderException extends Exception {
     }
 
     public String toString() {
-        return super.toString() + "( SRC: " + getSource() + ")";
+        return super.toString() + "(SRC: " + getSource() + ")";
     }
 
     public void setSource(Source src) {

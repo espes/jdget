@@ -36,6 +36,7 @@ import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
 import org.jdownloader.myjdownloader.client.json.RegisterPayload;
 import org.jdownloader.myjdownloader.client.json.RegisterResponse;
+import org.jdownloader.myjdownloader.client.json.SuccessfulResponse;
 
 public abstract class AbstractMyJDClient {
 
@@ -71,7 +72,7 @@ public abstract class AbstractMyJDClient {
     private byte[]          localSecret;
     private byte[]          serverSecret;
     private String          serverRoot = "http://api.jdownloader.org";
-    private String          username;
+    private String          email;
 
     private long            counter;
 
@@ -146,10 +147,10 @@ public abstract class AbstractMyJDClient {
         }
     }
 
-    public void connect(final String email, final String pass) throws MyJDownloaderException, APIException {
+    public void connect() throws MyJDownloaderException, APIException {
         try {
-            this.init(email, pass);
-            this.connectInfo = this.callServer("/my/clientconnect?email=" + this.username, null, ConnectResponse.class);
+
+            this.connectInfo = this.callServer("/my/clientconnect?email=" + this.email, null, ConnectResponse.class);
             this.transferCryptoToken = this.calcTransferCryptoToken();
         } catch (final MyJDownloaderException e) {
             throw e;
@@ -270,7 +271,7 @@ public abstract class AbstractMyJDClient {
     }
 
     private void init(final String username, final String password) {
-        this.username = username;
+        this.email = username;
         try {
             this.localSecret = this.createSecret(username, password, "jd");
 
@@ -328,8 +329,7 @@ public abstract class AbstractMyJDClient {
      * @throws APIException
      * @throws MyJDownloaderException
      */
-    public void register(final String email, final String pass, final CaptchaChallenge challenge) throws MyJDownloaderException {
-        this.init(email, pass);
+    public void register(final CaptchaChallenge challenge) throws MyJDownloaderException {
 
         final String encrypted = this.internalPost("/my/register", this.objectToJSon(new RegisterPayload(email, AbstractMyJDClient.byteArrayToHex(this.serverSecret), challenge.getCaptchaChallenge(), challenge.getCaptchaResponse())));
 
@@ -337,8 +337,11 @@ public abstract class AbstractMyJDClient {
 
     }
 
-    public void requestConfirmationEmail(final CaptchaChallenge challenge) {
-        System.out.println(1);
+    public void requestConfirmationEmail() throws MyJDownloaderException {
+
+        SuccessfulResponse response = this.callServer("/my/requestvalidationemail?email=" + email, null, SuccessfulResponse.class);
+        System.out.println(response);
+
     }
 
     public void setServerRoot(final String serverRoot) {
@@ -347,6 +350,10 @@ public abstract class AbstractMyJDClient {
 
     private String sign(final byte[] key, final String data) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException {
         return AbstractMyJDClient.byteArrayToHex(AbstractMyJDClient.hmac(key, data.getBytes("UTF-8")));
+    }
+
+    public void setLogins(String email, String password) {
+        init(email, password);
     }
 
 }
