@@ -1,6 +1,5 @@
 package org.jdownloader.myjdownloader.client.json;
 
-
 public class DisconnectResponse {
 
     private long timestamp = -1;
@@ -12,7 +11,7 @@ public class DisconnectResponse {
      * @return the timestamp
      */
     public long getTimestamp() {
-        return timestamp;
+        return this.timestamp;
     }
 
     /**
