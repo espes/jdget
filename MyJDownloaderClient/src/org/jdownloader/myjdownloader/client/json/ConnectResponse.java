@@ -1,32 +1,32 @@
 package org.jdownloader.myjdownloader.client.json;
 
-public class ConnectResponse implements TimestampValidator {
+public class ConnectResponse implements RequestIDValidator {
 
     private String token       = null;
     private String regaintoken = null;
-    private long   timestamp   = -1;
+    private long   rid   = -1;
 
     public ConnectResponse(/* Storable */) {
     }
 
     public String getRegaintoken() {
-        return this.regaintoken;
+        return regaintoken;
     }
 
-    public long getTimestamp() {
-        return this.timestamp;
+    public long getRid() {
+        return rid;
     }
 
     public String getToken() {
-        return this.token;
+        return token;
     }
 
     public void setRegaintoken(final String regaintoken) {
         this.regaintoken = regaintoken;
     }
 
-    public void setTimestamp(final long timestamp) {
-        this.timestamp = timestamp;
+    public void setRid(final long timestamp) {
+        rid = timestamp;
     }
 
     public void setToken(final String token) {

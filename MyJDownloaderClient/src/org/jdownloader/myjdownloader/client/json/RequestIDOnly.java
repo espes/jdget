@@ -1,17 +1,17 @@
 package org.jdownloader.myjdownloader.client.json;
 
-public class DisconnectResponse implements RequestIDValidator{
+public class RequestIDOnly implements RequestIDValidator {
 
     private long rid = -1;
 
-    public DisconnectResponse(/* Storable */) {
+    public RequestIDOnly(/* Storable */) {
     }
 
     /**
      * @return the timestamp
      */
     public long getRid() {
-        return rid;
+        return this.rid;
     }
 
     /**
@@ -19,6 +19,6 @@ public class DisconnectResponse implements RequestIDValidator{
      *            the timestamp to set
      */
     public void setRid(final long timestamp) {
-        rid = timestamp;
+        this.rid = timestamp;
     }
 }

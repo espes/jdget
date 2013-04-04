@@ -1,18 +1,18 @@
 package org.jdownloader.myjdownloader.client.json;
 
-public class RegisterResponse {
+public class RegisterResponse implements RequestIDValidator {
 
     public RegisterResponse(/* storable */) {
     }
 
-    private long timestamp;
+    private long rid;
 
-    public long getTimestamp() {
-        return timestamp;
+    public long getRid() {
+        return rid;
     }
 
-    public void setTimestamp(final long timestamp) {
-        this.timestamp = timestamp;
+    public void setRid(final long timestamp) {
+        this.rid = timestamp;
     }
 
 }

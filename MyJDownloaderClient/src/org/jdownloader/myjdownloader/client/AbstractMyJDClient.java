@@ -36,8 +36,8 @@ import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
 import org.jdownloader.myjdownloader.client.json.RegisterPayload;
 import org.jdownloader.myjdownloader.client.json.RegisterResponse;
-import org.jdownloader.myjdownloader.client.json.SuccessfulResponse;
-import org.jdownloader.myjdownloader.client.json.TimestampValidator;
+import org.jdownloader.myjdownloader.client.json.RequestIDOnly;
+import org.jdownloader.myjdownloader.client.json.RequestIDValidator;
 
 public abstract class AbstractMyJDClient {
 
@@ -142,8 +142,8 @@ public abstract class AbstractMyJDClient {
             query += "timestamp=" + i;
             final String encrypted = internalPost(query + "&signature=" + sign(serverSecret, query), postData);
             final Object ret = this.jsonToObject(decrypt(encrypted, serverSecret), class1);
-            if (ret instanceof TimestampValidator) {
-                if (((TimestampValidator) ret).getTimestamp() != i) { throw new BadResponseException(); }
+            if (ret instanceof RequestIDValidator) {
+                if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException(); }
             }
             return (T) ret;
         } catch (final ExceptionResponse e) {
@@ -344,9 +344,15 @@ public abstract class AbstractMyJDClient {
 
     }
 
+    public void confirmEmail(final String key) throws MyJDownloaderException {
+        final RequestIDOnly response = this.callServer("/my/validate?email=" + email+"&key="+key, null, RequestIDOnly.class);
+        System.out.println(response);
+    }
+
+    
     public void requestConfirmationEmail() throws MyJDownloaderException {
 
-        final SuccessfulResponse response = this.callServer("/my/requestvalidationemail?email=" + email, null, SuccessfulResponse.class);
+        final RequestIDOnly response = this.callServer("/my/requestvalidationemail?email=" + email, null, RequestIDOnly.class);
         System.out.println(response);
 
     }
@@ -363,4 +369,5 @@ public abstract class AbstractMyJDClient {
         init(email, password);
     }
 
+  
 }
