@@ -1,6 +1,6 @@
 package org.jdownloader.myjdownloader.client.exceptions;
 
-public class InvalidResponseCodeException extends MyJDownloaderException {
+public class ExceptionResponse extends MyJDownloaderException {
 
     private int    responseCode;
     private String content;
@@ -13,9 +13,13 @@ public class InvalidResponseCodeException extends MyJDownloaderException {
         return responseCode;
     }
 
-    public InvalidResponseCodeException(String errorString, int responseCode) {
+    public ExceptionResponse(String errorString, int responseCode) {
         super();
         this.responseCode = responseCode;
         this.content = errorString;
+    }
+
+    public ExceptionResponse(Exception e) {
+        super(e);
     }
 }
