@@ -10,7 +10,7 @@ public class RegisterResponse {
         UNKNOWN
     }
 
-    private boolean success = false;
+  
     private Status  status  = Status.UNKNOWN;
 
     public RegisterResponse(/* storable */) {
@@ -21,7 +21,7 @@ public class RegisterResponse {
     }
 
     public void setStatus(final Status message) {
-        this.status = message;
+        status = message;
     }
 
 }
