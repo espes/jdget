@@ -139,9 +139,10 @@ public abstract class AbstractMyJDClient {
         try {
             query += query.contains("?") ? "&" : "?";
             final long i = inc();
-            query += "timestamp=" + i;
+            query += "rid=" + i;
             final String encrypted = internalPost(query + "&signature=" + sign(serverSecret, query), postData);
             final Object ret = this.jsonToObject(decrypt(encrypted, serverSecret), class1);
+            System.out.println(objectToJSon(ret));
             if (ret instanceof RequestIDValidator) {
                 if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException(); }
             }
@@ -154,16 +155,17 @@ public abstract class AbstractMyJDClient {
         }
     }
 
-    public void connect() throws MyJDownloaderException, APIException {
-        try {
+    public void connect() throws MyJDownloaderException {
+  
 
             connectInfo = this.callServer("/my/clientconnect?email=" + email, null, ConnectResponse.class);
-            transferCryptoToken = calcTransferCryptoToken();
-        } catch (final MyJDownloaderException e) {
-            throw e;
-        } catch (final Exception e) {
-            throw APIException.get(e);
-        }
+            try {
+                transferCryptoToken = calcTransferCryptoToken();
+            } catch (final NoSuchAlgorithmException e) {
+               throw new RuntimeException(e);
+                
+            }
+      
     }
 
     private byte[] createSecret(final String username, final String password, final String domain) throws NoSuchAlgorithmException, UnsupportedEncodingException {
@@ -345,14 +347,35 @@ public abstract class AbstractMyJDClient {
     }
 
     public void confirmEmail(final String key) throws MyJDownloaderException {
-        final RequestIDOnly response = this.callServer("/my/validate?email=" + email+"&key="+key, null, RequestIDOnly.class);
+        final RequestIDOnly response = this.callServer("/my/validate?email=" + email + "&key=" + key, null, RequestIDOnly.class);
         System.out.println(response);
     }
 
-    
+    public void changePassword(final String newPassword, final String key) throws MyJDownloaderException {
+        byte[] newServerSecret;
+        try {
+            newServerSecret = createSecret(email, newPassword, "server");
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+
+        }
+        final RequestIDOnly response = this.callServer("/my/changepassword?email=" + email + "&secretServer=" + byteArrayToHex(newServerSecret) + "&key=" + key, null, RequestIDOnly.class);
+        init(email, newPassword);
+        connect();
+        System.out.println(response);
+
+    }
+
     public void requestConfirmationEmail() throws MyJDownloaderException {
 
         final RequestIDOnly response = this.callServer("/my/requestvalidationemail?email=" + email, null, RequestIDOnly.class);
+        System.out.println(response);
+
+    }
+
+    public void requestPasswordChangeEmail() throws MyJDownloaderException {
+
+        final RequestIDOnly response = this.callServer("/my/requestpasswordchangeemail?email=" + email, null, RequestIDOnly.class);
         System.out.println(response);
 
     }
@@ -369,5 +392,4 @@ public abstract class AbstractMyJDClient {
         init(email, password);
     }
 
-  
 }
