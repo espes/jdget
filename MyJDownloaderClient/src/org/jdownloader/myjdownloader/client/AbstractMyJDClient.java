@@ -93,12 +93,12 @@ public abstract class AbstractMyJDClient {
     protected abstract String base64Encode(byte[] encryptedBytes);
 
     @SuppressWarnings("unchecked")
-    public <T> T callAction(final String action, final Class<T> returnType, final Object... args) throws MyJDownloaderException, APIException {
+    public synchronized <T> T callAction(final String action, final Class<T> returnType, final Object... args) throws MyJDownloaderException, APIException {
         return (T) callActionInternal(action, returnType, args);
 
     }
 
-    protected Object callActionInternal(final String action, final Type returnType, final Object... args) throws MyJDownloaderException, APIException {
+    protected synchronized Object callActionInternal(final String action, final Type returnType, final Object... args) throws MyJDownloaderException, APIException {
         try {
             final String query = "/t_" + sessionToken + action;
             final String[] params = new String[args != null ? args.length : 0];
@@ -132,7 +132,7 @@ public abstract class AbstractMyJDClient {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> T callServer(String query, final String postData, final Class<T> class1) throws MyJDownloaderException {
+    protected synchronized <T> T callServer(String query, final String postData, final Class<T> class1) throws MyJDownloaderException {
         try {
             query += query.contains("?") ? "&" : "?";
             final long i = inc();
@@ -152,7 +152,27 @@ public abstract class AbstractMyJDClient {
         }
     }
 
-    public void connect(final String email, final String password) throws MyJDownloaderException {
+    public synchronized void reconnect() throws MyJDownloaderException {
+        try {
+            final String query = "/my/clientreconnect?sessiontoken=" + sessionToken + "&regaintoken=" + regainToken;
+            final ConnectResponse ret = this.callServer(query, null, ConnectResponse.class);
+
+            serverEncryptionToken = updateEncryptionToken(serverEncryptionToken, hexToByteArray(ret.getSessiontoken()));
+            deviceEncryptionToken = updateEncryptionToken(deviceSecret, hexToByteArray(ret.getSessiontoken()));
+            sessionToken = ret.getSessiontoken();
+            regainToken = ret.getRegaintoken();
+
+            System.out.println("New ServerEncryptionToken: "+byteArrayToHex(serverEncryptionToken));
+            System.out.println("New deviceEncryptionToken: "+byteArrayToHex(deviceEncryptionToken));
+            System.out.println("new Sessiontoken: "+sessionToken);
+            System.out.println("new regainToken: "+regainToken);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+
+        }
+    }
+
+    public synchronized void connect(final String email, final String password) throws MyJDownloaderException {
         try {
             this.email = email;
 
@@ -160,7 +180,7 @@ public abstract class AbstractMyJDClient {
             final byte[] loginSecret = createSecret(email, password, "server");
             deviceSecret = createSecret(email, password, "device");
             final long rid = inc();
-            final StringBuilder query = new StringBuilder().append("/my/clientconnect?email=").append(email).append("&rid").append(rid);
+            final StringBuilder query = new StringBuilder().append("/my/clientconnect?email=").append(email).append("&rid=").append(rid);
 
             final String signature = sign(loginSecret, query.toString());
             query.append("&signature=").append(signature);
@@ -229,9 +249,8 @@ public abstract class AbstractMyJDClient {
 
     public void disconnect() throws MyJDownloaderException {
 
-        final String query = "/my/disconnect?clienttoken=" + sessionToken;
-
-        this.callServer(query, null, ConnectResponse.class);
+        final String query = "/my/disconnect?sessiontoken=" + sessionToken;
+        this.callServer(query, null, RequestIDOnly.class);
 
     }
 
@@ -251,7 +270,7 @@ public abstract class AbstractMyJDClient {
      * @return
      * @throws MyJDownloaderException
      */
-    public CaptchaChallenge getChallenge() throws MyJDownloaderException {
+    public synchronized CaptchaChallenge getChallenge() throws MyJDownloaderException {
         return this.jsonToObject(internalPost("/captcha/getCaptcha", ""), CaptchaChallenge.class);
     }
 
@@ -343,7 +362,7 @@ public abstract class AbstractMyJDClient {
 
     protected abstract String objectToJSon(Object payload);
 
-    private String internalPost(final String url, final String objectToJSon) throws MyJDownloaderException {
+    private synchronized String internalPost(final String url, final String objectToJSon) throws MyJDownloaderException {
         try {
             return post(url, objectToJSon);
         } catch (final ExceptionResponse e) {
@@ -366,7 +385,7 @@ public abstract class AbstractMyJDClient {
      * @throws APIException
      * @throws MyJDownloaderException
      */
-    public void register(final CaptchaChallenge challenge) throws MyJDownloaderException {
+    public synchronized void register(final CaptchaChallenge challenge) throws MyJDownloaderException {
 
         final String encrypted = jsonPost("/my/register", new RegisterPayload(email, AbstractMyJDClient.byteArrayToHex(serverEncryptionToken), challenge.getCaptchaChallenge(), challenge.getCaptchaResponse()));
 
@@ -374,7 +393,7 @@ public abstract class AbstractMyJDClient {
 
     }
 
-    private String jsonPost(final String path, final Object... params) throws MyJDownloaderException {
+    private synchronized String jsonPost(final String path, final Object... params) throws MyJDownloaderException {
         final JSonRequest re = new JSonRequest();
         re.setRid(inc());
         re.setParams(params);
@@ -382,33 +401,33 @@ public abstract class AbstractMyJDClient {
         return internalPost(path, objectToJSon(re));
     }
 
-    public void confirmEmail(final String key) throws MyJDownloaderException {
+    public synchronized void confirmEmail(final String key) throws MyJDownloaderException {
         final RequestIDOnly response = this.callServer("/my/confirmemail?email=" + email + "&key=" + key.trim(), null, RequestIDOnly.class);
         System.out.println(response);
     }
 
-    public void changePassword(final String newPassword, final String key) throws MyJDownloaderException {
+    public synchronized void changePassword(final String newPassword, final String key) throws MyJDownloaderException {
         byte[] newserverEncryptionToken;
         try {
             newserverEncryptionToken = createSecret(email, newPassword, "server");
         } catch (final Exception e) {
             throw new RuntimeException(e);
 
-        } 
+        }
         final RequestIDOnly response = this.callServer("/my/changepassword?email=" + email + "&secretServer=" + byteArrayToHex(newserverEncryptionToken) + "&key=" + key, null, RequestIDOnly.class);
         connect(email, newPassword);
         System.out.println(response);
 
     }
 
-    public void requestConfirmationEmail() throws MyJDownloaderException {
+    public synchronized void requestConfirmationEmail() throws MyJDownloaderException {
 
         final RequestIDOnly response = this.callServer("/my/requestemailconfirmation?email=" + email, null, RequestIDOnly.class);
         System.out.println(response);
 
     }
 
-    public void requestPasswordChangeEmail() throws MyJDownloaderException {
+    public synchronized void requestPasswordChangeEmail() throws MyJDownloaderException {
 
         final RequestIDOnly response = this.callServer("/my/requestpasswordchangeemail?email=" + email, null, RequestIDOnly.class);
         System.out.println(response);
@@ -421,6 +440,10 @@ public abstract class AbstractMyJDClient {
 
     private String sign(final byte[] key, final String data) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException {
         return AbstractMyJDClient.byteArrayToHex(AbstractMyJDClient.hmac(key, data.getBytes("UTF-8")));
+    }
+
+    public String getSessionToken() {
+        return sessionToken;
     }
 
 }
