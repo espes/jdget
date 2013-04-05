@@ -9,6 +9,7 @@
  */
 package org.appwork.remoteapi;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,9 +28,10 @@ import org.appwork.utils.net.httpserver.session.HttpSession;
  */
 public abstract class EventsAPI implements EventsAPIInterface {
 
-    private final HashMap<HttpSession, MinTimeWeakReference<EventsAPIQueue>> eventQueues  = new HashMap<HttpSession, MinTimeWeakReference<EventsAPIQueue>>();
+    private final HashMap<String, MinTimeWeakReference<EventsAPIQueue>> eventQueues  = new HashMap<String, MinTimeWeakReference<EventsAPIQueue>>();
+    private final HashMap<String, WeakReference<HttpSession>>           sessionMap   = new HashMap<String, WeakReference<HttpSession>>();
 
-    protected long                                                           queueTimeout = 5 * 60 * 1000;
+    protected long                                                      queueTimeout = 5 * 60 * 1000;
 
     public abstract boolean isSessionAllowed(HttpSession session);
 
@@ -42,17 +44,27 @@ public abstract class EventsAPI implements EventsAPIInterface {
     public void listen(final RemoteAPIRequest request, final RemoteAPIResponse response, final Long lastEventID) {
         if (!(request instanceof SessionRemoteAPIRequest)) { throw new RemoteAPIUnauthorizedException(); }
         final SessionRemoteAPIRequest<? extends HttpSession> sr = (SessionRemoteAPIRequest<?>) request;
-        if (!this.isSessionAllowed(sr.getSession())) {
+        String sessionID = null;
+        if (sr.getSession() != null) {
+            sessionID = sr.getSession().getSessionID();
+        }
+        if (!this.isSessionAllowed(sr.getSession()) || sessionID == null) {
             /* session is not allowed */
             synchronized (this) {
-                this.eventQueues.remove(sr.getSession());
+                if (sessionID != null) {
+                    this.eventQueues.remove(sessionID);
+                    this.sessionMap.remove(sessionID);
+                }
             }
             throw new RemoteAPIUnauthorizedException();
         }
         if (sr.getSession() != null && !sr.getSession().isAlive()) {
             /* session no longer alive, remove it */
             synchronized (this) {
-                this.eventQueues.remove(sr.getSession());
+                if (sessionID != null) {
+                    this.eventQueues.remove(sessionID);
+                    this.sessionMap.remove(sessionID);
+                }
             }
             throw new RemoteAPIUnauthorizedException();
         }
@@ -61,11 +73,12 @@ public abstract class EventsAPI implements EventsAPIInterface {
 
         EventsAPIQueue queue = null;
         synchronized (this) {
-            final MinTimeWeakReference<EventsAPIQueue> mqueue = this.eventQueues.get(sr.getSession());
+            final MinTimeWeakReference<EventsAPIQueue> mqueue = this.eventQueues.get(sessionID);
             if (mqueue == null || (queue = mqueue.get()) == null) {
                 queue = new EventsAPIQueue();
-                this.eventQueues.put(sr.getSession(), new MinTimeWeakReference<EventsAPIQueue>(queue, this.queueTimeout, "EventQueue for" + sr.getSession().getSessionID()));
+                this.eventQueues.put(sessionID, new MinTimeWeakReference<EventsAPIQueue>(queue, this.queueTimeout, "EventQueue for" + sessionID));
             }
+            this.sessionMap.put(sessionID, new WeakReference<HttpSession>(sr.getSession()));
         }
         EventsAPIEvent event = queue.pullEvent();
         synchronized (queue) {
@@ -138,13 +151,15 @@ public abstract class EventsAPI implements EventsAPIInterface {
                 synchronized (this) {
                     if (!receiver.isAlive()) {
                         /* session no longer alive, remove it */
-                        this.eventQueues.remove(receiver);
+                        this.eventQueues.remove(receiver.getSessionID());
+                        this.sessionMap.remove(receiver.getSessionID());
                         continue;
                     }
-                    final MinTimeWeakReference<EventsAPIQueue> mqueue = this.eventQueues.get(receiver);
+                    final MinTimeWeakReference<EventsAPIQueue> mqueue = this.eventQueues.get(receiver.getSessionID());
                     if (mqueue == null || (queue = mqueue.superget()) == null) {
                         /* we dont want to refresh mintimeweakreference */
-                        this.eventQueues.remove(receiver);
+                        this.eventQueues.remove(receiver.getSessionID());
+                        this.sessionMap.remove(receiver.getSessionID());
                         continue;
                     }
                 }
@@ -155,11 +170,13 @@ public abstract class EventsAPI implements EventsAPIInterface {
             }
         } else {
             synchronized (this) {
-                final Set<Entry<HttpSession, MinTimeWeakReference<EventsAPIQueue>>> es = this.eventQueues.entrySet();
-                final Iterator<Entry<HttpSession, MinTimeWeakReference<EventsAPIQueue>>> esi = es.iterator();
+                final Set<Entry<String, MinTimeWeakReference<EventsAPIQueue>>> es = this.eventQueues.entrySet();
+                final Iterator<Entry<String, MinTimeWeakReference<EventsAPIQueue>>> esi = es.iterator();
                 while (esi.hasNext()) {
-                    final Entry<HttpSession, MinTimeWeakReference<EventsAPIQueue>> next = esi.next();
-                    if (!next.getKey().isAlive()) {
+                    final Entry<String, MinTimeWeakReference<EventsAPIQueue>> next = esi.next();
+                    final WeakReference<HttpSession> httpSession = this.sessionMap.get(next.getKey());
+                    if (httpSession == null || httpSession.get() == null || httpSession.get().isAlive() == false) {
+                        this.sessionMap.remove(next.getKey());
                         esi.remove();
                         continue;
                     } else {
@@ -167,6 +184,7 @@ public abstract class EventsAPI implements EventsAPIInterface {
                         final MinTimeWeakReference<EventsAPIQueue> mqueue = next.getValue();
                         if (mqueue == null || (queue = mqueue.superget()) == null) {
                             /* we dont want to refresh mintimeweakreference */
+                            this.sessionMap.remove(next.getKey());
                             esi.remove();
                             continue;
                         }
