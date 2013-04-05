@@ -18,7 +18,7 @@ import org.appwork.storage.Storable;
 public class JSonRequest implements Storable {
 
     private String   url;
-    private long     timestamp;
+    private long     rid;
     private Object[] params;
 
     public JSonRequest(/* Storable */) {
@@ -28,8 +28,8 @@ public class JSonRequest implements Storable {
         return this.params;
     }
 
-    public long getTimestamp() {
-        return this.timestamp;
+    public long getRid() {
+        return this.rid;
     }
 
     public String getUrl() {
@@ -40,8 +40,8 @@ public class JSonRequest implements Storable {
         this.params = params;
     }
 
-    public void setTimestamp(final long timestamp) {
-        this.timestamp = timestamp;
+    public void setRid(final long timestamp) {
+        this.rid = timestamp;
     }
 
     public void setUrl(final String url) {
