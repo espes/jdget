@@ -48,8 +48,8 @@ public class RemoteAPIResponse implements HttpResponseInterface {
         return this.response;
     }
 
-    public OutputStream getOutputStream() throws IOException {
-        return this.response.getOutputStream();
+    public OutputStream getOutputStream(final boolean sendResponseHeaders) throws IOException {
+        return this.response.getOutputStream(sendResponseHeaders);
     }
 
     public ResponseCode getResponseCode() {

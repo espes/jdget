@@ -61,7 +61,7 @@ public class AESJSonResponse<T> extends RemoteAPICustomResponse<T> {
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING, HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/aesjson-" + this.ID + "; charset=utf-8"));
             response.setResponseCode(this.responseCode);
-            final CipherOutputStream os = new CipherOutputStream(new Base64OutputStream(new ChunkedOutputStream(response.getOutputStream())), cipher);
+            final CipherOutputStream os = new CipherOutputStream(new Base64OutputStream(new ChunkedOutputStream(response.getOutputStream(true))), cipher);
             os.write(json.getBytes("UTF-8"));
             os.close();
         } catch (final NoSuchAlgorithmException e) {

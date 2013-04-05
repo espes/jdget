@@ -185,15 +185,15 @@ public class FileResponse {
             /* configure outputstream */
             if (gzip) {
                 if (chunked) {
-                    os = gos = new GZIPOutputStream(new ChunkedOutputStream(this.response.getOutputStream()));
+                    os = gos = new GZIPOutputStream(new ChunkedOutputStream(this.response.getOutputStream(true)));
                 } else {
-                    os = gos = new GZIPOutputStream(this.response.getOutputStream());
+                    os = gos = new GZIPOutputStream(this.response.getOutputStream(true));
                 }
             } else {
                 if (chunked) {
-                    os = new ChunkedOutputStream(this.response.getOutputStream());
+                    os = new ChunkedOutputStream(this.response.getOutputStream(true));
                 } else {
-                    os = this.response.getOutputStream();
+                    os = this.response.getOutputStream(true);
                 }
             }
             /* forward the data from inputstream to outputstream */

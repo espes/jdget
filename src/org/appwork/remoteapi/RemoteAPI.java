@@ -23,6 +23,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
+import org.appwork.remoteapi.annotations.AllowResponseAccess;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.utils.Regex;
@@ -99,7 +100,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_CONTENT_ENCODING, "gzip"));
         }
         response.setResponseCode(ResponseCode.SUCCESS_OK);
-        final OutputStream os = response.getOutputStream();
+        final OutputStream os = response.getOutputStream(true);
         final ChunkedOutputStream cos = new ChunkedOutputStream(os);
         final OutputStream uos;
         final GZIPOutputStream out;
@@ -172,7 +173,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
         if (gzip == false) {
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
-            response.getOutputStream().write(bytes);
+            response.getOutputStream(true).write(bytes);
         } else {
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_CONTENT_ENCODING, "gzip"));
             if (chunked == false) {
@@ -182,7 +183,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                     out.write(bytes);
                     out.finish();
                     response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, ros.size() + ""));
-                    response.getOutputStream().write(ros.getInternalBuffer(), 0, ros.size());
+                    response.getOutputStream(true).write(ros.getInternalBuffer(), 0, ros.size());
                 } finally {
                     try {
                         ReusableByteArrayOutputStreamPool.reuseReusableByteArrayOutputStream(ros);
@@ -194,7 +195,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                 ChunkedOutputStream cos = null;
                 GZIPOutputStream out = null;
                 try {
-                    cos = new ChunkedOutputStream(response.getOutputStream());
+                    cos = new ChunkedOutputStream(response.getOutputStream(true));
                     out = new GZIPOutputStream(cos);
                     out.write(bytes);
                 } finally {
@@ -265,7 +266,9 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                 if (RemoteAPIRequest.class.isAssignableFrom(method.getParameterTypes()[i])) {
                     parameters[i] = request;
                 } else if (RemoteAPIResponse.class.isAssignableFrom(method.getParameterTypes()[i])) {
-                    responseIsParameter = true;
+                    if (method.getAnnotation(AllowResponseAccess.class) == null) {
+                        responseIsParameter = true;
+                    }
                     parameters[i] = response;
                 } else {
                     try {
@@ -301,7 +304,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
                         final int length = message.getBytes("UTF-8").length;
                         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
                         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
-                        response.getOutputStream().write(message.getBytes("UTF-8"));
+                        response.getOutputStream(true).write(message.getBytes("UTF-8"));
                     }
                     return;
                 }

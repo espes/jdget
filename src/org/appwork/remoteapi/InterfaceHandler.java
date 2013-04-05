@@ -25,6 +25,7 @@ import java.util.TreeMap;
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.remoteapi.annotations.AllowNonStorableObjects;
+import org.appwork.remoteapi.annotations.AllowResponseAccess;
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.logging.Log;
@@ -239,7 +240,7 @@ public class InterfaceHandler<T> {
         final int length = text.getBytes("UTF-8").length;
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
-        response.getOutputStream().write(text.getBytes("UTF-8"));
+        response.getOutputStream(true).write(text.getBytes("UTF-8"));
     }
 
     private void helpJSON(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
@@ -279,7 +280,7 @@ public class InterfaceHandler<T> {
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, responseText.getBytes("UTF-8").length + ""));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
 
-        response.getOutputStream().write(responseText.getBytes("UTF-8"));
+        response.getOutputStream(true).write(responseText.getBytes("UTF-8"));
     }
 
     /**
@@ -398,7 +399,9 @@ public class InterfaceHandler<T> {
             if (RemoteAPIRequest.class == t) {
                 continue;
             } else if (RemoteAPIResponse.class == t) {
-                responseIsParamater = true;
+                if (m.getAnnotation(AllowResponseAccess.class) == null) {
+                    responseIsParamater = true;
+                }
                 continue;
             } else {
                 try {

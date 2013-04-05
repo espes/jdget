@@ -76,9 +76,10 @@ public class HttpResponse implements HttpResponseInterface {
      * @return
      * @throws IOException
      */
-    public OutputStream getOutputStream() throws IOException {
+    public OutputStream getOutputStream(final boolean sendResponseHeaders) throws IOException {
+        if (sendResponseHeaders == false) { return this.connection.getOutputStream(false); }
         if (this.outputStream == null) {
-            this.outputStream = this.connection.getOutputStream();
+            this.outputStream = this.connection.getOutputStream(true);
         }
         return this.outputStream;
     }

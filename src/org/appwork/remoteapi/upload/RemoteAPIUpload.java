@@ -228,14 +228,14 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
                 /* upload is still incomplete */
                 response.setResponseCode(ResponseCode.RESUME_INCOMPLETE);
             }
-            final OutputStream os = response.getOutputStream();
+            final OutputStream os = response.getOutputStream(true);
             os.write(chunkHash.getBytes("UTF-8"));
         } catch (final Throwable e) {
             if (e instanceof RemoteAPIException) { throw (RemoteAPIException) e; }
             throw new RemoteAPIException(ResponseCode.SERVERERROR_INTERNAL);
         } finally {
             try {
-                response.getOutputStream().close();
+                response.getOutputStream(true).close();
             } catch (final Throwable e) {
             }
             try {

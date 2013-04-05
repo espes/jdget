@@ -47,7 +47,7 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP {
         // HTTPHeader(HTTPConstants.HEADER_REQUEST_CONNECTION, "keep-alive"));
         // final ChunkedOutputStream cos = new
         // ChunkedOutputStream(response.getOutputStream());
-        final OutputStream os = response.getOutputStream();
+        final OutputStream os = response.getOutputStream(true);
         os.write("<html><div id='news'>ddd</div></html>".getBytes());
         // cos.flush();
         while (true) {
@@ -114,7 +114,7 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP {
         final int length = text.getBytes().length;
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
-        response.getOutputStream().write(text.getBytes("UTF-8"));
+        response.getOutputStream(true).write(text.getBytes("UTF-8"));
 
     }
 
@@ -199,14 +199,14 @@ public class TESTAPIImpl implements TESTAPI, TestApiInterface, bla, JSONP {
                     this.stop = false;
                     final String ret = callback + "({\"id\":" + (id + 1) + ",\"_\":\"system\",\"action\":\"disconnect\"});";
                     System.out.println(ret);
-                    response.getOutputStream().write(ret.getBytes());
+                    response.getOutputStream(true).write(ret.getBytes());
                 } else {
                     final String value = Integer.toHexString(next.getRGB()).substring(2);
                     final String ret = callback + "({\"id\":" + (id + 1) + ",\"rgb\":\"" + value + "\"});";
                     System.out.println(ret);
-                    response.getOutputStream().write(ret.getBytes());
+                    response.getOutputStream(true).write(ret.getBytes());
                 }
-                response.getOutputStream().flush();
+                response.getOutputStream(true).flush();
                 break;
             }
         }

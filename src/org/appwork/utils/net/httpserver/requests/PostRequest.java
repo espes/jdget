@@ -30,6 +30,17 @@ import org.appwork.utils.net.httpserver.HttpConnection;
  */
 public class PostRequest extends HttpRequest {
 
+    private static enum CONTENT_TYPE {
+        X_WWW_FORM_URLENCODED,
+        JSON
+
+    }
+
+    protected InputStream          inputStream         = null;
+
+    protected boolean              postParameterParsed = false;
+    protected LinkedList<String[]> postParameters      = null;
+
     /**
      * @param connection
      */
@@ -37,30 +48,18 @@ public class PostRequest extends HttpRequest {
         super(connection);
     }
 
-    private static enum CONTENT_TYPE {
-        X_WWW_FORM_URLENCODED,
-        JSON
-
-    }
-
-    protected InputStream        inputStream         = null;
-    protected boolean              postParameterParsed = false;
-    protected LinkedList<String[]> postParameters      = null;
-
-
-
     public synchronized InputStream getInputStream() throws IOException {
-        if (inputStream == null) {
-            final HTTPHeader transferEncoding = getRequestHeaders().get(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING);
+        if (this.inputStream == null) {
+            final HTTPHeader transferEncoding = this.getRequestHeaders().get(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING);
             if (transferEncoding != null) {
                 if ("chunked".equalsIgnoreCase(transferEncoding.getValue())) {
-                    inputStream = new ChunkedInputStream(connection.getInputStream()) {
+                    this.inputStream = new ChunkedInputStream(this.connection.getInputStream()) {
 
                         volatile boolean closed = false;
 
                         @Override
                         public void close() throws IOException {
-                            closed = true;
+                            this.closed = true;
                             if (PostRequest.this.connection.closableStreams()) {
                                 super.close();
                             }
@@ -68,19 +67,19 @@ public class PostRequest extends HttpRequest {
 
                         @Override
                         public int read() throws IOException {
-                            if (closed) { return -1; }
+                            if (this.closed) { return -1; }
                             return super.read();
                         }
 
                         @Override
                         public int read(final byte[] b) throws IOException {
-                            if (closed) { return -1; }
+                            if (this.closed) { return -1; }
                             return super.read(b);
                         }
 
                         @Override
                         public int read(final byte[] b, final int off, final int len) throws IOException {
-                            if (closed) { return -1; }
+                            if (this.closed) { return -1; }
                             return super.read(b, off, len);
                         }
                     };
@@ -88,15 +87,15 @@ public class PostRequest extends HttpRequest {
                     throw new IOException("Unknown Transfer-Encoding " + transferEncoding.getValue());
                 }
             } else {
-                final HTTPHeader contentLength = getRequestHeaders().get(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH);
+                final HTTPHeader contentLength = this.getRequestHeaders().get(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH);
                 if (contentLength == null) { throw new IOException("No Content-Length given!"); }
-                inputStream = new LimitedInputStream(connection.getInputStream(), Long.parseLong(contentLength.getValue())) {
+                this.inputStream = new LimitedInputStream(this.connection.getInputStream(), Long.parseLong(contentLength.getValue())) {
 
                     volatile boolean closed = false;
 
                     @Override
                     public void close() throws IOException {
-                        closed = true;
+                        this.closed = true;
                         if (PostRequest.this.connection.closableStreams()) {
                             super.close();
                         }
@@ -104,26 +103,26 @@ public class PostRequest extends HttpRequest {
 
                     @Override
                     public int read() throws IOException {
-                        if (closed) { return -1; }
+                        if (this.closed) { return -1; }
                         return super.read();
                     }
 
                     @Override
                     public int read(final byte[] b) throws IOException {
-                        if (closed) { return -1; }
+                        if (this.closed) { return -1; }
                         return super.read(b);
                     }
 
                     @Override
                     public int read(final byte[] b, final int off, final int len) throws IOException {
-                        if (closed) { return -1; }
+                        if (this.closed) { return -1; }
                         return super.read(b, off, len);
                     }
 
                 };
             }
         }
-        return inputStream;
+        return this.inputStream;
     }
 
     /**
@@ -133,14 +132,14 @@ public class PostRequest extends HttpRequest {
      * @throws IOException
      */
     public synchronized LinkedList<String[]> getPostParameter() throws IOException {
-        if (postParameterParsed) { return postParameters; }
-        final String type = getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE);
+        if (this.postParameterParsed) { return this.postParameters; }
+        final String type = this.getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE);
         CONTENT_TYPE content_type = null;
         if (new Regex(type, "(application/x-www-form-urlencoded)").matches()) {
             content_type = CONTENT_TYPE.X_WWW_FORM_URLENCODED;
         } else if (new Regex(type, "(application/json)").matches()) {
             content_type = CONTENT_TYPE.JSON;
-        } 
+        }
         JSonRequest jsonRequest = null;
         // content_type=CONTENT_TYPE.AESJSON;
         if (content_type != null) {
@@ -150,40 +149,38 @@ public class PostRequest extends HttpRequest {
             }
             switch (content_type) {
             case JSON: {
-                final byte[] jsonBytes = IO.readStream(-1, getInputStream());
+                final byte[] jsonBytes = IO.readStream(-1, this.getInputStream());
                 final String json = new String(jsonBytes, charSet);
                 jsonRequest = JSonStorage.restoreFromString(json, new TypeRef<JSonRequest>() {
                 });
             }
                 break;
             case X_WWW_FORM_URLENCODED: {
-                final byte[] jsonBytes = IO.readStream(-1, getInputStream());
+                final byte[] jsonBytes = IO.readStream(-1, this.getInputStream());
                 final String params = new String(jsonBytes, charSet);
-                postParameters = HttpConnection.parseParameterList(params);
+                this.postParameters = HttpConnection.parseParameterList(params);
             }
                 break;
-        
-             
             }
         }
         if (jsonRequest != null && jsonRequest.getParams() != null) {
-            postParameters = new LinkedList<String[]>();
+            this.postParameters = new LinkedList<String[]>();
             for (final Object parameter : jsonRequest.getParams()) {
                 if (parameter instanceof JSonObject) {
                     /*
                      * JSonObject has customized .toString which converts Map to
                      * Json!
                      */
-                    postParameters.add(new String[] { parameter.toString(), null });
+                    this.postParameters.add(new String[] { parameter.toString(), null });
                 } else {
                     final String jsonParameter = JSonStorage.toString(parameter);
-                    postParameters.add(new String[] { jsonParameter, null });
+                    this.postParameters.add(new String[] { jsonParameter, null });
                 }
 
             }
         }
-        postParameterParsed = true;
-        return postParameters;
+        this.postParameterParsed = true;
+        return this.postParameters;
     }
 
     @Override
@@ -193,9 +190,9 @@ public class PostRequest extends HttpRequest {
 
             sb.append("\r\n----------------Request-------------------------\r\n");
 
-            sb.append("POST ").append(getRequestedURL()).append(" HTTP/1.1\r\n");
+            sb.append("POST ").append(this.getRequestedURL()).append(" HTTP/1.1\r\n");
 
-            for (final HTTPHeader key : getRequestHeaders()) {
+            for (final HTTPHeader key : this.getRequestHeaders()) {
 
                 sb.append(key.getKey());
                 sb.append(": ");
@@ -203,7 +200,7 @@ public class PostRequest extends HttpRequest {
                 sb.append("\r\n");
             }
             sb.append("\r\n");
-            final LinkedList<String[]> postParams = getPostParameter();
+            final LinkedList<String[]> postParams = this.getPostParameter();
             if (postParams != null) {
                 for (final String[] s : postParams) {
                     sb.append(s[0]);

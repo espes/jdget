@@ -20,7 +20,9 @@ import org.appwork.utils.net.HeaderCollection;
  * 
  */
 public interface HttpResponseInterface {
-    public OutputStream getOutputStream() throws IOException;
+    public void closeConnection();
+
+    public OutputStream getOutputStream(boolean sendResponseHeaders) throws IOException;
 
     /**
      * @return the responseCode
@@ -32,15 +34,13 @@ public interface HttpResponseInterface {
      */
     public HeaderCollection getResponseHeaders();
 
+    public boolean isResponseAsync();
+
+    public void setResponseAsync(boolean b);
+
     /**
      * @param responseCode
      *            the responseCode to set
      */
     public void setResponseCode(final ResponseCode responseCode);
-
-    public boolean isResponseAsync();
-
-    public void setResponseAsync(boolean b);
-
-    public void closeConnection();
 }
