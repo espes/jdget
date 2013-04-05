@@ -3,7 +3,7 @@ package org.jdownloader.myjdownloader.client.json;
 public class ConnectResponse implements RequestIDValidator {
 
     private String sessiontoken = null;
-    private String regaintoken  = "blablablb";
+    private String regaintoken  = null;
     private long   rid          = -1;
 
     public ConnectResponse(/* Storable */) {
