@@ -33,6 +33,7 @@ import org.jdownloader.myjdownloader.client.exceptions.TooManyRequestsException;
 import org.jdownloader.myjdownloader.client.json.CaptchaChallenge;
 import org.jdownloader.myjdownloader.client.json.ConnectResponse;
 import org.jdownloader.myjdownloader.client.json.ErrorResponse;
+import org.jdownloader.myjdownloader.client.json.JSonRequest;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
 import org.jdownloader.myjdownloader.client.json.RegisterPayload;
 import org.jdownloader.myjdownloader.client.json.RegisterResponse;
@@ -156,16 +157,15 @@ public abstract class AbstractMyJDClient {
     }
 
     public void connect() throws MyJDownloaderException {
-  
 
-            connectInfo = this.callServer("/my/clientconnect?email=" + email, null, ConnectResponse.class);
-            try {
-                transferCryptoToken = calcTransferCryptoToken();
-            } catch (final NoSuchAlgorithmException e) {
-               throw new RuntimeException(e);
-                
-            }
-      
+        connectInfo = this.callServer("/my/clientconnect?email=" + email, null, ConnectResponse.class);
+        try {
+            transferCryptoToken = calcTransferCryptoToken();
+        } catch (final NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+
+        }
+
     }
 
     private byte[] createSecret(final String username, final String password, final String domain) throws NoSuchAlgorithmException, UnsupportedEncodingException {
@@ -340,10 +340,18 @@ public abstract class AbstractMyJDClient {
      */
     public void register(final CaptchaChallenge challenge) throws MyJDownloaderException {
 
-        final String encrypted = internalPost("/my/register", objectToJSon(new RegisterPayload(email, AbstractMyJDClient.byteArrayToHex(serverSecret), challenge.getCaptchaChallenge(), challenge.getCaptchaResponse())));
+        final String encrypted = jsonPost("/my/register", new RegisterPayload(email, AbstractMyJDClient.byteArrayToHex(serverSecret), challenge.getCaptchaChallenge(), challenge.getCaptchaResponse()));
 
         final RegisterResponse ret = this.jsonToObject(encrypted, RegisterResponse.class);
 
+    }
+
+    private String jsonPost(final String path, final Object... params) throws MyJDownloaderException {
+        final JSonRequest re = new JSonRequest();
+        re.setRid(inc());
+        re.setParams(params);
+        re.setUrl(path);
+        return internalPost(path, objectToJSon(re));
     }
 
     public void confirmEmail(final String key) throws MyJDownloaderException {
