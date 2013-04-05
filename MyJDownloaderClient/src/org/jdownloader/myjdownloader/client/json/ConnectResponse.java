@@ -2,7 +2,7 @@ package org.jdownloader.myjdownloader.client.json;
 
 public class ConnectResponse implements RequestIDValidator {
 
-    private String token       = null;
+    private String sessiontoken       = null;
     private String regaintoken = null;
     private long   rid   = -1;
 
@@ -17,8 +17,8 @@ public class ConnectResponse implements RequestIDValidator {
         return rid;
     }
 
-    public String getToken() {
-        return token;
+    public String getSessiontoken() {
+        return sessiontoken;
     }
 
     public void setRegaintoken(final String regaintoken) {
@@ -29,8 +29,8 @@ public class ConnectResponse implements RequestIDValidator {
         rid = timestamp;
     }
 
-    public void setToken(final String token) {
-        this.token = token;
+    public void setSessiontoken(final String token) {
+        this.sessiontoken = token;
     }
 
 }

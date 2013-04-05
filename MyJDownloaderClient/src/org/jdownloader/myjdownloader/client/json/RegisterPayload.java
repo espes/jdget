@@ -6,20 +6,20 @@ public class RegisterPayload {
     }
 
     public RegisterPayload(String email, String serverSecret, String captchaChallenge, String captchaResponse) {
-        this.secretServer = serverSecret;
+        this.loginSecret = serverSecret;
         this.captchaChallenge = captchaChallenge;
         this.captchaResponse = captchaResponse;
         this.email = email;
     }
 
-    private String secretServer;
+    private String loginSecret;
 
-    public String getSecretServer() {
-        return secretServer;
+    public String getLoginSecret() {
+        return loginSecret;
     }
 
-    public void setSecretServer(String secretServer) {
-        this.secretServer = secretServer;
+    public void setLoginSecret(String secretServer) {
+        this.loginSecret = secretServer;
     }
 
     public String getEmail() {

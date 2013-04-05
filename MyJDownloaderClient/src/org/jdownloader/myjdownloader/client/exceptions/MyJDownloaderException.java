@@ -10,19 +10,25 @@ public class MyJDownloaderException extends Exception {
         return source;
     }
 
-    public MyJDownloaderException(String string) {
+    public MyJDownloaderException(final String string) {
         super(string);
     }
 
     public MyJDownloaderException() {
     }
 
-    public MyJDownloaderException(Exception e) {
+    public MyJDownloaderException(final Exception e) {
         super(e);
     }
 
-    public static MyJDownloaderException get(Exception e) {
-        if (e instanceof MyJDownloaderException) return (MyJDownloaderException) e;
+    public MyJDownloaderException(final String string, final Exception e) {
+        super(string,e);
+    }
+
+    public static MyJDownloaderException get(final Exception e) {
+        if (e instanceof MyJDownloaderException) {
+            return (MyJDownloaderException) e;
+        }
         return new MyJDownloaderException(e);
     }
 
@@ -30,8 +36,8 @@ public class MyJDownloaderException extends Exception {
         return super.toString() + "(SRC: " + getSource() + ")";
     }
 
-    public void setSource(Source src) {
-        this.source = src;
+    public void setSource(final Source src) {
+        source = src;
     }
 
 }
