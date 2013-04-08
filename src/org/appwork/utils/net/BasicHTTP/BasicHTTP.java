@@ -651,12 +651,16 @@ public class BasicHTTP {
     }
 
     protected void setAllowedResponseCodes(final HTTPConnection connection) {
-        final ArrayList<Integer> allowed = new ArrayList<Integer>(getAllowedResponseCodes());
-        final int[] ret = new int[allowed.size()];
-        for (int i = 0; i < ret.length; i++) {
-            ret[i] = allowed.get(i);
+        final HashSet<Integer> loc = getAllowedResponseCodes();
+        if (loc != null) {
+            final ArrayList<Integer> allowed = new ArrayList<Integer>(loc);
+
+            final int[] ret = new int[allowed.size()];
+            for (int i = 0; i < ret.length; i++) {
+                ret[i] = allowed.get(i);
+            }
+            connection.setAllowedResponseCodes(ret);
         }
-        connection.setAllowedResponseCodes(ret);
     }
 
     public void setAllowedResponseCodes(final int... codes) {
