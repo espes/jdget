@@ -39,11 +39,12 @@ import org.jdownloader.myjdownloader.client.json.RequestIDOnly;
 import org.jdownloader.myjdownloader.client.json.RequestIDValidator;
 
 public abstract class AbstractMyJDClient {
-/**
- * Transforms a byte array into a hex encoded String representation
- * @param digest
- * @return
- */
+    /**
+     * Transforms a byte array into a hex encoded String representation
+     * 
+     * @param digest
+     * @return
+     */
     public static String byteArrayToHex(final byte[] digest) {
         final StringBuilder ret = new StringBuilder();
         String tmp;
@@ -56,11 +57,13 @@ public abstract class AbstractMyJDClient {
         }
         return ret.toString();
     }
-/**
- * Converts a Hex String into a byte array
- * @param s
- * @return
- */
+
+    /**
+     * Converts a Hex String into a byte array
+     * 
+     * @param s
+     * @return
+     */
     public static byte[] hexToByteArray(final String s) {
         final int len = s.length();
         final byte[] data = new byte[len / 2];
@@ -72,6 +75,7 @@ public abstract class AbstractMyJDClient {
 
     /**
      * Calculates a HmacSHA256 of content with the key
+     * 
      * @param key
      * @param content
      * @return
@@ -95,15 +99,34 @@ public abstract class AbstractMyJDClient {
     private byte[] deviceEncryptionToken;
     private String sessionToken;
     private String regainToken;
+    private String appKey;
 
-    public AbstractMyJDClient() {
-
+    /**
+     * Create a New API.
+     * 
+     * @param appKey
+     *            - write to e-mail@appwork.org to get an own appKey.
+     */
+    public AbstractMyJDClient(final String appKey) {
+        this.appKey = appKey;
         counter = System.currentTimeMillis();
 
     }
 
+    /**
+     * convert a base64 string in a byte array
+     * 
+     * @param base64encodedString
+     * @return
+     */
     protected abstract byte[] base64decode(String base64encodedString);
 
+    /**
+     * Convert a byte array in a base64 String
+     * 
+     * @param encryptedBytes
+     * @return
+     */
     protected abstract String base64Encode(byte[] encryptedBytes);
 
     @SuppressWarnings("unchecked")
@@ -155,6 +178,15 @@ public abstract class AbstractMyJDClient {
     }
 
     @SuppressWarnings("unchecked")
+    /**
+     * to a call to the MyJdownloader Server.
+     * @param query The query String
+     * @param postData Post Data - can be null
+     * @param key The encryptionkey. This is either #serverEncryptionToken or loginSecret
+     * @param class1 The return Type
+     * @return
+     * @throws MyJDownloaderException
+     */
     protected synchronized <T> T callServer(String query, final String postData, final byte[] key, final Class<T> class1) throws MyJDownloaderException {
         try {
             query += query.contains("?") ? "&" : "?";
@@ -175,6 +207,34 @@ public abstract class AbstractMyJDClient {
         }
     }
 
+    /**
+     * Get The current Session Info Object. You can store it to reconnect to the same session later
+     * 
+     * @return
+     */
+    public SessionInfo getSessionInfo() {
+        return new SessionInfo(deviceSecret, serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
+    }
+
+    /**
+     * set old sessioninfo.
+     * 
+     * @param info
+     */
+    public void setSessionInfo(final SessionInfo info) {
+        deviceSecret = info.getDeviceSecret();
+        serverEncryptionToken = info.getServerEncryptionToken();
+        deviceEncryptionToken = info.getDeviceEncryptionToken();
+        sessionToken = info.getSessionToken();
+        regainToken = info.getRegainToken();
+    }
+
+    /**
+     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins.
+     * We use a regain token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
+     * 
+     * @throws MyJDownloaderException
+     */
     public synchronized void reconnect() throws MyJDownloaderException {
         try {
             final String query = "/my/clientreconnect?sessiontoken=" + urlencode(sessionToken) + "&regaintoken=" + urlencode(regainToken);
@@ -195,8 +255,22 @@ public abstract class AbstractMyJDClient {
         }
     }
 
+    /**
+     * Urlencode a String
+     * 
+     * @param text
+     * @return
+     */
     abstract public String urlencode(String text);
 
+    /**
+     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with
+     * #getSessionInfo #setSessionInfo and #reconnect to restore a session
+     * 
+     * @param email
+     * @param password
+     * @throws MyJDownloaderException
+     */
     public synchronized void connect(final String email, final String password) throws MyJDownloaderException {
         try {
             this.email = email;
@@ -281,7 +355,11 @@ public abstract class AbstractMyJDClient {
     // private <T> T jsonToObjectGeneric(String dec, Class<T> clazz) {
     // return (T) jsonToObject(dec, clazz);
     // }
-
+    /**
+     * Disconnect. This will invalidate your session. You have to call #connect to get a new session afterwards
+     * 
+     * @throws MyJDownloaderException
+     */
     public void disconnect() throws MyJDownloaderException {
 
         final String query = "/my/disconnect?sessiontoken=" + urlencode(sessionToken);
@@ -375,6 +453,12 @@ public abstract class AbstractMyJDClient {
     protected abstract <T> T jsonToObject(String dec, Type clazz);
 
     @SuppressWarnings("unchecked")
+    /**
+     * Link an API INterface  and call methods directly
+     * @param class1
+     * @param namespace
+     * @return
+     */
     public <T> T link(final Class<T> class1, final String namespace) {
 
         return (T) Proxy.newProxyInstance(class1.getClassLoader(), new Class<?>[] { class1 }, new InvocationHandler() {
@@ -439,37 +523,63 @@ public abstract class AbstractMyJDClient {
         return internalPost(path, objectToJSon(re));
     }
 
+    /**
+     * COnfirm your email by sending the COnfirm Key.
+     * 
+     * @param key
+     * @param email
+     * @param password
+     * @throws MyJDownloaderException
+     */
     public synchronized void confirmEmail(final String key, final String email, final String password) throws MyJDownloaderException {
         final byte[] loginSecret = createSecret(email, password, "server");
         callServer("/my/confirmemail?email=" + urlencode(email) + "&key=" + urlencode(key.trim()), null, loginSecret, RequestIDOnly.class);
-  
+
     }
 
-    public synchronized void changePassword(final String newPassword, final String oldPassword,final String key) throws MyJDownloaderException {
+    /**
+     * Change your password.
+     * 
+     * @param newPassword
+     * @param oldPassword
+     * @param key
+     * @throws MyJDownloaderException
+     */
+    public synchronized void changePassword(final String newPassword, final String oldPassword, final String key) throws MyJDownloaderException {
 
         final byte[] oldLoginSecret = createSecret(email, oldPassword, "server");
-    
-             final byte[] newLoginSecret = createSecret(email, newPassword, "server");
-       
+
+        final byte[] newLoginSecret = createSecret(email, newPassword, "server");
+
         callServer("/my/changepassword?email=" + urlencode(email) + "&loginSecret=" + byteArrayToHex(newLoginSecret) + "&key=" + urlencode(key), null, oldLoginSecret, RequestIDOnly.class);
         connect(email, newPassword);
 
-
     }
 
+    /**
+     * Request an email to get a new confirm key. A Confirm Email is sent after registration
+     * 
+     * @param email
+     * @param password
+     * @throws MyJDownloaderException
+     */
     public synchronized void requestConfirmationEmail(final String email, final String password) throws MyJDownloaderException {
 
         final byte[] loginSecret = createSecret(email, password, "server");
 
-       callServer("/my/requestemailconfirmation?email=" + urlencode(email), null, loginSecret, RequestIDOnly.class);
-
+        callServer("/my/requestemailconfirmation?email=" + urlencode(email), null, loginSecret, RequestIDOnly.class);
 
     }
 
+    /**
+     * Call this method to request a password change. You will get an email containing a key. Use this key together with
+     * {@link #changePassword(String, String, String)}
+     * 
+     * @throws MyJDownloaderException
+     */
     public synchronized void requestPasswordChangeEmail() throws MyJDownloaderException {
 
-       callServer("/my/requestpasswordchangeemail?sessiontoken=" + urlencode(sessionToken), null, serverEncryptionToken, RequestIDOnly.class);
-
+        callServer("/my/requestpasswordchangeemail?sessiontoken=" + urlencode(sessionToken), null, serverEncryptionToken, RequestIDOnly.class);
 
     }
 
@@ -481,8 +591,6 @@ public abstract class AbstractMyJDClient {
         return AbstractMyJDClient.byteArrayToHex(AbstractMyJDClient.hmac(key, data.getBytes("UTF-8")));
     }
 
-    public String getSessionToken() {
-        return sessionToken;
-    }
+ 
 
 }
