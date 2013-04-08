@@ -3,6 +3,8 @@ package org.appwork.swing.synthetica;
 import java.awt.Font;
 import java.io.UnsupportedEncodingException;
 
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 
 import org.appwork.storage.config.JsonConfig;
@@ -41,6 +43,9 @@ public class SyntheticaHelper {
     public static void init(final String laf) throws UnsupportedEncodingException {
         final long start = System.currentTimeMillis();
         try {
+            JFrame.setDefaultLookAndFeelDecorated(false);
+            
+            JDialog.setDefaultLookAndFeelDecorated(false);
             final LanguageFileSetup locale = TranslationFactory.create(LanguageFileSetup.class);
             final SyntheticaSettings config = JsonConfig.create(SyntheticaSettings.class);
             de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setWindowsDecorated(false);
@@ -52,6 +57,7 @@ public class SyntheticaHelper {
             UIManager.put("Synthetica.text.antialias", config.isTextAntiAliasEnabled());
             UIManager.put("Synthetica.extendedFileChooser.rememberPreferences", Boolean.FALSE);
             UIManager.put("Synthetica.extendedFileChooser.rememberLastDirectory", Boolean.FALSE);
+    
             // /* http://www.jyloo.com/news/?pubId=1297681728000 */
             // /* we want our own FontScaling, not SystemDPI */
             UIManager.put("Synthetica.font.respectSystemDPI", config.isFontRespectsSystemDPI());
