@@ -35,7 +35,6 @@ import org.jdownloader.myjdownloader.client.json.ConnectResponse;
 import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.JSonRequest;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
-import org.jdownloader.myjdownloader.client.json.RegisterResponse;
 import org.jdownloader.myjdownloader.client.json.RequestIDOnly;
 import org.jdownloader.myjdownloader.client.json.RequestIDValidator;
 
@@ -393,7 +392,10 @@ public abstract class AbstractMyJDClient {
 
             final String encrypted = jsonPost("/my/register?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()) + "&loginSecret=" + byteArrayToHex(loginSecret));
 
-            final RegisterResponse ret = this.jsonToObject(encrypted, RegisterResponse.class);
+            final boolean ret = this.jsonToObject(encrypted, boolean.class);
+            if(!ret) {
+                throw new BadResponseException("Unexpected False");
+            }
         } catch (final NoSuchAlgorithmException e) {
             throw new BadResponseException("Response Decryption Failed", e);
 
