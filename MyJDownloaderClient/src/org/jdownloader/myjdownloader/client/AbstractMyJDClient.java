@@ -362,7 +362,12 @@ public abstract class AbstractMyJDClient {
     }
 
     public synchronized String feedback(final String message) throws MyJDownloaderException {
-        final FeedbackResponse ret = this.callServer("/my/feedback?sessiontoken=" + this.urlencode(this.sessionToken), message, this.serverEncryptionToken, FeedbackResponse.class);
+        final JSonRequest re = new JSonRequest();
+        re.setRid(this.inc());
+        re.setParams(new Object[] { message });
+        final String url = "/my/feedback?sessiontoken=" + this.urlencode(this.sessionToken);
+        re.setUrl(url);
+        final FeedbackResponse ret = this.callServer(url, this.objectToJSon(re), this.serverEncryptionToken, FeedbackResponse.class);
         return ret.getFeedbackID();
     }
 
