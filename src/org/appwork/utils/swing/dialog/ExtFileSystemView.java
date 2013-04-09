@@ -78,7 +78,7 @@ public class ExtFileSystemView extends FileSystemView {
     /**
      */
     public ExtFileSystemView() {
-        this.org = FileSystemView.getFileSystemView();
+        org = FileSystemView.getFileSystemView();
         if (ExtFileSystemView.SAMBA_SCANNED) {
             new Exception("run ExtFileSystemView.runSambaScanner() as early as possible in your app!");
             ExtFileSystemView.runSambaScanner();
@@ -89,13 +89,13 @@ public class ExtFileSystemView extends FileSystemView {
     @Override
     public File createFileObject(final File dir, final String filename) {
 
-        return this.org.createFileObject(dir, filename);
+        return org.createFileObject(dir, filename);
     }
 
     @Override
     public File createFileObject(final String path) {
 
-        return this.org.createFileObject(path);
+        return org.createFileObject(path);
     }
 
     /*
@@ -105,23 +105,23 @@ public class ExtFileSystemView extends FileSystemView {
      */
     @Override
     public File createNewFolder(final File containingDir) throws IOException {
-        return this.org.createNewFolder(containingDir);
+        return org.createNewFolder(containingDir);
     }
 
     @Override
     public File getChild(final File parent, final String fileName) {
 
-        return this.org.getChild(parent, fileName);
+        return org.getChild(parent, fileName);
     }
 
     @Override
     public File getDefaultDirectory() {
 
-        return this.org.getDefaultDirectory();
+        return org.getDefaultDirectory();
     }
 
     @Override
-    public File[] getFiles(File dir, final boolean useFileHiding) {
+    public File[] getFiles(final File dir, final boolean useFileHiding) {
         final long t = System.currentTimeMillis();
         try {
 
@@ -129,9 +129,9 @@ public class ExtFileSystemView extends FileSystemView {
 
             if (dir == networkFolder) {
 
-                ret = this.getFilesShellfolder((NetWorkFolder) dir, useFileHiding);
+                ret = getFilesShellfolder((NetWorkFolder) dir, useFileHiding);
             } else {
-                ret = this.org.getFiles(dir, useFileHiding);
+                ret = org.getFiles(dir, useFileHiding);
             }
 
             final java.util.List<File> filtered = new ArrayList<File>();
@@ -147,7 +147,7 @@ public class ExtFileSystemView extends FileSystemView {
                 }
                 filtered.add(f);
             }
-            Log.L.info("Return Files for "+dir+"("+useFileHiding+"): "+filtered.size());
+            Log.L.info("Return Files for " + dir + "(" + useFileHiding + "): " + filtered.size());
             return filtered.toArray(new File[] {});
         } finally {
             Log.L.info("getFiles: ms:" + (System.currentTimeMillis() - t) + " " + dir);
@@ -155,10 +155,10 @@ public class ExtFileSystemView extends FileSystemView {
         }
     }
 
-    public File[] getFilesShellfolder(NetWorkFolder network, boolean useFileHiding) {
-        List<File> files = new ArrayList<File>();
+    public File[] getFilesShellfolder(final NetWorkFolder network, final boolean useFileHiding) {
+        final List<File> files = new ArrayList<File>();
 
-        File[] names = network.listFiles(useFileHiding);
+        final File[] names = network.listFiles(useFileHiding);
         if (names == null) { return new File[0]; }
 
         for (File f : names) {
@@ -172,11 +172,11 @@ public class ExtFileSystemView extends FileSystemView {
                 }
                 try {
                     f = ShellFolder.getShellFolder(f);
-                } catch (FileNotFoundException e) {
+                } catch (final FileNotFoundException e) {
                     // Not a valid file (wouldn't show in native file chooser)
                     // Example: C:\pagefile.sys
                     continue;
-                } catch (InternalError e) {
+                } catch (final InternalError e) {
                     // Not a valid file (wouldn't show in native file chooser)
                     // Example C:\Winnt\Profiles\joe\history\History.IE5
                     continue;
@@ -193,7 +193,7 @@ public class ExtFileSystemView extends FileSystemView {
     @Override
     public File getHomeDirectory() {
 
-        return this.org.getHomeDirectory();
+        return org.getHomeDirectory();
     }
 
     /**
@@ -207,14 +207,14 @@ public class ExtFileSystemView extends FileSystemView {
     @Override
     public File getParentDirectory(final File dir) {
 
-        return this.org.getParentDirectory(dir);
+        return org.getParentDirectory(dir);
     }
 
     @Override
     public File[] getRoots() {
         final long t = System.currentTimeMillis();
         Log.L.info("Get Roots");
-        if (this.roots != null) { return this.roots; }
+        if (roots != null) { return roots; }
         try {
 
             // this may take a long time on some systems.
@@ -234,7 +234,7 @@ public class ExtFileSystemView extends FileSystemView {
             Log.L.info("Listed Base folders " + (System.currentTimeMillis() - t));
             final java.util.List<File> newRoots = new ArrayList<File>();
 
-            final File home = this.getHomeDirectory();
+            final File home = getHomeDirectory();
             for (final File f : baseFolders) {
                 // Win32ShellFolder2.class
                 if (f.getName().equals("Recent")) {
@@ -243,9 +243,9 @@ public class ExtFileSystemView extends FileSystemView {
                 if (f.getParentFile() == null || !f.getParentFile().equals(home)) {
                     newRoots.add(f);
                 } else if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
-                    this.networkFolder = new NetWorkFolder(f);
+                    networkFolder = new NetWorkFolder(f);
                 } else if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP)) {
-                    this.networkFolder = new NetWorkFolder(f);
+                    networkFolder = new NetWorkFolder(f);
                 }
                 Log.L.info("Basefolder: " + f.getName() + " - " + CrossSystem.getOSString());
 
@@ -259,11 +259,11 @@ public class ExtFileSystemView extends FileSystemView {
                 }
             }
 
-            if (this.networkFolder != null) {
-                newRoots.add(this.networkFolder);
+            if (networkFolder != null) {
+                newRoots.add(networkFolder);
             }
-            this.roots = newRoots.toArray(new File[] {});
-            return this.roots;
+            roots = newRoots.toArray(new File[] {});
+            return roots;
         } finally {
             Log.L.info("Roots: " + (System.currentTimeMillis() - t));
 
@@ -273,73 +273,80 @@ public class ExtFileSystemView extends FileSystemView {
     @Override
     public String getSystemDisplayName(final File f) {
         if (f == networkFolder) { return _AWU.T.DIALOG_FILECHOOSER_networkfolder(); }
-        return this.org.getSystemDisplayName(f);
+        return org.getSystemDisplayName(f);
     }
 
     @Override
     public Icon getSystemIcon(final File f) {
+        try {
+            return org.getSystemIcon(f);
 
-        return this.org.getSystemIcon(f);
+        } catch (final Exception e) {
+            // seems like getSystemIcon can throw a FileNotFoundException or a
+            // Nullpointerfor
+            // 1.6 java
+            return null;
+        }
     }
 
     @Override
     public String getSystemTypeDescription(final File f) {
 
-        return this.org.getSystemTypeDescription(f);
+        return org.getSystemTypeDescription(f);
     }
 
     @Override
     public boolean isComputerNode(final File dir) {
 
-        return this.org.isComputerNode(dir);
+        return org.isComputerNode(dir);
     }
 
     @Override
     public boolean isDrive(final File dir) {
 
-        return this.org.isDrive(dir);
+        return org.isDrive(dir);
     }
 
     @Override
     public boolean isFileSystem(final File f) {
 
-        return this.org.isFileSystem(f);
+        return org.isFileSystem(f);
     }
 
     @Override
     public boolean isFileSystemRoot(final File dir) {
 
-        return this.org.isFileSystemRoot(dir);
+        return org.isFileSystemRoot(dir);
     }
 
     @Override
     public boolean isFloppyDrive(final File dir) {
 
-        return this.org.isFloppyDrive(dir);
+        return org.isFloppyDrive(dir);
     }
 
     @Override
     public boolean isHiddenFile(final File f) {
 
-        return this.org.isHiddenFile(f);
+        return org.isHiddenFile(f);
     }
 
     @Override
     public boolean isParent(final File folder, final File file) {
 
-        return this.org.isParent(folder, file);
+        return org.isParent(folder, file);
     }
 
     @Override
     public boolean isRoot(final File f) {
 
-        return this.org.isRoot(f);
+        return org.isRoot(f);
     }
 
     @Override
     public Boolean isTraversable(final File f) {
 
-        return this.org.isTraversable(f);
+        return org.isTraversable(f);
     }
 
 }
