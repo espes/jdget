@@ -4,7 +4,7 @@ public class DeviceData {
     private String id;
 
     private String type;
-    private long   lastSeenTimestamp = -1;
+    private long   lastConnection = -1;
     private String name;
 
     public DeviceData(/* storable */) {
@@ -22,10 +22,10 @@ public class DeviceData {
     }
 
     /**
-     * @return the lastSeenTimestamp
+     * @return the lastConnection
      */
-    public long getLastSeenTimestamp() {
-        return this.lastSeenTimestamp;
+    public long getLastConnection() {
+        return this.lastConnection;
     }
 
     public String getName() {
@@ -41,11 +41,11 @@ public class DeviceData {
     }
 
     /**
-     * @param lastSeenTimestamp
-     *            the lastSeenTimestamp to set
+     * @param lastConnection
+     *            the lastConnection to set
      */
-    public void setLastSeenTimestamp(final long lastSeenTimestamp) {
-        this.lastSeenTimestamp = lastSeenTimestamp;
+    public void setLastConnection(final long lastConnection) {
+        this.lastConnection = lastConnection;
     }
 
     public void setName(final String name) {
