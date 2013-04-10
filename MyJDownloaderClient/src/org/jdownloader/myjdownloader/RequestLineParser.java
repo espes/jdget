@@ -10,8 +10,8 @@ public class RequestLineParser {
                     if (array[i + 2] != 't') { return null; }
                     if (array[i + 3] != '_') { return null; }
                     if (array[i + 44] != '_') { return null; }
-                    if (array[i + 77] != '/') { return null; }
                     final String sessionToken = new String(array, i + 4, 40, "ISO-8859-1");
+                    if (array[i + 77] != '/') { return new RequestLineParser(null, sessionToken); }
                     final String deviceID = new String(array, i + 45, 32, "ISO-8859-1");
                     return new RequestLineParser(deviceID, sessionToken);
                 }
