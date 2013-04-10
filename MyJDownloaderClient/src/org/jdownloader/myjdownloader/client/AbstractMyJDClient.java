@@ -345,10 +345,12 @@ public abstract class AbstractMyJDClient {
      * @throws MyJDownloaderException
      */
     public void disconnect() throws MyJDownloaderException {
-
-        final String query = "/my/disconnect?sessiontoken=" + this.urlencode(this.sessionToken);
-        this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
-
+        try {
+            final String query = "/my/disconnect?sessiontoken=" + this.urlencode(this.sessionToken);
+            this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
+        } finally {
+            this.invalidateSession();
+        }
     }
 
     protected String encrypt(final String createPayloadString, final byte[] keyAndIV) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
@@ -487,6 +489,10 @@ public abstract class AbstractMyJDClient {
             throw e;
         }
 
+    }
+
+    protected void invalidateSession() {
+        this.serverEncryptionToken = null;
     }
 
     private synchronized String jsonPost(final String path, final Object... params) throws MyJDownloaderException {

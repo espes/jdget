@@ -2,68 +2,41 @@ package org.jdownloader.myjdownloader;
 
 public class RequestLineParser {
 
-    private String deviceID;
+    public static RequestLineParser parse(final byte[] array) {
+        try {
+            for (int i = 0; i < array.length; i++) {
+                if (array[i] == ' ') {
+                    /* /t_sessiontoken(40)_deviceid(32) */
+                    if (array[i + 2] != 't') { return null; }
+                    if (array[i + 3] != '_') { return null; }
+                    if (array[i + 44] != '_') { return null; }
+                    if (array[i + 77] != '/') { return null; }
+                    final String sessionToken = new String(array, i + 4, 40, "ISO-8859-1");
+                    final String deviceID = new String(array, i + 45, 32, "ISO-8859-1");
+                    return new RequestLineParser(deviceID, sessionToken);
+                }
+            }
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+        return null;
 
-    private String token;
+    }
 
-    public RequestLineParser() {
+    private final String deviceID;
 
+    private final String sessionToken;
+
+    private RequestLineParser(final String deviceID, final String sessionToken) {
+        this.deviceID = deviceID;
+        this.sessionToken = sessionToken;
     }
 
     public String getDeviceID() {
         return this.deviceID;
     }
 
-    public String getToken() {
-        return this.token;
+    public String getSessionToken() {
+        return this.sessionToken;
     }
-
-    public RequestLineParser parse(final byte[] array) {
-
-        try {
-            byte b;
-            for (int i = 0; i < array.length; i++) {
-                b = array[i];
-                if (b == ' ') {
-                    // you could write method here
-                    i += 2;
-
-                    if (array[i] != 't') { return this; }
-
-                    i += 2;
-                    // token is sha1
-                    this.token = new String(array, i, 40, "ISO-8859-1");
-
-                    i += 40;
-
-                    if (array[i] != '_') { return this; }
-                    i++;
-                    final int start = i;
-                    int end = i;
-                    while (i < array.length) {
-
-                        i++;
-                        if (array[i] == '/') {
-                            end = i;
-                            break;
-                        }
-
-                    }
-
-                    this.deviceID = new String(array, start, end - start, "ISO-8859-1");
-
-                    return this;
-                }
-
-            }
-            return this;
-        } catch (final Exception e) {
-            e.printStackTrace();
-            this.deviceID = null;
-            this.token = null;
-        }
-        return this;
-
-    }
-
 }
