@@ -41,6 +41,7 @@ import javax.swing.WindowConstants;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.exceptions.WTFException;
 import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
 import org.appwork.swing.MigPanel;
@@ -52,11 +53,11 @@ import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.dialog.locator.CenterOfScreenDialogLocator;
 import org.appwork.utils.swing.dialog.locator.DialogLocator;
 
-public abstract class AbstractDialog<T> extends TimerDialog implements ActionListener, WindowListener {
+public abstract class AbstractDialog<T> extends TimerDialog implements ActionListener, WindowListener, OKCancelCloseUserIODefinition {
 
     private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN  = new HashMap<String, Integer>();
 
-    public static final DialogLocator                   LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
+    public static final DialogLocator             LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
 
     private static int                            BUTTON_HEIGHT           = -1;
 
@@ -67,6 +68,29 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         return ret;
     }
 
+    @Override
+    public CloseReason getCloseReason() {
+        if (getReturnmask() == 0) {
+            throw new IllegalStateException("Dialog has not been closed yet");
+        }
+        if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
+        if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_CANCEL)) { return CloseReason.CANCEL; }
+        if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_OK)) { return CloseReason.OK; }
+        throw new WTFException();
+
+    }
+    /**
+     * @throws DialogClosedException 
+     * @throws DialogCanceledException 
+     * 
+     */
+    public void checkCloseReason() throws DialogClosedException, DialogCanceledException {
+        final int mask = getReturnmask();        
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
+        
+        
+    }
     public static void resetDialogInformations() {
         try {
             AbstractDialog.SESSION_DONTSHOW_AGAIN.clear();
@@ -79,7 +103,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     protected JButton          cancelButton;
 
     private final String       cancelOption;
-    private DefaultButtonPanel             defaultButtons;
+    private DefaultButtonPanel defaultButtons;
 
     protected JCheckBox        dontshowagain;
 
@@ -107,12 +131,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private FocusListener      defaultButtonFocusListener;
 
-    private DialogLocator            locator;
+    private DialogLocator      locator;
 
     public DialogLocator getLocator() {
-        if (locator == null) {
-            return LOCATE_CENTER_OF_SCREEN;
-        }
+        if (locator == null) { return LOCATE_CENTER_OF_SCREEN; }
         return locator;
     }
 
@@ -127,7 +149,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
         setLocator(LOCATE_CENTER_OF_SCREEN);
-    
+
         this.title = title;
         this.flagMask = flag;
 
@@ -135,8 +157,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this.okOption = okOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_OK() : okOption;
         this.cancelOption = cancelOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
     }
-
-  
 
     /**
      * @param locateCenterOfScreen
@@ -175,7 +195,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         final Component parentOwner = Dialog.getInstance().getParentOwner();
         Dialog.getInstance().setParentOwner(getDialog());
         try {
-           
+
             this.setTitle(this.title);
 
             dont: if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
@@ -303,7 +323,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 });
 
                 focus = this.okButton;
-                this.defaultButtons.addOKButton(this.okButton );
+                this.defaultButtons.addOKButton(this.okButton);
 
             }
             if (!BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_CANCEL)) {
@@ -490,7 +510,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         if (this.actions != null) {
             for (final AbstractAction a : this.actions) {
                 ret.addAction(a).addFocusListener(this.defaultButtonFocusListener);
-            
+
             }
         }
         return ret;

@@ -11,8 +11,8 @@ package org.appwork.utils.swing.dialog;
 
 /**
  * @author Thomas
- *
+ * 
  */
-public interface ConfirmDialogInterface extends UserIODefinition {
+public interface ConfirmDialogInterface extends OKCancelCloseUserIODefinition {
 
 }
