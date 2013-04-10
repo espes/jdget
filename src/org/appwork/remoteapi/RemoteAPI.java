@@ -80,6 +80,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
     private static Object convert(String string, final Type type) {
         if ((type == String.class || type instanceof Class && ((Class<?>) type).isEnum()) && !string.startsWith("\"")) {
             /* workaround if strings are not escaped, same for enums */
+            if ("null".equals(string)) { return null; }
             string = "\"" + string.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
         }
         @SuppressWarnings({ "unchecked", "rawtypes" })
