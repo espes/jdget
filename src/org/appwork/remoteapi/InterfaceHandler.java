@@ -394,7 +394,6 @@ public class InterfaceHandler<T> {
      */
     private void validateMethod(final Method m) throws ParseException {
         if (m == InterfaceHandler.HELP) { throw new ParseException(m + " is reserved for internal usage"); }
-
         boolean responseIsParamater = false;
         for (final Type t : m.getGenericParameterTypes()) {
             if (RemoteAPIRequest.class == t) {

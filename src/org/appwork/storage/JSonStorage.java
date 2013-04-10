@@ -71,7 +71,9 @@ public class JSonStorage {
 
     /**
      * Cecks of the JSOn Mapper can map this Type
-     * @param allowNonStorableObjects TODO
+     * 
+     * @param allowNonStorableObjects
+     *            TODO
      * @param genericReturnType
      * 
      * @throws InvalidTypeException
@@ -82,12 +84,16 @@ public class JSonStorage {
 
     /**
      * @param gType
-     * @param allowNonStorableObjects TODO
+     * @param allowNonStorableObjects
+     *            TODO
      * @param string
      * @throws InvalidTypeException
      */
     private static void canStoreIntern(final Type gType, final String path, final boolean allowNonStorableObjects) throws InvalidTypeException {
-
+        if (gType == Object.class) {
+            if (allowNonStorableObjects) { return; }
+            throw new InvalidTypeException(gType, "Cannot store Object: " + path);
+        }
         if (gType instanceof Class) {
             final Class<?> type = (Class<?>) gType;
             if (type == void.class) { throw new InvalidTypeException(gType, "Void is not accepted: " + path); }
@@ -103,7 +109,17 @@ public class JSonStorage {
             }
             // we need an empty constructor
 
-            if (Storable.class.isAssignableFrom(type)||allowNonStorableObjects) {
+            if (List.class.isAssignableFrom(type)) { return;
+
+            }
+            if (Map.class.isAssignableFrom(type)) { return;
+
+            }
+
+            if (HashSet.class.isAssignableFrom(type)) { return;
+
+            }
+            if (Storable.class.isAssignableFrom(type) || allowNonStorableObjects) {
                 try {
 
                     type.getDeclaredConstructor(new Class[] {});
@@ -124,17 +140,6 @@ public class JSonStorage {
                 }
 
             }
-            if (List.class.isAssignableFrom(type)) { return;
-
-            }
-            if (Map.class.isAssignableFrom(type)) { return;
-
-            }
-
-            if (HashSet.class.isAssignableFrom(type)) { return;
-
-            }
-
         } else if (gType instanceof ParameterizedTypeImpl) {
             final ParameterizedTypeImpl ptype = (ParameterizedTypeImpl) gType;
 
