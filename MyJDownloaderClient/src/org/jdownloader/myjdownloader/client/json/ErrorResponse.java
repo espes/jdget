@@ -10,15 +10,19 @@ public class ErrorResponse {
         OVERLOAD(503),
         TOO_MANY_REQUESTS(429),
         ERROR_EMAIL_NOT_CONFIRMED(401),
-        TOKEN_INVALID(407),
+        TOKEN_INVALID(403),
         OFFLINE,
-        UNKNOWN,
-        AUTH_FAILED(403), EMAIL_INVALID, CHALLENGE_FAILED, EMAIL_FORBIDDEN, FAILED;
+        UNKNOWN(500),
+        AUTH_FAILED(403),
+        EMAIL_INVALID,
+        CHALLENGE_FAILED,
+        EMAIL_FORBIDDEN,
+        FAILED;
 
         private int code;
 
         private Type() {
-            code = 500;
+            this.code = 500;
         }
 
         private Type(final int code) {
@@ -26,7 +30,7 @@ public class ErrorResponse {
         }
 
         public int getCode() {
-            return code;
+            return this.code;
         }
     }
 
@@ -40,21 +44,21 @@ public class ErrorResponse {
     }
 
     public ErrorResponse(final Source string, final Type error, final Object data) {
-        src = string;
-        type = error;
+        this.src = string;
+        this.type = error;
         this.data = data;
     }
 
     public Object getData() {
-        return data;
+        return this.data;
     }
 
     public Source getSrc() {
-        return src;
+        return this.src;
     }
 
     public Type getType() {
-        return type;
+        return this.type;
     }
 
     public void setData(final Object data) {
