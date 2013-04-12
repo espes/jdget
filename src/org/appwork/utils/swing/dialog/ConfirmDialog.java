@@ -51,6 +51,11 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
     @Override
     public JComponent layoutDialogContent() {
         final MigPanel p = new MigPanel("", "[]", "[]");
+        addMessageComponent(p);
+        return p;
+    }
+
+    protected void addMessageComponent(final MigPanel p) {
         textField = new JTextPane() {
             private static final long serialVersionUID = 1L;
 
@@ -92,7 +97,6 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
             p.add(textField);
 
         }
-        return p;
     }
 
     @Override

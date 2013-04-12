@@ -14,5 +14,6 @@ package org.appwork.utils.swing.dialog;
  * 
  */
 public interface ConfirmDialogInterface extends OKCancelCloseUserIODefinition {
+    public String getMessage();
 
 }

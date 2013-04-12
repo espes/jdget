@@ -6,7 +6,7 @@ public interface OKCancelCloseUserIODefinition extends UserIODefinition {
         CANCEL,
         CLOSE
     }
-
+public String getTitle();
     public CloseReason getCloseReason();
 
 }

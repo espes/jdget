@@ -30,11 +30,11 @@ public class Files {
          */
         abstract public void onFile(File f) throws T;
 
-        public void intro(File f) {
+        public void intro(final File f) {
 
         }
 
-        public void outro(File f) {
+        public void outro(final File f) {
 
         }
     }
@@ -130,7 +130,9 @@ public class Files {
      * @return
      */
     public static String getExtension(final String name) {
-        if (StringUtils.isEmpty(name)) return null;
+        if (StringUtils.isEmpty(name)) {
+            return null;
+        }
 
         final int index = name.lastIndexOf(".");
         if (index < 0) { return null; }
@@ -234,14 +236,18 @@ public class Files {
             }
             rootPath = root.toLowerCase(Locale.ENGLISH);
             filePath = file.toLowerCase(Locale.ENGLISH).replace("/", "\\");
-            if (rootPath.equals(filePath + "\\")) return "";
+            if (rootPath.equals(filePath + "\\")) {
+                return "";
+            }
         } else {
             if (!root.endsWith("/")) {
                 root += "/";
             }
             rootPath = root;
             filePath = file;
-            if (rootPath.equals(filePath + "/")) return "";
+            if (rootPath.equals(filePath + "/")) {
+                return "";
+            }
         }
         if (!filePath.startsWith(rootPath)) { return null; }
         if (rootPath.equals(filePath)) { return "/"; }
@@ -273,7 +279,9 @@ public class Files {
     }
 
     public static <T extends Exception> void internalWalkThroughStructure(final Handler<T> handler, final File f) throws T {
-        if (!f.exists()) return;
+        if (!f.exists()) {
+            return;
+        }
 
         handler.onFile(f);
         if (f.isDirectory()) {
@@ -294,7 +302,9 @@ public class Files {
     }
 
     public static <T extends Exception> void internalWalkThroughStructureReverse(final Handler<T> handler, final File f) throws T {
-        if (!f.exists()) return;
+        if (!f.exists()) {
+            return;
+        }
         if (f.isDirectory()) {
             for (final File sf : f.listFiles()) {
                 Files.walkThroughStructureReverse(handler, sf);
@@ -303,4 +313,6 @@ public class Files {
         handler.onFile(f);
 
     }
+
+   
 }
