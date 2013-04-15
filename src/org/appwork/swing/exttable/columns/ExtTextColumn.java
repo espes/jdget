@@ -40,7 +40,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     protected RenderLabel     rendererIcon;
 
     protected MigPanel        renderer;
-    protected RenderLabel       editorIconLabel;
+    protected RenderLabel     editorIconLabel;
     protected boolean         noset            = false;
 
     /**
@@ -159,10 +159,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     }
 
-    public JTextField getEditorField() {
-        return editorField;
-    }
-
     public void actionPerformed(final ActionEvent e) {
         this.editorField.removeActionListener(this);
         this.fireEditingStopped();
@@ -212,7 +208,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void focusGained(final FocusEvent e) {
-        
+
         this.editorField.selectAll();
     }
 
@@ -231,6 +227,10 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     @Override
     public JComponent getEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
         return this.editor;
+    }
+
+    public JTextField getEditorField() {
+        return this.editorField;
     }
 
     /*
@@ -296,7 +296,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public boolean matchSearch(final E object, final Pattern pattern) {
-        return pattern.matcher(this.getStringValue(object)).matches();
+        final String stringValue = this.getStringValue(object);
+        if (stringValue == null) { return false; }
+        return pattern.matcher(stringValue).matches();
     }
 
     @Override

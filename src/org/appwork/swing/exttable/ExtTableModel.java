@@ -36,19 +36,19 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * 
      */
-    public static final String                             SORT_ORDER_ID_KEY   = "SORT_ORDER_ID";
+    public static final String                                  SORT_ORDER_ID_KEY   = "SORT_ORDER_ID";
     /**
      * 
      */
-    public static final String                             SORTCOLUMN_KEY      = "SORTCOLUMN";
+    public static final String                                  SORTCOLUMN_KEY      = "SORTCOLUMN";
     /**
      * 
      */
-    private static final long                              serialVersionUID    = 939549808899567618L;
+    private static final long                                   serialVersionUID    = 939549808899567618L;
     /**
      * complete table structure has changed
      */
-    protected static final int                             UPDATE_STRUCTURE    = 1;
+    protected static final int                                  UPDATE_STRUCTURE    = 1;
     /**
      * Column instances
      */
@@ -57,27 +57,27 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * Modelid to have an seperate key for database savong
      */
-    private final String                                   modelID;
+    private final String                                        modelID;
 
     /**
      * the table that uses this model
      */
-    private ExtTable<E>                                    table               = null;
+    private ExtTable<E>                                         table               = null;
 
     /**
      * a list of objects. Each object represents one table row
      */
-    protected List<E>                                 tableData           = new ArrayList<E>();
+    protected List<E>                                           tableData           = new ArrayList<E>();
 
-    protected ExtColumn<E>                                 sortColumn;
+    protected ExtColumn<E>                                      sortColumn;
 
     private final java.util.List<ExtComponentRowHighlighter<E>> extComponentRowHighlighters;
 
-    private final ImageIcon                                iconAsc;
-    private final ImageIcon                                iconDesc;
-    private final PropertyChangeListener                   replaceDelayer;
-    private List<E>                                   delayedNewTableData = null;
-    private List<E>                                   delayedSelection    = null;
+    private final ImageIcon                                     iconAsc;
+    private final ImageIcon                                     iconDesc;
+    private final PropertyChangeListener                        replaceDelayer;
+    private List<E>                                             delayedNewTableData = null;
+    private List<E>                                             delayedSelection    = null;
 
     /**
      * Create a new ExtTableModel.
@@ -202,17 +202,17 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         ExtTableModel.this.delayedSelection = null;
                         ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
                         /* replace TableData and set Selection */
-                        ListSelectionModel s = ltable.getSelectionModel();
+                        final ListSelectionModel s = ltable.getSelectionModel();
                         final boolean adjusting = s.getValueIsAdjusting();
                         int anchor = s.getAnchorSelectionIndex();
                         int lead = s.getLeadSelectionIndex();
                         int minIndex = s.getMinSelectionIndex();
                         int maxIndex = s.getMaxSelectionIndex();
 
-                        E minObject = minIndex < 0 ? null : getObjectbyRow(minIndex);
-                        E maxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
-                        E anchorObject = anchor < 0 ? null : getObjectbyRow(anchor);
-                        E leadObject = lead < 0 ? null : getObjectbyRow(lead);
+                        final E minObject = minIndex < 0 ? null : ExtTableModel.this.getObjectbyRow(minIndex);
+                        final E maxObject = maxIndex < 0 ? null : ExtTableModel.this.getObjectbyRow(maxIndex);
+                        final E anchorObject = anchor < 0 ? null : ExtTableModel.this.getObjectbyRow(anchor);
+                        final E leadObject = lead < 0 ? null : ExtTableModel.this.getObjectbyRow(lead);
 
                         ExtTableModel.this.setTableData(newtableData);
 
@@ -224,30 +224,30 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
                             if (adjusting || true) {
 
-                                E newMinObject = minIndex < 0 ? null : getObjectbyRow(minIndex);
-                                E newMaxObject = maxIndex < 0 ? null : getObjectbyRow(maxIndex);
-                                E newAnchorObject = anchor < 0 ? null : getObjectbyRow(anchor);
-                                E newLeadObject = lead < 0 ? null : getObjectbyRow(lead);
+                                final E newMinObject = minIndex < 0 ? null : ExtTableModel.this.getObjectbyRow(minIndex);
+                                final E newMaxObject = maxIndex < 0 ? null : ExtTableModel.this.getObjectbyRow(maxIndex);
+                                final E newAnchorObject = anchor < 0 ? null : ExtTableModel.this.getObjectbyRow(anchor);
+                                final E newLeadObject = lead < 0 ? null : ExtTableModel.this.getObjectbyRow(lead);
 
                                 if (newAnchorObject != anchorObject) {
                                     // we have to adjust minINdex
 
-                                    anchor = getRowforObject(anchorObject);
+                                    anchor = ExtTableModel.this.getRowforObject(anchorObject);
                                 }
                                 if (newLeadObject != leadObject) {
                                     // we have to adjust minINdex
 
-                                    lead = getRowforObject(leadObject);
+                                    lead = ExtTableModel.this.getRowforObject(leadObject);
                                 }
                                 if (newMinObject != minObject) {
                                     // we have to adjust minINdex
 
-                                    minIndex = getRowforObject(minObject);
+                                    minIndex = ExtTableModel.this.getRowforObject(minObject);
                                 }
 
                                 if (newMaxObject != maxObject) {
                                     // we have to adjust maxIndex
-                                    maxIndex = getRowforObject(maxObject);
+                                    maxIndex = ExtTableModel.this.getRowforObject(maxObject);
                                 }
                                 // The execution order is important.
                                 s.setValueIsAdjusting(adjusting);
@@ -275,7 +275,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 }
             }
 
-            private String toString(ListSelectionModel s) {
+            private String toString(final ListSelectionModel s) {
                 // TODO Auto-generated method stub
                 return "Anchor " + s.getAnchorSelectionIndex() + " lead " + s.getLeadSelectionIndex() + " min: " + s.getMinSelectionIndex() + " max: " + s.getMaxSelectionIndex();
             }
@@ -780,7 +780,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public E searchNextObject(final int startRow, final String ret, final boolean caseSensitive, final boolean regex) {
 
-        Pattern p;
+        final Pattern p;
         if (!regex) {
             final String[] pats = ret.split("\\*");
             final StringBuilder pattern = new StringBuilder();
@@ -790,9 +790,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 }
                 pattern.append(Pattern.quote(pp));
             }
-            p = Pattern.compile(".*?" + pattern.toString() + ".*?", caseSensitive ? Pattern.CASE_INSENSITIVE : 0 | Pattern.DOTALL);
+            p = Pattern.compile(".*?" + pattern.toString() + ".*?", caseSensitive == false ? Pattern.CASE_INSENSITIVE : 0 | Pattern.DOTALL);
         } else {
-            p = Pattern.compile(".*?" + ret + ".*?", caseSensitive ? Pattern.CASE_INSENSITIVE : 0 | Pattern.DOTALL);
+            p = Pattern.compile(".*?" + ret + ".*?", caseSensitive == false ? Pattern.CASE_INSENSITIVE : 0 | Pattern.DOTALL);
         }
         final List<E> ltableData = this.getTableData();
         for (int i = startRow; i < ltableData.size(); i++) {
