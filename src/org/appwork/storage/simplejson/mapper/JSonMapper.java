@@ -49,39 +49,39 @@ public class JSonMapper {
             if (type == boolean.class) {
                 v = ((Boolean) v).booleanValue();
             } else if (type == char.class) {
-                v = (char) ((Long) v).byteValue();
+                v = (char) ((Number) v).byteValue();
             } else if (type == byte.class) {
-                v = ((Long) v).byteValue();
+                v = ((Number) v).byteValue();
             } else if (type == short.class) {
-                v = ((Long) v).shortValue();
+                v = ((Number) v).shortValue();
             } else if (type == int.class) {
-                v = ((Long) v).intValue();
+                v = ((Number) v).intValue();
             } else if (type == long.class) {
-                v = ((Long) v).longValue();
+                v = ((Number) v).longValue();
             } else if (type == float.class) {
-                v = ((Double) v).floatValue();
+                v = ((Number) v).floatValue();
             } else if (type == double.class) {
                 //
-                v = ((Double) v).doubleValue();
+                v = ((Number) v).doubleValue();
 
             }
         } else if (type == Boolean.class) {
             v = ((Boolean) v).booleanValue();
         } else if (type == Character.class) {
-            v = (char) ((Long) v).byteValue();
+            v = (char) ((Number) v).byteValue();
         } else if (type == Byte.class) {
-            v = ((Long) v).byteValue();
+            v = ((Number) v).byteValue();
         } else if (type == Short.class) {
-            v = ((Long) v).shortValue();
+            v = ((Number) v).shortValue();
         } else if (type == Integer.class) {
-            v = ((Long) v).intValue();
+            v = ((Number) v).intValue();
         } else if (type == Long.class) {
-            v = ((Long) v).longValue();
+            v = ((Number) v).longValue();
         } else if (type == Float.class) {
-            v = ((Double) v).floatValue();
+            v = ((Number) v).floatValue();
         } else if (type == Double.class) {
             //
-            v = ((Double) v).doubleValue();
+            v = ((Number) v).doubleValue();
 
         }
 
