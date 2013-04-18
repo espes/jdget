@@ -17,20 +17,23 @@ public class HexFormatter {
      * @param digest
      * @return
      */
-    public static String byteArrayToHex(byte[] digest) {
-        StringBuilder ret = new StringBuilder();
+    public static String byteArrayToHex(final byte[] digest) {
+        final StringBuilder ret = new StringBuilder();
         String tmp;
-        for (byte d : digest) {
+        for (final byte d : digest) {
             tmp = Integer.toHexString(d & 0xFF);
-            if (tmp.length() < 2) ret.append('0');
+            if (tmp.length() < 2) {
+                ret.append('0');
+            }
             ret.append(tmp);
         }
         return ret.toString();
     }
 
-    public static byte[] hexToByteArray(String s) {
+    public static byte[] hexToByteArray(final String s) {
+        if (s == null) { return null; }
         final int len = s.length();
-        byte[] data = new byte[len / 2];
+        final byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
             data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
         }

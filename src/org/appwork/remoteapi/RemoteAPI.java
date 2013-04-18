@@ -168,7 +168,7 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         return false;
     }
 
-    protected static void sendBytes(final RemoteAPIResponse response, final boolean gzip, final boolean chunked, final byte[] bytes) throws IOException {
+    public static void sendBytes(final RemoteAPIResponse response, final boolean gzip, final boolean chunked, final byte[] bytes) throws IOException {
         /* we dont want this api response to get cached */
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CACHE_CONTROL, "no-store, no-cache"));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
