@@ -22,17 +22,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class RequestHeader {
-
     /**
      * For more header fields see
      * 
      * @link(http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14).
      */
+    private boolean            dominant = false;
 
-    // members
     private final List<String> keys;
+
     private final List<String> values;
-    private boolean dominant = false;
 
     public RequestHeader() {
         this.keys = new ArrayList<String>();
@@ -54,11 +53,28 @@ public class RequestHeader {
         final RequestHeader newObj = new RequestHeader();
         newObj.keys.addAll(this.keys);
         newObj.values.addAll(this.values);
+        newObj.dominant = this.dominant;
         return newObj;
     }
 
     public boolean contains(final String string) {
         return this.keys.contains(string);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
+        RequestHeader other = (RequestHeader) obj;
+        if (dominant != other.dominant) { return false; }
+        if (keys == null) {
+            if (other.keys != null) { return false; }
+        } else if (!keys.equals(other.keys)) { return false; }
+        if (values == null) {
+            if (other.values != null) { return false; }
+        } else if (!values.equals(other.values)) { return false; }
+        return true;
     }
 
     public String get(final String key) {
@@ -72,6 +88,16 @@ public class RequestHeader {
 
     public String getValue(final int index) {
         return this.values.get(index);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (dominant ? 1231 : 1237);
+        result = prime * result + (keys == null ? 0 : keys.hashCode());
+        result = prime * result + (values == null ? 0 : values.hashCode());
+        return result;
     }
 
     public boolean isDominant() {
@@ -129,8 +155,7 @@ public class RequestHeader {
     }
 
     /**
-     * if a header is dominant, it will not get merged with existing headers. It
-     * will replace it completely
+     * if a header is dominant, it will not get merged with existing headers. It will replace it completely
      * 
      * @param dominant
      */
