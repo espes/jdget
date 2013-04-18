@@ -24,17 +24,32 @@ import jd.http.Request;
 
 import org.appwork.utils.net.httpconnection.HTTPConnection.RequestMethod;
 
+/**
+ * The HTTP/1.0 specification defined the GET, POST and HEAD methods and the HTTP/1.1 specification. The GET method requests a
+ * representation of the specified resource. Requests using GET should only retrieve data and should have no other effect.
+ */
 public class GetRequest extends Request {
 
+    /**
+     * constructor
+     * 
+     * @param url
+     *            the url - will be corrected
+     * @see jd.http.Browser.correctURL(String)
+     * @throws MalformedURLException
+     *             in case URL was malformed
+     */
     public GetRequest(final String url) throws MalformedURLException {
         super(Browser.correctURL(url));
     }
 
+    /** {@inheritDoc} */
     @Override
     public long postRequest() throws IOException {
         return 0;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void preRequest() throws IOException {
         this.httpConnection.setRequestMethod(RequestMethod.GET);
