@@ -10,14 +10,30 @@ import jd.http.requests.PostRequest;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 import org.appwork.utils.net.httpconnection.Socks5HTTPConnectionImpl;
 
+/**
+ * The Class URLConnectionAdapterSocks5Impl.
+ */
 public class URLConnectionAdapterSocks5Impl extends Socks5HTTPConnectionImpl implements URLConnectionAdapter {
 
-    private Request request;
+    /** Carriage return + Line Feed */
+    private static final String CRLF = "\r\n";
 
+    /** The request. */
+    private Request             request;
+
+    /**
+     * constructor
+     * 
+     * @param url
+     *            the {@link URL}
+     * @param proxy
+     *            the {@link HTTPProxy}
+     */
     public URLConnectionAdapterSocks5Impl(final URL url, final HTTPProxy proxy) {
         super(url, proxy);
     }
 
+    /** {@inheritDoc} */
     @Override
     public InputStream getErrorStream() {
         try {
@@ -27,42 +43,45 @@ public class URLConnectionAdapterSocks5Impl extends Socks5HTTPConnectionImpl imp
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public long getLongContentLength() {
         return this.getContentLength();
     }
 
+    /** {@inheritDoc} */
     @Override
     public Request getRequest() {
         return this.request;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void setRequest(final Request request) {
         this.request = request;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder(300);
         sb.append(this.getRequestInfo());
-
-        if (this.getRequest() != null) {
-            if (this.getRequest() instanceof PostRequest) {
-                if (((PostRequest) this.getRequest()).log() != null) {
-                    sb.append(((PostRequest) this.getRequest()).log());
+        Request req = this.getRequest();
+        if (req != null) {
+            if (req instanceof PostRequest) {
+                String log = ((PostRequest) req).log();
+                if (log != null) {
+                    sb.append(log);
                 }
-                sb.append(new char[] { '\r', '\n' });
-            } else if (this.getRequest() instanceof PostFormDataRequest) {
-                if (((PostFormDataRequest) this.getRequest()).getPostDataString() != null) {
-                    sb.append(((PostFormDataRequest) this.getRequest()).getPostDataString());
+            } else if (req instanceof PostFormDataRequest) {
+                String postDataString = ((PostFormDataRequest) req).getPostDataString();
+                if (postDataString != null) {
+                    sb.append(postDataString);
                 }
-                sb.append(new char[] { '\r', '\n' });
             }
+            sb.append(CRLF);
         }
-
         sb.append(this.getResponseInfo());
-
         return sb.toString();
     }
 }
