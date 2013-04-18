@@ -12,7 +12,7 @@ public class ErrorResponse {
         TOO_MANY_REQUESTS(429),
         ERROR_EMAIL_NOT_CONFIRMED(401),
         TOKEN_INVALID(403),
-        OFFLINE,
+        OFFLINE(504),
         UNKNOWN(500),
         AUTH_FAILED(403),
         EMAIL_INVALID,
