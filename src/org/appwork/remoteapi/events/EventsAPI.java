@@ -11,6 +11,8 @@ package org.appwork.remoteapi.events;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
@@ -28,8 +30,10 @@ import org.appwork.storage.JSonStorage;
  */
 public class EventsAPI implements EventsAPIInterface {
 
-    private final ConcurrentHashMap<Long, Subscriber> subscribers = new ConcurrentHashMap<Long, Subscriber>(8, 0.9f, 1);
-    private EventPublisher[]                          publishers  = new EventPublisher[0];
+    protected final ConcurrentHashMap<Long, Subscriber> subscribers            = new ConcurrentHashMap<Long, Subscriber>(8, 0.9f, 1);
+    protected EventPublisher[]                          publishers             = new EventPublisher[0];
+    protected final Object                              subscribersCleanupLock = new Object();
+    protected Thread                                    cleanupThread          = null;
 
     @Override
     public SubscriptionResponse addsubscription(final long subscriptionid, final String[] subscriptions, final String[] exclusions) {
@@ -91,7 +95,7 @@ public class EventsAPI implements EventsAPIInterface {
     }
 
     @Override
-    public void listen(final RemoteAPIRequest request, final RemoteAPIResponse response, final long subscriptionid, final long lasteventnumber) {
+    public void listen(final RemoteAPIRequest request, final RemoteAPIResponse response, final long subscriptionid, long lasteventnumber) {
         final Subscriber subscriber = this.subscribers.get(subscriptionid);
         if (subscriber == null) {
             response.setResponseCode(ResponseCode.ERROR_NOT_FOUND);
@@ -106,6 +110,8 @@ public class EventsAPI implements EventsAPIInterface {
                         this.subscribers.remove(subscriptionid);
                         response.setResponseCode(ResponseCode.ERROR_NOT_FOUND);
                         return;
+                    } else {
+                        lasteventnumber = 0;
                     }
                 }
                 events.add(event);
@@ -220,9 +226,61 @@ public class EventsAPI implements EventsAPIInterface {
     public SubscriptionResponse subscribe(final String[] subscriptions, final String[] exclusions) {
         final Subscriber subscriber = new Subscriber(subscriptions, exclusions);
         this.subscribers.put(subscriber.getSubscriptionID(), subscriber);
+        this.subscribersCleanupThread();
         final SubscriptionResponse ret = new SubscriptionResponse(subscriber);
         ret.setSubscribed(true);
         return ret;
+    }
+
+    /*
+     * starts a cleanupThread (if needed) to remove subscribers that are no
+     * longer alive
+     * 
+     * current implementation has a minimum delay of 1 minute
+     */
+    protected void subscribersCleanupThread() {
+        synchronized (this.subscribersCleanupLock) {
+            if (this.cleanupThread == null || this.cleanupThread.isAlive() == false) {
+                this.cleanupThread = null;
+            } else {
+                return;
+            }
+            this.cleanupThread = new Thread("EventsAPI:subscribersCleanupThread") {
+                @Override
+                public void run() {
+                    try {
+                        while (Thread.currentThread() == EventsAPI.this.cleanupThread) {
+                            try {
+                                Thread.sleep(60 * 1000);
+                                final Iterator<Entry<Long, Subscriber>> it = EventsAPI.this.subscribers.entrySet().iterator();
+                                while (it.hasNext()) {
+                                    final Entry<Long, Subscriber> next = it.next();
+                                    final Subscriber subscriber = next.getValue();
+                                    if (subscriber.getLastPolledTimestamp() + subscriber.getMaxKeepalive() < System.currentTimeMillis()) {
+                                        it.remove();
+                                    }
+                                }
+                                synchronized (EventsAPI.this.subscribersCleanupLock) {
+                                    if (EventsAPI.this.subscribers.size() == 0) {
+                                        EventsAPI.this.cleanupThread = null;
+                                        break;
+                                    }
+                                }
+                            } catch (final Throwable e) {
+                            }
+                        }
+                    } finally {
+                        synchronized (EventsAPI.this.subscribersCleanupLock) {
+                            if (Thread.currentThread() == EventsAPI.this.cleanupThread) {
+                                EventsAPI.this.cleanupThread = null;
+                            }
+                        }
+                    }
+                };
+            };
+            this.cleanupThread.setDaemon(true);
+            this.cleanupThread.start();
+        }
     }
 
     public synchronized boolean unregister(final EventPublisher publisher) {
