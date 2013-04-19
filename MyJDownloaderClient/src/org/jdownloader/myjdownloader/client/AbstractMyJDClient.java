@@ -400,6 +400,10 @@ public abstract class AbstractMyJDClient {
 
     }
 
+    public String getEmail() {
+        return this.email;
+    }
+
     public byte[] getServerEncryptionToken() {
         return this.serverEncryptionToken;
     }
@@ -579,15 +583,11 @@ public abstract class AbstractMyJDClient {
      * @throws APIException
      * @throws MyJDownloaderException
      */
-    public synchronized void register(final CaptchaChallenge challenge, final String email, final String password, final String referer) throws MyJDownloaderException {
-
-        final byte[] loginSecret = this.createSecret(email, password, "server");
-
-        final String encrypted = this.jsonPost("/my/register?email=" + this.urlencode(email) + "&captchaResponse=" + this.urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + this.urlencode(challenge.getCaptchaChallenge()) + "&loginSecret=" + AbstractMyJDClient.byteArrayToHex(loginSecret) + "&referer=" + this.urlencode(referer == null ? this.appKey : referer));
+    public synchronized void register(final CaptchaChallenge challenge, final String email, final String referer) throws MyJDownloaderException {
+        final String encrypted = this.jsonPost("/my/register?email=" + this.urlencode(email) + "&captchaResponse=" + this.urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + this.urlencode(challenge.getCaptchaChallenge()) + "&referer=" + this.urlencode(referer == null ? this.appKey : referer));
 
         final boolean ret = this.jsonToObject(encrypted, boolean.class);
         if (!ret) { throw new BadResponseException("Unexpected False"); }
-
     }
 
     /**
@@ -597,11 +597,11 @@ public abstract class AbstractMyJDClient {
      * @param password
      * @throws MyJDownloaderException
      */
-    public synchronized void requestConfirmationEmail(final String email, final String password) throws MyJDownloaderException {
+    public synchronized void requestConfirmationEmail(final CaptchaChallenge challenge, final String email) throws MyJDownloaderException {
+        final String response = this.jsonPost("/my/requestemailconfirmation?email=" + this.urlencode(email) + "&captchaResponse=" + this.urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + this.urlencode(challenge.getCaptchaChallenge()));
 
-        final byte[] loginSecret = this.createSecret(email, password, "server");
-
-        this.callServer("/my/requestemailconfirmation?email=" + this.urlencode(email), null, loginSecret, RequestIDOnly.class);
+        final boolean ret = this.jsonToObject(response, boolean.class);
+        if (!ret) { throw new BadResponseException("Unexpected False"); }
 
     }
 
@@ -611,10 +611,10 @@ public abstract class AbstractMyJDClient {
      * 
      * @throws MyJDownloaderException
      */
-    public synchronized void requestPasswordChangeEmail() throws MyJDownloaderException {
-
-        this.callServer("/my/requestpasswordchangeemail?sessiontoken=" + this.urlencode(this.sessionToken), null, this.serverEncryptionToken, RequestIDOnly.class);
-
+    public synchronized void requestPasswordChangeEmail(final CaptchaChallenge challenge, final String email) throws MyJDownloaderException {
+        final String response = this.jsonPost("/my/requestpasswordchangeemail?email=" + this.urlencode(email) + "&captchaResponse=" + this.urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + this.urlencode(challenge.getCaptchaChallenge()));
+        final boolean ret = this.jsonToObject(response, boolean.class);
+        if (!ret) { throw new BadResponseException("Unexpected False"); }
     }
 
     public void setServerRoot(final String serverRoot) {
