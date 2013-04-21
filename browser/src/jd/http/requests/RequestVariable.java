@@ -18,32 +18,66 @@ package jd.http.requests;
 
 import java.util.Map.Entry;
 
+/**
+ * class holding key value of variable for Request
+ */
 public class RequestVariable {
 
+    /** The key */
     private String key;
+
+    /** The value */
     private String value;
 
+    /**
+     * @return the key
+     */
     public String getKey() {
         return key;
     }
 
+    /**
+     * @param key
+     *            the new key
+     */
     public void setKey(String key) {
         this.key = key;
     }
 
+    /**
+     * @return the value
+     */
     public String getValue() {
         return value;
     }
 
+    /**
+     * @param value
+     *            the new value
+     */
     public void setValue(String value) {
         this.value = value;
     }
 
+    /**
+     * constructor
+     * 
+     * @param key
+     *            the key
+     * @param value
+     *            the value
+     */
     public RequestVariable(String key, String value) {
         this.key = key;
         this.value = value;
     }
 
+    /**
+     * constructor
+     * 
+     * @param keyValueEntry
+     *            {@link java.util.Map.Entry} containing key and value to use
+     */
     public RequestVariable(Entry<String, String> keyValueEntry) {
         this.key = keyValueEntry.getKey();
         this.value = keyValueEntry.getValue();
