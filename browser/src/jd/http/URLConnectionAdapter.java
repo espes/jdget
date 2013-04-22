@@ -19,11 +19,16 @@ package jd.http;
 import java.io.InputStream;
 
 public interface URLConnectionAdapter extends org.appwork.utils.net.httpconnection.HTTPConnection {
+    public static final String CRLF = "\r\n";
+
     /**
      * DO NOT USE in Plugins for old Stable <10000
      */
     @Deprecated
     long getContentLength();
+
+    @Deprecated
+    public InputStream getErrorStream();
 
     /**
      * DO NOT rename this or change data type
@@ -33,7 +38,4 @@ public interface URLConnectionAdapter extends org.appwork.utils.net.httpconnecti
     public Request getRequest();
 
     void setRequest(Request request);
-
-    @Deprecated
-    public InputStream getErrorStream();
 }

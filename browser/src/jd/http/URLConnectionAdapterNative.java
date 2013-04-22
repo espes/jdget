@@ -8,29 +8,21 @@ import jd.http.requests.PostFormDataRequest;
 import jd.http.requests.PostRequest;
 
 import org.appwork.utils.net.httpconnection.HTTPProxy;
-import org.appwork.utils.net.httpconnection.Socks5HTTPConnectionImpl;
+import org.appwork.utils.net.httpconnection.NativeHTTPConnectionImpl;
 
-/**
- * The Class URLConnectionAdapterSocks5Impl.
- */
-public class URLConnectionAdapterSocks5Impl extends Socks5HTTPConnectionImpl implements URLConnectionAdapter {
+public class URLConnectionAdapterNative extends NativeHTTPConnectionImpl implements URLConnectionAdapter {
 
-    /** The request. */
     private Request request;
 
-    /**
-     * constructor
-     * 
-     * @param url
-     *            the {@link URL}
-     * @param proxy
-     *            the {@link HTTPProxy}
-     */
-    public URLConnectionAdapterSocks5Impl(final URL url, final HTTPProxy proxy) {
-        super(url, proxy);
+    public URLConnectionAdapterNative(final URL url) {
+        super(url);
     }
 
-    /** {@inheritDoc} */
+    public URLConnectionAdapterNative(final URL url, final HTTPProxy p) {
+        super(url, p);
+        // TODO Auto-generated constructor stub
+    }
+
     @Override
     public InputStream getErrorStream() {
         try {
@@ -40,25 +32,21 @@ public class URLConnectionAdapterSocks5Impl extends Socks5HTTPConnectionImpl imp
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public long getLongContentLength() {
         return this.getContentLength();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Request getRequest() {
         return this.request;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setRequest(final Request request) {
         this.request = request;
     }
 
-    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder(300);
@@ -81,4 +69,5 @@ public class URLConnectionAdapterSocks5Impl extends Socks5HTTPConnectionImpl imp
         sb.append(this.getResponseInfo());
         return sb.toString();
     }
+
 }

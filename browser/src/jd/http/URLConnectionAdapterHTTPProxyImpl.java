@@ -12,11 +12,8 @@ import org.appwork.utils.net.httpconnection.HTTPProxyHTTPConnectionImpl;
 
 public class URLConnectionAdapterHTTPProxyImpl extends HTTPProxyHTTPConnectionImpl implements URLConnectionAdapter {
 
-    /** Carriage return + Line Feed */
-    private static final String CRLF = "\r\n";
-
     /** The request. */
-    private Request             request;
+    private Request request;
 
     /**
      * constructor
@@ -63,20 +60,20 @@ public class URLConnectionAdapterHTTPProxyImpl extends HTTPProxyHTTPConnectionIm
     public String toString() {
         final StringBuilder sb = new StringBuilder(300);
         sb.append(this.getRequestInfo());
-        Request req = this.getRequest();
+        final Request req = this.getRequest();
         if (req != null) {
             if (req instanceof PostRequest) {
-                String log = ((PostRequest) req).log();
+                final String log = ((PostRequest) req).log();
                 if (log != null) {
                     sb.append(log);
                 }
             } else if (req instanceof PostFormDataRequest) {
-                String postDataString = ((PostFormDataRequest) req).getPostDataString();
+                final String postDataString = ((PostFormDataRequest) req).getPostDataString();
                 if (postDataString != null) {
                     sb.append(postDataString);
                 }
             }
-            sb.append(CRLF);
+            sb.append(URLConnectionAdapter.CRLF);
         }
         sb.append(this.getResponseInfo());
         return sb.toString();
