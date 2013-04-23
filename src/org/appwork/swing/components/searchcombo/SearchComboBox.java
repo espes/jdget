@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.accessibility.Accessible;
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxEditor;
 import javax.swing.ComboBoxModel;
@@ -60,16 +61,6 @@ import org.appwork.utils.swing.SwingUtils;
  */
 public abstract class SearchComboBox<T> extends JComboBox {
 
-    public boolean autoCompletionEnabled=true;
-
-    public boolean isAutoCompletionEnabled() {
-        return autoCompletionEnabled;
-    }
-
-    public void setAutoCompletionEnabled(boolean autoCompletionEnabled) {
-        this.autoCompletionEnabled = autoCompletionEnabled;
-    }
-
     class Editor implements ComboBoxEditor, FocusListener, DocumentListener {
         private final JTextField       tf;
         private final MigPanel         panel;
@@ -80,7 +71,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         private volatile AtomicInteger valueSetter = new AtomicInteger(0);
 
         public Editor() {
-            this.tf = createTextField();
+            this.tf = SearchComboBox.this.createTextField();
             this.tf.getDocument().addDocumentListener(this);
             this.tf.addFocusListener(new FocusListener() {
 
@@ -140,7 +131,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         }
 
         private void auto() {
-            if (!isAutoCompletionEnabled()) return;
+            if (!SearchComboBox.this.isAutoCompletionEnabled()) { return; }
             if (this.valueSetter.get() > 0) { return; }
             // scheduler executes at least 50 ms after this submit.
             // this.sheduler.run();
@@ -160,7 +151,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
          * object
          */
         protected boolean autoComplete(final boolean showPopup) {
-            if (!isAutoCompletionEnabled()) return false;
+            if (!SearchComboBox.this.isAutoCompletionEnabled()) { return false; }
             final String txt = Editor.this.tf.getText();
             if (StringUtils.isEmpty(txt)) {
                 /* every string will begin with "" so we return here */
@@ -390,10 +381,12 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     }
 
+    public boolean            autoCompletionEnabled = true;
+
     /**
      * 
      */
-    private static final long serialVersionUID = 6475635443708682554L;
+    private static final long serialVersionUID      = 6475635443708682554L;
 
     public static void main(final String[] args) {
         final BasicGui gui = new BasicGui(SearchComboBox.class.getSimpleName()) {
@@ -474,43 +467,6 @@ public abstract class SearchComboBox<T> extends JComboBox {
             }
         };
 
-    }
-
-    /**
-     * @return
-     */
-    public JTextField createTextField() {
-
-        return new JTextField() {
-
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 8594276945732071594L;
-
-            @Override
-            public void setText(final String t) {
-                super.setText(t);
-            }
-            //
-            // super.setText(t);
-            // if (SearchComboBox.this.helptext != null) {
-            // if (SearchComboBox.this.helptext.equals(t)) {
-            // SearchComboBox.this.setColorState(SearchComboBox.this.helpColorSet);
-            //
-            // } else {
-            // // if (!Editor.this.autoComplete(false)) {
-            // // this.setForeground(SearchComboBox.this.foregroundBad);
-            // // } else {
-            // // this.setForeground(Editor.this.defaultForeground);
-            // // }
-            //
-            // this.setForeground(SearchComboBox.this.getForeground());
-            // }
-            // }
-            // }
-
-        };
     }
 
     private final ColorState helpColorSet           = new ColorState(Color.LIGHT_GRAY);
@@ -615,6 +571,43 @@ public abstract class SearchComboBox<T> extends JComboBox {
     /**
      * @return
      */
+    public JTextField createTextField() {
+
+        return new JTextField() {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 8594276945732071594L;
+
+            @Override
+            public void setText(final String t) {
+                super.setText(t);
+            }
+            //
+            // super.setText(t);
+            // if (SearchComboBox.this.helptext != null) {
+            // if (SearchComboBox.this.helptext.equals(t)) {
+            // SearchComboBox.this.setColorState(SearchComboBox.this.helpColorSet);
+            //
+            // } else {
+            // // if (!Editor.this.autoComplete(false)) {
+            // // this.setForeground(SearchComboBox.this.foregroundBad);
+            // // } else {
+            // // this.setForeground(Editor.this.defaultForeground);
+            // // }
+            //
+            // this.setForeground(SearchComboBox.this.getForeground());
+            // }
+            // }
+            // }
+
+        };
+    }
+
+    /**
+     * @return
+     */
     public String getEditorText() {
 
         return this.getTextField().getText();
@@ -647,6 +640,10 @@ public abstract class SearchComboBox<T> extends JComboBox {
      */
     abstract protected String getTextForValue(T value);
 
+    public boolean isAutoCompletionEnabled() {
+        return this.autoCompletionEnabled;
+    }
+
     public boolean isHelpTextVisible() {
         return this.helptext != null && this.helptext.equals(this.getText());
     }
@@ -668,6 +665,10 @@ public abstract class SearchComboBox<T> extends JComboBox {
     public void onChanged() {
         // TODO Auto-generated method stub
 
+    }
+
+    public void setAutoCompletionEnabled(final boolean autoCompletionEnabled) {
+        this.autoCompletionEnabled = autoCompletionEnabled;
     }
 
     /**
@@ -712,10 +713,29 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * @param listModel
      */
     public void setList(final List<T> listModel) {
+        Object prototype = null;
         if (this.usePrototype() && listModel.size() > 0) {
-            this.setPrototypeDisplayValue(listModel.get(0));
+            prototype = listModel.get(0);
+            this.setPrototypeDisplayValue(prototype);
         }
         super.setModel(new DefaultComboBoxModel(listModel.toArray(new Object[] {})));
+        try {
+            if (prototype != null) {
+                /*
+                 * http://stackoverflow.com/questions/5896282/how-to-prevent-
+                 * jcombobox
+                 * -from-becoming-unresponsive-when-using-a-custom-listcell
+                 */
+                final Accessible a = this.getUI().getAccessibleChild(this, 0);
+                if (a instanceof javax.swing.plaf.basic.ComboPopup) {
+                    final JList popupList = ((javax.swing.plaf.basic.ComboPopup) a).getList();
+                    // route the comboBox' prototype to the list
+                    // should happen in BasicComboxBoxUI
+                    popupList.setPrototypeCellValue(prototype);
+                }
+            }
+        } catch (final Throwable e) {
+        }
         try {
             final BasicComboBoxUI udi = (BasicComboBoxUI) this.getUI();
             JComponent arrowButton = null;
