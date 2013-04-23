@@ -365,9 +365,13 @@ public class ShutdownController extends Thread {
                 Log.L.info("Fire onShutDownEvents");
                 for (final ShutdownVetoListener v : localList) {
                     try {
+                        Log.L.info("Call onShutdown: "+v);
                         v.onShutdown(silent);
                     } catch (final Throwable e) {
-                        e.printStackTrace();
+                        Log.exception(e);
+                 
+                    }finally{
+                        Log.L.info("Call onShutdown done: "+v);
                     }
                 }
                 Log.L.info("Create ExitThread");
