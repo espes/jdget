@@ -24,15 +24,15 @@ import org.appwork.utils.os.CrossSystem;
 public class Files {
     public static abstract class AbstractHandler<T extends Exception> implements Handler<T> {
 
+        public void intro(final File f) {
+
+        }
+
         /**
          * @param f
          * @throws IOException
          */
         abstract public void onFile(File f) throws T;
-
-        public void intro(final File f) {
-
-        }
 
         public void outro(final File f) {
 
@@ -41,13 +41,13 @@ public class Files {
 
     public static interface Handler<T extends Exception> {
 
+        public void intro(File f) throws T;
+
         /**
          * @param f
          * @throws IOException
          */
         public void onFile(File f) throws T;
-
-        public void intro(File f) throws T;
 
         public void outro(File f) throws T;
     }
@@ -130,9 +130,7 @@ public class Files {
      * @return
      */
     public static String getExtension(final String name) {
-        if (StringUtils.isEmpty(name)) {
-            return null;
-        }
+        if (StringUtils.isEmpty(name)) { return null; }
 
         final int index = name.lastIndexOf(".");
         if (index < 0) { return null; }
@@ -229,34 +227,52 @@ public class Files {
     public static String getRelativePath(String root, final String file) {
 
         final String rootPath, filePath;
-        if (CrossSystem.isWindows()) {
+        if (CrossSystem.isWindows() || CrossSystem.isOS2()) {
             root = root.replace("/", "\\");
             if (!root.endsWith("\\")) {
                 root += "\\";
             }
             rootPath = root.toLowerCase(Locale.ENGLISH);
             filePath = file.toLowerCase(Locale.ENGLISH).replace("/", "\\");
-            if (rootPath.equals(filePath + "\\")) {
-                return "";
-            }
+            if (rootPath.equals(filePath + "\\")) { return ""; }
         } else {
             if (!root.endsWith("/")) {
                 root += "/";
             }
             rootPath = root;
             filePath = file;
-            if (rootPath.equals(filePath + "/")) {
-                return "";
-            }
+            if (rootPath.equals(filePath + "/")) { return ""; }
         }
         if (!filePath.startsWith(rootPath)) { return null; }
         if (rootPath.equals(filePath)) { return "/"; }
 
-        if (CrossSystem.isWindows()) {
+        if (CrossSystem.isWindows() || CrossSystem.isOS2()) {
             return file.substring(rootPath.length()).replace("\\", "/");
         } else {
             return file.substring(rootPath.length());
         }
+    }
+
+    public static <T extends Exception> void internalWalkThroughStructure(final Handler<T> handler, final File f) throws T {
+        if (!f.exists()) { return; }
+
+        handler.onFile(f);
+        if (f.isDirectory()) {
+            for (final File sf : f.listFiles()) {
+                Files.internalWalkThroughStructure(handler, sf);
+            }
+        }
+    }
+
+    public static <T extends Exception> void internalWalkThroughStructureReverse(final Handler<T> handler, final File f) throws T {
+        if (!f.exists()) { return; }
+        if (f.isDirectory()) {
+            for (final File sf : f.listFiles()) {
+                Files.walkThroughStructureReverse(handler, sf);
+            }
+        }
+        handler.onFile(f);
+
     }
 
     public static void main(final String[] args) {
@@ -271,48 +287,21 @@ public class Files {
     public static <T extends Exception> void walkThroughStructure(final Handler<T> handler, final File f) throws T {
         handler.intro(f);
         try {
-            internalWalkThroughStructure(handler, f);
+            Files.internalWalkThroughStructure(handler, f);
         } finally {
             handler.outro(f);
         }
 
-    }
-
-    public static <T extends Exception> void internalWalkThroughStructure(final Handler<T> handler, final File f) throws T {
-        if (!f.exists()) {
-            return;
-        }
-
-        handler.onFile(f);
-        if (f.isDirectory()) {
-            for (final File sf : f.listFiles()) {
-                Files.internalWalkThroughStructure(handler, sf);
-            }
-        }
     }
 
     public static <T extends Exception> void walkThroughStructureReverse(final Handler<T> handler, final File f) throws T {
         handler.intro(f);
         try {
-            internalWalkThroughStructureReverse(handler, f);
+            Files.internalWalkThroughStructureReverse(handler, f);
         } finally {
             handler.outro(f);
         }
 
     }
 
-    public static <T extends Exception> void internalWalkThroughStructureReverse(final Handler<T> handler, final File f) throws T {
-        if (!f.exists()) {
-            return;
-        }
-        if (f.isDirectory()) {
-            for (final File sf : f.listFiles()) {
-                Files.walkThroughStructureReverse(handler, sf);
-            }
-        }
-        handler.onFile(f);
-
-    }
-
-   
 }

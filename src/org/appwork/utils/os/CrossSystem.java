@@ -50,7 +50,7 @@ import org.appwork.utils.swing.dialog.FileChooserType;
  */
 
 public class CrossSystem {
-
+    public static final byte      OS_OS2                 = 11;
     public static final byte      OS_LINUX_OTHER         = 6;
     public static final byte      OS_MAC_OTHER           = 5;
     public static final byte      OS_WINDOWS_OTHER       = 4;
@@ -146,7 +146,7 @@ public class CrossSystem {
          * too
          */
         pathPart = pathPart.replaceFirst("\\.+$", "");
-        if (CrossSystem.isWindows()) {
+        if (CrossSystem.isWindows() || CrossSystem.isOS2()) {
             if (new Regex(pathPart, "^(CON|PRN|AUX|NUL|COM\\d+|LPT\\d+|CLOCK\\$)$").matches()) {
                 pathPart = "_" + pathPart;
             }
@@ -215,23 +215,6 @@ public class CrossSystem {
         return CrossSystem.OS_ID;
     }
 
-    public static double getSystemCPUUsage() {
-
-        try {
-            java.lang.management.OperatingSystemMXBean operatingSystemMXBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
-            double sysload = operatingSystemMXBean.getSystemLoadAverage();
-            if (sysload < 0) {
-                java.lang.reflect.Method method = operatingSystemMXBean.getClass().getDeclaredMethod("getSystemCpuLoad", new Class[] {});
-                method.setAccessible(true);
-                sysload = (Double) method.invoke(operatingSystemMXBean, new Object[] {});
-
-            }
-            return sysload;
-        } catch (Throwable e) {
-            return -1;
-        }
-    }
-
     public static String getJavaBinary() {
         if (CrossSystem.JAVAINT != null) { return CrossSystem.JAVAINT; }
         String javaBinary = "java";
@@ -292,6 +275,8 @@ public class CrossSystem {
             return CrossSystem.OS_WINDOWS_OTHER;
         } else if (OS.contains("mac")) {
             return CrossSystem.OS_MAC_OTHER;
+        } else if (OS.contains("OS/2")) {
+            return CrossSystem.OS_OS2;
         } else {
             return CrossSystem.OS_LINUX_OTHER;
         }
@@ -300,6 +285,23 @@ public class CrossSystem {
 
     public static String getOSString() {
         return CrossSystem.OS_STRING;
+    }
+
+    public static double getSystemCPUUsage() {
+
+        try {
+            final java.lang.management.OperatingSystemMXBean operatingSystemMXBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+            double sysload = operatingSystemMXBean.getSystemLoadAverage();
+            if (sysload < 0) {
+                final java.lang.reflect.Method method = operatingSystemMXBean.getClass().getDeclaredMethod("getSystemCpuLoad", new Class[] {});
+                method.setAccessible(true);
+                sysload = (Double) method.invoke(operatingSystemMXBean, new Object[] {});
+
+            }
+            return sysload;
+        } catch (final Throwable e) {
+            return -1;
+        }
     }
 
     public static boolean is64BitOperatingSystem() {
@@ -362,10 +364,10 @@ public class CrossSystem {
      */
     public static boolean isAbsolutePath(final String path) {
         if (StringUtils.isEmpty(path)) { return false; }
-        if (CrossSystem.isWindows() && path.matches("\\\\\\\\.+\\\\.+")) { return true; }
-        if (CrossSystem.isWindows() && path.matches(".:/.*")) { return true; }
-        if (CrossSystem.isWindows() && path.matches(".:\\\\.*")) { return true; }
-        if (!CrossSystem.isWindows() && path.startsWith("/")) { return true; }
+        if ((CrossSystem.isWindows() || CrossSystem.isOS2()) && path.matches("\\\\\\\\.+\\\\.+")) { return true; }
+        if ((CrossSystem.isWindows() || CrossSystem.isOS2()) && path.matches(".:/.*")) { return true; }
+        if ((CrossSystem.isWindows() || CrossSystem.isOS2()) && path.matches(".:\\\\.*")) { return true; }
+        if (!CrossSystem.isWindows() && !CrossSystem.isOS2() && path.startsWith("/")) { return true; }
 
         return false;
     }
@@ -412,6 +414,14 @@ public class CrossSystem {
      */
     public static boolean isOpenFileSupported() {
         return CrossSystem.desktopSupport.isOpenFileSupported();
+    }
+
+    public static boolean isOS2() {
+        return CrossSystem.isOS2(CrossSystem.OS_ID);
+    }
+
+    public static boolean isOS2(final byte osID) {
+        return osID == CrossSystem.OS_OS2;
     }
 
     /**
@@ -549,7 +559,7 @@ public class CrossSystem {
                 final File jarFile = jar;
                 Log.L.info("Find Jarfile " + jarFile);
                 runin = jarFile.getParentFile();
-                if (CrossSystem.isWindows()) {
+                if (CrossSystem.isWindows() || CrossSystem.isOS2()) {
                     final File exeFile = new File(jarFile.getParentFile(), jarFile.getName().substring(0, jarFile.getName().length() - 4) + ".exe");
                     if (exeFile.exists()) {
                         nativeParameters.add(exeFile.getAbsolutePath());
@@ -620,6 +630,27 @@ public class CrossSystem {
     }
 
     /**
+     * @param saveTo
+     */
+    public static void showInExplorer(final File saveTo) {
+        if (CrossSystem.isWindows()) {
+            try {
+                ProcessBuilderFactory.create("explorer.exe", "/select," + saveTo.getAbsolutePath()).start();
+                return;
+            } catch (final IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        if (saveTo.isDirectory()) {
+            CrossSystem.openFile(saveTo);
+        } else {
+            CrossSystem.openFile(saveTo.getParentFile());
+        }
+
+    }
+
+    /**
      * splits filename into name,extension
      * 
      * @param filename
@@ -629,32 +660,5 @@ public class CrossSystem {
         final String extension = new Regex(filename, "\\.+([^\\.]*$)").getMatch(0);
         final String name = new Regex(filename, "(.*?)(\\.+[^\\.]*$|$)").getMatch(0);
         return new String[] { name, extension };
-    }
-
-    public static void main(String[] args) {
-        showInExplorer(new File("C:\\Users\\Thomas\\.jd_home\\tmp\\hosts.json"));
-    }
-
-    /**
-     * @param saveTo
-     */
-    public static void showInExplorer(File saveTo) {
-        if (CrossSystem.isWindows()) {
-            try {
-                ProcessBuilderFactory.create("explorer.exe", "/select," + saveTo.getAbsolutePath()).start();
-                return;
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        } 
-            if (saveTo.isDirectory()) {
-                openFile(saveTo);
-            } else {
-                openFile(saveTo.getParentFile());
-            }
-
-        
-
     }
 }
