@@ -218,7 +218,7 @@ public class CrossSystem {
     public static String getJavaBinary() {
         if (CrossSystem.JAVAINT != null) { return CrossSystem.JAVAINT; }
         String javaBinary = "java";
-        if (CrossSystem.isWindows()) {
+        if (CrossSystem.isWindows() || CrossSystem.isOS2()) {
             javaBinary = "javaw.exe";
         }
         final String javaHome = System.getProperty("java.home");
