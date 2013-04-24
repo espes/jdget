@@ -28,7 +28,7 @@ import org.appwork.storage.JSonStorage;
  * @author daniel
  * 
  */
-public class EventsAPI implements EventsAPIInterface {
+public class EventsAPI implements EventsAPIInterface, EventsSender {
 
     protected final ConcurrentHashMap<Long, Subscriber> subscribers            = new ConcurrentHashMap<Long, Subscriber>(8, 0.9f, 1);
     protected EventPublisher[]                          publishers             = new EventPublisher[0];
@@ -168,6 +168,7 @@ public class EventsAPI implements EventsAPIInterface {
             if (publisher.getPublisherName().equalsIgnoreCase(existingPublisher.getPublisherName())) { throw new IllegalArgumentException("publisher with same name already registered"); }
         }
         existingPublishers.add(publisher);
+        publisher.register(this);
         this.publishers = existingPublishers.toArray(new EventPublisher[] {});
         return true;
     }
@@ -287,6 +288,7 @@ public class EventsAPI implements EventsAPIInterface {
         if (publisher == null) { throw new NullPointerException(); }
         final ArrayList<EventPublisher> existingPublishers = new ArrayList<EventPublisher>(Arrays.asList(this.publishers));
         final boolean removed = existingPublishers.remove(publisher);
+        publisher.unregister(this);
         this.publishers = existingPublishers.toArray(new EventPublisher[] {});
         return removed;
     }

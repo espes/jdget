@@ -9,18 +9,12 @@
  */
 package org.appwork.remoteapi.events;
 
+import org.appwork.remoteapi.events.json.EventObject;
+
 /**
  * @author daniel
  * 
  */
-public interface EventPublisher {
-
-    public abstract String[] getPublisherEventIDs();
-
-    public abstract String getPublisherName();
-
-    public abstract void register(EventsSender eventsAPI);
-
-    public abstract void unregister(EventsSender eventsAPI);
-
+public interface EventsSender {
+    public void publishEvent(final EventObject event, final long[] subscriptionids);
 }
