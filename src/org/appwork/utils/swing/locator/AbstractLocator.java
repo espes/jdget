@@ -29,13 +29,13 @@ public abstract class AbstractLocator implements Locator {
      * @param dialog
      * @return
      */
-    protected Point validate(Point point, Window dialog) {
+    protected Point validate(Point point, final Window dialog) {
         point=correct(point,dialog);
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screens = ge.getScreenDevices();
 
         // for (final GraphicsDevice screen : screens) {
-        Dimension dimension = dialog.getPreferredSize();
+        final Dimension dimension = dialog.getPreferredSize();
         for (final GraphicsDevice screen : screens) {
             final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
             if (point.x >= bounds.x && point.x < bounds.x + bounds.width) {
@@ -57,36 +57,35 @@ public abstract class AbstractLocator implements Locator {
 
     }
     
-    public Point correct(Point point, Window d) {
+    public Point correct(final Point point, final Window d) {
 
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screens = ge.getScreenDevices();
 
-        // for (final GraphicsDevice screen : screens) {
-        Dimension prefSize = d.getPreferredSize();
-        Rectangle preferedRect = new Rectangle(point.x, point.y, prefSize.width, prefSize.height);
-
+    
+        final Dimension prefSize = d.getPreferredSize();
+        final Rectangle preferedRect = new Rectangle(point.x, point.y, prefSize.width, prefSize.height);
         GraphicsDevice biggestInteresctionScreem = null;
         int biggestIntersection = -1;
 
-        for (final GraphicsDevice screen : screens) {
+        for (final GraphicsDevice screen : screens) {   
             final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
-            Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(screen.getDefaultConfiguration());
+            final Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(screen.getDefaultConfiguration());       
             bounds.x += insets.left;
             bounds.y += insets.top;
             bounds.width -= insets.left + insets.right;
             bounds.height -= insets.top + insets.bottom;
-            Rectangle interSec = bounds.intersection(preferedRect);
-
-            if (interSec.width * interSec.height > biggestIntersection || biggestInteresctionScreem == null) {
-                biggestIntersection = interSec.width * interSec.height;
+            final Rectangle interSec = bounds.intersection(preferedRect);
+            if (Math.max(interSec.width,0) * Math.max(interSec.height,0) > biggestIntersection || biggestInteresctionScreem == null) {
+                biggestIntersection = Math.max(interSec.width,0) * Math.max(interSec.height,0);
                 biggestInteresctionScreem = screen;
-                if (interSec.equals(prefSize)) break;
+                if (interSec.equals(preferedRect)) {
+                    break;
+                }
             }
-
         }
+        final Rectangle bounds = biggestInteresctionScreem.getDefaultConfiguration().getBounds();    
 
-        final Rectangle bounds = biggestInteresctionScreem.getDefaultConfiguration().getBounds();
         if (preferedRect.x + preferedRect.width > bounds.x + bounds.width) {
             preferedRect.x = bounds.x + bounds.width - preferedRect.width;
         }
