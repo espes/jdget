@@ -43,7 +43,4 @@ public class URLEncode {
         return sb.toString();
     }
 
-    public static void main(final String[] args) throws UnsupportedEncodingException {
-        System.out.println(URLEncode.encodeRFC2396("urs§=§maz08"));
-    }
 }
