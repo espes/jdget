@@ -131,7 +131,6 @@ public class LockPanel extends JPanel {
         final JPanel p;
         this.waitingPanel.setContentPane(p = new JPanel());
         p.setLayout(new MigLayout("ins 10", "[][fill,grow]", "[fill,grow]"));
-
         p.add(new JLabel(AWUTheme.I().getIcon("wait", 32)));
 
         p.add(this.text = new JTextArea(), "spanx,aligny center");
