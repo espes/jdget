@@ -32,7 +32,7 @@ public class ListTest {
     cfg.setDoubleWrapperArray(new Double[]{7.6,5.4});
     dwl.add(Math.random());
     cfg.setDoubleWrapperList(dwl);
-    System.out.println(1);
+    
     System.out.println(da);
     System.out.println(dwa);
     System.out.println("SUCCESSFUL");

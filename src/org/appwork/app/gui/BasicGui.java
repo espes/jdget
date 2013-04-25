@@ -50,10 +50,10 @@ public abstract class BasicGui {
                                 try {
 
                                     Thread.sleep(5000);
-                                    System.out.println("HIDE");
+                                
                                     getFrame().setVisible(false);
                                     Thread.sleep(5000);
-                                    System.out.println("SHOW");
+                                  
                                     getFrame().setVisible(true);
                                 } catch (final InterruptedException e) {
                                     // TODO Auto-generated catch block
