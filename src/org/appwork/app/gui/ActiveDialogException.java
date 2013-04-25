@@ -30,9 +30,9 @@ public class ActiveDialogException extends RuntimeException {
     /**
      * @param jDialog
      */
-    public ActiveDialogException(JDialog jDialog) {
-        super("Active Dialog");
-        this.dialog = jDialog;
+    public ActiveDialogException(final JDialog jDialog) {
+        super("Active Dialog: "+jDialog);
+        dialog = jDialog;
     }
 
 }
