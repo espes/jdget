@@ -11,6 +11,7 @@ package org.appwork.utils.swing;
 
 import java.awt.AWTException;
 import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -90,14 +91,14 @@ public class LockPanel extends JPanel {
     private LockPanel(final JFrame frame) throws AWTException {
         this.frame = frame;
 
-        this.robot = new Robot();
-        this.waitingPanel = new JWindow();
+        robot = new Robot();
+        waitingPanel = new JWindow();
 
         frame.addWindowListener(new WindowListener() {
 
             public void windowActivated(final WindowEvent e) {
-                if (LockPanel.this.waitingPanel.isVisible()) {
-                    LockPanel.this.waitingPanel.toFront();
+                if (waitingPanel.isVisible()) {
+                    waitingPanel.toFront();
                 }
 
             }
@@ -129,19 +130,29 @@ public class LockPanel extends JPanel {
         });
 
         final JPanel p;
-        this.waitingPanel.setContentPane(p = new JPanel());
+        waitingPanel.setContentPane(p = new JPanel());
         p.setLayout(new MigLayout("ins 10", "[][fill,grow]", "[fill,grow]"));
-        p.add(new JLabel(AWUTheme.I().getIcon("wait", 32)));
+        JLabel lbl;
+        p.add(lbl=new JLabel(AWUTheme.I().getIcon("wait", 32)));
 
-        p.add(this.text = new JTextArea(), "spanx,aligny center");
-        p.setBorder(BorderFactory.createLineBorder(p.getBackground().darker().darker()));
+        p.add(text = new JTextArea(), "spanx,aligny center");
+        
+        Color bg = p.getBackground();
+        if(bg==null) {
+            bg=lbl.getBackground();
+        }
+        
+        if(bg==null) {
+            bg=Color.LIGHT_GRAY;
+        }
+        p.setBorder(BorderFactory.createLineBorder(bg.darker().darker()));
         JProgressBar bar;
         p.add(bar = new JProgressBar(), "growx,pushx,spanx,newline");
         bar.setIndeterminate(true);
-        this.text.setBorder(null);
-        this.text.setBackground(null);
+        text.setBorder(null);
+        text.setBackground(null);
 
-        this.addMouseListener(new MouseAdapter() {
+        addMouseListener(new MouseAdapter() {
         });
     }
 
@@ -149,21 +160,21 @@ public class LockPanel extends JPanel {
      * @return
      */
     private BufferedImage createScreenShot() {
-        this.frame.toFront();
-        final boolean top = this.frame.isAlwaysOnTop();
+        frame.toFront();
+        final boolean top = frame.isAlwaysOnTop();
         try {
             return new EDTHelper<BufferedImage>() {
                 @Override
                 public BufferedImage edtRun() {
                     try {
-                        if (LockPanel.this.frame.isShowing()) {
-                            LockPanel.this.frame.setAlwaysOnTop(true);
-                            final Rectangle captureSize = new Rectangle(LockPanel.this.frame.getContentPane().getSize());
-                            final Point loc = LockPanel.this.frame.getContentPane().getLocationOnScreen();
+                        if (frame.isShowing()) {
+                            frame.setAlwaysOnTop(true);
+                            final Rectangle captureSize = new Rectangle(frame.getContentPane().getSize());
+                            final Point loc = frame.getContentPane().getLocationOnScreen();
                             captureSize.x = loc.x;
                             captureSize.y = loc.y;
 
-                            return LockPanel.this.robot.createScreenCapture(captureSize);
+                            return robot.createScreenCapture(captureSize);
                         } else {
                             return null;
                         }
@@ -180,28 +191,28 @@ public class LockPanel extends JPanel {
             }.getReturnValue();
 
         } finally {
-            this.frame.setAlwaysOnTop(top);
+            frame.setAlwaysOnTop(top);
         }
     }
 
     public synchronized void fadeIn(final int time) {
-        this.fadeCounter++;
-        this.steps = 50 * 1.0 / time;
-        if (this.fadeTimer != null) {
-            this.fadeTimer.stop();
-            this.fadeTimer = null;
+        fadeCounter++;
+        steps = 50 * 1.0 / time;
+        if (fadeTimer != null) {
+            fadeTimer.stop();
+            fadeTimer = null;
         }
 
-        this.fadeTimer = new Timer(50, new ActionListener() {
+        fadeTimer = new Timer(50, new ActionListener() {
 
             public void actionPerformed(final ActionEvent e) {
-                final Timer timer = LockPanel.this.fadeTimer;
-                LockPanel.this.alpha += LockPanel.this.steps;
+                final Timer timer = fadeTimer;
+                alpha += steps;
 
-                if (LockPanel.this.alpha >= 1.0) {
-                    LockPanel.this.alpha = 1.0f;
+                if (alpha >= 1.0) {
+                    alpha = 1.0f;
                     if (timer != null) {
-                        LockPanel.this.fadeTimer.stop();
+                        fadeTimer.stop();
                     }
                 }
 
@@ -209,45 +220,45 @@ public class LockPanel extends JPanel {
 
             }
         });
-        this.fadeTimer.setRepeats(true);
-        this.fadeTimer.setInitialDelay(0);
-        this.fadeTimer.start();
+        fadeTimer.setRepeats(true);
+        fadeTimer.setInitialDelay(0);
+        fadeTimer.start();
 
     }
 
     public synchronized void fadeOut(final int time) {
 
-        this.screen = this.createScreenShot();
-        this.fadeCounter--;
-        this.steps = 50 * 1.0 / time;
-        if (this.fadeCounter > 0) { return; }
-        if (this.fadeTimer != null) {
-            this.fadeTimer.stop();
-            this.fadeTimer = null;
+        screen = createScreenShot();
+        fadeCounter--;
+        steps = 50 * 1.0 / time;
+        if (fadeCounter > 0) { return; }
+        if (fadeTimer != null) {
+            fadeTimer.stop();
+            fadeTimer = null;
         }
 
-        this.fadeTimer = new Timer(50, new ActionListener() {
+        fadeTimer = new Timer(50, new ActionListener() {
 
             public void actionPerformed(final ActionEvent e) {
-                final Timer timer = LockPanel.this.fadeTimer;
-                LockPanel.this.alpha -= LockPanel.this.steps;
-                System.out.println(LockPanel.this.alpha);
-                if (LockPanel.this.alpha <= 0.0) {
-                    LockPanel.this.alpha = 0.0f;
+                final Timer timer = fadeTimer;
+                alpha -= steps;
+                System.out.println(alpha);
+                if (alpha <= 0.0) {
+                    alpha = 0.0f;
                     if (timer != null) {
                         timer.stop();
                     }
                     LockPanel.this.setWaitingPanelText(null);
 
-                    LockPanel.this.frame.getGlassPane().setVisible(false);
+                    frame.getGlassPane().setVisible(false);
                 }
 
                 LockPanel.this.repaint();
             }
         });
-        this.fadeTimer.setRepeats(true);
-        this.fadeTimer.setInitialDelay(0);
-        this.fadeTimer.start();
+        fadeTimer.setRepeats(true);
+        fadeTimer.setInitialDelay(0);
+        fadeTimer.start();
 
     }
 
@@ -255,29 +266,29 @@ public class LockPanel extends JPanel {
      * @return the text
      */
     public JTextArea getText() {
-        return this.text;
+        return text;
     }
 
     /**
      * @param time
      */
     public void lock(final int time) {
-        this.frame.getGlassPane().setVisible(false);
-        this.screen = this.createScreenShot();
-        this.frame.getGlassPane().setVisible(true);
-        if (this.screen != null) {
-            this.gray = ImageProvider.convertToGrayScale(this.screen);
+        frame.getGlassPane().setVisible(false);
+        screen = createScreenShot();
+        frame.getGlassPane().setVisible(true);
+        if (screen != null) {
+            gray = ImageProvider.convertToGrayScale(screen);
 
             final float data[] = { 0.0625f, 0.125f, 0.0625f, 0.125f, 0.25f, 0.125f, 0.0625f, 0.125f, 0.0625f };
             final Kernel kernel = new Kernel(3, 3, data);
             final ConvolveOp convolve = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
-            final BufferedImage dest = new BufferedImage(this.gray.getWidth(), this.gray.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
-            this.gray = convolve.filter(this.gray, dest);
-            this.frame.setGlassPane(this);
+            final BufferedImage dest = new BufferedImage(gray.getWidth(), gray.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+            gray = convolve.filter(gray, dest);
+            frame.setGlassPane(this);
 
-            this.frame.getGlassPane().setVisible(true);
+            frame.getGlassPane().setVisible(true);
 
-            this.fadeIn(time);
+            fadeIn(time);
         }
 
     }
@@ -287,22 +298,22 @@ public class LockPanel extends JPanel {
         final Composite comp = ((Graphics2D) g).getComposite();
         ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
-        g.drawImage(this.screen, 0, 0, null);
-        ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, this.alpha));
-        g.drawImage(this.gray, 0, 0, null);
+        g.drawImage(screen, 0, 0, null);
+        ((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+        g.drawImage(gray, 0, 0, null);
         ((Graphics2D) g).setComposite(comp);
 
     }
 
     public void setWaitingPanelText(final String wait) {
         if (wait == null) {
-            this.waitingPanel.setVisible(false);
+            waitingPanel.setVisible(false);
         } else {
 
-            this.text.setText(wait);
-            this.waitingPanel.pack();
-            this.waitingPanel.setLocation(SwingUtils.getCenter(this.frame, this.waitingPanel));
-            this.waitingPanel.setVisible(true);
+            text.setText(wait);
+            waitingPanel.pack();
+            waitingPanel.setLocation(SwingUtils.getCenter(frame, waitingPanel));
+            waitingPanel.setVisible(true);
 
         }
 
@@ -312,7 +323,7 @@ public class LockPanel extends JPanel {
      * @param i
      */
     public void unlock(final int i) {
-        this.fadeOut(i);
+        fadeOut(i);
 
     }
 

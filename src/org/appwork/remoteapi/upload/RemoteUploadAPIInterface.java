@@ -14,6 +14,7 @@ import java.util.List;
 import org.appwork.remoteapi.RemoteAPIInterface;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
+import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
 
 /**
  * @author daniel
@@ -24,6 +25,6 @@ public interface RemoteUploadAPIInterface extends RemoteAPIInterface {
 
     public boolean remove(String eTag);
 
-    public void uploadFile(final RemoteAPIRequest request, final RemoteAPIResponse response);
+    public void uploadFile(final RemoteAPIRequest request, final RemoteAPIResponse response) throws BasicRemoteAPIException;
 
 }

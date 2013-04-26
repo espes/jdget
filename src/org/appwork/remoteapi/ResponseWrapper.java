@@ -9,18 +9,17 @@
  */
 package org.appwork.remoteapi;
 
-import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author daniel
  * 
  */
-public abstract class RemoteAPICustomHandler extends RuntimeException {
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 3648527271695732720L;
-
-    abstract public void handle(final RemoteAPIRequest request, RemoteAPIResponse response) throws IOException;
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.METHOD })
+public @interface ResponseWrapper {
+    Class<? extends AbstractResponseWrapper<? extends Object>> value();
 }

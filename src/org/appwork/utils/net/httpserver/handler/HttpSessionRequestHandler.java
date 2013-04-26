@@ -20,8 +20,8 @@ import org.appwork.utils.net.httpserver.session.HttpSession;
  */
 public interface HttpSessionRequestHandler<T extends HttpSession> {
 
-    public abstract boolean onGetSessionRequest(final T session, final GetRequest request, final HttpResponse response);
+    public abstract boolean onGetSessionRequest(final T session, final GetRequest request, final HttpResponse response) throws RequestException;
 
-    public abstract boolean onPostSessionRequest(final T session, final PostRequest request, final HttpResponse response);
+    public abstract boolean onPostSessionRequest(final T session, final PostRequest request, final HttpResponse response) throws RequestException;
 
 }

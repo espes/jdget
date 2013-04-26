@@ -14,10 +14,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.appwork.remoteapi.RemoteAPIRequest;
-import org.appwork.remoteapi.RemoteAPIUnauthorizedException;
 import org.appwork.remoteapi.SessionRemoteAPIRequest;
+import org.appwork.remoteapi.exceptions.AuthException;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.handler.HttpSessionRequestHandler;
+import org.appwork.utils.net.httpserver.handler.RequestException;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
@@ -66,9 +67,9 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
     protected abstract T getSession(org.appwork.utils.net.httpserver.requests.HttpRequest request, final String sessionID);
 
     @Override
-    public String handshake(final RemoteAPIRequest request, final String user, final String password) {
+    public String handshake(final RemoteAPIRequest request, final String user, final String password) throws AuthException {
         final T session = this.newSession(request, user, password);
-        if (session == null) { throw new RemoteAPIUnauthorizedException(); }
+        if (session == null) { throw new AuthException(); }
         return session.getSessionID();
     }
 
@@ -90,7 +91,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
      * org.appwork.utils.net.httpserver.responses.HttpResponse)
      */
     @Override
-    public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
+    public boolean onGetRequest(final GetRequest request, final HttpResponse response) throws RequestException {
         final java.util.List<HttpSessionRequestHandler<T>> handlers = this.handler;
         final T session = this.getSession(request, this.extractSessionID(request.getRequestedURLParameters()));
         for (final HttpSessionRequestHandler<T> handler : handlers) {
@@ -108,7 +109,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
      * org.appwork.utils.net.httpserver.responses.HttpResponse)
      */
     @Override
-    public boolean onPostRequest(final PostRequest request, final HttpResponse response) {
+    public boolean onPostRequest(final PostRequest request, final HttpResponse response) throws RequestException {
         final java.util.List<HttpSessionRequestHandler<T>> handlers = this.handler;
         final T session = this.getSession(request, this.extractSessionID(request.getRequestedURLParameters()));
         for (final HttpSessionRequestHandler<T> handler : handlers) {

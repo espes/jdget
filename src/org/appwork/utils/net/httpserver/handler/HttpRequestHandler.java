@@ -19,8 +19,8 @@ import org.appwork.utils.net.httpserver.responses.HttpResponse;
  */
 public interface HttpRequestHandler {
 
-    public abstract boolean onGetRequest(final GetRequest request, final HttpResponse response);
+    public abstract boolean onGetRequest(final GetRequest request, final HttpResponse response) throws RequestException;
 
-    public abstract boolean onPostRequest(final PostRequest request, final HttpResponse response);
+    public abstract boolean onPostRequest(final PostRequest request, final HttpResponse response) throws RequestException;
 
 }

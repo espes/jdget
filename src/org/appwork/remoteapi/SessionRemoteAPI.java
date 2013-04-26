@@ -10,6 +10,8 @@
 package org.appwork.remoteapi;
 
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
+import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
+import org.appwork.remoteapi.exceptions.SessionException;
 import org.appwork.utils.net.httpserver.handler.HttpSessionRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
@@ -32,15 +34,15 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
      */
     @Override
     public boolean onGetSessionRequest(final T session, final GetRequest request, final HttpResponse response) {
-        RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
-        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
+        RemoteAPIRequest apiRequest = getInterfaceHandler(request);
+        if (apiRequest == null) { return onUnknownRequest(request, response); }
         apiRequest = new SessionRemoteAPIRequest<T>(request, apiRequest, session);
         if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) {
             response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
             return true;
         }
         try {
-            this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
+            _handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
             throw new RuntimeException(e);
         }
@@ -57,19 +59,17 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
      * org.appwork.utils.net.httpserver.responses.HttpResponse)
      */
     @Override
-    public boolean onPostSessionRequest(final T session, final PostRequest request, final HttpResponse response) {
-        RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
-        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
+    public boolean onPostSessionRequest(final T session, final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException{
+        RemoteAPIRequest apiRequest = getInterfaceHandler(request);
+        if (apiRequest == null) { return onUnknownRequest(request, response); }
         apiRequest = new SessionRemoteAPIRequest<T>(request, apiRequest, session);
         if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) {
-            response.setResponseCode(ResponseCode.ERROR_FORBIDDEN);
-            return true;
+            throw new SessionException();
+          
         }
-        try {
-            this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
-        } catch (final Throwable e) {
-            throw new RuntimeException(e);
-        }
+    
+            _handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
+     
         return true;
     }
 

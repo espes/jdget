@@ -20,9 +20,11 @@ import java.util.List;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
-import org.appwork.remoteapi.RemoteAPIException;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
+import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
+import org.appwork.remoteapi.exceptions.InternalApiException;
+import org.appwork.remoteapi.exceptions.RemoteAPIException;
 import org.appwork.utils.Regex;
 import org.appwork.utils.formatter.HexFormatter;
 import org.appwork.utils.net.HTTPHeader;
@@ -48,8 +50,8 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
     }
 
     public File get(final String eTag) {
-        synchronized (this.uploadUnits) {
-            final UploadUnit ret = this.uploadUnits.get("\"" + eTag + "\"");
+        synchronized (uploadUnits) {
+            final UploadUnit ret = uploadUnits.get("\"" + eTag + "\"");
             if (ret != null && ret.isComplete() && ret.isUploading() == false) {
                 ret.setLastAccess(System.currentTimeMillis());
                 return ret._getFile();
@@ -59,13 +61,13 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
     }
 
     public File getUploadFolder() {
-        return this.uploadFolder;
+        return uploadFolder;
     }
 
     @Override
     public List<UploadUnit> list() {
-        synchronized (this.uploadUnits) {
-            return new ArrayList<UploadUnit>(this.uploadUnits.values());
+        synchronized (uploadUnits) {
+            return new ArrayList<UploadUnit>(uploadUnits.values());
         }
     }
 
@@ -86,20 +88,20 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
 
     @Override
     public boolean remove(final String eTag) {
-        synchronized (this.uploadUnits) {
-            return this.uploadUnits.remove("\"" + eTag + "\"") != null;
+        synchronized (uploadUnits) {
+            return uploadUnits.remove("\"" + eTag + "\"") != null;
         }
     }
 
     @Override
-    public void uploadFile(final RemoteAPIRequest request, final RemoteAPIResponse response) {
+    public void uploadFile(final RemoteAPIRequest request, final RemoteAPIResponse response) throws BasicRemoteAPIException {
         UploadUnit uploadUnit = null;
         STEP step = null;
         boolean processUpload = false;
         RandomAccessFile fos = null;
         HTTPHeader contentRange = null;
         try {
-            synchronized (this.uploadUnits) {
+            synchronized (uploadUnits) {
                 final HTTPHeader ifMatch = request.getRequestHeaders().get(HTTPConstants.HEADER_REQUEST_IF_MATCH);
                 final HTTPHeader contentLength = request.getRequestHeaders().get(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH);
                 contentRange = request.getRequestHeaders().get(HTTPConstants.HEADER_REQUEST_CONTENT_RANGE);
@@ -118,7 +120,7 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
                 }
                 if (ifMatch != null) {
                     /* check for existing UploadUnit */
-                    uploadUnit = this.uploadUnits.get(ifMatch.getValue());
+                    uploadUnit = uploadUnits.get(ifMatch.getValue());
                 }
                 if (uploadUnit == null) {
                     step = STEP.CREATE;
@@ -134,7 +136,7 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
                 case QUERY:
                     if (uploadUnit.getExpectedFinalSize() != contentSize) {
                         /* size missmatch, so not found */
-                        throw new RemoteAPIException(ResponseCode.ERROR_NOT_FOUND, "Size missmatch");
+                        throw new RemoteAPIException(UploadError.SIZE_MISMATCH);
                     }
                     /* add ETag Header */
                     response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_ETAG, uploadUnit._getQuotedETag()));
@@ -157,38 +159,38 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
                 case CREATE:
                     if (ifMatch != null) {
                         /* given ETag no longer available */
-                        throw new RemoteAPIException(ResponseCode.ERROR_NOT_FOUND);
+                        throw new RemoteAPIException(UploadError.ETAG_NOT_FOUND);
                     }
                     /* upload is still incomplete */
                     if (contentSize <= 0) {
                         /* no or invalid contentSize given */
-                        throw new RemoteAPIException(ResponseCode.ERROR_BAD_REQUEST);
+                        throw new RemoteAPIException(UploadError.BAD_REQUEST);
                     }
                     uploadUnit = new UploadUnit(contentSize);
                     /* add ETag Header */
                     response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_ETAG, uploadUnit._getQuotedETag()));
                     response.setResponseCode(ResponseCode.RESUME_INCOMPLETE);
                     uploadUnit.setLastAccess(System.currentTimeMillis());
-                    final File uploadFile = new File(this.uploadFolder, uploadUnit.getETag());
+                    final File uploadFile = new File(uploadFolder, uploadUnit.getETag());
                     uploadUnit._setFile(uploadFile);
-                    this.uploadUnits.put(uploadUnit._getQuotedETag(), uploadUnit);
-                    this.onCreate(uploadUnit);
+                    uploadUnits.put(uploadUnit._getQuotedETag(), uploadUnit);
+                    onCreate(uploadUnit);
                     return;
                 case RESUME:
                     if (uploadUnit.getExpectedFinalSize() != contentSize) {
                         /* size missmatch, so not found */
-                        throw new RemoteAPIException(ResponseCode.ERROR_NOT_FOUND, "Size missmatch");
+                        throw new RemoteAPIException(UploadError.SIZE_MISMATCH);
                     }
                     if (uploadUnit.isUploading()) {
                         /* file is already in process */
-                        throw new RemoteAPIException(ResponseCode.ERROR_FORBIDDEN, "Upload in process");
+                        throw new RemoteAPIException(UploadError.UPLOAD_IN_PROGRESS);
                     }
                     /* add ETag Header */
                     response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_ETAG, uploadUnit._getQuotedETag()));
                     uploadUnit.setLastAccess(System.currentTimeMillis());
                     processUpload = true;
                     uploadUnit.setIsUploading(true);
-                    this.onResume(uploadUnit);
+                    onResume(uploadUnit);
                 }
             }
             /* now we handle the upload */
@@ -198,7 +200,7 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
                 final String startRange = new Regex(contentRange.getValue(), "^\\s*?bytes\\s*?(\\d+)").getMatch(0);
                 if (startRange != null) {
                     final long start = Long.parseLong(startRange);
-                    if (start > uploadUnit.getExpectedFinalSize()) { throw new RemoteAPIException(ResponseCode.ERROR_RANGE_NOT_SUPPORTED); }
+                    if (start > uploadUnit.getExpectedFinalSize()) { throw new RemoteAPIException(UploadError.BAD_RANGE); }
                     fos.seek(start);
                 }
             } else {
@@ -218,7 +220,7 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
             final String chunkHash = HexFormatter.byteArrayToHex(md.digest());
             if (uploadUnit.isComplete()) {
                 /* upload is complete */
-                this.onComplete(uploadUnit);
+                onComplete(uploadUnit);
                 response.setResponseCode(ResponseCode.SUCCESS_OK);
             } else {
                 /* add Range Header to signal current received contentSize */
@@ -232,7 +234,7 @@ public class RemoteAPIUpload implements RemoteUploadAPIInterface {
             os.write(chunkHash.getBytes("UTF-8"));
         } catch (final Throwable e) {
             if (e instanceof RemoteAPIException) { throw (RemoteAPIException) e; }
-            throw new RemoteAPIException(ResponseCode.SERVERERROR_INTERNAL);
+            throw new InternalApiException(e);
         } finally {
             try {
                 response.getOutputStream(true).close();

@@ -58,8 +58,17 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN  = new HashMap<String, Integer>();
 
     public static final DialogLocator             LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
+    public static DialogLocator                   DEFAULT_LOCATOR         = null;
 
-    private static int                            BUTTON_HEIGHT           = -1;
+    public static DialogLocator getDEFAULT_LOCATOR() {
+        return DEFAULT_LOCATOR;
+    }
+
+    public static void setDEFAULT_LOCATOR(final DialogLocator dEFAULT_LOCATOR) {
+        DEFAULT_LOCATOR = dEFAULT_LOCATOR;
+    }
+
+    private static int BUTTON_HEIGHT = -1;
 
     public static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
@@ -70,27 +79,26 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     @Override
     public CloseReason getCloseReason() {
-        if (getReturnmask() == 0) {
-            throw new IllegalStateException("Dialog has not been closed yet");
-        }
+        if (getReturnmask() == 0) { throw new IllegalStateException("Dialog has not been closed yet"); }
         if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
         if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_CANCEL)) { return CloseReason.CANCEL; }
         if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_OK)) { return CloseReason.OK; }
         throw new WTFException();
 
     }
+
     /**
-     * @throws DialogClosedException 
-     * @throws DialogCanceledException 
+     * @throws DialogClosedException
+     * @throws DialogCanceledException
      * 
      */
     public void checkCloseReason() throws DialogClosedException, DialogCanceledException {
-        final int mask = getReturnmask();        
+        final int mask = getReturnmask();
         if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
         if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
-        
-        
+
     }
+
     public static void resetDialogInformations() {
         try {
             AbstractDialog.SESSION_DONTSHOW_AGAIN.clear();
@@ -134,7 +142,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     private DialogLocator      locator;
 
     public DialogLocator getLocator() {
-        if (locator == null) { return LOCATE_CENTER_OF_SCREEN; }
+        if (locator == null) {
+            if (DEFAULT_LOCATOR != null) {
+                return DEFAULT_LOCATOR;
+            }
+            return LOCATE_CENTER_OF_SCREEN;
+        }
         return locator;
     }
 
@@ -148,7 +161,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
-        setLocator(LOCATE_CENTER_OF_SCREEN);
 
         this.title = title;
         this.flagMask = flag;

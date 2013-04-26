@@ -13,6 +13,7 @@ import org.appwork.remoteapi.ApiDoc;
 import org.appwork.remoteapi.ApiNamespace;
 import org.appwork.remoteapi.RemoteAPIInterface;
 import org.appwork.remoteapi.RemoteAPIRequest;
+import org.appwork.remoteapi.exceptions.AuthException;
 
 /**
  * @author daniel
@@ -25,5 +26,5 @@ public interface LoginAPIInterface extends RemoteAPIInterface {
     public boolean disconnect(final RemoteAPIRequest request);
 
     @ApiDoc("returns an un/authenticated token for given username and password or \"error\" in case login failed")
-    public String handshake(final RemoteAPIRequest request, String user, String password);
+    public String handshake(final RemoteAPIRequest request, String user, String password) throws AuthException;
 }
