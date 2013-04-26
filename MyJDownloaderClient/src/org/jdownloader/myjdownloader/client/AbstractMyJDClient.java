@@ -22,6 +22,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.jdownloader.myjdownloader.client.exceptions.APIException;
 import org.jdownloader.myjdownloader.client.exceptions.AuthException;
 import org.jdownloader.myjdownloader.client.exceptions.ChallengeFailedException;
+import org.jdownloader.myjdownloader.client.exceptions.DeviceIsOfflineException;
 import org.jdownloader.myjdownloader.client.exceptions.EmailInvalidException;
 import org.jdownloader.myjdownloader.client.exceptions.EmailNotAllowedException;
 import org.jdownloader.myjdownloader.client.exceptions.EmailNotValidatedException;
@@ -41,6 +42,7 @@ import org.jdownloader.myjdownloader.client.json.JSonRequest;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
 import org.jdownloader.myjdownloader.client.json.RequestIDOnly;
 import org.jdownloader.myjdownloader.client.json.RequestIDValidator;
+import org.jdownloader.myjdownloader.client.json.ServerErrorType;
 
 public abstract class AbstractMyJDClient {
     /**
@@ -176,7 +178,10 @@ public abstract class AbstractMyJDClient {
             final String dec = decrypt(ret, deviceEncryptionToken);
 
             final ObjectData data = this.jsonToObject(dec, ObjectData.class);
-
+            if (data == null) {
+                // invalid response
+                throw new MyJDownloaderException("Invalid Response: " + dec);
+            }
             // ugly!!! but this will be changed when we have a proper remoteAPI response format
 
             return this.jsonToObject(objectToJSon(data.getData()) + "", returnType);
@@ -187,6 +192,7 @@ public abstract class AbstractMyJDClient {
         } catch (final MyJDownloaderException e) {
             throw e;
         } catch (final Exception e) {
+            e.printStackTrace();
             throw APIException.get(e);
         }
     }
@@ -214,7 +220,13 @@ public abstract class AbstractMyJDClient {
             }
             return (T) ret;
         } catch (final ExceptionResponse e) {
-            handleInvalidResponseCodes(e);
+            try {
+                handleInvalidResponseCodes(e);
+            } catch (final APIException e1) {
+                //actually not possible.
+                throw new RuntimeException(e);
+                
+            }
             throw e;
         } catch (final Exception e) {
             throw MyJDownloaderException.get(e);
@@ -227,7 +239,7 @@ public abstract class AbstractMyJDClient {
      * @param newPassword
      * @param oldPassword
      * @param key
-     * @param string 
+     * @param string
      * @throws MyJDownloaderException
      */
     public synchronized void finishPasswordReset(final String email, final String key, final String newPassword) throws MyJDownloaderException {
@@ -235,12 +247,12 @@ public abstract class AbstractMyJDClient {
         try {
             final byte[] k = hexToByteArray(key);
             if (k.length != 32) { throw new IllegalArgumentException("Bad Key. Expected: 64 hexchars"); }
-        
-        final byte[] newLoginSecret = createSecret(email, newPassword, "server");
 
-        final String encryptedNewSecret=byteArrayToHex(encrypt(newLoginSecret, k));
-        this.callServer("/my/finishpasswordreset?email=" + urlencode(email) + "&encryptedLoginSecret=" + encryptedNewSecret, null, k, RequestIDOnly.class);
-        connect(email, newPassword);
+            final byte[] newLoginSecret = createSecret(email, newPassword, "server");
+
+            final String encryptedNewSecret = byteArrayToHex(encrypt(newLoginSecret, k));
+            this.callServer("/my/finishpasswordreset?email=" + urlencode(email) + "&encryptedLoginSecret=" + encryptedNewSecret, null, k, RequestIDOnly.class);
+            connect(email, newPassword);
         } catch (final InvalidKeyException e) {
             throw new RuntimeException(e);
 
@@ -278,7 +290,7 @@ public abstract class AbstractMyJDClient {
         try {
             final byte[] k = hexToByteArray(key);
             if (k.length != 32) { throw new IllegalArgumentException("Bad Key. Expected: 64 hexchars"); }
-            final byte[] loginSecret = createSecret(email, password, "server");            
+            final byte[] loginSecret = createSecret(email, password, "server");
             final String pw = byteArrayToHex(encrypt(loginSecret, k));
             this.callServer("/my/finishregistration?email=" + urlencode(email) + "&loginsecret=" + urlencode(pw), null, k, RequestIDOnly.class);
 
@@ -359,6 +371,9 @@ public abstract class AbstractMyJDClient {
         } catch (final BadPaddingException e) {
             throw new BadResponseException("Response Decryption Failed", e);
 
+        } catch (final APIException e) {
+            throw new RuntimeException(e);
+            
         }
 
     }
@@ -432,7 +447,12 @@ public abstract class AbstractMyJDClient {
      * @throws MyJDownloaderException
      */
     public synchronized CaptchaChallenge getChallenge() throws MyJDownloaderException {
-        return this.jsonToObject(internalPost("/captcha/getCaptcha", ""), CaptchaChallenge.class);
+        try {
+            return this.jsonToObject(internalPost("/captcha/getCaptcha", ""), CaptchaChallenge.class);
+        } catch (final APIException e) {
+            throw new RuntimeException(e);
+            
+        }
     }
 
     public byte[] getDeviceEncryptionToken() {
@@ -474,24 +494,25 @@ public abstract class AbstractMyJDClient {
         return sessionToken;
     }
 
-    protected void handleInvalidResponseCodes(final ExceptionResponse e) throws MyJDownloaderException {
+    protected void handleInvalidResponseCodes(final ExceptionResponse e) throws MyJDownloaderException, APIException {
         if (e != null && e.getContent() != null && e.getContent().trim().length() != 0) {
             final ErrorResponse error = this.jsonToObject(e.getContent(), ErrorResponse.class);
             try {
                 switch (error.getSrc()) {
 
                 case DEVICE:
-
-                    break;
+                    throw new APIException(error.getType(), error.getData());
 
                 case MYJD:
-                    switch (error.getType()) {
+                    final ServerErrorType type = ServerErrorType.valueOf(error.getType());
+
+                    switch (type) {
                     case AUTH_FAILED:
                         throw new AuthException();
                     case ERROR_EMAIL_NOT_CONFIRMED:
                         throw new EmailNotValidatedException();
                     case OFFLINE:
-                        throw new RuntimeException("Not Implemented: offline");
+                        throw new DeviceIsOfflineException();
                     case TOKEN_INVALID:
                         throw new TokenException();
                     case UNKNOWN:
@@ -506,6 +527,7 @@ public abstract class AbstractMyJDClient {
                         throw new OverloadException();
                     case TOO_MANY_REQUESTS:
                         throw new TooManyRequestsException();
+
                     }
                     break;
 
@@ -533,7 +555,7 @@ public abstract class AbstractMyJDClient {
         return counter++;
     }
 
-    private synchronized String internalPost(final String url, final String objectToJSon) throws MyJDownloaderException {
+    private synchronized String internalPost(final String url, final String objectToJSon) throws MyJDownloaderException, APIException {
         try {
             return post(url, objectToJSon);
         } catch (final ExceptionResponse e) {
@@ -547,7 +569,7 @@ public abstract class AbstractMyJDClient {
         serverEncryptionToken = null;
     }
 
-    private synchronized String jsonPost(final String path, final Object... params) throws MyJDownloaderException {
+    private synchronized String jsonPost(final String path, final Object... params) throws MyJDownloaderException, APIException {
         final JSonRequest re = new JSonRequest();
         re.setRid(inc());
         re.setParams(params);
@@ -635,7 +657,13 @@ public abstract class AbstractMyJDClient {
 
         // final byte[] loginSecret = this.createSecret(email, password, "server");
 
-        final String encrypted = jsonPost("/my/requestregistrationemail?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()) + "&referer=" + urlencode(referer == null ? appKey : referer));
+        String encrypted;
+        try {
+            encrypted = jsonPost("/my/requestregistrationemail?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()) + "&referer=" + urlencode(referer == null ? appKey : referer));
+        } catch (final APIException e) {
+            throw new RuntimeException(e);
+            
+        }
 
         final boolean ret = this.jsonToObject(encrypted, boolean.class);
         if (!ret) { throw new BadResponseException("Unexpected False"); }
@@ -648,9 +676,15 @@ public abstract class AbstractMyJDClient {
      * 
      * @throws MyJDownloaderException
      */
-    public synchronized void requestPasswordResetEmail(final CaptchaChallenge challenge,final String email) throws MyJDownloaderException {
+    public synchronized void requestPasswordResetEmail(final CaptchaChallenge challenge, final String email) throws MyJDownloaderException {
 
-       final String encrypted = jsonPost("/my/requestpasswordresetemail?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()));
+        String encrypted;
+        try {
+            encrypted = jsonPost("/my/requestpasswordresetemail?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()));
+        } catch (final APIException e) {
+            throw new RuntimeException(e);
+            
+        }
 
         final boolean ret = this.jsonToObject(encrypted, boolean.class);
         if (!ret) { throw new BadResponseException("Unexpected False"); }

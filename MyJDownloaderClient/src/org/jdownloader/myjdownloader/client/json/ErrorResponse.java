@@ -6,37 +6,8 @@ public class ErrorResponse {
         DEVICE
     }
 
-    public static enum Type {
-        MAINTENANCE(503),
-        OVERLOAD(503),
-        TOO_MANY_REQUESTS(429),
-        ERROR_EMAIL_NOT_CONFIRMED(401),
-        TOKEN_INVALID(403),
-        OFFLINE(504),
-        UNKNOWN(500),
-        AUTH_FAILED(403),
-        EMAIL_INVALID,
-        CHALLENGE_FAILED,
-        EMAIL_FORBIDDEN,
-        FAILED;
-
-        private int code;
-
-        private Type() {
-            this.code = 500;
-        }
-
-        private Type(final int code) {
-            this.code = code;
-        }
-
-        public int getCode() {
-            return this.code;
-        }
-    }
-
     private Source src;
-    private Type   type;
+    private String   type;
 
     private Object data;
 
@@ -44,22 +15,22 @@ public class ErrorResponse {
 
     }
 
-    public ErrorResponse(final Source string, final Type error, final Object data) {
-        this.src = string;
-        this.type = error;
+    public ErrorResponse(final Source string, final ServerErrorType error, final Object data) {
+        src = string;
+        type = error.name();
         this.data = data;
     }
 
     public Object getData() {
-        return this.data;
+        return data;
     }
 
     public Source getSrc() {
-        return this.src;
+        return src;
     }
 
-    public Type getType() {
-        return this.type;
+    public String getType() {
+        return type;
     }
 
     public void setData(final Object data) {
@@ -70,7 +41,7 @@ public class ErrorResponse {
         this.src = src;
     }
 
-    public void setType(final Type type) {
+    public void setType(final String type) {
         this.type = type;
     }
 
