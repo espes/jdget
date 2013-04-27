@@ -18,6 +18,8 @@ import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 public interface APIError {
 
    
+  
+
     String name();
 
     ResponseCode getCode();

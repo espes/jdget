@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2009 - 2013 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
+ * Copyright (c) 2009 - 2011 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
  * 
  * This file is part of org.appwork.remoteapi
  * 
@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.remoteapi;
+package org.appwork.remoteapi.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -19,6 +19,9 @@ import java.lang.annotation.Target;
  * 
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD, ElementType.TYPE })
-public @interface ApiSignatureRequired {
+@Target({ ElementType.TYPE })
+public @interface ApiNamespace {
+
+    String value();
+
 }

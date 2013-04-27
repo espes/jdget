@@ -7,21 +7,22 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.remoteapi;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.appwork.remoteapi.exceptions;
 
 /**
  * @author thomas
  * 
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD })
-public @interface ApiDoc {
+public class ApiInterfaceNotAvailable extends RemoteAPIException {
 
-    String value();
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -6375479697981911029L;
+
+    public ApiInterfaceNotAvailable() {
+        super(RemoteAPIError.API_INTERFACE_NOT_FOUND);
+ 
+    }
 
 }

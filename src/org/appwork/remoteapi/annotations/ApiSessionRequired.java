@@ -7,17 +7,18 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.remoteapi;
+package org.appwork.remoteapi.annotations;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author daniel
  * 
  */
-@ApiNamespace("processes")
-public interface RemoteAPIProcessList extends RemoteAPIInterface {
-
-    public ArrayList<HashMap<String, String>> list();
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.METHOD, ElementType.TYPE })
+public @interface ApiSessionRequired {
 }

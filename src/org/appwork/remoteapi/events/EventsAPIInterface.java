@@ -11,14 +11,14 @@ package org.appwork.remoteapi.events;
 
 import java.util.ArrayList;
 
-import org.appwork.remoteapi.ApiNamespace;
 import org.appwork.remoteapi.RemoteAPIInterface;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
 import org.appwork.remoteapi.ResponseWrapper;
+import org.appwork.remoteapi.annotations.ApiNamespace;
 import org.appwork.remoteapi.events.json.PublisherResponse;
 import org.appwork.remoteapi.events.json.SubscriptionResponse;
-import org.appwork.remoteapi.responsewrapper.DataWrapper;
+import org.appwork.remoteapi.responsewrapper.RawJSonWrapper;
 
 /**
  * @author daniel
@@ -26,27 +26,27 @@ import org.appwork.remoteapi.responsewrapper.DataWrapper;
  */
 @ApiNamespace("events")
 public interface EventsAPIInterface extends RemoteAPIInterface {
-
+    @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse addsubscription(long subscriptionid, String[] subscriptions, String[] exclusions);
-
+    @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse changesubscriptiontimeouts(long subscriptionid, long polltimeout, long maxkeepalive);
-
+    @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse getsubscription(long subscriptionid);
 
-    @ResponseWrapper(DataWrapper.class)
+ 
     public void listen(RemoteAPIRequest request, RemoteAPIResponse response, long subscriptionid);
 
-    @ResponseWrapper(DataWrapper.class)
+
     public void listen(RemoteAPIRequest request, RemoteAPIResponse response, long subscriptionid, long lasteventnumber);
-
+    @ResponseWrapper(RawJSonWrapper.class)
     public ArrayList<PublisherResponse> listpublisher();
-
+    @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse removesubscription(long subscriptionid, String[] subscriptions, String[] exclusions);
-
+    @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse setsubscription(long subscriptionid, String[] subscriptions, String[] exclusions);
-
+    @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse subscribe(String[] subscriptions, String[] exclusions);
-
+    @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse unsubscribe(long subscriptionid);
 
 }

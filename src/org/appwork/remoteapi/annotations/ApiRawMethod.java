@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.remoteapi;
+package org.appwork.remoteapi.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

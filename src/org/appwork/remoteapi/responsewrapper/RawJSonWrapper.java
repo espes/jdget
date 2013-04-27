@@ -16,7 +16,7 @@ import org.appwork.storage.JSonStorage;
  * @author Thomas
  *
  */
-public class DataWrapper extends AbstractResponseWrapper<Object> {
+public class RawJSonWrapper extends AbstractResponseWrapper<Object> {
 
     
     
@@ -26,7 +26,7 @@ public class DataWrapper extends AbstractResponseWrapper<Object> {
     @Override
     public String toString(final Object responseObject) {
 
-        return JSonStorage.toString(new DataObject(responseObject));
+        return JSonStorage.toString(responseObject);
     }
 
 }

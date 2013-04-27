@@ -26,6 +26,13 @@ import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.remoteapi.annotations.AllowNonStorableObjects;
 import org.appwork.remoteapi.annotations.AllowResponseAccess;
+import org.appwork.remoteapi.annotations.ApiAuthLevel;
+import org.appwork.remoteapi.annotations.ApiDoc;
+import org.appwork.remoteapi.annotations.ApiHiddenMethod;
+import org.appwork.remoteapi.annotations.ApiMethodName;
+import org.appwork.remoteapi.annotations.ApiRawMethod;
+import org.appwork.remoteapi.annotations.ApiSessionRequired;
+import org.appwork.remoteapi.annotations.ApiSignatureRequired;
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.annotations.AllowStorage;
@@ -413,38 +420,16 @@ public class InterfaceHandler<T> {
         }
         if (responseIsParamater) {
             if (m.getGenericReturnType() != void.class && m.getGenericReturnType() != Void.class) {
-                if (!RemoteAPIRawInterface.class.isAssignableFrom(m.getDeclaringClass()) && !RemoteAPISignatureHandler.class.isAssignableFrom(m.getDeclaringClass())) { throw new ParseException("Response in Parameters. " + m + " must return void, and has to handle the response itself"); }
+                if ( !RemoteAPISignatureHandler.class.isAssignableFrom(m.getDeclaringClass())) { throw new ParseException("Response in Parameters. " + m + " must return void, and has to handle the response itself"); }
             }
         } else {
             try {
-                if (RemoteAPICustomResponse.class.isAssignableFrom(m.getReturnType())) { return; }
-                if (RemoteAPIProcess.class.isAssignableFrom(m.getReturnType())) {
-                    final Type t = m.getReturnType().getGenericSuperclass();
-                    if (t instanceof ParameterizedTypeImpl) {
-                        final ParameterizedTypeImpl p = (ParameterizedTypeImpl) t;
-                        final Type[] oo = p.getActualTypeArguments();
-                        for (final Type o : oo) {
-                            try {
-                                JSonStorage.canStore(o, m.getAnnotation(AllowNonStorableObjects.class) != null);
-                            } catch (final InvalidTypeException e) {
-                                final AllowStorage allow = m.getAnnotation(AllowStorage.class);
-                                boolean found = false;
-                                if (allow != null) {
-                                    for (final Class<?> c : allow.value()) {
-                                        if (e.getType() == c) {
-                                            found = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (!found) { throw new InvalidTypeException(e); }
-                            }
-
-                        }
-                    } else {
-                        throw new ParseException("return Type of " + m + " is invalid");
+         
+                
+                    if (m.getGenericReturnType() == void.class || m.getGenericReturnType() == Void.class) {
+                        // void is ok.
+                        return;
                     }
-                } else {
                     try {
                         JSonStorage.canStore(m.getGenericReturnType(), m.getAnnotation(AllowNonStorableObjects.class) != null);
                     } catch (final InvalidTypeException e) {
@@ -461,7 +446,7 @@ public class InterfaceHandler<T> {
                         if (!found) { throw new InvalidTypeException(e); }
                     }
 
-                }
+                
             } catch (final InvalidTypeException e) {
                 throw new ParseException("return Type of " + m + " is invalid", e);
             }

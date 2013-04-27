@@ -9,10 +9,10 @@
  */
 package org.appwork.utils.net.httpserver.session;
 
-import org.appwork.remoteapi.ApiDoc;
-import org.appwork.remoteapi.ApiNamespace;
 import org.appwork.remoteapi.RemoteAPIInterface;
 import org.appwork.remoteapi.RemoteAPIRequest;
+import org.appwork.remoteapi.annotations.ApiDoc;
+import org.appwork.remoteapi.annotations.ApiNamespace;
 import org.appwork.remoteapi.exceptions.AuthException;
 
 /**

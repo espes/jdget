@@ -13,6 +13,8 @@ import java.io.IOException;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
+import org.appwork.remoteapi.RemoteAPIRequest;
+import org.appwork.remoteapi.RemoteAPIResponse;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.RequestException;
@@ -66,11 +68,9 @@ public class BasicRemoteAPIException extends RequestException {
      * @throws IOException
      */
     public void handle(final HttpResponse response) throws IOException {
-    
+
         byte[] bytes;
-final String str = JSonStorage.toString(new DeviceErrorResponse(getType(), data));
-System.out.println("Code: "+getCode());
-System.out.println(str);
+        final String str = JSonStorage.toString(new DeviceErrorResponse(getType(), data));
         bytes = str.getBytes("UTF-8");
         response.setResponseCode(getCode());
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text; charset=UTF-8"));
@@ -79,5 +79,9 @@ System.out.println(str);
         response.getOutputStream(true).flush();
 
     }
+
+ 
+
+
 
 }

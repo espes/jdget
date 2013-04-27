@@ -12,22 +12,27 @@ package org.appwork.remoteapi;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Map.Entry;
 import java.util.zip.GZIPOutputStream;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.remoteapi.annotations.AllowResponseAccess;
+import org.appwork.remoteapi.annotations.ApiAuthLevel;
+import org.appwork.remoteapi.annotations.ApiNamespace;
+import org.appwork.remoteapi.annotations.ApiSessionRequired;
 import org.appwork.remoteapi.exceptions.ApiCommandNotAvailable;
 import org.appwork.remoteapi.exceptions.AuthException;
+import org.appwork.remoteapi.exceptions.BadParameterException;
 import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
 import org.appwork.remoteapi.exceptions.InternalApiException;
+import org.appwork.remoteapi.responsewrapper.DataObject;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.utils.Regex;
@@ -46,7 +51,7 @@ import org.appwork.utils.reflection.Clazz;
  * @author daniel
  * 
  */
-public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
+public class RemoteAPI implements HttpRequestHandler {
 
     @SuppressWarnings("unchecked")
     public static <T> T cast(Object v, final Class<T> type) {
@@ -224,16 +229,10 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
     /* hashmap that holds all registered interfaces and their pathes */
     private final HashMap<String, InterfaceHandler<RemoteAPIInterface>> interfaces = new HashMap<String, InterfaceHandler<RemoteAPIInterface>>();
 
-    private final HashMap<String, RemoteAPIProcess<RemoteAPIInterface>> processes  = new HashMap<String, RemoteAPIProcess<RemoteAPIInterface>>();
-
     private final Object                                                LOCK       = new Object();
 
     public RemoteAPI() {
-        try {
-            register(this);
-        } catch (final Throwable e) {
-            e.printStackTrace();
-        }
+
     }
 
     @SuppressWarnings("unchecked")
@@ -245,7 +244,11 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             if (request.getIface().getRawHandler() != null) {
                 /* maybe this request is handled by rawMethodHandler */
                 final Object[] parameters = new Object[] { request, response };
-                responseData = request.getIface().invoke(request.getIface().getRawHandler(), parameters);
+                try {
+                    responseData = request.getIface().invoke(request.getIface().getRawHandler(), parameters);
+                } catch (final InvocationTargetException e) {
+                    throw e.getTargetException();
+                }
                 if (Boolean.TRUE.equals(responseData)) { return; }
             }
             if (method == null) { throw new ApiCommandNotAvailable(); }
@@ -253,110 +256,147 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
             authenticate(method, request, response);
 
             final Object[] parameters = new Object[method.getParameterTypes().length];
-            boolean responseIsParameter = false;
+            boolean methodHasReturnTypeAndAResponseParameter = false;
+            boolean methodHasResponseParameter = false;
             int count = 0;
             for (int i = 0; i < parameters.length; i++) {
                 if (RemoteAPIRequest.class.isAssignableFrom(method.getParameterTypes()[i])) {
                     parameters[i] = request;
                 } else if (RemoteAPIResponse.class.isAssignableFrom(method.getParameterTypes()[i])) {
-                    if (method.getAnnotation(AllowResponseAccess.class) == null) {
-                        responseIsParameter = true;
+                    methodHasResponseParameter = true;
+                    if (method.getAnnotation(AllowResponseAccess.class) != null) {
+                        methodHasReturnTypeAndAResponseParameter = true;
+
                     }
                     parameters[i] = response;
                 } else {
                     try {
                         parameters[i] = RemoteAPI.convert(request.getParameters()[count], method.getGenericParameterTypes()[i]);
                     } catch (final Throwable e) {
-                        throw new BadParameterException(request.getParameters()[count], e);
+                        throw new BadParameterException(e, request.getParameters()[count]);
                     }
                     count++;
                 }
             }
-            responseData = request.getIface().invoke(method, parameters);
-            if (responseIsParameter) { return; }
+            try {
+                responseData = request.getIface().invoke(method, parameters);
+            } catch (final InvocationTargetException e) {
+                throw e.getTargetException();
+            }
+            if (methodHasResponseParameter && !methodHasReturnTypeAndAResponseParameter) { return; }
 
-            String text;
+            String text = null;
+            responseData = handleVoidMethods(responseData, method);
+
             if (method.getAnnotation(ResponseWrapper.class) != null) {
                 text = ((AbstractResponseWrapper<Object>) method.getAnnotation(ResponseWrapper.class).value().newInstance()).toString(responseData);
 
             } else {
-                text = JSonStorage.toString(responseData);
+                text = toString(request, responseData);
             }
-            if (request.getJqueryCallback() != null) {
-                /* wrap response into a valid jquery callback response format */
-                final StringBuilder sb = new StringBuilder();
-                sb.append(request.getJqueryCallback());
-                sb.append("(");
-                sb.append(text);
-                sb.append(");");
-                text = sb.toString();
-            }
-            final byte[] bytes = text.getBytes("UTF-8");
-            RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), true, bytes);
 
-        } catch (final BasicRemoteAPIException e) {            
+            text = jQueryWrap(request, text);
+
+            sendText(request, response, text);
+
+        } catch (final BasicRemoteAPIException e) {
+            // set request and response if it has not set yet
+            if (e.getRequest() == null) {
+                e.setRequest(request);
+            }
+            if (e.getResponse() != null) {
+                e.setResponse(response);
+            }
+
             throw e;
-        } catch (final Exception e) {
-            throw new InternalApiException(e);
+        } catch (final Throwable e) {
+            e.printStackTrace();
+            InternalApiException internal = new InternalApiException(e);
+            internal.setRequest(request);
+            internal.setResponse(response);
 
+            throw internal;
         }
-        // String text = "";
-        // response.setResponseCode(ResponseCode.SUCCESS_OK);
-        // if (method != null && responseData != null) {
-        //
-        // /* no exception thrown and method available */
-        // if (Clazz.isVoid(method.getReturnType())) {
-        // /* no content */
-        // response.getResponseHeaders().add(new
-        // HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, "0"));
-        // } else {
-        // /* we wrap response object in data:object,pid:pid(optional) */
-        // final HashMap<String, Object> responseJSON = new HashMap<String,
-        // Object>();
-        // if (RemoteAPIProcess.class.isAssignableFrom(method.getReturnType()))
-        // {
-        // final RemoteAPIProcess<RemoteAPIInterface> process =
-        // (RemoteAPIProcess<RemoteAPIInterface>) responseData;
-        // responseJSON.putAll(remoteAPIProcessResponse(process));
-        // try {
-        // registerProcess(process);
-        // } catch (final Exception e1) {
-        // Log.exception(e);
-        // System.out.println("could not register process " + process.getPID());
-        // responseJSON.put("error", "registererror");
-        // }
-        // } else {
-        // /* only data */
-        // responseJSON.put("data", responseData);
-        // }
 
-        // }
-        // } else {
-        // /* caught an exception */
-        // text = JSonStorage.toString(responseException);
-        // }
+    }
 
+    /**
+     * @param responseData
+     * @param method
+     * @return
+     */
+    protected Object handleVoidMethods(Object responseData, final Method method) {
+        if (Clazz.isVoid(method.getReturnType())) {
+            // void return
+            responseData = "";
+        }
+        return responseData;
+    }
+
+    /**
+     * @param request
+     * @param response
+     * @param text
+     * @throws UnsupportedEncodingException
+     * @throws IOException
+     */
+    protected void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, String text) throws UnsupportedEncodingException, IOException {
+        final byte[] bytes = text.getBytes("UTF-8");
+        response.setResponseCode(ResponseCode.SUCCESS_OK);
+        RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), true, bytes);
+    }
+
+    /**
+     * @param request
+     * @param text
+     * @return
+     */
+    protected String jQueryWrap(final RemoteAPIRequest request, String text) {
+        if (request.getJqueryCallback() != null) {
+            /* wrap response into a valid jquery callback response format */
+            final StringBuilder sb = new StringBuilder();
+            sb.append(request.getJqueryCallback());
+            sb.append("(");
+            sb.append(text);
+            sb.append(");");
+            text = sb.toString();
+        }
+        return text;
+    }
+
+    /**
+     * @param responseData
+     * @param responseData2
+     * @return
+     */
+    private String toString(RemoteAPIRequest request, Object responseData) {
+
+        return JSonStorage.toString(new DataObject(responseData));
     }
 
     /**
      * @param method
      * @param request
      * @param response
-     * @throws AuthException
-     * @throws InternalApiException
+     * @throws BasicRemoteAPIException
      */
-    protected void authenticate(final Method method, final RemoteAPIRequest request, final RemoteAPIResponse response) throws AuthException, InternalApiException {
+    protected void authenticate(final Method method, final RemoteAPIRequest request, final RemoteAPIResponse response) throws BasicRemoteAPIException {
         if (request.getIface().getSignatureHandler() != null && request.getIface().isSignatureRequired(method)) {
             /* maybe this request is handled by rawMethodHandler */
             final Object[] parameters = new Object[] { request, response };
             Object responseData;
             try {
-                responseData = request.getIface().invoke(request.getIface().getSignatureHandler(), parameters);
+                try {
+                    responseData = request.getIface().invoke(request.getIface().getSignatureHandler(), parameters);
 
-                if (!Boolean.TRUE.equals(responseData)) { throw new AuthException(); }
-            } catch (final AuthException e) {
+                    if (!Boolean.TRUE.equals(responseData)) { throw new AuthException(); }
+                } catch (final InvocationTargetException e) {
+                    throw e.getTargetException();
+                }
+            } catch (final BasicRemoteAPIException e) {
                 throw e;
-            } catch (final Exception e) {
+
+            } catch (final Throwable e) {
                 throw new InternalApiException(e);
             }
         }
@@ -451,25 +491,6 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.remoteapi.RemoteAPIProcessList#list()
-     */
-    @Override
-    public ArrayList<HashMap<String, String>> list() {
-        final ArrayList<HashMap<String, String>> ret = new ArrayList<HashMap<String, String>>();
-        synchronized (LOCK) {
-            for (final Entry<String, RemoteAPIProcess<RemoteAPIInterface>> next : processes.entrySet()) {
-                final HashMap<String, String> data = new HashMap<String, String>();
-                data.put("pid", next.getValue().getPID());
-                data.put("status", next.getValue().getStatus().name());
-                ret.add(data);
-            }
-        }
-        return ret;
-    }
-
     /**
      * @param interfaceHandler
      * @param string
@@ -558,69 +579,6 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    protected void registerProcess(final RemoteAPIProcess<RemoteAPIInterface> process) throws ParseException {
-        synchronized (LOCK) {
-            if (process.isFinished()) { return; }
-            process.setRemoteAPI(this);
-            processes.put(process.getPID(), process);
-            final String namespace = "processes/" + process.getPID();
-            Class<?> clazz = process.getClass();
-            final java.util.List<Class<?>> interfaces = new ArrayList<Class<?>>();
-            while (clazz != null) {
-                main: for (final Class<?> c : clazz.getInterfaces()) {
-                    if (RemoteAPIInterface.class.isAssignableFrom(c)) {
-                        for (final Class<?> e : interfaces) {
-                            /* avoid multiple adding of same interfaces */
-                            if (c.isAssignableFrom(e)) {
-                                continue main;
-                            }
-                        }
-                        interfaces.add(c);
-                        int defaultAuthLevel = 0;
-                        final ApiAuthLevel b = c.getAnnotation(ApiAuthLevel.class);
-                        if (b != null) {
-                            defaultAuthLevel = b.value();
-                        }
-
-                        System.out.println("Register:   " + c.getName() + "->" + namespace);
-                        try {
-                            InterfaceHandler<RemoteAPIInterface> handler = this.interfaces.get(namespace);
-                            if (handler == null) {
-                                handler = InterfaceHandler.create((Class<RemoteAPIInterface>) c, process, defaultAuthLevel);
-                                handler.setSessionRequired(c.getAnnotation(ApiSessionRequired.class) != null);
-                                this.interfaces.put(namespace, handler);
-                            } else {
-                                handler.add((Class<RemoteAPIInterface>) c, process, defaultAuthLevel);
-                            }
-
-                        } catch (final SecurityException e) {
-                            throw new ParseException(e);
-                        } catch (final NoSuchMethodException e) {
-                            throw new ParseException(e);
-                        }
-                    }
-                }
-                clazz = clazz.getSuperclass();
-            }
-        }
-    }
-
-    protected HashMap<String, Object> remoteAPIProcessResponse(final RemoteAPIProcess<?> process) {
-        final HashMap<String, Object> ret = new HashMap<String, Object>();
-        ret.put("data", process.getResponse());
-        ret.put("pid", process.getPID());
-        return ret;
-    }
-
-    /**
-     * @param e
-     * @return
-     */
-    protected boolean throwException(final Throwable e) {
-        return false;
-    }
-
     public void unregister(final RemoteAPIInterface x) {
         final HashSet<Class<?>> interfaces = new HashSet<Class<?>>();
         synchronized (LOCK) {
@@ -648,28 +606,4 @@ public class RemoteAPI implements HttpRequestHandler, RemoteAPIProcessList {
         }
     }
 
-    public void unregisterProcess(final RemoteAPIProcess<?> process) {
-        final HashSet<Class<?>> interfaces = new HashSet<Class<?>>();
-        synchronized (LOCK) {
-            processes.remove(process.getPID());
-            final String namespace = "processes/" + process.getPID();
-            Class<?> clazz = process.getClass();
-            while (clazz != null) {
-                main: for (final Class<?> c : clazz.getInterfaces()) {
-                    if (RemoteAPIInterface.class.isAssignableFrom(c)) {
-                        for (final Class<?> e : interfaces) {
-                            /* avoid multiple removing of same interfaces */
-                            if (c.isAssignableFrom(e)) {
-                                continue main;
-                            }
-                        }
-                        interfaces.add(c);
-                        this.interfaces.remove(namespace);
-                        System.out.println("UnRegister: " + c.getName() + "->" + namespace);
-                    }
-                }
-                clazz = clazz.getSuperclass();
-            }
-        }
-    }
 }

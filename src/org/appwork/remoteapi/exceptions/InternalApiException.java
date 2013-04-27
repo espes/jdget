@@ -23,5 +23,12 @@ public class InternalApiException extends RemoteAPIException {
         super(e,RemoteAPIError.INTERNAL_SERVER_ERROR);
     }
 
+    /**
+     * 
+     */
+    public InternalApiException() {
+        super(RemoteAPIError.INTERNAL_SERVER_ERROR);
+    }
+
  
 }

@@ -12,10 +12,10 @@ package org.appwork.remoteapi.test;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
-import org.appwork.remoteapi.ApiDoc;
 import org.appwork.remoteapi.RemoteAPIInterface;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
+import org.appwork.remoteapi.annotations.ApiDoc;
 
 /**
  * @author thomas

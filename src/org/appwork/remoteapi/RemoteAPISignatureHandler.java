@@ -9,12 +9,12 @@
  */
 package org.appwork.remoteapi;
 
-import java.io.IOException;
+import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
 
 /**
  * @author daniel
  * 
  */
 public interface RemoteAPISignatureHandler {
-    public boolean handleRemoteAPISignature(RemoteAPIRequest request, RemoteAPIResponse response) throws IOException;
+    public boolean handleRemoteAPISignature(RemoteAPIRequest request, RemoteAPIResponse response) throws BasicRemoteAPIException;
 }
