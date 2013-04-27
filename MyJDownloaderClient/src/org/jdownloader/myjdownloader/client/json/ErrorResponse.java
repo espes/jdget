@@ -15,9 +15,9 @@ public class ErrorResponse {
 
     }
 
-    public ErrorResponse(final Source string, final ServerErrorType error, final Object data) {
+    public ErrorResponse(final Source string, final String error, final Object data) {
         src = string;
-        type = error.name();
+        type = error;
         this.data = data;
     }
 

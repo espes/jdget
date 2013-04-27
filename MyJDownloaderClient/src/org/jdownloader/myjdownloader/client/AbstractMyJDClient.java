@@ -657,16 +657,15 @@ public abstract class AbstractMyJDClient {
 
         // final byte[] loginSecret = this.createSecret(email, password, "server");
 
-        String encrypted;
+      
         try {
-            encrypted = jsonPost("/my/requestregistrationemail?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()) + "&referer=" + urlencode(referer == null ? appKey : referer));
+         jsonPost("/my/requestregistrationemail?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()) + "&referer=" + urlencode(referer == null ? appKey : referer));
         } catch (final APIException e) {
             throw new RuntimeException(e);
             
         }
 
-        final boolean ret = this.jsonToObject(encrypted, boolean.class);
-        if (!ret) { throw new BadResponseException("Unexpected False"); }
+       
 
     }
 
