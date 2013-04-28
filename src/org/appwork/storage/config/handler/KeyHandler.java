@@ -28,6 +28,7 @@ import org.appwork.storage.config.annotations.CustomValueGetter;
 import org.appwork.storage.config.annotations.DefaultFactory;
 import org.appwork.storage.config.annotations.DefaultJsonObject;
 import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
+import org.appwork.storage.config.annotations.DisableObjectCache;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.RequiresRestart;
 import org.appwork.storage.config.annotations.ValidatorFactory;
@@ -101,14 +102,14 @@ public abstract class KeyHandler<RawClass> {
      * @param class1
      */
     private void checkBadAnnotations(final Method m, final Class<? extends Annotation>... classes) {
-        /**
-         * This main mark is important!!
-         */
+        
         final Class<?>[] okForAll = new Class<?>[] { CustomValueGetter.class, ValidatorFactory.class, DefaultJsonObject.class, DefaultFactory.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, DescriptionForConfigEntry.class, CryptedStorage.class, PlainStorage.class };
         final Class<?>[] clazzes = new Class<?>[classes.length + okForAll.length];
         System.arraycopy(classes, 0, clazzes, 0, classes.length);
         System.arraycopy(okForAll, 0, clazzes, classes.length, okForAll.length);
-
+        /**
+         * This main mark is important!!
+         */
         main: for (final Annotation a : m.getAnnotations()) {
             // all other Annotations are ok anyway
             if (a == null) {

@@ -21,6 +21,7 @@ import org.appwork.storage.TypeRef;
 import org.appwork.storage.config.MinTimeWeakReference;
 import org.appwork.storage.config.annotations.DefaultFactory;
 import org.appwork.storage.config.annotations.DefaultJsonObject;
+import org.appwork.storage.config.annotations.DisableObjectCache;
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.logging.Log;
@@ -45,9 +46,13 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
         super(storageHandler, key);
         this.typeRef = new TypeRef<Object>(type) {
         };
-        
- 
 
+    }
+
+    @Override
+    protected Class<? extends Annotation>[] getAllowedAnnotations() {
+ 
+        return new Class[]{DisableObjectCache.class};
     }
 
     @Override
@@ -60,7 +65,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
                 throw new WTFException(e);
             }
 
-            this.cache = new MinTimeWeakReference<T>(ret, ListHandler.MIN_LIFETIME, "Storage " + this.getKey());
+            if (getAnnotation(DisableObjectCache.class) == null) this.cache = new MinTimeWeakReference<T>(ret, ListHandler.MIN_LIFETIME, "Storage " + this.getKey());
 
         }
         return ret;
@@ -75,7 +80,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
         this.path = new File(this.storageHandler.getPath() + "." + this.getKey() + "." + (this.isCrypted() ? "ejs" : "json"));
         if (storageHandler.getRelativCPPath() != null && !path.exists()) {
             this.url = Application.getRessourceURL(storageHandler.getRelativCPPath() + "." + this.getKey() + "." + (this.isCrypted() ? "ejs" : "json"));
-         
+
         }
 
     }
@@ -136,7 +141,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
             // }
 
         } finally {
-            if (!this.path.exists()&&url==null) {
+            if (!this.path.exists() && url == null) {
                 this.write(this.getDefaultValue());
             }
 
