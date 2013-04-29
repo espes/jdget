@@ -15,13 +15,42 @@ import org.appwork.utils.os.CrossSystem;
 
 public class SyntheticaHelper {
 
-    /**
-     * @throws UnsupportedEncodingException
-     * 
-     */
-    public static void init() throws UnsupportedEncodingException {
-        init("de.javasoft.plaf.synthetica.SyntheticaSimple2DLookAndFeel");
+    public static String getDefaultFont() {
+        switch (CrossSystem.OS_ID) {
+        case CrossSystem.OS_WINDOWS_7:
+        case CrossSystem.OS_WINDOWS_8:
+        case CrossSystem.OS_WINDOWS_VISTA:
+            return "Segoe UI";
+        }
 
+        return null;
+    }
+
+    /**
+     * @param config
+     * @param locale
+     * @return
+     */
+    public static String getFontName(final SyntheticaSettings config, final LanguageFileSetup locale) {
+        final String fontName = config.getFontName();
+
+        final String fontFromTranslation = locale.config_fontname();
+
+        String newFontName = null;
+
+        if (fontFromTranslation != null && !"default".equalsIgnoreCase(fontFromTranslation)) {
+            /* we have customized fontName in translation */
+            /* lower priority than fontName in settings */
+            newFontName = fontFromTranslation;
+        }
+        if (fontName != null && !"default".equalsIgnoreCase(fontName)) {
+            /* we have customized fontName in settings, it has highest priority */
+            newFontName = fontName;
+        }
+        if (newFontName == null) {
+            newFontName = SyntheticaHelper.getDefaultFont();
+        }
+        return newFontName;
     }
 
     public static int getFontScaleFaktor(final SyntheticaSettings config, final LanguageFileSetup translationFileConfig) {
@@ -37,14 +66,24 @@ public class SyntheticaHelper {
     }
 
     /**
+     * @throws UnsupportedEncodingException
+     * 
+     */
+    public static void init() throws UnsupportedEncodingException {
+        SyntheticaHelper.init("de.javasoft.plaf.synthetica.SyntheticaSimple2DLookAndFeel");
+
+    }
+
+    /**
      * @param string
      * @throws UnsupportedEncodingException
      */
     public static void init(final String laf) throws UnsupportedEncodingException {
+        Log.L.info("LaF init: " + laf);
         final long start = System.currentTimeMillis();
         try {
             JFrame.setDefaultLookAndFeelDecorated(false);
-            
+
             JDialog.setDefaultLookAndFeelDecorated(false);
             final LanguageFileSetup locale = TranslationFactory.create(LanguageFileSetup.class);
             final SyntheticaSettings config = JsonConfig.create(SyntheticaSettings.class);
@@ -57,11 +96,11 @@ public class SyntheticaHelper {
             UIManager.put("Synthetica.text.antialias", config.isTextAntiAliasEnabled());
             UIManager.put("Synthetica.extendedFileChooser.rememberPreferences", Boolean.FALSE);
             UIManager.put("Synthetica.extendedFileChooser.rememberLastDirectory", Boolean.FALSE);
-    
+
             // /* http://www.jyloo.com/news/?pubId=1297681728000 */
             // /* we want our own FontScaling, not SystemDPI */
             UIManager.put("Synthetica.font.respectSystemDPI", config.isFontRespectsSystemDPI());
-            final int fontScale = getFontScaleFaktor(config, locale);
+            final int fontScale = SyntheticaHelper.getFontScaleFaktor(config, locale);
             UIManager.put("Synthetica.font.scaleFactor", fontScale);
             if (config.isFontRespectsSystemDPI() && fontScale != 100) {
                 Log.L.warning("SystemDPI might interfere with JD's FontScaling");
@@ -92,10 +131,10 @@ public class SyntheticaHelper {
             de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setLookAndFeel(laf);
             de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setExtendedFileChooserEnabled(false);
 
-            final String fontName = getFontName(config, locale);
+            final String fontName = SyntheticaHelper.getFontName(config, locale);
 
             int fontSize = de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.getFont().getSize();
-            fontSize = (fontScale * fontSize) / 100;
+            fontSize = fontScale * fontSize / 100;
 
             if (fontName != null) {
 
@@ -113,44 +152,6 @@ public class SyntheticaHelper {
             Log.L.info("LAF Init duration: " + time + "ms");
 
         }
-    }
-
-    /**
-     * @param config
-     * @param locale
-     * @return
-     */
-    public static String getFontName(final SyntheticaSettings config, final LanguageFileSetup locale) {
-        final String fontName = config.getFontName();
-
-        final String fontFromTranslation = locale.config_fontname();
-
-        String newFontName = null;
-
-        if (fontFromTranslation != null && !"default".equalsIgnoreCase(fontFromTranslation)) {
-            /* we have customized fontName in translation */
-            /* lower priority than fontName in settings */
-            newFontName = fontFromTranslation;
-        }
-        if (fontName != null && !"default".equalsIgnoreCase(fontName)) {
-            /* we have customized fontName in settings, it has highest priority */
-            newFontName = fontName;
-        }
-        if (newFontName == null) {
-            newFontName = getDefaultFont();
-        }
-        return newFontName;
-    }
-
-    public static String getDefaultFont() {
-        switch (CrossSystem.OS_ID) {
-        case CrossSystem.OS_WINDOWS_7:
-        case CrossSystem.OS_WINDOWS_8:
-        case CrossSystem.OS_WINDOWS_VISTA:
-            return "Segoe UI";
-        }
-
-        return null;
     }
 
 }
