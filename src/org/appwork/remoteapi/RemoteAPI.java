@@ -225,9 +225,7 @@ public class RemoteAPI implements HttpRequestHandler {
     }
 
     /* hashmap that holds all registered interfaces and their pathes */
-    private final HashMap<String, InterfaceHandler<RemoteAPIInterface>> interfaces = new HashMap<String, InterfaceHandler<RemoteAPIInterface>>();
-
-    private final Object                                                LOCK       = new Object();
+    private HashMap<String, InterfaceHandler<RemoteAPIInterface>> interfaces = new HashMap<String, InterfaceHandler<RemoteAPIInterface>>();
 
     public RemoteAPI() {
 
@@ -354,9 +352,7 @@ public class RemoteAPI implements HttpRequestHandler {
         if (intf[1] == null) {
             intf[1] = "";
         }
-        synchronized (this.LOCK) {
-            interfaceHandler = this.interfaces.get(intf[1]);
-        }
+        interfaceHandler = this.interfaces.get(intf[1]);
         if (interfaceHandler == null) { return null; }
         final java.util.List<String> parameters = new ArrayList<String>();
         String jqueryCallback = null;
@@ -489,7 +485,8 @@ public class RemoteAPI implements HttpRequestHandler {
     @SuppressWarnings("unchecked")
     public void register(final RemoteAPIInterface x) throws ParseException {
         final HashSet<Class<?>> interfaces = new HashSet<Class<?>>();
-        synchronized (this.LOCK) {
+        synchronized (this) {
+            final HashMap<String, InterfaceHandler<RemoteAPIInterface>> linterfaces = new HashMap<String, InterfaceHandler<RemoteAPIInterface>>(this.interfaces);
             Class<?> clazz = x.getClass();
             while (clazz != null) {
                 main: for (final Class<?> c : clazz.getInterfaces()) {
@@ -522,11 +519,11 @@ public class RemoteAPI implements HttpRequestHandler {
 
                         System.out.println("Register:   " + c.getName() + "->" + namespace);
                         try {
-                            InterfaceHandler<RemoteAPIInterface> handler = this.interfaces.get(namespace);
+                            InterfaceHandler<RemoteAPIInterface> handler = linterfaces.get(namespace);
                             if (handler == null) {
                                 handler = InterfaceHandler.create((Class<RemoteAPIInterface>) c, x, defaultAuthLevel);
                                 handler.setSessionRequired(c.getAnnotation(ApiSessionRequired.class) != null);
-                                this.interfaces.put(namespace, handler);
+                                linterfaces.put(namespace, handler);
                             } else {
                                 handler.add((Class<RemoteAPIInterface>) c, x, defaultAuthLevel);
                             }
@@ -539,6 +536,7 @@ public class RemoteAPI implements HttpRequestHandler {
                     }
                 }
                 clazz = clazz.getSuperclass();
+                this.interfaces = linterfaces;
             }
         }
     }
@@ -568,7 +566,8 @@ public class RemoteAPI implements HttpRequestHandler {
 
     public void unregister(final RemoteAPIInterface x) {
         final HashSet<Class<?>> interfaces = new HashSet<Class<?>>();
-        synchronized (this.LOCK) {
+        synchronized (this) {
+            final HashMap<String, InterfaceHandler<RemoteAPIInterface>> linterfaces = new HashMap<String, InterfaceHandler<RemoteAPIInterface>>(this.interfaces);
             Class<?> clazz = x.getClass();
             while (clazz != null) {
                 main: for (final Class<?> c : clazz.getInterfaces()) {
@@ -585,11 +584,12 @@ public class RemoteAPI implements HttpRequestHandler {
                         if (a != null) {
                             namespace = a.value();
                         }
-                        this.interfaces.remove(namespace);
+                        linterfaces.remove(namespace);
                     }
                 }
                 clazz = clazz.getSuperclass();
             }
+            this.interfaces = linterfaces;
         }
     }
 
