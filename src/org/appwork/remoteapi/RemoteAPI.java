@@ -73,10 +73,8 @@ public class RemoteAPI implements HttpRequestHandler {
             } else if (type == double.class) {
                 //
                 v = ((Number) v).doubleValue();
-
             }
         }
-
         return (T) v;
     }
 
@@ -125,7 +123,7 @@ public class RemoteAPI implements HttpRequestHandler {
 
             @Override
             public void close() throws IOException {
-                wrapperEnd();
+                this.wrapperEnd();
                 if (out != null) {
                     out.finish();
                     out.flush();
@@ -139,29 +137,29 @@ public class RemoteAPI implements HttpRequestHandler {
             }
 
             private void wrapperEnd() throws UnsupportedEncodingException, IOException {
-                if (wrapperEnd) {
+                if (this.wrapperEnd) {
                     uos.write(")".getBytes("UTF-8"));
-                    wrapperEnd = false;
+                    this.wrapperEnd = false;
                 }
             }
 
             private void wrapperHeader() throws UnsupportedEncodingException, IOException {
-                if (wrapperHeader) {
+                if (this.wrapperHeader) {
                     uos.write(request.getJqueryCallback().getBytes("UTF-8"));
                     uos.write("(".getBytes("UTF-8"));
-                    wrapperHeader = false;
+                    this.wrapperHeader = false;
                 }
             }
 
             @Override
             public void write(final byte[] b) throws IOException {
-                wrapperHeader();
+                this.wrapperHeader();
                 uos.write(b);
             }
 
             @Override
             public void write(final int b) throws IOException {
-                wrapperHeader();
+                this.wrapperHeader();
                 uos.write(b);
             }
         };
@@ -241,19 +239,9 @@ public class RemoteAPI implements HttpRequestHandler {
 
         final Method method = request.getMethod();
         try {
-            if (request.getIface().getRawHandler() != null) {
-                /* maybe this request is handled by rawMethodHandler */
-                final Object[] parameters = new Object[] { request, response };
-                try {
-                    responseData = request.getIface().invoke(request.getIface().getRawHandler(), parameters);
-                } catch (final InvocationTargetException e) {
-                    throw e.getTargetException();
-                }
-                if (Boolean.TRUE.equals(responseData)) { return; }
-            }
             if (method == null) { throw new ApiCommandNotAvailable(); }
 
-            authenticate(method, request, response);
+            this.authenticate(method, request, response);
 
             final Object[] parameters = new Object[method.getParameterTypes().length];
             boolean methodHasReturnTypeAndAResponseParameter = false;
@@ -266,7 +254,6 @@ public class RemoteAPI implements HttpRequestHandler {
                     methodHasResponseParameter = true;
                     if (method.getAnnotation(AllowResponseAccess.class) != null) {
                         methodHasReturnTypeAndAResponseParameter = true;
-
                     }
                     parameters[i] = response;
                 } else {
@@ -283,95 +270,42 @@ public class RemoteAPI implements HttpRequestHandler {
             } catch (final InvocationTargetException e) {
                 throw e.getTargetException();
             }
-            if (methodHasResponseParameter && !methodHasReturnTypeAndAResponseParameter) { return; }
+            if (methodHasResponseParameter && !methodHasReturnTypeAndAResponseParameter) {
+                /*
+                 * TODO: check for unhandled response, be aware of async
+                 * responses!
+                 */
+                return;
+            }
 
             String text = null;
-            responseData = handleVoidMethods(responseData, method);
+            responseData = this.handleVoidMethods(responseData, method);
 
             if (method.getAnnotation(ResponseWrapper.class) != null) {
                 text = ((AbstractResponseWrapper<Object>) method.getAnnotation(ResponseWrapper.class).value().newInstance()).toString(responseData);
-
             } else {
-                text = toString(request, responseData);
+                text = this.toString(request, response, responseData);
             }
-
-            text = jQueryWrap(request, text);
-
-            sendText(request, response, text);
-
+            text = this.jQueryWrap(request, text);
+            this.sendText(request, response, text);
         } catch (final BasicRemoteAPIException e) {
             // set request and response if it has not set yet
             if (e.getRequest() == null) {
                 e.setRequest(request);
             }
-            if (e.getResponse() != null) {
+            if (e.getResponse() == null) {
                 e.setResponse(response);
             }
-
             throw e;
         } catch (final Throwable e) {
             e.printStackTrace();
-            InternalApiException internal = new InternalApiException(e);
+            final InternalApiException internal = new InternalApiException(e);
             internal.setRequest(request);
             internal.setResponse(response);
 
             throw internal;
         }
 
-    }
-
-    /**
-     * @param responseData
-     * @param method
-     * @return
-     */
-    protected Object handleVoidMethods(Object responseData, final Method method) {
-        if (Clazz.isVoid(method.getReturnType())) {
-            // void return
-            responseData = "";
-        }
-        return responseData;
-    }
-
-    /**
-     * @param request
-     * @param response
-     * @param text
-     * @throws UnsupportedEncodingException
-     * @throws IOException
-     */
-    protected void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, String text) throws UnsupportedEncodingException, IOException {
-        final byte[] bytes = text.getBytes("UTF-8");
-        response.setResponseCode(ResponseCode.SUCCESS_OK);
-        RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), true, bytes);
-    }
-
-    /**
-     * @param request
-     * @param text
-     * @return
-     */
-    protected String jQueryWrap(final RemoteAPIRequest request, String text) {
-        if (request.getJqueryCallback() != null) {
-            /* wrap response into a valid jquery callback response format */
-            final StringBuilder sb = new StringBuilder();
-            sb.append(request.getJqueryCallback());
-            sb.append("(");
-            sb.append(text);
-            sb.append(");");
-            text = sb.toString();
-        }
-        return text;
-    }
-
-    /**
-     * @param responseData
-     * @param responseData2
-     * @return
-     */
-    private String toString(RemoteAPIRequest request, Object responseData) {
-
-        return JSonStorage.toString(new DataObject(responseData));
     }
 
     /**
@@ -395,7 +329,6 @@ public class RemoteAPI implements HttpRequestHandler {
                 }
             } catch (final BasicRemoteAPIException e) {
                 throw e;
-
             } catch (final Throwable e) {
                 throw new InternalApiException(e);
             }
@@ -421,8 +354,8 @@ public class RemoteAPI implements HttpRequestHandler {
         if (intf[1] == null) {
             intf[1] = "";
         }
-        synchronized (LOCK) {
-            interfaceHandler = interfaces.get(intf[1]);
+        synchronized (this.LOCK) {
+            interfaceHandler = this.interfaces.get(intf[1]);
         }
         if (interfaceHandler == null) { return null; }
         final java.util.List<String> parameters = new ArrayList<String>();
@@ -482,6 +415,19 @@ public class RemoteAPI implements HttpRequestHandler {
     }
 
     /**
+     * @param responseData
+     * @param method
+     * @return
+     */
+    protected Object handleVoidMethods(Object responseData, final Method method) {
+        if (Clazz.isVoid(method.getReturnType())) {
+            // void return
+            responseData = "";
+        }
+        return responseData;
+    }
+
+    /**
      * override this if you want to authorize usage of methods
      * 
      * @param request
@@ -492,15 +438,33 @@ public class RemoteAPI implements HttpRequestHandler {
     }
 
     /**
+     * @param request
+     * @param text
+     * @return
+     */
+    protected String jQueryWrap(final RemoteAPIRequest request, String text) {
+        if (request.getJqueryCallback() != null) {
+            /* wrap response into a valid jquery callback response format */
+            final StringBuilder sb = new StringBuilder();
+            sb.append(request.getJqueryCallback());
+            sb.append("(");
+            sb.append(text);
+            sb.append(");");
+            text = sb.toString();
+        }
+        return text;
+    }
+
+    /**
      * @param interfaceHandler
      * @param string
      * @return
      */
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
-        final RemoteAPIRequest apiRequest = getInterfaceHandler(request);
-        if (apiRequest == null) { return onUnknownRequest(request, response); }
+        final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         try {
-            _handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
+            this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
             throw new RuntimeException(e);
         }
@@ -508,10 +472,10 @@ public class RemoteAPI implements HttpRequestHandler {
     }
 
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) {
-        final RemoteAPIRequest apiRequest = getInterfaceHandler(request);
-        if (apiRequest == null) { return onUnknownRequest(request, response); }
+        final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         try {
-            _handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
+            this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         } catch (final Throwable e) {
             throw new RuntimeException(e);
         }
@@ -525,7 +489,7 @@ public class RemoteAPI implements HttpRequestHandler {
     @SuppressWarnings("unchecked")
     public void register(final RemoteAPIInterface x) throws ParseException {
         final HashSet<Class<?>> interfaces = new HashSet<Class<?>>();
-        synchronized (LOCK) {
+        synchronized (this.LOCK) {
             Class<?> clazz = x.getClass();
             while (clazz != null) {
                 main: for (final Class<?> c : clazz.getInterfaces()) {
@@ -579,9 +543,32 @@ public class RemoteAPI implements HttpRequestHandler {
         }
     }
 
+    /**
+     * @param request
+     * @param response
+     * @param text
+     * @throws UnsupportedEncodingException
+     * @throws IOException
+     */
+    protected void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, final String text) throws UnsupportedEncodingException, IOException {
+        final byte[] bytes = text.getBytes("UTF-8");
+        response.setResponseCode(ResponseCode.SUCCESS_OK);
+        RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), true, bytes);
+    }
+
+    /**
+     * @param responseData
+     * @param responseData2
+     * @return
+     */
+    protected String toString(final RemoteAPIRequest request, final RemoteAPIResponse response, final Object responseData) {
+
+        return JSonStorage.toString(new DataObject(responseData));
+    }
+
     public void unregister(final RemoteAPIInterface x) {
         final HashSet<Class<?>> interfaces = new HashSet<Class<?>>();
-        synchronized (LOCK) {
+        synchronized (this.LOCK) {
             Class<?> clazz = x.getClass();
             while (clazz != null) {
                 main: for (final Class<?> c : clazz.getInterfaces()) {

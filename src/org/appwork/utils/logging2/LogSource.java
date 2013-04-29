@@ -169,9 +169,7 @@ public class LogSource extends Logger implements LogInterface {
     @Override
     public synchronized void log(final LogRecord record) {
         if (this.closed || record == null) { return; }
-
         this.setCurrentThreadLogSource();
-
         record.setLoggerName(this.getName());
         /* make sure we have gathered all information about current class/method */
         /* this will collect current class/method if net set yet */
@@ -255,10 +253,10 @@ public class LogSource extends Logger implements LogInterface {
      */
     public void setInstantFlush(final boolean instantFlush) {
         if (this.instantFlush == instantFlush) { return; }
+        this.instantFlush = instantFlush;
         if (instantFlush) {
             this.flush();
         }
-        this.instantFlush = instantFlush;
     }
 
     public synchronized void setMaxLogRecordsInMemory(final int newMax) {

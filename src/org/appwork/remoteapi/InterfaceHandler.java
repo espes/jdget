@@ -40,8 +40,6 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
 
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
-
 /**
  * @author thomas
  * 
@@ -81,7 +79,6 @@ public class InterfaceHandler<T> {
     private final HashMap<Method, Integer>                  methodsAuthLevel;
     private final HashMap<String, Method>                   rawMethods;
     private final HashSet<Method>                           signatureRequiredMethods;
-    private Method                                          rawHandler       = null;
     private Method                                          signatureHandler = null;
     private final int                                       defaultAuthLevel;
     private boolean                                         sessionRequired  = false;
@@ -162,10 +159,6 @@ public class InterfaceHandler<T> {
      */
     public int getParameterCount(final Method method) {
         return this.parameterCountMap.get(method);
-    }
-
-    public Method getRawHandler() {
-        return this.rawHandler;
     }
 
     public Method getSignatureHandler() {
@@ -333,7 +326,6 @@ public class InterfaceHandler<T> {
         this.parameterCountMap.put(InterfaceHandler.HELP, 0);
         this.methodsAuthLevel.put(InterfaceHandler.HELP, 0);
         this.signatureHandler = null;
-        this.rawHandler = null;
         Class<T> signatureHandlerNeededClass = null;
         for (final Class<T> interfaceClass : this.interfaceClasses) {
             for (final Method m : interfaceClass.getMethods()) {
@@ -350,10 +342,7 @@ public class InterfaceHandler<T> {
                     }
                 }
                 String name = m.getName();
-                if ("handleRAWRemoteAPI".equals(name) && l == 0) {
-                    this.rawHandler = m;
-                    continue;
-                } else if ("handleRemoteAPISignature".equals(name) && l == 0) {
+                if ("handleRemoteAPISignature".equals(name) && l == 0) {
                     this.signatureHandler = m;
                     continue;
                 }
@@ -420,33 +409,31 @@ public class InterfaceHandler<T> {
         }
         if (responseIsParamater) {
             if (m.getGenericReturnType() != void.class && m.getGenericReturnType() != Void.class) {
-                if ( !RemoteAPISignatureHandler.class.isAssignableFrom(m.getDeclaringClass())) { throw new ParseException("Response in Parameters. " + m + " must return void, and has to handle the response itself"); }
+                if (!RemoteAPISignatureHandler.class.isAssignableFrom(m.getDeclaringClass())) { throw new ParseException("Response in Parameters. " + m + " must return void, and has to handle the response itself"); }
             }
         } else {
             try {
-         
-                
-                    if (m.getGenericReturnType() == void.class || m.getGenericReturnType() == Void.class) {
-                        // void is ok.
-                        return;
-                    }
-                    try {
-                        JSonStorage.canStore(m.getGenericReturnType(), m.getAnnotation(AllowNonStorableObjects.class) != null);
-                    } catch (final InvalidTypeException e) {
-                        final AllowStorage allow = m.getAnnotation(AllowStorage.class);
-                        boolean found = false;
-                        if (allow != null) {
-                            for (final Class<?> c : allow.value()) {
-                                if (e.getType() == c) {
-                                    found = true;
-                                    break;
-                                }
+
+                if (m.getGenericReturnType() == void.class || m.getGenericReturnType() == Void.class) {
+                    // void is ok.
+                    return;
+                }
+                try {
+                    JSonStorage.canStore(m.getGenericReturnType(), m.getAnnotation(AllowNonStorableObjects.class) != null);
+                } catch (final InvalidTypeException e) {
+                    final AllowStorage allow = m.getAnnotation(AllowStorage.class);
+                    boolean found = false;
+                    if (allow != null) {
+                        for (final Class<?> c : allow.value()) {
+                            if (e.getType() == c) {
+                                found = true;
+                                break;
                             }
                         }
-                        if (!found) { throw new InvalidTypeException(e); }
                     }
+                    if (!found) { throw new InvalidTypeException(e); }
+                }
 
-                
             } catch (final InvalidTypeException e) {
                 throw new ParseException("return Type of " + m + " is invalid", e);
             }
