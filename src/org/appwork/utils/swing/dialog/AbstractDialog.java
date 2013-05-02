@@ -50,6 +50,7 @@ import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
+import org.appwork.utils.swing.dialog.dimensor.DialogDimensor;
 import org.appwork.utils.swing.dialog.locator.CenterOfScreenDialogLocator;
 import org.appwork.utils.swing.dialog.locator.DialogLocator;
 
@@ -141,11 +142,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private DialogLocator      locator;
 
+    private DialogDimensor     dimensor;
+
     public DialogLocator getLocator() {
         if (locator == null) {
-            if (DEFAULT_LOCATOR != null) {
-                return DEFAULT_LOCATOR;
-            }
+            if (DEFAULT_LOCATOR != null) { return DEFAULT_LOCATOR; }
             return LOCATE_CENTER_OF_SCREEN;
         }
         return locator;
@@ -155,6 +156,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
         if (!b && getDialog().isVisible()) {
             getLocator().onClose(AbstractDialog.this);
+            if (dimensor != null) {
+                dimensor.onClose(AbstractDialog.this);
+            }
         }
 
     }
@@ -175,6 +179,14 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     public void setLocator(final DialogLocator locator) {
         this.locator = locator;
+    }
+
+    public void setDimensor(final DialogDimensor dimensor) {
+        this.dimensor = dimensor;
+    }
+
+    public DialogDimensor getDimensor() {
+        return dimensor;
     }
 
     /**
@@ -379,13 +391,20 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // if (this.getDesiredSize() != null) {
             // this.setSize(this.getDesiredSize());
             // }
+            if (dimensor != null) {
+                final Dimension ret = dimensor.getDimension(AbstractDialog.this);
+                if (ret != null) {
+                    getDialog().setSize(ret);
+                }
 
+            }
             final Point loc = getLocator().getLocationOnScreen(this);
             if (loc != null) {
                 getDialog().setLocation(loc);
             } else {
                 getDialog().setLocation(LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(this));
             }
+
             // register an escape listener to cancel the dialog
             this.registerEscape(focus);
             this.packed();
@@ -503,6 +522,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             protected void runInEDT() {
                 if (getDialog().isVisible()) {
                     getLocator().onClose(AbstractDialog.this);
+                    if (dimensor != null) {
+                        dimensor.onClose(AbstractDialog.this);
+                    }
                 }
                 AbstractDialog.super.dispose();
                 if (AbstractDialog.this.timer != null) {
