@@ -22,7 +22,7 @@ import org.appwork.storage.simplejson.mapper.MapperException;
  * @author thomas
  * 
  */
-public class Test {
+public class PerformanceTest {
     /**
      * @return
      */
@@ -36,8 +36,8 @@ public class Test {
     public static void main(final String[] args) throws MapperException, ParserException {
         JSonStorage.setMapper(new JacksonMapper());
         for (int i = 1; i <= 100; i++) {
-            Test.testSerialize(i * 1);
-            Test.testDeserialize(i * 1);
+            PerformanceTest.testSerialize(i * 1);
+            PerformanceTest.testDeserialize(i * 1);
         }
 
     }
@@ -48,7 +48,7 @@ public class Test {
      * 
      */
     private static void testDeserialize(final int iterations) throws MapperException, ParserException {
-        final Object obj = Test.create();
+        final Object obj = PerformanceTest.create();
 
         final JSonMapper mapper = new JSonMapper();
         JSonNode json = mapper.create(obj);
@@ -82,7 +82,7 @@ public class Test {
      * 
      */
     private static void testSerialize(final int iterations) throws MapperException {
-        final Object obj = Test.create();
+        final Object obj = PerformanceTest.create();
 
         final JSonMapper mapper = new JSonMapper();
 

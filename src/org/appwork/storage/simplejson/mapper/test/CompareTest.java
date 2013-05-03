@@ -10,6 +10,7 @@
 package org.appwork.storage.simplejson.mapper.test;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
+import org.appwork.storage.JSonStorage;
 import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.ParserException;
 import org.appwork.storage.simplejson.mapper.JSonMapper;
@@ -37,8 +38,11 @@ public class CompareTest {
         final Object obj = CompareTest.create();
         final JSonNode json = mapper.create(obj);
         final String jsonString = json.toString();
+      
         final TestClass re = (TestClass) mapper.jsonToObject(json, TestClass.class);
         // prints true if mapperloop succeeded
+  
+        System.out.println("SUCCESS: " + JSonStorage.toString(obj).equals(JSonStorage.toString(re)));
         System.out.println("SUCCESS: " + EqualsBuilder.reflectionEquals(obj, re));
     }
 

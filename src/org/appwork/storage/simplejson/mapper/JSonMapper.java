@@ -31,6 +31,7 @@ import org.appwork.storage.simplejson.JSonObject;
 import org.appwork.storage.simplejson.JSonValue;
 import org.appwork.utils.reflection.Clazz;
 
+import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 /**
@@ -249,6 +250,11 @@ public class JSonMapper {
                 clazz = ((ParameterizedTypeImpl) type).getRawType();
             } else if (type instanceof Class) {
                 clazz = (Class) type;
+            } else if (type instanceof GenericArrayTypeImpl) {
+                // this is for 1.6
+                // for 1.7 we do not get GenericArrayTypeImpl here but the
+                // actual array class
+                type = clazz = Array.newInstance((Class<?>) ((GenericArrayTypeImpl) type).getGenericComponentType(), 0).getClass();
             }
 
             if (clazz == null || clazz == Object.class) {

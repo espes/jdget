@@ -12,11 +12,13 @@ package org.appwork.storage;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import org.appwork.storage.simplejson.mapper.CompiledTypeRef;
+
 /**
  * @author thomas
  * 
  */
-public abstract class TypeRef<S> {
+public abstract class TypeRef<T> {
 
     private final Type type;
 
@@ -36,6 +38,14 @@ public abstract class TypeRef<S> {
 
     public Type getType() {
         return this.type;
+    }
+
+    /**
+     * @return
+     */
+    public CompiledTypeRef compile() {
+     final CompiledTypeRef ret = new CompiledTypeRef(getType());
+        return ret;
     }
 
 }
