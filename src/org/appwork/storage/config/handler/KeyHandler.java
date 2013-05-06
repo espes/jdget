@@ -11,6 +11,7 @@ package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
@@ -28,7 +29,6 @@ import org.appwork.storage.config.annotations.CustomValueGetter;
 import org.appwork.storage.config.annotations.DefaultFactory;
 import org.appwork.storage.config.annotations.DefaultJsonObject;
 import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
-import org.appwork.storage.config.annotations.DisableObjectCache;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.RequiresRestart;
 import org.appwork.storage.config.annotations.ValidatorFactory;
@@ -102,7 +102,7 @@ public abstract class KeyHandler<RawClass> {
      * @param class1
      */
     private void checkBadAnnotations(final Method m, final Class<? extends Annotation>... classes) {
-        
+
         final Class<?>[] okForAll = new Class<?>[] { CustomValueGetter.class, ValidatorFactory.class, DefaultJsonObject.class, DefaultFactory.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, DescriptionForConfigEntry.class, CryptedStorage.class, PlainStorage.class };
         final Class<?>[] clazzes = new Class<?>[classes.length + okForAll.length];
         System.arraycopy(classes, 0, clazzes, 0, classes.length);
@@ -232,7 +232,31 @@ public abstract class KeyHandler<RawClass> {
      */
     @SuppressWarnings("unchecked")
     public Class<RawClass> getRawClass() {
+
         return (Class<RawClass>) this.getter.getRawClass();
+    }
+
+    /**
+     * @return
+     */
+    public Type getRawType() {
+        if (getter != null) { return getter.getRawType(); }
+        return setter.getRawType();
+
+    }
+
+    public String getTypeString() {
+        Type ret = null;
+        if (getter != null) {
+            ret = this.getter.getMethod().getGenericReturnType();
+        } else {
+            ret = this.setter.getMethod().getGenericParameterTypes()[0];
+        }
+        if (ret instanceof Class) {
+            return ((Class) ret).getName();
+        } else {
+            return ret.toString();
+        }
     }
 
     public MethodHandler getSetter() {

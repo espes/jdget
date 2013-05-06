@@ -25,11 +25,12 @@ public class MethodHandler {
         SETTER;
     }
 
-    private final Type   type;
-    private final String key;
-    private final Method method;
+    private final Type             type;
+    private final String           key;
+    private final Method           method;
 
-    private Class<?>     rawClass;
+    private Class<?>               rawClass;
+    private java.lang.reflect.Type rawType;
 
     /**
      * @param getter
@@ -46,34 +47,40 @@ public class MethodHandler {
      */
     public MethodHandler(final StorageHandler<?> storageHandler, final Type getter, final String key, final Method m) throws SecurityException, NoSuchMethodException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
 
-        this.type = getter;
+        type = getter;
         this.key = key;
-        this.method = m;
+        method = m;
 
-        if (this.isGetter()) {
+        if (isGetter()) {
 
-            this.rawClass = m.getReturnType();
+            rawClass = m.getReturnType();
+            rawType = m.getGenericReturnType();
         } else {
 
-            this.rawClass = m.getParameterTypes()[0];
+            rawClass = m.getParameterTypes()[0];
+            rawType = m.getGenericParameterTypes()[0];
         }
 
     }
 
     public String getKey() {
-        return this.key;
+        return key;
     }
 
     public Method getMethod() {
-        return this.method;
+        return method;
     }
 
     public Class<?> getRawClass() {
-        return this.rawClass;
+        return rawClass;
+    }
+
+    public java.lang.reflect.Type getRawType() {
+        return rawType;
     }
 
     public Type getType() {
-        return this.type;
+        return type;
     }
 
     /**
@@ -81,12 +88,12 @@ public class MethodHandler {
      */
     public boolean isGetter() {
 
-        return this.type == Type.GETTER;
+        return type == Type.GETTER;
     }
 
     @Override
     public String toString() {
-        return this.method + "";
+        return method + "";
     }
 
 }

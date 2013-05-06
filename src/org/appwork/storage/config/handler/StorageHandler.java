@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.scheduler.DelayedRunnable;
@@ -46,6 +45,8 @@ import org.appwork.storage.config.annotations.DefaultLongArrayValue;
 import org.appwork.storage.config.events.ConfigEvent;
 import org.appwork.storage.config.events.ConfigEventSender;
 import org.appwork.utils.Application;
+import org.appwork.utils.Files;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.reflection.Clazz;
 import org.appwork.utils.swing.dialog.Dialog;
@@ -85,19 +86,27 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private WriteStrategy                                             writeStrategy          = null;
 
     private int                                                       delayedSaveInterval    = 10000;
-    private final int                                                 id;
-    private static AtomicInteger                                      IDCOUNTER              = new AtomicInteger(0);
-    private static HashMap<Integer, WeakReference<StorageHandler<?>>> STORAGEMAP             = new HashMap<Integer, WeakReference<StorageHandler<?>>>();
+    private String storage;
 
-    public static StorageHandler<?> getStorageHandler(final int id) {
+
+    private static HashMap<String, WeakReference<StorageHandler<?>>> STORAGEMAP             = new HashMap<String, WeakReference<StorageHandler<?>>>();
+
+   
+    /**
+     * @param interfaceName
+     * @param storage
+     * @return
+     */
+    public static StorageHandler<?> getStorageHandler(final String interfaceName, final String storage) {
         StorageHandler<?> ret = null;
         synchronized (StorageHandler.STORAGEMAP) {
-            final WeakReference<StorageHandler<?>> wret = StorageHandler.STORAGEMAP.get(id);
+          
+            final WeakReference<StorageHandler<?>> wret = StorageHandler.STORAGEMAP.get(  interfaceName+"."+storage);
             if (wret != null) {
                 if ((ret = wret.get()) != null) {
                     return ret;
                 } else {
-                    StorageHandler.STORAGEMAP.remove(id);
+                    StorageHandler.STORAGEMAP.remove(  interfaceName+"."+storage);
                 }
             }
         }
@@ -109,16 +118,25 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @param configInterface
      */
     public StorageHandler(final File name, final Class<T> configInterface) {
-        this.id = StorageHandler.IDCOUNTER.incrementAndGet();
-        synchronized (StorageHandler.STORAGEMAP) {
-            StorageHandler.STORAGEMAP.put(this.id, new WeakReference<StorageHandler<?>>(this));
-        }
+
+      
         if (!StorageHandler.DUPE_SET.add(configInterface.getName() + "." + name.getAbsolutePath())) { throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice"); }
 
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 
         this.path = name;
+        final File expected = Application.getResource("cfg/"+configInterface.getName());
+       
+        if(!path.equals(expected)){
+            storage=Files.getRelativePath(expected.getParentFile().getParentFile(), path);
+            if(StringUtils.isEmpty(storage)) {
+                storage=path.getAbsolutePath();
+            }
+        }
+        synchronized (StorageHandler.STORAGEMAP) {
+            StorageHandler.STORAGEMAP.put(configInterface.getName()+"."+storage, new WeakReference<StorageHandler<?>>(this));
+        }
         if (name.getName().endsWith(".json") || name.getName().endsWith(".ejs")) {
             Log.L.warning(name + " should not have an extension!!");
         }
@@ -178,16 +196,24 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @throws URISyntaxException
      */
     public StorageHandler(final String classPath, final Class<T> configInterface) throws URISyntaxException {
-        this.id = StorageHandler.IDCOUNTER.incrementAndGet();
-        synchronized (StorageHandler.STORAGEMAP) {
-            StorageHandler.STORAGEMAP.put(this.id, new WeakReference<StorageHandler<?>>(this));
-        }
+   
+     
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 
         this.relativCPPath = classPath;
         this.path = Application.getResource(classPath);
-
+        final File expected = Application.getResource("cfg/"+configInterface.getName());
+        if(!path.equals(expected)){
+            storage=Files.getRelativePath(expected.getParentFile().getParentFile(), path);
+            if(StringUtils.isEmpty(storage)) {
+                storage=path.getAbsolutePath();
+            }
+        }
+        synchronized (StorageHandler.STORAGEMAP) {
+            StorageHandler.STORAGEMAP.put(configInterface.getName()+"."+storage, new WeakReference<StorageHandler<?>>(this));
+        }
+        
         if (this.path.getName().endsWith(".json") || this.path.getName().endsWith(".ejs")) {
             Log.L.warning(classPath + " should not have an extension!!");
         }
@@ -474,9 +500,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.eventSender;
     }
 
-    public int getId() {
-        return this.id;
-    }
+
 
     public byte[] getKey() {
         return this.key;
@@ -1024,6 +1048,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
         this.primitiveStorage.save();
     }
+
 
     /**
      * @param key2
