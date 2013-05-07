@@ -12,6 +12,8 @@ package org.appwork.storage.simplejson.mapper;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.appwork.storage.config.annotations.JSonFieldName;
+
 /**
  * @author thomas
  * 
@@ -26,7 +28,12 @@ public class Getter {
      * @param m
      */
     public Getter(final String name, final Method m) {
-        this.key = name;
+        JSonFieldName jsFieldName = m.getAnnotation(JSonFieldName.class);
+        if (jsFieldName != null) {
+            key = jsFieldName.value();
+        } else {
+            this.key = name;
+        }
         this.method = m;
         m.setAccessible(true);
     }

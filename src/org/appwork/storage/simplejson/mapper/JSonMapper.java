@@ -13,6 +13,7 @@ import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.StringUtils;
 import org.appwork.storage.TypeRef;
 import org.appwork.storage.simplejson.JSonArray;
 import org.appwork.storage.simplejson.JSonNode;
@@ -33,6 +35,7 @@ import org.appwork.utils.reflection.Clazz;
 
 import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+import sun.reflect.generics.reflectiveObjects.TypeVariableImpl;
 
 /**
  * @author thomas
@@ -102,6 +105,7 @@ public class JSonMapper {
 
     private final HashMap<Class<?>, TypeMapper<?>> typeMapper;
 
+   
     public JSonMapper() {
 
         typeMapper = new HashMap<Class<?>, TypeMapper<?>>();
@@ -322,9 +326,28 @@ public class JSonMapper {
 
                 }
             }
-
-            if (type instanceof Class) {
-                if (type == Object.class) {
+            if (type instanceof ParameterizedTypeImpl) {
+                final ParameterizedTypeImpl pType = (ParameterizedTypeImpl) type;
+                if (Collection.class.isAssignableFrom(pType.getRawType())) {
+                    final Collection<Object> inst = (Collection<Object>) mapClasses(pType.getRawType()).newInstance();
+                    final JSonArray obj = (JSonArray) json;
+                    for (final JSonNode n : obj) {
+                        inst.add(this.jsonToObject(n, pType.getActualTypeArguments()[0]));
+                    }
+                    return inst;
+                } else if (Map.class.isAssignableFrom(pType.getRawType())) {
+                    final Map<String, Object> inst = (Map<String, Object>) mapClasses(pType.getRawType()).newInstance();
+                    final JSonObject obj = (JSonObject) json;
+                    Entry<String, JSonNode> next;
+                    for (final Iterator<Entry<String, JSonNode>> it = obj.entrySet().iterator(); it.hasNext();) {
+                        next = it.next();
+                        inst.put(next.getKey(), this.jsonToObject(next.getValue(), pType.getActualTypeArguments()[1]));
+                    }
+                    return inst;
+                }
+            }
+            if (clazz != null) {
+                if (clazz == Object.class) {
                     // guess type
                     if (json instanceof JSonArray) {
                         type = LinkedList.class;
@@ -333,7 +356,7 @@ public class JSonMapper {
                     }
 
                 }
-                clazz = (Class<?>) type;
+
                 if (Collection.class.isAssignableFrom(clazz)) {
                     final Collection<Object> inst = (Collection<Object>) mapClasses(clazz).newInstance();
                     final JSonArray obj = (JSonArray) json;
@@ -417,7 +440,22 @@ public class JSonMapper {
                             if (value == null) {
                                 continue;
                             }
-                            v = this.jsonToObject(value, s.getType());
+                            //
+                            Type fieldType = s.getType();
+                            // special handling for generic fields
+                            if (fieldType instanceof TypeVariableImpl) {
+                                Type[] actualTypes = ((ParameterizedTypeImpl) type).getActualTypeArguments();
+                                TypeVariable<?>[] genericTypes = clazz.getTypeParameters();
+                                for (int i = 0; i < genericTypes.length; i++) {
+                                    if (StringUtils.equals(((TypeVariableImpl) fieldType).getName(), genericTypes[i].getName())) {
+
+                                        fieldType = actualTypes[i];
+                                        break;
+                                    }
+                                }
+
+                            }
+                            v = this.jsonToObject(value, fieldType);
                             try {
                                 s.setValue(inst, v);
                             } catch (final IllegalArgumentException e) {
@@ -433,27 +471,6 @@ public class JSonMapper {
 
                         return inst;
                     }
-                }
-            } else if (type instanceof ParameterizedTypeImpl) {
-                final ParameterizedTypeImpl pType = (ParameterizedTypeImpl) type;
-                if (Collection.class.isAssignableFrom(pType.getRawType())) {
-                    final Collection<Object> inst = (Collection<Object>) mapClasses(pType.getRawType()).newInstance();
-                    final JSonArray obj = (JSonArray) json;
-                    for (final JSonNode n : obj) {
-                        inst.add(this.jsonToObject(n, pType.getActualTypeArguments()[0]));
-                    }
-                    return inst;
-                } else if (Map.class.isAssignableFrom(pType.getRawType())) {
-                    final Map<String, Object> inst = (Map<String, Object>) mapClasses(pType.getRawType()).newInstance();
-                    final JSonObject obj = (JSonObject) json;
-                    Entry<String, JSonNode> next;
-                    for (final Iterator<Entry<String, JSonNode>> it = obj.entrySet().iterator(); it.hasNext();) {
-                        next = it.next();
-                        inst.put(next.getKey(), this.jsonToObject(next.getValue(), pType.getActualTypeArguments()[1]));
-                    }
-                    return inst;
-                } else {
-                    System.err.println("TYPE?!");
                 }
             } else {
                 System.err.println("TYPE?!");
@@ -514,4 +531,6 @@ public class JSonMapper {
     public void setIgnorePrimitiveNullMapping(final boolean ignoreIllegalNullArguments) {
         ignorePrimitiveNullMapping = ignoreIllegalNullArguments;
     }
+
+ 
 }

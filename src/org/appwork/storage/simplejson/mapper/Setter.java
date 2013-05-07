@@ -13,6 +13,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
+import org.appwork.exceptions.WTFException;
+import org.appwork.storage.config.annotations.ConvertValueFrom;
+import org.appwork.storage.config.annotations.JSonFieldName;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -24,16 +27,26 @@ public class Setter {
     private final String key;
     private final Method method;
     private final Type   type;
+    private Class<?>     convertFromClass;
 
     /**
      * @param substring
      * @param m
      */
     public Setter(final String name, final Method m) {
-        this.key = name;
+
+        JSonFieldName jsFieldName = m.getAnnotation(JSonFieldName.class);
+        if (jsFieldName != null) {
+            key = jsFieldName.value();
+        } else {
+            this.key = name;
+        }
+        ConvertValueFrom convert = m.getAnnotation(ConvertValueFrom.class);
+        if (convert != null) convertFromClass = convert.value();
         this.method = m;
         m.setAccessible(true);
         this.type = m.getGenericParameterTypes()[0];
+
     }
 
     public String getKey() {
@@ -51,30 +64,40 @@ public class Setter {
     @SuppressWarnings("unchecked")
     public void setValue(final Object inst, Object parameter) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 
-        // if (parameter instanceof Number) {
-        // if (this.type == Byte.class || this.type == byte.class) {
-        // parameter = ((Long) parameter).byteValue();
-        //
-        // } else if (this.type == Character.class || this.type == char.class) {
-        // parameter = (char) ((Long) parameter).byteValue();
-        //
-        // } else if (this.type == Short.class || this.type == short.class) {
-        // parameter = ((Long) parameter).shortValue();
-        //
-        // } else if (this.type == Integer.class || this.type == int.class) {
-        // parameter = ((Long) parameter).intValue();
-        // } else if (this.type == Long.class || this.type == long.class) {
-        // parameter = ((Long) parameter).longValue();
-        // } else if (this.type == Float.class || this.type == float.class) {
-        // parameter = ((Double) parameter).floatValue();
-        //
-        // } else if (this.type == Double.class || this.type == double.class) {
-        // parameter = ((Double) parameter).doubleValue();
-        //
-        // }
-        // }
         if (this.type instanceof Class && ((Class<?>) this.type).isEnum()) {
             parameter = Enum.valueOf((Class<Enum>) this.type, parameter + "");
+        }
+
+        if (convertFromClass != null && parameter.getClass().isAssignableFrom(convertFromClass)) {
+            if (convertFromClass == String.class) {
+             
+                    if (this.type == Byte.class || this.type == byte.class) {
+                        parameter = Byte.parseByte((String) parameter);
+
+                    } else if (this.type == Character.class || this.type == char.class) {
+                        parameter = (char) Byte.parseByte((String) parameter);
+
+                    } else if (this.type == Short.class || this.type == short.class) {
+                        parameter = Short.parseShort((String) parameter);
+
+                    } else if (this.type == Integer.class || this.type == int.class) {
+                        parameter = Integer.parseInt((String) parameter);
+                    } else if (this.type == Long.class || this.type == long.class) {
+                        parameter = Long.parseLong((String) parameter);
+                    } else if (this.type == Float.class || this.type == float.class) {
+                        parameter = Float.parseFloat((String) parameter);
+
+                    } else if (this.type == Double.class || this.type == double.class) {
+                        parameter = Double.parseDouble((String) parameter);
+
+                    } else {
+                        throw new WTFException("Unsupported Convert " + convertFromClass + " to " + getType());
+                    }
+                
+            } else {
+                throw new WTFException("Unsupported Convert " + convertFromClass + " to " + getType());
+            }
+
         }
         // System.out.println(this.key + " = " + parameter + " " + this.type);
         try {
