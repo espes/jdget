@@ -117,7 +117,7 @@ public abstract class AbstractMyJDClient {
      */
     public AbstractMyJDClient(final String appKey) {
         this.appKey = appKey;
-        counter = System.currentTimeMillis();
+        this.counter = System.currentTimeMillis();
 
     }
 
@@ -138,8 +138,8 @@ public abstract class AbstractMyJDClient {
     protected abstract String base64Encode(byte[] encryptedBytes);
 
     public DeviceData bindDevice(final DeviceData device) throws MyJDownloaderException {
-        final String query = "/my/binddevice?sessiontoken=" + urlencode(sessionToken) + "&deviceID=" + urlencode(device.getId()) + "&type=" + urlencode(device.getType()) + "&name=" + urlencode(device.getName());
-        final DeviceConnectResponse ret = this.callServer(query, null, serverEncryptionToken, DeviceConnectResponse.class);
+        final String query = "/my/binddevice?sessiontoken=" + this.urlencode(this.sessionToken) + "&deviceID=" + this.urlencode(device.getId()) + "&type=" + this.urlencode(device.getType()) + "&name=" + this.urlencode(device.getName());
+        final DeviceConnectResponse ret = this.callServer(query, null, this.serverEncryptionToken, DeviceConnectResponse.class);
         device.setId(ret.getDeviceid());
         return device;
 
@@ -156,26 +156,26 @@ public abstract class AbstractMyJDClient {
      * @throws APIException
      */
     public synchronized <T> T callAction(final String deviceID, final String action, final Class<T> returnType, final Object... args) throws MyJDownloaderException, APIException {
-        return (T) callActionInternal(deviceID, action, returnType, args);
+        return (T) this.callActionInternal(deviceID, action, returnType, args);
 
     }
 
     protected synchronized Object callActionInternal(final String deviceID, final String action, final Type returnType, final Object... args) throws MyJDownloaderException, APIException {
         try {
-            final String query = "/t_" + sessionToken + "_" + urlencode(deviceID) + action;
+            final String query = "/t_" + this.sessionToken + "_" + this.urlencode(deviceID) + action;
             final String[] params = new String[args != null ? args.length : 0];
             if (args != null) {
                 for (int i = 0; i < args.length; i++) {
-                    params[i] = objectToJSon(args[i]);
+                    params[i] = this.objectToJSon(args[i]);
                 }
             }
             final JSonRequest payload = new JSonRequest();
             payload.setUrl(action);
-            payload.setRid(inc());
+            payload.setRid(this.inc());
             payload.setParams(params);
-            final String json = objectToJSon(payload);
-            final String ret = internalPost(query, base64Encode(encrypt(json.getBytes("UTF-8"), deviceEncryptionToken)));
-            final String dec = decrypt(ret, deviceEncryptionToken);
+            final String json = this.objectToJSon(payload);
+            final String ret = this.internalPost(query, this.base64Encode(this.encrypt(json.getBytes("UTF-8"), this.deviceEncryptionToken)));
+            final String dec = this.decrypt(ret, this.deviceEncryptionToken);
 
             final ObjectData data = this.jsonToObject(dec, ObjectData.class);
             if (data == null) {
@@ -184,10 +184,10 @@ public abstract class AbstractMyJDClient {
             }
             // ugly!!! but this will be changed when we have a proper remoteAPI response format
 
-            return this.jsonToObject(objectToJSon(data.getData()) + "", returnType);
+            return this.jsonToObject(this.objectToJSon(data.getData()) + "", returnType);
 
         } catch (final ExceptionResponse e) {
-            handleInvalidResponseCodes(e);
+            this.handleInvalidResponseCodes(e);
             throw e;
         } catch (final MyJDownloaderException e) {
             throw e;
@@ -210,27 +210,148 @@ public abstract class AbstractMyJDClient {
     protected synchronized <T> T callServer(String query, final String postData, final byte[] key, final Class<T> class1) throws MyJDownloaderException {
         try {
             query += query.contains("?") ? "&" : "?";
-            final long i = inc();
+            final long i = this.inc();
             query += "rid=" + i;
-            final String encrypted = internalPost(query + "&signature=" + sign(key, query), postData);
-            final Object ret = this.jsonToObject(decrypt(encrypted, key), class1);
-            System.out.println(objectToJSon(ret));
+            final String encrypted = this.internalPost(query + "&signature=" + this.sign(key, query), postData);
+            final Object ret = this.jsonToObject(this.decrypt(encrypted, key), class1);
+            System.out.println(this.objectToJSon(ret));
             if (ret instanceof RequestIDValidator) {
                 if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException("RID Mismatch"); }
             }
             return (T) ret;
         } catch (final ExceptionResponse e) {
             try {
-                handleInvalidResponseCodes(e);
+                this.handleInvalidResponseCodes(e);
             } catch (final APIException e1) {
-                //actually not possible.
+                // actually not possible.
                 throw new RuntimeException(e);
-                
+
             }
             throw e;
         } catch (final Exception e) {
             throw MyJDownloaderException.get(e);
         }
+    }
+
+    /**
+     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with #getSessionInfo
+     * #setSessionInfo and #reconnect to restore a session
+     * 
+     * @param email
+     * @param password
+     * @throws MyJDownloaderException
+     */
+    public synchronized void connect(final String email, final String password) throws MyJDownloaderException {
+        try {
+            this.email = email;
+
+            // localSecret = createSecret(username, password, "jd");
+            final byte[] loginSecret = this.createSecret(email, password, "server");
+            this.deviceSecret = this.createSecret(email, password, "device");
+            final long rid = this.inc();
+            final StringBuilder query = new StringBuilder().append("/my/connect?email=").append(this.urlencode(email)).append("&appkey=").append(this.urlencode(this.appKey)).append("&rid=").append(rid);
+
+            final String signature = this.sign(loginSecret, query.toString());
+            query.append("&signature=").append(this.urlencode(signature));
+
+            final String encrypted = this.internalPost(query.toString(), "");
+            final ConnectResponse ret = this.jsonToObject(this.decrypt(encrypted, loginSecret), ConnectResponse.class);
+            if (ret.getRid() != rid) { throw new BadResponseException("RID Mismatch"); }
+
+            this.serverEncryptionToken = this.updateEncryptionToken(loginSecret, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
+            this.deviceEncryptionToken = this.updateEncryptionToken(this.deviceSecret, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
+            this.sessionToken = ret.getSessiontoken();
+            this.regainToken = ret.getRegaintoken();
+        } catch (final NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+
+        } catch (final InvalidKeyException e) {
+            throw new RuntimeException(e);
+
+        } catch (final NoSuchPaddingException e) {
+
+            throw new BadResponseException("Response Decryption Failed", e);
+
+        } catch (final InvalidAlgorithmParameterException e) {
+
+            throw new BadResponseException("Response Decryption Failed", e);
+
+        } catch (final IllegalBlockSizeException e) {
+            throw new BadResponseException("Response Decryption Failed", e);
+
+        } catch (final BadPaddingException e) {
+            throw new BadResponseException("Response Decryption Failed", e);
+
+        } catch (final APIException e) {
+            throw new RuntimeException(e);
+
+        }
+
+    }
+
+    private byte[] createSecret(final String username, final String password, final String domain) throws BadResponseException {
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+
+            return md.digest((username + password + domain).getBytes("UTF-8"));
+        } catch (final NoSuchAlgorithmException e) {
+            throw new BadResponseException("Secret Creation Failed", e);
+
+        } catch (final UnsupportedEncodingException e) {
+            throw new BadResponseException("Secret Creation Failed", e);
+
+        }
+    }
+
+    private String decrypt(final String encrypted, final byte[] keyAndIV) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
+        final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        final IvParameterSpec ivSpec = new IvParameterSpec(Arrays.copyOfRange(keyAndIV, 0, 16));
+        final SecretKeySpec skeySpec = new SecretKeySpec(Arrays.copyOfRange(keyAndIV, 16, 32), "AES");
+        cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
+        final byte[] crypted = this.base64decode(encrypted);
+        final byte[] decryptedBytes = cipher.doFinal(crypted);
+        return new String(decryptedBytes, "UTF-8");
+    }
+
+    // @SuppressWarnings("unchecked")
+    // private <T> T jsonToObjectGeneric(String dec, Class<T> clazz) {
+    // return (T) jsonToObject(dec, clazz);
+    // }
+    /**
+     * Disconnect. This will invalidate your session. You have to call #connect to get a new session afterwards
+     * 
+     * @throws MyJDownloaderException
+     */
+    public void disconnect() throws MyJDownloaderException {
+        try {
+            final String query = "/my/disconnect?sessiontoken=" + this.urlencode(this.sessionToken);
+            this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
+        } finally {
+            this.invalidateSession();
+        }
+    }
+
+    protected byte[] encrypt(final byte[] data, final byte[] keyAndIV) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
+        final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        final IvParameterSpec ivSpec = new IvParameterSpec(Arrays.copyOfRange(keyAndIV, 0, 16));
+        final SecretKeySpec skeySpec = new SecretKeySpec(Arrays.copyOfRange(keyAndIV, 16, 32), "AES");
+        cipher.init(Cipher.ENCRYPT_MODE, skeySpec, ivSpec);
+
+        return cipher.doFinal(data);
+    }
+
+    public synchronized String feedback(final String message) throws MyJDownloaderException {
+        final JSonRequest re = new JSonRequest();
+        re.setRid(this.inc());
+        re.setParams(new Object[] { message });
+        final String url = "/my/feedback?sessiontoken=" + this.urlencode(this.sessionToken);
+        re.setUrl(url);
+        final FeedbackResponse ret = this.callServer(url, this.objectToJSon(re), this.serverEncryptionToken, FeedbackResponse.class);
+        return ret.getFeedbackID();
     }
 
     /**
@@ -245,14 +366,14 @@ public abstract class AbstractMyJDClient {
     public synchronized void finishPasswordReset(final String email, final String key, final String newPassword) throws MyJDownloaderException {
 
         try {
-            final byte[] k = hexToByteArray(key);
+            final byte[] k = AbstractMyJDClient.hexToByteArray(key);
             if (k.length != 32) { throw new IllegalArgumentException("Bad Key. Expected: 64 hexchars"); }
 
-            final byte[] newLoginSecret = createSecret(email, newPassword, "server");
+            final byte[] newLoginSecret = this.createSecret(email, newPassword, "server");
 
-            final String encryptedNewSecret = byteArrayToHex(encrypt(newLoginSecret, k));
-            this.callServer("/my/finishpasswordreset?email=" + urlencode(email) + "&encryptedLoginSecret=" + encryptedNewSecret, null, k, RequestIDOnly.class);
-            connect(email, newPassword);
+            final String encryptedNewSecret = AbstractMyJDClient.byteArrayToHex(this.encrypt(newLoginSecret, k));
+            this.callServer("/my/finishpasswordreset?email=" + this.urlencode(email) + "&encryptedLoginSecret=" + encryptedNewSecret, null, k, RequestIDOnly.class);
+            this.connect(email, newPassword);
         } catch (final InvalidKeyException e) {
             throw new RuntimeException(e);
 
@@ -288,11 +409,11 @@ public abstract class AbstractMyJDClient {
     public synchronized void finishRegistration(final String key, final String email, final String password) throws MyJDownloaderException {
 
         try {
-            final byte[] k = hexToByteArray(key);
+            final byte[] k = AbstractMyJDClient.hexToByteArray(key);
             if (k.length != 32) { throw new IllegalArgumentException("Bad Key. Expected: 64 hexchars"); }
-            final byte[] loginSecret = createSecret(email, password, "server");
-            final String pw = byteArrayToHex(encrypt(loginSecret, k));
-            this.callServer("/my/finishregistration?email=" + urlencode(email) + "&loginsecret=" + urlencode(pw), null, k, RequestIDOnly.class);
+            final byte[] loginSecret = this.createSecret(email, password, "server");
+            final String pw = AbstractMyJDClient.byteArrayToHex(this.encrypt(loginSecret, k));
+            this.callServer("/my/finishregistration?email=" + this.urlencode(email) + "&loginsecret=" + this.urlencode(pw), null, k, RequestIDOnly.class);
 
         } catch (final InvalidKeyException e) {
             throw new RuntimeException(e);
@@ -317,127 +438,6 @@ public abstract class AbstractMyJDClient {
 
         }
 
-    }
-
-    /**
-     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with
-     * #getSessionInfo #setSessionInfo and #reconnect to restore a session
-     * 
-     * @param email
-     * @param password
-     * @throws MyJDownloaderException
-     */
-    public synchronized void connect(final String email, final String password) throws MyJDownloaderException {
-        try {
-            this.email = email;
-
-            // localSecret = createSecret(username, password, "jd");
-            final byte[] loginSecret = createSecret(email, password, "server");
-            deviceSecret = createSecret(email, password, "device");
-            final long rid = inc();
-            final StringBuilder query = new StringBuilder().append("/my/connect?email=").append(urlencode(email)).append("&appkey=").append(urlencode(appKey)).append("&rid=").append(rid);
-
-            final String signature = sign(loginSecret, query.toString());
-            query.append("&signature=").append(urlencode(signature));
-
-            final String encrypted = internalPost(query.toString(), "");
-            final ConnectResponse ret = this.jsonToObject(decrypt(encrypted, loginSecret), ConnectResponse.class);
-            if (ret.getRid() != rid) { throw new BadResponseException("RID Mismatch"); }
-
-            serverEncryptionToken = updateEncryptionToken(loginSecret, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
-            deviceEncryptionToken = updateEncryptionToken(deviceSecret, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
-            sessionToken = ret.getSessiontoken();
-            regainToken = ret.getRegaintoken();
-        } catch (final NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-
-        } catch (final UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-
-        } catch (final InvalidKeyException e) {
-            throw new RuntimeException(e);
-
-        } catch (final NoSuchPaddingException e) {
-
-            throw new BadResponseException("Response Decryption Failed", e);
-
-        } catch (final InvalidAlgorithmParameterException e) {
-
-            throw new BadResponseException("Response Decryption Failed", e);
-
-        } catch (final IllegalBlockSizeException e) {
-            throw new BadResponseException("Response Decryption Failed", e);
-
-        } catch (final BadPaddingException e) {
-            throw new BadResponseException("Response Decryption Failed", e);
-
-        } catch (final APIException e) {
-            throw new RuntimeException(e);
-            
-        }
-
-    }
-
-    private byte[] createSecret(final String username, final String password, final String domain) throws BadResponseException {
-        MessageDigest md;
-        try {
-            md = MessageDigest.getInstance("SHA-256");
-
-            return md.digest((username + password + domain).getBytes("UTF-8"));
-        } catch (final NoSuchAlgorithmException e) {
-            throw new BadResponseException("Secret Creation Failed", e);
-
-        } catch (final UnsupportedEncodingException e) {
-            throw new BadResponseException("Secret Creation Failed", e);
-
-        }
-    }
-
-    private String decrypt(final String encrypted, final byte[] keyAndIV) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException {
-        final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        final IvParameterSpec ivSpec = new IvParameterSpec(Arrays.copyOfRange(keyAndIV, 0, 16));
-        final SecretKeySpec skeySpec = new SecretKeySpec(Arrays.copyOfRange(keyAndIV, 16, 32), "AES");
-        cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivSpec);
-        final byte[] crypted = base64decode(encrypted);
-        final byte[] decryptedBytes = cipher.doFinal(crypted);
-        return new String(decryptedBytes, "UTF-8");
-    }
-
-    // @SuppressWarnings("unchecked")
-    // private <T> T jsonToObjectGeneric(String dec, Class<T> clazz) {
-    // return (T) jsonToObject(dec, clazz);
-    // }
-    /**
-     * Disconnect. This will invalidate your session. You have to call #connect to get a new session afterwards
-     * 
-     * @throws MyJDownloaderException
-     */
-    public void disconnect() throws MyJDownloaderException {
-        try {
-            final String query = "/my/disconnect?sessiontoken=" + urlencode(sessionToken);
-            this.callServer(query, null, serverEncryptionToken, RequestIDOnly.class);
-        } finally {
-            invalidateSession();
-        }
-    }
-
-    protected byte[] encrypt(final byte[] data, final byte[] keyAndIV) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
-        final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        final IvParameterSpec ivSpec = new IvParameterSpec(Arrays.copyOfRange(keyAndIV, 0, 16));
-        final SecretKeySpec skeySpec = new SecretKeySpec(Arrays.copyOfRange(keyAndIV, 16, 32), "AES");
-        cipher.init(Cipher.ENCRYPT_MODE, skeySpec, ivSpec);
-
-        return cipher.doFinal(data);
-    }
-
-    public synchronized String feedback(final String message) throws MyJDownloaderException {
-        final JSonRequest re = new JSonRequest();
-        re.setRid(inc());
-        re.setParams(new Object[] { message });
-        final String url = "/my/feedback?sessiontoken=" + urlencode(sessionToken);
-        re.setUrl(url);
-        final FeedbackResponse ret = this.callServer(url, objectToJSon(re), serverEncryptionToken, FeedbackResponse.class);
-        return ret.getFeedbackID();
     }
 
     /**
@@ -448,15 +448,15 @@ public abstract class AbstractMyJDClient {
      */
     public synchronized CaptchaChallenge getChallenge() throws MyJDownloaderException {
         try {
-            return this.jsonToObject(internalPost("/captcha/getCaptcha", ""), CaptchaChallenge.class);
+            return this.jsonToObject(this.internalPost("/captcha/getCaptcha", ""), CaptchaChallenge.class);
         } catch (final APIException e) {
             throw new RuntimeException(e);
-            
+
         }
     }
 
     public byte[] getDeviceEncryptionToken() {
-        return deviceEncryptionToken;
+        return this.deviceEncryptionToken;
     }
 
     /**
@@ -468,16 +468,16 @@ public abstract class AbstractMyJDClient {
      */
     public byte[] getDeviceEncryptionTokenBySession(final String sessionToken) throws NoSuchAlgorithmException {
 
-        return updateEncryptionToken(deviceSecret, AbstractMyJDClient.hexToByteArray(sessionToken));
+        return this.updateEncryptionToken(this.deviceSecret, AbstractMyJDClient.hexToByteArray(sessionToken));
 
     }
 
     public byte[] getServerEncryptionToken() {
-        return serverEncryptionToken;
+        return this.serverEncryptionToken;
     }
 
     public String getServerRoot() {
-        return serverRoot;
+        return this.serverRoot;
     }
 
     /**
@@ -486,12 +486,12 @@ public abstract class AbstractMyJDClient {
      * @return
      */
     public SessionInfo getSessionInfo() {
-        if (serverEncryptionToken == null) { return null; }
-        return new SessionInfo(deviceSecret, serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
+        if (this.serverEncryptionToken == null) { return null; }
+        return new SessionInfo(this.deviceSecret, this.serverEncryptionToken, this.deviceEncryptionToken, this.sessionToken, this.regainToken);
     }
 
     public String getSessionToken() {
-        return sessionToken;
+        return this.sessionToken;
     }
 
     protected void handleInvalidResponseCodes(final ExceptionResponse e) throws MyJDownloaderException, APIException {
@@ -552,32 +552,37 @@ public abstract class AbstractMyJDClient {
     }
 
     private long inc() {
-        return counter++;
+        return this.counter++;
     }
 
     private synchronized String internalPost(final String url, final String objectToJSon) throws MyJDownloaderException, APIException {
         try {
-            return post(url, objectToJSon);
+            return this.post(url, objectToJSon);
         } catch (final ExceptionResponse e) {
-            handleInvalidResponseCodes(e);
+            this.handleInvalidResponseCodes(e);
             throw e;
         }
 
     }
 
     protected void invalidateSession() {
-        serverEncryptionToken = null;
+        this.serverEncryptionToken = null;
     }
 
     private synchronized String jsonPost(final String path, final Object... params) throws MyJDownloaderException, APIException {
         final JSonRequest re = new JSonRequest();
-        re.setRid(inc());
+        re.setRid(this.inc());
         re.setParams(params);
         re.setUrl(path);
-        return internalPost(path, objectToJSon(re));
+        return this.internalPost(path, this.objectToJSon(re));
     }
 
     protected abstract <T> T jsonToObject(String dec, Type clazz);
+
+    public void keepalive() throws MyJDownloaderException {
+        final String query = "/my/keepalive?sessiontoken=" + this.urlencode(this.sessionToken);
+        this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
+    }
 
     @SuppressWarnings("unchecked")
     /**
@@ -607,8 +612,8 @@ public abstract class AbstractMyJDClient {
     }
 
     public DeviceList listDevices() throws MyJDownloaderException {
-        final String query = "/my/listdevices?sessiontoken=" + urlencode(sessionToken);
-        final DeviceList ret = this.callServer(query, null, serverEncryptionToken, DeviceList.class);
+        final String query = "/my/listdevices?sessiontoken=" + this.urlencode(this.sessionToken);
+        final DeviceList ret = this.callServer(query, null, this.serverEncryptionToken, DeviceList.class);
         return ret;
     }
 
@@ -617,29 +622,50 @@ public abstract class AbstractMyJDClient {
     abstract protected String post(String query, String object) throws ExceptionResponse;
 
     /**
-     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins.
-     * We use a regain token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
+     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins. We use a regain
+     * token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
      * 
      * @throws MyJDownloaderException
      */
     public synchronized void reconnect() throws MyJDownloaderException {
         try {
-            final String query = "/my/reconnect?sessiontoken=" + urlencode(sessionToken) + "&regaintoken=" + urlencode(regainToken);
-            final ConnectResponse ret = this.callServer(query, null, serverEncryptionToken, ConnectResponse.class);
+            final String query = "/my/reconnect?sessiontoken=" + this.urlencode(this.sessionToken) + "&regaintoken=" + this.urlencode(this.regainToken);
+            final ConnectResponse ret = this.callServer(query, null, this.serverEncryptionToken, ConnectResponse.class);
 
-            serverEncryptionToken = updateEncryptionToken(serverEncryptionToken, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
-            deviceEncryptionToken = updateEncryptionToken(deviceSecret, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
-            sessionToken = ret.getSessiontoken();
-            regainToken = ret.getRegaintoken();
+            this.serverEncryptionToken = this.updateEncryptionToken(this.serverEncryptionToken, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
+            this.deviceEncryptionToken = this.updateEncryptionToken(this.deviceSecret, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
+            this.sessionToken = ret.getSessiontoken();
+            this.regainToken = ret.getRegaintoken();
 
-            System.out.println("New ServerEncryptionToken: " + AbstractMyJDClient.byteArrayToHex(serverEncryptionToken));
-            System.out.println("New deviceEncryptionToken: " + AbstractMyJDClient.byteArrayToHex(deviceEncryptionToken));
-            System.out.println("new Sessiontoken: " + sessionToken);
-            System.out.println("new regainToken: " + regainToken);
+            System.out.println("New ServerEncryptionToken: " + AbstractMyJDClient.byteArrayToHex(this.serverEncryptionToken));
+            System.out.println("New deviceEncryptionToken: " + AbstractMyJDClient.byteArrayToHex(this.deviceEncryptionToken));
+            System.out.println("new Sessiontoken: " + this.sessionToken);
+            System.out.println("new regainToken: " + this.regainToken);
         } catch (final NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
 
         }
+    }
+
+    /**
+     * Call this method to request a password change. You will get an email containing a key. Use this key together with
+     * {@link #changePassword(String, String, String)}
+     * 
+     * @throws MyJDownloaderException
+     */
+    public synchronized void requestPasswordResetEmail(final CaptchaChallenge challenge, final String email) throws MyJDownloaderException {
+
+        String encrypted;
+        try {
+            encrypted = this.jsonPost("/my/requestpasswordresetemail?email=" + this.urlencode(email) + "&captchaResponse=" + this.urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + this.urlencode(challenge.getCaptchaChallenge()));
+        } catch (final APIException e) {
+            throw new RuntimeException(e);
+
+        }
+
+        final boolean ret = this.jsonToObject(encrypted, boolean.class);
+        if (!ret) { throw new BadResponseException("Unexpected False"); }
+
     }
 
     /**
@@ -657,36 +683,12 @@ public abstract class AbstractMyJDClient {
 
         // final byte[] loginSecret = this.createSecret(email, password, "server");
 
-      
         try {
-         jsonPost("/my/requestregistrationemail?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()) + "&referer=" + urlencode(referer == null ? appKey : referer));
+            this.jsonPost("/my/requestregistrationemail?email=" + this.urlencode(email) + "&captchaResponse=" + this.urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + this.urlencode(challenge.getCaptchaChallenge()) + "&referer=" + this.urlencode(referer == null ? this.appKey : referer));
         } catch (final APIException e) {
             throw new RuntimeException(e);
-            
+
         }
-
-       
-
-    }
-
-    /**
-     * Call this method to request a password change. You will get an email containing a key. Use this key together with
-     * {@link #changePassword(String, String, String)}
-     * 
-     * @throws MyJDownloaderException
-     */
-    public synchronized void requestPasswordResetEmail(final CaptchaChallenge challenge, final String email) throws MyJDownloaderException {
-
-        String encrypted;
-        try {
-            encrypted = jsonPost("/my/requestpasswordresetemail?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()));
-        } catch (final APIException e) {
-            throw new RuntimeException(e);
-            
-        }
-
-        final boolean ret = this.jsonToObject(encrypted, boolean.class);
-        if (!ret) { throw new BadResponseException("Unexpected False"); }
 
     }
 
@@ -701,17 +703,17 @@ public abstract class AbstractMyJDClient {
      */
     public void setSessionInfo(final SessionInfo info) {
         if (info == null) {
-            deviceSecret = null;
-            serverEncryptionToken = null;
-            deviceEncryptionToken = null;
-            sessionToken = null;
-            regainToken = null;
+            this.deviceSecret = null;
+            this.serverEncryptionToken = null;
+            this.deviceEncryptionToken = null;
+            this.sessionToken = null;
+            this.regainToken = null;
         } else {
-            deviceSecret = info.getDeviceSecret();
-            serverEncryptionToken = info.getServerEncryptionToken();
-            deviceEncryptionToken = info.getDeviceEncryptionToken();
-            sessionToken = info.getSessionToken();
-            regainToken = info.getRegainToken();
+            this.deviceSecret = info.getDeviceSecret();
+            this.serverEncryptionToken = info.getServerEncryptionToken();
+            this.deviceEncryptionToken = info.getDeviceEncryptionToken();
+            this.sessionToken = info.getSessionToken();
+            this.regainToken = info.getRegainToken();
         }
 
     }

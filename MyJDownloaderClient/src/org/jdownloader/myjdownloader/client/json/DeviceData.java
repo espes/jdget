@@ -4,7 +4,6 @@ public class DeviceData {
     private String id;
 
     private String type;
-    private long   lastConnection = -1;
     private String name;
 
     public DeviceData(/* storable */) {
@@ -21,13 +20,6 @@ public class DeviceData {
         return this.id;
     }
 
-    /**
-     * @return the lastConnection
-     */
-    public long getLastConnection() {
-        return this.lastConnection;
-    }
-
     public String getName() {
         return this.name;
     }
@@ -38,14 +30,6 @@ public class DeviceData {
 
     public void setId(final String id) {
         this.id = id;
-    }
-
-    /**
-     * @param lastConnection
-     *            the lastConnection to set
-     */
-    public void setLastConnection(final long lastConnection) {
-        this.lastConnection = lastConnection;
     }
 
     public void setName(final String name) {
