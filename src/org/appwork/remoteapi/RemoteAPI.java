@@ -456,25 +456,17 @@ public class RemoteAPI implements HttpRequestHandler {
      * @param string
      * @return
      */
-    public boolean onGetRequest(final GetRequest request, final HttpResponse response) {
+    public boolean onGetRequest(final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
-        try {
-            this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
-        } catch (final Throwable e) {
-            throw new RuntimeException(e);
-        }
+        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         return true;
     }
 
-    public boolean onPostRequest(final PostRequest request, final HttpResponse response) {
+    public boolean onPostRequest(final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
-        try {
-            this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
-        } catch (final Throwable e) {
-            throw new RuntimeException(e);
-        }
+        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
         return true;
     }
 
