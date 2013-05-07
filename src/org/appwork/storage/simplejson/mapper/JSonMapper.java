@@ -25,12 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang.StringUtils;
 import org.appwork.storage.TypeRef;
 import org.appwork.storage.simplejson.JSonArray;
 import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.JSonObject;
 import org.appwork.storage.simplejson.JSonValue;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.reflection.Clazz;
 
 import sun.reflect.generics.reflectiveObjects.GenericArrayTypeImpl;
@@ -444,8 +444,8 @@ public class JSonMapper {
                             Type fieldType = s.getType();
                             // special handling for generic fields
                             if (fieldType instanceof TypeVariableImpl) {
-                                Type[] actualTypes = ((ParameterizedTypeImpl) type).getActualTypeArguments();
-                                TypeVariable<?>[] genericTypes = clazz.getTypeParameters();
+                                final Type[] actualTypes = ((ParameterizedTypeImpl) type).getActualTypeArguments();
+                                final TypeVariable<?>[] genericTypes = clazz.getTypeParameters();
                                 for (int i = 0; i < genericTypes.length; i++) {
                                     if (StringUtils.equals(((TypeVariableImpl) fieldType).getName(), genericTypes[i].getName())) {
 
