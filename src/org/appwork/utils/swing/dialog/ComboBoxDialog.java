@@ -56,9 +56,9 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
         super(flag, title, icon, okText, cancelText);
         Log.L.fine("Dialog    [" + okText + "][" + cancelText + "]\r\nflag:  " + Integer.toBinaryString(flag) + "\r\ntitle: " + title + "\r\nmsg:   \r\n" + question + "\r\noptions:   \r\n" + Arrays.toString(options) + "\r\ndef:" + defaultSelection);
 
-        this.message = question;
+        message = question;
         this.renderer = renderer;
-        this.defaultAnswer = defaultSelection<0?0:defaultSelection;
+        defaultAnswer = defaultSelection < 0 ? 0 : defaultSelection;
         this.options = options;
     }
 
@@ -69,7 +69,7 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
      */
     @Override
     protected Integer createReturnValue() {
-        return this.getReturnIndex();
+        return getReturnIndex();
     }
 
     /**
@@ -79,14 +79,15 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
     protected JComboBox getComboBox(final Object[] options2) {
 
         final JComboBox ret = new JComboBox(options2);
-        final ListCellRenderer rend = this.getRenderer(ret.getRenderer());
+        final ListCellRenderer rend = getRenderer(ret.getRenderer());
         if (rend != null) {
             ret.setRenderer(rend);
         }
 
         try {
-
-            ret.setSelectedIndex(this.defaultAnswer);
+            if (defaultAnswer < options.length && defaultAnswer >= 0) {
+                ret.setSelectedIndex(defaultAnswer);
+            }
         } catch (final Exception e) {
             Log.exception(e);
         }
@@ -99,12 +100,12 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
      */
     protected ListCellRenderer getRenderer(final ListCellRenderer orgRenderer) {
         // TODO Auto-generated method stub
-        return this.renderer;
+        return renderer;
     }
 
     public Integer getReturnIndex() {
-        if ((this.getReturnmask() & Dialog.RETURN_OK) == 0) { return Integer.valueOf(-1); }
-        return Integer.valueOf(this.box.getSelectedIndex());
+        if ((getReturnmask() & Dialog.RETURN_OK) == 0) { return Integer.valueOf(-1); }
+        return Integer.valueOf(box.getSelectedIndex());
     }
 
     /*
@@ -114,18 +115,18 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
      */
     @Override
     public JComponent layoutDialogContent() {
-        final JPanel contentpane = new MigPanel("ins 0,wrap 1", "[fill,grow]","[][]");
-        this.textpane = new JTextPane();
-        this.textpane.setBorder(null);
-        this.textpane.setBackground(null);
-        this.textpane.setOpaque(false);
-        this.textpane.putClientProperty("Synthetica.opaque", Boolean.FALSE);
-        this.textpane.setText(this.message);
-        this.textpane.setEditable(false);
+        final JPanel contentpane = new MigPanel("ins 0,wrap 1", "[fill,grow]", "[][]");
+        textpane = new JTextPane();
+        textpane.setBorder(null);
+        textpane.setBackground(null);
+        textpane.setOpaque(false);
+        textpane.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        textpane.setText(message);
+        textpane.setEditable(false);
 
-        contentpane.add(this.textpane);
+        contentpane.add(textpane);
 
-        this.box = this.getComboBox(this.options);
+        box = getComboBox(options);
 
         // no idea what this has been good for
         // if (this.getDesiredSize() != null) {
@@ -136,7 +137,7 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
         // this.box.setBounds(0, 0, 450, 600);
         // this.box.setMaximumSize(new Dimension(450, 600));
         // }
-        contentpane.add(this.box, "pushy,growy,height 24!");
+        contentpane.add(box, "pushy,growy,height 24!");
 
         return contentpane;
     }
