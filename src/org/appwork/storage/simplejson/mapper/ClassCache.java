@@ -91,7 +91,8 @@ public class ClassCache {
         }
         if (cc.constructor == null) {
             //
-            String pkg = clazz.getPackage().getName();
+        int lastIndex = clazz.getName().lastIndexOf(".");
+            String pkg = lastIndex>0?clazz.getName().substring(0,lastIndex):"";
             if (pkg.startsWith("java") || pkg.startsWith("sun.")) {
 
                 Log.L.warning("No Null Constructor in " + clazz + " found. De-Json-serial will fail");
