@@ -54,7 +54,7 @@ public abstract class Upload {
         }
     }
 
-    protected abstract BasicHTTP getBasicHTTP();
+    public abstract BasicHTTP getBasicHTTP();
 
     public String getETag() {
         final String ret = new Regex(this.eTag, "\"(.*?)\"").getMatch(0);
