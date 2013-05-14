@@ -32,7 +32,7 @@ public class Subscriber {
     protected final long                    subscriptionID;
     protected long                          lastPolledTimestamp = System.currentTimeMillis();
     protected long                          eventnumber         = 0;
-    protected long                          pollTimeout         = 30 * 1000l;
+    protected long                          pollTimeout         = 15 * 1000l;
     protected long                          maxKeepalive        = 60 * 1000l;
 
     protected Subscriber(final String[] subscriptions, final String[] exclusions) {
@@ -158,7 +158,7 @@ public class Subscriber {
      */
     public void setMaxKeepalive(long maxKeepalive) {
         maxKeepalive = Math.min(maxKeepalive, 300 * 1000l);
-        maxKeepalive = Math.max(maxKeepalive, 60 * 1000l);
+        maxKeepalive = Math.max(maxKeepalive, 30 * 1000l);
         this.maxKeepalive = maxKeepalive;
     }
 
@@ -172,7 +172,7 @@ public class Subscriber {
          * .html
          */
         pollTimeout = Math.min(pollTimeout, 150 * 1000l);
-        pollTimeout = Math.max(pollTimeout, 30 * 1000l);
+        pollTimeout = Math.max(pollTimeout, 15 * 1000l);
         this.pollTimeout = pollTimeout;
     }
 
