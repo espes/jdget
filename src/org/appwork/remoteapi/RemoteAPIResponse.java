@@ -26,11 +26,13 @@ import org.appwork.utils.net.httpserver.responses.HttpResponseInterface;
 public class RemoteAPIResponse implements HttpResponseInterface {
 
     private final HttpResponse response;
+    private final RemoteAPI    remoteAPI;
 
-    public RemoteAPIResponse(final HttpResponse response) {
+    public RemoteAPIResponse(final HttpResponse response, final RemoteAPI remoteAPI) {
         this.response = response;
         // Remote API requests are available via CORS by default.
         this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
+        this.remoteAPI = remoteAPI;
     }
 
     /*
@@ -52,6 +54,13 @@ public class RemoteAPIResponse implements HttpResponseInterface {
         return this.response.getOutputStream(sendResponseHeaders);
     }
 
+    /**
+     * @return the remoteAPI
+     */
+    public RemoteAPI getRemoteAPI() {
+        return this.remoteAPI;
+    }
+
     public ResponseCode getResponseCode() {
         return this.response.getResponseCode();
     }
@@ -61,17 +70,6 @@ public class RemoteAPIResponse implements HttpResponseInterface {
      */
     public HeaderCollection getResponseHeaders() {
         return this.response.getResponseHeaders();
-    }
-
-    @Override
-    public boolean isResponseAsync() {
-        return this.response.isResponseAsync();
-    }
-
-    @Override
-    public void setResponseAsync(final boolean b) {
-        this.response.setResponseAsync(b);
-
     }
 
     /**

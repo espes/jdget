@@ -58,14 +58,11 @@ public class HttpResponse implements HttpResponseInterface {
      */
     @Override
     public void closeConnection() {
-        if (this.asyncResponse) {
-            try {
-                this.connection.closeConnection();
-            } finally {
-                this.connection.close();
-            }
+        try {
+            this.connection.closeConnection();
+        } finally {
+            this.connection.close();
         }
-
     }
 
     /**
@@ -96,16 +93,6 @@ public class HttpResponse implements HttpResponseInterface {
      */
     public HeaderCollection getResponseHeaders() {
         return this.responseHeaders;
-    }
-
-    @Override
-    public boolean isResponseAsync() {
-        return this.asyncResponse;
-    }
-
-    @Override
-    public void setResponseAsync(final boolean b) {
-        this.asyncResponse = b;
     }
 
     /**

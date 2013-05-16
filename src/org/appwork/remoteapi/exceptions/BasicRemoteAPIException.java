@@ -13,8 +13,6 @@ import java.io.IOException;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
-import org.appwork.remoteapi.RemoteAPIRequest;
-import org.appwork.remoteapi.RemoteAPIResponse;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.RequestException;
@@ -26,9 +24,17 @@ import org.appwork.utils.net.httpserver.responses.HttpResponse;
  */
 public class BasicRemoteAPIException extends RequestException {
 
-    private String       type;
-    private ResponseCode code;
-    private Object       data;
+    private final String       type;
+    private final ResponseCode code;
+    private final Object       data;
+
+    /**
+     * @param name
+     * @param code2
+     */
+    public BasicRemoteAPIException(final String name, final ResponseCode code2) {
+        this(null, name, code2, null);
+    }
 
     /**
      * @param cause
@@ -39,49 +45,38 @@ public class BasicRemoteAPIException extends RequestException {
     public BasicRemoteAPIException(final Throwable cause, final String name, final ResponseCode code, final Object data) {
         super(cause, name + "(" + code + ")");
         this.data = data;
-        type = name;
+        this.type = name;
         this.code = code;
     }
 
-    public Object getData() {
-        return data;
+    public ResponseCode getCode() {
+        return this.code;
     }
 
-    /**
-     * @param name
-     * @param code2
-     */
-    public BasicRemoteAPIException(final String name, final ResponseCode code2) {
-        this(null, name, code2, null);
+    public Object getData() {
+        return this.data;
     }
 
     public String getType() {
-        return type;
-    }
-
-    public ResponseCode getCode() {
-        return code;
+        return this.type;
     }
 
     /**
      * @param response
      * @throws IOException
      */
-    public void handle(final HttpResponse response) throws IOException {
+    public boolean handle(final HttpResponse response) throws IOException {
 
         byte[] bytes;
-        final String str = JSonStorage.toString(new DeviceErrorResponse(getType(), data));
+        final String str = JSonStorage.toString(new DeviceErrorResponse(this.getType(), this.data));
         bytes = str.getBytes("UTF-8");
-        response.setResponseCode(getCode());
+        response.setResponseCode(this.getCode());
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text; charset=UTF-8"));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
         response.getOutputStream(true).write(bytes);
         response.getOutputStream(true).flush();
+        return true;
 
     }
-
- 
-
-
 
 }

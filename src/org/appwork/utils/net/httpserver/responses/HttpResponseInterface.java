@@ -34,10 +34,6 @@ public interface HttpResponseInterface {
      */
     public HeaderCollection getResponseHeaders();
 
-    public boolean isResponseAsync();
-
-    public void setResponseAsync(boolean b);
-
     /**
      * @param responseCode
      *            the responseCode to set

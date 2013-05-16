@@ -21,17 +21,13 @@ public class RequestException extends Exception {
     /**
      * 
      */
-    private static final long serialVersionUID = 1L;
-    private HttpRequestInterface request;
-    public HttpRequestInterface getRequest() {
-        return request;
-    }
-
-    public HttpResponseInterface getResponse() {
-        return response;
-    }
+    private static final long     serialVersionUID = 1L;
+    private HttpRequestInterface  request;
 
     private HttpResponseInterface response;
+
+    public RequestException() {
+    }
 
     /**
      * @param cause
@@ -41,10 +37,18 @@ public class RequestException extends Exception {
         super(message, cause);
     }
 
+    public HttpRequestInterface getRequest() {
+        return this.request;
+    }
+
+    public HttpResponseInterface getResponse() {
+        return this.response;
+    }
+
     /**
      * @param request
      */
-    public void setRequest(HttpRequestInterface request) {
+    public void setRequest(final HttpRequestInterface request) {
         this.request = request;
 
     }
@@ -52,7 +56,7 @@ public class RequestException extends Exception {
     /**
      * @param response
      */
-    public void setResponse(HttpResponseInterface response) {
+    public void setResponse(final HttpResponseInterface response) {
         this.response = response;
 
     }

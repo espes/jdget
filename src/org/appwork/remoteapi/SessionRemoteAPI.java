@@ -37,7 +37,7 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         apiRequest = new SessionRemoteAPIRequest<T>(request, apiRequest, session);
         if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) { throw new SessionException(); }
-        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
+        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response, this));
         return true;
     }
 
@@ -56,7 +56,7 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         apiRequest = new SessionRemoteAPIRequest<T>(request, apiRequest, session);
         if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) { throw new SessionException(); }
-        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
+        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response, this));
         return true;
     }
 

@@ -275,17 +275,7 @@ public class RemoteAPI implements HttpRequestHandler {
                  */
                 return;
             }
-
-            String text = null;
-            responseData = this.handleVoidMethods(responseData, method);
-
-            if (method.getAnnotation(ResponseWrapper.class) != null) {
-                text = ((AbstractResponseWrapper<Object>) method.getAnnotation(ResponseWrapper.class).value().newInstance()).toString(responseData);
-            } else {
-                text = this.toString(request, response, responseData);
-            }
-            text = this.jQueryWrap(request, text);
-            this.sendText(request, response, text);
+            this.writeResponse(responseData, method, request, response);
         } catch (final BasicRemoteAPIException e) {
             // set request and response if it has not set yet
             if (e.getRequest() == null) {
@@ -303,7 +293,6 @@ public class RemoteAPI implements HttpRequestHandler {
 
             throw internal;
         }
-
     }
 
     /**
@@ -459,14 +448,14 @@ public class RemoteAPI implements HttpRequestHandler {
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
-        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
+        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response, this));
         return true;
     }
 
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
-        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response));
+        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response, this));
         return true;
     }
 
@@ -540,7 +529,7 @@ public class RemoteAPI implements HttpRequestHandler {
      * @throws UnsupportedEncodingException
      * @throws IOException
      */
-    protected void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, final String text) throws UnsupportedEncodingException, IOException {
+    public void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, final String text) throws UnsupportedEncodingException, IOException {
         final byte[] bytes = text.getBytes("UTF-8");
         response.setResponseCode(ResponseCode.SUCCESS_OK);
         RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), true, bytes);
@@ -551,7 +540,7 @@ public class RemoteAPI implements HttpRequestHandler {
      * @param responseData2
      * @return
      */
-    protected String toString(final RemoteAPIRequest request, final RemoteAPIResponse response, final Object responseData) {
+    public String toString(final RemoteAPIRequest request, final RemoteAPIResponse response, final Object responseData) {
 
         return JSonStorage.toString(new DataObject(responseData));
     }
@@ -585,4 +574,24 @@ public class RemoteAPI implements HttpRequestHandler {
         }
     }
 
+    public void writeResponse(Object responseData, final Method method, final RemoteAPIRequest request, final RemoteAPIResponse response) throws BasicRemoteAPIException {
+        try {
+            String text = null;
+            responseData = this.handleVoidMethods(responseData, method);
+            if (method.getAnnotation(ResponseWrapper.class) != null) {
+                text = ((AbstractResponseWrapper<Object>) method.getAnnotation(ResponseWrapper.class).value().newInstance()).toString(responseData);
+            } else {
+                text = this.toString(request, response, responseData);
+            }
+            text = this.jQueryWrap(request, text);
+            this.sendText(request, response, text);
+        } catch (final Throwable e) {
+            e.printStackTrace();
+            final InternalApiException internal = new InternalApiException(e);
+            internal.setRequest(request);
+            internal.setResponse(response);
+
+            throw internal;
+        }
+    }
 }

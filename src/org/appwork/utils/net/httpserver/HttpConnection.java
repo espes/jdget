@@ -253,7 +253,7 @@ public class HttpConnection implements Runnable {
         return this.response;
     }
 
-    protected void onException(final Throwable e, final HttpRequest request, final HttpResponse response) throws IOException {
+    public boolean onException(final Throwable e, final HttpRequest request, final HttpResponse response) throws IOException {
         this.response = new HttpResponse(this);
         this.response.setResponseCode(ResponseCode.SERVERERROR_INTERNAL);
         final byte[] bytes = Exceptions.getStackTrace(e).getBytes("UTF-8");
@@ -261,6 +261,7 @@ public class HttpConnection implements Runnable {
         this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
         this.response.getOutputStream(true).write(bytes);
         this.response.getOutputStream(true).flush();
+        return true;
     }
 
     protected void onUnhandled(final HttpRequest request, final HttpResponse response) throws IOException {
@@ -300,15 +301,11 @@ public class HttpConnection implements Runnable {
                 this.onUnhandled(this.request, this.response);
             }
             /* send response headers if they have not been sent yet send yet */
-            if (this.response.isResponseAsync() == false) {
-                this.response.getOutputStream(true);
-            } else {
-                closeConnection = false;
-            }
+
+            this.response.getOutputStream(true);
         } catch (final Throwable e) {
-            e.printStackTrace();
             try {
-                this.onException(e, this.request, this.response);
+                closeConnection = this.onException(e, this.request, this.response);
             } catch (final Throwable nothing) {
             }
         } finally {
