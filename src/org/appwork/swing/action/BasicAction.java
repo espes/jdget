@@ -19,8 +19,8 @@ import javax.swing.Icon;
 import javax.swing.KeyStroke;
 
 import org.appwork.swing.components.tooltips.TooltipFactory;
+import org.appwork.utils.KeyUtils;
 import org.appwork.utils.Regex;
-import org.appwork.utils.Shortcuts;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -39,7 +39,7 @@ public abstract class BasicAction extends AbstractAction {
     /**
      * @param routerSendAction_RouterSendAction_
      */
-    public BasicAction(String name) {
+    public BasicAction(final String name) {
         super(name);
     }
 
@@ -51,7 +51,7 @@ public abstract class BasicAction extends AbstractAction {
         super();
     }
 
-    public void setSmallIcon(Icon icon) {
+    public void setSmallIcon(final Icon icon) {
         putValue(SMALL_ICON, icon);
     }
 
@@ -63,13 +63,13 @@ public abstract class BasicAction extends AbstractAction {
         return (String) getValue(NAME);
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         putValue(NAME, name);
 
     }
- 
-  
-
+public void setAccelerator(final KeyStroke stroke){
+    putValue(AbstractAction.ACCELERATOR_KEY, stroke); 
+}
     /**
      * Sets the shortcut fort this action. a System dependend behaviour is
      * choosen. e,g. WIndows+ Strg+ Acceleratir
@@ -77,7 +77,9 @@ public abstract class BasicAction extends AbstractAction {
      * example: action.setAccelerator("ENTER"); defines a Enter shortcut
      * 
      * @param accelerator
+     * @depcreated. use {@link #setAccelerator(KeyStroke)}
      */
+@Deprecated
     public void setAccelerator(final String accelerator) {
         KeyStroke ks;
         if (accelerator != null && accelerator.length() > 0 && !accelerator.equals("-")) {
@@ -98,18 +100,18 @@ public abstract class BasicAction extends AbstractAction {
                     } else if (new Regex(split[i], "^META$").matches()) {
                         mod = mod | KeyEvent.META_DOWN_MASK;
                     } else {
-                        Log.L.info(this.getName() + " Shortcuts: skipping wrong modifier " + mod + " in " + accelerator);
+                        Log.L.info(getName() + " Shortcuts: skipping wrong modifier " + mod + " in " + accelerator);
                     }
                 }
 
                 final Field f = b.getField("VK_" + split[splitLength - 1].toUpperCase());
                 final int m = (Integer) f.get(null);
                 putValue(AbstractAction.ACCELERATOR_KEY, ks = KeyStroke.getKeyStroke(m, mod));
-                Log.L.finest(this.getName() + " Shortcuts: mapped " + accelerator + " to " + ks);
-            } catch (Exception e) {
+                Log.L.finest(getName() + " Shortcuts: mapped " + accelerator + " to " + ks);
+            } catch (final Exception e) {
                 // JDLogger.exception(e);
                 putValue(AbstractAction.ACCELERATOR_KEY, ks = KeyStroke.getKeyStroke(accelerator.charAt(accelerator.length() - 1), Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-                Log.L.finest(this.getName() + " Shortcuts: mapped " + accelerator + " to " + ks + " (Exception)");
+                Log.L.finest(getName() + " Shortcuts: mapped " + accelerator + " to " + ks + " (Exception)");
             }
         }
     }
@@ -127,7 +129,8 @@ public abstract class BasicAction extends AbstractAction {
 
     public String getShortCutString() {
         final Object value = getValue(Action.ACCELERATOR_KEY);
-        return (value == null) ? null : Shortcuts.getAcceleratorString((KeyStroke) getValue(Action.ACCELERATOR_KEY));
+
+        return (value == null) ? null : KeyUtils.getShortcutString((KeyStroke) getValue(Action.ACCELERATOR_KEY),true);
     }
 
     /**
@@ -146,7 +149,7 @@ public abstract class BasicAction extends AbstractAction {
     public String getTooltipText() {
         try {
             return getValue(AbstractAction.SHORT_DESCRIPTION).toString();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return null;
         }
     }
@@ -160,25 +163,35 @@ public abstract class BasicAction extends AbstractAction {
      * 
      * @param key
      */
+
     public void setMnemonic(String key) {
-        if (getName() == null) throw new IllegalStateException("First set Name");
-        if (key == null) key = "-";
+        if (getName() == null) { throw new IllegalStateException("First set Name"); }
+        if (key == null) {
+            key = "-";
+        }
         final char mnemonic = key.charAt(0);
 
         if (mnemonic != 0 && !key.contentEquals("-")) {
-            final Class<?> b = KeyEvent.class;
-            try {
-                final Field f = b.getField("VK_" + Character.toUpperCase(mnemonic));
-                final int m = (Integer) f.get(null);
-                putValue(AbstractAction.MNEMONIC_KEY, m);
-                putValue(AbstractAction.DISPLAYED_MNEMONIC_INDEX_KEY, getName().indexOf(m));
-            } catch (Exception e) {
-                Log.exception(e);
-            }
+
+            final int m = charToMnemonic(mnemonic);
+            putValue(AbstractAction.MNEMONIC_KEY, m);
+            putValue(AbstractAction.DISPLAYED_MNEMONIC_INDEX_KEY, getName().indexOf(m));
         }
     }
 
-    public void setTooltipText(String text) {
+    public static int charToMnemonic(final char mnemonic) {
+        try {
+
+            final Field f = KeyEvent.class.getField("VK_" + Character.toUpperCase(mnemonic));
+            return (Integer) f.get(null);
+
+        } catch (final Exception e) {
+            Log.exception(e);
+        }
+        return 0;
+    }
+
+    public void setTooltipText(final String text) {
         putValue(SHORT_DESCRIPTION, text);
     }
 
@@ -189,10 +202,8 @@ public abstract class BasicAction extends AbstractAction {
         return tooltipFactory;
     }
 
-    public void setTooltipFactory(TooltipFactory factory) {
-        this.tooltipFactory = factory;
+    public void setTooltipFactory(final TooltipFactory factory) {
+        tooltipFactory = factory;
     }
-
-
 
 }
