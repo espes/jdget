@@ -67,6 +67,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
         } else {
             subscriber.setMaxKeepalive(maxkeepalive);
             subscriber.setPollTimeout(polltimeout);
+            subscriber.notifyPoll();
             final SubscriptionResponse ret = new SubscriptionResponse(subscriber);
             ret.setSubscribed(true);
             return ret;
@@ -118,7 +119,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
         final ArrayList<EventObject> events = new ArrayList<EventObject>();
         try {
             EventObject event;
-            while ((event = subscriber.poll(events.size() == 0 ? subscriber.getPollTimeout() : 0)) != null) {
+            while ((event = subscriber.poll(events.size() == 0 ? subscriber.getPollTimeout() : 0)) != null && this.subscribers.get(subscriptionid) == subscriber) {
                 if (lasteventnumber > 0) {
                     if (event.getEventnumber() != lasteventnumber) {
                         this.subscribers.remove(subscriptionid);
