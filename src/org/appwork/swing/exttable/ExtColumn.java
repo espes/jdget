@@ -5,7 +5,6 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.regex.Pattern;
 
@@ -184,7 +183,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                             public Integer edtRun() {
                                 final JViewport viewport = (JViewport) getModel().getTable().getParent();
                                 if (viewport == null) { return 0; }
-                                Rectangle rec = viewport.getViewRect();
+                                final Rectangle rec = viewport.getViewRect();
                                 return getModel().getTable().rowAtPoint(new Point(0, (int) (rec.getY() + 15)));
 
                             }
@@ -757,7 +756,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                 ExtColumn.this.editableProgrammaticly = true;
                 try {
                     ExtColumn.this.getModel().getTable().editCellAt(ExtColumn.this.getModel().getTable().getExtTableModel().getRowforObject(obj), ExtColumn.this.getIndex());
-
+                    ExtColumn.this.getModel().getTable().transferFocus();
                 } finally {
                     ExtColumn.this.editableProgrammaticly = false;
                 }
