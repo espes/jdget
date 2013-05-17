@@ -28,24 +28,31 @@ import org.appwork.remoteapi.responsewrapper.RawJSonWrapper;
 public interface EventsAPIInterface extends RemoteAPIInterface {
     @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse addsubscription(long subscriptionid, String[] subscriptions, String[] exclusions);
+
     @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse changesubscriptiontimeouts(long subscriptionid, long polltimeout, long maxkeepalive);
+
     @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse getsubscription(long subscriptionid);
 
- 
+    public boolean isvalidsubscriptionid(long subscriptionid);
+
     public void listen(RemoteAPIRequest request, RemoteAPIResponse response, long subscriptionid);
 
-
     public void listen(RemoteAPIRequest request, RemoteAPIResponse response, long subscriptionid, long lasteventnumber);
+
     @ResponseWrapper(RawJSonWrapper.class)
     public ArrayList<PublisherResponse> listpublisher();
+
     @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse removesubscription(long subscriptionid, String[] subscriptions, String[] exclusions);
+
     @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse setsubscription(long subscriptionid, String[] subscriptions, String[] exclusions);
+
     @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse subscribe(String[] subscriptions, String[] exclusions);
+
     @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse unsubscribe(long subscriptionid);
 

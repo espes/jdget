@@ -85,6 +85,20 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.remoteapi.events.EventsAPIInterface#isvalidsubscriptionid
+     * (long)
+     */
+    @Override
+    public boolean isvalidsubscriptionid(final long subscriptionid) {
+        final Subscriber subscriber = this.subscribers.get(subscriptionid);
+        if (subscriber == null || subscriber.getLastPolledTimestamp() + subscriber.getMaxKeepalive() < System.currentTimeMillis()) { return false; }
+        return true;
+    }
+
     public EventPublisher[] list() {
         return this.publishers.clone();
     }
