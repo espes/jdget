@@ -186,7 +186,7 @@ public void setAccelerator(final KeyStroke stroke){
             return (Integer) f.get(null);
 
         } catch (final Exception e) {
-            Log.exception(e);
+          
         }
         return 0;
     }
