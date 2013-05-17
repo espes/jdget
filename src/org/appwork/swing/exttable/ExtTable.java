@@ -22,6 +22,7 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -332,8 +333,16 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     }
 
-    protected void accommodateColumnDelta(final int index, final int delta) {
-        // System.out.println(delta);
+
+
+    @Override
+    public boolean editCellAt(final int row, final int column, final EventObject e) {
+        final boolean ret = super.editCellAt(row, column, e);
+        if (ret) {
+            // we want focus in the editor
+            transferFocus();
+        }
+        return ret;
     }
 
     /**
@@ -1095,7 +1104,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     @SuppressWarnings("unchecked")
     @Override
     protected void processMouseEvent(final MouseEvent e) {
-        if (e.getID() == MouseEvent.MOUSE_RELEASED) {   
+        if (e.getID() == MouseEvent.MOUSE_RELEASED) {
             if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
                 final int row = rowAtPoint(e.getPoint());
                 final E obj = this.getExtTableModel().getObjectbyRow(row);

@@ -756,7 +756,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                 ExtColumn.this.editableProgrammaticly = true;
                 try {
                     ExtColumn.this.getModel().getTable().editCellAt(ExtColumn.this.getModel().getTable().getExtTableModel().getRowforObject(obj), ExtColumn.this.getIndex());
-                    ExtColumn.this.getModel().getTable().transferFocus();
+            
+            
                 } finally {
                     ExtColumn.this.editableProgrammaticly = false;
                 }
