@@ -39,8 +39,6 @@ public interface EventsAPIInterface extends RemoteAPIInterface {
 
     public void listen(RemoteAPIRequest request, RemoteAPIResponse response, long subscriptionid);
 
-    public void listen(RemoteAPIRequest request, RemoteAPIResponse response, long subscriptionid, long lasteventnumber);
-
     @ResponseWrapper(RawJSonWrapper.class)
     public ArrayList<PublisherResponse> listpublisher();
 

@@ -10,13 +10,13 @@
 package org.appwork.remoteapi.events;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.appwork.remoteapi.events.json.EventObject;
 import org.appwork.utils.Regex;
 
 /**
@@ -25,15 +25,14 @@ import org.appwork.utils.Regex;
  */
 public class Subscriber {
 
-    protected static final AtomicLong       SUBSCRIBER          = new AtomicLong(0);
-    protected String[]                      subscriptions;
-    protected String[]                      exclusions;
+    protected static final AtomicLong                SUBSCRIBER          = new AtomicLong(0);
+    protected String[]                               subscriptions;
+    protected String[]                               exclusions;
     protected final ArrayDeque<EventObject> events              = new ArrayDeque<EventObject>();
-    protected final long                    subscriptionID;
-    protected long                          lastPolledTimestamp = System.currentTimeMillis();
-    protected long                          eventnumber         = 0;
-    protected long                          pollTimeout         = 15 * 1000l;
-    protected long                          maxKeepalive        = 60 * 1000l;
+    protected final long                             subscriptionID;
+    protected long                                   lastPolledTimestamp = System.currentTimeMillis();
+    protected long                                   pollTimeout         = 30 * 1000l;
+    protected long                                   maxKeepalive        = 120 * 1000l;
 
     protected Subscriber(final String[] subscriptions, final String[] exclusions) {
         this.setSubscriptions(subscriptions);
@@ -80,7 +79,7 @@ public class Subscriber {
             /* no subscriptions = no interest in any event */
             return false;
         }
-        final String eventID = event.getPublisher() + "." + event.getEventid();
+        final String eventID = event.getPublisher().getPublisherName() + "." + event.getEventid();
         for (final String subscription : this.subscriptions) {
             try {
                 if (new Regex(eventID, subscription).matches()) {
@@ -107,7 +106,7 @@ public class Subscriber {
         return false;
     }
 
-    protected void notifyPoll() {
+    protected void notifyListener() {
         synchronized (this.events) {
             this.events.notifyAll();
         }
@@ -125,22 +124,61 @@ public class Subscriber {
         }
     }
 
-    protected void push(EventObject event) {
+    protected void push(final EventObject event) {
         if (event == null) { return; }
-        event = event.clone();
         synchronized (this.events) {
+            if (event.getCollapseKey() != null) {
+                /*
+                 * event has a collapseKey, so let's search for existing event
+                 * to replace/remove
+                 */
+                final Iterator<EventObject> it = this.events.descendingIterator();
+                while (it.hasNext()) {
+                    final EventObject next = it.next();
+                    if (next.getCollapseKey() != null && next.getCollapseKey().equals(event.getCollapseKey())) {
+                        it.remove();
+                        break;
+                    }
+                }
+            }
             this.events.offerLast(event);
-            event.setEventnumber(++this.eventnumber);
-            this.events.notifyAll();
         }
     }
 
-    protected void pushBack(final List<EventObject> events) {
+    protected void pushBack(final List<EventObject> pushBackEvents) {
+        if (pushBackEvents.size() == 0) { return; }
         synchronized (this.events) {
-            Collections.reverse(events);
-            for (final EventObject event : events) {
-                this.events.offerFirst(event);
+            if (this.events.size() == 0) {
+                /*
+                 * fast, current eventqueue is empty, so we can pushBack all at
+                 * once
+                 */
+                this.events.addAll(pushBackEvents);
+                return;
             }
+            final ArrayList<EventObject> addFirst = new ArrayList<EventObject>(pushBackEvents.size());
+            addFirstLoop: for (final EventObject pushBackEvent : pushBackEvents) {
+                if (pushBackEvent.getCollapseKey() != null) {
+                    for (final EventObject currentEvent : this.events) {
+                        if (currentEvent.getCollapseKey() != null && currentEvent.getCollapseKey().equals(pushBackEvent.getCollapseKey())) {
+                            continue addFirstLoop;
+                        }
+                    }
+                }
+                addFirst.add(pushBackEvent);
+            }
+            if (addFirst.size() == 0) {
+                /* all pushBackEvents were collapsed */
+                return;
+            }
+            /*
+             * clear current eventqueue and add all pushBack ones first, then
+             * the backup of current ones
+             */
+            final ArrayList<EventObject> backup = new ArrayList<EventObject>(this.events);
+            this.events.clear();
+            this.events.addAll(addFirst);
+            this.events.addAll(backup);
         }
     }
 
@@ -156,8 +194,8 @@ public class Subscriber {
      * @param maxKeepalive
      *            the maxKeepalive to set
      */
-    public void setMaxKeepalive(long maxKeepalive) {
-        maxKeepalive = Math.min(maxKeepalive, 300 * 1000l);
+    protected void setMaxKeepalive(long maxKeepalive) {
+        maxKeepalive = Math.min(maxKeepalive, 3600 * 1000l);
         maxKeepalive = Math.max(maxKeepalive, 30 * 1000l);
         this.maxKeepalive = maxKeepalive;
     }
@@ -166,12 +204,12 @@ public class Subscriber {
      * @param pollTimeout
      *            the pollTimeout to set
      */
-    public void setPollTimeout(long pollTimeout) {
+    protected void setPollTimeout(long pollTimeout) {
         /*
          * http://gabenell.blogspot.de/2010/11/connection-keep-alive-timeouts-for
          * .html
          */
-        pollTimeout = Math.min(pollTimeout, 150 * 1000l);
+        pollTimeout = Math.min(pollTimeout, 360 * 1000l);
         pollTimeout = Math.max(pollTimeout, 15 * 1000l);
         this.pollTimeout = pollTimeout;
     }

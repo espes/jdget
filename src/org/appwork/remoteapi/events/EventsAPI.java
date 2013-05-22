@@ -19,7 +19,7 @@ import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.remoteapi.RemoteAPI;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
-import org.appwork.remoteapi.events.json.EventObject;
+import org.appwork.remoteapi.events.json.EventObjectStorable;
 import org.appwork.remoteapi.events.json.PublisherResponse;
 import org.appwork.remoteapi.events.json.SubscriptionResponse;
 import org.appwork.storage.JSonStorage;
@@ -67,7 +67,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
         } else {
             subscriber.setMaxKeepalive(maxkeepalive);
             subscriber.setPollTimeout(polltimeout);
-            subscriber.notifyPoll();
+            subscriber.notifyListener();
             final SubscriptionResponse ret = new SubscriptionResponse(subscriber);
             ret.setSubscribed(true);
             return ret;
@@ -106,35 +106,23 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
 
     @Override
     public void listen(final RemoteAPIRequest request, final RemoteAPIResponse response, final long subscriptionid) {
-        this.listen(request, response, subscriptionid, 0);
-    }
-
-    @Override
-    public void listen(final RemoteAPIRequest request, final RemoteAPIResponse response, final long subscriptionid, long lasteventnumber) {
         final Subscriber subscriber = this.subscribers.get(subscriptionid);
         if (subscriber == null) {
             response.setResponseCode(ResponseCode.ERROR_NOT_FOUND);
             return;
         }
         final ArrayList<EventObject> events = new ArrayList<EventObject>();
+        final ArrayList<EventObjectStorable> eventStorables = new ArrayList<EventObjectStorable>();
         try {
             EventObject event;
             while ((event = subscriber.poll(events.size() == 0 ? subscriber.getPollTimeout() : 0)) != null && this.subscribers.get(subscriptionid) == subscriber) {
-                if (lasteventnumber > 0) {
-                    if (event.getEventnumber() != lasteventnumber) {
-                        this.subscribers.remove(subscriptionid);
-                        response.setResponseCode(ResponseCode.ERROR_NOT_FOUND);
-                        return;
-                    } else {
-                        lasteventnumber = 0;
-                    }
-                }
                 events.add(event);
+                eventStorables.add(new EventObjectStorable(event));
             }
         } catch (final InterruptedException e) {
         }
         try {
-            final byte[] bytes = JSonStorage.toString(events).getBytes("UTF-8");
+            final byte[] bytes = JSonStorage.toString(eventStorables).getBytes("UTF-8");
             response.setResponseCode(ResponseCode.SUCCESS_OK);
             RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), false, bytes);
         } catch (final Throwable e) {
@@ -170,6 +158,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
         for (final Subscriber subscriber : publishTo) {
             if (subscriber.isSubscribed(event)) {
                 subscriber.push(event);
+                subscriber.notifyListener();
             }
         }
     }
@@ -312,7 +301,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
     public SubscriptionResponse unsubscribe(final long subscriptionid) {
         final Subscriber subscriber = this.subscribers.remove(subscriptionid);
         if (subscriber != null) {
-            subscriber.notifyPoll();
+            subscriber.notifyListener();
             return new SubscriptionResponse(subscriber);
         }
         return new SubscriptionResponse();
