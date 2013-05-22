@@ -69,8 +69,10 @@ public abstract class SearchComboBox<T> extends JComboBox {
         private T                      value;
 
         private volatile AtomicInteger valueSetter = new AtomicInteger(0);
+        private final SearchComboBox   searchComboBox;
 
-        public Editor() {
+        public Editor(final SearchComboBox searchComboBox) {
+            this.searchComboBox = searchComboBox;
             this.tf = SearchComboBox.this.createTextField();
             this.tf.getDocument().addDocumentListener(this);
             this.tf.addFocusListener(new FocusListener() {
@@ -152,18 +154,22 @@ public abstract class SearchComboBox<T> extends JComboBox {
          */
         protected boolean autoComplete(final boolean showPopup) {
             if (!SearchComboBox.this.isAutoCompletionEnabled()) { return false; }
-            final String txt = Editor.this.tf.getText();
-            if (StringUtils.isEmpty(txt)) {
+            String rawtxt = Editor.this.tf.getText();
+            if (StringUtils.isEmpty(rawtxt)) {
                 /* every string will begin with "" so we return here */
                 return false;
             }
+            if (this.searchComboBox.isSearchCaseSensitive() == false) {
+                rawtxt = rawtxt.toLowerCase(Locale.ENGLISH);
+            }
+            final String txt = rawtxt;
             final T lValue = this.value;
             if (lValue != null && SearchComboBox.this.getTextForValue(lValue).equals(txt)) { return true; }
             String text = null;
             final java.util.List<T> found = new ArrayList<T>();
             for (int i = 0; i < SearchComboBox.this.getModel().getSize(); i++) {
                 text = SearchComboBox.this.getTextForValue((T) SearchComboBox.this.getModel().getElementAt(i));
-                if (text != null && text.startsWith(txt)) {
+                if (text != null && (text.startsWith(txt) || this.searchComboBox.isSearchCaseSensitive() == false && text.toLowerCase(Locale.ENGLISH).startsWith(txt))) {
                     found.add((T) SearchComboBox.this.getModel().getElementAt(i));
                 }
             }
@@ -520,7 +526,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
             this.setList(plugins);
         }
 
-        this.setEditor(new Editor());
+        this.setEditor(new Editor(this));
 
         this.setEditable(true);
 
@@ -646,6 +652,10 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     public boolean isHelpTextVisible() {
         return this.helptext != null && this.helptext.equals(this.getText());
+    }
+
+    protected boolean isSearchCaseSensitive() {
+        return false;
     }
 
     /**
