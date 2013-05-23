@@ -28,8 +28,8 @@ public class RenderLabel extends JLabel {
      * 
      */
     private static final long serialVersionUID = 1204940612879959884L;
-    private boolean _enabled=true;
-    private boolean _visible=true;
+    private boolean           _enabled         = true;
+    private boolean           _visible         = true;
 
     /**
      * * Overridden for performance reasons.
@@ -50,9 +50,16 @@ public class RenderLabel extends JLabel {
     // public boolean isVisible() {
     // return true;
     // }
+    @Override
     public boolean isEnabled() {
-        return _enabled;
+        return this._enabled;
     }
+
+    @Override
+    public boolean isVisible() {
+        return this._visible;
+    }
+
     /**
      * * Overridden for performance reasons.
      */
@@ -81,6 +88,12 @@ public class RenderLabel extends JLabel {
     public void revalidate() {
     }
 
+    @Override
+    public void setDisabledIcon(final Icon disabledIcon) {
+        if (disabledIcon == this.getDisabledIcon()) { return; }
+        super.setDisabledIcon(disabledIcon);
+    }
+
     /**
      * * Overridden for performance reasons.
      */
@@ -96,8 +109,8 @@ public class RenderLabel extends JLabel {
      */
     @Override
     public void setEnabled(final boolean b) {
-        if(b==isEnabled())return;
-       _enabled=b;
+        if (b == this.isEnabled()) { return; }
+        this._enabled = b;
         if (!b && this.getIcon() != null) {
             this.setDisabledIcon(ImageProvider.getDisabledIcon(this.getIcon()));
         }
@@ -110,19 +123,27 @@ public class RenderLabel extends JLabel {
      */
     @Override
     public void setIcon(final Icon icon) {
-        if (icon == getIcon()) return;
+        if (icon == this.getIcon()) { return; }
         if (!this.isEnabled()) {
             this.setDisabledIcon(ImageProvider.getDisabledIcon(icon));
         }
         if (icon == null) {
-            setDisabledIcon(null);
+            this.setDisabledIcon(null);
         }
         super.setIcon(icon);
     }
 
-    public void setDisabledIcon(Icon disabledIcon) {
-        if (disabledIcon == getDisabledIcon()) return;
-        super.setDisabledIcon(disabledIcon);
+    @Override
+    public void setText(final String text) {
+        if (text == null && this.getText() == null) { return; }
+        if (text != null && text.equals(this.getText())) { return; }
+        super.setText(text);
+    }
+
+    @Override
+    public void setVisible(final boolean aFlag) {
+
+        this._visible = aFlag;
     }
 
     @Override
@@ -133,14 +154,7 @@ public class RenderLabel extends JLabel {
         // } else {
         // hide();
         // }
-        
-    }
-    public boolean isVisible() {
-        return _visible;
-    }
-    public void setVisible(boolean aFlag) {
-     
-        _visible=aFlag;
+
     }
 
     /**

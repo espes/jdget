@@ -162,7 +162,11 @@ public class IO {
     }
 
     public static byte[] readFile(final File ressource) throws IOException {
-        return IO.readFile(ressource, -1);
+        int maxRead = -1;
+        if (ressource.length() < Integer.MAX_VALUE) {
+            maxRead = (int) ressource.length();
+        }
+        return IO.readFile(ressource, maxRead);
     }
 
     /*
@@ -391,13 +395,13 @@ public class IO {
     }
 
     public static void writeStringToFile(final File file, final String string) throws IOException {
-        writeStringToFile(file, string, false);
+        IO.writeStringToFile(file, string, false);
     }
 
     public static void writeStringToFile(final File file, final String string, final boolean append) throws IOException {
         try {
             if (file == null) { throw new IllegalArgumentException("File is null."); }
-            if (file.exists()&&!append) { throw new IllegalArgumentException("File already exists: " + file); }
+            if (file.exists() && !append) { throw new IllegalArgumentException("File already exists: " + file); }
             file.createNewFile();
             if (!file.isFile()) { throw new IllegalArgumentException("Is not a file: " + file); }
             if (!file.canWrite()) { throw new IllegalArgumentException("Cannot write to file: " + file); }
@@ -406,7 +410,7 @@ public class IO {
             Writer output = null;
             boolean deleteFile = true;
             try {
-                output = new BufferedWriter(new OutputStreamWriter(fos = new FileOutputStream(file,append), "UTF-8"));
+                output = new BufferedWriter(new OutputStreamWriter(fos = new FileOutputStream(file, append), "UTF-8"));
                 output.write(string);
                 deleteFile = false;
             } finally {

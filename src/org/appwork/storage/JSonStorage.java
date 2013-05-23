@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,7 +14,6 @@ import java.util.logging.Level;
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.utils.Application;
-import org.appwork.utils.Hash;
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
@@ -378,7 +376,9 @@ public class JSonStorage {
                 }
             }
         } catch (final Exception e) {
-            Log.L.warning("Error parsing String: " + string);
+            if (string.length() < 32767) {
+                Log.L.warning("Error parsing String: " + string);
+            }
             Log.exception(Level.WARNING, e);
 
             return def;
@@ -545,6 +545,5 @@ public class JSonStorage {
         }
 
     }
-
 
 }

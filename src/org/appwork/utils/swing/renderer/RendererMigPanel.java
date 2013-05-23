@@ -13,6 +13,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Rectangle;
 
+import javax.swing.border.Border;
+
 import org.appwork.swing.MigPanel;
 
 /**
@@ -37,31 +39,10 @@ public class RendererMigPanel extends MigPanel {
         super(constraints, columns, rows);
 
     }
-    public void setBackground(final Color bg) {
-       super.setBackground(bg);
-       for (final Component c : getComponents()) {
-           c.setBackground(bg);
-       }
-   
-    }
-    public void setForeground(final Color fg) {
-        super.setForeground(fg);
-        for (final Component c : getComponents()) {
-            c.setForeground(fg);
-        }
-    }
-    // /**
-    // * * Overridden for performance reasons.
-    // */
-    // @Override
-    // public void firePropertyChange(final String propertyName, final boolean
-    // oldValue, final boolean newValue) {
-    // /* we dont need propertychange events */
-    // }
 
     @Override
     public boolean isEnabled() {
-        return _enabled;
+        return this._enabled;
     }
 
     /**
@@ -72,6 +53,15 @@ public class RendererMigPanel extends MigPanel {
     public boolean isVisible() {
         return false;
     }
+
+    // /**
+    // * * Overridden for performance reasons.
+    // */
+    // @Override
+    // public void firePropertyChange(final String propertyName, final boolean
+    // oldValue, final boolean newValue) {
+    // /* we dont need propertychange events */
+    // }
 
     /**
      * * Overridden for performance reasons.
@@ -106,10 +96,38 @@ public class RendererMigPanel extends MigPanel {
     }
 
     @Override
+    public void setBackground(final Color bg) {
+        super.setBackground(bg);
+        for (final Component c : this.getComponents()) {
+            c.setBackground(bg);
+        }
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.JComponent#setBorder(javax.swing.border.Border)
+     */
+    @Override
+    public void setBorder(final Border border) {
+        if (border == this.getBorder()) { return; }
+        super.setBorder(border);
+    }
+
+    @Override
     public void setEnabled(final boolean enabled) {
-        _enabled = enabled;
-        for (final Component c : getComponents()) {
+        this._enabled = enabled;
+        for (final Component c : this.getComponents()) {
             c.setEnabled(enabled);
+        }
+    }
+
+    @Override
+    public void setForeground(final Color fg) {
+        super.setForeground(fg);
+        for (final Component c : this.getComponents()) {
+            c.setForeground(fg);
         }
     }
 
