@@ -111,15 +111,14 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
             @Override
             public void setIcon(final Icon icon) {
-
                 ExtTextColumn.this.rendererIcon.setIcon(icon);
             }
 
             @Override
             public void setText(final String text) {
-                if (text != this.getText()) {
-                    super.setText(text);
-                }
+                if (text != null && text.equals(this.getText())) { return; }
+                if (text == null && this.getText() == null) { return; }
+                super.setText(text);
             }
 
         };
