@@ -142,7 +142,6 @@ public class RenderLabel extends JLabel {
 
     @Override
     public void setVisible(final boolean aFlag) {
-
         this._visible = aFlag;
     }
 
