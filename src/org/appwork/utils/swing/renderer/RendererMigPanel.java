@@ -28,7 +28,8 @@ public class RendererMigPanel extends MigPanel {
      */
     private static final long serialVersionUID = 1L;
 
-    protected boolean         _enabled         = true;
+    protected Boolean         _enabled         = null;
+    protected Boolean         _opaque          = null;
 
     /**
      * @param constraints
@@ -37,7 +38,6 @@ public class RendererMigPanel extends MigPanel {
      */
     public RendererMigPanel(final String constraints, final String columns, final String rows) {
         super(constraints, columns, rows);
-
     }
 
     @Override
@@ -97,6 +97,7 @@ public class RendererMigPanel extends MigPanel {
 
     @Override
     public void setBackground(final Color bg) {
+        if (bg != null && bg.equals(this.getBackground())) { return; }
         super.setBackground(bg);
         for (final Component c : this.getComponents()) {
             c.setBackground(bg);
@@ -104,11 +105,6 @@ public class RendererMigPanel extends MigPanel {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.swing.JComponent#setBorder(javax.swing.border.Border)
-     */
     @Override
     public void setBorder(final Border border) {
         if (border == this.getBorder()) { return; }
@@ -117,6 +113,7 @@ public class RendererMigPanel extends MigPanel {
 
     @Override
     public void setEnabled(final boolean enabled) {
+        if (this._enabled != null && this._enabled == enabled) { return; }
         this._enabled = enabled;
         for (final Component c : this.getComponents()) {
             c.setEnabled(enabled);
@@ -125,10 +122,18 @@ public class RendererMigPanel extends MigPanel {
 
     @Override
     public void setForeground(final Color fg) {
+        if (fg != null && fg.equals(this.getForeground())) { return; }
         super.setForeground(fg);
         for (final Component c : this.getComponents()) {
             c.setForeground(fg);
         }
+    }
+
+    @Override
+    public void setOpaque(final boolean isOpaque) {
+        if (this._opaque != null && this._opaque == isOpaque) { return; }
+        this._opaque = isOpaque;
+        super.setOpaque(isOpaque);
     }
 
 }
