@@ -39,5 +39,4 @@ public class MyJDownloaderException extends Exception {
     public void setSource(final Source src) {
         source = src;
     }
-
 }
