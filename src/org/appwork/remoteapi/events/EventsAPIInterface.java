@@ -18,6 +18,7 @@ import org.appwork.remoteapi.ResponseWrapper;
 import org.appwork.remoteapi.annotations.ApiNamespace;
 import org.appwork.remoteapi.events.json.PublisherResponse;
 import org.appwork.remoteapi.events.json.SubscriptionResponse;
+import org.appwork.remoteapi.events.json.SubscriptionStatusResponse;
 import org.appwork.remoteapi.responsewrapper.RawJSonWrapper;
 
 /**
@@ -35,7 +36,7 @@ public interface EventsAPIInterface extends RemoteAPIInterface {
     @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse getsubscription(long subscriptionid);
 
-    public boolean isvalidsubscriptionid(long subscriptionid);
+    public SubscriptionStatusResponse getsubscriptionstatus(long subscriptionid);
 
     public void listen(RemoteAPIRequest request, RemoteAPIResponse response, long subscriptionid);
 

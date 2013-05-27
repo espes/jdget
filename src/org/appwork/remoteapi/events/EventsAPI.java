@@ -22,6 +22,7 @@ import org.appwork.remoteapi.RemoteAPIResponse;
 import org.appwork.remoteapi.events.json.EventObjectStorable;
 import org.appwork.remoteapi.events.json.PublisherResponse;
 import org.appwork.remoteapi.events.json.SubscriptionResponse;
+import org.appwork.remoteapi.events.json.SubscriptionStatusResponse;
 import org.appwork.storage.JSonStorage;
 
 /**
@@ -90,14 +91,20 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
      * (non-Javadoc)
      * 
      * @see
-     * org.appwork.remoteapi.events.EventsAPIInterface#isvalidsubscriptionid
+     * org.appwork.remoteapi.events.EventsAPIInterface#getsubscriptionstatus
      * (long)
      */
     @Override
-    public boolean isvalidsubscriptionid(final long subscriptionid) {
+    public SubscriptionStatusResponse getsubscriptionstatus(final long subscriptionid) {
         final Subscriber subscriber = this.subscribers.get(subscriptionid);
-        if (subscriber == null || subscriber.getLastPolledTimestamp() + subscriber.getMaxKeepalive() < System.currentTimeMillis()) { return false; }
-        return true;
+        if (subscriber == null) {
+            return new SubscriptionStatusResponse();
+        } else {
+            subscriber.keepAlive();
+            final SubscriptionStatusResponse ret = new SubscriptionStatusResponse(subscriber);
+            ret.setSubscribed(true);
+            return ret;
+        }
     }
 
     public EventPublisher[] list() {

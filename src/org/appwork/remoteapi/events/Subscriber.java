@@ -25,14 +25,14 @@ import org.appwork.utils.Regex;
  */
 public class Subscriber {
 
-    protected static final AtomicLong                SUBSCRIBER          = new AtomicLong(0);
-    protected String[]                               subscriptions;
-    protected String[]                               exclusions;
+    protected static final AtomicLong       SUBSCRIBER          = new AtomicLong(0);
+    protected String[]                      subscriptions;
+    protected String[]                      exclusions;
     protected final ArrayDeque<EventObject> events              = new ArrayDeque<EventObject>();
-    protected final long                             subscriptionID;
-    protected long                                   lastPolledTimestamp = System.currentTimeMillis();
-    protected long                                   pollTimeout         = 30 * 1000l;
-    protected long                                   maxKeepalive        = 120 * 1000l;
+    protected final long                    subscriptionID;
+    protected long                          lastPolledTimestamp = System.currentTimeMillis();
+    protected long                          pollTimeout         = 30 * 1000l;
+    protected long                          maxKeepalive        = 120 * 1000l;
 
     protected Subscriber(final String[] subscriptions, final String[] exclusions) {
         this.setSubscriptions(subscriptions);
@@ -104,6 +104,10 @@ public class Subscriber {
             }
         }
         return false;
+    }
+
+    protected void keepAlive() {
+        this.lastPolledTimestamp = System.currentTimeMillis();
     }
 
     protected void notifyListener() {
