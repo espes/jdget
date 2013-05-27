@@ -28,6 +28,7 @@ import java.nio.charset.CharacterCodingException;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -292,12 +293,15 @@ public abstract class Request {
                     try {
                         if (useCS != null) {
                             /* try to use wanted charset */
-                            this.htmlCode = new String(this.byteArray, useCS.toUpperCase());
+                            useCS = useCS.toUpperCase(Locale.ENGLISH);
+                            this.htmlCode = new String(this.byteArray, useCS);
+                            this.httpConnection.setCharset(useCS);
                             return this.htmlCode;
                         }
                     } catch (final Exception e) {
                     }
                     this.htmlCode = new String(this.byteArray, "ISO-8859-1");
+                    this.httpConnection.setCharset("ISO-8859-1");
                     return this.htmlCode;
                 } catch (final Exception e) {
                     System.out.println("could neither charset: " + useCS + " nor default charset");
@@ -307,6 +311,7 @@ public abstract class Request {
                 }
             } catch (final Exception e) {
                 /* in case of error we do not reset byteArray */
+                this.httpConnection.setCharset(null);
             }
         }
         return this.htmlCode;
