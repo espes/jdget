@@ -31,7 +31,7 @@ public class Subscriber {
     protected final ArrayDeque<EventObject> events              = new ArrayDeque<EventObject>();
     protected final long                    subscriptionID;
     protected long                          lastPolledTimestamp = System.currentTimeMillis();
-    protected long                          pollTimeout         = 30 * 1000l;
+    protected long                          pollTimeout         = 25 * 1000l;
     protected long                          maxKeepalive        = 120 * 1000l;
 
     protected Subscriber(final String[] subscriptions, final String[] exclusions) {
