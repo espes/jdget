@@ -10,10 +10,10 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 
 import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.DefaultLongValue;
+import org.appwork.storage.config.annotations.LookUpKeys;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 
 /**
@@ -39,10 +39,7 @@ public class LongKeyHandler extends KeyHandler<Long> {
     @SuppressWarnings("unchecked")
     @Override
     protected Class<? extends Annotation>[] getAllowedAnnotations() {
-        final java.util.List<Class<? extends Annotation>> list = new ArrayList<Class<? extends Annotation>>();
-
-        list.add(SpinnerValidator.class);
-        return (Class<? extends Annotation>[]) list.toArray(new Class<?>[] {});
+        return (Class<? extends Annotation>[]) new Class<?>[] {LookUpKeys.class,SpinnerValidator.class};
     }
 
     @Override
@@ -53,7 +50,7 @@ public class LongKeyHandler extends KeyHandler<Long> {
 
     @Override
     protected void initDefaults() throws Throwable {
-        this.setDefaultValue(Long.valueOf(0));
+        setDefaultValue(Long.valueOf(0));
     }
 
     /*
@@ -64,10 +61,10 @@ public class LongKeyHandler extends KeyHandler<Long> {
     @Override
     protected void initHandler() {
 
-        this.validator = this.getAnnotation(SpinnerValidator.class);
-        if (this.validator != null) {
-            this.min = this.validator.min();
-            this.max = this.validator.max();
+        validator = this.getAnnotation(SpinnerValidator.class);
+        if (validator != null) {
+            min = validator.min();
+            max = validator.max();
 
         }
     }
@@ -80,7 +77,7 @@ public class LongKeyHandler extends KeyHandler<Long> {
     @Override
     protected void putValue(final Long object) {
 
-        this.storageHandler.putPrimitive(this.getKey(), object);
+        storageHandler.putPrimitive(getKey(), object);
     }
 
     /*
@@ -91,9 +88,9 @@ public class LongKeyHandler extends KeyHandler<Long> {
      */
     @Override
     protected void validateValue(final Long object) throws Throwable {
-        if (this.validator != null) {
+        if (validator != null) {
             final long v = object.longValue();
-            if (v < this.min || v > this.max) { throw new ValidationException(); }
+            if (v < min || v > max) { throw new ValidationException(); }
         }
     }
 

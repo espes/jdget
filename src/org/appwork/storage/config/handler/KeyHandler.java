@@ -29,6 +29,7 @@ import org.appwork.storage.config.annotations.CustomValueGetter;
 import org.appwork.storage.config.annotations.DefaultFactory;
 import org.appwork.storage.config.annotations.DefaultJsonObject;
 import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
+import org.appwork.storage.config.annotations.LookUpKeys;
 import org.appwork.storage.config.annotations.PlainStorage;
 import org.appwork.storage.config.annotations.RequiresRestart;
 import org.appwork.storage.config.annotations.ValidatorFactory;
@@ -60,6 +61,7 @@ public abstract class KeyHandler<RawClass> {
     private ConfigEventSender<RawClass>         eventSender;
     private AbstractValidator<RawClass>         validatorFactory;
     private AbstractCustomValueGetter<RawClass> customValueGetter;
+    protected String[]                          backwardsCompatibilityLookupKeys;
 
     /**
      * @param storageHandler
@@ -73,6 +75,7 @@ public abstract class KeyHandler<RawClass> {
         this.crypted = storageHandler.isCrypted();
         this.cryptKey = storageHandler.getKey();
         this.primitiveStorage = storageHandler.primitiveStorage;
+
         // this.refQueue = new ReferenceQueue<Object>();
 
     }
@@ -147,8 +150,8 @@ public abstract class KeyHandler<RawClass> {
 
     @SuppressWarnings("unchecked")
     protected Class<? extends Annotation>[] getAllowedAnnotations() {
-
-        return (Class<? extends Annotation>[]) new Class<?>[] {};
+      
+        return (Class<? extends Annotation>[]) new Class<?>[] {LookUpKeys.class};
 
     }
 
@@ -274,7 +277,35 @@ public abstract class KeyHandler<RawClass> {
     }
 
     public RawClass getValueStorage() {
-        if (this.primitiveStorage.hasProperty(this.getKey())) { return this.primitiveStorage.get(this.getKey(), this.defaultValue); }
+
+        if (this.primitiveStorage.hasProperty(this.getKey())) {
+            // primitiveSTorage contains a value. we do not need to calculate
+            // the defaultvalue.
+            return this.primitiveStorage.get(this.getKey(), this.defaultValue);
+        }
+
+        // we have no value yet. call the getDefaultMethod to calculate the
+        // default value
+
+        if (this.backwardsCompatibilityLookupKeys != null) {
+            for (final String key : backwardsCompatibilityLookupKeys) {
+                if (primitiveStorage.hasProperty(key)) {
+
+                    final boolean apv = primitiveStorage.isAutoPutValues();
+                    try {
+                        if (!apv) {
+                            primitiveStorage.setAutoPutValues(true);
+                        }
+                        return this.primitiveStorage.get(this.getKey(), primitiveStorage.get(key, defaultValue));
+                    } finally {
+                        if (!apv) {
+                            primitiveStorage.setAutoPutValues(apv);
+                        }
+                    }
+
+                }
+            }
+        }
         return this.primitiveStorage.get(this.getKey(), this.getDefaultValue());
     }
 
@@ -334,6 +365,12 @@ public abstract class KeyHandler<RawClass> {
             this.setValue((RawClass) JSonStorage.restoreFromString(sys, new TypeRef<Object>(this.getRawClass()) {
             }, null));
         }
+
+        final LookUpKeys lookups = getAnnotation(LookUpKeys.class);
+        if (lookups != null) {
+            backwardsCompatibilityLookupKeys = lookups.value();
+        }
+
     }
 
     protected void initDefaults() throws Throwable {

@@ -10,10 +10,10 @@
 package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 
 import org.appwork.storage.config.ValidationException;
 import org.appwork.storage.config.annotations.DefaultIntValue;
+import org.appwork.storage.config.annotations.LookUpKeys;
 import org.appwork.storage.config.annotations.SpinnerValidator;
 
 /**
@@ -40,10 +40,7 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
     @SuppressWarnings("unchecked")
     @Override
     protected Class<? extends Annotation>[] getAllowedAnnotations() {
-        final java.util.List<Class<? extends Annotation>> list = new ArrayList<Class<? extends Annotation>>();
-
-        list.add(SpinnerValidator.class);
-        return (Class<? extends Annotation>[]) list.toArray(new Class<?>[] {});
+        return (Class<? extends Annotation>[]) new Class<?>[] {LookUpKeys.class,SpinnerValidator.class};
     }
 
     @Override
@@ -54,7 +51,7 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
 
     @Override
     protected void initDefaults() throws Throwable {
-        this.setDefaultValue(Integer.valueOf(0));
+        setDefaultValue(Integer.valueOf(0));
     }
 
     /*
@@ -65,10 +62,10 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
     @Override
     protected void initHandler() {
 
-        this.validator = this.getAnnotation(SpinnerValidator.class);
-        if (this.validator != null) {
-            this.min = (int) this.validator.min();
-            this.max = (int) this.validator.max();
+        validator = this.getAnnotation(SpinnerValidator.class);
+        if (validator != null) {
+            min = (int) validator.min();
+            max = (int) validator.max();
 
         }
     }
@@ -80,7 +77,7 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
      */
     @Override
     protected void putValue(final Integer object) {
-        this.storageHandler.putPrimitive(this.getKey(), object);
+        storageHandler.putPrimitive(getKey(), object);
 
     }
 
@@ -92,9 +89,9 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
      */
     @Override
     protected void validateValue(final Integer object) throws Throwable {
-        if (this.validator != null) {
+        if (validator != null) {
             final int v = object.intValue();
-            if (v < this.min || v > this.max) { throw new ValidationException(); }
+            if (v < min || v > max) { throw new ValidationException(); }
         }
 
     }
