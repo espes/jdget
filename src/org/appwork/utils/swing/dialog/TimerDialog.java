@@ -44,6 +44,10 @@ public abstract class TimerDialog {
 
         }
 
+        public TimerDialog getDialogModel() {
+            return TimerDialog.this;
+        }
+
         public void setVisible(final boolean b) {
             onSetVisible(b);
             super.setVisible(b);
@@ -168,7 +172,7 @@ public abstract class TimerDialog {
      * @return
      */
     public Dimension getPreferredSize() {
-     
+
         final Dimension pref = getRawPreferredSize();
 
         int w = getPreferredWidth();
