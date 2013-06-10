@@ -62,7 +62,7 @@ public class HTMLParser {
         if (results == null) {
             results = new HashSet<String>();
         }
-        if (data == null || (data = data.trim()).length() == 0) { return results; }
+        if (data == null || (data = data.trim()).length() < 13) { return results; }
         if ((data.startsWith("directhttp://") || data.startsWith("httpviajd://") || data.startsWith("httpsviajd://")) && results.contains(data)) {
             /* we don't have to further check urls with those prefixes */
             return results;
@@ -83,26 +83,30 @@ public class HTMLParser {
         HTMLParser._getHttpLinksFinder(base64Data, url, results);
         base64Data = null;
         /* parse escaped js stuff */
-        String unescaped[] = new Regex(data, "unescape\\(('|\")(.*?)('|\")").getColumn(1);
-        if (unescaped != null) {
-            for (String unescape : unescaped) {
-                unescape = Encoding.htmlDecode(unescape);
-                HTMLParser._getHttpLinksFinder(unescape, url, results);
+        if (data.length() > 23) {
+            String unescaped[] = new Regex(data, "unescape\\(('|\")(.*?)('|\")").getColumn(1);
+            if (unescaped != null) {
+                for (String unescape : unescaped) {
+                    unescape = Encoding.htmlDecode(unescape);
+                    HTMLParser._getHttpLinksFinder(unescape, url, results);
+                }
+                unescaped = null;
             }
-            unescaped = null;
         }
         /* find hex'ed */
-        String hex = new Regex(data, "(([0-9a-fA-F]{2}| )+)").getMatch(0);
-        if (hex != null && hex.length() > 24) {
-            try {
-                /* remove spaces from hex-coded string */
-                hex = hex.replaceAll(" ", "");
-                String hexString = Hex.hex2String(hex);
-                hex = null;
-                HTMLParser._getHttpLinksFinder(hexString, url, results);
-                hexString = null;
-            } catch (final Throwable e) {
-                Log.exception(e);
+        if (results.size() == sizeBefore && data.length() >= 24) {
+            String hex = new Regex(data, "(([0-9a-fA-F]{2}| )+)").getMatch(0);
+            if (hex != null && hex.length() >= 24) {
+                try {
+                    /* remove spaces from hex-coded string */
+                    hex = hex.replaceAll(" ", "");
+                    String hexString = Hex.hex2String(hex);
+                    hex = null;
+                    HTMLParser._getHttpLinksFinder(hexString, url, results);
+                    hexString = null;
+                } catch (final Throwable e) {
+                    Log.exception(e);
+                }
             }
         }
         if (results.size() == sizeBefore && data.contains("%3A%2F%2")) {
@@ -232,21 +236,24 @@ public class HTMLParser {
         return results;
     }
 
-    private static HashSet<String> _getHttpLinksWalker(String data, final String url, HashSet<String> results) {
+    private static HashSet<String> _getHttpLinksWalker(String data, final String url, HashSet<String> results, String tagRegex) {
         // System.out.println("Call: "+data.length());
         if (results == null) {
             results = new HashSet<String>();
         }
-        if (data == null || (data = data.trim()).length() == 0) { return results; }
+        if (data == null || (data = data.trim()).length() < 13) { return results; }
         /* filtering tags, recursion command me ;) */
         while (true) {
-            final String nexttag = new Regex(data, "<(.*?)>").setMemoryOptimized(false).getMatch(0);
+            if (tagRegex == null) {
+                tagRegex = "<(.*?)>";
+            }
+            final String nexttag = new Regex(data, tagRegex).setMemoryOptimized(false).getMatch(0);
             if (nexttag == null || nexttag.length() == 0) {
                 /* no further tag found, lets continue */
                 break;
             } else {
                 /* lets check if tag contains links */
-                HTMLParser._getHttpLinksWalker(nexttag, url, results);
+                HTMLParser._getHttpLinksWalker(nexttag, url, results, "<(.*?)>");
                 int tagClose = data.indexOf('<' + nexttag);
                 if (tagClose >= 0) {
                     tagClose = tagClose + nexttag.length() + 1;
@@ -257,24 +264,15 @@ public class HTMLParser {
                         /*
                          * there might be some data left before the tag, do not remove that data
                          */
-                        String dataLeft = data.substring(0, tagOpen);
-                        String dataLeft2 = data.substring(tagClose + 1);
+                        final String dataLeft = data.substring(0, tagOpen);
+                        final String dataLeft2 = data.substring(tagClose + 1);
                         data = null;
-                        StringBuilder sb = new StringBuilder(dataLeft.length() + dataLeft2.length() + 10);
                         if (dataLeft.contains(">")) {
-                            sb.append("<");
-                            sb.append(dataLeft);
+                            HTMLParser._getHttpLinksWalker(dataLeft, url, results, "^(.*?)>");
                         } else {
-                            sb.append("<");
-                            sb.append(dataLeft);
-                            sb.append(">");
+                            HTMLParser._getHttpLinksWalker(dataLeft, url, results, "^(.*?)$");
                         }
-                        dataLeft = null;
-                        sb.append(" ");
-                        sb.append(dataLeft2);
-                        dataLeft2 = null;
-                        data = sb.toString();
-                        sb = null;
+                        data = dataLeft2;
                     } else {
                         /* remove tag at begin of data */
                         data = data.substring(tagClose + 1);
@@ -282,29 +280,40 @@ public class HTMLParser {
                     }
                     // System.out.println("SubCall: "+data.length());
                 } else {
-                    /* remove tag at begin of data */
-                    data = data.substring(tagClose + 1);
-                    if (data.length() == 0) { return results; }
+                    if (tagClose < 0) {
+                        data = data.substring(nexttag.length());
+                        if (data.length() == 0) { return results; }
+                    } else {
+                        /* remove tag at begin of data */
+                        data = data.substring(tagClose + 1);
+                        if (data.length() == 0) { return results; }
+                    }
                 }
             }
         }
         /* find normal */
-        if (!data.contains("://") && !data.contains("%3A%2F%2") || data.length() < 10) {
+        if (data.length() < 13) {
+            //
+            return results;
+        }
+        if (!data.contains("://") && !data.contains("%3A%2F%2")) {
             /* data must contain at least the protocol separator */
-            /* a://b.c/d == minimum 10 length */
             if (!data.contains("href") && !data.contains("unescape") && !data.contains("src=")) {
                 /* maybe easy encrypted website or a href */
                 return results;
             }
         }
+        final int sizeBefore = results.size();
         HTMLParser._getHttpLinksFinder(data, url, results);
-        HTMLParser._getHttpLinksDeepWalker(data, url, results);
-        /* cut of ?xy= parts if needed */
-        String newdata = new Regex(data, "://[^\r\n]*?/[^\r\n]+\\?.[^\r\n]*?=(.*?)($|\r|\n)").setMemoryOptimized(false).getMatch(0);
-        HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
-        /* use of ?xy parts if available */
-        newdata = new Regex(data, "://[^\r\n]*?/[^\r\n]*?\\?(.*?)($|\r|\n)").setMemoryOptimized(false).getMatch(0);
-        HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
+        if (results.size() == sizeBefore) {
+            HTMLParser._getHttpLinksDeepWalker(data, url, results);
+            /* cut of ?xy= parts if needed */
+            String newdata = new Regex(data, "://[^\r\n]*?/[^\r\n]+\\?.[^\r\n]*?=(.*?)($|\r|\n)").setMemoryOptimized(false).getMatch(0);
+            HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
+            /* use of ?xy parts if available */
+            newdata = new Regex(data, "://[^\r\n]*?/[^\r\n]*?\\?(.*?)($|\r|\n)").setMemoryOptimized(false).getMatch(0);
+            HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
+        }
         return results;
     }
 
@@ -461,7 +470,7 @@ public class HTMLParser {
             }
 
         };
-        HTMLParser._getHttpLinksWalker(data, url, results);
+        HTMLParser._getHttpLinksWalker(data, url, results, null);
         /* we don't want baseurl to be included in result set */
         results.remove(url);
         if (results.isEmpty()) { return null; }
