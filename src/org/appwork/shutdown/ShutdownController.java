@@ -23,21 +23,21 @@ public class ShutdownController extends Thread {
          * @param value
          */
         public ShutdownEventWrapper(final Thread value) {
-            orgThread = value;
+            this.orgThread = value;
             // call "Nativ" hooks at the end.
-            setHookPriority(Integer.MIN_VALUE);
+            this.setHookPriority(Integer.MIN_VALUE);
         }
 
         @Override
         public boolean equals(final Object obj) {
-            if (obj instanceof ShutdownEventWrapper) { return orgThread == ((ShutdownEventWrapper) obj).orgThread; }
+            if (obj instanceof ShutdownEventWrapper) { return this.orgThread == ((ShutdownEventWrapper) obj).orgThread; }
             return false;
         }
 
         @Override
         public int hashCode() {
 
-            return orgThread.hashCode();
+            return this.orgThread.hashCode();
         }
 
         /*
@@ -47,12 +47,12 @@ public class ShutdownController extends Thread {
          */
         @Override
         public void run() {
-            orgThread.run();
+            this.orgThread.run();
         }
 
         @Override
         public String toString() {
-            return "ShutdownEventWrapper " + orgThread + " - " + orgThread.getClass().getName() + " Priority: " + getHookPriority();
+            return "ShutdownEventWrapper " + this.orgThread + " - " + this.orgThread.getClass().getName() + " Priority: " + this.getHookPriority();
         }
 
     }
@@ -78,7 +78,7 @@ public class ShutdownController extends Thread {
 
             @Override
             public void run() {
-                Log.L.finest("DO " + getHookPriority());
+                Log.L.finest("DO " + this.getHookPriority());
             }
 
         });
@@ -91,7 +91,7 @@ public class ShutdownController extends Thread {
 
             @Override
             public void run() {
-                Log.L.finest("DO " + getHookPriority());
+                Log.L.finest("DO " + this.getHookPriority());
 
             }
 
@@ -105,7 +105,7 @@ public class ShutdownController extends Thread {
 
             @Override
             public void run() {
-                Log.L.finest("DO " + getHookPriority());
+                Log.L.finest("DO " + this.getHookPriority());
             }
 
         });
@@ -125,16 +125,15 @@ public class ShutdownController extends Thread {
      */
     private ShutdownController() {
         super(ShutdownController.class.getSimpleName());
-        exitThread = new Thread("ShutdownThread") {
+        this.exitThread = new Thread("ShutdownThread") {
             @Override
             public void run() {
-                Log.L.info("Exit Now: Code: " + getExitCode());
+                Log.L.info("Exit Now: Code: " + ShutdownController.this.getExitCode());
                 System.exit(ShutdownController.this.getExitCode());
             }
         };
-        ;
-        hooks = new LinkedList<ShutdownEvent>();
-        vetoListeners = new ArrayList<ShutdownVetoListener>();
+        this.hooks = new LinkedList<ShutdownEvent>();
+        this.vetoListeners = new ArrayList<ShutdownVetoListener>();
         try {
             // first try to hook in the original hooks manager
             // to "disable" the original hook manager, we overwrite the actual
@@ -177,7 +176,7 @@ public class ShutdownController extends Thread {
                 final Set<Thread> threads = hooks.keySet();
 
                 for (final Thread hook : threads) {
-                    addShutdownEvent(new ShutdownEventWrapper(hook));
+                    this.addShutdownEvent(new ShutdownEventWrapper(hook));
 
                 }
                 field.set(null, hookDelegater);
@@ -191,7 +190,7 @@ public class ShutdownController extends Thread {
         // do not remove the Log call here. we have to be sure that Log.class is
         // already loaded
         Log.L.finest("Init ShutdownController");
-        addShutdownEvent(new ShutdownEvent() {
+        this.addShutdownEvent(new ShutdownEvent() {
 
             @Override
             public void run() {
@@ -202,39 +201,33 @@ public class ShutdownController extends Thread {
     }
 
     public void addShutdownEvent(final ShutdownEvent event) {
-        if (isAlive()) {
+        if (this.isAlive()) {
             Log.exception(new IllegalStateException("Cannot add hooks during shutdown"));
             return;
         }
-        synchronized (hooks) {
+        synchronized (this.hooks) {
             ShutdownEvent next;
             int i = 0;
             // add event sorted
-            for (final Iterator<ShutdownEvent> it = hooks.iterator(); it.hasNext();) {
+            for (final Iterator<ShutdownEvent> it = this.hooks.iterator(); it.hasNext();) {
                 next = it.next();
                 if (next.getHookPriority() <= event.getHookPriority()) {
-                    hooks.add(i, event);
+                    this.hooks.add(i, event);
                     return;
                 }
                 i++;
             }
-            hooks.add(event);
+            this.hooks.add(event);
         }
 
-    }
-
-    public List<ShutdownVetoListener> getShutdownVetoListeners() {
-        synchronized (vetoListeners) {
-            return new ArrayList<ShutdownVetoListener>(vetoListeners);
-        }
     }
 
     public void addShutdownVetoListener(final ShutdownVetoListener listener) {
-        synchronized (vetoListeners) {
-            if (vetoListeners.contains(listener)) { return; }
+        synchronized (this.vetoListeners) {
+            if (this.vetoListeners.contains(listener)) { return; }
             Log.L.finest("ADD " + listener);
-            vetoListeners.add(listener);
-            java.util.Collections.sort(vetoListeners, new Comparator<ShutdownVetoListener>() {
+            this.vetoListeners.add(listener);
+            java.util.Collections.sort(this.vetoListeners, new Comparator<ShutdownVetoListener>() {
 
                 @Override
                 public int compare(final ShutdownVetoListener o1, final ShutdownVetoListener o2) {
@@ -245,17 +238,24 @@ public class ShutdownController extends Thread {
         }
     }
 
+    public java.util.List<ShutdownVetoException> collectVetos(final boolean silent) {
+        return this.collectVetos(silent, null);
+    }
+
     /**
      * @return
      */
-    public java.util.List<ShutdownVetoException> collectVetos(final boolean silent) {
+    public java.util.List<ShutdownVetoException> collectVetos(final boolean silent, final ShutdownVetoFilter filter) {
         final java.util.List<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
         ShutdownVetoListener[] localList = null;
-        synchronized (vetoListeners) {
-            localList = vetoListeners.toArray(new ShutdownVetoListener[] {});
+        synchronized (this.vetoListeners) {
+            localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
         }
         for (final ShutdownVetoListener v : localList) {
             try {
+                if (filter != null && filter.askForVeto(v) == false) {
+                    continue;
+                }
                 if (silent) {
                     /*
                      * make sure noone changes content of vetos,so create new
@@ -271,6 +271,13 @@ public class ShutdownController extends Thread {
                 }
             } catch (final ShutdownVetoException e) {
                 vetos.add(e);
+                if (filter != null) {
+                    try {
+                        filter.gotVetoFrom(v);
+                    } catch (final Throwable e2) {
+                        e2.printStackTrace();
+                    }
+                }
             } catch (final Throwable e) {
                 e.printStackTrace();
             }
@@ -279,7 +286,13 @@ public class ShutdownController extends Thread {
     }
 
     public int getExitCode() {
-        return exitCode;
+        return this.exitCode;
+    }
+
+    public List<ShutdownVetoListener> getShutdownVetoListeners() {
+        synchronized (this.vetoListeners) {
+            return new ArrayList<ShutdownVetoListener>(this.vetoListeners);
+        }
     }
 
     /**
@@ -310,26 +323,26 @@ public class ShutdownController extends Thread {
      * @return
      */
     public boolean hasShutdownEvent(final ShutdownEvent instance2) {
-        synchronized (hooks) {
-            return hooks.contains(instance2);
+        synchronized (this.hooks) {
+            return this.hooks.contains(instance2);
         }
     }
 
     public boolean isShutDownRequested() {
-        return requestedShutDowns.get() > 0;
+        return this.requestedShutDowns.get() > 0;
     }
 
     public boolean isSilentShutDown() {
-        return silentShutDown;
+        return this.silentShutDown;
     }
 
     public void removeShutdownEvent(final ShutdownEvent event) {
-        if (isAlive()) { throw new IllegalStateException("Cannot add hooks during shutdown"); }
-        synchronized (hooks) {
+        if (this.isAlive()) { throw new IllegalStateException("Cannot add hooks during shutdown"); }
+        synchronized (this.hooks) {
             ShutdownEvent next;
 
             // add event sorted
-            for (final Iterator<ShutdownEvent> it = hooks.iterator(); it.hasNext();) {
+            for (final Iterator<ShutdownEvent> it = this.hooks.iterator(); it.hasNext();) {
                 next = it.next();
                 if (next == event) {
                     it.remove();
@@ -340,9 +353,9 @@ public class ShutdownController extends Thread {
     }
 
     public void removeShutdownVetoListener(final ShutdownVetoListener listener) {
-        synchronized (vetoListeners) {
+        synchronized (this.vetoListeners) {
             Log.L.finest("Remove " + listener);
-            vetoListeners.remove(listener);
+            this.vetoListeners.remove(listener);
         }
     }
 
@@ -354,18 +367,21 @@ public class ShutdownController extends Thread {
      * 
      */
     public boolean requestShutdown(final boolean silent) {
-      
-        requestedShutDowns.incrementAndGet();
+        return this.requestShutdown(silent, null);
+    }
+
+    public boolean requestShutdown(final boolean silent, final ShutdownVetoFilter filter) {
+        this.requestedShutDowns.incrementAndGet();
         try {
             java.util.List<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
 
-            vetos = collectVetos(silent);
+            vetos = this.collectVetos(silent, filter);
 
             if (vetos.size() == 0) {
                 Log.L.info("No Vetos");
                 ShutdownVetoListener[] localList = null;
-                synchronized (vetoListeners) {
-                    localList = vetoListeners.toArray(new ShutdownVetoListener[] {});
+                synchronized (this.vetoListeners) {
+                    localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
                 }
 
                 Log.L.info("Fire onShutDownEvents");
@@ -382,10 +398,10 @@ public class ShutdownController extends Thread {
                 }
                 Log.L.info("Create ExitThread");
 
-                exitThread.start();
+                this.exitThread.start();
                 Log.L.info("Wait");
-                silentShutDown = silent;
-                while (exitThread.isAlive()) {
+                this.silentShutDown = silent;
+                while (this.exitThread.isAlive()) {
                     try {
                         Thread.sleep(500);
                     } catch (final InterruptedException e) {
@@ -397,8 +413,8 @@ public class ShutdownController extends Thread {
             } else {
                 Log.L.info("Vetos found");
                 ShutdownVetoListener[] localList = null;
-                synchronized (vetoListeners) {
-                    localList = vetoListeners.toArray(new ShutdownVetoListener[] {});
+                synchronized (this.vetoListeners) {
+                    localList = this.vetoListeners.toArray(new ShutdownVetoListener[] {});
                 }
                 for (final ShutdownVetoListener v : localList) {
                     try {
@@ -411,9 +427,8 @@ public class ShutdownController extends Thread {
                 return false;
             }
         } finally {
-            requestedShutDowns.decrementAndGet();
+            this.requestedShutDowns.decrementAndGet();
         }
-
     }
 
     @Override
@@ -425,8 +440,8 @@ public class ShutdownController extends Thread {
 
         try {
             java.util.List<ShutdownEvent> list;
-            synchronized (hooks) {
-                list = new ArrayList<ShutdownEvent>(hooks);
+            synchronized (this.hooks) {
+                list = new ArrayList<ShutdownEvent>(this.hooks);
             }
 
             int i = 0;
@@ -435,9 +450,9 @@ public class ShutdownController extends Thread {
                     i++;
                     final long started = System.currentTimeMillis();
 
-                    Log.L.finest("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: start item->" + e);
+                    Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: start item->" + e);
                     final Thread thread = new Thread(e);
-                    thread.setName("ShutdownHook [" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]");
+                    thread.setName("ShutdownHook [" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]");
                     thread.start();
                     try {
                         thread.join(e.getMaxDuration());
@@ -446,10 +461,10 @@ public class ShutdownController extends Thread {
 
                     }
                     if (thread.isAlive()) {
-                        Log.L.finest("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->is still running after " + e.getMaxDuration() + " ms");
-                        Log.L.finest("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->StackTrace:\r\n" + this.getStackTrace(thread));
+                        Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->is still running after " + e.getMaxDuration() + " ms");
+                        Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: " + e + "->StackTrace:\r\n" + this.getStackTrace(thread));
                     } else {
-                        Log.L.finest("[" + i + "/" + hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: item ended after->" + (System.currentTimeMillis() - started));
+                        Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: item ended after->" + (System.currentTimeMillis() - started));
                     }
                 } catch (final Throwable e1) {
                     e1.printStackTrace();
@@ -467,7 +482,7 @@ public class ShutdownController extends Thread {
      * @param i
      */
     public void setExitCode(final int i) {
-        exitCode = i;
+        this.exitCode = i;
 
     }
 }
