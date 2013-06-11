@@ -19,6 +19,7 @@ package jd.parser.html;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -447,7 +448,12 @@ public class HTMLParser {
         // data = data.replaceAll("(?i)<span.*?>", "");
         // data = data.replaceAll("(?i)</span.*?>", "");
         data = data.replaceAll("(?s)\\[(url|link)\\](.*?)\\[/(url|link)\\]", "<$2>");
-        final HashSet<String> results = new HashSet<String>() {
+        final HashSet<String> results = new LinkedHashSet<String>() {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean add(String e) {
