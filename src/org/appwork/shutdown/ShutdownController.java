@@ -6,12 +6,12 @@ import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
-import org.appwork.utils.Exceptions;
 import org.appwork.utils.logging.Log;
 
 public class ShutdownController extends Thread {
@@ -223,6 +223,12 @@ public class ShutdownController extends Thread {
 
     }
 
+    public List<ShutdownVetoListener> getShutdownVetoListeners() {
+        synchronized (vetoListeners) {
+            return new ArrayList<ShutdownVetoListener>(vetoListeners);
+        }
+    }
+
     public void addShutdownVetoListener(final ShutdownVetoListener listener) {
         synchronized (vetoListeners) {
             if (vetoListeners.contains(listener)) { return; }
@@ -348,7 +354,7 @@ public class ShutdownController extends Thread {
      * 
      */
     public boolean requestShutdown(final boolean silent) {
-        Log.L.info(Exceptions.getStackTrace(new Exception()));
+      
         requestedShutDowns.incrementAndGet();
         try {
             java.util.List<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
@@ -365,13 +371,13 @@ public class ShutdownController extends Thread {
                 Log.L.info("Fire onShutDownEvents");
                 for (final ShutdownVetoListener v : localList) {
                     try {
-                        Log.L.info("Call onShutdown: "+v);
+                        Log.L.info("Call onShutdown: " + v);
                         v.onShutdown(silent);
                     } catch (final Throwable e) {
                         Log.exception(e);
-                 
-                    }finally{
-                        Log.L.info("Call onShutdown done: "+v);
+
+                    } finally {
+                        Log.L.info("Call onShutdown done: " + v);
                     }
                 }
                 Log.L.info("Create ExitThread");
