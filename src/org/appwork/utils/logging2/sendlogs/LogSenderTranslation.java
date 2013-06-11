@@ -20,11 +20,9 @@ import org.appwork.txtresource.TranslateInterface;
 @Defaults(lngs = { "en" })
 public interface LogSenderTranslation extends TranslateInterface {
 
-    @Default(lngs = { "en" }, values = { "Create a Log" })
-    String LogAction();
+    
 
-    @Default(lngs = { "en" }, values = { "Create a Log" })
-    String LogAction_tooltip();
+    
 
     @Default(lngs = { "en" }, values = { "Send a Bugreport" })
     String SendLogDialog_SendLogDialog_title_();
@@ -56,6 +54,5 @@ public interface LogSenderTranslation extends TranslateInterface {
     @Default(lngs = { "en" }, values = { "Preparing your logs" })
     String LogAction_getString_uploading_();
 
-    @Default(lngs = { "en" }, values = { "Please send this log ID to your supporter!" })
-    String LogAction_actionPerformed_givelogid_();
+    
 }

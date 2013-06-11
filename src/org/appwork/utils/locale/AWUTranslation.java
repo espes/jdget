@@ -236,29 +236,21 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "Regular Expressions", "Reguläre Ausrücke" })
     String SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION();
 
-    @Default(lngs = { "en", "de" }, values = { "alt", "Alt" })
-    String ShortCuts_key_alt();
+    
 
-    @Default(lngs = { "en", "de" }, values = { "alt Gr", "Alt Gr" })
-    String ShortCuts_key_altGr();
+    
 
-    @Default(lngs = { "en", "de" }, values = { "button1", "button1" })
-    String ShortCuts_key_button1();
+    
 
-    @Default(lngs = { "en", "de" }, values = { "button2", "button2" })
-    String ShortCuts_key_button2();
+    
 
-    @Default(lngs = { "en", "de" }, values = { "button3", "button3" })
-    String ShortCuts_key_button3();
+    
 
-    @Default(lngs = { "en", "de" }, values = { "ctrl", "Strg" })
-    String ShortCuts_key_ctrl();
+    
 
-    @Default(lngs = { "en", "de" }, values = { "meta", "meta" })
-    String ShortCuts_key_meta();
+    
 
-    @Default(lngs = { "en", "de" }, values = { "shift", "Shift" })
-    String ShortCuts_key_shift();
+    
 
     @Default(lngs = { "en", "de" }, values = { "Visit our Homepage", "Besuchen Sie unsere Homepage" })
     String Statusbar_Statusbar_visiturl_tooltip();
@@ -424,8 +416,7 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en" }, values = { "Direct" })
     String ProxyDialog_direct();
 
-    @Default(lngs = { "en" }, values = { "Add new Proxy" })
-    String ProxyDialog_title();
+    
 
     @Default(lngs = { "en" }, values = { "Type" })
     String ProxyDialog_type();
