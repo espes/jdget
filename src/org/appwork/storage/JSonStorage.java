@@ -537,7 +537,6 @@ public class JSonStorage {
         synchronized (JSonStorage.LOCK) {
             try {
                 return JSonStorage.JSON_MAPPER.objectToString(list);
-
             } catch (final Throwable e) {
                 e.printStackTrace();
             }

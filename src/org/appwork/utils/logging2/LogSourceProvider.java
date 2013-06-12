@@ -271,11 +271,11 @@ public abstract class LogSourceProvider {
                 this.logSinks.put(name, sink);
                 this.startFlushThread();
             }
+            final LogSource source = this.createLogSource(name, -1);
+            source.setInstantFlush(this.instantFlushDefault);
+            sink.addLogSource(source);
+            return source;
         }
-        final LogSource source = this.createLogSource(name, -1);
-        source.setInstantFlush(this.instantFlushDefault);
-        sink.addLogSource(source);
-        return source;
     }
 
     public LogSource getPreviousThreadLogSource() {
