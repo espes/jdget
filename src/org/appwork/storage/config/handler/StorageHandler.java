@@ -57,41 +57,39 @@ import org.appwork.utils.swing.dialog.Dialog;
  * 
  */
 public class StorageHandler<T extends ConfigInterface> implements InvocationHandler {
-    public final static ScheduledThreadPoolExecutor                   TIMINGQUEUE            = new ScheduledThreadPoolExecutor(1);
+    public final static ScheduledThreadPoolExecutor                  TIMINGQUEUE            = new ScheduledThreadPoolExecutor(1);
     static {
         StorageHandler.TIMINGQUEUE.setKeepAliveTime(30000, TimeUnit.MILLISECONDS);
     }
-    private final Class<T>                                            configInterface;
-    private HashMap<Method, KeyHandler<?>>                            methodMap;
-    private HashMap<String, KeyHandler<?>>                            keyHandlerMap;
+    private final Class<T>                                           configInterface;
+    private HashMap<Method, KeyHandler<?>>                           methodMap;
+    private HashMap<String, KeyHandler<?>>                           keyHandlerMap;
 
-    protected final JsonKeyValueStorage                               primitiveStorage;
-    private boolean                                                   crypted;
+    protected final JsonKeyValueStorage                              primitiveStorage;
+    private boolean                                                  crypted;
 
-    private byte[]                                                    key                    = JSonStorage.KEY;
-    private File                                                      path;
-    private ConfigEventSender<Object>                                 eventSender;
-    private String                                                    relativCPPath;
-    protected boolean                                                 save                   = true;
-    private DelayedRunnable                                           delayedSaver;
-    private long                                                      delayedSaveMaxInterval = 5 * 60 * 1000;
+    private byte[]                                                   key                    = JSonStorage.KEY;
+    private File                                                     path;
+    private ConfigEventSender<Object>                                eventSender;
+    private String                                                   relativCPPath;
+    protected boolean                                                save                   = true;
+    private DelayedRunnable                                          delayedSaver;
+    private long                                                     delayedSaveMaxInterval = 5 * 60 * 1000;
 
     // set externaly to start profiling
-    public static HashMap<String, Long>                               PROFILER_MAP           = null;
+    public static HashMap<String, Long>                              PROFILER_MAP           = null;
 
-    public static HashMap<String, Long>                               PROFILER_CALLNUM_MAP   = null;
+    public static HashMap<String, Long>                              PROFILER_CALLNUM_MAP   = null;
 
-    private static final HashSet<String>                              DUPE_SET               = new HashSet<String>();
+    private static final HashSet<String>                             DUPE_SET               = new HashSet<String>();
 
-    private WriteStrategy                                             writeStrategy          = null;
+    private WriteStrategy                                            writeStrategy          = null;
 
-    private int                                                       delayedSaveInterval    = 10000;
-    private String storage;
-
+    private int                                                      delayedSaveInterval    = 10000;
+    private String                                                   storage;
 
     private static HashMap<String, WeakReference<StorageHandler<?>>> STORAGEMAP             = new HashMap<String, WeakReference<StorageHandler<?>>>();
 
-   
     /**
      * @param interfaceName
      * @param storage
@@ -100,13 +98,13 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     public static StorageHandler<?> getStorageHandler(final String interfaceName, final String storage) {
         StorageHandler<?> ret = null;
         synchronized (StorageHandler.STORAGEMAP) {
-          
-            final WeakReference<StorageHandler<?>> wret = StorageHandler.STORAGEMAP.get(  interfaceName+"."+storage);
+
+            final WeakReference<StorageHandler<?>> wret = StorageHandler.STORAGEMAP.get(interfaceName + "." + storage);
             if (wret != null) {
                 if ((ret = wret.get()) != null) {
                     return ret;
                 } else {
-                    StorageHandler.STORAGEMAP.remove(  interfaceName+"."+storage);
+                    StorageHandler.STORAGEMAP.remove(interfaceName + "." + storage);
                 }
             }
         }
@@ -119,23 +117,22 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
     public StorageHandler(final File name, final Class<T> configInterface) {
 
-      
         if (!StorageHandler.DUPE_SET.add(configInterface.getName() + "." + name.getAbsolutePath())) { throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice"); }
 
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 
         this.path = name;
-        final File expected = Application.getResource("cfg/"+configInterface.getName());
-       
-        if(!path.equals(expected)){
-            storage=Files.getRelativePath(expected.getParentFile().getParentFile(), path);
-            if(StringUtils.isEmpty(storage)) {
-                storage=path.getAbsolutePath();
+        final File expected = Application.getResource("cfg/" + configInterface.getName());
+
+        if (!this.path.equals(expected)) {
+            this.storage = Files.getRelativePath(expected.getParentFile().getParentFile(), this.path);
+            if (StringUtils.isEmpty(this.storage)) {
+                this.storage = this.path.getAbsolutePath();
             }
         }
         synchronized (StorageHandler.STORAGEMAP) {
-            StorageHandler.STORAGEMAP.put(configInterface.getName()+"."+storage, new WeakReference<StorageHandler<?>>(this));
+            StorageHandler.STORAGEMAP.put(configInterface.getName() + "." + this.storage, new WeakReference<StorageHandler<?>>(this));
         }
         if (name.getName().endsWith(".json") || name.getName().endsWith(".ejs")) {
             Log.L.warning(name + " should not have an extension!!");
@@ -176,7 +173,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
 
             @Override
-            public void run() {
+            public void onShutdown(final Object shutdownRequest) {
                 if (StorageHandler.this.save) {
                     StorageHandler.this.primitiveStorage.save();
                 }
@@ -196,24 +193,23 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @throws URISyntaxException
      */
     public StorageHandler(final String classPath, final Class<T> configInterface) throws URISyntaxException {
-   
-     
+
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 
         this.relativCPPath = classPath;
         this.path = Application.getResource(classPath);
-        final File expected = Application.getResource("cfg/"+configInterface.getName());
-        if(!path.equals(expected)){
-            storage=Files.getRelativePath(expected.getParentFile().getParentFile(), path);
-            if(StringUtils.isEmpty(storage)) {
-                storage=path.getAbsolutePath();
+        final File expected = Application.getResource("cfg/" + configInterface.getName());
+        if (!this.path.equals(expected)) {
+            this.storage = Files.getRelativePath(expected.getParentFile().getParentFile(), this.path);
+            if (StringUtils.isEmpty(this.storage)) {
+                this.storage = this.path.getAbsolutePath();
             }
         }
         synchronized (StorageHandler.STORAGEMAP) {
-            StorageHandler.STORAGEMAP.put(configInterface.getName()+"."+storage, new WeakReference<StorageHandler<?>>(this));
+            StorageHandler.STORAGEMAP.put(configInterface.getName() + "." + this.storage, new WeakReference<StorageHandler<?>>(this));
         }
-        
+
         if (this.path.getName().endsWith(".json") || this.path.getName().endsWith(".ejs")) {
             Log.L.warning(classPath + " should not have an extension!!");
         }
@@ -254,7 +250,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
 
             @Override
-            public void run() {
+            public void onShutdown(final Object shutdownRequest) {
                 if (StorageHandler.this.save) {
                     StorageHandler.this.primitiveStorage.save();
                 }
@@ -499,8 +495,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     public ConfigEventSender<Object> getEventSender() {
         return this.eventSender;
     }
-
-
 
     public byte[] getKey() {
         return this.key;
@@ -1048,7 +1042,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
         this.primitiveStorage.save();
     }
-
 
     /**
      * @param key2

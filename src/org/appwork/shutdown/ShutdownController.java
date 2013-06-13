@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -46,7 +47,7 @@ public class ShutdownController extends Thread {
          * @see org.appwork.shutdown.ShutdownEvent#run()
          */
         @Override
-        public void run() {
+        public void onShutdown(final Object shutdownRequest) {
             this.orgThread.run();
         }
 
@@ -77,7 +78,7 @@ public class ShutdownController extends Thread {
             }
 
             @Override
-            public void run() {
+            public void onShutdown(final Object shutdownRequest) {
                 Log.L.finest("DO " + this.getHookPriority());
             }
 
@@ -90,7 +91,7 @@ public class ShutdownController extends Thread {
             }
 
             @Override
-            public void run() {
+            public void onShutdown(final Object shutdownRequest) {
                 Log.L.finest("DO " + this.getHookPriority());
 
             }
@@ -104,7 +105,7 @@ public class ShutdownController extends Thread {
             }
 
             @Override
-            public void run() {
+            public void onShutdown(final Object shutdownRequest) {
                 Log.L.finest("DO " + this.getHookPriority());
             }
 
@@ -117,7 +118,9 @@ public class ShutdownController extends Thread {
     private int                                        exitCode           = 0;
     private final AtomicInteger                        requestedShutDowns = new AtomicInteger(0);
     private boolean                                    silentShutDown     = false;
-    private Thread                                     exitThread;
+    private volatile Thread                            exitThread         = null;
+    private volatile Object                            shutdownRequest    = null;
+    private final AtomicBoolean                        shutDown           = new AtomicBoolean(false);
 
     /**
      * Create a new instance of ShutdownController. This is a singleton class.
@@ -125,13 +128,6 @@ public class ShutdownController extends Thread {
      */
     private ShutdownController() {
         super(ShutdownController.class.getSimpleName());
-        this.exitThread = new Thread("ShutdownThread") {
-            @Override
-            public void run() {
-                Log.L.info("Exit Now: Code: " + ShutdownController.this.getExitCode());
-                System.exit(ShutdownController.this.getExitCode());
-            }
-        };
         this.hooks = new LinkedList<ShutdownEvent>();
         this.vetoListeners = new ArrayList<ShutdownVetoListener>();
         try {
@@ -193,7 +189,7 @@ public class ShutdownController extends Thread {
         this.addShutdownEvent(new ShutdownEvent() {
 
             @Override
-            public void run() {
+            public void onShutdown(final Object shutdownRequest) {
                 Log.closeLogfile();
 
             }
@@ -367,10 +363,14 @@ public class ShutdownController extends Thread {
      * 
      */
     public boolean requestShutdown(final boolean silent) {
-        return this.requestShutdown(silent, null);
+        return this.requestShutdown(silent, null, null);
     }
 
     public boolean requestShutdown(final boolean silent, final ShutdownVetoFilter filter) {
+        return this.requestShutdown(silent, filter, null);
+    }
+
+    public boolean requestShutdown(final boolean silent, final ShutdownVetoFilter filter, final Object shutdownRequest) {
         this.requestedShutDowns.incrementAndGet();
         try {
             java.util.List<ShutdownVetoException> vetos = new ArrayList<ShutdownVetoException>();
@@ -396,11 +396,20 @@ public class ShutdownController extends Thread {
                         Log.L.info("Call onShutdown done: " + v);
                     }
                 }
-                Log.L.info("Create ExitThread");
-
-                this.exitThread.start();
+                if (this.shutDown.getAndSet(true) == false) {
+                    Log.L.info("Create ExitThread");
+                    this.silentShutDown = silent;
+                    this.shutdownRequest = shutdownRequest;
+                    this.exitThread = new Thread("ShutdownThread") {
+                        @Override
+                        public void run() {
+                            Log.L.info("Exit Now: Code: " + ShutdownController.this.getExitCode());
+                            System.exit(ShutdownController.this.getExitCode());
+                        }
+                    };
+                    this.exitThread.start();
+                }
                 Log.L.info("Wait");
-                this.silentShutDown = silent;
                 while (this.exitThread.isAlive()) {
                     try {
                         Thread.sleep(500);
@@ -451,11 +460,17 @@ public class ShutdownController extends Thread {
                     final long started = System.currentTimeMillis();
 
                     Log.L.finest("[" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]" + "ShutdownController: start item->" + e);
-                    final Thread thread = new Thread(e);
+                    final Thread thread = new Thread(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            e.onShutdown(ShutdownController.this.shutdownRequest);
+                        }
+                    });
                     thread.setName("ShutdownHook [" + i + "/" + this.hooks.size() + "|Priority: " + e.getHookPriority() + "]");
                     thread.start();
                     try {
-                        thread.join(e.getMaxDuration());
+                        thread.join(Math.max(0, e.getMaxDuration()));
                     } catch (final Throwable e1) {
                         e1.printStackTrace();
 

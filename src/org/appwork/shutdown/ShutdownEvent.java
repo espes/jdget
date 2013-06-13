@@ -1,6 +1,6 @@
 package org.appwork.shutdown;
 
-public abstract class ShutdownEvent implements Runnable {
+public abstract class ShutdownEvent {
     private int  hookPriority = 10000;
     private long maxDuration  = 30000l;
 
@@ -21,8 +21,7 @@ public abstract class ShutdownEvent implements Runnable {
         return this.maxDuration;
     }
 
-    @Override
-    abstract public void run();
+    abstract public void onShutdown(Object shutdownRequest);
 
     /**
      * The higher the priority, the earlier the hook will be called.

@@ -30,8 +30,8 @@ public class ShutdownRunableEvent extends ShutdownEvent {
      * @see org.appwork.shutdown.ShutdownEvent#run()
      */
     @Override
-    public void run() {
-        runnable.run();
+    public void onShutdown(final Object shutdownRequest) {
+        this.runnable.run();
     }
 
 }

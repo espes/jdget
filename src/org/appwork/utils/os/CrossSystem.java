@@ -598,7 +598,7 @@ public class CrossSystem {
                 }
 
                 @Override
-                public void run() {
+                public void onShutdown(final Object shutdownRequest) {
                     try {
                         pb.start();
                     } catch (final IOException e) {

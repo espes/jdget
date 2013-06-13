@@ -45,7 +45,7 @@ public class JSonStorage {
             }
 
             @Override
-            public void run() {
+            public void onShutdown(final Object shutdownRequest) {
                 JSonStorage.save();
             }
 

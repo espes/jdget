@@ -33,7 +33,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     /**
      * 
      */
-    public static final String UNKNOWN_HTTP_RESPONSE = "unknown HTTP response";
+    public static final String               UNKNOWN_HTTP_RESPONSE      = "unknown HTTP response";
     protected LinkedHashMap<String, String>  requestProperties          = null;
     protected long[]                         ranges;
 
@@ -205,9 +205,9 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 this.httpResponseMessage = "";
             }
         } else {
-            this.httpHeader = UNKNOWN_HTTP_RESPONSE;
+            this.httpHeader = HTTPConnectionImpl.UNKNOWN_HTTP_RESPONSE;
             this.httpResponseCode = 200;
-            this.httpResponseMessage = UNKNOWN_HTTP_RESPONSE;
+            this.httpResponseMessage = HTTPConnectionImpl.UNKNOWN_HTTP_RESPONSE;
             if (bytes.length > 0) {
                 this.inputStream = new PushbackInputStream(this.httpSocket.getInputStream(), bytes.length);
                 /*

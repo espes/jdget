@@ -92,7 +92,7 @@ public abstract class LogSourceProvider {
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
 
             @Override
-            public void run() {
+            public void onShutdown(final Object shutdownRequest) {
                 LogSourceProvider.this.flushSinks(false, true);
             }
 
