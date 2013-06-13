@@ -317,6 +317,11 @@ public abstract class AbstractMyJDClient {
         return new String(decryptedBytes, "UTF-8");
     }
 
+    public void disablenotification() throws MyJDownloaderException {
+        final String query = "/my/disablenotification?sessiontoken=" + this.urlencode(this.sessionToken);
+        this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
+    }
+
     // @SuppressWarnings("unchecked")
     // private <T> T jsonToObjectGeneric(String dec, Class<T> clazz) {
     // return (T) jsonToObject(dec, clazz);
@@ -333,6 +338,11 @@ public abstract class AbstractMyJDClient {
         } finally {
             this.invalidateSession();
         }
+    }
+
+    public void enablenotification(final String receiverID) throws MyJDownloaderException {
+        final String query = "/my/enablenotification?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiverid=" + this.urlencode(receiverID);
+        this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
     }
 
     protected byte[] encrypt(final byte[] data, final byte[] keyAndIV) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
