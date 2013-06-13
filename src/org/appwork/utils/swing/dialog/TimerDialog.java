@@ -145,7 +145,7 @@ public abstract class TimerDialog {
     /**
      * @return
      */
-    protected long getCountdown() {
+    public long getCountdown() {
         return getCountdownTime() > 0 ? getCountdownTime() : Dialog.getInstance().getCountdownTime();
     }
 

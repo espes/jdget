@@ -254,8 +254,21 @@ public class Dialog implements WindowFocusListener {
 
     private DialogHandler                handler       = null;
 
+    private DialogHandler                defaultHandler;
+
+    public DialogHandler getDefaultHandler() {
+        return defaultHandler;
+    }
+
     private Dialog() {
         parents = new ArrayList<Window>();
+        defaultHandler = new DialogHandler() {
+
+            @Override
+            public <T> T showDialog(AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
+                return showDialogRaw(dialog);
+            }
+        };
     }
 
     /**
@@ -486,6 +499,15 @@ public class Dialog implements WindowFocusListener {
     public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
 
         if (handler != null) { return handler.showDialog(dialog); }
+        return showDialogRaw(dialog);
+    }
+
+    /**
+     * @param dialog
+     * @throws DialogClosedException
+     * @throws DialogCanceledException
+     */
+    protected <T> T showDialogRaw(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
         if (dialog == null) { return null; }
         final EDTHelper<T> edth = new EDTHelper<T>() {
             @Override
@@ -498,9 +520,11 @@ public class Dialog implements WindowFocusListener {
         final T ret = edth.getReturnValue();
 
         if (edth.isInterrupted()) {
-            
-            //Use a edtrunner here. AbstractCaptcha.dispose is edt save... however there may be several CaptchaDialog classes with overriddden unsave dispose methods...
-    
+
+            // Use a edtrunner here. AbstractCaptcha.dispose is edt save...
+            // however there may be several CaptchaDialog classes with
+            // overriddden unsave dispose methods...
+
             new EDTRunner() {
 
                 @Override
@@ -526,7 +550,8 @@ public class Dialog implements WindowFocusListener {
         return handler;
     }
 
-    public void setHandler(final DialogHandler handler) {
+    public void setHandler(DialogHandler handler) {
+        if (handler == null) handler = defaultHandler;
         this.handler = handler;
     }
 
