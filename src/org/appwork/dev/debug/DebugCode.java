@@ -3,7 +3,7 @@ package org.appwork.dev.debug;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
 
-public class DebugCode<T> {
+public abstract class DebugCode<T> {
     private T ret;
 
     public DebugCode() {
@@ -21,10 +21,7 @@ public class DebugCode<T> {
         ret=b;
     }
 
-    protected  T run(){
-        return null;
-    }
-
+    protected abstract T run();
     public T get() {
         return ret;
     }
