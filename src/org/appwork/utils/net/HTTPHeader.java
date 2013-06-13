@@ -21,21 +21,20 @@ public class HTTPHeader {
     private String             value;
     private boolean            allowOverwrite = true;
 
-    public boolean isAllowOverwrite() {
-        return allowOverwrite;
-    }
-
-   
-
     public HTTPHeader(final String key, final String value) {
         this.key = key;
         this.value = value;
     }
 
-    public HTTPHeader(final String key, final String value, boolean overwriteAllowed) {
+    public HTTPHeader(final String key, final String value, final boolean overwriteAllowed) {
         this.key = key;
         this.value = value;
         this.allowOverwrite = overwriteAllowed;
+    }
+
+    public boolean contains(final String string) {
+        if (this.value != null && this.value.contains(string)) { return true; }
+        return false;
     }
 
     public String format() {
@@ -52,6 +51,10 @@ public class HTTPHeader {
 
     public String getValue() {
         return this.value;
+    }
+
+    public boolean isAllowOverwrite() {
+        return this.allowOverwrite;
     }
 
     public void setKey(final String key) {
