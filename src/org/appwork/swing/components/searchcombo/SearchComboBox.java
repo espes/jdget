@@ -873,7 +873,6 @@ public abstract class SearchComboBox<T> extends JComboBox {
         } else {
             if (this.textMatchesEntry(txt)) {
                 this.setColorState(this.normalColorSet);
-
             } else {
                 this.setColorState(this.badColorSet);
             }

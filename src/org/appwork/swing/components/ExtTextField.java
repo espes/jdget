@@ -25,9 +25,9 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
     /**
      * 
      */
-    private static final long serialVersionUID = -3625278218179478516L;
-    protected Color defaultColor;
-    private Color   helpColor;
+    private static final long serialVersionUID     = -3625278218179478516L;
+    protected Color           defaultColor;
+    private Color             helpColor;
 
     {
         this.addCaretListener(this);
@@ -37,40 +37,44 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
         if (this.helpColor == null) {
             this.helpColor = Color.LIGHT_GRAY;
         }
-        getDocument().addDocumentListener(this);
+        this.getDocument().addDocumentListener(this);
 
     }
-    private String  helpText             = null;
-    private boolean setting;
-    private boolean clearHelpTextOnFocus = true;
-
-    public boolean isClearHelpTextOnFocus() {
-        return clearHelpTextOnFocus;
-    }
+    private String            helpText             = null;
+    private boolean           setting;
+    private boolean           clearHelpTextOnFocus = true;
 
     public void caretUpdate(final CaretEvent arg0) {
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.event.DocumentListener#changedUpdate(javax.swing.event.
+     * DocumentEvent)
+     */
+    @Override
+    public void changedUpdate(final DocumentEvent e) {
+        if (!this.setting) {
+            this.onChanged();
+        }
+    }
+
     public void focusGained(final FocusEvent arg0) {
 
         if (super.getText().equals(this.helpText)) {
-            if (isClearHelpTextOnFocus()) {
+            if (this.isClearHelpTextOnFocus()) {
                 this.setText("");
             } else {
-                selectAll();
+                this.selectAll();
             }
 
         }
         this.setForeground(this.defaultColor);
 
     }
-    public void setLabelMode(final boolean b) {
-        this.setEditable(!b);
-        this.setFocusable(!b);
-        this.setBorder(b ? null : new JTextArea().getBorder());
-        SwingUtils.setOpaque(this, !b);
-    }
+
     public void focusLost(final FocusEvent arg0) {
 
         if (this.getDocument().getLength() == 0 || super.getText().equals(this.helpText)) {
@@ -96,13 +100,82 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
         return this.helpText;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.app.gui.copycutpaste.ContextMenuAdapter#getPopupMenu(org.
+     * appwork.app.gui.copycutpaste.CutAction,
+     * org.appwork.app.gui.copycutpaste.CopyAction,
+     * org.appwork.app.gui.copycutpaste.PasteAction,
+     * org.appwork.app.gui.copycutpaste.DeleteAction,
+     * org.appwork.app.gui.copycutpaste.SelectAction)
+     */
+    @Override
+    public JPopupMenu getPopupMenu(final CutAction cutAction, final CopyAction copyAction, final PasteAction pasteAction, final DeleteAction deleteAction, final SelectAction selectAction) {
+        final JPopupMenu menu = new JPopupMenu();
+
+        menu.add(cutAction);
+        menu.add(copyAction);
+        menu.add(pasteAction);
+        menu.add(deleteAction);
+        menu.add(selectAction);
+        return menu;
+    }
+
     @Override
     public String getText() {
         String ret = super.getText();
-        if (ret.equals(this.helpText)&&getForeground()==helpColor) {
+        if (ret.equals(this.helpText) && this.getForeground() == this.helpColor && this.hasFocus()) {
             ret = "";
         }
         return ret;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.event.DocumentListener#insertUpdate(javax.swing.event.
+     * DocumentEvent)
+     */
+    @Override
+    public void insertUpdate(final DocumentEvent e) {
+        if (!this.setting) {
+            this.onChanged();
+        }
+    }
+
+    public boolean isClearHelpTextOnFocus() {
+        return this.clearHelpTextOnFocus;
+    }
+
+    /**
+     * 
+     */
+    public void onChanged() {
+        // TODO Auto-generated method stub
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.event.DocumentListener#removeUpdate(javax.swing.event.
+     * DocumentEvent)
+     */
+    @Override
+    public void removeUpdate(final DocumentEvent e) {
+        if (!this.setting) {
+            this.onChanged();
+        }
+    }
+
+    /**
+     * @param b
+     */
+    public void setClearHelpTextOnFocus(final boolean b) {
+        this.clearHelpTextOnFocus = b;
+
     }
 
     public void setHelpColor(final Color helpColor) {
@@ -113,18 +186,25 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
      * @param addLinksDialog_layoutDialogContent_input_help
      */
     public void setHelpText(final String helpText) {
-        String old = this.helpText;
+        final String old = this.helpText;
         this.helpText = helpText;
-        if (this.getText().length() == 0||getText().equals(old)) {
+        if (this.getText().length() == 0 || this.getText().equals(old)) {
             this.setText(this.helpText);
             this.setForeground(this.helpColor);
         }
 
     }
 
+    public void setLabelMode(final boolean b) {
+        this.setEditable(!b);
+        this.setFocusable(!b);
+        this.setBorder(b ? null : new JTextArea().getBorder());
+        SwingUtils.setOpaque(this, !b);
+    }
+
     @Override
     public void setText(String t) {
-        setting = true;
+        this.setting = true;
         try {
             if (!this.hasFocus() && this.helpText != null && (t == null || t.length() == 0)) {
                 t = this.helpText;
@@ -140,80 +220,8 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
                 }
             }
         } finally {
-            setting = false;
+            this.setting = false;
         }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.swing.event.DocumentListener#insertUpdate(javax.swing.event.
-     * DocumentEvent)
-     */
-    @Override
-    public void insertUpdate(DocumentEvent e) {
-        if (!setting) onChanged();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.swing.event.DocumentListener#removeUpdate(javax.swing.event.
-     * DocumentEvent)
-     */
-    @Override
-    public void removeUpdate(DocumentEvent e) {
-        if (!setting) onChanged();
-    }
-
-    /**
-     * 
-     */
-    public void onChanged() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.swing.event.DocumentListener#changedUpdate(javax.swing.event.
-     * DocumentEvent)
-     */
-    @Override
-    public void changedUpdate(DocumentEvent e) {
-        if (!setting) onChanged();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.appwork.app.gui.copycutpaste.ContextMenuAdapter#getPopupMenu(org.
-     * appwork.app.gui.copycutpaste.CutAction,
-     * org.appwork.app.gui.copycutpaste.CopyAction,
-     * org.appwork.app.gui.copycutpaste.PasteAction,
-     * org.appwork.app.gui.copycutpaste.DeleteAction,
-     * org.appwork.app.gui.copycutpaste.SelectAction)
-     */
-    @Override
-    public JPopupMenu getPopupMenu(CutAction cutAction, CopyAction copyAction, PasteAction pasteAction, DeleteAction deleteAction, SelectAction selectAction) {
-        JPopupMenu menu = new JPopupMenu();
-
-        menu.add(cutAction);
-        menu.add(copyAction);
-        menu.add(pasteAction);
-        menu.add(deleteAction);
-        menu.add(selectAction);
-        return menu;
-    }
-
-    /**
-     * @param b
-     */
-    public void setClearHelpTextOnFocus(boolean b) {
-        clearHelpTextOnFocus = b;
-
     }
 
 }
