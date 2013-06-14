@@ -603,7 +603,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * 
      * @param obj
      */
-    protected boolean onDoubleClick(final MouseEvent e, final E obj) {
+    public boolean onDoubleClick(final MouseEvent e, final E obj) {
         return false;
     }
 
@@ -615,7 +615,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @param obj
      * @return
      */
-    protected boolean onRenameClick(final MouseEvent e, final E obj) {
+    public boolean onRenameClick(final MouseEvent e, final E obj) {
         return false;
     }
 
@@ -625,8 +625,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * 
      * @param e
      * @param obj
-     */
-    protected boolean onSingleClick(final MouseEvent e, final E obj) {
+     */ 
+    public boolean onSingleClick(final MouseEvent e, final E obj) {
         return false;
     }
 

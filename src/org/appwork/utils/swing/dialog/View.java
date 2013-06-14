@@ -14,5 +14,6 @@ package org.appwork.utils.swing.dialog;
  *
  */
 public enum View {
+    
 LIST,DETAILS
 }

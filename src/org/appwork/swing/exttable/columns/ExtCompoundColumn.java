@@ -33,7 +33,7 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
      */
     public ExtCompoundColumn(final String name, final ExtTableModel<T> table) {
         super(name, table);
-        this.setRowSorter(new ExtDefaultRowSorter<T>() {
+        setRowSorter(new ExtDefaultRowSorter<T>() {
 
             @Override
             public int compare(final T o1, final T o2) {
@@ -45,7 +45,7 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
                 if (o2s == null) {
                     o2s = "";
                 }
-                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
+                if (getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return o1s.compareTo(o2s);
                 } else {
                     return o2s.compareTo(o1s);
@@ -71,27 +71,60 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
 
     @Override
     public void editingCanceled(final ChangeEvent e) {
-        this.cancelCellEditing();
+        cancelCellEditing();
     }
 
     @Override
     public void editingStopped(final ChangeEvent e) {
-        this.stopCellEditing();
+        stopCellEditing();
     }
 
     @Override
     public Object getCellEditorValue() {
         return this.editor.getCellEditorValue();
     }
+    
+    
+    
+    
 
+    /**
+     * return true if you dont want to forward to following onDoubleClick
+     * listener
+     * 
+     * This method will be called when a doubleclick is performed on the object
+     * <code>obj</code>
+     * 
+     * @param obj
+     */
+    public boolean onDoubleClick(final MouseEvent e, final T obj) {
+        return selectColumn(obj).onDoubleClick(e,obj);
+    }
+
+    /**
+     * This method will be called if the user does a windows typic rename click
+     * order. Means: click on a already selected single row
+     * 
+     * @param e
+     * @param obj
+     * @return
+     */
+    public boolean onRenameClick(final MouseEvent e, final T obj) {
+        return selectColumn(obj).onRenameClick(e,obj);
+    }
+
+    public boolean onSingleClick(final MouseEvent e, final T obj) {
+  
+        return selectColumn(obj).onSingleClick(e,obj);
+    }
     @Override
     public JComponent getEditorComponent(final T value, final boolean isSelected, final int row, final int column) {
         this.editing = value;
 
         this.editor = this.selectColumn(this.editing);
         
-        if (this.editor.getModel() != this.getModel()) {
-            this.editor.setModel(this.getModel());
+        if (this.editor.getModel() != getModel()) {
+            this.editor.setModel(getModel());
             editor.setTableColumn(getTableColumn(),false);
 
         }
@@ -104,8 +137,8 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
     @Override
     public JComponent getRendererComponent(final T value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
         this.renderer = this.selectColumn(value);
-        if (this.renderer.getModel() != this.getModel()) {
-            this.renderer.setModel(this.getModel());
+        if (this.renderer.getModel() != getModel()) {
+            this.renderer.setModel(getModel());
             renderer.setTableColumn(getTableColumn(),false);
         }
         return this.renderer.getRendererComponent(value, isSelected, hasFocus, row, column);
@@ -131,7 +164,7 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
     @Override
     public boolean isCellEditable(final EventObject evt) {
         if (evt instanceof MouseEvent) {
-            final ExtTable<T> table = this.getModel().getTable();
+            final ExtTable<T> table = getModel().getTable();
             // final int col =
             // table.columnAtPoint(((MouseEvent)evt).getPoint());
             final int row = table.getRowIndexByPoint(((MouseEvent) evt).getPoint());
@@ -140,7 +173,7 @@ public abstract class ExtCompoundColumn<T> extends ExtColumn<T> implements CellE
             // JComponent edit =
             // this.getEditorComponent(getModel().getElementAt(row), true, row,
             // modelIndex);
-            final ExtColumn<T> edit = this.selectColumn(this.getModel().getElementAt(row));
+            final ExtColumn<T> edit = this.selectColumn(getModel().getElementAt(row));
 
             return ((MouseEvent) evt).getClickCount() >= edit.getClickcount() && edit.getClickcount() > 0;
         }

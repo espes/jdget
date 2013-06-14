@@ -24,7 +24,7 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
 
     protected JComboBox          editor;
 
-    private ComboBoxModel        dataModel;
+    protected ComboBoxModel        dataModel;
 
     private DefaultComboBoxModel emptyModel;
 
@@ -60,12 +60,12 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
 
         // comboBoxEdit.setRenderer(new DefaultCellEditor(comboBox))
 
-        this.setRowSorter(new ExtDefaultRowSorter<E>() {
+        setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
             public int compare(final E o1, final E o2) {
                 if (ExtComboColumn.this.getSelectedIndex(o1) == ExtComboColumn.this.getSelectedIndex(o2)) { return 0; }
-                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
+                if (getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return ExtComboColumn.this.getSelectedIndex(o1) > ExtComboColumn.this.getSelectedIndex(o2) ? 1 : -1;
                 } else {
                     return ExtComboColumn.this.getSelectedIndex(o2) > ExtComboColumn.this.getSelectedIndex(o1) ? 1 : -1;
@@ -79,7 +79,7 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
     public void actionPerformed(final ActionEvent e) {
 
         this.editor.removeActionListener(this);
-        this.stopCellEditing();
+        stopCellEditing();
     }
 
     @Override
@@ -160,6 +160,7 @@ public abstract class ExtComboColumn<E> extends ExtTextColumn<E> implements Acti
 
     @Override
     public boolean isEnabled(final E obj) {
+    
         return true;
     }
 

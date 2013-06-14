@@ -12,7 +12,6 @@ package org.appwork.utils.swing.dialog;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -48,7 +47,6 @@ import org.appwork.swing.MigPanel;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.dialog.dimensor.DialogDimensor;
 import org.appwork.utils.swing.dialog.locator.CenterOfScreenDialogLocator;
@@ -359,7 +357,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // Toolkit.getDefaultToolkit().getScreenSize();
 
             // this.setMaximumSize(Toolkit.getDefaultToolkit().getScreenSize());
-            getDialog().toFront();
+            // getDialog().toFront();
 
             // if (this.getDesiredSize() != null) {
             // this.setSize(this.getDesiredSize());
@@ -386,10 +384,18 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
              * workaround a javabug that forces the parentframe to stay always
              * on top
              */
-            if (getDialog().getParent() != null && !CrossSystem.isMac()) {
-                ((Window) getDialog().getParent()).setAlwaysOnTop(true);
-                ((Window) getDialog().getParent()).setAlwaysOnTop(false);
-            }
+            // Disabled on 14.06.2013:
+            // This peace of code causes the parent to come on top even if we do
+            // not want or need it
+            // In our case, we do not want the captcha dialogs causing the
+            // mainframe to get on top.
+            // i think that this piece of code is a workaround for always on top
+            // bugs we had years ago.
+            //
+            // if (getDialog().getParent() != null && !CrossSystem.isMac()) {
+            // ((Window) getDialog().getParent()).setAlwaysOnTop(true);
+            // ((Window) getDialog().getParent()).setAlwaysOnTop(false);
+            // }
 
             setVisible(true);
             // dialog gets closed
@@ -418,10 +424,17 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
          * workaround a javabug that forces the parentframe to stay always on
          * top
          */
-        if (getDialog().getParent() != null && !CrossSystem.isMac()) {
-            ((Window) getDialog().getParent()).setAlwaysOnTop(true);
-            ((Window) getDialog().getParent()).setAlwaysOnTop(false);
-        }
+        // Disabled on 14.06.2013:
+        // This peace of code causes the parent to come on top even if we do not
+        // want or need it
+        // In our case, we do not want the captcha dialogs causing the mainframe
+        // to get on top.
+        // i think that this piece of code is a workaround for always on top
+        // bugs we had years ago.
+        // if (getDialog().getParent() != null && !CrossSystem.isMac()) {
+        // ((Window) getDialog().getParent()).setAlwaysOnTop(true);
+        // ((Window) getDialog().getParent()).setAlwaysOnTop(false);
+        // }
     }
 
     /**
@@ -538,7 +551,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     @Override
     public void dispose() {
-        if (dummyInit&&dialog==null) return;
+        if (dummyInit && dialog == null) { return; }
         if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
         new EDTRunner() {
 
