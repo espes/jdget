@@ -39,6 +39,7 @@ import org.jdownloader.myjdownloader.client.json.DeviceList;
 import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.FeedbackResponse;
 import org.jdownloader.myjdownloader.client.json.JSonRequest;
+import org.jdownloader.myjdownloader.client.json.NotificationMessage;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
 import org.jdownloader.myjdownloader.client.json.RequestIDOnly;
 import org.jdownloader.myjdownloader.client.json.RequestIDValidator;
@@ -311,7 +312,7 @@ public abstract class AbstractMyJDClient {
     }
 
     public void disablenotification() throws MyJDownloaderException {
-        final String query = "/my/disablenotification?sessiontoken=" + this.urlencode(this.sessionToken);
+        final String query = "/notify/disablenotification?sessiontoken=" + this.urlencode(this.sessionToken);
         this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
     }
 
@@ -334,7 +335,7 @@ public abstract class AbstractMyJDClient {
     }
 
     public void enablenotification(final String receiverID) throws MyJDownloaderException {
-        final String query = "/my/enablenotification?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiverid=" + this.urlencode(receiverID);
+        final String query = "/notify/enablenotification?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiverid=" + this.urlencode(receiverID);
         this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
     }
 
@@ -371,9 +372,7 @@ public abstract class AbstractMyJDClient {
         try {
             final byte[] k = AbstractMyJDClient.hexToByteArray(key);
             if (k.length != 32) { throw new IllegalArgumentException("Bad Key. Expected: 64 hexchars"); }
-
             final byte[] newLoginSecret = this.createSecret(email, newPassword, "server");
-
             final String encryptedNewSecret = AbstractMyJDClient.byteArrayToHex(this.encrypt(newLoginSecret, k));
             this.callServer("/my/finishpasswordreset?email=" + this.urlencode(email) + "&encryptedLoginSecret=" + encryptedNewSecret, null, k, RequestIDOnly.class);
             this.connect(email, newPassword);
@@ -675,6 +674,15 @@ public abstract class AbstractMyJDClient {
 
         }
 
+    }
+
+    public void sendMessage(final String receiverSessionToken, final NotificationMessage message) throws MyJDownloaderException {
+        final String query = "/notify/sendmessage?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiversessiontoken=" + this.urlencode(receiverSessionToken);
+        final JSonRequest re = new JSonRequest();
+        re.setRid(this.inc());
+        re.setParams(new Object[] { message });
+        re.setUrl(query);
+        this.callServer(query, this.objectToJSon(re), this.serverEncryptionToken, RequestIDOnly.class);
     }
 
     public void setServerRoot(final String serverRoot) {
