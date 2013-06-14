@@ -673,7 +673,6 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * 
      */
     public void onChanged() {
-        // TODO Auto-generated method stub
 
     }
 
@@ -825,6 +824,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
      */
     public void setText(final String text) {
         this.getTextField().setText(text);
+        this.updateHelpText();
 
     }
 
@@ -885,8 +885,12 @@ public abstract class SearchComboBox<T> extends JComboBox {
      */
     private void updateHelpText() {
         if (this.getEditor() == null || this.helptext == null) { return; }
-        if (this.getTextField().getDocument().getLength() == 0) {
-            this.setText(this.helptext);
+        final String txt = this.getTextField().getText();
+        final boolean hasHelpText = txt.equals(this.helptext);
+        if (StringUtils.isEmpty(txt) || hasHelpText) {
+            if (hasHelpText == false) {
+                this.setText(this.helptext);
+            }
             this.updateColorByContent();
         }
     }

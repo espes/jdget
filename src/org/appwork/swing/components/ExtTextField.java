@@ -43,6 +43,7 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
     private String            helpText             = null;
     private boolean           setting;
     private boolean           clearHelpTextOnFocus = true;
+    private boolean           helperEnabled        = true;
 
     public void caretUpdate(final CaretEvent arg0) {
 
@@ -56,13 +57,17 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
      */
     @Override
     public void changedUpdate(final DocumentEvent e) {
+        if (!this.isHelperEnabled()) {
+            this.onChanged();
+            return;
+        }
         if (!this.setting) {
             this.onChanged();
         }
     }
 
     public void focusGained(final FocusEvent arg0) {
-
+        if (!this.isHelperEnabled()) { return; }
         if (super.getText().equals(this.helpText)) {
             if (this.isClearHelpTextOnFocus()) {
                 this.setText("");
@@ -76,7 +81,7 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
     }
 
     public void focusLost(final FocusEvent arg0) {
-
+        if (!this.isHelperEnabled()) { return; }
         if (this.getDocument().getLength() == 0 || super.getText().equals(this.helpText)) {
             this.setText(this.helpText);
             this.setForeground(this.helpColor);
@@ -126,7 +131,8 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
     @Override
     public String getText() {
         String ret = super.getText();
-        if (ret.equals(this.helpText) && this.getForeground() == this.helpColor && this.hasFocus()) {
+        if (!this.isHelperEnabled()) { return ret; }
+        if (ret.equals(this.helpText) && this.getForeground() == this.helpColor) {
             ret = "";
         }
         return ret;
@@ -140,6 +146,10 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
      */
     @Override
     public void insertUpdate(final DocumentEvent e) {
+        if (!this.isHelperEnabled()) {
+            this.onChanged();
+            return;
+        }
         if (!this.setting) {
             this.onChanged();
         }
@@ -149,12 +159,15 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
         return this.clearHelpTextOnFocus;
     }
 
+    public boolean isHelperEnabled() {
+        return this.helperEnabled;
+    }
+
     /**
      * 
      */
     public void onChanged() {
         // TODO Auto-generated method stub
-
     }
 
     /*
@@ -165,6 +178,10 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
      */
     @Override
     public void removeUpdate(final DocumentEvent e) {
+        if (!this.isHelperEnabled()) {
+            this.onChanged();
+            return;
+        }
         if (!this.setting) {
             this.onChanged();
         }
@@ -182,6 +199,10 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
         this.helpColor = helpColor;
     }
 
+    public void setHelperEnabled(final boolean helperEnabled) {
+        this.helperEnabled = helperEnabled;
+    }
+
     /**
      * @param addLinksDialog_layoutDialogContent_input_help
      */
@@ -192,7 +213,6 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
             this.setText(this.helpText);
             this.setForeground(this.helpColor);
         }
-
     }
 
     public void setLabelMode(final boolean b) {
@@ -204,6 +224,10 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
 
     @Override
     public void setText(String t) {
+        if (!this.isHelperEnabled()) {
+            super.setText(t);
+            return;
+        }
         this.setting = true;
         try {
             if (!this.hasFocus() && this.helpText != null && (t == null || t.length() == 0)) {

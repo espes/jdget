@@ -106,11 +106,11 @@ public class PathChooser extends MigPanel {
         this.bt = new ExtButton(new BrowseAction());
 
         if (useQuickLIst) {
+            this.txt.setHelperEnabled(false);
             this.destination = new SearchComboBox<String>() {
 
                 @Override
                 public JTextField createTextField() {
-
                     return PathChooser.this.txt;
                 }
 
@@ -154,6 +154,7 @@ public class PathChooser extends MigPanel {
 
             this.add(this.destination);
         } else {
+            this.txt.setHelperEnabled(true);
             this.add(this.txt);
         }
         this.add(this.bt);
@@ -328,7 +329,6 @@ public class PathChooser extends MigPanel {
      * @return
      */
     public String getPath() {
-
         return this.txt.getText();
     }
 
@@ -377,31 +377,37 @@ public class PathChooser extends MigPanel {
     }
 
     public void setFile(final File file) {
-
-        this.txt.setText(this.fileToText(file));
+        final String text = this.fileToText(file);
+        if (this.destination != null) {
+            this.destination.setText(text);
+        } else {
+            this.txt.setText(text);
+        }
     }
 
     /**
      * @param packagizerFilterRuleDialog_layoutDialogContent_dest_help
      */
     public void setHelpText(final String helpText) {
+        this.txt.setHelpText(helpText);
         if (this.destination != null) {
             this.destination.setHelpText(helpText);
         }
-        this.txt.setHelpText(helpText);
-
     }
 
     /**
      * @param downloadDestination
      */
     public void setPath(final String downloadDestination) {
-        this.txt.setText(downloadDestination);
+        if (this.destination != null) {
+            this.destination.setText(downloadDestination);
+        } else {
+            this.txt.setText(downloadDestination);
+        }
 
     }
 
     public void setQuickSelectionList(final List<String> quickSelectionList) {
-
         this.destination.setList(quickSelectionList);
     }
 
