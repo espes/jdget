@@ -613,6 +613,7 @@ public abstract class AbstractMyJDClient {
      */
     public synchronized void reconnect() throws MyJDownloaderException {
         try {
+            
             final String query = "/my/reconnect?sessiontoken=" + this.urlencode(this.sessionToken) + "&regaintoken=" + this.urlencode(this.regainToken);
             final ConnectResponse ret = this.callServer(query, null, this.serverEncryptionToken, ConnectResponse.class);
 
