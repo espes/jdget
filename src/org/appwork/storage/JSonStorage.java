@@ -407,8 +407,9 @@ public class JSonStorage {
 
     public static void saveTo(final File file, final boolean plain, final byte[] key, final String json) throws StorageException {
         synchronized (JSonStorage.LOCK) {
+            final File tmp = new File(file.getAbsolutePath() + ".tmp");
             try {
-                final File tmp = new File(file.getAbsolutePath() + ".tmp");
+               
                 tmp.getParentFile().mkdirs();
                 tmp.delete();
                 if (plain) {
@@ -423,7 +424,7 @@ public class JSonStorage {
                 }
                 if (!tmp.renameTo(file)) { throw new StorageException("Could not rename file: " + tmp + " to " + file); }
             } catch (final IOException e) {
-                throw new StorageException(e);
+                throw new StorageException("Can not write to "+tmp.getAbsolutePath(),e);
             }
         }
     }
