@@ -59,11 +59,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     public static final DialogLocator             LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
     public static DialogLocator                   DEFAULT_LOCATOR         = null;
 
-    public static DialogLocator getDEFAULT_LOCATOR() {
+    public static DialogLocator getDefaultLocator() {
         return DEFAULT_LOCATOR;
     }
 
-    public static void setDEFAULT_LOCATOR(final DialogLocator dEFAULT_LOCATOR) {
+    public static void setDefaultLocator(final DialogLocator dEFAULT_LOCATOR) {
         DEFAULT_LOCATOR = dEFAULT_LOCATOR;
     }
 
