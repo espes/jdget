@@ -2,12 +2,12 @@ package org.jdownloader.myjdownloader.client.json;
 
 public class NotificationRequestMessage {
 
-    public static enum REQUESTTYPE {
+    public static enum TYPE {
         CAPTCHA
     }
 
     private long        timestamp = System.currentTimeMillis();
-    private REQUESTTYPE type      = REQUESTTYPE.CAPTCHA;
+    private TYPE type      = TYPE.CAPTCHA;
     private boolean     requested = false;
 
     public NotificationRequestMessage(/* Storable */) {
@@ -17,7 +17,7 @@ public class NotificationRequestMessage {
         return this.timestamp;
     }
 
-    public REQUESTTYPE getType() {
+    public TYPE getType() {
         return this.type;
     }
 
@@ -40,7 +40,7 @@ public class NotificationRequestMessage {
         this.timestamp = timestamp;
     }
 
-    public void setType(final REQUESTTYPE type) {
+    public void setType(final TYPE type) {
         this.type = type;
     }
 }

@@ -678,7 +678,7 @@ public abstract class AbstractMyJDClient {
 
     }
 
-    public boolean sendnotification(final String receiverSessionToken, final NotificationRequestMessage message) throws MyJDownloaderException {
+    public boolean pushNotification(final String receiverSessionToken, final NotificationRequestMessage message) throws MyJDownloaderException {
         final String query = "/notify/sendnotification?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiversessiontoken=" + this.urlencode(receiverSessionToken);
         final JSonRequest re = new JSonRequest();
         re.setRid(this.inc());
