@@ -39,11 +39,12 @@ import org.jdownloader.myjdownloader.client.json.DeviceList;
 import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.FeedbackResponse;
 import org.jdownloader.myjdownloader.client.json.JSonRequest;
-import org.jdownloader.myjdownloader.client.json.NotificationMessage;
+import org.jdownloader.myjdownloader.client.json.NotificationRequestMessage;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
 import org.jdownloader.myjdownloader.client.json.RequestIDOnly;
 import org.jdownloader.myjdownloader.client.json.RequestIDValidator;
 import org.jdownloader.myjdownloader.client.json.ServerErrorType;
+import org.jdownloader.myjdownloader.client.json.SuccessfulResponse;
 
 public abstract class AbstractMyJDClient {
     /**
@@ -613,7 +614,7 @@ public abstract class AbstractMyJDClient {
      */
     public synchronized void reconnect() throws MyJDownloaderException {
         try {
-            
+
             final String query = "/my/reconnect?sessiontoken=" + this.urlencode(this.sessionToken) + "&regaintoken=" + this.urlencode(this.regainToken);
             final ConnectResponse ret = this.callServer(query, null, this.serverEncryptionToken, ConnectResponse.class);
 
@@ -677,13 +678,13 @@ public abstract class AbstractMyJDClient {
 
     }
 
-    public void sendMessage(final String receiverSessionToken, final NotificationMessage message) throws MyJDownloaderException {
-        final String query = "/notify/sendmessage?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiversessiontoken=" + this.urlencode(receiverSessionToken);
+    public boolean sendnotification(final String receiverSessionToken, final NotificationRequestMessage message) throws MyJDownloaderException {
+        final String query = "/notify/sendnotification?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiversessiontoken=" + this.urlencode(receiverSessionToken);
         final JSonRequest re = new JSonRequest();
         re.setRid(this.inc());
         re.setParams(new Object[] { message });
         re.setUrl(query);
-        this.callServer(query, this.objectToJSon(re), this.serverEncryptionToken, RequestIDOnly.class);
+        return this.callServer(query, this.objectToJSon(re), this.serverEncryptionToken, SuccessfulResponse.class).isSuccessful();
     }
 
     public void setServerRoot(final String serverRoot) {
