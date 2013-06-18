@@ -18,6 +18,7 @@ import org.appwork.swing.components.tooltips.ToolTipController;
 import org.appwork.swing.components.tooltips.ToolTipHandler;
 import org.appwork.swing.components.tooltips.TooltipFactory;
 import org.appwork.swing.components.tooltips.TooltipTextDelegateFactory;
+import org.appwork.utils.KeyUtils;
 import org.appwork.utils.StringUtils;
 
 public class ExtButton extends JButton implements ToolTipHandler {
@@ -28,6 +29,7 @@ public class ExtButton extends JButton implements ToolTipHandler {
     private static final long serialVersionUID = -7151290227825542967L;
     private TooltipFactory    tooltipFactory;
     private MouseAdapter      rollOverlistener;
+    private KeyStroke         accelerator;
 
     /**
      * 
@@ -37,20 +39,27 @@ public class ExtButton extends JButton implements ToolTipHandler {
         // TODO Auto-generated constructor stub
     }
 
+    protected void actionPropertyChanged(final Action action, final String propertyName) {
+        super.actionPropertyChanged(action, propertyName);
+
+        if (propertyName == Action.ACCELERATOR_KEY) {
+            setAccelerator((KeyStroke) action.getValue(Action.ACCELERATOR_KEY));
+        }
+    }
+
     /**
      * @param autoDetectAction
      */
     public ExtButton(final AbstractAction action) {
         super(action);
-        this.tooltipFactory = new TooltipTextDelegateFactory(this);
+        tooltipFactory = new TooltipTextDelegateFactory(this);
 
         if (!StringUtils.isEmpty(getToolTipText())) {
-            this.setTooltipsEnabled(true);
+            setTooltipsEnabled(true);
         }
 
         if (action instanceof BasicAction) {
 
-          
             if (((BasicAction) action).getTooltipFactory() != null) {
                 tooltipFactory = ((BasicAction) action).getTooltipFactory();
                 setTooltipsEnabled(true);
@@ -58,32 +67,40 @@ public class ExtButton extends JButton implements ToolTipHandler {
             if (!StringUtils.isEmpty(((BasicAction) action).getTooltipText())) {
                 setTooltipsEnabled(true);
             }
-            InputMap inputmap = getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW);
-            KeyStroke keystroke = (KeyStroke) action.getValue(Action.ACCELERATOR_KEY);
-            if (keystroke != null) {
-                inputmap.put(keystroke, ((BasicAction) action).getShortCutString());
-                setTooltipsEnabled(true);
-                StringBuilder tt = new StringBuilder();
-                if (!StringUtils.isEmpty(getToolTipText())) {
-                    tt.append(getToolTipText());
-                }
-                if (tt.length() > 0) tt.append(" ");
-                tt.append("[");
-                tt.append(((BasicAction) action).getShortCutString());
-                tt.append("]");
 
-                setToolTipText(tt.toString());
-                getActionMap().put(((BasicAction) action).getShortCutString(), new AbstractAction() {
-
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-
-                        doClick();
-                    }
-                });
-            }
+            setAccelerator((KeyStroke) action.getValue(Action.ACCELERATOR_KEY));
         }
 
+    }
+
+    public void setAccelerator(final KeyStroke newAccelerator) {
+
+        final InputMap inputmap = getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW);
+        if (accelerator != null) {
+            inputmap.remove(newAccelerator);
+          
+            getActionMap().remove(KeyUtils.getShortcutString(accelerator, true));
+            accelerator = null;
+            setTooltipsEnabled(StringUtils.isNotEmpty(getToolTipText()));
+        
+
+        }
+        if (newAccelerator != null) {
+            accelerator = newAccelerator;
+
+            final String shortcutString = KeyUtils.getShortcutString(newAccelerator, true);
+            inputmap.put(newAccelerator, shortcutString);
+
+            setTooltipsEnabled(true);
+            getActionMap().put(shortcutString, new AbstractAction() {
+
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+
+                    doClick();
+                }
+            });
+        }
     }
 
     /*
@@ -96,26 +113,37 @@ public class ExtButton extends JButton implements ToolTipHandler {
     @Override
     public ExtTooltip createExtTooltip(final Point mousePosition) {
 
-        return this.getTooltipFactory().createTooltip();
+        return getTooltipFactory().createTooltip();
     }
 
     public TooltipFactory getTooltipFactory() {
 
-        if (this.getAction() instanceof BasicAction) {
-            final TooltipFactory ret = ((BasicAction) this.getAction()).getTooltipFactory();
+        if (getAction() instanceof BasicAction) {
+            final TooltipFactory ret = ((BasicAction) getAction()).getTooltipFactory();
             if (ret != null) { return ret; }
         }
-        return this.tooltipFactory;
+        return tooltipFactory;
     }
 
     @Override
     public String getToolTipText() {
         String ret = super.getToolTipText();
         if (ret == null || "".equals(ret)) {
-            if (this.getAction() instanceof BasicAction) {
-                ret = ((BasicAction) this.getAction()).getTooltipText();
+            if (getAction() instanceof BasicAction) {
+                ret = ((BasicAction) getAction()).getTooltipText();
             }
         }
+
+        if (accelerator != null) {
+            if (ret == null) {
+                ret = "";
+            }
+            if (ret.length() > 0) {
+                ret += " ";
+            }
+            ret += "[" + KeyUtils.getShortcutString(accelerator, true) + "]";
+        }
+
         return ret;
 
     }
@@ -142,7 +170,7 @@ public class ExtButton extends JButton implements ToolTipHandler {
      * 
      */
     protected void onRollOut() {
-        this.setContentAreaFilled(false);
+        setContentAreaFilled(false);
 
     }
 
@@ -150,7 +178,7 @@ public class ExtButton extends JButton implements ToolTipHandler {
      * 
      */
     protected void onRollOver() {
-        this.setContentAreaFilled(true);
+        setContentAreaFilled(true);
 
     }
 
@@ -159,8 +187,8 @@ public class ExtButton extends JButton implements ToolTipHandler {
      */
     public void setRolloverEffectEnabled(final boolean b) {
         if (b) {
-            if (this.rollOverlistener == null) {
-                this.rollOverlistener = new MouseAdapter() {
+            if (rollOverlistener == null) {
+                rollOverlistener = new MouseAdapter() {
 
                     @Override
                     public void mouseEntered(final MouseEvent e) {
@@ -176,13 +204,13 @@ public class ExtButton extends JButton implements ToolTipHandler {
 
                 };
             }
-            this.addMouseListener(this.rollOverlistener);
-            this.onRollOut();
+            addMouseListener(rollOverlistener);
+            onRollOut();
 
         } else {
-            if (this.rollOverlistener != null) {
-                this.removeMouseListener(this.rollOverlistener);
-                this.rollOverlistener = null;
+            if (rollOverlistener != null) {
+                removeMouseListener(rollOverlistener);
+                rollOverlistener = null;
             }
         }
     }
@@ -205,13 +233,9 @@ public class ExtButton extends JButton implements ToolTipHandler {
     @Override
     public void setToolTipText(final String text) {
 
-        this.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, text);
+        putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, text);
 
-        if (text == null || text.length() == 0) {
-            ToolTipController.getInstance().unregister(this);
-        } else {
-            ToolTipController.getInstance().register(this);
-        }
+        setTooltipsEnabled(StringUtils.isNotEmpty(getToolTipText()));
     }
 
     /*
@@ -222,7 +246,7 @@ public class ExtButton extends JButton implements ToolTipHandler {
      * .appwork.swing.components.tooltips.ExtTooltip, java.awt.event.MouseEvent)
      */
     @Override
-    public int getTooltipDelay(Point mousePositionOnScreen) {
+    public int getTooltipDelay(final Point mousePositionOnScreen) {
         return 0;
     }
 

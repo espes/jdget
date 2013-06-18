@@ -9,7 +9,6 @@
  */
 package org.appwork.swing.action;
 
-import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 
@@ -20,8 +19,6 @@ import javax.swing.KeyStroke;
 
 import org.appwork.swing.components.tooltips.TooltipFactory;
 import org.appwork.utils.KeyUtils;
-import org.appwork.utils.Regex;
-import org.appwork.utils.logging.Log;
 
 /**
  * @author thomas
@@ -67,54 +64,58 @@ public abstract class BasicAction extends AbstractAction {
         putValue(NAME, name);
 
     }
-public void setAccelerator(final KeyStroke stroke){
-    putValue(AbstractAction.ACCELERATOR_KEY, stroke); 
-}
-    /**
-     * Sets the shortcut fort this action. a System dependend behaviour is
-     * choosen. e,g. WIndows+ Strg+ Acceleratir
-     * 
-     * example: action.setAccelerator("ENTER"); defines a Enter shortcut
-     * 
-     * @param accelerator
-     * @depcreated. use {@link #setAccelerator(KeyStroke)}
-     */
-@Deprecated
-    public void setAccelerator(final String accelerator) {
-        KeyStroke ks;
-        if (accelerator != null && accelerator.length() > 0 && !accelerator.equals("-")) {
-            final Class<?> b = KeyEvent.class;
-            final String[] split = accelerator.split("\\+");
-            int mod = 0;
-            try {
-                final int splitLength = split.length;
-                for (int i = 0; i < splitLength - 1; ++i) {
-                    if (new Regex(split[i], "^CTRL$").matches()) {
-                        mod = mod | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-                    } else if (new Regex(split[i], "^SHIFT$").matches()) {
-                        mod = mod | KeyEvent.SHIFT_DOWN_MASK;
-                    } else if (new Regex(split[i], "^ALTGR$").matches()) {
-                        mod = mod | KeyEvent.ALT_GRAPH_DOWN_MASK;
-                    } else if (new Regex(split[i], "^ALT$").matches()) {
-                        mod = mod | KeyEvent.ALT_DOWN_MASK;
-                    } else if (new Regex(split[i], "^META$").matches()) {
-                        mod = mod | KeyEvent.META_DOWN_MASK;
-                    } else {
-                        Log.L.info(getName() + " Shortcuts: skipping wrong modifier " + mod + " in " + accelerator);
-                    }
-                }
 
-                final Field f = b.getField("VK_" + split[splitLength - 1].toUpperCase());
-                final int m = (Integer) f.get(null);
-                putValue(AbstractAction.ACCELERATOR_KEY, ks = KeyStroke.getKeyStroke(m, mod));
-                Log.L.finest(getName() + " Shortcuts: mapped " + accelerator + " to " + ks);
-            } catch (final Exception e) {
-                // JDLogger.exception(e);
-                putValue(AbstractAction.ACCELERATOR_KEY, ks = KeyStroke.getKeyStroke(accelerator.charAt(accelerator.length() - 1), Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-                Log.L.finest(getName() + " Shortcuts: mapped " + accelerator + " to " + ks + " (Exception)");
-            }
-        }
+    public BasicAction setAccelerator(final KeyStroke stroke) {
+        putValue(AbstractAction.ACCELERATOR_KEY, stroke);
+  
+        return this;
     }
+
+//    /**
+//     * Sets the shortcut fort this action. a System dependend behaviour is
+//     * choosen. e,g. WIndows+ Strg+ Acceleratir
+//     * 
+//     * example: action.setAccelerator("ENTER"); defines a Enter shortcut
+//     * 
+//     * @param accelerator
+//     * @depcreated. use {@link #setAccelerator(KeyStroke)}
+//     */
+//    @Deprecated
+//    public void setAccelerator(final String accelerator) {
+//        KeyStroke ks;
+//        if (accelerator != null && accelerator.length() > 0 && !accelerator.equals("-")) {
+//            final Class<?> b = KeyEvent.class;
+//            final String[] split = accelerator.split("\\+");
+//            int mod = 0;
+//            try {
+//                final int splitLength = split.length;
+//                for (int i = 0; i < splitLength - 1; ++i) {
+//                    if (new Regex(split[i], "^CTRL$").matches()) {
+//                        mod = mod | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+//                    } else if (new Regex(split[i], "^SHIFT$").matches()) {
+//                        mod = mod | KeyEvent.SHIFT_DOWN_MASK;
+//                    } else if (new Regex(split[i], "^ALTGR$").matches()) {
+//                        mod = mod | KeyEvent.ALT_GRAPH_DOWN_MASK;
+//                    } else if (new Regex(split[i], "^ALT$").matches()) {
+//                        mod = mod | KeyEvent.ALT_DOWN_MASK;
+//                    } else if (new Regex(split[i], "^META$").matches()) {
+//                        mod = mod | KeyEvent.META_DOWN_MASK;
+//                    } else {
+//                        Log.L.info(getName() + " Shortcuts: skipping wrong modifier " + mod + " in " + accelerator);
+//                    }
+//                }
+//
+//                final Field f = b.getField("VK_" + split[splitLength - 1].toUpperCase());
+//                final int m = (Integer) f.get(null);
+//                putValue(AbstractAction.ACCELERATOR_KEY, ks = KeyStroke.getKeyStroke(m, mod));
+//                Log.L.finest(getName() + " Shortcuts: mapped " + accelerator + " to " + ks);
+//            } catch (final Exception e) {
+//                // JDLogger.exception(e);
+//                putValue(AbstractAction.ACCELERATOR_KEY, ks = KeyStroke.getKeyStroke(accelerator.charAt(accelerator.length() - 1), Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+//                Log.L.finest(getName() + " Shortcuts: mapped " + accelerator + " to " + ks + " (Exception)");
+//            }
+//        }
+//    }
 
     /**
      * Sets the action selected. WARNING. Swing usualy handles the selection
@@ -130,7 +131,7 @@ public void setAccelerator(final KeyStroke stroke){
     public String getShortCutString() {
         final Object value = getValue(Action.ACCELERATOR_KEY);
 
-        return (value == null) ? null : KeyUtils.getShortcutString((KeyStroke) getValue(Action.ACCELERATOR_KEY),true);
+        return (value == null) ? null : KeyUtils.getShortcutString((KeyStroke) getValue(Action.ACCELERATOR_KEY), true);
     }
 
     /**
@@ -186,7 +187,7 @@ public void setAccelerator(final KeyStroke stroke){
             return (Integer) f.get(null);
 
         } catch (final Exception e) {
-          
+
         }
         return 0;
     }
