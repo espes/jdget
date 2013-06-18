@@ -238,6 +238,31 @@ public class Dialog implements WindowFocusListener {
         return Dialog.INSTANCE;
     }
 
+    public static void main(final String[] args) throws InterruptedException {
+
+        final Thread th = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Dialog.getInstance().showConfirmDialog(0, "Blabla?");
+
+                    System.out.println("RETURNED OK");
+                } catch (final DialogClosedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (final DialogCanceledException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        th.start();
+        Thread.sleep(5000);
+        th.interrupt();
+
+    }
+
     /**
      * The max counter value for a timeout Dialog
      */
@@ -256,17 +281,13 @@ public class Dialog implements WindowFocusListener {
 
     private DialogHandler                defaultHandler;
 
-    public DialogHandler getDefaultHandler() {
-        return defaultHandler;
-    }
-
     private Dialog() {
-        parents = new ArrayList<Window>();
-        defaultHandler = new DialogHandler() {
+        this.parents = new ArrayList<Window>();
+        this.defaultHandler = new DialogHandler() {
 
             @Override
-            public <T> T showDialog(AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
-                return showDialogRaw(dialog);
+            public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
+                return Dialog.this.showDialogRaw(dialog);
             }
         };
     }
@@ -276,14 +297,28 @@ public class Dialog implements WindowFocusListener {
      * @see Dialog#countdownTime
      */
     protected int getCountdownTime() {
-        return countdownTime;
+        return this.countdownTime;
+    }
+
+    public DialogHandler getDefaultHandler() {
+        return this.defaultHandler;
+    }
+
+    public DialogHandler getHandler() {
+        return this.handler;
     }
 
     /**
      * @return
      */
     public List<? extends Image> getIconList() {
-        return iconList;
+        return this.iconList;
+    }
+
+    public LAFManagerInterface getLafManager() {
+        synchronized (this) {
+            return this.lafManager;
+        }
     }
 
     /**
@@ -292,7 +327,7 @@ public class Dialog implements WindowFocusListener {
      */
     public Component getParentOwner() {
 
-        return owner;
+        return this.owner;
     }
 
     /**
@@ -302,7 +337,19 @@ public class Dialog implements WindowFocusListener {
      * @return
      */
     public java.util.List<Window> getRegisteredParents() {
-        return parents;
+        return this.parents;
+    }
+
+    /**
+     * 
+     */
+    public void initLaf() {
+        synchronized (this) {
+            if (this.lafManager != null) {
+                this.lafManager.init();
+                this.setLafManager(null);
+            }
+        }
     }
 
     /**
@@ -314,7 +361,7 @@ public class Dialog implements WindowFocusListener {
     public void registerFrame(final Window frame) {
         frame.addWindowFocusListener(this);
 
-        parents.add(frame);
+        this.parents.add(frame);
     }
 
     /**
@@ -326,8 +373,21 @@ public class Dialog implements WindowFocusListener {
         this.countdownTime = countdownTime;
     }
 
+    public void setHandler(DialogHandler handler) {
+        if (handler == null) {
+            handler = this.defaultHandler;
+        }
+        this.handler = handler;
+    }
+
     public void setIconList(final List<? extends Image> iconList) {
         this.iconList = iconList;
+    }
+
+    public void setLafManager(final LAFManagerInterface lafManager) {
+        synchronized (this) {
+            this.lafManager = lafManager;
+        }
     }
 
     /**
@@ -337,8 +397,8 @@ public class Dialog implements WindowFocusListener {
      * @see Dialog#owner
      */
     public void setParentOwner(final Component parent) {
-        if (owner == parent) { return; }
-        owner = parent;
+        if (this.owner == parent) { return; }
+        this.owner = parent;
 
         if (parent == null) {
             Log.exception(new NullPointerException("parent == null"));
@@ -497,9 +557,9 @@ public class Dialog implements WindowFocusListener {
      * @throws DialogCanceledException
      */
     public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
-
-        if (handler != null) { return handler.showDialog(dialog); }
-        return showDialogRaw(dialog);
+        final DialogHandler lhandler = this.handler;
+        if (lhandler != null) { return lhandler.showDialog(dialog); }
+        return this.showDialogRaw(dialog);
     }
 
     /**
@@ -546,37 +606,20 @@ public class Dialog implements WindowFocusListener {
         return ret;
     }
 
-    public DialogHandler getHandler() {
-        return handler;
-    }
-
-    public void setHandler(DialogHandler handler) {
-        if (handler == null) handler = defaultHandler;
-        this.handler = handler;
-    }
-
-    public static void main(final String[] args) throws InterruptedException {
-
-        final Thread th = new Thread() {
-            public void run() {
-                try {
-                    getInstance().showConfirmDialog(0, "Blabla?");
-
-                    System.out.println("RETURNED OK");
-                } catch (final DialogClosedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (final DialogCanceledException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        th.start();
-        Thread.sleep(5000);
-        th.interrupt();
-
+    /**
+     * @param i
+     * @param dialog_error_title
+     * @param dialog_error_noconnection
+     * @return
+     */
+    public int showErrorDialog(final int flags, final String title, final String message) {
+        try {
+            return this.showConfirmDialog(flags, title, message, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
+        } catch (final DialogClosedException e) {
+            return Dialog.RETURN_CLOSED;
+        } catch (final DialogCanceledException e) {
+            return Dialog.RETURN_CANCEL;
+        }
     }
 
     public int showErrorDialog(final String s) {
@@ -867,7 +910,7 @@ public class Dialog implements WindowFocusListener {
      */
     public void unregisterFrame(final Window win) {
         win.removeWindowFocusListener(this);
-        parents.remove(win);
+        this.parents.remove(win);
 
     }
 
@@ -910,7 +953,7 @@ public class Dialog implements WindowFocusListener {
 
         if (e.getSource() instanceof Window) {
 
-            setParentOwner((Component) e.getSource());
+            this.setParentOwner((Component) e.getSource());
         }
     }
 
@@ -925,45 +968,5 @@ public class Dialog implements WindowFocusListener {
     public void windowLostFocus(final WindowEvent e) {
         // TODO Auto-generated method stub
 
-    }
-
-    /**
-     * @param i
-     * @param dialog_error_title
-     * @param dialog_error_noconnection
-     * @return
-     */
-    public int showErrorDialog(final int flags, final String title, final String message) {
-        try {
-            return this.showConfirmDialog(flags, title, message, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
-        } catch (final DialogClosedException e) {
-            return Dialog.RETURN_CLOSED;
-        } catch (final DialogCanceledException e) {
-            return Dialog.RETURN_CANCEL;
-        }
-    }
-
-    public LAFManagerInterface getLafManager() {
-        synchronized (this) {
-            return lafManager;
-        }
-    }
-
-    public void setLafManager(final LAFManagerInterface lafManager) {
-        synchronized (this) {
-            this.lafManager = lafManager;
-        }
-    }
-
-    /**
-     * 
-     */
-    public void initLaf() {
-        synchronized (this) {
-            if (lafManager != null) {
-                lafManager.init();
-                setLafManager(null);
-            }
-        }
     }
 }

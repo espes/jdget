@@ -594,7 +594,7 @@ public class CrossSystem {
 
             ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
                 {
-                    setHookPriority(Integer.MIN_VALUE);
+                    this.setHookPriority(Integer.MIN_VALUE);
                 }
 
                 @Override
@@ -633,14 +633,12 @@ public class CrossSystem {
      * @param saveTo
      */
     public static void showInExplorer(final File saveTo) {
-        if (CrossSystem.isWindows()&&saveTo.exists()) {
+        if (CrossSystem.isWindows() && saveTo.exists()) {
             try {
-               
                 final String select = "/select," + saveTo.getAbsolutePath();
                 ProcessBuilderFactory.create("explorer.exe", select).start();
                 return;
             } catch (final IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }

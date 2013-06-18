@@ -52,7 +52,6 @@ public class DesktopSupportWindows implements DesktopSupport {
         // workaround for windows
         // see http://bugs.sun.com/view_bug.do?bug_id=6599987
         if (!file.exists()) { throw new IOException("File does not exist " + file.getAbsolutePath()); }
-        final String url = file.toURI().toURL().toString();
         try {
             // it seems that unicode filenames cannot be opened with
             // "rundll32.exe", "url.dll,FileProtocolHandler". let's try
