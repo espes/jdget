@@ -79,9 +79,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     @Override
     public CloseReason getCloseReason() {
         if (getReturnmask() == 0) { throw new IllegalStateException("Dialog has not been closed yet"); }
+        if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_TIMEOUT)) { return CloseReason.TIMEOUT; }      
         if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
         if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_CANCEL)) { return CloseReason.CANCEL; }
         if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_OK)) { return CloseReason.OK; }
+        
         throw new WTFException();
 
     }
@@ -443,28 +445,32 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     public boolean evaluateDontShowAgainFlag() {
         if (isDontShowAgainFlagEabled()) {
             final String key = this.getDontShowAgainKey();
-            try {
-                final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(key) : JSonStorage.getPlainStorage("Dialogs").get(key, -1);
+            if (key != null) {
+                // bypass if key is null. this enables us to show don't show
+                // again checkboxes, but handle the result extern.
+                try {
+                    final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(key) : JSonStorage.getPlainStorage("Dialogs").get(key, -1);
 
-                if (i >= 0) {
-                    // filter saved return value
-                    int ret = i & (Dialog.RETURN_OK | Dialog.RETURN_CANCEL);
-                    // add flags
-                    ret |= Dialog.RETURN_DONT_SHOW_AGAIN | Dialog.RETURN_SKIPPED_BY_DONT_SHOW;
+                    if (i >= 0) {
+                        // filter saved return value
+                        int ret = i & (Dialog.RETURN_OK | Dialog.RETURN_CANCEL);
+                        // add flags
+                        ret |= Dialog.RETURN_DONT_SHOW_AGAIN | Dialog.RETURN_SKIPPED_BY_DONT_SHOW;
 
-                    /*
-                     * if LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL or
-                     * LOGIC_DONT_SHOW_AGAIN_IGNORES_OK are used, we check here
-                     * if we should handle the dont show again feature
-                     */
-                    if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) { return false; }
-                    if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_OK) && BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) { return false; }
+                        /*
+                         * if LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL or
+                         * LOGIC_DONT_SHOW_AGAIN_IGNORES_OK are used, we check
+                         * here if we should handle the dont show again feature
+                         */
+                        if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) { return false; }
+                        if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_IGNORES_OK) && BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) { return false; }
 
-                    this.returnBitMask = ret;
-                    return true;
+                        this.returnBitMask = ret;
+                        return true;
+                    }
+                } catch (final Exception e) {
+                    Log.exception(e);
                 }
-            } catch (final Exception e) {
-                Log.exception(e);
             }
         }
         return false;
@@ -660,6 +666,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     public boolean isHiddenByDontShowAgain() {
         if (this.dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) { return false; }
+        final String key = this.getDontShowAgainKey();
+        if (key == null) {
+            return false;
+        }
         final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getPlainStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
         return i >= 0;
     }
@@ -797,11 +807,14 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             if (dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) {
                 this.returnBitMask |= Dialog.RETURN_DONT_SHOW_AGAIN;
                 try {
-                    if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT)) {
-                        AbstractDialog.SESSION_DONTSHOW_AGAIN.put(this.getDontShowAgainKey(), this.returnBitMask);
-                    } else {
-                        JSonStorage.getPlainStorage("Dialogs").put(this.getDontShowAgainKey(), this.returnBitMask);
-                        JSonStorage.getPlainStorage("Dialogs").save();
+                    final String key = this.getDontShowAgainKey();
+                    if (key != null) {
+                        if (BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT)) {
+                            AbstractDialog.SESSION_DONTSHOW_AGAIN.put(this.getDontShowAgainKey(), this.returnBitMask);
+                        } else {
+                            JSonStorage.getPlainStorage("Dialogs").put(this.getDontShowAgainKey(), this.returnBitMask);
+                            JSonStorage.getPlainStorage("Dialogs").save();
+                        }
                     }
 
                 } catch (final Exception e) {

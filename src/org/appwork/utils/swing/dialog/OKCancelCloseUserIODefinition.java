@@ -4,7 +4,7 @@ public interface OKCancelCloseUserIODefinition extends UserIODefinition {
     public static enum CloseReason {
         OK,
         CANCEL,
-        CLOSE
+        CLOSE, TIMEOUT
     }
 public String getTitle();
     public CloseReason getCloseReason();

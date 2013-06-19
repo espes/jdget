@@ -594,7 +594,7 @@ public class CrossSystem {
 
             ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
                 {
-                    this.setHookPriority(Integer.MIN_VALUE);
+                    setHookPriority(Integer.MIN_VALUE);
                 }
 
                 @Override
@@ -636,6 +636,7 @@ public class CrossSystem {
         if (CrossSystem.isWindows() && saveTo.exists()) {
             try {
                 final String select = "/select," + saveTo.getAbsolutePath();
+                
                 ProcessBuilderFactory.create("explorer.exe", select).start();
                 return;
             } catch (final IOException e) {
