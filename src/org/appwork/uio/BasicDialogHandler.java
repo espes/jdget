@@ -16,11 +16,11 @@ public class BasicDialogHandler implements UserIOHandlerInterface {
             D.showConfirmDialog(flags, title, message, icon, ok, cancel);
             return true;
         } catch (final DialogClosedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            // // TODO Auto-generated catch block
+            // e.printStackTrace();
         } catch (final DialogCanceledException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            // // TODO Auto-generated catch block
+            // e.printStackTrace();
         }
         return false;
     }
@@ -39,11 +39,10 @@ public class BasicDialogHandler implements UserIOHandlerInterface {
         try {
             D.showDialog(defImpl);
         } catch (final DialogClosedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+
+            // no Reason to log here
         } catch (final DialogCanceledException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            // no Reason to log here
         }
         return ret;
     }
