@@ -635,9 +635,10 @@ public class CrossSystem {
     public static void showInExplorer(final File saveTo) {
         if (CrossSystem.isWindows() && saveTo.exists()) {
             try {
-                final String select = "/select," + saveTo.getAbsolutePath();
+                //we need to go this cmd /c way, because explorer.exe seems to do some strange parameter parsing. 
+                new ProcessBuilder("cmd", "/c", "explorer /select,\"" + saveTo.getAbsolutePath() + "\"").start();
                 
-                ProcessBuilderFactory.create("explorer.exe", select).start();
+                
                 return;
             } catch (final IOException e) {
                 e.printStackTrace();
