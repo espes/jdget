@@ -32,18 +32,18 @@ public class StateMachine {
         StateMachine.checkState(initState);
     }
 
-    private final State                     initState;
-    private volatile State                  currentState;
-    private final StateEventsender          eventSender;
+    private final State                          initState;
+    private volatile State                       currentState;
+    private final StateEventsender               eventSender;
 
-    private final State                     finalState;
+    private final State                          finalState;
     private final java.util.List<StatePathEntry> path;
-    private final StateMachineInterface     owner;
-    private final Object                    lock  = new Object();
+    private final StateMachineInterface          owner;
+    private final Object                         lock  = new Object();
 
-    private final Object                    lock2 = new Object();
+    private final Object                         lock2 = new Object();
 
-    private final HashMap<State, Throwable> exceptionMap;
+    private final HashMap<State, Throwable>      exceptionMap;
 
     public StateMachine(final StateMachineInterface interfac, final State startState, final State endState) {
         this.owner = interfac;
@@ -100,7 +100,6 @@ public class StateMachine {
             }
             if (reached) {
                 new Thread(run, "AsyncOnStateWorker").start();
-
             }
         }
     }
@@ -190,7 +189,8 @@ public class StateMachine {
         return false;
     }
 
-    // private State getStateById(State startState, int id, java.util.List<State>
+    // private State getStateById(State startState, int id,
+    // java.util.List<State>
     // foundStates) {
     //
     // if (foundStates == null) foundStates = new ArrayList<State>();

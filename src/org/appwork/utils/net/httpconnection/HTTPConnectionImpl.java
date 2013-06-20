@@ -415,6 +415,17 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 /* a 416 may respond with content-range * | content.size answer */
                 this.ranges = new long[] { -1, -1, Long.parseLong(range[0]) };
                 return this.ranges;
+            } else if (this.getResponseCode() == 206 && (range = new Regex(contentRange, "[ \\*]+/(\\d+)").getRow(0)) != null) {
+                /* RFC-2616 */
+                /* a nginx 206 may respond with */
+                /* content-range: bytes * / 554407633 */
+                /*
+                 * A response with status code 206 (Partial Content) MUST NOT
+                 * include a Content-Range field with a byte-range- resp-spec of
+                 * "*".
+                 */
+                this.ranges = new long[] { -1, Long.parseLong(range[0]), Long.parseLong(range[0]) };
+                return this.ranges;
             } else {
                 /* unknown range header format! */
                 System.out.println(contentRange + " format is unknown!");

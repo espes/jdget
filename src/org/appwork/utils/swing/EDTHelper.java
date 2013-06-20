@@ -91,7 +91,6 @@ public abstract class EDTHelper<T> implements Runnable {
         } finally {
             this.done = true;
         }
-
     }
 
     public void start() {
