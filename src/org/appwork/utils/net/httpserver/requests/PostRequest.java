@@ -176,7 +176,6 @@ public class PostRequest extends HttpRequest {
                     final String jsonParameter = JSonStorage.toString(parameter);
                     this.postParameters.add(new String[] { jsonParameter, null });
                 }
-
             }
         }
         this.postParameterParsed = true;
