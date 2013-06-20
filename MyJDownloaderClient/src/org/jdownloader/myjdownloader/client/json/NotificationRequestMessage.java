@@ -6,9 +6,9 @@ public class NotificationRequestMessage {
         CAPTCHA
     }
 
-    private long        timestamp = System.currentTimeMillis();
-    private TYPE type      = TYPE.CAPTCHA;
-    private boolean     requested = false;
+    private long    timestamp = System.currentTimeMillis();
+    private TYPE    type      = TYPE.CAPTCHA;
+    private boolean requested = false;
 
     public NotificationRequestMessage(/* Storable */) {
     }

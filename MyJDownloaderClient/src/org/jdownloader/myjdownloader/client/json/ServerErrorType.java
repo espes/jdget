@@ -1,6 +1,6 @@
 package org.jdownloader.myjdownloader.client.json;
 
-public enum ServerErrorType{
+public enum ServerErrorType {
     MAINTENANCE(503),
     OVERLOAD(503),
     TOO_MANY_REQUESTS(429),

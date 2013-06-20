@@ -312,11 +312,6 @@ public abstract class AbstractMyJDClient {
 
     }
 
-    public void disablenotification() throws MyJDownloaderException {
-        final String query = "/notify/disablenotification?sessiontoken=" + this.urlencode(this.sessionToken);
-        this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
-    }
-
     // @SuppressWarnings("unchecked")
     // private <T> T jsonToObjectGeneric(String dec, Class<T> clazz) {
     // return (T) jsonToObject(dec, clazz);
@@ -333,11 +328,6 @@ public abstract class AbstractMyJDClient {
         } finally {
             this.invalidateSession();
         }
-    }
-
-    public void enablenotification(final String receiverID) throws MyJDownloaderException {
-        final String query = "/notify/enablenotification?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiverid=" + this.urlencode(receiverID);
-        this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
     }
 
     protected byte[] encrypt(final byte[] data, final byte[] keyAndIV) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
@@ -606,6 +596,15 @@ public abstract class AbstractMyJDClient {
 
     abstract protected String post(String query, String object, byte[] keyAndIV) throws ExceptionResponse;
 
+    public boolean pushNotification(final NotificationRequestMessage message) throws MyJDownloaderException {
+        final String query = "/notify/push?sessiontoken=" + this.urlencode(this.sessionToken);
+        final JSonRequest re = new JSonRequest();
+        re.setRid(this.inc());
+        re.setParams(new Object[] { message });
+        re.setUrl(query);
+        return this.callServer(query, this.objectToJSon(re), this.serverEncryptionToken, SuccessfulResponse.class).isSuccessful();
+    }
+
     /**
      * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins. We use a regain
      * token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
@@ -631,6 +630,20 @@ public abstract class AbstractMyJDClient {
             throw new RuntimeException(e);
 
         }
+    }
+
+    public void registerNotification(final String receiverID, final DeviceData device, final NotificationRequestMessage.TYPE... types) throws MyJDownloaderException {
+        final String query = "/notify/register?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiverid=" + this.urlencode(receiverID) + "&deviceid=" + this.urlencode(device.getId());
+        final JSonRequest re = new JSonRequest();
+        re.setRid(this.inc());
+        if (types == null || types.length == 0) {
+            re.setParams(new Object[] { new NotificationRequestMessage.TYPE[] {} });
+        } else {
+            re.setParams(new Object[] { types });
+        }
+        re.setUrl(query);
+        final String object = this.objectToJSon(re);
+        this.callServer(query, object, this.serverEncryptionToken, RequestIDOnly.class);
     }
 
     /**
@@ -678,15 +691,6 @@ public abstract class AbstractMyJDClient {
 
     }
 
-    public boolean pushNotification(final String receiverSessionToken, final NotificationRequestMessage message) throws MyJDownloaderException {
-        final String query = "/notify/sendnotification?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiversessiontoken=" + this.urlencode(receiverSessionToken);
-        final JSonRequest re = new JSonRequest();
-        re.setRid(this.inc());
-        re.setParams(new Object[] { message });
-        re.setUrl(query);
-        return this.callServer(query, this.objectToJSon(re), this.serverEncryptionToken, SuccessfulResponse.class).isSuccessful();
-    }
-
     public void setServerRoot(final String serverRoot) {
         this.serverRoot = serverRoot;
     }
@@ -728,6 +732,11 @@ public abstract class AbstractMyJDClient {
             this.handleInvalidResponseCodes(e);
             throw e;
         }
+    }
+
+    public void unregisterNotification(final String receiverID, final DeviceData device) throws MyJDownloaderException {
+        final String query = "/notify/unregister?sessiontoken=" + this.urlencode(this.sessionToken) + "&receiverid=" + this.urlencode(receiverID) + "&deviceid=" + this.urlencode(device.getId());
+        this.callServer(query, null, this.serverEncryptionToken, RequestIDOnly.class);
     }
 
     public byte[] updateEncryptionToken(final byte[] oldSecret, final byte[] update) throws NoSuchAlgorithmException {

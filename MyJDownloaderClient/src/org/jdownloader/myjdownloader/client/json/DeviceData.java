@@ -1,5 +1,6 @@
 package org.jdownloader.myjdownloader.client.json;
 
+
 public class DeviceData {
     private String id;
 
