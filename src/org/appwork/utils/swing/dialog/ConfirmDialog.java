@@ -47,7 +47,10 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
         // TODO Auto-generated method stub
         return getReturnmask();
     }
-
+    protected boolean isResizable() {
+        // TODO Auto-generated method stub
+        return true;
+    }
     @Override
     public JComponent layoutDialogContent() {
         final MigPanel p = new MigPanel("", "[]", "[]");

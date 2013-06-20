@@ -29,13 +29,13 @@ public abstract class AbstractLocator implements Locator {
      * @param dialog
      * @return
      */
-    protected Point validate(Point point, final Window dialog) {
+    public static Point validate(Point point, final Window dialog) {
         point=correct(point,dialog);
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screens = ge.getScreenDevices();
 
         // for (final GraphicsDevice screen : screens) {
-        final Dimension dimension = dialog.getPreferredSize();
+        final Dimension dimension = dialog.getSize();
         for (final GraphicsDevice screen : screens) {
             final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
          if(   bounds.contains(point))
@@ -61,13 +61,13 @@ public abstract class AbstractLocator implements Locator {
 
     }
     
-    public Point correct(final Point point, final Window d) {
+    public static Point correct(final Point point, final Window d) {
 
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screens = ge.getScreenDevices();
 
     
-        final Dimension prefSize = d.getPreferredSize();
+        final Dimension prefSize = d.getSize();
         final Rectangle preferedRect = new Rectangle(point.x, point.y, prefSize.width, prefSize.height);
         GraphicsDevice biggestInteresctionScreem = null;
         int biggestIntersection = -1;

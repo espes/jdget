@@ -79,11 +79,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     @Override
     public CloseReason getCloseReason() {
         if (getReturnmask() == 0) { throw new IllegalStateException("Dialog has not been closed yet"); }
-        if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_TIMEOUT)) { return CloseReason.TIMEOUT; }      
+        if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_TIMEOUT)) { return CloseReason.TIMEOUT; }
         if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
         if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_CANCEL)) { return CloseReason.CANCEL; }
         if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_OK)) { return CloseReason.OK; }
-        
+
         throw new WTFException();
 
     }
@@ -157,9 +157,17 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     public void onSetVisible(final boolean b) {
 
         if (!b && getDialog().isVisible()) {
-            getLocator().onClose(AbstractDialog.this);
+            try {
+                getLocator().onClose(AbstractDialog.this);
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
             if (dimensor != null) {
-                dimensor.onClose(AbstractDialog.this);
+                try {
+                    dimensor.onClose(AbstractDialog.this);
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -346,12 +354,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // pack dialog
             getDialog().invalidate();
             // this.setMinimumSize(this.getPreferredSize());
-            if (!getDialog().isMinimumSizeSet()) {
-                getDialog().setMinimumSize(new Dimension(300, 80));
-            }
-            getDialog().setResizable(this.isResizable());
 
-            pack();
+            getDialog().setResizable(this.isResizable());
 
             // minimum size foir a dialog
 
@@ -364,6 +368,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // if (this.getDesiredSize() != null) {
             // this.setSize(this.getDesiredSize());
             // }
+
+            // register an escape listener to cancel the dialog
+            this.registerEscape(focus);
+            pack();
             if (dimensor != null) {
                 final Dimension ret = dimensor.getDimension(AbstractDialog.this);
                 if (ret != null) {
@@ -371,16 +379,26 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 }
 
             }
-            final Point loc = getLocator().getLocationOnScreen(this);
+
+            this.packed();
+
+            Point loc = null;
+
+            try {
+                loc = getLocator().getLocationOnScreen(this);
+
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
             if (loc != null) {
                 getDialog().setLocation(loc);
             } else {
-                getDialog().setLocation(LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(this));
+                try {
+                    getDialog().setLocation(LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(this));
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                }
             }
-
-            // register an escape listener to cancel the dialog
-            this.registerEscape(focus);
-            this.packed();
 
             /*
              * workaround a javabug that forces the parentframe to stay always
@@ -398,6 +416,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // ((Window) getDialog().getParent()).setAlwaysOnTop(true);
             // ((Window) getDialog().getParent()).setAlwaysOnTop(false);
             // }
+
 
             setVisible(true);
             // dialog gets closed
@@ -565,9 +584,17 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             protected void runInEDT() {
 
                 if (getDialog().isVisible()) {
-                    getLocator().onClose(AbstractDialog.this);
-                    if (dimensor != null) {
-                        dimensor.onClose(AbstractDialog.this);
+                    try {
+                        getLocator().onClose(AbstractDialog.this);
+                    } catch (final Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        if (dimensor != null) {
+                            dimensor.onClose(AbstractDialog.this);
+                        }
+                    } catch (final Exception e) {
+                        e.printStackTrace();
                     }
                 }
                 AbstractDialog.super.dispose();
@@ -667,9 +694,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     public boolean isHiddenByDontShowAgain() {
         if (this.dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) { return false; }
         final String key = this.getDontShowAgainKey();
-        if (key == null) {
-            return false;
-        }
+        if (key == null) { return false; }
         final int i = BinaryLogic.containsAll(this.flagMask, Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(this.getDontShowAgainKey()) : JSonStorage.getPlainStorage("Dialogs").get(this.getDontShowAgainKey(), -1);
         return i >= 0;
     }
@@ -693,8 +718,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @return
      */
     protected boolean isResizable() {
-        // TODO Auto-generated method stub
-        return false;
+        // by default dialogs should be resizeble - at least for windows.
+        // size calculation is almost impossible for nonresizable dialogs. they
+        // are always a bit bigger than getDimension tells us
+        return true;
     }
 
     // /**

@@ -289,8 +289,9 @@ public abstract class TimerDialog {
     public void pack() {
 
         getDialog().pack();
-
-        getDialog().setMinimumSize(getDialog().getPreferredSize());
+        if (!getDialog().isMinimumSizeSet()) {
+            getDialog().setMinimumSize(getDialog().getPreferredSize());
+        }
 
     }
 

@@ -96,7 +96,7 @@ public class SyntheticaHelper {
             UIManager.put("Synthetica.text.antialias", config.isTextAntiAliasEnabled());
             UIManager.put("Synthetica.extendedFileChooser.rememberPreferences", Boolean.FALSE);
             UIManager.put("Synthetica.extendedFileChooser.rememberLastDirectory", Boolean.FALSE);
-   
+
             // /* http://www.jyloo.com/news/?pubId=1297681728000 */
             // /* we want our own FontScaling, not SystemDPI */
             UIManager.put("Synthetica.font.respectSystemDPI", config.isFontRespectsSystemDPI());
@@ -113,6 +113,7 @@ public class SyntheticaHelper {
                 /* must be true to disable it..strange world ;) */
                 UIManager.put("Synthetica.window.opaque", true);
             }
+            UIManager.put("Synthetica.menu.toolTipEnabled", true); UIManager.put("Synthetica.menuItem.toolTipEnabled", true);
             /*
              * NOTE: This Licensee Information may only be used by AppWork UG.
              * If you like to create derived creation based on this sourcecode,
