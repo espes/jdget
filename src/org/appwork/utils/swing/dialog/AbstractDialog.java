@@ -14,6 +14,8 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.HierarchyEvent;
@@ -418,7 +420,32 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // ((Window) getDialog().getParent()).setAlwaysOnTop(true);
             // ((Window) getDialog().getParent()).setAlwaysOnTop(false);
             // }
-
+getDialog().addComponentListener(new ComponentListener() {
+    
+    @Override
+    public void componentShown(final ComponentEvent e) {
+       orgLocationOnScreen=getDialog().getLocationOnScreen();
+       System.out.println(orgLocationOnScreen); 
+    }
+    
+    @Override
+    public void componentResized(final ComponentEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    public void componentMoved(final ComponentEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    public void componentHidden(final ComponentEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+});
 
             setVisible(true);
             // dialog gets closed
@@ -933,10 +960,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @return if the dialog has been moved by the user
      */
     public boolean hasBeenMoved() {
-        if(true) {
-            return true;
-        }
-        return !getDialog().getLocationOnScreen().equals(orgLocationOnScreen);
+      
+        return orgLocationOnScreen!=null&&!getDialog().getLocationOnScreen().equals(orgLocationOnScreen);
     }
 
 }

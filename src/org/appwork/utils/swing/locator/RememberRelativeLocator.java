@@ -39,7 +39,7 @@ public class RememberRelativeLocator extends AbstractLocator {
         } catch (final IllegalComponentStateException e) {
             // frame.getParent() might be null or invisble
 
-            // e.printStackTrace();
+             e.printStackTrace();
         }
         return getFallbackLocator().getLocationOnScreen(frame);
     }
