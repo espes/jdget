@@ -146,6 +146,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private boolean            dummyInit              = false;
 
+    private Point orgLocationOnScreen;
+
     public DialogLocator getLocator() {
         if (locator == null) {
             if (DEFAULT_LOCATOR != null) { return DEFAULT_LOCATOR; }
@@ -399,7 +401,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                     e.printStackTrace();
                 }
             }
-
+orgLocationOnScreen=getDialog().getLocationOnScreen();
             /*
              * workaround a javabug that forces the parentframe to stay always
              * on top
@@ -924,6 +926,15 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     public boolean isDontShowAgainFlagEabled() {
         return BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN);
+    }
+
+    /**
+     * 
+     * @return if the dialog has been moved by the user
+     */
+    public boolean hasBeenMoved() {
+        
+        return !getDialog().getLocationOnScreen().equals(orgLocationOnScreen);
     }
 
 }
