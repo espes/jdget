@@ -20,6 +20,9 @@ public class RememberRelativeLocator extends AbstractLocator {
      */
     public RememberRelativeLocator(final String id, final Window jFrame) {
         this.id = id;
+        if(id==null) {
+            throw new IllegalArgumentException("id ==null");
+        }
         parent = jFrame;
         fallbackLocator = new CenterOfScreenLocator();
     }
@@ -39,7 +42,7 @@ public class RememberRelativeLocator extends AbstractLocator {
         } catch (final IllegalComponentStateException e) {
             // frame.getParent() might be null or invisble
 
-             e.printStackTrace();
+//             e.printStackTrace();
         }
         return getFallbackLocator().getLocationOnScreen(frame);
     }
@@ -68,7 +71,7 @@ public class RememberRelativeLocator extends AbstractLocator {
      * @return
      */
     protected String getID(final Window frame) {
-        if (id == null) { return frame.toString(); }
+      
         return id;
     }
 

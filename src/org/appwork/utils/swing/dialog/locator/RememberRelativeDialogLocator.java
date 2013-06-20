@@ -21,6 +21,9 @@ public class RememberRelativeDialogLocator implements DialogLocator {
      */
     public RememberRelativeDialogLocator(final String id, final JFrame jFrame) {
         this.id = id;
+        if(id==null) {
+            throw new IllegalArgumentException("id ==null");
+        }
         delegate = new RememberRelativeLocator(id, jFrame) {
             /*
              * (non-Javadoc)
