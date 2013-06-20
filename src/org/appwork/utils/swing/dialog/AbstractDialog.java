@@ -401,7 +401,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                     e.printStackTrace();
                 }
             }
-orgLocationOnScreen=getDialog().getLocationOnScreen();
+
             /*
              * workaround a javabug that forces the parentframe to stay always
              * on top
@@ -933,7 +933,9 @@ orgLocationOnScreen=getDialog().getLocationOnScreen();
      * @return if the dialog has been moved by the user
      */
     public boolean hasBeenMoved() {
-        
+        if(true) {
+            return true;
+        }
         return !getDialog().getLocationOnScreen().equals(orgLocationOnScreen);
     }
 
