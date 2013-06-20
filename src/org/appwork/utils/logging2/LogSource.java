@@ -48,17 +48,19 @@ public class LogSource extends Logger implements LogInterface {
         return null;
     }
 
-    private java.util.List<LogRecord> records           = new ArrayList<LogRecord>();
-    private int                       maxLogRecordsInMemory;
-    private int                       flushCounter      = 0;
-    private int                       recordsCounter    = 0;
-    private boolean                   closed            = false;
+    private java.util.List<LogRecord> records               = new ArrayList<LogRecord>();
+    private int                       maxLogRecordsInMemory = -1;
+    private int                       maxSizeInMemory       = -1;
+    private int                       currentSizeInMemory   = 0;
+    private int                       flushCounter          = 0;
+    private int                       recordsCounter        = 0;
+    private boolean                   closed                = false;
 
-    private boolean                   allowTimeoutFlush = true;
-    private boolean                   instantFlush      = false;
-    private boolean                   flushOnFinalize   = false;
+    private boolean                   allowTimeoutFlush     = true;
+    private boolean                   instantFlush          = false;
+    private boolean                   flushOnFinalize       = false;
 
-    private Logger                    parent            = null;
+    private Logger                    parent                = null;
 
     public LogSource(final String name) {
         this(name, -1);
@@ -112,31 +114,46 @@ public class LogSource extends Logger implements LogInterface {
     public synchronized void flush() {
         if (this.closed) { return; }
         if (this.records == null || this.records.size() == 0) {
+            this.currentSizeInMemory = 0;
             this.records = null;
             return;
         }
-        final Logger parent = this.getParent();
-        if (parent != null) {
-            for (final Handler handler : parent.getHandlers()) {
-                if (handler != null) {
-                    if (handler instanceof ConsoleHandler) {
-                        /* we dont want logRecords to appear twice on console */
-                        continue;
-                    }
-                    synchronized (handler) {
-                        for (final LogRecord record : this.records) {
-                            handler.publish(record);
+        try {
+            final Logger parent = this.getParent();
+            if (parent != null) {
+                this.flushCounter++;
+                for (final Handler handler : parent.getHandlers()) {
+                    if (handler != null) {
+                        if (handler instanceof ConsoleHandler) {
+                            /*
+                             * we dont want logRecords to appear twice on
+                             * console
+                             */
+                            continue;
+                        }
+                        synchronized (handler) {
+                            for (final LogRecord record : this.records) {
+                                handler.publish(record);
+                            }
                         }
                     }
                 }
             }
-            this.flushCounter++;
+        } finally {
+            this.currentSizeInMemory = 0;
+            this.records = null;
         }
-        this.records = null;
     }
 
     public int getMaxLogRecordsInMemory() {
         return this.maxLogRecordsInMemory;
+    }
+
+    /**
+     * @return the maxSizeInMemory
+     */
+    public int getMaxSizeInMemory() {
+        return this.maxSizeInMemory;
     }
 
     @Override
@@ -175,7 +192,11 @@ public class LogSource extends Logger implements LogInterface {
         /* this will collect current class/method if net set yet */
         record.getSourceClassName();
         // record.setLoggerName(Thread.currentThread().getName());
-        if (this.maxLogRecordsInMemory == 0 || this.instantFlush) {
+        int recordSize = 0;
+        if (record.getMessage() != null) {
+            recordSize = record.getMessage().length();
+        }
+        if (this.maxLogRecordsInMemory == 0 || this.maxSizeInMemory == 0 || this.instantFlush) {
             /* maxLogRecordsInMemory == 0, we want to use parent's handlers */
             final Logger parent = this.getParent();
             if (parent != null) {
@@ -188,7 +209,7 @@ public class LogSource extends Logger implements LogInterface {
                 }
             }
             return;
-        } else if (this.maxLogRecordsInMemory > 0 && this.records != null && this.records.size() == this.maxLogRecordsInMemory) {
+        } else if (this.maxLogRecordsInMemory > 0 && this.records != null && this.records.size() == this.maxLogRecordsInMemory || this.maxSizeInMemory > 0 && this.currentSizeInMemory + recordSize > this.maxSizeInMemory) {
             /* maxLogRecordsInMemory >0 we have limited max records in memory */
             /* we flush in case we reached maxLogRecordsInMemory */
             this.flush();
@@ -197,6 +218,7 @@ public class LogSource extends Logger implements LogInterface {
             /* records will be null at first use or after a flush */
             this.records = new ArrayList<LogRecord>();
         }
+        this.currentSizeInMemory += recordSize;
         this.records.add(record);
         this.recordsCounter++;
         super.log(record);
@@ -259,10 +281,27 @@ public class LogSource extends Logger implements LogInterface {
         }
     }
 
-    public synchronized void setMaxLogRecordsInMemory(final int newMax) {
+    public synchronized void setMaxLogRecordsInMemory(int newMax) {
+        newMax = Math.max(0, newMax);
         if (this.maxLogRecordsInMemory == newMax) { return; }
-        this.flush();
         this.maxLogRecordsInMemory = newMax;
+        if (newMax == 0 || newMax <= this.records.size()) {
+            this.flush();
+        }
+
+    }
+
+    /**
+     * @param maxSizeInMemory
+     *            the maxSizeInMemory to set
+     */
+    public synchronized void setMaxSizeInMemory(int maxSizeInMemory) {
+        maxSizeInMemory = Math.max(0, maxSizeInMemory);
+        if (this.maxSizeInMemory == maxSizeInMemory) { return; }
+        this.maxSizeInMemory = maxSizeInMemory;
+        if (maxSizeInMemory == 0 || maxSizeInMemory <= this.currentSizeInMemory) {
+            this.flush();
+        }
     }
 
     @Override
