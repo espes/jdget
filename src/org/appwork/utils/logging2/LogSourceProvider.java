@@ -34,6 +34,7 @@ import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.Regex;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.os.CrossSystem;
 
 public abstract class LogSourceProvider {
@@ -249,6 +250,10 @@ public abstract class LogSourceProvider {
     public LogSource getLogger(String name) {
         LogSink sink = null;
         name = CrossSystem.alleviatePathParts(name);
+        if (StringUtils.isEmpty(name)) { return null; }
+        if (!name.endsWith(".log")) {
+            name = name + ".log";
+        }
         synchronized (this.logSinks) {
             sink = this.logSinks.get(name);
             if (sink == null) {
