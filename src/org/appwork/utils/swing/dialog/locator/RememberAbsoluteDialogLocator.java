@@ -7,29 +7,22 @@ import org.appwork.utils.swing.locator.RememberAbsoluteLocator;
 
 public class RememberAbsoluteDialogLocator implements DialogLocator {
 
-    private String id;
-    private RememberAbsoluteLocator delegate;
+    private String                        id;
+    private final RememberAbsoluteLocator delegate;
 
     /**
      * @param string
      */
     public RememberAbsoluteDialogLocator(final String id) {
-        if(id==null) {
-            throw new IllegalArgumentException("id ==null");
-        }
-        delegate = new RememberAbsoluteLocator(id);
-
+        if (id == null) { throw new IllegalArgumentException("id ==null"); }
+        this.delegate = new RememberAbsoluteLocator(id);
     }
 
     @Override
     public Point getLocationOnScreen(final AbstractDialog<?> dialog) {
-        return delegate.getLocationOnScreen(dialog.getDialog());
-
+        return this.delegate.getLocationOnScreen(dialog.getDialog());
     }
 
-    
-
-   
     /*
      * (non-Javadoc)
      * 
@@ -39,9 +32,7 @@ public class RememberAbsoluteDialogLocator implements DialogLocator {
      */
     @Override
     public void onClose(final AbstractDialog<?> abstractDialog) {
-        delegate.onClose(abstractDialog.getDialog());
-    
-
+        this.delegate.onClose(abstractDialog.getDialog());
     }
 
 }

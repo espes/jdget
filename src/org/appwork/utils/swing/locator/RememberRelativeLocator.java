@@ -1,6 +1,5 @@
 package org.appwork.utils.swing.locator;
 
-import java.awt.IllegalComponentStateException;
 import java.awt.Point;
 import java.awt.Window;
 
@@ -10,8 +9,8 @@ import org.appwork.utils.swing.dialog.LocationStorage;
 
 public class RememberRelativeLocator extends AbstractLocator {
 
-    private String          id;
-    private Window          parent;
+    private final String    id;
+    private final Window    parent;
     private AbstractLocator fallbackLocator;
 
     /**
@@ -20,42 +19,9 @@ public class RememberRelativeLocator extends AbstractLocator {
      */
     public RememberRelativeLocator(final String id, final Window jFrame) {
         this.id = id;
-        if(id==null) {
-            throw new IllegalArgumentException("id ==null");
-        }
-        parent = jFrame;
-        fallbackLocator = new CenterOfScreenLocator();
-    }
-
-    @Override
-    public Point getLocationOnScreen(final Window frame) {
-        final LocationStorage cfg = createConfig(frame);
-        try {
-            if (cfg.isValid()) {
-
-                // Do a "is on screen check" here
-
-                final Point pLoc = (parent == null || !parent.isShowing()) ? frame.getParent().getLocationOnScreen() : parent.getLocationOnScreen();
-                return validate(new Point(cfg.getX() + pLoc.x, cfg.getY() + pLoc.y), frame);
-
-            }
-        } catch (final IllegalComponentStateException e) {
-            // frame.getParent() might be null or invisble
-
-//             e.printStackTrace();
-        }
-        return getFallbackLocator().getLocationOnScreen(frame);
-    }
-
-    /**
-     * @return
-     */
-    protected AbstractLocator getFallbackLocator() {
-        return fallbackLocator;
-    }
-
-    public void setFallbackLocator(final AbstractLocator fallbackLocator) {
-        this.fallbackLocator = fallbackLocator;
+        if (id == null) { throw new IllegalArgumentException("id ==null"); }
+        this.parent = jFrame;
+        this.fallbackLocator = new CenterOfScreenLocator();
     }
 
     /**
@@ -63,7 +29,14 @@ public class RememberRelativeLocator extends AbstractLocator {
      * @return
      */
     private LocationStorage createConfig(final Window frame) {
-        return JsonConfig.create(Application.getResource("cfg/" + RememberRelativeLocator.class.getName() + "-" + getID(frame)), LocationStorage.class);
+        return JsonConfig.create(Application.getResource("cfg/" + RememberRelativeLocator.class.getName() + "-" + this.getID(frame)), LocationStorage.class);
+    }
+
+    /**
+     * @return
+     */
+    protected AbstractLocator getFallbackLocator() {
+        return this.fallbackLocator;
     }
 
     /**
@@ -71,8 +44,24 @@ public class RememberRelativeLocator extends AbstractLocator {
      * @return
      */
     protected String getID(final Window frame) {
-      
-        return id;
+        return this.id;
+    }
+
+    @Override
+    public Point getLocationOnScreen(final Window frame) {
+        try {
+            final LocationStorage cfg = this.createConfig(frame);
+            if (cfg.isValid()) {
+                // Do a "is on screen check" here
+                final Point pLoc = this.parent == null || !this.parent.isShowing() ? frame.getParent().getLocationOnScreen() : this.parent.getLocationOnScreen();
+                return AbstractLocator.validate(new Point(cfg.getX() + pLoc.x, cfg.getY() + pLoc.y), frame);
+            }
+        } catch (final Throwable e) {
+            e.printStackTrace();
+            // frame.getParent() might be null or invisble
+            // e.printStackTrace();
+        }
+        return this.getFallbackLocator().getLocationOnScreen(frame);
     }
 
     /*
@@ -85,18 +74,24 @@ public class RememberRelativeLocator extends AbstractLocator {
     @Override
     public void onClose(final Window frame) {
         try {
-            final LocationStorage cfg = createConfig(frame);
-            cfg.setValid(true);
             if (frame.isShowing()) {
                 final Point loc = frame.getLocationOnScreen();
-                final Point pLoc = parent == null ? frame.getParent().getLocationOnScreen() : parent.getLocationOnScreen();
+                final Point pLoc = this.parent == null ? frame.getParent().getLocationOnScreen() : this.parent.getLocationOnScreen();
+                final LocationStorage cfg = this.createConfig(frame);
+                cfg.setValid(true);
                 cfg.setX(loc.x - pLoc.x);
                 cfg.setY(loc.y - pLoc.y);
+                cfg.getStorageHandler().write();
             }
-        } catch (final IllegalComponentStateException e) {
+        } catch (final Throwable e) {
+            e.printStackTrace();
             // nothing.... frame.getParent or parent might be invisible
         }
 
+    }
+
+    public void setFallbackLocator(final AbstractLocator fallbackLocator) {
+        this.fallbackLocator = fallbackLocator;
     }
 
 }

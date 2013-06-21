@@ -21,10 +21,8 @@ public class RememberRelativeDialogLocator implements DialogLocator {
      */
     public RememberRelativeDialogLocator(final String id, final JFrame jFrame) {
         this.id = id;
-        if(id==null) {
-            throw new IllegalArgumentException("id ==null");
-        }
-        delegate = new RememberRelativeLocator(id, jFrame) {
+        if (id == null) { throw new IllegalArgumentException("id ==null"); }
+        this.delegate = new RememberRelativeLocator(id, jFrame) {
             /*
              * (non-Javadoc)
              * 
@@ -46,13 +44,12 @@ public class RememberRelativeDialogLocator implements DialogLocator {
      * @return
      */
     protected String getID(final Window frame) {
-        if (id == null) { return frame.toString(); }
-        return id;
+        return this.id;
     }
 
     @Override
     public Point getLocationOnScreen(final AbstractDialog<?> dialog) {
-        return delegate.getLocationOnScreen(dialog.getDialog());
+        return this.delegate.getLocationOnScreen(dialog.getDialog());
 
     }
 
@@ -65,7 +62,7 @@ public class RememberRelativeDialogLocator implements DialogLocator {
      */
     @Override
     public void onClose(final AbstractDialog<?> abstractDialog) {
-        delegate.onClose(abstractDialog.getDialog());
+        this.delegate.onClose(abstractDialog.getDialog());
 
     }
 
@@ -73,7 +70,14 @@ public class RememberRelativeDialogLocator implements DialogLocator {
      * @param rememberAbsoluteDialogLocator
      */
     public void setFallbackLocator(final DialogLocator fallback) {
-        delegate.setFallbackLocator(new AbstractLocator() {
+        this.delegate.setFallbackLocator(new AbstractLocator() {
+
+            @Override
+            public Point getLocationOnScreen(final Window frame) {
+
+                return fallback.getLocationOnScreen((AbstractDialog<?>) ((InternDialog) frame).getDialogModel());
+
+            }
 
             @Override
             public void onClose(final Window frame) {
@@ -82,13 +86,6 @@ public class RememberRelativeDialogLocator implements DialogLocator {
                 } catch (final Exception e) {
                     e.printStackTrace();
                 }
-            }
-
-            @Override
-            public Point getLocationOnScreen(final Window frame) {
-
-                return fallback.getLocationOnScreen((AbstractDialog<?>) ((InternDialog) frame).getDialogModel());
-
             }
         });
 
