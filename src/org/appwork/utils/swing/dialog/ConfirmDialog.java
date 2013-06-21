@@ -88,6 +88,7 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
         textField.setEditable(false);
         textField.setBackground(null);
         textField.setOpaque(false);
+        textField.setFocusable(false);
         textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
         textField.setCaretPosition(0);
 

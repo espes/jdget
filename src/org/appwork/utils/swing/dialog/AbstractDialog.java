@@ -148,7 +148,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private boolean            dummyInit              = false;
 
-    private Point orgLocationOnScreen;
+    private Point              orgLocationOnScreen;
 
     public DialogLocator getLocator() {
         if (locator == null) {
@@ -340,7 +340,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 this.defaultButtons.addCancelButton(this.cancelButton);
                 if (BinaryLogic.containsAll(this.flagMask, Dialog.BUTTONS_HIDE_OK)) {
                     getDialog().getRootPane().setDefaultButton(this.cancelButton);
-                    this.cancelButton.requestFocusInWindow();
 
                     // focus is on cancel if OK is hidden
                     focus = this.cancelButton;
@@ -383,7 +382,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 }
 
             }
-
+            if (focus != null) {
+                focus.requestFocusInWindow();
+            }
             this.packed();
 
             Point loc = null;
@@ -420,32 +421,32 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // ((Window) getDialog().getParent()).setAlwaysOnTop(true);
             // ((Window) getDialog().getParent()).setAlwaysOnTop(false);
             // }
-getDialog().addComponentListener(new ComponentListener() {
-    
-    @Override
-    public void componentShown(final ComponentEvent e) {
-       orgLocationOnScreen=getDialog().getLocationOnScreen();
-       System.out.println(orgLocationOnScreen); 
-    }
-    
-    @Override
-    public void componentResized(final ComponentEvent e) {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    public void componentMoved(final ComponentEvent e) {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    @Override
-    public void componentHidden(final ComponentEvent e) {
-        // TODO Auto-generated method stub
-        
-    }
-});
+            getDialog().addComponentListener(new ComponentListener() {
+
+                @Override
+                public void componentShown(final ComponentEvent e) {
+                    orgLocationOnScreen = getDialog().getLocationOnScreen();
+                    System.out.println(orgLocationOnScreen);
+                }
+
+                @Override
+                public void componentResized(final ComponentEvent e) {
+                    // TODO Auto-generated method stub
+
+                }
+
+                @Override
+                public void componentMoved(final ComponentEvent e) {
+                    // TODO Auto-generated method stub
+
+                }
+
+                @Override
+                public void componentHidden(final ComponentEvent e) {
+                    // TODO Auto-generated method stub
+
+                }
+            });
 
             setVisible(true);
             // dialog gets closed
@@ -533,6 +534,7 @@ getDialog().addComponentListener(new ComponentListener() {
             Log.L.fine("Answer: Button<CANCEL:" + this.cancelButton.getText() + ">");
             this.setReturnmask(false);
         }
+
         this.dispose();
     }
 
@@ -960,8 +962,8 @@ getDialog().addComponentListener(new ComponentListener() {
      * @return if the dialog has been moved by the user
      */
     public boolean hasBeenMoved() {
-      
-        return orgLocationOnScreen!=null&&!getDialog().getLocationOnScreen().equals(orgLocationOnScreen);
+
+        return orgLocationOnScreen != null && !getDialog().getLocationOnScreen().equals(orgLocationOnScreen);
     }
 
 }
