@@ -372,8 +372,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // this.setSize(this.getDesiredSize());
             // }
 
-            // register an escape listener to cancel the dialog
-            this.registerEscape(focus);
+        
             pack();
             if (dimensor != null) {
                 final Dimension ret = dimensor.getDimension(AbstractDialog.this);
@@ -445,7 +444,8 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
                 }
             });
-
+            // register an escape listener to cancel the dialog
+            this.registerEscape(focus);
             setVisible(true);
             // dialog gets closed
             // 17.11.2011 I did not comment this - may be debug code while
