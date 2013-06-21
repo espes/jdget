@@ -382,9 +382,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 }
 
             }
-            if (focus != null) {
-                focus.requestFocusInWindow();
-            }
+           
             this.packed();
 
             Point loc = null;
@@ -808,7 +806,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                     AbstractDialog.this.dispose();
                 }
             });
-            focus.requestFocus();
+            focus.requestFocusInWindow();
         }
     }
 
