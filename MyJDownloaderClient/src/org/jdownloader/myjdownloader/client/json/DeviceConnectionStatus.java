@@ -3,7 +3,7 @@ package org.jdownloader.myjdownloader.client.json;
 public enum DeviceConnectionStatus {
     /* Session is not bound to a device */
     UNBOUND(5),
-    /* normal keepAlive=close */
+    /* normal keepAlive=close, current syncMark will be send too */
     KEEPALIVE(4),
     /* OK, connection is established, but current syncMark will be send too */
     OK_SYNC(2),

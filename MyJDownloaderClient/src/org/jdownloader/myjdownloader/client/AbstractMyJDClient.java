@@ -40,6 +40,7 @@ import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.FeedbackResponse;
 import org.jdownloader.myjdownloader.client.json.JSonRequest;
 import org.jdownloader.myjdownloader.client.json.NotificationRequestMessage;
+import org.jdownloader.myjdownloader.client.json.NotificationRequestTypesResponse;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
 import org.jdownloader.myjdownloader.client.json.RequestIDOnly;
 import org.jdownloader.myjdownloader.client.json.RequestIDValidator;
@@ -590,6 +591,12 @@ public abstract class AbstractMyJDClient {
         return ret;
     }
 
+    public NotificationRequestMessage.TYPE[] listrequesteddevicesnotifications() throws MyJDownloaderException {
+        final String query = "/notify/list?sessiontoken=" + this.urlencode(this.sessionToken);
+        final NotificationRequestTypesResponse ret = this.callServer(query, null, this.serverEncryptionToken, NotificationRequestTypesResponse.class);
+        return ret.getTypes();
+    }
+
     protected abstract String objectToJSon(Object payload);
 
     abstract protected String post(String query, String object, byte[] keyAndIV) throws ExceptionResponse;
@@ -611,7 +618,6 @@ public abstract class AbstractMyJDClient {
      */
     public synchronized void reconnect() throws MyJDownloaderException {
         try {
-
             final String query = "/my/reconnect?sessiontoken=" + this.urlencode(this.sessionToken) + "&regaintoken=" + this.urlencode(this.regainToken);
             final ConnectResponse ret = this.callServer(query, null, this.serverEncryptionToken, ConnectResponse.class);
 
