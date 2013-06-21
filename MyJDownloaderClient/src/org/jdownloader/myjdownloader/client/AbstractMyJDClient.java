@@ -120,7 +120,6 @@ public abstract class AbstractMyJDClient {
     public AbstractMyJDClient(final String appKey) {
         this.appKey = appKey;
         this.counter = System.currentTimeMillis();
-
     }
 
     /**
@@ -144,7 +143,6 @@ public abstract class AbstractMyJDClient {
         final DeviceConnectResponse ret = this.callServer(query, null, this.serverEncryptionToken, DeviceConnectResponse.class);
         device.setId(ret.getDeviceid());
         return device;
-
     }
 
     @SuppressWarnings("unchecked")
