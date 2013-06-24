@@ -806,8 +806,17 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                     AbstractDialog.this.dispose();
                 }
             });
-            focus.requestFocusInWindow();
+            initFocus(focus);
+           
         }
+    }
+
+    /**
+     * @param focus
+     */
+    protected void initFocus(final JComponent focus) {
+        focus.requestFocusInWindow();
+        
     }
 
     /**

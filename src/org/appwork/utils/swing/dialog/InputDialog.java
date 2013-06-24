@@ -224,7 +224,10 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
         requestFocus();
 
     }
-
+    protected void initFocus(final JComponent focus) {
+      
+        
+    }
     public void setDefaultMessage(final String defaultMessage) {
         this.defaultMessage = defaultMessage;
         if (input != null) {
