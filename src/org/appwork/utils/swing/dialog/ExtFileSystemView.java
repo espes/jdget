@@ -16,6 +16,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.Icon;
@@ -237,7 +238,14 @@ public class ExtFileSystemView extends FileSystemView {
 
             Log.L.info("Listed Base folders " + (System.currentTimeMillis() - t));
             final java.util.List<File> newRoots = new ArrayList<File>();
+            final HashSet<File> unique = new HashSet<File>();
+            
+            if (desktopPath.exists() && desktopPath.isDirectory()) {
+                if (unique.add(desktopPath)) {
+                    newRoots.add(desktopPath);
+                }
 
+            }
             final File home = getHomeDirectory();
             for (final File f : baseFolders) {
                 // Win32ShellFolder2.class
@@ -245,7 +253,9 @@ public class ExtFileSystemView extends FileSystemView {
                     continue;
                 }
                 if (f.getParentFile() == null || !f.getParentFile().equals(home)) {
-                    newRoots.add(f);
+                    if (unique.add(f)) {
+                        newRoots.add(f);
+                    }
                 } else if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
                     networkFolder = new NetWorkFolder(f);
                 } else if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP)) {
@@ -254,19 +264,23 @@ public class ExtFileSystemView extends FileSystemView {
                 Log.L.info("Basefolder: " + f.getName() + " - " + f + " - " + CrossSystem.getOSString());
 
             }
-            mount(new File("/Volumes"), newRoots);
-            mount(new File("/media"), newRoots);
+            mount(new File("/Volumes"), newRoots, unique);
+            mount(new File("/media"), newRoots, unique);
 
             final HomeFolder[] homeFolders = new HomeFolder[] { new HomeFolder(HomeFolder.DOCUMENTS, "documents"), new HomeFolder(HomeFolder.PICTURES, "images"), new HomeFolder(HomeFolder.VIDEOS, "videos"), new HomeFolder(HomeFolder.DOWNLOADS, "downloads"), new HomeFolder(HomeFolder.MUSIC, "music") };
 
             for (final HomeFolder hf : homeFolders) {
                 if (hf.exists()) {
-                    newRoots.add(hf);
+                    if (unique.add(hf)) {
+                        newRoots.add(hf);
+                    }
                 }
             }
 
             if (networkFolder != null) {
-                newRoots.add(networkFolder);
+                if (unique.add(networkFolder)) {
+                    newRoots.add(networkFolder);
+                }
             }
             roots = newRoots.toArray(new File[] {});
             specialsMap = new HashMap<File, File>();
@@ -373,15 +387,18 @@ public class ExtFileSystemView extends FileSystemView {
         return ret != null ? ret : f;
     }
 
-    private void mount(final File path, final List<File> files) {
+    private void mount(final File path, final List<File> files, final HashSet<File> unique) {
         if (path.exists() && path.isDirectory()) {
             final File[] content = path.listFiles();
             if (content != null) {
                 for (final File f : content) {
-                    if(f.isHidden()) {
+                    if (f.isHidden()) {
                         continue;
                     }
-                    files.add(new VirtualRoot(f, f.getName()));
+                    final VirtualRoot vFile = new VirtualRoot(f, f.getName());
+                    if (unique.add(vFile)) {
+                        files.add(vFile);
+                    }
                 }
             }
         }
