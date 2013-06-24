@@ -31,11 +31,14 @@ public class MimeWindows extends MimeDefault {
         ImageIcon ret = super.getCacheIcon(iconKey);
         if (ret == null) {
             final File path = Application.getResource("tmp/images/" + extension + ".png");
-            if(path.getParentFile().isDirectory()) {
-                //woraround a bug we had until 24.06.2013.. created folders instead of files
+            if (path.getParentFile().isDirectory()) {
+                // woraround a bug we had until 24.06.2013.. created folders
+                // instead of files
                 path.getParentFile().delete();
             }
-            path.getParentFile().mkdirs();
+            if (!path.getParentFile().exists()) {
+                path.getParentFile().mkdirs();
+            }
             try {
                 if (path.exists() && path.isFile()) {
                     ret = new ImageIcon(ImageProvider.read(path));
@@ -46,7 +49,6 @@ public class MimeWindows extends MimeDefault {
                         file = File.createTempFile("icon", "." + extension);
                         final ShellFolder shellFolder = ShellFolder.getShellFolder(file);
                         ret = new ImageIcon(shellFolder.getIcon(true));
-                     
                         fos = new FileOutputStream(path);
                         ImageIO.write((RenderedImage) ret.getImage(), "png", fos);
                     } catch (final Throwable e) {
