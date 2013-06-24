@@ -39,6 +39,7 @@ import org.appwork.resources.AWUTheme;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.swing.components.searchcombo.SearchComboBox;
 import org.appwork.utils.Application;
+import org.appwork.utils.Files;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
@@ -804,9 +805,21 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
 
-    protected Icon getDirectoryIcon(final Icon ret,  File f) {
+    protected Icon getDirectoryIcon(final Icon ret, File f) {
+        if (f.isFile()) {
+            try {
+                final String ext = Files.getExtension(f.getName());
+                if (ext == null) {
+                    return ret;
+                }
+                return CrossSystem.getMime().getFileIcon(ext, 16, 16);
+            } catch (final Exception e) {
+                return ret;
+            }
 
-        f=fileSystemView.mapSpecialFolders(f);
+        }
+
+        f = fileSystemView.mapSpecialFolders(f);
         String key = "folder";
         if (f.getName().equals("Desktop")) {
 
@@ -833,7 +846,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
             }
 
-        }else if(f instanceof VirtualRoot){
+        } else if (f instanceof VirtualRoot) {
             key = "harddisk";
         }
         if (!AWUTheme.I().hasIcon(key)) { return ret; }
