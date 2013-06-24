@@ -35,6 +35,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.basic.BasicDirectoryModel;
 import javax.swing.plaf.basic.BasicFileChooserUI;
 
+import org.appwork.resources.AWUTheme;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.swing.components.searchcombo.SearchComboBox;
 import org.appwork.utils.Application;
@@ -624,14 +625,14 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
                 destination.setList(quickSelectionList);
                 destination.setText(text);
-                if(orgPresel!=null&&orgPresel.exists()){
-                    if(orgPresel.isDirectory()){
-                        destination.setText(orgPresel.getAbsolutePath()+   File.separatorChar);
-                    }else{
-                     
+                if (orgPresel != null && orgPresel.exists()) {
+                    if (orgPresel.isDirectory()) {
+                        destination.setText(orgPresel.getAbsolutePath() + File.separatorChar);
+                    } else {
+
                         destination.setText(orgPresel.getAbsolutePath());
                     }
-         
+
                 }
                 namePanel.add(destination);
                 modifiyNamePanel(namePanel);
@@ -745,9 +746,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * 
      */
     private void updateView() {
-        if (fc == null) {
-            return;
-        }
+        if (fc == null) { return; }
         switch (getView()) {
         case DETAILS:
             try {
@@ -802,18 +801,46 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @param f
      * @return
      */
-    protected Icon getDirectoryIcon(final Icon ret, final File f) {
 
-        return ret;
+    protected Icon getDirectoryIcon(final Icon ret,  File f) {
+
+        f=fileSystemView.mapSpecialFolders(f);
+        String key = "folder";
+        if (f.getName().equals("Desktop")) {
+
+            key = "desktop";
+        } else if ((f.getPath().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP) || f.getPath().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) || (f.getPath().startsWith("\\") && f.getPath().indexOf("\\", 2) < 0)) {
+
+            key = "network-idle";
+        } else if (f.getPath().length() == 3 && f.getPath().charAt(1) == ':' && (f.getPath().charAt(0) + "").matches("[a-zA-Z]{1}")) {
+
+            key = "harddisk";
+        } else if (f instanceof HomeFolder) {
+
+            if (((HomeFolder) f).getName().equals(HomeFolder.DOWNLOADS)) {
+                key = "download";
+            } else if (((HomeFolder) f).getName().equals(HomeFolder.MUSIC)) {
+                key = "audio";
+            } else if (((HomeFolder) f).getName().equals(HomeFolder.PICTURES)) {
+                key = "image";
+            } else if (((HomeFolder) f).getName().equals(HomeFolder.DOCUMENTS)) {
+                key = "document";
+            } else if (((HomeFolder) f).getName().equals(HomeFolder.VIDEOS)) {
+                //
+                key = "video";
+
+            }
+
+        }else if(f instanceof VirtualRoot){
+            key = "harddisk";
+        }
+        if (!AWUTheme.I().hasIcon(key)) { return ret; }
+        return AWUTheme.I().getIcon(key, 18);
     }
 
     protected boolean exists(final File f) {
-        if (f.exists()) {
-            return true;
-        }
-        if (isSambaFolder(f)) {
-            return true;
-        }
+        if (f.exists()) { return true; }
+        if (isSambaFolder(f)) { return true; }
         return false;
     }
 
@@ -822,9 +849,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     protected boolean isSambaFolder(final File f) {
-        if (fileSystemView.getNetworkFolder() != null) {
-            return fileSystemView.getNetworkFolder().get(f.getAbsolutePath()) != null;
-        }
+        if (fileSystemView.getNetworkFolder() != null) { return fileSystemView.getNetworkFolder().get(f.getAbsolutePath()) != null; }
 
         return false;
     }
@@ -846,9 +871,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
         final int selstart = oldTextField.getSelectionStart();
         final int selend = oldTextField.getSelectionEnd();
-        if (selend != txt.length()) {
-            return;
-        }
+        if (selend != txt.length()) { return; }
         final String sel = txt.substring(selstart, selend);
         final String bef = txt.substring(0, selstart);
         final String name = (bef.endsWith("/") || bef.endsWith("\\")) ? "" : new File(bef).getName();
@@ -910,9 +933,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     private boolean equals(final String name, final String findName) {
-        if (CrossSystem.isWindows()) {
-            return name.equalsIgnoreCase(findName);
-        }
+        if (CrossSystem.isWindows()) { return name.equalsIgnoreCase(findName); }
 
         return name.equals(findName);
     }
@@ -929,9 +950,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     public File[] getSelection() {
-        if (selection != null) {
-            return selection;
-        }
+        if (selection != null) { return selection; }
         return createReturnValue();
     }
 
@@ -939,9 +958,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     public File getSelectedFile() {
-        if (isMultiSelection()) {
-            throw new IllegalStateException("Not available if multiselection is active. use #getSelection() instead");
-        }
+        if (isMultiSelection()) { throw new IllegalStateException("Not available if multiselection is active. use #getSelection() instead"); }
         final File[] sel = getSelection();
         return sel == null || sel.length == 0 ? null : sel[0];
     }

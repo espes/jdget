@@ -15,11 +15,13 @@ import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.filechooser.FileSystemView;
 
+import org.appwork.resources.AWUTheme;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
@@ -68,6 +70,7 @@ public class ExtFileSystemView extends FileSystemView {
     private final FileSystemView org;
     private File[]               roots;
     private NetWorkFolder        networkFolder;
+    private HashMap<File, File>  specialsMap;
 
     /**
      * 
@@ -214,6 +217,7 @@ public class ExtFileSystemView extends FileSystemView {
     public File[] getRoots() {
         final long t = System.currentTimeMillis();
         Log.L.info("Get Roots");
+
         if (roots != null) { return roots; }
         try {
 
@@ -247,10 +251,23 @@ public class ExtFileSystemView extends FileSystemView {
                 } else if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP)) {
                     networkFolder = new NetWorkFolder(f);
                 }
-                Log.L.info("Basefolder: " + f.getName() + " - " + CrossSystem.getOSString());
+                Log.L.info("Basefolder: " + f.getName() + " - " + f + " - " + CrossSystem.getOSString());
 
             }
 
+            if (new File("\\Volumes").exists()) {
+                for (final File f : new File("\\Volumes").listFiles()) {
+                    newRoots.add(new VirtualRoot(f, f.getName()));
+
+                }
+            }
+
+            if (new File("\\media").exists()) {
+                for (final File f : new File("\\media").listFiles()) {
+                    newRoots.add(new VirtualRoot(f, f.getName()));
+
+                }
+            }
             final HomeFolder[] homeFolders = new HomeFolder[] { new HomeFolder(HomeFolder.DOCUMENTS, "documents"), new HomeFolder(HomeFolder.PICTURES, "images"), new HomeFolder(HomeFolder.VIDEOS, "videos"), new HomeFolder(HomeFolder.DOWNLOADS, "downloads"), new HomeFolder(HomeFolder.MUSIC, "music") };
 
             for (final HomeFolder hf : homeFolders) {
@@ -263,6 +280,10 @@ public class ExtFileSystemView extends FileSystemView {
                 newRoots.add(networkFolder);
             }
             roots = newRoots.toArray(new File[] {});
+            specialsMap = new HashMap<File, File>();
+            for (final File f : roots) {
+                specialsMap.put(f, f);
+            }
             return roots;
         } finally {
             Log.L.info("Roots: " + (System.currentTimeMillis() - t));
@@ -273,12 +294,17 @@ public class ExtFileSystemView extends FileSystemView {
     @Override
     public String getSystemDisplayName(final File f) {
         if (f == networkFolder) { return _AWU.T.DIALOG_FILECHOOSER_networkfolder(); }
+        if (f instanceof VirtualRoot) { return f.getName(); }
         return org.getSystemDisplayName(f);
     }
 
     @Override
     public Icon getSystemIcon(final File f) {
         try {
+            if (f instanceof VirtualRoot) {
+
+            return AWUTheme.I().getIcon("root", 18); }
+
             return org.getSystemIcon(f);
 
         } catch (final Exception e) {
@@ -347,6 +373,15 @@ public class ExtFileSystemView extends FileSystemView {
     public Boolean isTraversable(final File f) {
 
         return org.isTraversable(f);
+    }
+
+    /**
+     * @param f
+     * @return
+     */
+    public File mapSpecialFolders(final File f) {
+        final File ret = specialsMap.get(f);
+        return ret != null ? ret : f;
     }
 
 }
