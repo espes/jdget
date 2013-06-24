@@ -45,6 +45,7 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.SwingUtils;
+import org.appwork.utils.swing.dialog.dimensor.RememberLastDialogDimension;
 
 public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     static {
@@ -183,6 +184,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     public ExtFileChooserDialog(final int flag, final String title, final String okOption, final String cancelOption) {
         super(flag | Dialog.STYLE_HIDE_ICON, title, null, okOption, cancelOption);
+        setDimensor(new RememberLastDialogDimension("ExtFileChooserDialog"));
         // TODO Auto-generated constructor stub
     }
 
