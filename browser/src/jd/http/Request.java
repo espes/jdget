@@ -19,6 +19,7 @@ package jd.http;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,8 +39,6 @@ import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
 
 import org.appwork.utils.Application;
-import org.appwork.utils.ReusableByteArrayOutputStream;
-import org.appwork.utils.ReusableByteArrayOutputStreamPool;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
@@ -104,22 +103,22 @@ public abstract class Request {
             // TODO: check if we have to close con here
             return null;
         }
-        ReusableByteArrayOutputStream tmpOut;
-        ReusableByteArrayOutputStream tmpOut2 = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(1048);
+        ByteArrayOutputStream tmpOut = null;
         final long contentLength = con.getLongContentLength();
         if (contentLength != -1) {
             final int length = contentLength > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) contentLength;
-            tmpOut = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(length);
+            tmpOut = new ByteArrayOutputStream(length);
         } else {
-            tmpOut = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(16384);
+            tmpOut = new ByteArrayOutputStream(16384);
         }
         boolean okay = false;
         /* added "Corrupt GZIP trailer" for CamWinsCom */
         try {
             int len;
-            while ((len = is.read(tmpOut2.getInternalBuffer())) != -1) {
+            final byte[] buffer = new byte[32767];
+            while ((len = is.read(buffer)) != -1) {
                 if (len > 0) {
-                    tmpOut.write(tmpOut2.getInternalBuffer(), 0, len);
+                    tmpOut.write(buffer, 0, len);
                 }
             }
             okay = true;
@@ -143,13 +142,9 @@ public abstract class Request {
                 con.disconnect();
             } catch (final Exception e) {
             }
-            ReusableByteArrayOutputStreamPool.reuseReusableByteArrayOutputStream(tmpOut2);
             if (okay) {
                 ret = tmpOut.toByteArray();
             }
-            ReusableByteArrayOutputStreamPool.reuseReusableByteArrayOutputStream(tmpOut);
-            tmpOut = null;
-            tmpOut2 = null;
         }
         return ret;
     }
