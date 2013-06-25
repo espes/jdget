@@ -37,7 +37,6 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.utils.Regex;
 import org.appwork.utils.ReusableByteArrayOutputStream;
-import org.appwork.utils.ReusableByteArrayOutputStreamPool;
 import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
@@ -184,19 +183,12 @@ public class RemoteAPI implements HttpRequestHandler {
         } else {
             response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_CONTENT_ENCODING, "gzip"));
             if (chunked == false) {
-                final ReusableByteArrayOutputStream ros = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(1024);
-                try {
-                    final GZIPOutputStream out = new GZIPOutputStream(ros);
-                    out.write(bytes);
-                    out.finish();
-                    response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, ros.size() + ""));
-                    response.getOutputStream(true).write(ros.getInternalBuffer(), 0, ros.size());
-                } finally {
-                    try {
-                        ReusableByteArrayOutputStreamPool.reuseReusableByteArrayOutputStream(ros);
-                    } catch (final Throwable e) {
-                    }
-                }
+                final ReusableByteArrayOutputStream os = new ReusableByteArrayOutputStream(1024);
+                final GZIPOutputStream out = new GZIPOutputStream(os);
+                out.write(bytes);
+                out.finish();
+                response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, os.size() + ""));
+                response.getOutputStream(true).write(os.getInternalBuffer(), 0, os.size());
             } else {
                 response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING, HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
                 ChunkedOutputStream cos = null;

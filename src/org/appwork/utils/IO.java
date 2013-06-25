@@ -263,26 +263,28 @@ public class IO {
     }
 
     public static byte[] readStream(final int maxSize, final InputStream input) throws IOException {
-        return IO.readStream(maxSize, input, new ByteArrayOutputStream());
+        if (maxSize > 0) {
+            return IO.readStream(maxSize, input, new ByteArrayOutputStream(maxSize));
+        } else {
+            return IO.readStream(maxSize, input, new ByteArrayOutputStream());
+        }
     }
 
     public static byte[] readStream(final int maxSize, final InputStream input, final ByteArrayOutputStream baos) throws IOException {
-        ReusableByteArrayOutputStream os = null;
         try {
-            os = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(32767);
+            final byte[] buffer = new byte[32767];
             int len;
             int done = 0;
-            while ((len = input.read(os.getInternalBuffer())) != -1) {
+            while ((len = input.read(buffer)) != -1) {
                 if (len > 0) {
                     done += len;
-                    baos.write(os.getInternalBuffer(), 0, len);
+                    baos.write(buffer, 0, len);
                     if (maxSize > 0 && done >= maxSize) {
                         break;
                     }
                     if (maxSize > 0 && baos.size() > maxSize) { throw new IOException("Max size exeeded!"); }
                 }
             }
-
         } catch (final IOException e) {
             if (IO.ERROR_HANDLER != null) {
                 IO.ERROR_HANDLER.onReadStreamException(e, input);
@@ -300,10 +302,6 @@ public class IO {
             }
             throw e;
         } finally {
-            try {
-                ReusableByteArrayOutputStreamPool.reuseReusableByteArrayOutputStream(os);
-            } catch (final Throwable e) {
-            }
             try {
                 input.close();
             } catch (final Exception e) {

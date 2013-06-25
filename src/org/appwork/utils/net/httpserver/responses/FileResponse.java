@@ -25,7 +25,6 @@ import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.utils.Files;
 import org.appwork.utils.ReusableByteArrayOutputStream;
-import org.appwork.utils.ReusableByteArrayOutputStreamPool;
 import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.requests.HttpRequestInterface;
@@ -137,7 +136,7 @@ public class FileResponse {
         URLConnection con = null;
         GZIPOutputStream gos = null;
         OutputStream os = null;
-        ReusableByteArrayOutputStream ros = null;
+        final ReusableByteArrayOutputStream ros = null;
         boolean chunked = false;
         boolean gzip = false;
         long knownLength = -1;
@@ -197,19 +196,13 @@ public class FileResponse {
                 }
             }
             /* forward the data from inputstream to outputstream */
-            ros = ReusableByteArrayOutputStreamPool.getReusableByteArrayOutputStream(1024);
+            final byte[] buffer = new byte[1024];
             int read = 0;
-            while ((read = is.read(ros.getInternalBuffer())) >= 0) {
+            while ((read = is.read(buffer)) >= 0) {
                 if (read > 0) {
-                    os.write(ros.getInternalBuffer(), 0, read);
+                    os.write(buffer, 0, read);
                 } else {
-                    synchronized (this) {
-                        try {
-                            this.wait(500);
-                        } catch (final InterruptedException e) {
-                            throw new IOException(e);
-                        }
-                    }
+                    Thread.yield();
                 }
             }
         } finally {
@@ -226,10 +219,6 @@ public class FileResponse {
             try {
                 /* output next, can be chunked */
                 os.close();
-            } catch (final Throwable e) {
-            }
-            try {
-                ReusableByteArrayOutputStreamPool.reuseReusableByteArrayOutputStream(ros);
             } catch (final Throwable e) {
             }
             try {
