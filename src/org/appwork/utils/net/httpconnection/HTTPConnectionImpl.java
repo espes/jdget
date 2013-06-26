@@ -365,6 +365,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
                     this.convertedInputStream = new java.util.zip.DeflaterInputStream(this.inputStream);
                 } else {
                     /* unsupported */
+                    this.contentDecoded = false;
                     this.convertedInputStream = this.inputStream;
                 }
             } else {
