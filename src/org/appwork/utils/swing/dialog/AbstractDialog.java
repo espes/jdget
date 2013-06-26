@@ -67,81 +67,21 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     public static final DialogLocator             LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
     public static DialogLocator                   DEFAULT_LOCATOR         = null;
 
+    private static int                            BUTTON_HEIGHT           = -1;
+
+    public static int getButtonHeight() {
+        return AbstractDialog.BUTTON_HEIGHT;
+    }
+
     public static DialogLocator getDefaultLocator() {
-        return DEFAULT_LOCATOR;
+        return AbstractDialog.DEFAULT_LOCATOR;
     }
-
-    public String getIconDataUrl() {
-        if (getIcon() == null) { return null; }
-
-        Base64OutputStream b64os = null;
-        ByteArrayOutputStream bos = null;
-
-        try {
-            bos = new ByteArrayOutputStream();
-            b64os = new Base64OutputStream(bos);
-            ImageIO.write(IconIO.toBufferedImage(getIcon().getImage()), "png", b64os);
-            b64os.flush(true);
-            final String ret = "png;base64," + bos.toString("UTF-8");
-            return ret;
-        } catch (final Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            try {
-                b64os.close();
-            } catch (final Throwable e) {
-            }
-            try {
-                bos.close();
-            } catch (final Throwable e) {
-            }
-
-        }
-
-    }
-
-    public static void setDefaultLocator(final DialogLocator dEFAULT_LOCATOR) {
-        DEFAULT_LOCATOR = dEFAULT_LOCATOR;
-    }
-
-    private static int BUTTON_HEIGHT = -1;
 
     public static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
         if (ret == null) { return -1; }
 
         return ret;
-    }
-
-    @Override
-    public CloseReason getCloseReason() {
-        if (getReturnmask() == 0) { throw new IllegalStateException("Dialog has not been closed yet"); }
-        if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_TIMEOUT)) { return CloseReason.TIMEOUT; }
-        if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
-        if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_CANCEL)) { return CloseReason.CANCEL; }
-        if (BinaryLogic.containsSome(getReturnmask(), Dialog.RETURN_OK)) { return CloseReason.OK; }
-
-        throw new WTFException();
-
-    }
-
-    public UserIODefinition show() {
-        final UserIODefinition ret = UIOManager.I().show(UserIODefinition.class, this);
-
-        return ret;
-    }
-
-    /**
-     * @throws DialogClosedException
-     * @throws DialogCanceledException
-     * 
-     */
-    public void throwCloseExceptions() throws DialogClosedException, DialogCanceledException {
-        final int mask = getReturnmask();
-        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
-        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
-
     }
 
     public static void resetDialogInformations() {
@@ -153,13 +93,25 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         }
     }
 
+    /**
+     * @param i
+     */
+    public static void setButtonHeight(final int height) {
+        AbstractDialog.BUTTON_HEIGHT = height;
+
+    }
+
+    public static void setDefaultLocator(final DialogLocator dEFAULT_LOCATOR) {
+        AbstractDialog.DEFAULT_LOCATOR = dEFAULT_LOCATOR;
+    }
+
     protected JButton          cancelButton;
 
     private final String       cancelOption;
+
     private DefaultButtonPanel defaultButtons;
 
     protected JCheckBox        dontshowagain;
-
     protected int              flagMask;
 
     private ImageIcon          icon;
@@ -192,37 +144,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
     private Point              orgLocationOnScreen;
 
-    public DialogLocator getLocator() {
-        if (locator == null) {
-            if (DEFAULT_LOCATOR != null) { return DEFAULT_LOCATOR; }
-            return LOCATE_CENTER_OF_SCREEN;
-        }
-        return locator;
-    }
-
-    public void onSetVisible(final boolean b) {
-
-        if (!b && getDialog().isVisible()) {
-            try {
-                getLocator().onClose(AbstractDialog.this);
-            } catch (final Exception e) {
-                e.printStackTrace();
-            }
-            if (dimensor != null) {
-                try {
-                    dimensor.onClose(AbstractDialog.this);
-                } catch (final Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-    }
-
-    public int getFlags() {
-        return flagMask;
-    }
-
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
 
@@ -235,29 +156,14 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     /**
-     * @param locateCenterOfScreen
-     */
-    public void setLocator(final DialogLocator locator) {
-        this.locator = locator;
-    }
-
-    public void setDimensor(final DialogDimensor dimensor) {
-        this.dimensor = dimensor;
-    }
-
-    public DialogDimensor getDimensor() {
-        return dimensor;
-    }
-
-    /**
      * this function will init and show the dialog
      */
     protected void _init() {
 
-        layoutDialog();
+        this.layoutDialog();
 
         if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_COUNTDOWN)) {
-            timerLbl.addMouseListener(new MouseAdapter() {
+            this.timerLbl.addMouseListener(new MouseAdapter() {
 
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -266,9 +172,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 }
 
             });
-            timerLbl.setToolTipText(_AWU.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
+            this.timerLbl.setToolTipText(_AWU.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
 
-            timerLbl.setIcon(AWUTheme.I().getIcon("dialog/cancel", 16));
+            this.timerLbl.setIcon(AWUTheme.I().getIcon("dialog/cancel", 16));
         }
         /**
          * this is very important so the new shown dialog will become root for
@@ -277,22 +183,22 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
          * shown, we restore old parentWindow
          */
         final Component parentOwner = Dialog.getInstance().getParentOwner();
-        Dialog.getInstance().setParentOwner(getDialog());
+        Dialog.getInstance().setParentOwner(this.getDialog());
         try {
 
             this.setTitle(this.title);
 
-            if (evaluateDontShowAgainFlag()) { return; }
+            if (this.evaluateDontShowAgainFlag()) { return; }
             if (parentOwner == null || !parentOwner.isShowing()) {
-                getDialog().setAlwaysOnTop(true);
+                this.getDialog().setAlwaysOnTop(true);
             }
             // The Dialog Modal
-            getDialog().setModal(true);
+            this.getDialog().setModal(true);
             // Layout manager
 
             // Dispose dialog on close
-            getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-            getDialog().addWindowListener(this);
+            this.getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            this.getDialog().addWindowListener(this);
             this.defaultButtonFocusListener = new FocusListener() {
 
                 @Override
@@ -332,21 +238,21 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
             // add icon if available
             if (this.icon != null) {
-                getDialog().setLayout(new MigLayout("ins 5,wrap 2", "[][grow,fill]", "[grow,fill][]"));
-                getDialog().add(this.getIconComponent(), this.getIconConstraints());
+                this.getDialog().setLayout(new MigLayout("ins 5,wrap 2", "[][grow,fill]", "[grow,fill][]"));
+                this.getDialog().add(this.getIconComponent(), this.getIconConstraints());
             } else {
-                getDialog().setLayout(new MigLayout("ins 5,wrap 1", "[grow,fill]", "[grow,fill][]"));
+                this.getDialog().setLayout(new MigLayout("ins 5,wrap 1", "[grow,fill]", "[grow,fill][]"));
             }
             // Layout the dialog content and add it to the contentpane
             this.panel = this.layoutDialogContent();
 
-            getDialog().add(this.panel, "");
+            this.getDialog().add(this.panel, "");
 
             // add the countdown timer
             final MigPanel bottom = this.createBottomPanel();
             bottom.setOpaque(false);
 
-            bottom.add(timerLbl);
+            bottom.add(this.timerLbl);
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
                 this.dontshowagain = new JCheckBox(this.getDontShowAgainLabelText());
@@ -363,7 +269,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             if ((this.flagMask & UIOManager.BUTTONS_HIDE_OK) == 0) {
 
                 // Set OK as defaultbutton
-                getDialog().getRootPane().setDefaultButton(this.okButton);
+                this.getDialog().getRootPane().setDefaultButton(this.okButton);
                 this.okButton.addHierarchyListener(new HierarchyListener() {
                     public void hierarchyChanged(final HierarchyEvent e) {
                         if ((e.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0) {
@@ -385,7 +291,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
                 this.defaultButtons.addCancelButton(this.cancelButton);
                 if (BinaryLogic.containsAll(this.flagMask, UIOManager.BUTTONS_HIDE_OK)) {
-                    getDialog().getRootPane().setDefaultButton(this.cancelButton);
+                    this.getDialog().getRootPane().setDefaultButton(this.cancelButton);
 
                     // focus is on cancel if OK is hidden
                     focus = this.cancelButton;
@@ -395,16 +301,16 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
             if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_COUNTDOWN)) {
                 // show timer
-                initTimer(getCountdown());
+                this.initTimer(this.getCountdown());
             } else {
-                timerLbl.setText(null);
+                this.timerLbl.setText(null);
             }
-            getDialog().add(bottom, "spanx,growx,pushx");
+            this.getDialog().add(bottom, "spanx,growx,pushx");
             // pack dialog
-            getDialog().invalidate();
+            this.getDialog().invalidate();
             // this.setMinimumSize(this.getPreferredSize());
 
-            getDialog().setResizable(this.isResizable());
+            this.getDialog().setResizable(this.isResizable());
 
             // minimum size foir a dialog
 
@@ -418,30 +324,30 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // this.setSize(this.getDesiredSize());
             // }
 
-            pack();
-            if (dimensor != null) {
-                final Dimension ret = dimensor.getDimension(AbstractDialog.this);
+            this.pack();
+            if (this.dimensor != null) {
+                final Dimension ret = this.dimensor.getDimension(AbstractDialog.this);
                 if (ret != null) {
-                    getDialog().setSize(ret);
+                    this.getDialog().setSize(ret);
                 }
 
-            }
-
+            }// register an escape listener to cancel the dialog
+            this.registerEscape(focus);
             this.packed();
 
             Point loc = null;
 
             try {
-                loc = getLocator().getLocationOnScreen(this);
+                loc = this.getLocator().getLocationOnScreen(this);
 
             } catch (final Exception e) {
                 e.printStackTrace();
             }
             if (loc != null) {
-                getDialog().setLocation(loc);
+                this.getDialog().setLocation(loc);
             } else {
                 try {
-                    getDialog().setLocation(LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(this));
+                    this.getDialog().setLocation(AbstractDialog.LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(this));
                 } catch (final Exception e) {
                     e.printStackTrace();
                 }
@@ -463,16 +369,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // ((Window) getDialog().getParent()).setAlwaysOnTop(true);
             // ((Window) getDialog().getParent()).setAlwaysOnTop(false);
             // }
-            getDialog().addComponentListener(new ComponentListener() {
+            this.getDialog().addComponentListener(new ComponentListener() {
 
                 @Override
-                public void componentShown(final ComponentEvent e) {
-                    orgLocationOnScreen = getDialog().getLocationOnScreen();
-                    System.out.println(orgLocationOnScreen);
-                }
-
-                @Override
-                public void componentResized(final ComponentEvent e) {
+                public void componentHidden(final ComponentEvent e) {
                     // TODO Auto-generated method stub
 
                 }
@@ -484,19 +384,24 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 }
 
                 @Override
-                public void componentHidden(final ComponentEvent e) {
+                public void componentResized(final ComponentEvent e) {
                     // TODO Auto-generated method stub
 
                 }
+
+                @Override
+                public void componentShown(final ComponentEvent e) {
+                    AbstractDialog.this.orgLocationOnScreen = AbstractDialog.this.getDialog().getLocationOnScreen();
+                    System.out.println(AbstractDialog.this.orgLocationOnScreen);
+                }
             });
-            // register an escape listener to cancel the dialog
-            this.registerEscape(focus);
-            setVisible(true);
+
+            this.setVisible(true);
 
             // if the dt has been interrupted,s setVisible will return even for
             // modal dialogs
             // however the dialog will stay open. Make sure to close it here
-            dispose();
+            this.dispose();
             // dialog gets closed
             // 17.11.2011 I did not comment this - may be debug code while
             // finding the problem with dialogs with closed parent...s
@@ -516,7 +421,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             // }
         } finally {
             // System.out.println("SET OLD");
-            Dialog.getInstance().setParentOwner(getDialog().getParent());
+            Dialog.getInstance().setParentOwner(this.getDialog().getParent());
         }
 
         /*
@@ -534,43 +439,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         // ((Window) getDialog().getParent()).setAlwaysOnTop(true);
         // ((Window) getDialog().getParent()).setAlwaysOnTop(false);
         // }
-    }
-
-    /**
-     * @return
-     */
-    public boolean evaluateDontShowAgainFlag() {
-        if (isDontShowAgainFlagEabled()) {
-            final String key = this.getDontShowAgainKey();
-            if (key != null) {
-                // bypass if key is null. this enables us to show don't show
-                // again checkboxes, but handle the result extern.
-                try {
-                    final int i = BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(key) : JSonStorage.getPlainStorage("Dialogs").get(key, -1);
-
-                    if (i >= 0) {
-                        // filter saved return value
-                        int ret = i & (Dialog.RETURN_OK | Dialog.RETURN_CANCEL);
-                        // add flags
-                        ret |= Dialog.RETURN_DONT_SHOW_AGAIN | Dialog.RETURN_SKIPPED_BY_DONT_SHOW;
-
-                        /*
-                         * if LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL or
-                         * LOGIC_DONT_SHOW_AGAIN_IGNORES_OK are used, we check
-                         * here if we should handle the dont show again feature
-                         */
-                        if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) { return false; }
-                        if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_OK) && BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) { return false; }
-
-                        this.returnBitMask = ret;
-                        return true;
-                    }
-                } catch (final Exception e) {
-                    Log.exception(e);
-                }
-            }
-        }
-        return false;
     }
 
     public void actionPerformed(final ActionEvent e) {
@@ -606,10 +474,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     protected DefaultButtonPanel createBottomButtonPanel() {
         // TODO Auto-generated method stub
-        if (BUTTON_HEIGHT <= 0) {
+        if (AbstractDialog.BUTTON_HEIGHT <= 0) {
             return new DefaultButtonPanel("ins 0", "[]", "0[grow,fill]0");
         } else {
-            return new DefaultButtonPanel("ins 0", "[]", "0[grow,fill," + BUTTON_HEIGHT + "!]0");
+            return new DefaultButtonPanel("ins 0", "[]", "0[grow,fill," + AbstractDialog.BUTTON_HEIGHT + "!]0");
         }
     }
 
@@ -634,43 +502,24 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         this._init();
     }
 
-    /**
-     * Fakes an init of the dialog. we need this if we want to work with the
-     * model only.
-     */
-    public void forceDummyInit() {
-        initialized = true;
-        dummyInit = true;
-    }
-
-    /**
-     * resets the dummyinit to continue working with the dialog instance after
-     * using {@link #forceDummyInit()}
-     */
-
-    public void resetDummyInit() {
-        initialized = false;
-        dummyInit = false;
-    }
-
     @Override
     public void dispose() {
-        if (dummyInit && dialog == null) { return; }
+        if (this.dummyInit && this.dialog == null) { return; }
         if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
         new EDTRunner() {
 
             @Override
             protected void runInEDT() {
 
-                if (getDialog().isVisible()) {
+                if (AbstractDialog.this.getDialog().isVisible()) {
                     try {
-                        getLocator().onClose(AbstractDialog.this);
+                        AbstractDialog.this.getLocator().onClose(AbstractDialog.this);
                     } catch (final Exception e) {
                         e.printStackTrace();
                     }
                     try {
-                        if (dimensor != null) {
-                            dimensor.onClose(AbstractDialog.this);
+                        if (AbstractDialog.this.dimensor != null) {
+                            AbstractDialog.this.dimensor.onClose(AbstractDialog.this);
                         }
                     } catch (final Exception e) {
                         e.printStackTrace();
@@ -689,6 +538,64 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     /**
      * @return
      */
+    public boolean evaluateDontShowAgainFlag() {
+        if (this.isDontShowAgainFlagEabled()) {
+            final String key = this.getDontShowAgainKey();
+            if (key != null) {
+                // bypass if key is null. this enables us to show don't show
+                // again checkboxes, but handle the result extern.
+                try {
+                    final int i = BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT) ? AbstractDialog.getSessionDontShowAgainValue(key) : JSonStorage.getPlainStorage("Dialogs").get(key, -1);
+
+                    if (i >= 0) {
+                        // filter saved return value
+                        int ret = i & (Dialog.RETURN_OK | Dialog.RETURN_CANCEL);
+                        // add flags
+                        ret |= Dialog.RETURN_DONT_SHOW_AGAIN | Dialog.RETURN_SKIPPED_BY_DONT_SHOW;
+
+                        /*
+                         * if LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL or
+                         * LOGIC_DONT_SHOW_AGAIN_IGNORES_OK are used, we check
+                         * here if we should handle the dont show again feature
+                         */
+                        if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) { return false; }
+                        if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_OK) && BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) { return false; }
+
+                        this.returnBitMask = ret;
+                        return true;
+                    }
+                } catch (final Exception e) {
+                    Log.exception(e);
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Fakes an init of the dialog. we need this if we want to work with the
+     * model only.
+     */
+    public void forceDummyInit() {
+        this.initialized = true;
+        this.dummyInit = true;
+    }
+
+    @Override
+    public CloseReason getCloseReason() {
+        if (this.getReturnmask() == 0) { throw new IllegalStateException("Dialog has not been closed yet"); }
+        if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_TIMEOUT)) { return CloseReason.TIMEOUT; }
+        if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
+        if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_CANCEL)) { return CloseReason.CANCEL; }
+        if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_OK)) { return CloseReason.OK; }
+
+        throw new WTFException();
+
+    }
+
+    /**
+     * @return
+     */
     protected DefaultButtonPanel getDefaultButtonPanel() {
         final DefaultButtonPanel ret = this.createBottomButtonPanel();
         if (this.actions != null) {
@@ -699,6 +606,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         }
         return ret;
 
+    }
+
+    public DialogDimensor getDimensor() {
+        return this.dimensor;
     }
 
     /**
@@ -718,6 +629,10 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     protected String getDontShowAgainLabelText() {
 
         return _AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN();
+    }
+
+    public int getFlags() {
+        return this.flagMask;
     }
 
     public ImageIcon getIcon() {
@@ -741,6 +656,44 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         return "gapright 10,gaptop 2";
     }
 
+    public String getIconDataUrl() {
+        if (this.getIcon() == null) { return null; }
+
+        Base64OutputStream b64os = null;
+        ByteArrayOutputStream bos = null;
+
+        try {
+            bos = new ByteArrayOutputStream();
+            b64os = new Base64OutputStream(bos);
+            ImageIO.write(IconIO.toBufferedImage(this.getIcon().getImage()), "png", b64os);
+            b64os.flush(true);
+            final String ret = "png;base64," + bos.toString("UTF-8");
+            return ret;
+        } catch (final Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                b64os.close();
+            } catch (final Throwable e) {
+            }
+            try {
+                bos.close();
+            } catch (final Throwable e) {
+            }
+
+        }
+
+    }
+
+    public DialogLocator getLocator() {
+        if (this.locator == null) {
+            if (AbstractDialog.DEFAULT_LOCATOR != null) { return AbstractDialog.DEFAULT_LOCATOR; }
+            return AbstractDialog.LOCATE_CENTER_OF_SCREEN;
+        }
+        return this.locator;
+    }
+
     /**
      * Return the returnbitmask
      * 
@@ -762,11 +715,66 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     public String getTitle() {
         try {
-            return getDialog().getTitle();
+            return this.getDialog().getTitle();
         } catch (final NullPointerException e) {
             // not initialized yet
             return this.title;
         }
+
+    }
+
+    /**
+     * 
+     * @return if the dialog has been moved by the user
+     */
+    public boolean hasBeenMoved() {
+
+        return this.orgLocationOnScreen != null && !this.getDialog().getLocationOnScreen().equals(this.orgLocationOnScreen);
+    }
+
+    /**
+     * @param focus
+     */
+    protected void initFocus(final JComponent focus) {
+        focus.requestFocusInWindow();
+
+    }
+
+    /**
+     * Closes the thread. Causes a cancel and setting the interrupted flag
+     */
+    public void interrupt() {
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                AbstractDialog.this.dispose();
+                AbstractDialog.this.returnBitMask = Dialog.RETURN_CLOSED | Dialog.RETURN_INTERRUPT;
+
+            }
+        };
+
+    }
+
+    /**
+     * @return
+     * 
+     */
+    public boolean isCountdownFlagEnabled() {
+        return BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_COUNTDOWN);
+
+    }
+
+    /**
+     * @return
+     */
+    public boolean isDontShowAgainFlagEabled() {
+        return BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN);
+    }
+
+    public boolean isDontShowAgainSelected() {
+        if (this.isHiddenByDontShowAgain() || this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) { return true; }
+        return false;
 
     }
 
@@ -785,24 +793,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         return this.initialized;
     }
 
-    public boolean isDontShowAgainSelected() {
-        if (isHiddenByDontShowAgain() || (this.dontshowagain.isSelected() && this.dontshowagain.isEnabled())) { return true; }
-        return false;
-
-    }
-
-    /**
-     * override to change default resizable flag
-     * 
-     * @return
-     */
-    protected boolean isResizable() {
-        // by default dialogs should be resizeble - at least for windows.
-        // size calculation is almost impossible for nonresizable dialogs. they
-        // are always a bit bigger than getDimension tells us
-        return true;
-    }
-
     // /**
     // * should be overwritten and return a Dimension of the dialog should have
     // a
@@ -816,11 +806,43 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     // }
 
     /**
+     * override to change default resizable flag
+     * 
+     * @return
+     */
+    protected boolean isResizable() {
+        // by default dialogs should be resizeble - at least for windows.
+        // size calculation is almost impossible for nonresizable dialogs. they
+        // are always a bit bigger than getDimension tells us
+        return true;
+    }
+
+    /**
      * This method has to be overwritten to implement custom content
      * 
      * @return musst return a JComponent
      */
     abstract public JComponent layoutDialogContent();
+
+    @Override
+    public void onSetVisible(final boolean b) {
+
+        if (!b && this.getDialog().isVisible()) {
+            try {
+                this.getLocator().onClose(AbstractDialog.this);
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
+            if (this.dimensor != null) {
+                try {
+                    this.dimensor.onClose(AbstractDialog.this);
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
 
     /**
      * Handle timeout
@@ -856,17 +878,23 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                     AbstractDialog.this.dispose();
                 }
             });
-            initFocus(focus);
+            this.initFocus(focus);
 
         }
     }
 
     /**
-     * @param focus
+     * resets the dummyinit to continue working with the dialog instance after
+     * using {@link #forceDummyInit()}
      */
-    protected void initFocus(final JComponent focus) {
-        focus.requestFocusInWindow();
 
+    public void resetDummyInit() {
+        this.initialized = false;
+        this.dummyInit = false;
+    }
+
+    public void setDimensor(final DialogDimensor dimensor) {
+        this.dimensor = dimensor;
     }
 
     /**
@@ -895,6 +923,14 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     /**
+     * 
+     */
+    public void setInterrupted() {
+        this.returnBitMask |= Dialog.RETURN_INTERRUPT;
+
+    }
+
+    /**
      * Add Additional BUttons on the left side of ok and cancel button. You can
      * add a "tag" property to the action in ordner to help the layouter,
      * 
@@ -910,6 +946,13 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     /**
+     * @param locateCenterOfScreen
+     */
+    public void setLocator(final DialogLocator locator) {
+        this.locator = locator;
+    }
+
+    /**
      * Sets the returnvalue and saves the don't show again states to the
      * database
      * 
@@ -919,7 +962,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
         this.returnBitMask = b ? Dialog.RETURN_OK : Dialog.RETURN_CANCEL;
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
-            if (dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) {
+            if (this.dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) {
                 this.returnBitMask |= Dialog.RETURN_DONT_SHOW_AGAIN;
                 try {
                     final String key = this.getDontShowAgainKey();
@@ -944,10 +987,28 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     public void setTitle(final String title2) {
         try {
-            getDialog().setTitle(title2);
+            this.getDialog().setTitle(title2);
         } catch (final NullPointerException e) {
             this.title = title2;
         }
+    }
+
+    public UserIODefinition show() {
+        final UserIODefinition ret = UIOManager.I().show(UserIODefinition.class, this);
+
+        return ret;
+    }
+
+    /**
+     * @throws DialogClosedException
+     * @throws DialogCanceledException
+     * 
+     */
+    public void throwCloseExceptions() throws DialogClosedException, DialogCanceledException {
+        final int mask = this.getReturnmask();
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
+
     }
 
     /**
@@ -984,67 +1045,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     }
 
     public void windowOpened(final WindowEvent arg0) {
-    }
-
-    /**
-     * @param i
-     */
-    public static void setButtonHeight(final int height) {
-        BUTTON_HEIGHT = height;
-
-    }
-
-    public static int getButtonHeight() {
-        return BUTTON_HEIGHT;
-    }
-
-    /**
-     * @return
-     * 
-     */
-    public boolean isCountdownFlagEnabled() {
-        return BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_COUNTDOWN);
-
-    }
-
-    /**
-     * @return
-     */
-    public boolean isDontShowAgainFlagEabled() {
-        return BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN);
-    }
-
-    /**
-     * 
-     * @return if the dialog has been moved by the user
-     */
-    public boolean hasBeenMoved() {
-
-        return orgLocationOnScreen != null && !getDialog().getLocationOnScreen().equals(orgLocationOnScreen);
-    }
-
-    /**
-     * 
-     */
-    public void setInterrupted() {
-        returnBitMask |= Dialog.RETURN_INTERRUPT;
-
-    }
-
-    /**
-     * Closes the thread. Causes a cancel and setting the interrupted flag
-     */
-    public void interrupt() {
-        new EDTRunner() {
-
-            @Override
-            protected void runInEDT() {
-                dispose();
-                returnBitMask = Dialog.RETURN_CLOSED | Dialog.RETURN_INTERRUPT;
-
-            }
-        };
-
     }
 
 }
