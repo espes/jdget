@@ -19,6 +19,7 @@ import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
 import org.appwork.resources.AWUTheme;
+import org.appwork.uio.UIOManager;
 import org.appwork.utils.formatter.SizeFormatter;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.swing.EDTHelper;
@@ -170,7 +171,7 @@ public class HTTP {
                         }
 
                     };
-                    final ProgressDialog dialog = new ProgressDialog(pg, Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK, _AWU.T.download_title(), _AWU.T.download_msg(), AWUTheme.I().getIcon("download", 32)) {
+                    final ProgressDialog dialog = new ProgressDialog(pg, UIOManager.BUTTONS_HIDE_CANCEL | UIOManager.BUTTONS_HIDE_OK, _AWU.T.download_title(), _AWU.T.download_msg(), AWUTheme.I().getIcon("download", 32)) {
                         /**
                          * 
                          */

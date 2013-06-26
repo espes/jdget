@@ -12,6 +12,7 @@ package org.appwork.utils.swing.dialog.test;
 import java.util.logging.Level;
 
 import org.appwork.resources.AWUTheme;
+import org.appwork.uio.UIOManager;
 import org.appwork.utils.formatter.SizeFormatter;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
@@ -69,7 +70,7 @@ public class TEstProgressDialog {
                     }
 
                 };
-                final ProgressDialog dialog = new ProgressDialog(pg, Dialog.BUTTONS_HIDE_CANCEL | Dialog.BUTTONS_HIDE_OK, _AWU.T.download_title(), _AWU.T.download_msg(), AWUTheme.getInstance().getIcon("download", 32)) {
+                final ProgressDialog dialog = new ProgressDialog(pg, UIOManager.BUTTONS_HIDE_CANCEL | UIOManager.BUTTONS_HIDE_OK, _AWU.T.download_title(), _AWU.T.download_msg(), AWUTheme.getInstance().getIcon("download", 32)) {
                     /**
              * 
              */

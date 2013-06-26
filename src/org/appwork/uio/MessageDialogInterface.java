@@ -1,8 +1,8 @@
 package org.appwork.uio;
 
-import org.appwork.utils.swing.dialog.UserIODefinition;
 
 public interface MessageDialogInterface extends UserIODefinition {
+    @Out
     public String getMessage();
 
 

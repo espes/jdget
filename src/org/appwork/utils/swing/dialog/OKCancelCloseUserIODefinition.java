@@ -1,12 +1,13 @@
 package org.appwork.utils.swing.dialog;
 
+import org.appwork.uio.Out;
+import org.appwork.uio.UserIODefinition;
+
 public interface OKCancelCloseUserIODefinition extends UserIODefinition {
-    public static enum CloseReason {
-        OK,
-        CANCEL,
-        CLOSE, TIMEOUT
-    }
-public String getTitle();
-    public CloseReason getCloseReason();
+ 
+    @Out
+    public String getTitle();
+   
+
 
 }

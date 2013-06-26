@@ -17,6 +17,8 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import org.appwork.swing.MigPanel;
+import org.appwork.uio.ConfirmDialogInterface;
+import org.appwork.uio.UIOManager;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
@@ -38,8 +40,22 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
         this.message = message;
     }
 
+    /**
+     * @param i
+     * @param name
+     * @param gui_settings_extensions_show_now
+     */
+    public ConfirmDialog(final int flag, final String title, final String message) {
+        this(flag, title, message, null, null, null);
+    }
+
     public String getMessage() {
         return message;
+    }
+
+    public ConfirmDialogInterface show() {
+
+        return UIOManager.I().show(ConfirmDialogInterface.class, this);
     }
 
     @Override
@@ -47,10 +63,12 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
         // TODO Auto-generated method stub
         return getReturnmask();
     }
+
     protected boolean isResizable() {
         // TODO Auto-generated method stub
         return true;
     }
+
     @Override
     public JComponent layoutDialogContent() {
         final MigPanel p = new MigPanel("", "[]", "[]");
@@ -112,9 +130,5 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
         }
 
     }
-
-
-
-    
 
 }

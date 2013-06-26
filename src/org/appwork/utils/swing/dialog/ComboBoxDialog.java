@@ -19,6 +19,7 @@ import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
 
 import org.appwork.swing.MigPanel;
+import org.appwork.uio.ComboBoxDialogInterface;
 import org.appwork.utils.logging.Log;
 
 public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxDialogInterface {
@@ -152,5 +153,7 @@ public class ComboBoxDialog extends AbstractDialog<Integer> implements ComboBoxD
     public int getSelectedIndex() {
         return getReturnIndex();
     }
+
+ 
 
 }

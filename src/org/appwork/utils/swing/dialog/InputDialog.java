@@ -27,12 +27,15 @@ import org.appwork.swing.MigPanel;
 import org.appwork.swing.components.ExtPasswordField;
 import org.appwork.swing.components.ExtTextField;
 import org.appwork.swing.components.TextComponentInterface;
+import org.appwork.uio.InputDialogInterface;
+import org.appwork.uio.UIOManager;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
+import org.appwork.utils.swing.EDTHelper;
 
-public class InputDialog extends AbstractDialog<String> implements KeyListener, MouseListener {
+public class InputDialog extends AbstractDialog<String> implements KeyListener, MouseListener, InputDialogInterface {
 
     protected String               defaultMessage;
     protected String               message;
@@ -41,12 +44,28 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
     private JTextPane              bigInput;
     private JTextPane              textField;
 
+    @Override
+    public InputDialogInterface show() {
+
+        return UIOManager.I().show(InputDialogInterface.class, this);
+    }
+
     public InputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
         Log.L.fine("Dialog    [" + okOption + "][" + cancelOption + "]\r\nflag:  " + Integer.toBinaryString(flag) + "\r\ntitle: " + title + "\r\nmsg:   \r\n" + message + "\r\ndef:   \r\n" + defaultMessage);
 
         this.defaultMessage = defaultMessage;
         this.message = message;
+    }
+
+    /**
+     * @param i
+     * @param enter_password
+     * @param enter_passwordfor
+     * @param password
+     */
+    public InputDialog(final int flag, final String title, final String message, final String defaultMessage) {
+        this(flag, title, message, defaultMessage, null, null, null);
     }
 
     /*
@@ -224,10 +243,11 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
         requestFocus();
 
     }
+
     protected void initFocus(final JComponent focus) {
-      
-        
+
     }
+
     public void setDefaultMessage(final String defaultMessage) {
         this.defaultMessage = defaultMessage;
         if (input != null) {
@@ -237,6 +257,24 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
 
     public void setMessage(final String message) {
         this.message = message;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.uio.InputDialogInterface#getText()
+     */
+    @Override
+    public String getText() {
+
+        return new EDTHelper<String>() {
+
+            @Override
+            public String edtRun() {
+                if (input == null) { return null; }
+                return input.getText();
+            }
+        }.getReturnValue();
     }
 
 }

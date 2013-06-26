@@ -23,6 +23,7 @@ import javax.swing.JFileChooser;
 import javax.swing.ListCellRenderer;
 
 import org.appwork.resources.AWUTheme;
+import org.appwork.uio.UIOManager;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.interfaces.ValueConverter;
 import org.appwork.utils.locale._AWU;
@@ -38,91 +39,62 @@ public class Dialog implements WindowFocusListener {
     /**
      * 
      */
-    public static final String  LASTSELECTION                        = "LASTSELECTION_";
+    public static final String  LASTSELECTION                       = "LASTSELECTION_";
 
     /**
      * 
      */
-    public static final String  FILECHOOSER                          = "FILECHOOSER";
+    public static final String  FILECHOOSER                         = "FILECHOOSER";
 
-    /**
-     * Hide the cancel Button
-     */
-    public static final int     BUTTONS_HIDE_CANCEL                  = 1 << 4;
-
-    /**
-     * Hide the OK button
-     */
-    public static final int     BUTTONS_HIDE_OK                      = 1 << 3;
     /**
      * Icon Key for Error Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String  ICON_ERROR                           = "dialog/error";
+    public static final String  ICON_ERROR                          = "dialog/error";
     /**
      * Icon Key for Information Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String  ICON_INFO                            = "dialog/info";
+    public static final String  ICON_INFO                           = "dialog/info";
     /**
      * Icon Key for Question Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String  ICON_QUESTION                        = "dialog/help";
+    public static final String  ICON_QUESTION                       = "dialog/help";
     /**
      * Icon Key for Warning Icons
      * 
      * @see org.appwork.utils.ImageProvider.ImageProvider#getImageIcon(String,
      *      int, int, boolean)
      */
-    public static final String  ICON_WARNING                         = "dialog/warning";
+    public static final String  ICON_WARNING                        = "dialog/warning";
     /**
      * internal singleton instance to access the instance of this class
      */
-    private static final Dialog INSTANCE                             = new Dialog();
-    /**
-     * LOGIC_BYPASS all dialogs. Try to fill automatically or return null
-     */
-    public static final int     LOGIC_BYPASS                         = 1 << 1;
+    private static final Dialog INSTANCE                            = new Dialog();
 
     /**
-     * Use this flag to show display of the Timer
+     * 
+     * @deprecated Use org.appwork.uio.UIOManager Constants instead
      */
-    public static final int     LOGIC_COUNTDOWN                      = 1 << 2;
-    /**
-     * Don't show again is only valid for this session, but is not saved for
-     * further sessions
-     */
-    public static final int     LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT = 1 << 11;
-    public static final int     LOGIC_DONOTSHOW_BASED_ON_TITLE_ONLY  = 1 << 12;
+    @Deprecated()
+    public static final int     LOGIC_DONOTSHOW_BASED_ON_TITLE_ONLY = 1 << 12;
 
-    /**
-     * Often, the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} option does not make
-     * sense for the cancel option. Use this flag if the option should be
-     * ignored if the user selects Cancel
-     */
-    public static final int     LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL = 1 << 9;
-    /**
-     * Often, the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} option does not make
-     * sense for the ok option. Use this flag if the option should be ignored if
-     * the user selects OK
-     */
-    public static final int     LOGIC_DONT_SHOW_AGAIN_IGNORES_OK     = 1 << 10;
     /**
      * if the user pressed cancel, the return mask will contain this mask
      */
-    public static final int     RETURN_CANCEL                        = 1 << 2;
+    public static final int     RETURN_CANCEL                       = 1 << 2;
     /**
      * if user closed the window
      */
-    public static final int     RETURN_CLOSED                        = 1 << 6;
-    public static final int     RETURN_INTERRUPT                     = 1 << 8;
+    public static final int     RETURN_CLOSED                       = 1 << 6;
+    public static final int     RETURN_INTERRUPT                    = 1 << 8;
     /**
      * this return flag can be set in two situations:<br>
      * a) The user selected the {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option<br>
@@ -132,31 +104,29 @@ public class Dialog implements WindowFocusListener {
      * Check {@link #RETURN_SKIPPED_BY_DONT_SHOW} to know if the dialog has been
      * visible or autoskipped
      */
-    public static final int     RETURN_DONT_SHOW_AGAIN               = 1 << 3;
+    public static final int     RETURN_DONT_SHOW_AGAIN              = 1 << 3;
 
     /**
      * If the user pressed OK, the return mask will contain this flag
      */
-    public static final int     RETURN_OK                            = 1 << 1;
+    public static final int     RETURN_OK                           = 1 << 1;
     /**
      * If the dialog has been skipped due to previously selected
      * {@link #STYLE_SHOW_DO_NOT_DISPLAY_AGAIN} Option, this return flag is set.
      * 
      * @see #RETURN_DONT_SHOW_AGAIN
      */
-    public static final int     RETURN_SKIPPED_BY_DONT_SHOW          = 1 << 4;
+    public static final int     RETURN_SKIPPED_BY_DONT_SHOW         = 1 << 4;
     /**
-     * If the Timeout ({@link #LOGIC_COUNTDOWN}) has run out, the return mask
-     * contains this flag
+     * If the Timeout ({@link UIOManager#LOGIC_COUNTDOWN}) has run out, the
+     * return mask contains this flag
      */
-    public static final int     RETURN_TIMEOUT                       = 1 << 5;
+    public static final int     RETURN_TIMEOUT                      = 1 << 5;
 
     /**
      * If the dialog has been skiped/closed by ESC key
      */
-    public static final int     RETURN_ESC                           = 1 << 7;
-
-    private static boolean      ShellFolderIDWorkaround              = false;
+    public static final int     RETURN_ESC                          = 1 << 7;
 
     /**
      * @return
@@ -282,8 +252,8 @@ public class Dialog implements WindowFocusListener {
     private DialogHandler                defaultHandler;
 
     private Dialog() {
-        this.parents = new ArrayList<Window>();
-        this.defaultHandler = new DialogHandler() {
+        parents = new ArrayList<Window>();
+        defaultHandler = new DialogHandler() {
 
             @Override
             public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
@@ -297,27 +267,27 @@ public class Dialog implements WindowFocusListener {
      * @see Dialog#countdownTime
      */
     protected int getCountdownTime() {
-        return this.countdownTime;
+        return countdownTime;
     }
 
     public DialogHandler getDefaultHandler() {
-        return this.defaultHandler;
+        return defaultHandler;
     }
 
     public DialogHandler getHandler() {
-        return this.handler;
+        return handler;
     }
 
     /**
      * @return
      */
     public List<? extends Image> getIconList() {
-        return this.iconList;
+        return iconList;
     }
 
     public LAFManagerInterface getLafManager() {
         synchronized (this) {
-            return this.lafManager;
+            return lafManager;
         }
     }
 
@@ -327,7 +297,7 @@ public class Dialog implements WindowFocusListener {
      */
     public Component getParentOwner() {
 
-        return this.owner;
+        return owner;
     }
 
     /**
@@ -337,7 +307,7 @@ public class Dialog implements WindowFocusListener {
      * @return
      */
     public java.util.List<Window> getRegisteredParents() {
-        return this.parents;
+        return parents;
     }
 
     /**
@@ -345,9 +315,9 @@ public class Dialog implements WindowFocusListener {
      */
     public void initLaf() {
         synchronized (this) {
-            if (this.lafManager != null) {
-                this.lafManager.init();
-                this.setLafManager(null);
+            if (lafManager != null) {
+                lafManager.init();
+                setLafManager(null);
             }
         }
     }
@@ -361,7 +331,7 @@ public class Dialog implements WindowFocusListener {
     public void registerFrame(final Window frame) {
         frame.addWindowFocusListener(this);
 
-        this.parents.add(frame);
+        parents.add(frame);
     }
 
     /**
@@ -375,7 +345,7 @@ public class Dialog implements WindowFocusListener {
 
     public void setHandler(DialogHandler handler) {
         if (handler == null) {
-            handler = this.defaultHandler;
+            handler = defaultHandler;
         }
         this.handler = handler;
     }
@@ -397,8 +367,8 @@ public class Dialog implements WindowFocusListener {
      * @see Dialog#owner
      */
     public void setParentOwner(final Component parent) {
-        if (this.owner == parent) { return; }
-        this.owner = parent;
+        if (owner == parent) { return; }
+        owner = parent;
 
         if (parent == null) {
             Log.exception(new NullPointerException("parent == null"));
@@ -434,7 +404,7 @@ public class Dialog implements WindowFocusListener {
      * @throws DialogClosedException
      */
     public int showComboDialog(final int flag, final String title, final String question, final Object[] options, final int defaultSelectedIndex, final ImageIcon icon, final String okOption, final String cancelOption, final ListCellRenderer renderer) throws DialogClosedException, DialogCanceledException {
-        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultSelectedIndex; }
+
         return this.showDialog(new ComboBoxDialog(flag, title, question, options, defaultSelectedIndex, icon, okOption, cancelOption, renderer));
     }
 
@@ -466,7 +436,7 @@ public class Dialog implements WindowFocusListener {
      * @throws DialogClosedException
      */
     public Object showComboDialog(final int flag, final String title, final String question, final Object[] options, final Object defaultSelectedItem, final ImageIcon icon, final String okOption, final String cancelOption, final ListCellRenderer renderer) throws DialogClosedException, DialogCanceledException {
-        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultSelectedItem; }
+
         int def = 0;
         for (int i = 0; i < options.length; i++) {
             if (options[i] == defaultSelectedItem) {
@@ -537,7 +507,7 @@ public class Dialog implements WindowFocusListener {
      * @throws DialogClosedException
      */
     public int showConfirmDialog(final int flag, final String title, final String message, final ImageIcon tmpicon, final String okOption, final String cancelOption) throws DialogClosedException, DialogCanceledException {
-        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return 0; }
+
         final ImageIcon icon;
         if (tmpicon == null) {
             icon = Dialog.getIconByText(title + message);
@@ -557,7 +527,7 @@ public class Dialog implements WindowFocusListener {
      * @throws DialogCanceledException
      */
     public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
-        final DialogHandler lhandler = this.handler;
+        final DialogHandler lhandler = handler;
         if (lhandler != null) { return lhandler.showDialog(dialog); }
         return this.showDialogRaw(dialog);
     }
@@ -591,13 +561,13 @@ public class Dialog implements WindowFocusListener {
                 protected void runInEDT() {
                     try {
                         // close dialog if open
-                        dialog.dispose();
+                        dialog.interrupt();
                     } catch (final Exception e) {
                     }
                 }
             };
-
-            throw new DialogClosedException(Dialog.RETURN_INTERRUPT, edth.getInterruptException());
+       
+            throw new DialogClosedException(dialog.getReturnmask(), edth.getInterruptException());
         }
 
         final int mask = dialog.getReturnmask();
@@ -625,7 +595,7 @@ public class Dialog implements WindowFocusListener {
     public int showErrorDialog(final String s) {
 
         try {
-            return this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _AWU.T.DIALOG_ERROR_TITLE(), s, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
+            return this.showConfirmDialog(UIOManager.BUTTONS_HIDE_CANCEL | Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, _AWU.T.DIALOG_ERROR_TITLE(), s, AWUTheme.I().getIcon(Dialog.ICON_ERROR, 32), null, null);
         } catch (final DialogClosedException e) {
             return Dialog.RETURN_CLOSED;
         } catch (final DialogCanceledException e) {
@@ -642,7 +612,7 @@ public class Dialog implements WindowFocusListener {
     public int showExceptionDialog(final String title, final String message, final Throwable e) {
 
         try {
-            final ExceptionDialog dialog = new ExceptionDialog(Dialog.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT | Dialog.BUTTONS_HIDE_CANCEL, title, message, e, null, null);
+            final ExceptionDialog dialog = new ExceptionDialog(UIOManager.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT | UIOManager.BUTTONS_HIDE_CANCEL, title, message, e, null, null);
             this.showDialog(dialog);
         } catch (final DialogClosedException e1) {
             return Dialog.RETURN_CLOSED;
@@ -694,7 +664,7 @@ public class Dialog implements WindowFocusListener {
      * @throws DialogClosedException
      */
     public String showInputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) throws DialogClosedException, DialogCanceledException {
-        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
+
         return this.showDialog(new InputDialog(flag, title, message, defaultMessage, icon, okOption, cancelOption));
     }
 
@@ -740,7 +710,7 @@ public class Dialog implements WindowFocusListener {
      */
     public void showMessageDialog(final int flag, final String title, final String message) {
         try {
-            this.showConfirmDialog(Dialog.BUTTONS_HIDE_CANCEL | flag, title, message, Dialog.getIconByText(title + message), null, null);
+            this.showConfirmDialog(UIOManager.BUTTONS_HIDE_CANCEL | flag, title, message, Dialog.getIconByText(title + message), null, null);
         } catch (final DialogClosedException e) {
 
         } catch (final DialogCanceledException e) {
@@ -814,7 +784,7 @@ public class Dialog implements WindowFocusListener {
      * @throws DialogClosedException
      */
     protected String showPasswordDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) throws DialogClosedException, DialogCanceledException {
-        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
+
         return this.showDialog(new PasswordDialog(flag, title, message, icon, okOption, cancelOption));
     }
 
@@ -901,7 +871,7 @@ public class Dialog implements WindowFocusListener {
      * @throws DialogClosedException
      */
     protected long showValueDialog(final int flag, final String title, final String message, final long defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption, final long min, final long max, final long step, final ValueConverter valueConverter) throws DialogClosedException, DialogCanceledException {
-        if ((flag & Dialog.LOGIC_BYPASS) > 0) { return defaultMessage; }
+
         return this.showDialog(new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter));
     }
 
@@ -910,7 +880,7 @@ public class Dialog implements WindowFocusListener {
      */
     public void unregisterFrame(final Window win) {
         win.removeWindowFocusListener(this);
-        this.parents.remove(win);
+        parents.remove(win);
 
     }
 
@@ -953,7 +923,7 @@ public class Dialog implements WindowFocusListener {
 
         if (e.getSource() instanceof Window) {
 
-            this.setParentOwner((Component) e.getSource());
+            setParentOwner((Component) e.getSource());
         }
     }
 

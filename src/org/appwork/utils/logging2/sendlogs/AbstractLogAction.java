@@ -22,6 +22,7 @@ import java.util.Locale;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.swing.action.BasicAction;
+import org.appwork.uio.UIOManager;
 import org.appwork.utils.Application;
 import org.appwork.utils.Files;
 import org.appwork.utils.IO;
@@ -72,7 +73,7 @@ public abstract class AbstractLogAction extends BasicAction {
             public String getLabelString() {
                 return null;
             }
-        }, Dialog.BUTTONS_HIDE_OK, T.T.LogAction_actionPerformed_zip_title_(), T.T.LogAction_actionPerformed_wait_(), null, null, null);
+        }, UIOManager.BUTTONS_HIDE_OK, T.T.LogAction_actionPerformed_zip_title_(), T.T.LogAction_actionPerformed_wait_(), null, null, null);
 
         try {
             Dialog.getInstance().showDialog(p);
@@ -163,7 +164,7 @@ public abstract class AbstractLogAction extends BasicAction {
             public String getLabelString() {
                 return null;
             }
-        }, Dialog.BUTTONS_HIDE_OK, T.T.LogAction_actionPerformed_zip_title_(), T.T.LogAction_actionPerformed_wait_(), null, null, null);
+        }, UIOManager.BUTTONS_HIDE_OK, T.T.LogAction_actionPerformed_zip_title_(), T.T.LogAction_actionPerformed_wait_(), null, null, null);
 
         Dialog.getInstance().showDialog(p);
 

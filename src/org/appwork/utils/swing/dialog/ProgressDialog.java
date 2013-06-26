@@ -28,6 +28,7 @@ import javax.swing.event.HyperlinkListener;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.uio.UIOManager;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
@@ -78,7 +79,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     }
 
     public ProgressDialog(final ProgressGetter progressGetter, final int flags, final String title, final String message, final ImageIcon icon, final String ok, final String cancel) {
-        super(flags | Dialog.BUTTONS_HIDE_OK, title, icon, ok, cancel);
+        super(flags | UIOManager.BUTTONS_HIDE_OK, title, icon, ok, cancel);
         this.message = message;
         if (progressGetter == null && this instanceof ProgressGetter) {
             this.getter = (ProgressGetter) this;

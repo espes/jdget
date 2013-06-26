@@ -26,6 +26,7 @@ import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
+import org.appwork.uio.UIOManager;
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.locale._AWU;
@@ -514,7 +515,7 @@ public class CrossSystem {
         } catch (final Throwable e) {
             Log.exception(Level.WARNING, e);
             try {
-                Dialog.getInstance().showInputDialog(Dialog.BUTTONS_HIDE_CANCEL, _AWU.T.crossSystem_open_url_failed_msg(), urlString);
+                Dialog.getInstance().showInputDialog(UIOManager.BUTTONS_HIDE_CANCEL, _AWU.T.crossSystem_open_url_failed_msg(), urlString);
             } catch (final DialogNoAnswerException donothing) {
             }
         }

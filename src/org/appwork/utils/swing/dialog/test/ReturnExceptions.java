@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.swing.dialog.test;
 
+import org.appwork.uio.UIOManager;
 import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
 import org.appwork.utils.swing.dialog.DialogClosedException;
@@ -37,7 +38,7 @@ public class ReturnExceptions {
         }
 
         try {
-            Dialog.getInstance().showConfirmDialog(Dialog.LOGIC_COUNTDOWN, "title2", "message", null, null, null);
+            Dialog.getInstance().showConfirmDialog(UIOManager.LOGIC_COUNTDOWN, "title2", "message", null, null, null);
         } catch (final DialogClosedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
