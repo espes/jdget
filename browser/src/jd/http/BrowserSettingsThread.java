@@ -10,20 +10,21 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
     private boolean   debug;
     private boolean   verbose;
     protected Logger  logger;
+   
 
     public BrowserSettingsThread(final Runnable r) {
         super(r);
-        this.copySettings();
+        copySettings();
     }
 
     public BrowserSettingsThread(final Runnable r, final String name) {
         super(r, name);
-        this.copySettings();
+        copySettings();
     }
 
     public BrowserSettingsThread(final String name) {
         super(name);
-        this.copySettings();
+        copySettings();
     }
 
     private void copySettings() {
@@ -33,27 +34,27 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
          */
         if (currentThread != null && currentThread instanceof BrowserSettings) {
             final BrowserSettings settings = (BrowserSettings) currentThread;
-            this.proxy = settings.getCurrentProxy();
-            this.debug = settings.isDebug();
-            this.verbose = settings.isVerbose();
-            this.logger = settings.getLogger();
+            proxy = settings.getCurrentProxy();
+            debug = settings.isDebug();
+            verbose = settings.isVerbose();
+            logger = settings.getLogger();
         }
     }
 
     public HTTPProxy getCurrentProxy() {
-        return this.proxy;
+        return proxy;
     }
 
     public Logger getLogger() {
-        return this.logger;
+        return logger;
     }
 
     public boolean isDebug() {
-        return this.debug;
+        return debug;
     }
 
     public boolean isVerbose() {
-        return this.verbose;
+        return verbose;
     }
 
     public void setCurrentProxy(final HTTPProxy proxy) {
@@ -61,7 +62,7 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
     }
 
     public void setDebug(final boolean b) {
-        this.debug = b;
+        debug = b;
     }
 
     public void setLogger(final Logger logger) {
@@ -69,7 +70,7 @@ public class BrowserSettingsThread extends Thread implements BrowserSettings {
     }
 
     public void setVerbose(final boolean b) {
-        this.verbose = b;
+        verbose = b;
     }
 
 }
