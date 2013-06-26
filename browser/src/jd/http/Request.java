@@ -16,9 +16,6 @@
 
 package jd.http;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -32,8 +29,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-import javax.imageio.ImageIO;
 
 import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
@@ -167,11 +162,11 @@ public abstract class Request {
     private HTTPProxy              proxy;
     private String                 orgURL;
     private String                 customCharset  = null;
-    private byte[]                 byteArray      = null;
-
-    private BufferedImage          image;
+    protected byte[]               byteArray      = null;
 
     private boolean                contentDecoded = true;
+
+    protected boolean              keepByteArray  = false;
 
     public Request(final String url) throws MalformedURLException {
         this.orgURL = Browser.correctURL(url);
@@ -185,10 +180,6 @@ public abstract class Request {
     public Request(final URLConnectionAdapter con) {
         this.httpConnection = con;
         this.collectCookiesFromConnection();
-    }
-
-    public Request cloneRequest() {
-        return null;
     }
 
     private void collectCookiesFromConnection() {
@@ -230,7 +221,9 @@ public abstract class Request {
 
     public void disconnect() {
         try {
-            this.httpConnection.disconnect();
+            if (this.httpConnection != null) {
+                this.httpConnection.disconnect();
+            }
         } catch (final Throwable e) {
         }
     }
@@ -274,13 +267,20 @@ public abstract class Request {
     }
 
     public String getHtmlCode() throws CharacterCodingException {
-        final String ct = this.httpConnection.getContentType();
+        if (this.htmlCode != null) { return this.htmlCode; }
+        String ct = null;
+        if (this.httpConnection != null) {
+            ct = this.httpConnection.getContentType();
+        }
         /* check for image content type */
         if (ct != null && Pattern.compile("images?/\\w*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(ct).matches()) { throw new IllegalStateException("Content-Type: " + ct); }
         if (this.htmlCode == null && this.byteArray != null) {
             /* use custom charset or charset from httpconnection */
-            String useCS = this.customCharset == null ? this.httpConnection.getCharset() : this.customCharset;
-            if (useCS == null) {
+            String useCS = this.customCharset;
+            if (StringUtils.isEmpty(useCS)) {
+                useCS = this.httpConnection.getCharset();
+            }
+            if (StringUtils.isEmpty(useCS)) {
                 useCS = this.getCharsetFromMetaTags();
             }
             try {
@@ -290,18 +290,27 @@ public abstract class Request {
                             /* try to use wanted charset */
                             useCS = useCS.toUpperCase(Locale.ENGLISH);
                             this.htmlCode = new String(this.byteArray, useCS);
+                            if (!this.keepByteArray) {
+                                this.byteArray = null;
+                            }
                             this.httpConnection.setCharset(useCS);
                             return this.htmlCode;
                         }
                     } catch (final Exception e) {
                     }
                     this.htmlCode = new String(this.byteArray, "ISO-8859-1");
+                    if (!this.keepByteArray) {
+                        this.byteArray = null;
+                    }
                     this.httpConnection.setCharset("ISO-8859-1");
                     return this.htmlCode;
                 } catch (final Exception e) {
                     System.out.println("could neither charset: " + useCS + " nor default charset");
                     /* fallback to default charset in error case */
                     this.htmlCode = new String(this.byteArray);
+                    if (!this.keepByteArray) {
+                        this.byteArray = null;
+                    }
                     return this.htmlCode;
                 }
             } catch (final Exception e) {
@@ -413,27 +422,6 @@ public abstract class Request {
     }
 
     /**
-     * tries to generate an image out of the loaded bytes
-     * 
-     * @return
-     */
-    public Image getResponseImage() {
-        final String ct = this.httpConnection.getContentType();
-        /* check for image content */
-        if (ct != null && !Pattern.compile("images?/\\w*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(ct).matches()) { throw new IllegalStateException("Content-Type: " + ct); }
-        // TODO..this is just quick and dirty.. may result in memory leaks
-        if (this.image == null && this.byteArray != null) {
-            final InputStream fake = new ByteArrayInputStream(this.byteArray);
-            try {
-                this.image = ImageIO.read(fake);
-            } catch (final Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return this.image;
-    }
-
-    /**
      * Will replace #getHtmlCode() with next release
      */
     public String getResponseText() throws CharacterCodingException {
@@ -471,6 +459,10 @@ public abstract class Request {
         return this.httpConnection == null ? this.contentDecoded : this.httpConnection.isContentDecoded();
     }
 
+    public boolean isKeepByteArray() {
+        return this.keepByteArray;
+    }
+
     public boolean isRequested() {
         return this.requested;
     }
@@ -502,10 +494,12 @@ public abstract class Request {
     abstract public void preRequest() throws IOException;
 
     public String printHeaders() {
+        if (this.httpConnection == null) { return null; }
         return this.httpConnection.toString();
     }
 
-    public Request read() throws IOException {
+    public Request read(final boolean keepByteArray) throws IOException {
+        this.keepByteArray = keepByteArray;
         final long tima = System.currentTimeMillis();
         this.httpConnection.setCharset(this.customCharset);
         this.byteArray = Request.read(this.httpConnection);
@@ -539,6 +533,7 @@ public abstract class Request {
     public void setHtmlCode(final String htmlCode) {
         this.byteArray = null;
         this.htmlCode = htmlCode;
+        this.requested = true;
     }
 
     public void setProxy(final HTTPProxy proxy) {
@@ -553,16 +548,19 @@ public abstract class Request {
         }
     }
 
-    // @Override
     @Override
     public String toString() {
         if (!this.requested) { return "Request not sent yet"; }
         final StringBuilder sb = new StringBuilder();
         try {
-            sb.append(this.httpConnection.toString());
-            sb.append("\r\n");
-            this.getHtmlCode();
-            sb.append(this.getHTMLSource());
+            if (this.httpConnection != null) {
+                sb.append(this.httpConnection.toString());
+                sb.append("\r\n");
+                this.getHtmlCode();
+                sb.append(this.getHTMLSource());
+            } else {
+                return this.getHTMLSource();
+            }
         } catch (final Exception e) {
             return "NOTEXT: " + e.getMessage();
         }
