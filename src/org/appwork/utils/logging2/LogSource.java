@@ -43,6 +43,7 @@ public class LogSource extends Logger implements LogInterface {
             if (prevLogSource != null) {
                 final LogSource previousLogger = prevLogSource.get();
                 if (previousLogger != null && previousLogger.isClosed() == false) { return previousLogger; }
+                LogSource.LASTTHREADLOGSOURCE.remove(thread);
             }
         }
         return null;
@@ -255,7 +256,7 @@ public class LogSource extends Logger implements LogInterface {
         synchronized (LogSource.LASTTHREADLOGSOURCE) {
             final Thread thread = Thread.currentThread();
             final WeakReference<LogSource> prevLogSource = LogSource.LASTTHREADLOGSOURCE.get(thread);
-            if (prevLogSource == null || prevLogSource.get() != null) {
+            if (prevLogSource == null || prevLogSource.get() != this) {
                 LogSource.LASTTHREADLOGSOURCE.put(Thread.currentThread(), new WeakReference<LogSource>(this));
             }
         }
