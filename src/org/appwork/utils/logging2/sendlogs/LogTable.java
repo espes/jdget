@@ -24,7 +24,7 @@ public class LogTable extends ExtTable<LogFolder> {
         setShowGrid(true);
         setShowHorizontalLines(true);
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        this.setRowHeight(22);
+  
 
         final Color b2 = getForeground();
         final Color f2 = getBackground();

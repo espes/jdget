@@ -188,6 +188,19 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
                             }
                         }.getReturnValue();
+                        
+                        final Rectangle view = new EDTHelper<Rectangle>() {
+
+                            @Override
+                            public Rectangle edtRun() {
+                                final JViewport viewport = (JViewport) getModel().getTable().getParent();
+                                if (viewport == null) { return null; }
+                                final Rectangle rec = viewport.getViewRect();
+                                return rec;
+
+                            }
+                        }.getReturnValue(); 
+                     
                         final E selObject = getModel().getObjectbyRow(sel.intValue());
                         final java.util.List<E> data = ExtColumn.this.model.getElements();
                         try {
@@ -205,11 +218,11 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                                 ExtColumn.this.getModel().getTable().getTableHeader().repaint();
 
                                 if (getModel().getTable().getSelectedRowCount() > 0) {
-                                    getModel().getTable().scrollToSelection();
+                                    getModel().getTable().scrollToSelection(view.x);
                                 } else {
                                     // scroll to 0,
                                     // getModel().getRowforObject(selObject)
-                                    getModel().getTable().scrollToRow(0);
+                                    getModel().getTable().scrollToRow(0,view.x);
 
                                 }
                                 return null;

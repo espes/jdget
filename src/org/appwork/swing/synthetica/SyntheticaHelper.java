@@ -144,7 +144,7 @@ public class SyntheticaHelper {
                 final Font newFont = new Font(fontName, oldStyle, fontSize);
                 de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setFont(newFont, false);
             }
-            UIManager.put("ExtTable.SuggestedFontHeight", fontSize);
+     
 
             ExtPasswordField.MASK = "*******";
 

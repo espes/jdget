@@ -41,7 +41,6 @@ import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -80,10 +79,9 @@ import sun.swing.SwingUtilities2;
  */
 public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChangeListener {
 
-    public static final String                             SUGGESTEDROWHEIGHTPROPERTY = "ExtTable.SuggestedFontHeight";
-    private static final long                              serialVersionUID           = 2822230056021924679L;
+    private static final long                              serialVersionUID    = 2822230056021924679L;
     // executer for renameclicks
-    private static final ScheduledExecutorService          EXECUTER                   = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService          EXECUTER            = Executors.newSingleThreadScheduledExecutor();
     /**
      * Column background color if column is NOT selected
      */
@@ -111,11 +109,11 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * true if search is enabled
      */
 
-    private boolean                                        searchEnabled              = false;
+    private boolean                                        searchEnabled       = false;
     private SearchDialog                                   searchDialog;
     private final ExtTableEventSender                      eventSender;
-    private JComponent                                     columnButton               = null;
-    private boolean                                        columnButtonVisible        = true;
+    private JComponent                                     columnButton        = null;
+    private boolean                                        columnButtonVisible = true;
     private int                                            verticalScrollPolicy;
 
     protected boolean                                      headerDragging;
@@ -137,9 +135,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      */
     public ExtTable(final ExtTableModel<E> model) {
         super(model);
-        if(model==null) {
-            throw new NullPointerException("Model must not be null");
-        }
+        if (model == null) { throw new NullPointerException("Model must not be null"); }
         this.flavor = new ExtDataFlavor<E>(this.getClass());
         this.eventSender = new ExtTableEventSender();
         ToolTipController.getInstance().register(this);
@@ -149,11 +145,12 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         // workaround
         setColumnModel(new ExtColumnModel(getColumnModel()));
         model.setTable(this);
-        final int suggestedRowHeight = UIManager.getInt(ExtTable.SUGGESTEDROWHEIGHTPROPERTY);
-        if (suggestedRowHeight > 0) {
-            this.setRowHeight(suggestedRowHeight);
-        }
+        // final int suggestedRowHeight =
+        // UIManager.getInt(ExtTable.SUGGESTEDROWHEIGHTPROPERTY);
+        // if (suggestedRowHeight > 0) {
+        // this.setRowHeight(suggestedRowHeight);
 
+        this.setRowHeight(22);
         this.renameClickDelayer = new DelayedRunnable(ExtTable.EXECUTER, this.setupRenameClickInterval()) {
             @Override
             public void delayedrun() {
@@ -173,18 +170,27 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
              */
             private static final long serialVersionUID = 6099615257824836337L;
 
-            @Override
-            public void setPreferredSize(final Dimension preferredSize) {
-                int suggestedRowHeight = UIManager.getInt(ExtTable.SUGGESTEDROWHEIGHTPROPERTY);
-                if (suggestedRowHeight > 0 && suggestedRowHeight > preferredSize.getHeight()) {
-                    if (suggestedRowHeight > 0) {
-                        suggestedRowHeight += 8;
-                    }
-                    Log.L.info("Using SuggestedRowHeight of " + suggestedRowHeight + " instead of setPreferredSize of " + ExtTable.this.rowHeight);
-                    preferredSize.height = suggestedRowHeight;
-                }
-                super.setPreferredSize(preferredSize);
+            public Dimension getPreferredSize() {
+                final Dimension ret = super.getPreferredSize();
+                ret.height = 19;
+                return ret;
             }
+            // @Override
+            // public void setPreferredSize(final Dimension preferredSize) {
+            // int suggestedRowHeight =
+            // UIManager.getInt(ExtTable.SUGGESTEDROWHEIGHTPROPERTY);
+            // if (suggestedRowHeight > 0 && suggestedRowHeight >
+            // preferredSize.getHeight()) {
+            // if (suggestedRowHeight > 0) {
+            // suggestedRowHeight += 8;
+            // }
+            // Log.L.info("Using SuggestedRowHeight of " + suggestedRowHeight +
+            // " instead of setPreferredSize of " + ExtTable.this.rowHeight);
+            // preferredSize.height = suggestedRowHeight;
+            // }
+            // this.getPreferredSize()
+            // super.setPreferredSize(preferredSize);
+            // }
 
         });
         this.createColumns();
@@ -293,7 +299,8 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         getTableHeader().setResizingAllowed(true);
         setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         setAutoscrolls(true);
-        getTableHeader().setPreferredSize(new Dimension(getColumnModel().getTotalColumnWidth(), 19));
+        // getTableHeader().setPreferredSize(new
+        // Dimension(getColumnModel().getTotalColumnWidth(), 19));
         // assures that the table is painted over the complete available high
         // This method is 1.6 only
         if (Application.getJavaVersion() >= Application.JAVA16) {
@@ -589,10 +596,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             transferFocus();
         }
         return ret;
-    }
-
-    public void forceRowHeight(final int rowHeight) {
-        super.setRowHeight(rowHeight);
     }
 
     /* we do always create columsn ourself */
@@ -1397,7 +1400,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         }
     }
 
-    public void scrollToRow(final int row) {
+    public void scrollToRow(final int row, final int preferedXPosition) {
 
         if (row < 0) { return; }
         new EDTHelper<Object>() {
@@ -1407,10 +1410,17 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 final JViewport viewport = (JViewport) ExtTable.this.getParent();
                 if (viewport == null) { return null; }
                 final Rectangle rect = ExtTable.this.getCellRect(row, 0, true);
-                final Point pt = viewport.getViewPosition();
-                rect.setLocation(rect.x - pt.x, rect.y - pt.y);
-
-                viewport.scrollRectToVisible(rect);
+        
+                final Rectangle viewRect = viewport.getViewRect();
+                rect.width = viewRect.width;
+                rect.height=viewRect.height;
+                if (preferedXPosition < 0) {
+                    rect.x = viewRect.x;
+                } else {
+                    rect.x = preferedXPosition;
+                }
+  
+                scrollRectToVisible(rect);
 
                 return null;
             }
@@ -1419,7 +1429,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
     }
 
-    protected void scrollToSelection() {
+    public void scrollToSelection(final int preferedXPosition) {
 
         new EDTHelper<Object>() {
 
@@ -1432,9 +1442,14 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 final Rectangle rect = ExtTable.this.getCellRect(sel[0], 0, true);
                 final Rectangle rect2 = ExtTable.this.getCellRect(sel[sel.length - 1], 0, true);
                 rect.height += rect2.y - rect.y;
-                final Point pt = viewport.getViewPosition();
-                rect.setLocation(rect.x - pt.x, rect.y - pt.y);
-                viewport.scrollRectToVisible(rect);
+                final Rectangle viewRect = viewport.getViewRect();
+                rect.width = viewRect.width;                
+                if (preferedXPosition < 0) {
+                    rect.x = viewRect.x;
+                } else {
+                    rect.x = preferedXPosition;
+                }
+                scrollRectToVisible(rect);
                 return null;
             }
 
@@ -1462,21 +1477,6 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 final MouseEvent e2 = SwingUtilities.convertMouseEvent(this, e, dispatchComponent);
                 dispatchComponent.dispatchEvent(e2);
             }
-        }
-    }
-
-    @Override
-    public void setRowHeight(final int rowHeight) {
-        int suggestedRowHeight = UIManager.getInt(ExtTable.SUGGESTEDROWHEIGHTPROPERTY);
-        if (suggestedRowHeight > 0 && suggestedRowHeight > rowHeight) {
-            if (suggestedRowHeight > 0) {
-                /* add 2 more pixels because of borders and such stuff */
-                suggestedRowHeight += 8;
-            }
-            Log.L.info("Using SuggestedRowHeight of " + suggestedRowHeight + " instead of setRowHeight of " + rowHeight);
-            super.setRowHeight(suggestedRowHeight);
-        } else {
-            super.setRowHeight(rowHeight);
         }
     }
 
@@ -1534,7 +1534,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                             }
                             final E found = ExtTable.this.getModel().searchNextObject(startRow + 1, ret, ExtTable.this.searchDialog.isCaseSensitive(), ExtTable.this.searchDialog.isRegex());
                             ExtTable.this.getModel().setSelectedObject(found);
-                            ExtTable.this.scrollToSelection();
+                            ExtTable.this.scrollToSelection(-1);
                         }
                     }
 
