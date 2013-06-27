@@ -43,7 +43,7 @@ public class ExtTextTable extends ExtTable<TextObject> {
         final DragDropHelper ddh = new DragDropHelper();
         this.setTransferHandler(ddh);
         this.addRowHighlighter(new SelectionHighlighter(null, new Color(10, 10, 10, 40)));
-//        getExtTableModel().addExtComponentRowHighlighter(new ExtComponentRowHighlighter<TextObject>(Color.BLACK,Color.RED,null) {
+//        getModel().addExtComponentRowHighlighter(new ExtComponentRowHighlighter<TextObject>(Color.BLACK,Color.RED,null) {
 //            
 //            @Override
 //            public boolean accept(ExtColumn<TextObject> column, TextObject value, boolean selected, boolean focus, int row) {

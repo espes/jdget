@@ -28,7 +28,7 @@ public class LogTable extends ExtTable<LogFolder> {
 
         final Color b2 = getForeground();
         final Color f2 = getBackground();
-        getExtTableModel().addExtComponentRowHighlighter(new ExtComponentRowHighlighter<LogFolder>(f2, b2, null) {
+        getModel().addExtComponentRowHighlighter(new ExtComponentRowHighlighter<LogFolder>(f2, b2, null) {
 
             @Override
             public boolean accept(final ExtColumn<LogFolder> column, final LogFolder value, final boolean selected, final boolean focus, final int row) {

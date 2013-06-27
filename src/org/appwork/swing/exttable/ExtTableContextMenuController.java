@@ -34,7 +34,7 @@ public abstract class ExtTableContextMenuController<T extends ExtTable<?>> imple
 
         if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
             final int row = this.table.rowAtPoint(e.getPoint());
-            final Object obj = this.table.getExtTableModel().getObjectbyRow(row);
+            final Object obj = this.table.getModel().getObjectbyRow(row);
             if (obj == null || row == -1) {
                 /* no object under mouse, lets clear the selection */
                 this.table.clearSelection();
