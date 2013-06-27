@@ -268,6 +268,7 @@ public abstract class LogSourceProvider {
                 try {
                     final Handler fileHandler = new FileHandler(new File(this.logFolder, name).getAbsolutePath(), this.maxSize, this.maxLogs, true);
                     sink.addHandler(fileHandler);
+                    fileHandler.setEncoding("UTF-8");
                     fileHandler.setLevel(Level.ALL);
                     fileHandler.setFormatter(new LogSourceFormatter());
                 } catch (final Throwable e) {

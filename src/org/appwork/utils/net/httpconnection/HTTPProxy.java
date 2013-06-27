@@ -462,12 +462,9 @@ public class HTTPProxy {
         switch (this.type) {
         case DIRECT:
             return ("DIRECT://" + this.localIP).hashCode();
-
         default:
             return (this.type + "://" + this.user + ":" + this.pass + "@" + this.host + ":" + this.port).hashCode();
-
         }
-
     }
 
     public boolean isConnectMethodPrefered() {

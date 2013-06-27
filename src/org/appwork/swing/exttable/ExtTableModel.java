@@ -265,7 +265,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         ExtTableModel.this.fireTableStructureChanged();
                     }
                 } else {
-
                     /* replace later because table is in editing mode */
                     /* set delayed TableData and Selection */
                     ExtTableModel.this.delayedNewTableData = newtableData;
