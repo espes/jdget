@@ -424,7 +424,6 @@ public class HTMLParser {
      */
     public static HashSet<String> getHttpLinksIntern(String data, final String url) {
         data = data.trim();
-        System.out.println(data);
         if (data.length() == 0) { return null; }
         /*
          * replace urlencoded br tags, so we can find all links separated by those
@@ -456,8 +455,7 @@ public class HTMLParser {
              */
             private static final long serialVersionUID = 1L;
 
-            @Override 
-
+            @Override
             public boolean add(String e) {
                 if (e != null) {
                     int index = e.indexOf("\r");
