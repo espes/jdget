@@ -699,7 +699,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public boolean isVisible(final int column) {
         final ExtColumn<E> col = this.getExtColumnByModelIndex(column);
         try {
-            return col.isVisible(this.getStorage().get("VISABLE_COL_" + col.getID(), col.isDefaultVisible()));
+            return col.isVisible(getTable().getColumnStore("VISABLE_COL_" ,col.getID(), col.isDefaultVisible()));
         } catch (final Exception e) {
             Log.exception(e);
             return true;
@@ -816,7 +816,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public void setColumnVisible(final ExtColumn<E> column, final boolean visible) {
         try {
-            this.getStorage().put("VISABLE_COL_" + column.getID(), visible);
+            this.getTable().getStorage().put(getTable().getColumnStoreKey("VISABLE_COL_" ,column.getID()), visible);
         } catch (final Exception e) {
             Log.exception(e);
         }

@@ -36,12 +36,14 @@ public class HomeFolder extends File {
     public static final String MUSIC = "Music";
     
     public static final String DOCUMENTS = "Documents";
+    public static final String HOME_ROOT = "";
+    public static final String DROPBOX = "Dropbox";
 
     /**
      * @param string
      * @param string2
      */
-    public HomeFolder(String relPath, String iconKey) {
+    public HomeFolder(final String relPath, final String iconKey) {
         super(System.getProperty("user.home") + System.getProperty("file.separator") + relPath);
         this.iconKey = iconKey;
     }
@@ -50,7 +52,7 @@ public class HomeFolder extends File {
         return iconKey;
     }
 
-    public void setIconKey(String iconKey) {
+    public void setIconKey(final String iconKey) {
         this.iconKey = iconKey;
     }
 

@@ -49,6 +49,52 @@ import org.appwork.utils.swing.SwingUtils;
 import org.appwork.utils.swing.dialog.dimensor.RememberLastDialogDimension;
 
 public class ExtFileChooserDialog extends AbstractDialog<File[]> {
+    /**
+     * 
+     */
+    public static String        ICON_KEY_VIEW         = "view";
+    /**
+     * 
+     */
+    private static String       ICON_KEY_LIST_VIEW    = "list";
+    /**
+     * 
+     */
+    public static String        ICON_KEY_DETAILS_VIEW = "details";
+    /**
+     * 
+     */
+    public static String        ICON_KEY_PARENT       = "go-up";
+    /**
+     * 
+     */
+    public static String        ICON_KEY_NEW_FOLDER   = "package_new";
+    /**
+     * 
+     */
+    public static String        ICON_KEY_HARDDRIVE    = "harddisk";
+    public static String        ICON_KEY_FLOPPY       = "save";
+    /**
+     * 
+     */
+    public static String        ICON_KEY_NETWORK      = "network-idle";
+    /**
+     * 
+     */
+    public static String        ICON_KEY_DESKTOP      = "desktop";
+    /**
+     * 
+     */
+    public static String        ICON_KEY_COMPUTER     = "harddisk";
+    /**
+     * 
+     */
+    public static String        ICON_KEY_FILE         = "file";
+    /**
+     * 
+     */
+    public static String        ICON_KEY_FOLDER       = "folder";
+
     static {
 
         UIManager.put("FileChooser.lookInLabelText", _AWU.T.DIALOG_FILECHOOSER_lookInLabelText());
@@ -103,14 +149,20 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     /**
      * 
      */
-    public static final String  LASTSELECTION  = "LASTSELECTION_";
-    private final static Cursor BUSY_CURSOR    = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-    private final static Cursor DEFAULT_CURSOR = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+    public static final String  LASTSELECTION         = "LASTSELECTION_";
+    private final static Cursor BUSY_CURSOR           = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+    private final static Cursor DEFAULT_CURSOR        = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     /**
      * 
      */
-    public static final String  FILECHOOSER    = "FILECHOOSER";
-
+    public static final String  FILECHOOSER           = "FILECHOOSER";
+    public static final String ICON_KEY_HOME = "home";
+    public static final String ICON_KEY_DOCUMENTS = "document";
+    public static final String ICON_KEY_MUSIC = "audio";
+    public static final String ICON_KEY_VIDEO = "video";
+    public static final String ICON_KEY_BOX = "box";
+    public static final String ICON_KEY_IMAGES = "image";
+    public static final String ICON_KEY_DOWNLOADS = "download";
     public static void main(final String[] args) {
         try {
             Log.L.setLevel(Level.ALL);
@@ -169,7 +221,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     public ExtFileChooserDialog(final int flag, final String title, final String okOption, final String cancelOption) {
         super(flag | Dialog.STYLE_HIDE_ICON, title, null, okOption, cancelOption);
-        this.setDimensor(new RememberLastDialogDimension("ExtFileChooserDialog"));
+        setDimensor(new RememberLastDialogDimension("ExtFileChooserDialog"));
         // TODO Auto-generated constructor stub
     }
 
@@ -183,18 +235,18 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     @Override
     public void actionPerformed(final ActionEvent e) {
 
-        if (e.getSource() == this.okButton) {
-            Log.L.fine("Answer: Button<OK:" + this.okButton.getText() + ">");
-            if (this.fcUI != null) {
-                this.fcUI.getApproveSelectionAction().actionPerformed(e);
+        if (e.getSource() == okButton) {
+            Log.L.fine("Answer: Button<OK:" + okButton.getText() + ">");
+            if (fcUI != null) {
+                fcUI.getApproveSelectionAction().actionPerformed(e);
             } else {
-                this.setReturnmask(true);
+                setReturnmask(true);
             }
-        } else if (e.getSource() == this.cancelButton) {
-            Log.L.fine("Answer: Button<CANCEL:" + this.cancelButton.getText() + ">");
-            this.setReturnmask(false);
+        } else if (e.getSource() == cancelButton) {
+            Log.L.fine("Answer: Button<CANCEL:" + cancelButton.getText() + ">");
+            setReturnmask(false);
         }
-        this.dispose();
+        dispose();
     }
 
     /**
@@ -212,19 +264,19 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         final String name = bef.endsWith("/") || bef.endsWith("\\") ? "" : new File(bef).getName();
         final String findName = txt.endsWith("/") || txt.endsWith("\\") ? "" : new File(txt).getName();
         boolean found = sel.length() == 0;
-        for (final File f : this.fc.getCurrentDirectory().listFiles()) {
+        for (final File f : fc.getCurrentDirectory().listFiles()) {
 
-            if (this.fc.getFileFilter() != null && !this.fc.getFileFilter().accept(f)) {
+            if (fc.getFileFilter() != null && !fc.getFileFilter().accept(f)) {
                 continue;
             }
-            if (this.fc.getFileSelectionMode() == JFileChooser.FILES_ONLY && f.isDirectory()) {
+            if (fc.getFileSelectionMode() == JFileChooser.FILES_ONLY && f.isDirectory()) {
                 continue;
             }
-            if (this.fc.getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY && !f.isDirectory()) {
+            if (fc.getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY && !f.isDirectory()) {
                 continue;
             }
 
-            if (f.isHidden() && this.fc.isFileHidingEnabled()) {
+            if (f.isHidden() && fc.isFileHidingEnabled()) {
                 continue;
             }
             if (this.equals(f.getName(), findName)) {
@@ -232,20 +284,20 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 continue;
             }
 
-            if (found && this.startsWith(f.getName(), name)) {
-                this.selecting = true;
+            if (found && startsWith(f.getName(), name)) {
+                selecting = true;
                 oldTextField.setText(f.getAbsolutePath());
                 oldTextField.setSelectionStart(selstart);
                 oldTextField.setSelectionEnd(oldTextField.getText().length());
-                this.selecting = false;
+                selecting = false;
                 return;
             }
         }
-        this.selecting = true;
+        selecting = true;
 
         oldTextField.setText(bef);
 
-        this.selecting = false;
+        selecting = false;
 
     }
 
@@ -257,14 +309,14 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     @Override
     protected File[] createReturnValue() {
         try {
-            if (this.isMultiSelection()) {
-                final File[] files = this.fc.getSelectedFiles();
+            if (isMultiSelection()) {
+                final File[] files = fc.getSelectedFiles();
 
                 return files;
             } else {
-                File f = this.fc.getSelectedFile();
+                File f = fc.getSelectedFile();
                 if (f == null) {
-                    final String path = this.getText();
+                    final String path = getText();
                     if (path != null) {
                         f = new File(path);
 
@@ -275,7 +327,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 return new File[] { f };
             }
         } finally {
-            this.getIDConfig().setLastSelection(this.fc.getCurrentDirectory().getAbsolutePath());
+            getIDConfig().setLastSelection(fc.getCurrentDirectory().getAbsolutePath());
         }
 
     }
@@ -293,7 +345,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     protected boolean exists(final File f) {
         if (f.exists()) { return true; }
-        if (this.isSambaFolder(f)) { return true; }
+        if (isSambaFolder(f)) { return true; }
         return false;
     }
 
@@ -314,46 +366,33 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             }
         }
 
-        f = this.fileSystemView.mapSpecialFolders(f);
-        String key = "folder";
+        f = fileSystemView.mapSpecialFolders(f);
+        String key = ICON_KEY_FOLDER;
         if (f.getName().equals("Desktop")) {
 
-            key = "desktop";
+            key = ICON_KEY_DESKTOP;
         } else if (f.getPath().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP) || f.getPath().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER) || f.getPath().startsWith("\\") && f.getPath().indexOf("\\", 2) < 0) {
 
-            key = "network-idle";
+            key = ICON_KEY_NETWORK;
         } else if (f.getPath().length() == 3 && f.getPath().charAt(1) == ':' && (f.getPath().charAt(0) + "").matches("[a-zA-Z]{1}")) {
 
-            key = "harddisk";
+            key = ICON_KEY_HARDDRIVE;
         } else if (f instanceof HomeFolder) {
-
-            if (((HomeFolder) f).getName().equals(HomeFolder.DOWNLOADS)) {
-                key = "download";
-            } else if (((HomeFolder) f).getName().equals(HomeFolder.MUSIC)) {
-                key = "audio";
-            } else if (((HomeFolder) f).getName().equals(HomeFolder.PICTURES)) {
-                key = "image";
-            } else if (((HomeFolder) f).getName().equals(HomeFolder.DOCUMENTS)) {
-                key = "document";
-            } else if (((HomeFolder) f).getName().equals(HomeFolder.VIDEOS)) {
-                //
-                key = "video";
-
-            }
+            key = ((HomeFolder) f).getIconKey();
 
         } else if (f instanceof VirtualRoot) {
-            key = "harddisk";
+            key = ICON_KEY_HARDDRIVE;
         }
         if (!AWUTheme.I().hasIcon(key)) { return ret; }
         return AWUTheme.I().getIcon(key, 18);
     }
 
     public FileFilter getFileFilter() {
-        return this.fileFilter;
+        return fileFilter;
     }
 
     public FileChooserSelectionMode getFileSelectionMode() {
-        return this.fileSelectionMode;
+        return fileSelectionMode;
     }
 
     /**
@@ -361,25 +400,25 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     private ExtFileChooserIdConfig getIDConfig() {
 
-        final File path = Application.getResource("cfg/FileChooser/" + this.getStorageID());
+        final File path = Application.getResource("cfg/FileChooser/" + getStorageID());
         path.getParentFile().mkdirs();
         return JsonConfig.create(path, ExtFileChooserIdConfig.class);
     }
 
     public File getPreSelection() {
-        return this.preSelection;
+        return preSelection;
     }
 
     public java.util.List<String> getQuickSelectionList() {
-        return this.quickSelectionList;
+        return quickSelectionList;
     }
 
     /**
      * @return
      */
     public File getSelectedFile() {
-        if (this.isMultiSelection()) { throw new IllegalStateException("Not available if multiselection is active. use #getSelection() instead"); }
-        final File[] sel = this.getSelection();
+        if (isMultiSelection()) { throw new IllegalStateException("Not available if multiselection is active. use #getSelection() instead"); }
+        final File[] sel = getSelection();
         return sel == null || sel.length == 0 ? null : sel[0];
     }
 
@@ -387,17 +426,17 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     public File[] getSelection() {
-        if (this.selection != null) { return this.selection; }
-        return this.createReturnValue();
+        if (selection != null) { return selection; }
+        return createReturnValue();
     }
 
     public String getStorageID() {
-        return this.storageID;
+        return storageID;
     }
 
     public String getText() {
         try {
-            return this.destination != null ? this.destination.getText() : this.fc.getSelectedFile().getAbsolutePath();
+            return destination != null ? destination.getText() : fc.getSelectedFile().getAbsolutePath();
         } catch (final Throwable e) {
             return null;
         }
@@ -408,14 +447,14 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     public FileChooserType getType() {
 
-        return this.type;
+        return type;
     }
 
     /**
      * @return
      */
     public View getView() {
-        return this.view;
+        return view;
     }
 
     /**
@@ -423,11 +462,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     protected boolean isFilePreviewEnabled() {
 
-        return this.getFileSelectionMode() != FileChooserSelectionMode.DIRECTORIES_ONLY;
+        return getFileSelectionMode() != FileChooserSelectionMode.DIRECTORIES_ONLY;
     }
 
     public boolean isMultiSelection() {
-        return this.multiSelection;
+        return multiSelection;
     }
 
     /**
@@ -435,7 +474,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     protected boolean isSambaFolder(final File f) {
-        if (this.fileSystemView.getNetworkFolder() != null) { return this.fileSystemView.getNetworkFolder().get(f.getAbsolutePath()) != null; }
+        if (fileSystemView.getNetworkFolder() != null) { return fileSystemView.getNetworkFolder().get(f.getAbsolutePath()) != null; }
 
         return false;
     }
@@ -447,28 +486,31 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     @Override
     public JComponent layoutDialogContent() {
-        if (SwingUtilities.getRootPane(this.getDialog().getParent()) != null) {
-            this.parentGlassPane = SwingUtilities.getRootPane(this.getDialog().getParent()).getGlassPane();
+        if (SwingUtilities.getRootPane(getDialog().getParent()) != null) {
+            parentGlassPane = SwingUtilities.getRootPane(getDialog().getParent()).getGlassPane();
         }
-        if (this.parentGlassPane != null) {
-            this.parentGlassPane.setCursor(ExtFileChooserDialog.BUSY_CURSOR);
-            this.parentGlassPane.setVisible(true);
+        if (parentGlassPane != null) {
+            parentGlassPane.setCursor(ExtFileChooserDialog.BUSY_CURSOR);
+            parentGlassPane.setVisible(true);
         }
         // forwardPropertyChanges=false;
-        this.duringInit = true;
-        this.fc = new JFileChooser(this.fileSystemView = new ExtFileSystemView()) {
+        duringInit = true;
+
+        putIcons();
+
+        fc = new JFileChooser(fileSystemView = new ExtFileSystemView()) {
             private Insets nullInsets;
             {
-                this.nullInsets = new Insets(0, 0, 0, 0);
+                nullInsets = new Insets(0, 0, 0, 0);
             }
 
             @Override
             public void addPropertyChangeListener(final PropertyChangeListener listener) {
 
-                if (listener instanceof BasicDirectoryModel && ExtFileChooserDialog.this.directoryModel == null) {
+                if (listener instanceof BasicDirectoryModel && directoryModel == null) {
                     // this is a workaround to avoid multiple init scans of the
                     // filedirectory during the filechooser setup.
-                    ExtFileChooserDialog.this.directoryModel = listener;
+                    directoryModel = listener;
                     return;
                 }
                 super.addPropertyChangeListener(listener);
@@ -483,28 +525,28 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
             @Override
             public Insets getInsets() {
-                return this.nullInsets;
+                return nullInsets;
             }
 
             @Override
             public void setCurrentDirectory(final File dir) {
-                ExtFileChooserDialog.this.selecting = true;
+                selecting = true;
                 try {
 
                     super.setCurrentDirectory(dir);
                 } finally {
-                    ExtFileChooserDialog.this.selecting = false;
+                    selecting = false;
                 }
             }
 
             @Override
             public void setSelectedFile(final File file) {
-                ExtFileChooserDialog.this.selecting = true;
+                selecting = true;
                 try {
 
                     super.setSelectedFile(file);
                 } finally {
-                    ExtFileChooserDialog.this.selecting = false;
+                    selecting = false;
                 }
             }
 
@@ -515,15 +557,15 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 // UIManager.put("FileChooser.saveInLabelText",
                 // _AWU.T.DIALOG_FILECHOOSER_saveInLabelText());
 
-                this.putClientProperty("FileChooser.useShellFolder", false);
+                putClientProperty("FileChooser.useShellFolder", false);
 
                 super.updateUI();
-                System.out.println(this.getUI().getClass().getName());
+                System.out.println(getUI().getClass().getName());
             }
 
         };
-
-        this.fc.addActionListener(new ActionListener() {
+        cleanupIcons();
+        fc.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(final ActionEvent e) {
@@ -537,37 +579,37 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         });
 
         try {
-            this.fcUI = (BasicFileChooserUI) this.fc.getUI();
+            fcUI = (BasicFileChooserUI) fc.getUI();
         } catch (final Throwable e) {
             Log.exception(e);
         }
 
-        if (this.isFilePreviewEnabled()) {
-            this.fc.setAccessory(new FilePreview(this.fc));
+        if (isFilePreviewEnabled()) {
+            fc.setAccessory(new FilePreview(fc));
         }
-        this.fc.setControlButtonsAreShown(false);
-        this.fc.setDialogType(this.getType().getId());
-        if (this.fileSelectionMode != null) {
-            this.fc.setFileSelectionMode(this.fileSelectionMode.getId());
-        }
-
-        if (this.fileFilter != null) {
-            this.fc.setFileFilter(this.fileFilter);
+        fc.setControlButtonsAreShown(false);
+        fc.setDialogType(getType().getId());
+        if (fileSelectionMode != null) {
+            fc.setFileSelectionMode(fileSelectionMode.getId());
         }
 
-        if (this.multiSelection) {
-            this.fc.setMultiSelectionEnabled(true);
+        if (fileFilter != null) {
+            fc.setFileFilter(fileFilter);
+        }
+
+        if (multiSelection) {
+            fc.setMultiSelectionEnabled(true);
         } else {
-            this.fc.setMultiSelectionEnabled(false);
+            fc.setMultiSelectionEnabled(false);
         }
 
         /* preSelection */
 
-        Log.L.info("Given presel: " + this.preSelection);
+        Log.L.info("Given presel: " + preSelection);
 
-        File presel = this.preSelection;
+        File presel = preSelection;
         if (presel == null) {
-            final String path = this.getIDConfig().getLastSelection();
+            final String path = getIDConfig().getLastSelection();
             presel = StringUtils.isEmpty(path) ? null : new File(path);
 
         }
@@ -578,21 +620,21 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 presel = presel.getParentFile();
             } else {
                 if (presel.isDirectory()) {
-                    this.fc.setCurrentDirectory(presel);
+                    fc.setCurrentDirectory(presel);
                     /*
                      * we have to setSelectedFile here too, so the folder is
                      * preselected
                      */
 
                 } else {
-                    this.fc.setCurrentDirectory(presel.getParentFile());
+                    fc.setCurrentDirectory(presel.getParentFile());
                     /* only preselect file in savedialog */
 
-                    if (this.fileSelectionMode != null) {
-                        if (this.fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
-                            this.fc.setSelectedFile(presel.getParentFile());
+                    if (fileSelectionMode != null) {
+                        if (fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
+                            fc.setSelectedFile(presel.getParentFile());
                         } else {
-                            this.fc.setSelectedFile(presel);
+                            fc.setSelectedFile(presel);
                         }
                     }
 
@@ -602,28 +644,28 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
         }
         if (orgPresel != null && !orgPresel.isDirectory()) {
-            if (this.fc.getSelectedFile() == null || !this.fc.getSelectedFile().equals(orgPresel)) {
-                this.fc.setSelectedFile(new File(this.fc.getCurrentDirectory(), orgPresel.getName()));
+            if (fc.getSelectedFile() == null || !fc.getSelectedFile().equals(orgPresel)) {
+                fc.setSelectedFile(new File(fc.getCurrentDirectory(), orgPresel.getName()));
             }
         }
-        this.updateView();
+        updateView();
 
         try {
-            final JToggleButton detailsButton = (JToggleButton) SwingUtils.getParent(this.fc, 0, 0, 7);
+            final JToggleButton detailsButton = (JToggleButton) SwingUtils.getParent(fc, 0, 0, 7);
             detailsButton.addActionListener(new ActionListener() {
 
                 @Override
                 public void actionPerformed(final ActionEvent e) {
-                    ExtFileChooserDialog.this.view = View.DETAILS;
+                    view = View.DETAILS;
                 }
             });
 
-            final JToggleButton listButton = (JToggleButton) SwingUtils.getParent(this.fc, 0, 0, 6);
+            final JToggleButton listButton = (JToggleButton) SwingUtils.getParent(fc, 0, 0, 6);
             listButton.addActionListener(new ActionListener() {
 
                 @Override
                 public void actionPerformed(final ActionEvent e) {
-                    ExtFileChooserDialog.this.view = View.LIST;
+                    view = View.LIST;
                 }
             });
         } catch (final Throwable t) {
@@ -633,22 +675,22 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             Log.exception(t);
         }
 
-        if (this.fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
-            ((JComponent) this.fc.getComponent(3)).getComponent(1).setVisible(false);
-            ((JComponent) this.fc.getComponent(3)).getComponent(2).setVisible(false);
+        if (fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
+            ((JComponent) fc.getComponent(3)).getComponent(1).setVisible(false);
+            ((JComponent) fc.getComponent(3)).getComponent(2).setVisible(false);
         }
-        if (this.quickSelectionList != null && this.multiSelection == false) {
+        if (quickSelectionList != null && multiSelection == false) {
             try {
                 // wraps the textfield to enter a path in a SearchCombobox
                 // FilePane filepane = (sun.swing.FilePane)fc.getComponent(2);
 
-                final JPanel namePanel = (JPanel) ((JComponent) this.fc.getComponent(3)).getComponent(0);
+                final JPanel namePanel = (JPanel) ((JComponent) fc.getComponent(3)).getComponent(0);
 
                 final JTextField oldTextField = (JTextField) namePanel.getComponent(1);
                 namePanel.remove(1);
 
                 final String text = oldTextField.getText();
-                this.destination = new SearchComboBox<String>() {
+                destination = new SearchComboBox<String>() {
 
                     @Override
                     public JTextField createTextField() {
@@ -673,7 +715,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
                     @Override
                     public void onChanged() {
-                        if (ExtFileChooserDialog.this.selecting) {
+                        if (selecting) {
                             SwingUtilities.invokeLater(new Runnable() {
 
                                 @Override
@@ -694,11 +736,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                         SwingUtilities.invokeLater(new Runnable() {
 
                             private File getFile(final String txt) {
-                                if (ExtFileChooserDialog.this.fileSystemView.getNetworkFolder() != null && "\\".equals(txt)) { return ExtFileChooserDialog.this.fileSystemView.getNetworkFolder(); }
+                                if (fileSystemView.getNetworkFolder() != null && "\\".equals(txt)) { return fileSystemView.getNetworkFolder(); }
 
                                 File ret = null;
-                                if (ExtFileChooserDialog.this.fileSystemView.getNetworkFolder() != null) {
-                                    ret = ExtFileChooserDialog.this.fileSystemView.getNetworkFolder().get(new File(txt).getAbsolutePath());
+                                if (fileSystemView.getNetworkFolder() != null) {
+                                    ret = fileSystemView.getNetworkFolder().get(new File(txt).getAbsolutePath());
                                 }
 
                                 return ret != null ? ret : new File(txt);
@@ -709,30 +751,30 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                                 try {
                                     final String txt = getText();
 
-                                    File f = this.getFile(txt);
+                                    File f = getFile(txt);
 
                                     boolean parent = false;
                                     while (f != null && f.getParentFile() != f) {
                                         if (ExtFileChooserDialog.this.exists(f)) {
                                             if (f.getParentFile() == null || !f.getParentFile().exists() || parent) {
-                                                ExtFileChooserDialog.this.fc.setCurrentDirectory(f);
-                                                ExtFileChooserDialog.this.fc.setSelectedFile(null);
-                                                ExtFileChooserDialog.this.selecting = true;
+                                                fc.setCurrentDirectory(f);
+                                                fc.setSelectedFile(null);
+                                                selecting = true;
                                                 setText(txt);
-                                                ExtFileChooserDialog.this.selecting = false;
+                                                selecting = false;
                                             } else {
                                                 if (getText().endsWith("\\") || getText().endsWith("/") && f.isDirectory()) {
-                                                    ExtFileChooserDialog.this.fc.setCurrentDirectory(f);
-                                                    ExtFileChooserDialog.this.fc.setSelectedFile(null);
-                                                    ExtFileChooserDialog.this.selecting = true;
+                                                    fc.setCurrentDirectory(f);
+                                                    fc.setSelectedFile(null);
+                                                    selecting = true;
                                                     setText(txt);
-                                                    ExtFileChooserDialog.this.selecting = false;
+                                                    selecting = false;
                                                 } else {
 
-                                                    ExtFileChooserDialog.this.fc.setSelectedFile(f);
-                                                    ExtFileChooserDialog.this.selecting = true;
+                                                    fc.setSelectedFile(f);
+                                                    selecting = true;
                                                     setText(txt);
-                                                    ExtFileChooserDialog.this.selecting = false;
+                                                    selecting = false;
                                                 }
                                             }
                                             return;
@@ -757,38 +799,38 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
                 };
                 // this code makes enter leave the dialog.
-                this.destination.getTextField().getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "approveSelection");
-                this.destination.getTextField().getInputMap().put(KeyStroke.getKeyStroke("pressed TAB"), "auto");
+                destination.getTextField().getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "approveSelection");
+                destination.getTextField().getInputMap().put(KeyStroke.getKeyStroke("pressed TAB"), "auto");
 
-                this.destination.getTextField().setFocusTraversalKeysEnabled(false);
-                this.destination.setActionMap(this.fc.getActionMap());
-                this.destination.getTextField().getActionMap().put("auto", new AbstractAction() {
+                destination.getTextField().setFocusTraversalKeysEnabled(false);
+                destination.setActionMap(fc.getActionMap());
+                destination.getTextField().getActionMap().put("auto", new AbstractAction() {
 
                     @Override
                     public void actionPerformed(final ActionEvent e) {
                         ExtFileChooserDialog.this.auto(oldTextField);
                     }
                 });
-                this.destination.setUnkownTextInputAllowed(true);
-                this.destination.setBadColor(null);
-                this.destination.setSelectedItem(null);
+                destination.setUnkownTextInputAllowed(true);
+                destination.setBadColor(null);
+                destination.setSelectedItem(null);
 
-                this.destination.setList(this.quickSelectionList);
-                this.destination.setText(text);
+                destination.setList(quickSelectionList);
+                destination.setText(text);
                 if (orgPresel != null && orgPresel.exists()) {
                     if (orgPresel.isDirectory()) {
-                        this.destination.setText(orgPresel.getAbsolutePath() + File.separatorChar);
+                        destination.setText(orgPresel.getAbsolutePath() + File.separatorChar);
                     } else {
 
-                        this.destination.setText(orgPresel.getAbsolutePath());
+                        destination.setText(orgPresel.getAbsolutePath());
                     }
 
                 }
-                namePanel.add(this.destination);
-                this.modifiyNamePanel(namePanel);
+                namePanel.add(destination);
+                modifiyNamePanel(namePanel);
                 // SwingUtils.printComponentTree(fc);
                 // [2][0][0][0][0]
-                JComponent c = (JComponent) this.fc.getComponent(2);
+                JComponent c = (JComponent) fc.getComponent(2);
                 c = (JComponent) c.getComponent(0);
                 c = (JComponent) c.getComponent(0);
                 c = (JComponent) c.getComponent(0);
@@ -808,7 +850,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                             int i = jlist.locationToIndex(point);
                             if (i != -1) {
 
-                                if (!this.pointIsInActualBounds(jlist, i, point)) {
+                                if (!pointIsInActualBounds(jlist, i, point)) {
                                     i = -1;
                                 }
                             }
@@ -817,12 +859,12 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
                         @Override
                         public void mouseClicked(final MouseEvent e) {
-                            final int index = this.loc2IndexFileList(list, e.getPoint());
+                            final int index = loc2IndexFileList(list, e.getPoint());
                             if (index < 0) {
-                                final File dir = ExtFileChooserDialog.this.fc.getSelectedFile();
+                                final File dir = fc.getSelectedFile();
 
                                 if (dir != null) {
-                                    ExtFileChooserDialog.this.destination.setText(dir.getParent() + File.separator);
+                                    destination.setText(dir.getParent() + File.separator);
                                     final ListSelectionModel listSelectionModel = list.getSelectionModel();
                                     if (listSelectionModel != null) {
                                         listSelectionModel.clearSelection();
@@ -854,16 +896,76 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 Log.exception(e);
             }
         }
-        if (this.directoryModel != null) {
+        if (directoryModel != null) {
             // this is a workaround to avoid multiple init scans of the
             // filedirectory during the filechooser setup.
-            this.fc.addPropertyChangeListener(this.directoryModel);
-            this.directoryModel.propertyChange(new PropertyChangeEvent(this, JFileChooser.FILE_FILTER_CHANGED_PROPERTY, null, null));
+            fc.addPropertyChangeListener(directoryModel);
+            directoryModel.propertyChange(new PropertyChangeEvent(this, JFileChooser.FILE_FILTER_CHANGED_PROPERTY, null, null));
 
         }
-        this.duringInit = false;
+        duringInit = false;
 
-        return this.fc;
+        return fc;
+    }
+
+    /**
+     * 
+     */
+    private void putIcons() {
+        putIcon("FileView.directoryIcon", ICON_KEY_FOLDER);
+        putIcon("FileView.fileIcon", ICON_KEY_FILE);
+        putIcon("FileView.computerIcon", ICON_KEY_COMPUTER);
+        putIcon("FileView.hardDriveIcon", ICON_KEY_HARDDRIVE);
+        putIcon("FileView.floppyDriveIcon", ICON_KEY_FLOPPY);
+        //
+        putIcon("FileChooser.newFolderIcon", ICON_KEY_NEW_FOLDER);
+        putIcon("FileChooser.upFolderIcon", ICON_KEY_PARENT);
+        putIcon("FileChooser.homeFolderIcon", ICON_KEY_DESKTOP);
+        putIcon("FileChooser.detailsViewIcon", ICON_KEY_DETAILS_VIEW);
+        putIcon("FileChooser.listViewIcon", ICON_KEY_LIST_VIEW);
+        putIcon("FileChooser.viewMenuIcon", ICON_KEY_VIEW);
+
+    }
+
+    /**
+     * @param string
+     * @param string2
+     */
+    private void putIcon(final String key, final String iconKey) {
+        if (AWUTheme.I().hasIcon(iconKey)) {
+            UIManager.put(key, AWUTheme.I().getIcon(iconKey, 18));
+        }
+
+    }
+
+    /**
+     * 
+     */
+    private void cleanupIcons() {
+        cleanupIcon("FileView.directoryIcon", ICON_KEY_FOLDER);
+        cleanupIcon("FileView.fileIcon", ICON_KEY_FILE);
+        cleanupIcon("FileView.computerIcon", ICON_KEY_COMPUTER);
+        cleanupIcon("FileView.hardDriveIcon", ICON_KEY_COMPUTER);
+        cleanupIcon("FileView.floppyDriveIcon", ICON_KEY_FLOPPY);
+        //
+        cleanupIcon("FileChooser.newFolderIcon", ICON_KEY_NEW_FOLDER);
+        cleanupIcon("FileChooser.upFolderIcon", ICON_KEY_PARENT);
+        cleanupIcon("FileChooser.homeFolderIcon", ICON_KEY_DESKTOP);
+        cleanupIcon("FileChooser.detailsViewIcon", ICON_KEY_DETAILS_VIEW);
+        cleanupIcon("FileChooser.listViewIcon", ICON_KEY_LIST_VIEW);
+        cleanupIcon("FileChooser.viewMenuIcon", ICON_KEY_VIEW);
+    }
+
+    /**
+     * @param string
+     * @param string2
+     */
+    private void cleanupIcon(final String key, final String iconKey) {
+        if (AWUTheme.I().hasIcon(iconKey)) {
+            UIManager.put(key, null);
+
+        }
+
     }
 
     /**
@@ -878,11 +980,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     protected void packed() {
         // TODO Auto-generated method stub
         super.packed();
-        if (this.parentGlassPane != null) {
+        if (parentGlassPane != null) {
 
-            this.parentGlassPane.setCursor(ExtFileChooserDialog.DEFAULT_CURSOR);
+            parentGlassPane.setCursor(ExtFileChooserDialog.DEFAULT_CURSOR);
 
-            this.parentGlassPane.setVisible(false);
+            parentGlassPane.setVisible(false);
         }
     }
 
@@ -912,7 +1014,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
             // fc.approveSelection();
         } else {
-            this.fc.cancelSelection();
+            fc.cancelSelection();
         }
         super.setReturnmask(b);
     }
@@ -925,7 +1027,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @param id
      */
     public void setStorageID(final String id) {
-        this.storageID = id;
+        storageID = id;
     }
 
     public void setType(final FileChooserType type) {
@@ -963,11 +1065,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * 
      */
     private void updateView() {
-        if (this.fc == null) { return; }
-        switch (this.getView()) {
+        if (fc == null) { return; }
+        switch (getView()) {
         case DETAILS:
             try {
-                final JToggleButton detailsButton = (JToggleButton) SwingUtils.getParent(this.fc, 0, 0, 7);
+                final JToggleButton detailsButton = (JToggleButton) SwingUtils.getParent(fc, 0, 0, 7);
                 detailsButton.doClick();
             } catch (final Throwable t) {
 
@@ -979,7 +1081,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
         case LIST:
             try {
-                final JToggleButton detailsButton = (JToggleButton) SwingUtils.getParent(this.fc, 0, 0, 6);
+                final JToggleButton detailsButton = (JToggleButton) SwingUtils.getParent(fc, 0, 0, 6);
                 detailsButton.doClick();
             } catch (final Throwable t) {
 

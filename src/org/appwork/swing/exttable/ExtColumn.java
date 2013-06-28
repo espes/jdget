@@ -573,7 +573,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     public boolean isResizable() {
-        return !this.getModel().getStorage().get("ColumnWidthLocked_" + this.getID(), !this.isDefaultResizable());
+        return !this.getModel().getTable().getColumnStore("ColumnWidthLocked_" , this.getID(), !this.isDefaultResizable());
     }
 
     /**
@@ -674,7 +674,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     public void setResizable(final boolean resizeAllowed) {
 
-        this.getModel().getStorage().put("ColumnWidthLocked_" + this.getID(), !resizeAllowed);
+        this.getModel().getStorage().put(getModel().getTable().getColumnStoreKey("ColumnWidthLocked_" ,this.getID()), !resizeAllowed);
         this.updateColumnGui();
         // if
         // (!this.getModel().getExtColumnByViewIndex(this.getModel().getExtViewColumnCount()
@@ -722,7 +722,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             // Set stored columnwidth
             int w = ExtColumn.this.getDefaultWidth();
             try {
-                w = ExtColumn.this.getModel().getStorage().get("WIDTH_COL_" + ExtColumn.this.getID(), w);
+                w = ExtColumn.this.getModel().getTable().getColumnStore("WIDTH_COL_" , ExtColumn.this.getID(), w);
             } catch (final Exception e) {
                 Log.exception(e);
             } finally {
