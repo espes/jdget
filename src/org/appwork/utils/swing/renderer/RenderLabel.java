@@ -12,8 +12,10 @@ package org.appwork.utils.swing.renderer;
 import java.awt.Rectangle;
 
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
+import org.appwork.resources.AWUTheme;
 import org.appwork.utils.ImageProvider.ImageProvider;
 
 /**
@@ -30,6 +32,8 @@ public class RenderLabel extends JLabel {
     private static final long serialVersionUID = 1204940612879959884L;
     private boolean           _enabled         = true;
     private boolean           _visible         = true;
+
+    private Icon              customDisabledIcon;
 
     /**
      * * Overridden for performance reasons.
@@ -52,12 +56,12 @@ public class RenderLabel extends JLabel {
     // }
     @Override
     public boolean isEnabled() {
-        return this._enabled;
+        return _enabled;
     }
 
     @Override
     public boolean isVisible() {
-        return this._visible;
+        return _visible;
     }
 
     /**
@@ -88,9 +92,30 @@ public class RenderLabel extends JLabel {
     public void revalidate() {
     }
 
+    /**
+     * WIth this workaround, we avoid the disabled icon getting painted by the
+     * look and feel.
+     */
+    public Icon getDisabledIcon() {
+        if (customDisabledIcon == null) {          
+            final Icon ico = getIcon();
+            if (ico != null && ico instanceof ImageIcon) {
+                AWUTheme.I().getDisabledIcon((ImageIcon) ico);
+            } else {
+                return ico;
+            }
+        }
+
+        return customDisabledIcon;
+    }
+
     @Override
     public void setDisabledIcon(final Icon disabledIcon) {
-        if (disabledIcon == this.getDisabledIcon()) { return; }
+       
+        if (disabledIcon == customDisabledIcon) { return; }
+        // * WIth this workaround, we avoid the disabled icon getting painted by
+        // the look and feel.
+        customDisabledIcon = disabledIcon;
         super.setDisabledIcon(disabledIcon);
     }
 
@@ -109,10 +134,10 @@ public class RenderLabel extends JLabel {
      */
     @Override
     public void setEnabled(final boolean b) {
-        if (b == this.isEnabled()) { return; }
-        this._enabled = b;
-        if (!b && this.getIcon() != null) {
-            this.setDisabledIcon(ImageProvider.getDisabledIcon(this.getIcon()));
+        if (b == isEnabled()) { return; }
+        _enabled = b;
+        if (!b && getIcon() != null) {
+            setDisabledIcon(ImageProvider.getDisabledIcon(getIcon()));
         }
     }
 
@@ -123,26 +148,26 @@ public class RenderLabel extends JLabel {
      */
     @Override
     public void setIcon(final Icon icon) {
-        if (icon == this.getIcon()) { return; }
-        if (!this.isEnabled()) {
-            this.setDisabledIcon(ImageProvider.getDisabledIcon(icon));
+        if (icon == getIcon()) { return; }
+        if (!isEnabled()) {
+            setDisabledIcon(ImageProvider.getDisabledIcon(icon));
         }
         if (icon == null) {
-            this.setDisabledIcon(null);
+            setDisabledIcon(null);
         }
         super.setIcon(icon);
     }
 
     @Override
     public void setText(final String text) {
-        if (text == null && this.getText() == null) { return; }
-        if (text != null && text.equals(this.getText())) { return; }
+        if (text == null && getText() == null) { return; }
+        if (text != null && text.equals(getText())) { return; }
         super.setText(text);
     }
 
     @Override
     public void setVisible(final boolean aFlag) {
-        this._visible = aFlag;
+        _visible = aFlag;
     }
 
     @Override
