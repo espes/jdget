@@ -482,11 +482,7 @@ public class CrossSystem {
      * @throws IOException
      */
     public static void openFile(final File file) {
-        // There seems to be a bug for win7 java 1.7 u25 . I We call
-        // Desktop.open from within the edt, the call freezes sometimes at
-        // WDesktopPeer.ShellExecute(String,String)
-        // let's try to avoid this by putting the call in a new thread if we are
-        // in the EDT.
+   //I noticed a bug: desktop.open freezes under win7 java 1.7u25 in some cases... we should at least avoid a gui freeze in such cases..
         final Runnable runnable = new Runnable() {
 
             @Override
@@ -498,7 +494,7 @@ public class CrossSystem {
                 }
             }
         };
-        if (SwingUtilities.isEventDispatchThread()) {
+        if (CrossSystem.isWindows()) {
         
             new Thread(runnable, "Open Folder").start();
 
