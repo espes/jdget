@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import javax.swing.SwingUtilities;
-
 import org.appwork.utils.processes.ProcessBuilderFactory;
 
 /**
@@ -51,25 +49,19 @@ public class DesktopSupportWindows implements DesktopSupport {
 
     @Override
     public void openFile(final File file) throws IOException {
-        if (SwingUtilities.isEventDispatchThread()) {
 
-            // calls from the edt to desktop.open might freeze
-            // There seems to be a bug for win7 java 1.7 u25 . I We call
-            // Desktop.open from within the edt, the call freezes sometimes at
-            // WDesktopPeer.ShellExecute(String,String)
-            // let's try to avoid this by putting the call in a new thread if we
-            // are
-            // in the EDT.
-            throw new IOException("Do never call this method from within the EDT");
-        }
         // workaround for windows
         // see http://bugs.sun.com/view_bug.do?bug_id=6599987
         if (!file.exists()) { throw new IOException("File does not exist " + file.getAbsolutePath()); }
         try {
             // it seems that unicode filenames cannot be opened with
             // "rundll32.exe", "url.dll,FileProtocolHandler". let's try
-            // Desktop.open first
-            Desktop.getDesktop().open(file);
+
+            //this call works for unicode pathes as well.
+            ProcessBuilderFactory.create("cmd", "/c", "start", file.getCanonicalPath()).start();
+            // desktop.open might freeze in WDesktopPeer.open....bla on win7
+            // java 1.7u25
+            // Desktop.getDesktop().open(file);
         } catch (final Exception e) {
             ProcessBuilderFactory.create("rundll32.exe", "url.dll,FileProtocolHandler", file.getCanonicalPath()).start();
         }
