@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.logging.Level;
 
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
 import org.appwork.exceptions.WTFException;
@@ -65,7 +66,7 @@ public class CrossSystem {
     public static final byte      OS_WINDOWS_8           = 10;
 
     private static String         JAVAINT                = null;
-    private static DesktopSupport desktopSupport         = null;
+    private static DesktopSupport DESKTOP_SUPPORT         = null;
 
     /**
      * Cache to store the OS string in
@@ -91,12 +92,12 @@ public class CrossSystem {
         /* Init MIME */
         if (CrossSystem.isWindows()) {
             MIME = new MimeWindows();
-            CrossSystem.desktopSupport = new DesktopSupportWindows();
+            CrossSystem.DESKTOP_SUPPORT = new DesktopSupportWindows();
         } else if (CrossSystem.isLinux()) {
-            CrossSystem.desktopSupport = new DesktopSupportLinux();
+            CrossSystem.DESKTOP_SUPPORT = new DesktopSupportLinux();
             MIME = new MimeLinux();
         } else {
-            CrossSystem.desktopSupport = new DesktopSupportJavaDesktop();
+            CrossSystem.DESKTOP_SUPPORT = new DesktopSupportJavaDesktop();
             MIME = new MimeDefault();
         }
     }
@@ -109,8 +110,9 @@ public class CrossSystem {
      */
     private static void _openFILE(final File file) throws IOException {
         if (!CrossSystem.openCustom(CrossSystem.FILE_COMMANDLINE, file.getAbsolutePath())) {
-            CrossSystem.desktopSupport.openFile(file);
+            CrossSystem.DESKTOP_SUPPORT.openFile(file);
         }
+
     }
 
     /**
@@ -122,7 +124,7 @@ public class CrossSystem {
      */
     private static void _openURL(final String _url) throws IOException, URISyntaxException {
         if (!CrossSystem.openCustom(CrossSystem.BROWSER_COMMANDLINE, _url)) {
-            CrossSystem.desktopSupport.browseURL(new URL(_url));
+            CrossSystem.DESKTOP_SUPPORT.browseURL(new URL(_url));
         }
     }
 
@@ -405,7 +407,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isOpenBrowserSupported() {
-        return CrossSystem.desktopSupport.isBrowseURLSupported();
+        return CrossSystem.DESKTOP_SUPPORT.isBrowseURLSupported();
     }
 
     /**
@@ -414,7 +416,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isOpenFileSupported() {
-        return CrossSystem.desktopSupport.isOpenFileSupported();
+        return CrossSystem.DESKTOP_SUPPORT.isOpenFileSupported();
     }
 
     public static boolean isOS2() {
@@ -480,11 +482,28 @@ public class CrossSystem {
      * @throws IOException
      */
     public static void openFile(final File file) {
+        // There seems to be a bug for win7 java 1.7 u25 . I We call
+        // Desktop.open from within the edt, the call freezes sometimes at
+        // WDesktopPeer.ShellExecute(String,String)
+        // let's try to avoid this by putting the call in a new thread if we are
+        // in the EDT.
+        final Runnable runnable = new Runnable() {
 
-        try {
-            CrossSystem._openFILE(file);
-        } catch (final IOException e) {
-            Log.exception(e);
+            @Override
+            public void run() {
+                try {
+                    CrossSystem._openFILE(file);
+                } catch (final IOException e) {
+                    Log.exception(e);
+                }
+            }
+        };
+        if (SwingUtilities.isEventDispatchThread()) {
+        
+            new Thread(runnable, "Open Folder").start();
+
+        } else {
+            runnable.run();
         }
 
     }
@@ -636,10 +655,10 @@ public class CrossSystem {
     public static void showInExplorer(final File saveTo) {
         if (CrossSystem.isWindows() && saveTo.exists()) {
             try {
-                //we need to go this cmd /c way, because explorer.exe seems to do some strange parameter parsing. 
+                // we need to go this cmd /c way, because explorer.exe seems to
+                // do some strange parameter parsing.
                 new ProcessBuilder("cmd", "/c", "explorer /select,\"" + saveTo.getAbsolutePath() + "\"").start();
-                
-                
+
                 return;
             } catch (final IOException e) {
                 e.printStackTrace();
