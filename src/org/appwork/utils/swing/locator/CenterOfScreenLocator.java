@@ -36,12 +36,12 @@ public class CenterOfScreenLocator extends AbstractLocator {
      * .JDialog)
      */
     @Override
-    public Point getLocationOnScreen(Window dialog) {
+    public Point getLocationOnScreen(final Window dialog) {
 
         if (dialog.getParent() == null || !dialog.getParent().isDisplayable() || !dialog.getParent().isVisible()) {
             final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-            return (new Point((int) (screenSize.getWidth() - dialog.getWidth()) / 2, (int) (screenSize.getHeight() - dialog.getHeight()) / 2));
+            return correct(new Point((int) (screenSize.getWidth() - dialog.getWidth()) / 2, (int) (screenSize.getHeight() - dialog.getHeight()) / 2),dialog);
 
         } else if (dialog.getParent() instanceof Frame && ((Frame) dialog.getParent()).getExtendedState() == Frame.ICONIFIED) {
             // dock dialog at bottom right if mainframe is not visible
@@ -53,7 +53,7 @@ public class CenterOfScreenLocator extends AbstractLocator {
                 final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
                 screen.getDefaultConfiguration().getDevice();
 
-                Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(screen.getDefaultConfiguration());
+                final Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(screen.getDefaultConfiguration());
                 if (bounds.contains(MouseInfo.getPointerInfo().getLocation())) {
 
                 return correct(new Point((int) (bounds.x + bounds.getWidth() - dialog.getWidth() - 20 - insets.right), (int) (bounds.y + bounds.getHeight() - dialog.getHeight() - 20 - insets.bottom)), dialog);
@@ -64,7 +64,7 @@ public class CenterOfScreenLocator extends AbstractLocator {
             final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             return correct(new Point((int) (screenSize.getWidth() - dialog.getWidth() - 20), (int) (screenSize.getHeight() - dialog.getHeight() - 60)), dialog);
         } else {
-            Point ret = SwingUtils.getCenter(dialog.getParent(), dialog);
+            final Point ret = SwingUtils.getCenter(dialog.getParent(), dialog);
 
             return correct(ret, dialog);
         }
@@ -116,7 +116,7 @@ public class CenterOfScreenLocator extends AbstractLocator {
      * .dialog.AbstractDialog)
      */
     @Override
-    public void onClose(Window abstractDialog) {
+    public void onClose(final Window abstractDialog) {
         // TODO Auto-generated method stub
 
     }
