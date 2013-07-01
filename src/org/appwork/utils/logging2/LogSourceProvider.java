@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
+import org.appwork.shutdown.ShutdownRequest;
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.Application;
 import org.appwork.utils.Files;
@@ -76,12 +77,12 @@ public abstract class LogSourceProvider {
     private long                             initTime;
 
     public LogSourceProvider(final long timeStamp) {
-        this.initTime = timeStamp;
-        this.consoleHandler = new LogConsoleHandler();
-        this.maxSize = JsonConfig.create(LogConfig.class).getMaxLogFileSize();
-        this.maxLogs = JsonConfig.create(LogConfig.class).getMaxLogFiles();
-        this.logTimeout = JsonConfig.create(LogConfig.class).getLogFlushTimeout() * 1000l;
-        this.instantFlushDefault = JsonConfig.create(LogConfig.class).isDebugModeEnabled();
+        initTime = timeStamp;
+        consoleHandler = new LogConsoleHandler();
+        maxSize = JsonConfig.create(LogConfig.class).getMaxLogFileSize();
+        maxLogs = JsonConfig.create(LogConfig.class).getMaxLogFiles();
+        logTimeout = JsonConfig.create(LogConfig.class).getLogFlushTimeout() * 1000l;
+        instantFlushDefault = JsonConfig.create(LogConfig.class).isDebugModeEnabled();
         File llogFolder = Application.getResource("logs/" + timeStamp + "_" + new SimpleDateFormat("HH.mm").format(new Date(timeStamp)) + "/");
         if (llogFolder.exists()) {
             llogFolder = Application.getResource("logs/" + timeStamp + "_" + new SimpleDateFormat("HH.mm.ss").format(new Date(timeStamp)) + "/");
@@ -89,11 +90,11 @@ public abstract class LogSourceProvider {
         if (!llogFolder.exists()) {
             llogFolder.mkdirs();
         }
-        this.logFolder = llogFolder;
+        logFolder = llogFolder;
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
 
             @Override
-            public void onShutdown(final Object shutdownRequest) {
+            public void onShutdown(final ShutdownRequest shutdownRequest) {
                 LogSourceProvider.this.flushSinks(false, true);
             }
 
@@ -118,7 +119,7 @@ public abstract class LogSourceProvider {
                         if (dir.exists() && dir.isDirectory() && name.matches("^\\d+_\\d+\\.\\d+(\\.\\d+)?$")) {
                             final String timeStamp = new Regex(name, "^(\\d+)_").getMatch(0);
                             long times = 0;
-                            if (timeStamp != null && (times = Long.parseLong(timeStamp)) < this.removeTimeStamp) {
+                            if (timeStamp != null && (times = Long.parseLong(timeStamp)) < removeTimeStamp) {
                                 if (newestTimeStamp == -1 || times > newestTimeStamp) {
                                     /*
                                      * find the latest logfolder, so we can keep
@@ -135,7 +136,7 @@ public abstract class LogSourceProvider {
                 if (oldLogs != null) {
                     for (final File oldLog : oldLogs) {
                         try {
-                            if (this.newestTimeStamp > 0 && oldLog.getName().contains(this.newestTimeStamp + "")) {
+                            if (newestTimeStamp > 0 && oldLog.getName().contains(newestTimeStamp + "")) {
                                 /* always keep at least the last logfolder! */
                                 continue;
                             }
@@ -162,10 +163,10 @@ public abstract class LogSourceProvider {
     public void flushSinks(final boolean flushOnly, final boolean finalFlush) {
         java.util.List<LogSink> logSinks2Flush = null;
         java.util.List<LogSink> logSinks2Close = null;
-        synchronized (this.logSinks) {
-            logSinks2Flush = new ArrayList<LogSink>(this.logSinks.size());
-            logSinks2Close = new ArrayList<LogSink>(this.logSinks.size());
-            final Iterator<LogSink> it = this.logSinks.values().iterator();
+        synchronized (logSinks) {
+            logSinks2Flush = new ArrayList<LogSink>(logSinks.size());
+            logSinks2Close = new ArrayList<LogSink>(logSinks.size());
+            final Iterator<LogSink> it = logSinks.values().iterator();
             while (it.hasNext()) {
                 final LogSink next = it.next();
                 if (next.hasLogSources()) {
@@ -193,11 +194,11 @@ public abstract class LogSourceProvider {
     }
 
     public LogSource getClassLogger(final Class<?> clazz) {
-        return this.getLogger(clazz.getSimpleName());
+        return getLogger(clazz.getSimpleName());
     }
 
     public LogConsoleHandler getConsoleHandler() {
-        return this.consoleHandler;
+        return consoleHandler;
     }
 
     /**
@@ -225,12 +226,12 @@ public abstract class LogSourceProvider {
                     /* we dont want the logging class itself to be used */
                     continue;
                 }
-                return this.getLogger(currentClassName);
+                return getLogger(currentClassName);
             }
         } catch (final Throwable e2) {
             e = e2;
         }
-        final LogSource logger = this.getLogger("LogSourceProvider");
+        final LogSource logger = getLogger("LogSourceProvider");
         if (e != null) {
             /* an exception occured during stacktrace walking */
             logger.log(e);
@@ -244,7 +245,7 @@ public abstract class LogSourceProvider {
     }
 
     public long getInitTime() {
-        return this.initTime;
+        return initTime;
     }
 
     public LogSource getLogger(String name) {
@@ -254,19 +255,19 @@ public abstract class LogSourceProvider {
         if (!name.endsWith(".log")) {
             name = name + ".log";
         }
-        synchronized (this.logSinks) {
-            sink = this.logSinks.get(name);
+        synchronized (logSinks) {
+            sink = logSinks.get(name);
             if (sink == null) {
                 sink = new LogSink(name);
-                if (this.consoleHandler != null) {
+                if (consoleHandler != null) {
                     /*
                      * add ConsoleHandler to sink, it will add it to it's
                      * sources
                      */
-                    sink.addHandler(this.consoleHandler);
+                    sink.addHandler(consoleHandler);
                 }
                 try {
-                    final Handler fileHandler = new FileHandler(new File(this.logFolder, name).getAbsolutePath(), this.maxSize, this.maxLogs, true);
+                    final Handler fileHandler = new FileHandler(new File(logFolder, name).getAbsolutePath(), maxSize, maxLogs, true);
                     sink.addHandler(fileHandler);
                     fileHandler.setEncoding("UTF-8");
                     fileHandler.setLevel(Level.ALL);
@@ -274,11 +275,11 @@ public abstract class LogSourceProvider {
                 } catch (final Throwable e) {
                     e.printStackTrace();
                 }
-                this.logSinks.put(name, sink);
-                this.startFlushThread();
+                logSinks.put(name, sink);
+                startFlushThread();
             }
-            final LogSource source = this.createLogSource(name, -1);
-            source.setInstantFlush(this.instantFlushDefault);
+            final LogSource source = createLogSource(name, -1);
+            source.setInstantFlush(instantFlushDefault);
             sink.addLogSource(source);
             return source;
         }
@@ -289,38 +290,38 @@ public abstract class LogSourceProvider {
     }
 
     public void removeConsoleHandler() {
-        synchronized (this.logSinks) {
-            if (this.consoleHandler == null) { return; }
-            final Iterator<LogSink> it = this.logSinks.values().iterator();
+        synchronized (logSinks) {
+            if (consoleHandler == null) { return; }
+            final Iterator<LogSink> it = logSinks.values().iterator();
             while (it.hasNext()) {
                 final LogSink next = it.next();
                 if (next.hasLogSources()) {
-                    next.removeHandler(this.consoleHandler);
+                    next.removeHandler(consoleHandler);
                 } else {
                     next.close();
                     it.remove();
                 }
             }
-            this.consoleHandler = null;
+            consoleHandler = null;
         }
     }
 
     protected void startFlushThread() {
-        if (this.flushThread != null && this.flushThread.isAlive()) { return; }
-        this.flushThread = new Thread("LogFlushThread") {
+        if (flushThread != null && flushThread.isAlive()) { return; }
+        flushThread = new Thread("LogFlushThread") {
 
             @Override
             public void run() {
                 while (true) {
-                    synchronized (LogSourceProvider.this.logSinks) {
-                        if (LogSourceProvider.this.logSinks.size() == 0) {
-                            LogSourceProvider.this.flushThread = null;
+                    synchronized (logSinks) {
+                        if (logSinks.size() == 0) {
+                            flushThread = null;
                             return;
                         }
                     }
                     try {
                         try {
-                            Thread.sleep(LogSourceProvider.this.logTimeout);
+                            Thread.sleep(logTimeout);
                         } catch (final InterruptedException e) {
                         }
                         LogSourceProvider.this.flushSinks(true, false);
@@ -331,8 +332,8 @@ public abstract class LogSourceProvider {
             }
 
         };
-        this.flushThread.setDaemon(true);
-        this.flushThread.start();
+        flushThread.setDaemon(true);
+        flushThread.start();
     }
 
 }

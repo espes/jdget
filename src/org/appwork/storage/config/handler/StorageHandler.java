@@ -27,6 +27,7 @@ import org.appwork.exceptions.WTFException;
 import org.appwork.scheduler.DelayedRunnable;
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
+import org.appwork.shutdown.ShutdownRequest;
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
@@ -173,7 +174,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
 
             @Override
-            public void onShutdown(final Object shutdownRequest) {
+            public void onShutdown(final ShutdownRequest shutdownRequest) {
                 if (StorageHandler.this.save) {
                     StorageHandler.this.primitiveStorage.save();
                 }
@@ -250,7 +251,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
 
             @Override
-            public void onShutdown(final Object shutdownRequest) {
+            public void onShutdown(final ShutdownRequest shutdownRequest) {
                 if (StorageHandler.this.save) {
                     StorageHandler.this.primitiveStorage.save();
                 }

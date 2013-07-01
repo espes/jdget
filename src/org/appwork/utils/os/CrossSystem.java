@@ -19,12 +19,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.logging.Level;
 
-import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
+import org.appwork.shutdown.ShutdownRequest;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.StorageException;
 import org.appwork.uio.UIOManager;
@@ -66,7 +66,7 @@ public class CrossSystem {
     public static final byte      OS_WINDOWS_8           = 10;
 
     private static String         JAVAINT                = null;
-    private static DesktopSupport DESKTOP_SUPPORT         = null;
+    private static DesktopSupport DESKTOP_SUPPORT        = null;
 
     /**
      * Cache to store the OS string in
@@ -482,7 +482,8 @@ public class CrossSystem {
      * @throws IOException
      */
     public static void openFile(final File file) {
-   //I noticed a bug: desktop.open freezes under win7 java 1.7u25 in some cases... we should at least avoid a gui freeze in such cases..
+        // I noticed a bug: desktop.open freezes under win7 java 1.7u25 in some
+        // cases... we should at least avoid a gui freeze in such cases..
         final Runnable runnable = new Runnable() {
 
             @Override
@@ -495,7 +496,7 @@ public class CrossSystem {
             }
         };
         if (CrossSystem.isWindows()) {
-        
+
             new Thread(runnable, "Open Folder").start();
 
         } else {
@@ -614,7 +615,7 @@ public class CrossSystem {
                 }
 
                 @Override
-                public void onShutdown(final Object shutdownRequest) {
+                public void onShutdown(final ShutdownRequest shutdownRequest) {
                     try {
                         pb.start();
                     } catch (final IOException e) {

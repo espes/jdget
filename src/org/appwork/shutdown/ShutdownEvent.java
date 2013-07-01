@@ -9,7 +9,7 @@ public abstract class ShutdownEvent {
     }
 
     public int getHookPriority() {
-        return this.hookPriority;
+        return hookPriority;
     }
 
     /**
@@ -18,10 +18,10 @@ public abstract class ShutdownEvent {
      */
     public long getMaxDuration() {
 
-        return this.maxDuration;
+        return maxDuration;
     }
 
-    abstract public void onShutdown(Object shutdownRequest);
+    abstract public void onShutdown(ShutdownRequest shutdownRequest);
 
     /**
      * The higher the priority, the earlier the hook will be called.
@@ -30,7 +30,7 @@ public abstract class ShutdownEvent {
      */
 
     public void setHookPriority(final int priority) {
-        this.hookPriority = priority;
+        hookPriority = priority;
     }
 
     /**
@@ -43,7 +43,7 @@ public abstract class ShutdownEvent {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + " Priority: " + this.getHookPriority();
+        return this.getClass().getSimpleName() + " Priority: " + getHookPriority();
     }
 
 }

@@ -13,6 +13,7 @@ import java.util.logging.Level;
 
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.shutdown.ShutdownEvent;
+import org.appwork.shutdown.ShutdownRequest;
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.Regex;
@@ -45,7 +46,7 @@ public class JSonStorage {
             }
 
             @Override
-            public void onShutdown(final Object shutdownRequest) {
+            public void onShutdown(final ShutdownRequest shutdownRequest) {
                 JSonStorage.save();
             }
 
@@ -409,7 +410,7 @@ public class JSonStorage {
         synchronized (JSonStorage.LOCK) {
             final File tmp = new File(file.getAbsolutePath() + ".tmp");
             try {
-               
+
                 tmp.getParentFile().mkdirs();
                 tmp.delete();
                 if (plain) {
@@ -424,7 +425,7 @@ public class JSonStorage {
                 }
                 if (!tmp.renameTo(file)) { throw new StorageException("Could not rename file: " + tmp + " to " + file); }
             } catch (final IOException e) {
-                throw new StorageException("Can not write to "+tmp.getAbsolutePath(),e);
+                throw new StorageException("Can not write to " + tmp.getAbsolutePath(), e);
             }
         }
     }

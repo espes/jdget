@@ -9,13 +9,30 @@
  */
 package org.appwork.shutdown;
 
+import java.util.List;
+
 /**
  * @author daniel
  * 
  */
-public interface ShutdownVetoFilter {
+public interface ShutdownRequest {
 
     public boolean askForVeto(ShutdownVetoListener listener);
 
-    public void gotVetoFrom(ShutdownVetoListener listener);
+    public void addVeto( ShutdownVetoException e);
+
+    /**
+     * @return
+     */
+    public boolean isSilent();
+
+    /**
+     * @return
+     */
+    public List<ShutdownVetoException> getVetos();
+
+    /**
+     * @return
+     */
+    public boolean hasVetos();
 }

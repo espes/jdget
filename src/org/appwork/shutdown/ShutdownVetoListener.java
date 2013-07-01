@@ -19,9 +19,9 @@ public interface ShutdownVetoListener {
      * Step 2a:<br>
      * Informs listener, that shutdown will be done for sure now. Shutdown will
      * happen immediatelly after this call
-     * @param silent TODO
+     * @param request TODO
      */
-    public void onShutdown(boolean silent);
+    public void onShutdown(ShutdownRequest request);
 
     /**
      * step 2b: If one or more listeners in step 1 answered with true(veto) all
@@ -29,7 +29,7 @@ public interface ShutdownVetoListener {
      * 
      * @param vetos
      */
-    public void onShutdownVeto(ShutdownVetoException[] shutdownVetoExceptions);
+    public void onShutdownVeto(ShutdownRequest request);
 
     /**
      * step 1b:<br>
@@ -39,17 +39,8 @@ public interface ShutdownVetoListener {
      * @return
      * @throws ShutdownVetoException
      */
-    public void onShutdownVetoRequest(ShutdownVetoException[] shutdownVetoExceptions) throws ShutdownVetoException;
+    public void onShutdownVetoRequest(ShutdownRequest request) throws ShutdownVetoException;
 
-    /**
-     * step 1a:<br>
-     * Application requests shutdown. throws ShutdownVetoException if shutdown
-     * currently not possible/wanted
-     * 
-     * @return
-     * @throws ShutdownVetoException
-     */
-    public void onSilentShutdownVetoRequest(ShutdownVetoException[] shutdownVetoExceptions) throws ShutdownVetoException;
 
     /**
      * the higher the priority, the earlier the veto listener will be called
