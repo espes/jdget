@@ -146,6 +146,10 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
         return true;
     }
 
+    public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+        return false;
+    }
+
     @Override
     public boolean isSortable(final E obj) {
         return true;
@@ -153,7 +157,11 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
 
     @Override
     final public void setValue(final Object value, final E object) {
-        setSelectedItem(object, (ModelType) value);
+        try {
+            setSelectedItem(object, (ModelType) value);
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
