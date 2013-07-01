@@ -58,7 +58,8 @@ public class DesktopSupportWindows implements DesktopSupport {
             // "rundll32.exe", "url.dll,FileProtocolHandler". let's try
 
             //this call works for unicode pathes as well.
-            ProcessBuilderFactory.create("cmd", "/c", "start", file.getCanonicalPath()).start();
+            //the " " parameter is a dummy parameter to represent the window name. without it, pathes with psace would fail
+            ProcessBuilderFactory.create("cmd", "/c", "start","/B"," ", file.getCanonicalPath()).start();
             // desktop.open might freeze in WDesktopPeer.open....bla on win7
             // java 1.7u25
             // Desktop.getDesktop().open(file);
