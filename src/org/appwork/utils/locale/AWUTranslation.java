@@ -442,4 +442,10 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en" }, values = { "Continue" })
     String lit_continue();
+
+    @Default(lngs = { "en" }, values = { "%s1" })
+    String tableheader_tooltip_normal(String name);
+
+    @Default(lngs = { "en" }, values = { "%s1 (Resizing Locked)" })
+    String tableheader_tooltip_locked(String name);
 }

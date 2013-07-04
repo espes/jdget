@@ -54,81 +54,82 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
      * @param jTableHeader
      */
     public ExtTableHeaderRenderer(final ExtColumn<?> extColumn, final JTableHeader header) {
-        this.column = extColumn;
+        column = extColumn;
         // this.setHorizontalTextPosition(10);
-        this.lockedWidth = AWUTheme.I().getIcon("exttable/widthLocked", -1);
+        lockedWidth = AWUTheme.I().getIcon("exttable/widthLocked", -1);
         try {
 
             try {
-                this.focusForeground = DefaultLookup.getColor(this, this.ui, "TableHeader.focusCellForeground");
-                this.focusBackground = DefaultLookup.getColor(this, this.ui, "TableHeader.focusCellBackground");
+                focusForeground = DefaultLookup.getColor(this, ui, "TableHeader.focusCellForeground");
+                focusBackground = DefaultLookup.getColor(this, ui, "TableHeader.focusCellBackground");
             } catch (final NoSuchMethodError e) {
                 // DefaultLookup is sun.swing, any may not be
                 // available
                 // e.gh. in 1.6.0_01-b06
-                this.focusForeground = (Color) UIManager.get("TableHeader.focusCellForeground", this.getLocale());
-                this.focusBackground = (Color) UIManager.get("TableHeader.focusCellBackground", this.getLocale());
+                focusForeground = (Color) UIManager.get("TableHeader.focusCellForeground", getLocale());
+                focusBackground = (Color) UIManager.get("TableHeader.focusCellBackground", getLocale());
 
             }
 
         } catch (final Throwable e) {
             Log.exception(e);
         }
-        if (this.focusForeground == null) {
-            this.focusForeground = header.getForeground();
+        if (focusForeground == null) {
+            focusForeground = header.getForeground();
 
         }
-        if (this.focusBackground == null) {
-            this.focusBackground = header.getBackground();
+        if (focusBackground == null) {
+            focusBackground = header.getBackground();
         }
-        this.foregroundC = header.getForeground();
-        this.backgroundC = header.getBackground();
+        foregroundC = header.getForeground();
+        backgroundC = header.getBackground();
 
         try {
             try {
 
-                this.focusBorder = DefaultLookup.getBorder(this, this.ui, "TableHeader.focusCellBorder");
+                focusBorder = DefaultLookup.getBorder(this, ui, "TableHeader.focusCellBorder");
 
-                this.cellBorder = DefaultLookup.getBorder(this, this.ui, "TableHeader.cellBorder");
+                cellBorder = DefaultLookup.getBorder(this, ui, "TableHeader.cellBorder");
 
             } catch (final NoSuchMethodError e) {
                 // DefaultLookup is sun.swing, any may not be available
                 // e.gh. in 1.6.0_01-b06
 
-                this.focusBorder = (Border) UIManager.get("TableHeader.focusCellBorder", this.getLocale());
+                focusBorder = (Border) UIManager.get("TableHeader.focusCellBorder", getLocale());
 
-                this.cellBorder = (Border) UIManager.get("TableHeader.focusCellBackground", this.getLocale());
+                cellBorder = (Border) UIManager.get("TableHeader.focusCellBackground", getLocale());
 
             }
         } catch (final Throwable e) {
             Log.exception(e);
             // avoid that the block above kills edt
         }
-        if (this.focusBorder == null) {
-            this.focusBorder = BorderFactory.createEmptyBorder(0, 10, 0, 10);
+        if (focusBorder == null) {
+            focusBorder = BorderFactory.createEmptyBorder(0, 10, 0, 10);
         }
-        if (this.cellBorder == null) {
-            this.cellBorder = BorderFactory.createEmptyBorder(0, 10, 0, 10);
+        if (cellBorder == null) {
+            cellBorder = BorderFactory.createEmptyBorder(0, 10, 0, 10);
         }
-        this.setFont(header.getFont());
+        setFont(header.getFont());
 
     }
 
     @Override
     public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-        this.setForeground(hasFocus ? this.focusForeground : this.foregroundC);
-        this.setBackground(hasFocus ? this.focusBackground : this.backgroundC);
+        setForeground(hasFocus ? focusForeground : foregroundC);
+        setBackground(hasFocus ? focusBackground : backgroundC);
         // sort column is no current column
         if (this.column.getModel().getSortColumn() == null || this.column.getModel().getSortColumn() != this.column) {
-            this.paintIcon = false;
+            paintIcon = false;
 
         } else {
-            this.paintIcon = true;
+            paintIcon = true;
 
         }
 
-        this.setText(value == null ? "" : value.toString());
-        this.setBorder(hasFocus ? this.focusBorder : this.cellBorder);
+        setText(value == null ? "" : value.toString());
+        setBorder(hasFocus ? focusBorder : cellBorder);
+
         // this.setBackground(Color.RED);
         // this.setOpaque(true);
         // System.out.println(this.getPreferredSize());
@@ -137,21 +138,37 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
 
     @Override
     public void paintComponent(final Graphics g) {
-        super.paintComponent(g);
+        boolean paintLock = false;
+        if (!column.isResizable() && column.isPaintWidthLockIcon()) {
+            paintLock = true;
+        }
+        final Border orgBorder = getBorder();
+        final int widthDif = column.getWidth() - getPreferredSize().width;
+        final boolean smallLockIcon = widthDif < lockedWidth.getIconWidth();
+      
         try {
-            if (this.paintIcon) {
+            if (paintLock && !smallLockIcon) {
+                setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(0, 0, 0, lockedWidth.getIconWidth()), orgBorder));
+            }
+            super.paintComponent(g);
+        } finally {
+            setBorder(orgBorder);
+        }
+        try {
+            if (paintIcon) {
                 final int left = 2;
-                final Icon icon = this.column.getModel().getSortColumn().getSortIcon();
+                final Icon icon = column.getModel().getSortColumn().getSortIcon();
                 if (icon != null) {
                     final Graphics2D g2 = (Graphics2D) g;
                     // final Composite comp = g2.getComposite();
                     // g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
                     // 0.5f));
-                    icon.paintIcon(this, g2, left, (this.getHeight() - icon.getIconHeight()) / 2);
+                    icon.paintIcon(this, g2, left, (getHeight() - icon.getIconHeight()) / 2);
                     // g2.setComposite(comp);
                 }
             }
-            if (!this.column.isResizable() && this.column.isPaintWidthLockIcon()) {
+
+            if (paintLock) {
 
                 // lockedWidth
 
@@ -159,10 +176,17 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
                 // final Composite comp = g2.getComposite();
                 // g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
                 // 0.5f));
-                this.lockedWidth.paintIcon(this, g2, this.getWidth() - this.lockedWidth.getIconWidth() - 2, (this.getHeight() - this.lockedWidth.getIconHeight()) / 2);
+                if (smallLockIcon) {
+                    g2.setColor(getBackground().darker());
+//                    g2.setColor(Color.RED);
+                    final int size = 6;
+                    g2.fillPolygon(new int[] { getWidth(), getWidth()-size, getWidth() , getWidth() }, new int[] { getHeight(),getHeight(),getHeight()-size, getHeight() }, 4);
+                } else {
+                    lockedWidth.paintIcon(this, g2, getWidth() - lockedWidth.getIconWidth() - 2, (getHeight() - lockedWidth.getIconHeight()) / 2);
+                }
                 // g2.setComposite(comp);
             }
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             Log.exception(e);
         }
 

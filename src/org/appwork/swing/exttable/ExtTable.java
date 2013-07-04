@@ -284,7 +284,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             public void mouseMoved(final MouseEvent e) {
                 final int col = ExtTable.this.getExtColumnModelIndexByPoint(e.getPoint());
                 if (col >= 0) {
-                    ExtTable.this.getTableHeader().setToolTipText(ExtTable.this.getModel().getExtColumnByModelIndex(col).getName());
+                    ExtTable.this.getTableHeader().setToolTipText(ExtTable.this.getModel().getExtColumnByModelIndex(col).getHeaderTooltip());
                 }
 
             }

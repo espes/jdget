@@ -56,7 +56,7 @@ public abstract class TimerDialog {
 
         @Override
         public void dispose() {
-            disposed = true;
+            setDisposed(true);
             TimerDialog.this.dispose();
             super.dispose();
         }
@@ -110,6 +110,13 @@ public abstract class TimerDialog {
         return disposed;
     }
 
+    /**
+     * @param b
+     */
+    protected void setDisposed(final boolean b) {
+        disposed = b;
+    }
+
     public boolean isCountdownPausable() {
         return countdownPausable;
     }
@@ -143,7 +150,7 @@ public abstract class TimerDialog {
      * 
      */
     protected void dispose() {
-        disposed = true;
+        setDisposed(true);
         getDialog().realDispose();
 
     }

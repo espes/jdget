@@ -508,7 +508,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         if (this.dummyInit && dialog == null) { return; }
         if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
         if (isDisposed()) { return; }
-        disposed = true;
+        setDisposed(true);
         new EDTRunner() {
 
             @Override
@@ -537,6 +537,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         };
 
     }
+
 
     /**
      * @return
@@ -742,8 +743,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         focus.requestFocusInWindow();
 
     }
-
-
 
     /**
      * Closes the thread. Causes a cancel and setting the interrupted flag
@@ -972,7 +971,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @param b
      */
     protected void setReturnmask(final boolean b) {
-        if (isDisposed()) { throw new IllegalStateException("Dialog already disposed"); }
+        if (isDisposed()) {
+
+        throw new IllegalStateException("Dialog already disposed"); }
         this.returnBitMask = b ? Dialog.RETURN_OK : Dialog.RETURN_CANCEL;
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
             if (this.dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) {

@@ -25,6 +25,7 @@ import javax.swing.table.TableColumn;
 
 import org.appwork.swing.components.tooltips.ExtTooltip;
 import org.appwork.swing.exttable.columnmenu.LockColumnWidthAction;
+import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
@@ -805,6 +806,18 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             }
         };
 
+    }
+
+    /**
+     * @return
+     */
+    public String getHeaderTooltip() {
+if(isResizable()){
+    return _AWU.T.tableheader_tooltip_normal(getName());
+}else{
+    return _AWU.T.tableheader_tooltip_locked(getName()); 
+}
+     
     }
 
 }
