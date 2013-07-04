@@ -43,6 +43,7 @@ import org.appwork.storage.config.annotations.DefaultDoubleArrayValue;
 import org.appwork.storage.config.annotations.DefaultFloatArrayValue;
 import org.appwork.storage.config.annotations.DefaultIntArrayValue;
 import org.appwork.storage.config.annotations.DefaultLongArrayValue;
+import org.appwork.storage.config.annotations.InitHook;
 import org.appwork.storage.config.events.ConfigEvent;
 import org.appwork.storage.config.events.ConfigEventSender;
 import org.appwork.utils.Application;
@@ -119,7 +120,14 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     public StorageHandler(final File name, final Class<T> configInterface) {
 
         if (!StorageHandler.DUPE_SET.add(configInterface.getName() + "." + name.getAbsolutePath())) { throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice"); }
-
+        final InitHook initHook = configInterface.getAnnotation(InitHook.class);
+        if (initHook != null) {
+            try {
+                initHook.value().newInstance().doHook(name, configInterface);
+            } catch (final Exception e) {
+                throw new WTFException(e);
+            }
+        }
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 
@@ -195,6 +203,14 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
     public StorageHandler(final String classPath, final Class<T> configInterface) throws URISyntaxException {
 
+        final InitHook initHook = configInterface.getAnnotation(InitHook.class);
+        if (initHook != null) {
+            try {
+                initHook.value().newInstance().doHook(classPath, configInterface);
+            } catch (final Exception e) {
+                throw new WTFException(e);
+            }
+        }
         this.configInterface = configInterface;
         this.eventSender = new ConfigEventSender<Object>();
 

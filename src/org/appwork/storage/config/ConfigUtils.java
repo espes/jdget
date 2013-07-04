@@ -4,11 +4,15 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.appwork.exceptions.WTFException;
 import org.appwork.storage.config.annotations.DescriptionForConfigEntry;
 import org.appwork.storage.config.handler.KeyHandler;
+import org.appwork.storage.config.handler.ListHandler;
 import org.appwork.utils.swing.dialog.Dialog;
 import org.appwork.utils.swing.dialog.DialogCanceledException;
 import org.appwork.utils.swing.dialog.DialogClosedException;
+
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 public class ConfigUtils {
 
@@ -31,11 +35,11 @@ public class ConfigUtils {
         strBuild.append("\r\n");
         strBuild.append("//Static Mappings for " + configInterface);
         strBuild.append("\r\n");
-        if(resource==null){
-        strBuild.append("public static final " + configInterface.getSimpleName() + "                 CFG                               = JsonConfig.create(" + configInterface.getSimpleName() + ".class);");
-        }else{
-            strBuild.append("public static final " + configInterface.getSimpleName() + "                 CFG                               = JsonConfig.create("+resource+", " + configInterface.getSimpleName() + ".class);");
-               
+        if (resource == null) {
+            strBuild.append("public static final " + configInterface.getSimpleName() + "                 CFG                               = JsonConfig.create(" + configInterface.getSimpleName() + ".class);");
+        } else {
+            strBuild.append("public static final " + configInterface.getSimpleName() + "                 CFG                               = JsonConfig.create(" + resource + ", " + configInterface.getSimpleName() + ".class);");
+
         }
         strBuild.append("\r\n");
         strBuild.append("public static final StorageHandler<" + configInterface.getSimpleName() + ">                 SH                               = (StorageHandler<" + configInterface.getSimpleName() + ">) CFG.getStorageHandler();");
@@ -83,7 +87,21 @@ public class ConfigUtils {
                 strBuild.append("**/");
             }
             strBuild.append("\r\n");
-            strBuild.append("public static final " + kh.getClass().getSimpleName() + " " + sb + " = SH.getKeyHandler(\"" + methodname + "\", " + kh.getClass().getSimpleName() + ".class);");
+            if (kh.getClass().getName().contains("$")) {
+                if (ListHandler.class.isAssignableFrom(kh.getClass())) {
+                    final ParameterizedTypeImpl sc = (ParameterizedTypeImpl) kh.getClass().getGenericSuperclass();
+                    final Class type = (Class) sc.getActualTypeArguments()[0];
+                    final String sn = type.getSimpleName();
+                    final Class<?> raw = sc.getRawType();
+
+                    strBuild.append("public static final " + raw.getSimpleName() + "<" + sn + ">" + " " + sb + " = (" + raw.getSimpleName() + "<" + sn + ">" + ")SH.getKeyHandler(\"" + methodname + "\", " + raw.getSimpleName() + ".class);");
+continue;
+                }
+                throw new WTFException("Unsupported Keyhanlder");
+            } else {
+                strBuild.append("public static final " + kh.getClass().getSimpleName() + " " + sb + " = SH.getKeyHandler(\"" + methodname + "\", " + kh.getClass().getSimpleName() + ".class);");
+            }
+
         }
 
         System.err.println("=======================");

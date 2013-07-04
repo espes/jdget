@@ -236,7 +236,7 @@ public class Dialog implements WindowFocusListener {
     /**
      * The max counter value for a timeout Dialog
      */
-    private int                          countdownTime = 20;
+    private int                          defaultTimeout = 20000;
 
     /**
      * Parent window for all dialogs created with abstractdialog
@@ -263,11 +263,11 @@ public class Dialog implements WindowFocusListener {
     }
 
     /**
-     * @return the {@link Dialog#countdownTime}
-     * @see Dialog#countdownTime
+     * @return the {@link Dialog#defaultTimeout}
+     * @see Dialog#defaultTimeout
      */
-    protected int getCountdownTime() {
-        return countdownTime;
+    protected int getDefaultTimeout() {
+        return defaultTimeout;
     }
 
     public DialogHandler getDefaultHandler() {
@@ -336,11 +336,11 @@ public class Dialog implements WindowFocusListener {
 
     /**
      * @param countdownTime
-     *            the {@link Dialog#countdownTime} to set
-     * @see Dialog#countdownTime
+     *            the {@link Dialog#defaultTimeout} to set
+     * @see Dialog#defaultTimeout
      */
-    public void setCountdownTime(final int countdownTime) {
-        this.countdownTime = countdownTime;
+    public void setDefaultTimeout(final int countdownTime) {
+        defaultTimeout = countdownTime;
     }
 
     public void setHandler(DialogHandler handler) {

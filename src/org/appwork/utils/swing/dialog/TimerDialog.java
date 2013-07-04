@@ -20,6 +20,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.utils.formatter.TimeFormatter;
 import org.appwork.utils.swing.EDTHelper;
+import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.SwingUtils;
 
 public abstract class TimerDialog {
@@ -55,6 +56,7 @@ public abstract class TimerDialog {
 
         @Override
         public void dispose() {
+            disposed = true;
             TimerDialog.this.dispose();
             super.dispose();
         }
@@ -100,7 +102,17 @@ public abstract class TimerDialog {
     protected InternDialog dialog;
 
     protected Dimension    preferredSize;
-    private int            countdownTime = 0;
+    private int            timeout           = 0;
+    private boolean        countdownPausable = true;
+    protected boolean      disposed          = false;
+
+    public boolean isDisposed() {
+        return disposed;
+    }
+
+    public boolean isCountdownPausable() {
+        return countdownPausable;
+    }
 
     public TimerDialog() {
         // super(parentframe, ModalityType.TOOLKIT_MODAL);
@@ -119,6 +131,7 @@ public abstract class TimerDialog {
      * interrupts the timer countdown
      */
     public void cancel() {
+        if (!isCountdownPausable()) { return; }
         if (timer != null) {
             timer.interrupt();
             timer = null;
@@ -130,6 +143,7 @@ public abstract class TimerDialog {
      * 
      */
     protected void dispose() {
+        disposed = true;
         getDialog().realDispose();
 
     }
@@ -142,15 +156,31 @@ public abstract class TimerDialog {
         return getDialog().getBackground();
     }
 
-    /**
-     * @return
-     */
-    public long getCountdown() {
-        return getCountdownTime() > 0 ? getCountdownTime() : Dialog.getInstance().getCountdownTime();
+    public void setCountdownPausable(final boolean b) {
+        countdownPausable = b;
+
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                if (timer != null && timer.isAlive()) {
+
+                    timerLbl.setEnabled(b);
+                }
+            }
+        };
+
     }
 
-    public int getCountdownTime() {
-        return countdownTime;
+    /**
+     * @return the timeout a dialog actually should display
+     */
+    public long getCountdown() {
+        return getTimeout() > 0 ? getTimeout() : Dialog.getInstance().getDefaultTimeout();
+    }
+
+    public int getTimeout() {
+        return timeout;
     }
 
     public InternDialog getDialog() {
@@ -213,7 +243,7 @@ public abstract class TimerDialog {
     }
 
     protected void initTimer(final long time) {
-        counter = time;
+        counter = time / 1000;
         timer = new Thread() {
 
             @Override
@@ -229,8 +259,14 @@ public abstract class TimerDialog {
                     }
                     long count = counter;
                     while (--count >= 0) {
-                        if (!TimerDialog.this.isVisible()) { return; }
-                        if (timer == null) { return; }
+                        if (!TimerDialog.this.isVisible()) {
+                            //
+                            return;
+                        }
+                        if (timer == null) {
+                            //
+                            return;
+                        }
                         final String left = TimeFormatter.formatSeconds(count, 0);
 
                         new EDTHelper<Object>() {
@@ -245,11 +281,20 @@ public abstract class TimerDialog {
 
                         Thread.sleep(1000);
 
-                        if (counter < 0) { return; }
-                        if (!TimerDialog.this.isVisible()) { return; }
+                        if (counter < 0) {
+                            //
+                            return;
+                        }
+                        if (!TimerDialog.this.isVisible()) {
+                            //
+                            return;
+                        }
 
                     }
-                    if (counter < 0) { return; }
+                    if (counter < 0) {
+                        //
+                        return;
+                    }
                     if (!isInterrupted()) {
                         TimerDialog.this.onTimeout();
                     }
@@ -281,6 +326,7 @@ public abstract class TimerDialog {
         }
 
         timerLbl = new JLabel(TimeFormatter.formatSeconds(getCountdown(), 0));
+        timerLbl.setEnabled(isCountdownPausable());
 
     }
 
@@ -303,8 +349,22 @@ public abstract class TimerDialog {
         getDialog().setAlwaysOnTop(b);
     }
 
-    public void setCountdownTime(final int countdownTime) {
-        this.countdownTime = countdownTime;
+    /**
+     * @deprecated use #setTimeout instead
+     * @param countdownTime
+     */
+    @Deprecated
+    public void setCountdownTime(final int countdownTimeInSeconds) {
+        timeout = countdownTimeInSeconds * 1000;
+    }
+
+    /**
+     * Set countdown time on Milliseconds!
+     * 
+     * @param countdownTimeInMs
+     */
+    public void setTimeout(final int countdownTimeInMs) {
+        timeout = countdownTimeInMs;
     }
 
     protected void setDefaultCloseOperation(final int doNothingOnClose) {
