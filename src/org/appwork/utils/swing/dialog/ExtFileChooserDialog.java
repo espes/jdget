@@ -156,13 +156,14 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * 
      */
     public static final String  FILECHOOSER           = "FILECHOOSER";
-    public static final String ICON_KEY_HOME = "home";
-    public static final String ICON_KEY_DOCUMENTS = "document";
-    public static final String ICON_KEY_MUSIC = "audio";
-    public static final String ICON_KEY_VIDEO = "video";
-    public static final String ICON_KEY_BOX = "box";
-    public static final String ICON_KEY_IMAGES = "image";
-    public static final String ICON_KEY_DOWNLOADS = "download";
+    public static final String  ICON_KEY_HOME         = "home";
+    public static final String  ICON_KEY_DOCUMENTS    = "document";
+    public static final String  ICON_KEY_MUSIC        = "audio";
+    public static final String  ICON_KEY_VIDEO        = "video";
+    public static final String  ICON_KEY_BOX          = "box";
+    public static final String  ICON_KEY_IMAGES       = "image";
+    public static final String  ICON_KEY_DOWNLOADS    = "download";
+
     public static void main(final String[] args) {
         try {
             Log.L.setLevel(Level.ALL);
@@ -569,12 +570,20 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
             @Override
             public void actionPerformed(final ActionEvent e) {
+                Log.L.info(e + "");
+                if (JFileChooser.CANCEL_SELECTION.equals(e.getActionCommand())) {
+                    Log.L.fine("Answer: FC CANCEL>");
+                    // this is called indirectly through #setReturnmask(false). so we use super here to avoid a loop
+                   ExtFileChooserDialog.super.setReturnmask(false);
+                    //
+                    ExtFileChooserDialog.this.dispose();
+                } else if (JFileChooser.APPROVE_SELECTION.equals(e.getActionCommand())) {
+                    Log.L.fine("Answer: FC APPROVE>");
+                    ExtFileChooserDialog.this.setReturnmask(true);
 
-                Log.L.fine("Answer: PRESS:ENTER>");
+                    ExtFileChooserDialog.this.dispose();
+                }
 
-                ExtFileChooserDialog.this.setReturnmask(true);
-
-                ExtFileChooserDialog.this.dispose();
             }
         });
 

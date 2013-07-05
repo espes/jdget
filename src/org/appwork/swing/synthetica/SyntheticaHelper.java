@@ -2,14 +2,19 @@ package org.appwork.swing.synthetica;
 
 import java.awt.Font;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.swing.components.ExtPasswordField;
 import org.appwork.txtresource.TranslationFactory;
+import org.appwork.utils.Application;
+import org.appwork.utils.IO;
+import org.appwork.utils.Regex;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.os.CrossSystem;
 
@@ -113,7 +118,8 @@ public class SyntheticaHelper {
                 /* must be true to disable it..strange world ;) */
                 UIManager.put("Synthetica.window.opaque", true);
             }
-            UIManager.put("Synthetica.menu.toolTipEnabled", true); UIManager.put("Synthetica.menuItem.toolTipEnabled", true);
+            UIManager.put("Synthetica.menu.toolTipEnabled", true);
+            UIManager.put("Synthetica.menuItem.toolTipEnabled", true);
             /*
              * NOTE: This Licensee Information may only be used by AppWork UG.
              * If you like to create derived creation based on this sourcecode,
@@ -122,9 +128,19 @@ public class SyntheticaHelper {
              */
 
             /* we save around x-400 ms here by not using AES */
-            final String key = new String(new byte[] { 67, 49, 52, 49, 48, 50, 57, 52, 45, 54, 49, 66, 54, 52, 65, 65, 67, 45, 52, 66, 55, 68, 51, 48, 51, 57, 45, 56, 51, 52, 65, 56, 50, 65, 49, 45, 51, 55, 69, 53, 68, 54, 57, 53 }, "UTF-8");
+            String[] license = Regex.getLines(IO.readURLToString(Application.getRessourceURL("cfg/synthetica-license.key")));
+            // final String[] li = { };
+            final ArrayList<String> valids = new ArrayList<String>();
+            for (final String s : license) {
+                if (!s.trim().startsWith("#") && !s.trim().startsWith("//")) {
+                    valids.add(s);
+                }
+            }
+            license = valids.toArray(new String[] {});
+            final String key = license[0];
+            final String[] li = new String[license.length - 1];
+            System.arraycopy(license, 1, li, 0, li.length);
             if (key != null) {
-                final String[] li = { "Licensee=AppWork UG", "LicenseRegistrationNumber=289416475", "Product=Synthetica", "LicenseType=Small Business License", "ExpireDate=--.--.----", "MaxVersion=2.999.999" };
                 UIManager.put("Synthetica.license.info", li);
                 UIManager.put("Synthetica.license.key", key);
             }
@@ -144,9 +160,35 @@ public class SyntheticaHelper {
                 final Font newFont = new Font(fontName, oldStyle, fontSize);
                 de.javasoft.plaf.synthetica.SyntheticaLookAndFeel.setFont(newFont, false);
             }
-     
 
             ExtPasswordField.MASK = "*******";
+
+        } catch (final Exception e) {
+            Log.L.warning("Missing Look And Feel License. Reverted to your System Look And Feel!");
+
+            Log.L.warning("Missing Look And Feel License. Reverted to your System Look And Feel!");
+
+            Log.L.warning("Missing Look And Feel License.");
+            Log.L.warning("You can only use Synthetica Look and Feel in official JDownloader versions.");
+            Log.L.warning("Reverted to your System Look And Feel!");
+            Log.L.warning("If you are a developer, and want to do some gui work on the offical JDownloader Look And Feel, write e-mail@appwork.org to get a developer Look And Feel Key");
+
+            Log.exception(e);
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (final ClassNotFoundException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (final InstantiationException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (final IllegalAccessException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (final UnsupportedLookAndFeelException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
 
         } finally {
             final long time = System.currentTimeMillis() - start;

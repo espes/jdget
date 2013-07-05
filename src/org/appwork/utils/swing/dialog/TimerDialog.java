@@ -18,6 +18,7 @@ import javax.swing.JLabel;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.appwork.utils.Application;
 import org.appwork.utils.formatter.TimeFormatter;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
@@ -56,9 +57,16 @@ public abstract class TimerDialog {
 
         @Override
         public void dispose() {
-            setDisposed(true);
-            TimerDialog.this.dispose();
-            super.dispose();
+            new EDTRunner() {
+
+                @Override
+                protected void runInEDT() {
+                    setDisposed(true);
+                    TimerDialog.this.dispose();
+                    InternDialog.super.dispose();
+                }
+            }.waitForEDT();
+
         }
 
         @Override
@@ -127,6 +135,14 @@ public abstract class TimerDialog {
     }
 
     /**
+     * @return
+     */
+    protected boolean isDeveloperMode() {
+        // dev mode in IDE
+        return !Application.isJared(AbstractDialog.class);
+    }
+
+    /**
      * @param b
      */
     public void onSetVisible(final boolean b) {
@@ -150,8 +166,14 @@ public abstract class TimerDialog {
      * 
      */
     protected void dispose() {
-        setDisposed(true);
-        getDialog().realDispose();
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                setDisposed(true);
+                getDialog().realDispose();
+            }
+        }.waitForEDT();
 
     }
 

@@ -507,13 +507,13 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
         if (this.dummyInit && dialog == null) { return; }
         if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
-        if (isDisposed()) { return; }
-        setDisposed(true);
+
         new EDTRunner() {
 
             @Override
             protected void runInEDT() {
-
+                if (isDisposed()) { return; }
+                setDisposed(true);
                 if (AbstractDialog.this.getDialog().isVisible()) {
                     try {
                         AbstractDialog.this.getLocator().onClose(AbstractDialog.this);
@@ -537,7 +537,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
         };
 
     }
-
 
     /**
      * @return
@@ -564,7 +563,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                          */
                         if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) { return false; }
                         if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_OK) && BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) { return false; }
-                        if (isDisposed()) { throw new IllegalStateException("Dialog already disposed"); }
+                        if (isDeveloperMode() && isDisposed() && returnBitMask != ret) { throw new IllegalStateException("Dialog already disposed"); }
                         this.returnBitMask = ret;
                         return true;
                     }
@@ -749,14 +748,15 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      */
     public void interrupt() {
 
-        if (isDisposed()) {
-
-        throw new IllegalStateException("Dialog already disposed"); }
         new EDTRunner() {
 
             @Override
             protected void runInEDT() {
+                if (isDisposed() && returnBitMask != (Dialog.RETURN_CLOSED | Dialog.RETURN_INTERRUPT) && isDeveloperMode()) {
 
+                throw new IllegalStateException("Dialog already disposed");
+
+                }
                 AbstractDialog.this.dispose();
                 AbstractDialog.this.returnBitMask = Dialog.RETURN_CLOSED | Dialog.RETURN_INTERRUPT;
 
@@ -859,7 +859,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     @Override
     public void onTimeout() {
         this.setReturnmask(false);
-        if (isDisposed()) { throw new IllegalStateException("Dialog is already Disposed"); }
+        if (isDeveloperMode() && isDisposed()) { throw new IllegalStateException("Dialog is already Disposed"); }
         this.returnBitMask |= Dialog.RETURN_TIMEOUT;
 
         this.dispose();
@@ -882,8 +882,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 private static final long serialVersionUID = -6666144330707394562L;
 
                 public void actionPerformed(final ActionEvent e) {
-                    Log.L.fine("Answer: Key<ESCAPE>");
                     if (isDisposed()) { return; }
+                    Log.L.fine("Answer: Key<ESCAPE>");
+
                     AbstractDialog.this.setReturnmask(false);
                     AbstractDialog.this.returnBitMask |= Dialog.RETURN_ESC;
                     AbstractDialog.this.dispose();
@@ -937,7 +938,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * 
      */
     public void setInterrupted() {
-        if (isDisposed()) { throw new IllegalStateException("Dialog already disposed"); }
+        if (isDeveloperMode() && isDisposed()) { throw new IllegalStateException("Dialog already disposed"); }
         this.returnBitMask |= Dialog.RETURN_INTERRUPT;
 
     }
@@ -971,13 +972,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
      * @param b
      */
     protected void setReturnmask(final boolean b) {
-        if (isDisposed()) {
 
-        throw new IllegalStateException("Dialog already disposed"); }
-        this.returnBitMask = b ? Dialog.RETURN_OK : Dialog.RETURN_CANCEL;
+        int ret = b ? Dialog.RETURN_OK : Dialog.RETURN_CANCEL;
         if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
             if (this.dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) {
-                this.returnBitMask |= Dialog.RETURN_DONT_SHOW_AGAIN;
+                ret |= Dialog.RETURN_DONT_SHOW_AGAIN;
                 try {
                     final String key = this.getDontShowAgainKey();
                     if (key != null) {
@@ -994,6 +993,11 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                 }
             }
         }
+        if (ret == returnBitMask) { return; }
+        if (isDeveloperMode() && isDisposed()) {
+
+        throw new IllegalStateException("Dialog already disposed"); }
+        this.returnBitMask = ret;
     }
 
     /**
@@ -1042,13 +1046,15 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
     public void windowClosing(final WindowEvent arg0) {
         if (this.closeAllowed()) {
             Log.L.fine("Answer: Button<[X]>");
-            if (isDisposed()) { throw new IllegalStateException("Dialog already disposed"); }
+            if (isDeveloperMode() && isDisposed()) { throw new IllegalStateException("Dialog already disposed"); }
             this.returnBitMask |= Dialog.RETURN_CLOSED;
             this.dispose();
         } else {
             Log.L.fine("(Answer: Tried [X] bot not allowed)");
         }
     }
+
+
 
     public void windowDeactivated(final WindowEvent arg0) {
     }
