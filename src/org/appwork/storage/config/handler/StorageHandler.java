@@ -535,7 +535,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     @SuppressWarnings("unchecked")
     public <E extends KeyHandler<?>> E getKeyHandler(final String key, final Class<E> class1) {
         final KeyHandler<?> ret = this.keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
-        if (ret == null) { throw new NullPointerException("No KeyHandler: " + key + " in " + this.configInterface); }
+        if (ret == null) { 
+            //
+            throw new NullPointerException("No KeyHandler: " + key + " in " + this.configInterface); }
         return (E) ret;
     }
 

@@ -25,11 +25,16 @@ import java.awt.Window;
 public abstract class AbstractLocator implements Locator {
 
     public static Point correct(final Point point, final Window d) {
+        final Dimension prefSize = d.getSize();
 
+        return correct(point, prefSize);
+
+    }
+
+    public static Point correct(final Point point, final Dimension prefSize) {
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screens = ge.getScreenDevices();
 
-        final Dimension prefSize = d.getSize();
         final Rectangle preferedRect = new Rectangle(point.x, point.y, prefSize.width, prefSize.height);
         GraphicsDevice biggestInteresctionScreem = null;
         int biggestIntersection = -1;
@@ -67,7 +72,6 @@ public abstract class AbstractLocator implements Locator {
         }
 
         return preferedRect.getLocation();
-
     }
 
     /**
