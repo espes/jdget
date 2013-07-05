@@ -126,7 +126,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     private ExtDataFlavor<E>                               flavor;
     private DelayedRunnable                                renameClickDelayer;
     private Runnable                                       clickDelayerRunable;
-    private String columnSaveID=DEFAULT_COLUMN_STORE;
+    private String                                         columnSaveID         = DEFAULT_COLUMN_STORE;
 
     /**
      * Create an Extended Table instance
@@ -330,7 +330,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 final TableColumnModel tcm = ExtTable.this.getColumnModel();
                 for (int i = 0; i < tcm.getColumnCount(); i++) {
                     try {
-                        ExtTable.this.getStorage().put(getColumnStoreKey("POS_COL_" , i), ExtTable.this.getModel().getExtColumnByModelIndex(tcm.getColumn(i).getModelIndex()).getID());
+                        ExtTable.this.getStorage().put(getColumnStoreKey("POS_COL_", i), ExtTable.this.getModel().getExtColumnByModelIndex(tcm.getColumn(i).getModelIndex()).getID());
                     } catch (final Exception e1) {
                         Log.exception(e1);
                     }
@@ -355,9 +355,9 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return columnSaveID;
     }
 
-    public void setColumnSaveID( String columnSaveID) {
-        if(columnSaveID==null) {
-            columnSaveID=DEFAULT_COLUMN_STORE;
+    public void setColumnSaveID(String columnSaveID) {
+        if (columnSaveID == null) {
+            columnSaveID = DEFAULT_COLUMN_STORE;
         }
         this.columnSaveID = columnSaveID;
     }
@@ -1223,6 +1223,10 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
                                     @Override
                                     protected void runInEDT() {
+                                        if (!getSelectionModel().isSelectedIndex(row)) {
+                                            return;
+                                        }
+
                                         if (!col.onRenameClick(e, obj)) {
                                             ExtTable.this.onRenameClick(e, obj);
 
@@ -1392,7 +1396,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             // col.getTableColumn().setPreferredWidth(col.getDefaultWidth());
             final ExtColumn<E> col = this.getModel().getColumns().get(i);
             try {
-                this.getStorage().put(getColumnStoreKey("POS_COL_" , i), col.getID());
+                this.getStorage().put(getColumnStoreKey("POS_COL_", i), col.getID());
             } catch (final Exception e1) {
                 Log.exception(e1);
             }
@@ -1408,7 +1412,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         for (final ExtColumn<E> col : this.getModel().getColumns()) {
             // col.getTableColumn().setPreferredWidth(col.getDefaultWidth());
             try {
-                this.getStorage().put(getColumnStoreKey("VISABLE_COL_" , col.getID()), col.isDefaultVisible());
+                this.getStorage().put(getColumnStoreKey("VISABLE_COL_", col.getID()), col.isDefaultVisible());
             } catch (final Exception e) {
                 Log.exception(e);
             }
