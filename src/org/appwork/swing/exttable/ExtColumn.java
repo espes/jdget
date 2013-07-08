@@ -578,7 +578,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     public boolean isResizable() {
-        return !this.getModel().getTable().getColumnStore("ColumnWidthLocked_" , this.getID(), !this.isDefaultResizable());
+        return getModel().getTable().osResizeableColumns()&&!this.getModel().getTable().getColumnStore("ColumnWidthLocked_" , this.getID(), !this.isDefaultResizable());
     }
 
     /**
@@ -681,6 +681,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
         this.getModel().getStorage().put(getModel().getTable().getColumnStoreKey("ColumnWidthLocked_" ,this.getID()), !resizeAllowed);
         this.updateColumnGui();
+ 
         // if
         // (!this.getModel().getExtColumnByViewIndex(this.getModel().getExtViewColumnCount()
         // - 1).isResizable()) {
@@ -698,6 +699,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                 ExtColumn.this.getModel().getTable().revalidate();
             }
         };
+        getModel().getTable().fireColumnModelUpdate();
     }
 
     /**

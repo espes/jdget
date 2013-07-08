@@ -1602,4 +1602,20 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         return key1 + getColumnSaveID() + key2;
     }
 
+    /**
+     * @return
+     */
+    public boolean osResizeableColumns() {
+      
+        return true;
+    }
+
+    /**
+     * 
+     */
+    protected void fireColumnModelUpdate() {
+        ExtTable.this.eventSender.fireEvent(new ExtTableEvent<MouseEvent>(ExtTable.this, ExtTableEvent.Types.COLUMN_MODEL_UPDATE));
+        
+    }
+
 }

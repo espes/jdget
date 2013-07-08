@@ -33,7 +33,7 @@ public class ExtTableEvent<P> extends SimpleEvent<ExtTable<?>, P, ExtTableEvent.
         /**
          * MouseEvent
          */
-        SORT_HEADER_CLICK
+        SORT_HEADER_CLICK, COLUMN_MODEL_UPDATE
 
     }
 
