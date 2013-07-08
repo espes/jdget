@@ -5,6 +5,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -336,6 +337,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     public synchronized void addExtComponentRowHighlighter(final ExtComponentRowHighlighter<E> h) {
         this.extComponentRowHighlighters.add(h);
+      Collections.sort(extComponentRowHighlighters, new Comparator<ExtComponentRowHighlighter<E>>() {
+
+        @Override
+        public int compare(final ExtComponentRowHighlighter<E> o1, final ExtComponentRowHighlighter<E> o2) {
+            // TODO Auto-generated method stub
+            return new Integer(o1.getPriority()).compareTo(new Integer(o2.getPriority()));
+        }
+    });
     }
 
     /**

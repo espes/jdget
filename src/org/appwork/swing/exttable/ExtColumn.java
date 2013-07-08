@@ -6,6 +6,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.EventObject;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractCellEditor;
@@ -106,9 +107,12 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     protected void adaptHighlighters(final E value, final JComponent comp, final boolean isSelected, final boolean hasFocus, final int row) {
 
         try {
-            for (final ExtComponentRowHighlighter<E> rh : this.getModel().getExtComponentRowHighlighters()) {
+            final List<ExtComponentRowHighlighter<E>> hs = this.getModel().getExtComponentRowHighlighters();
+            comp.setBackground(getModel().getTable().getBackground());
+            comp.setForeground(getModel().getTable().getForeground());
+            for (final ExtComponentRowHighlighter<E> rh : hs) {
                 if (rh.highlight(this, comp, value, isSelected, hasFocus, row)) {
-                    break;
+                    //no break. we may have mixing highlighters
                 }
             }
         } catch (final Throwable e) {

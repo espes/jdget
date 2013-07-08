@@ -2,7 +2,6 @@ package org.appwork.swing.exttable;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
 
 public abstract class ExtOverlayRowHighlighter {
 
@@ -22,7 +21,7 @@ public abstract class ExtOverlayRowHighlighter {
      * @see ExtOverlayRowHighlighter#borderColor
      */
     public Color getBorderColor() {
-        return this.borderColor;
+        return borderColor;
     }
 
     /**
@@ -30,7 +29,7 @@ public abstract class ExtOverlayRowHighlighter {
      * @see ExtOverlayRowHighlighter#contentColor
      */
     public Color getContentColor() {
-        return this.contentColor;
+        return contentColor;
     }
 
     /**
@@ -43,13 +42,14 @@ public abstract class ExtOverlayRowHighlighter {
      * @param height
      */
     public void paint(final Graphics2D g, final int x, final int y, final int width, final int height) {
-        if (this.getBorderColor() != null) {
-            g.setColor(this.getBorderColor());
-            g.draw(new Rectangle2D.Float(0, y, width, height));
+        if (getBorderColor() != null) {
+            g.setColor(getBorderColor());
+            g.drawRect(0, y, width, height);
+
         }
-        if (this.getContentColor() != null) {
-            g.setColor(this.getContentColor());
-            g.fill(new Rectangle2D.Float(0, y, width, height));
+        if (getContentColor() != null) {
+            g.setColor(getContentColor());           
+            g.fillRect(0, y, width, height);
         }
     }
 

@@ -10,6 +10,7 @@
 package org.appwork.swing.exttable;
 
 import java.awt.Color;
+import java.util.HashMap;
 
 import javax.swing.JComponent;
 import javax.swing.border.Border;
@@ -23,17 +24,81 @@ import javax.swing.text.JTextComponent;
  */
 public abstract class ExtComponentRowHighlighter<E> {
 
-    private Color  foreground;
+    protected Color  foreground;
 
-    private Color  background;
+    protected Color  background;
 
-    private Border border;
+    protected Border border;
+
+    private boolean  bgMixEnabled;
+
+    private boolean  fgMixEnabled;
+
+    public static Color mixColors(final Color ca, final Color cb) {
+
+        int r, g, b;
+        final int aa = ca.getAlpha();
+        final int ba = cb.getAlpha();
+        r = (ca.getRed() * aa + cb.getRed() * ba) / (aa + ba);
+        g = (ca.getGreen() * aa + cb.getGreen() * ba) / (aa + ba);
+        b = (ca.getBlue() * aa + cb.getBlue() * ba) / (aa + ba);
+
+        return new Color(r, g, b);
+
+    }
 
     public ExtComponentRowHighlighter(final Color foreground, final Color background, final Border border) {
         super();
         this.foreground = foreground;
         this.background = background;
+
+        bgMixEnabled = background != null && background.getAlpha() < 255;
+        fgMixEnabled = foreground != null && foreground.getAlpha() < 255;
         this.border = border;
+    }
+
+    HashMap<String, Color> cache = new HashMap<String, Color>();
+
+    /**
+     * @param foreground2
+     * @return
+     */
+    protected Color getForeground(final Color current) {
+        if (!fgMixEnabled) {
+            return foreground;
+        }
+        if (current == null) {
+
+        return null; }
+        final String id = current + "_" + foreground;
+
+        Color cached = cache.get(id);
+        if (cached != null) { return cached; }
+
+        cached = mixColors(current, foreground);
+        cache.put(id, cached);
+        return cached;
+    }
+
+    /**
+     * @param background2
+     * @return
+     */
+    protected Color getBackground(final Color current) {
+        if (!bgMixEnabled) {
+            return background;
+        }
+        if (current == null) {
+
+        return null; }
+        final String id = current + "_" + background;
+
+        Color cached = cache.get(id);
+        if (cached != null) { return cached; }
+
+        cached = mixColors(current, background);
+        cache.put(id, cached);
+        return cached;
     }
 
     /**
@@ -72,9 +137,8 @@ public abstract class ExtComponentRowHighlighter<E> {
         if (this.accept(column, value, selected, focus, row)) {
 
             if (this.background != null) {
-
-                comp.setBackground(this.background);
-
+                final Color bg = getBackground(comp.getBackground());
+                comp.setBackground(bg);
                 comp.setOpaque(true);
                 // important for synthetica textcomponents
                 if (comp instanceof JTextComponent) {
@@ -82,7 +146,7 @@ public abstract class ExtComponentRowHighlighter<E> {
                 }
             }
             if (this.foreground != null) {
-                comp.setForeground(this.foreground);
+                comp.setForeground(getForeground(comp.getForeground()));
             }
             if (this.border != null) {
                 comp.setBorder(this.border);
@@ -114,5 +178,14 @@ public abstract class ExtComponentRowHighlighter<E> {
      */
     public void setForeground(final Color foreground) {
         this.foreground = foreground;
+    }
+
+    /**
+     * the higher the priority the later the highlighter will be painted
+     * 
+     * @return
+     */
+    public int getPriority() {
+        return 0;
     }
 }
