@@ -360,6 +360,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             columnSaveID = DEFAULT_COLUMN_STORE;
         }
         this.columnSaveID = columnSaveID;
+        updateColumns();
     }
 
     /**
@@ -1223,9 +1224,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
                                     @Override
                                     protected void runInEDT() {
-                                        if (!getSelectionModel().isSelectedIndex(row)) {
-                                            return;
-                                        }
+                                        if (!getSelectionModel().isSelectedIndex(row)) { return; }
 
                                         if (!col.onRenameClick(e, obj)) {
                                             ExtTable.this.onRenameClick(e, obj);
@@ -1606,7 +1605,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @return
      */
     public boolean osResizeableColumns() {
-      
+
         return true;
     }
 
@@ -1615,7 +1614,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      */
     protected void fireColumnModelUpdate() {
         ExtTable.this.eventSender.fireEvent(new ExtTableEvent<MouseEvent>(ExtTable.this, ExtTableEvent.Types.COLUMN_MODEL_UPDATE));
-        
+
     }
 
 }
