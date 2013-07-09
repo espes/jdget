@@ -65,7 +65,7 @@ public class RememberLastDimensor extends AbstractDimensor {
             cfg.setValid(true);
             cfg.setX(frame.getWidth());
             cfg.setY(frame.getHeight());
-            cfg.getStorageHandler().write();
+            cfg._getStorageHandler().write();
         }
 
     }

@@ -684,7 +684,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 // this.eventSender.removeListener((ConfigEventListener)
                 // parameter[0]);
                 // return null;
-            } else if (m.getName().equals("getStorageHandler")) {
+            } else if (m.getName().equals("_getStorageHandler")) {
                 return this;
 
             } else {

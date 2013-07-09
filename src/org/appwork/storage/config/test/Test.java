@@ -57,7 +57,7 @@ public class Test {
             storedSet.add(System.currentTimeMillis() + "");
             jc.setSet(storedSet);
             //
-            jc.getStorageHandler().getEventSender().addListener(new ConfigEventListener() {
+            jc._getStorageHandler().getEventSender().addListener(new ConfigEventListener() {
 
                 @Override
                 public void onConfigValueModified(KeyHandler<Object> keyHandler, Object newValue) {
@@ -116,7 +116,7 @@ public class Test {
              * 4. get values by key
              */
 
-            StorageHandler<?> storageHandler = MyInterface.CFG.getStorageHandler();
+            StorageHandler<?> storageHandler = MyInterface.CFG._getStorageHandler();
             System.out.println(storageHandler.getValue("Float"));
             System.out.println(MyInterface.CFG.getInt());
             // Set Statics in the interface to use compiletime checks

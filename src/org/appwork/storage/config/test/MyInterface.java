@@ -48,7 +48,7 @@ import org.appwork.storage.config.handler.StorageHandler;
 public interface MyInterface extends ConfigInterface {
     public static final MyInterface                 CFG = JsonConfig.create(MyInterface.class);
     @SuppressWarnings("unchecked")
-    public static final StorageHandler<MyInterface> SH  = (StorageHandler<MyInterface>) CFG.getStorageHandler();
+    public static final StorageHandler<MyInterface> SH  = (StorageHandler<MyInterface>) CFG._getStorageHandler();
 
     @DefaultBooleanValue(value = true)
     public boolean getB2();
@@ -85,7 +85,7 @@ public interface MyInterface extends ConfigInterface {
 
     public ArrayList<TestObject> getGenericList();
 
-    public static final IntegerKeyHandler INT = CFG.getStorageHandler().getKeyHandler("Int", IntegerKeyHandler.class);
+    public static final IntegerKeyHandler INT = CFG._getStorageHandler().getKeyHandler("Int", IntegerKeyHandler.class);
 
     @DefaultIntValue(value = 2)
     @SpinnerValidator(min = 1, max = 10, step = 1)

@@ -81,7 +81,7 @@ public class RememberRelativeLocator extends AbstractLocator {
                 cfg.setValid(true);
                 cfg.setX(loc.x - pLoc.x);
                 cfg.setY(loc.y - pLoc.y);
-                cfg.getStorageHandler().write();
+                cfg._getStorageHandler().write();
             }
         } catch (final Throwable e) {
             e.printStackTrace();

@@ -390,7 +390,7 @@ public abstract class KeyHandler<RawClass> {
      * @return
      */
     public boolean isChildOf(final ConfigInterface settings) {
-        return settings.getStorageHandler() == this.getStorageHandler();
+        return settings._getStorageHandler() == this.getStorageHandler();
     }
 
     /**

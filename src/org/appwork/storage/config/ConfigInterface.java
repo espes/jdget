@@ -19,7 +19,7 @@ import org.appwork.storage.config.handler.StorageHandler;
 
 public interface ConfigInterface {
 
-    public StorageHandler<?> getStorageHandler();
+    public StorageHandler<?> _getStorageHandler();
 
     String toString();
 
