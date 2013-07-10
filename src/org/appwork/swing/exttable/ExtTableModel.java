@@ -658,6 +658,12 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         return this.getElementAt(rowIndex);
     }
 
+    public boolean hasSelectedObjects() {
+        final ExtTable<E> ltable = this.getTable();
+        if (ltable == null) { return false; }
+        return ltable.getSelectedRows().length > 0;
+    }
+
     /**
      * Initialize the colums.
      * 
@@ -708,7 +714,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public boolean isVisible(final int column) {
         final ExtColumn<E> col = this.getExtColumnByModelIndex(column);
         try {
-            return col.isVisible(getTable().getColumnStore("VISABLE_COL_" ,col.getID(), col.isDefaultVisible()));
+            return col.isVisible(this.getTable().getColumnStore("VISABLE_COL_", col.getID(), col.isDefaultVisible()));
         } catch (final Exception e) {
             Log.exception(e);
             return true;
@@ -825,7 +831,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public void setColumnVisible(final ExtColumn<E> column, final boolean visible) {
         try {
-            this.getTable().getStorage().put(getTable().getColumnStoreKey("VISABLE_COL_" ,column.getID()), visible);
+            this.getTable().getStorage().put(this.getTable().getColumnStoreKey("VISABLE_COL_", column.getID()), visible);
         } catch (final Exception e) {
             Log.exception(e);
         }

@@ -54,6 +54,11 @@ public abstract class AbstractLogAction extends BasicAction {
         final ProgressDialog p = new ProgressDialog(new ProgressGetter() {
 
             @Override
+            public String getLabelString() {
+                return null;
+            }
+
+            @Override
             public int getProgress() {
                 return -1;
 
@@ -66,12 +71,7 @@ public abstract class AbstractLogAction extends BasicAction {
 
             @Override
             public void run() throws Exception {
-                create();
-            }
-
-            @Override
-            public String getLabelString() {
-                return null;
+                AbstractLogAction.this.create();
             }
         }, UIOManager.BUTTONS_HIDE_OK, T.T.LogAction_actionPerformed_zip_title_(), T.T.LogAction_actionPerformed_wait_(), null, null, null);
 
@@ -88,7 +88,8 @@ public abstract class AbstractLogAction extends BasicAction {
         final File[] logs = Application.getResource("logs").listFiles();
         final java.util.List<LogFolder> folders = new ArrayList<LogFolder>();
 
-        LogFolder latest = null;
+        LogFolder latestLog = null;
+        LogFolder currentLog = null;
 
         if (logs != null) {
             for (final File f : logs) {
@@ -97,12 +98,13 @@ public abstract class AbstractLogAction extends BasicAction {
                     final long timestamp = Long.parseLong(timestampString);
                     LogFolder lf;
                     lf = new LogFolder(f, timestamp);
-                    if (isCurrentLogFolder(timestamp)) {
+                    if (this.isCurrentLogFolder(timestamp)) {
                         /*
                          * this is our current logfolder, flush it before we can
                          * upload it
                          */
                         lf.setNeedsFlush(true);
+                        currentLog = lf;
                     }
                     if (Files.getFiles(new FileFilter() {
                         @Override
@@ -114,14 +116,19 @@ public abstract class AbstractLogAction extends BasicAction {
                     }
 
                     folders.add(lf);
-                    if (latest == null || lf.getCreated() > latest.getCreated()) {
-                        latest = lf;
+                    if (latestLog == null || lf.getCreated() > latestLog.getCreated()) {
+                        latestLog = lf;
                     }
                 }
             }
         }
-        if (latest != null) {
-            latest.setSelected(true);
+        if (currentLog != null) {
+            currentLog.setSelected(true);
+            currentLog.setCurrent(true);
+        } else {
+            if (latestLog != null) {
+                latestLog.setSelected(true);
+            }
         }
 
         if (folders.size() == 0) {
@@ -134,14 +141,19 @@ public abstract class AbstractLogAction extends BasicAction {
 
         final java.util.List<LogFolder> selection = d.getSelectedFolders();
         if (selection.size() == 0) { return; }
-        total = selection.size();
-        current = 0;
+        this.total = selection.size();
+        this.current = 0;
         final ProgressDialog p = new ProgressDialog(new ProgressGetter() {
 
             @Override
+            public String getLabelString() {
+                return null;
+            }
+
+            @Override
             public int getProgress() {
-                if (current == 0) { return -1; }
-                return Math.min(99,current * 100 / total);
+                if (AbstractLogAction.this.current == 0) { return -1; }
+                return Math.min(99, AbstractLogAction.this.current * 100 / AbstractLogAction.this.total);
             }
 
             @Override
@@ -153,16 +165,11 @@ public abstract class AbstractLogAction extends BasicAction {
             public void run() throws Exception {
 
                 try {
-                    createPackage(selection);
+                    AbstractLogAction.this.createPackage(selection);
                 } catch (final WTFException e) {
                     throw new InterruptedException();
                 }
 
-            }
-
-            @Override
-            public String getLabelString() {
-                return null;
             }
         }, UIOManager.BUTTONS_HIDE_OK, T.T.LogAction_actionPerformed_zip_title_(), T.T.LogAction_actionPerformed_wait_(), null, null, null);
 
@@ -180,22 +187,23 @@ public abstract class AbstractLogAction extends BasicAction {
             zip.delete();
             zip.getParentFile().mkdirs();
             ZipIOWriter writer = null;
-            
-            final String name =lf.getFolder().getName()+"-"+ format(lf.getCreated()) + " to " + format(lf.getLastModified());
+
+            final String name = lf.getFolder().getName() + "-" + this.format(lf.getCreated()) + " to " + this.format(lf.getLastModified());
             final File folder = Application.getResource("tmp/logs/" + name);
             try {
                 if (lf.isNeedsFlush()) {
 
-                    flushLogs();
+                    this.flushLogs();
                 }
                 writer = new ZipIOWriter(zip) {
+                    @Override
                     public void addFile(final File addFile, final boolean compress, final String fullPath) throws FileNotFoundException, ZipIOException, IOException {
-                        if (addFile.getName().endsWith(".lck") || (addFile.isFile() && addFile.length() == 0)) { return; }
+                        if (addFile.getName().endsWith(".lck") || addFile.isFile() && addFile.length() == 0) { return; }
                         if (Thread.currentThread().isInterrupted()) { throw new WTFException("INterrupted"); }
                         super.addFile(addFile, compress, fullPath);
                     }
                 };
-               
+
                 if (folder.exists()) {
                     Files.deleteRecursiv(folder);
                 }
@@ -208,11 +216,16 @@ public abstract class AbstractLogAction extends BasicAction {
                 }
             }
 
-            onNewPackage(zip,format(lf.getCreated()) + "-" + format(lf.getLastModified()));
+            this.onNewPackage(zip, this.format(lf.getCreated()) + "-" + this.format(lf.getLastModified()));
 
-            current++;
+            this.current++;
         }
     }
+
+    /**
+     * 
+     */
+    abstract protected void flushLogs();
 
     /**
      * @param created
@@ -220,9 +233,9 @@ public abstract class AbstractLogAction extends BasicAction {
      */
     protected String format(final long created) {
         final Date date = new Date(created);
-        
-        return new SimpleDateFormat("dd.MM.yy HH.mm.ss",Locale.GERMANY).format(date);
-    
+
+        return new SimpleDateFormat("dd.MM.yy HH.mm.ss", Locale.GERMANY).format(date);
+
     }
 
     /**
@@ -233,14 +246,9 @@ public abstract class AbstractLogAction extends BasicAction {
 
     /**
      * @param zip
-     * @param string 
+     * @param string
      * @throws IOException
      */
     abstract protected void onNewPackage(File zip, String string) throws IOException;
-
-    /**
-     * 
-     */
-    abstract protected void flushLogs();
 
 }

@@ -117,15 +117,15 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
         // this.editor.removeActionListener(this);
-  
-            String str = this.getStringValue(value);
-            if (str == null) {
-                // under substance, setting setText(null) somehow sets the label
-                // opaque.
-                str = "";
-            }
-            this.txt.setText(str);
-        
+
+        String str = this.getStringValue(value);
+        if (str == null) {
+            // under substance, setting setText(null) somehow sets the label
+            // opaque.
+            str = "";
+        }
+        this.txt.setText(str);
+
         final int prefSize = Math.min(this.getMaxHeight(value), Math.max(this.getModel().getTable().getRowHeight(row) + 20, this.txt.getPreferredSize().height));
 
         if (prefSize != this.getModel().getTable().getRowHeight(row)) {
@@ -162,12 +162,20 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
 
     @Override
     public void focusLost(final FocusEvent e) {
-        if (!e.isTemporary()) {
+        if (!e.isTemporary() || e.getOppositeComponent() == null) {
             /*
              * we check for temporary , because a rightclick menu will cause
              * focus lost but editing should not stop
+             * 
+             * we also check for oppositeComponent to stopEditing when we click
+             * outside the window
              */
-            this.stopCellEditing();
+            ExtTextAreaColumn.this.noset = true;
+            try {
+                ExtTextAreaColumn.this.stopCellEditing();
+            } finally {
+                ExtTextAreaColumn.this.noset = false;
+            }
         }
     }
 

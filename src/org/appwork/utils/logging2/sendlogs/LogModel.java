@@ -15,7 +15,7 @@ public class LogModel extends ExtTableModel<LogFolder> {
 
     public LogModel(final java.util.List<LogFolder> folders) {
         super("LogModel");
-        tableData = folders;
+        this.tableData = folders;
         Collections.sort(folders, new Comparator<LogFolder>() {
 
             @Override
@@ -23,20 +23,22 @@ public class LogModel extends ExtTableModel<LogFolder> {
                 return new Long(o2.getCreated()).compareTo(new Long(o1.getCreated()));
             }
         });
+        for (final LogFolder folder : folders) {
+            if (folder.isCurrent()) {
+                folders.remove(folder);
+                folders.add(0, folder);
+                break;
+            }
+        }
     }
- 
+
     @Override
     protected void initColumns() {
-        addColumn(new ExtCheckColumn<LogFolder>(T.T.LogModel_initColumns_x_()) {
+        this.addColumn(new ExtCheckColumn<LogFolder>(T.T.LogModel_initColumns_x_()) {
 
             @Override
             protected boolean getBooleanValue(final LogFolder value) {
                 return value.isSelected();
-            }
-
-            @Override
-            public boolean isSortable(final LogFolder obj) {
-                return false;
             }
 
             @Override
@@ -46,19 +48,24 @@ public class LogModel extends ExtTableModel<LogFolder> {
             }
 
             @Override
+            public boolean isSortable(final LogFolder obj) {
+                return false;
+            }
+
+            @Override
             protected void setBooleanValue(final boolean value, final LogFolder object) {
                 object.setSelected(value);
             }
         });
 
         ExtTextColumn<LogFolder> sort;
-        addColumn(sort = new ExtTextColumn<LogFolder>(T.T.LogModel_initColumns_time_()) {
+        this.addColumn(sort = new ExtTextColumn<LogFolder>(T.T.LogModel_initColumns_time_()) {
             {
-                setRowSorter(new ExtDefaultRowSorter<LogFolder>() {
+                this.setRowSorter(new ExtDefaultRowSorter<LogFolder>() {
 
                     @Override
                     public int compare(final LogFolder o1, final LogFolder o2) {
-                        if (getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
+                        if (this.getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
                             return new Long(o1.getCreated()).compareTo(new Long(o2.getCreated()));
                         } else {
                             return new Long(o2.getCreated()).compareTo(new Long(o1.getCreated()));
@@ -70,16 +77,16 @@ public class LogModel extends ExtTableModel<LogFolder> {
             }
 
             @Override
-            public boolean isSortable(final LogFolder obj) {
-                return false;
-            }
-
-            @Override
             public String getStringValue(final LogFolder value) {
 
                 final String from = DateFormat.getInstance().format(new Date(value.getCreated()));
                 final String to = DateFormat.getInstance().format(new Date(value.getLastModified()));
                 return T.T.LogModel_getStringValue_between_(from, to);
+            }
+
+            @Override
+            public boolean isSortable(final LogFolder obj) {
+                return false;
             }
         });
 

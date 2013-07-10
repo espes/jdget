@@ -6,62 +6,80 @@ public class LogFolder {
 
     private long    created;
     private boolean selected;
+    private boolean current    = false;
 
-    public boolean isSelected() {
-        return selected;
-    }
+    private long    lastModified;
 
-    public void setSelected(boolean selected) {
-        this.selected = selected;
+    private File    folder;
+
+    private boolean needsFlush = false;
+
+    public LogFolder(final File f, final long timestamp) {
+        this.created = timestamp;
+        this.lastModified = f.lastModified();
+        this.folder = f;
     }
 
     public long getCreated() {
-        return created;
-    }
-
-    public void setCreated(long created) {
-        this.created = created;
-    }
-
-    public long getLastModified() {
-        return lastModified;
-    }
-
-    public void setLastModified(long lastModified) {
-        this.lastModified = lastModified;
+        return this.created;
     }
 
     public File getFolder() {
-        return folder;
+        return this.folder;
     }
 
-    public void setFolder(File folder) {
-        this.folder = folder;
+    public long getLastModified() {
+        return this.lastModified;
     }
 
-    private long    lastModified;
-    private File    folder;
-    private boolean needsFlush = false;
-
-    public LogFolder(File f, long timestamp) {
-        created = timestamp;
-        lastModified = f.lastModified();
-        folder = f;
+    /**
+     * @return the current
+     */
+    public boolean isCurrent() {
+        return this.current;
     }
 
     /**
      * @return the needsFlush
      */
     public boolean isNeedsFlush() {
-        return needsFlush;
+        return this.needsFlush;
+    }
+
+    public boolean isSelected() {
+        return this.selected;
+    }
+
+    public void setCreated(final long created) {
+        this.created = created;
+    }
+
+    /**
+     * @param current
+     *            the current to set
+     */
+    public void setCurrent(final boolean current) {
+        this.current = current;
+    }
+
+    public void setFolder(final File folder) {
+        this.folder = folder;
+    }
+
+    public void setLastModified(final long lastModified) {
+        this.lastModified = lastModified;
     }
 
     /**
      * @param needsFlush
      *            the needsFlush to set
      */
-    public void setNeedsFlush(boolean needsFlush) {
+    public void setNeedsFlush(final boolean needsFlush) {
         this.needsFlush = needsFlush;
+    }
+
+    public void setSelected(final boolean selected) {
+        this.selected = selected;
     }
 
 }

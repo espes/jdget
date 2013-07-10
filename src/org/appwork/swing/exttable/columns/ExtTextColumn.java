@@ -208,12 +208,26 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void focusGained(final FocusEvent e) {
-
         this.editorField.selectAll();
     }
 
     @Override
     public void focusLost(final FocusEvent e) {
+        if (!e.isTemporary() || e.getOppositeComponent() == null) {
+            /*
+             * we check for temporary , because a rightclick menu will cause
+             * focus lost but editing should not stop
+             * 
+             * we also check for oppositeComponent to stopEditing when we click
+             * outside the window
+             */
+            ExtTextColumn.this.noset = true;
+            try {
+                ExtTextColumn.this.stopCellEditing();
+            } finally {
+                ExtTextColumn.this.noset = false;
+            }
+        }
     }
 
     @Override

@@ -21,7 +21,7 @@ public abstract class ExtOverlayRowHighlighter {
      * @see ExtOverlayRowHighlighter#borderColor
      */
     public Color getBorderColor() {
-        return borderColor;
+        return this.borderColor;
     }
 
     /**
@@ -29,7 +29,7 @@ public abstract class ExtOverlayRowHighlighter {
      * @see ExtOverlayRowHighlighter#contentColor
      */
     public Color getContentColor() {
-        return contentColor;
+        return this.contentColor;
     }
 
     /**
@@ -42,13 +42,14 @@ public abstract class ExtOverlayRowHighlighter {
      * @param height
      */
     public void paint(final Graphics2D g, final int x, final int y, final int width, final int height) {
-        if (getBorderColor() != null) {
-            g.setColor(getBorderColor());
+        if (this.getBorderColor() != null) {
+            g.setColor(this.getBorderColor());
             g.drawRect(0, y, width, height);
 
         }
-        if (getContentColor() != null) {
-            g.setColor(getContentColor());           
+
+        if (this.getContentColor() != null) {
+            g.setColor(this.getContentColor());
             g.fillRect(0, y, width, height);
         }
     }
