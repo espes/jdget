@@ -56,7 +56,11 @@ public abstract class AbstractLocator implements Locator {
             }
         }
         final Rectangle bounds = biggestInteresctionScreem.getDefaultConfiguration().getBounds();
-
+        final Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(biggestInteresctionScreem.getDefaultConfiguration());
+        bounds.x += insets.left;
+        bounds.y += insets.top;
+        bounds.width -= insets.left + insets.right;
+        bounds.height -= insets.top + insets.bottom;
         if (preferedRect.x + preferedRect.width > bounds.x + bounds.width) {
             preferedRect.x = bounds.x + bounds.width - preferedRect.width;
         }

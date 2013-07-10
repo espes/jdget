@@ -752,6 +752,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
             @Override
             protected void runInEDT() {
+                if (!isInitialized()) {
+                    return;
+                }
                 if (isDisposed() && returnBitMask != (Dialog.RETURN_CLOSED | Dialog.RETURN_INTERRUPT) && isDeveloperMode()) {
 
                 throw new IllegalStateException("Dialog already disposed");
@@ -981,9 +984,9 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
                     final String key = this.getDontShowAgainKey();
                     if (key != null) {
                         if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_DELETE_ON_EXIT)) {
-                            AbstractDialog.SESSION_DONTSHOW_AGAIN.put(this.getDontShowAgainKey(), this.returnBitMask);
+                            AbstractDialog.SESSION_DONTSHOW_AGAIN.put(this.getDontShowAgainKey(), ret);
                         } else {
-                            JSonStorage.getPlainStorage("Dialogs").put(this.getDontShowAgainKey(), this.returnBitMask);
+                            JSonStorage.getPlainStorage("Dialogs").put(this.getDontShowAgainKey(), ret);
                             JSonStorage.getPlainStorage("Dialogs").save();
                         }
                     }
@@ -1053,8 +1056,6 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             Log.L.fine("(Answer: Tried [X] bot not allowed)");
         }
     }
-
-
 
     public void windowDeactivated(final WindowEvent arg0) {
     }
