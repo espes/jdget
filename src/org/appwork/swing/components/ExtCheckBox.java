@@ -15,6 +15,7 @@ import org.appwork.swing.components.tooltips.ExtTooltip;
 import org.appwork.swing.components.tooltips.ToolTipHandler;
 import org.appwork.swing.components.tooltips.TooltipTextDelegateFactory;
 import org.appwork.utils.swing.EDTRunner;
+import org.appwork.utils.swing.SwingUtils;
 
 public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
 
@@ -30,10 +31,10 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
      * @param filename
      * @param lblFilename
      */
-    public ExtCheckBox(JComponent... components) {
+    public ExtCheckBox(final JComponent... components) {
         super();
-        this.tooltipFactory = new TooltipTextDelegateFactory(this);
-
+        tooltipFactory = new TooltipTextDelegateFactory(this);
+        SwingUtils.setOpaque(this, false);
 //        addActionListener(this);
         setDependencies(components);
 
@@ -46,18 +47,18 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
      * @param btadd
      * @param btRemove
      */
-    public ExtCheckBox(BooleanKeyHandler keyHandler, JComponent... components) {
+    public ExtCheckBox(final BooleanKeyHandler keyHandler, final JComponent... components) {
         this(components);
         setModel(new ConfigToggleButtonModel(keyHandler));
         updateDependencies();
 
     }
-    public void setModel(ButtonModel newModel) {
+    public void setModel(final ButtonModel newModel) {
         super.setModel(newModel);
         newModel.addItemListener(new ItemListener() {
             
             @Override
-            public void itemStateChanged(ItemEvent e) {
+            public void itemStateChanged(final ItemEvent e) {
               
                 new EDTRunner(){
 
@@ -76,7 +77,7 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
         return dependencies;
     }
 
-    public void setDependencies(JComponent[] dependencies) {
+    public void setDependencies(final JComponent[] dependencies) {
         this.dependencies = dependencies;
 
         updateDependencies();
@@ -86,7 +87,7 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
         return tooltipFactory;
     }
 
-    public void setTooltipFactory(TooltipTextDelegateFactory tooltipFactory) {
+    public void setTooltipFactory(final TooltipTextDelegateFactory tooltipFactory) {
         this.tooltipFactory = tooltipFactory;
     }
 
@@ -114,8 +115,9 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
     public void updateDependencies() {
 
         if (dependencies != null) {
-            for (JComponent c : dependencies)
+            for (final JComponent c : dependencies) {
                 c.setEnabled(getDependenciesLogic(c,isSelected()));
+            }
         }
 
     }
@@ -124,7 +126,7 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
      * @param b 
  * @return
  */
-    protected boolean getDependenciesLogic(JComponent c, boolean b) {
+    protected boolean getDependenciesLogic(final JComponent c, final boolean b) {
         // TODO Auto-generated method stub
         return b;
     }
@@ -143,7 +145,7 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
      * (java.awt.Point)
      */
     @Override
-    public ExtTooltip createExtTooltip(Point mousePosition) {
+    public ExtTooltip createExtTooltip(final Point mousePosition) {
 
         return getTooltipFactory().createTooltip();
     }
@@ -168,7 +170,7 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
      * .appwork.swing.components.tooltips.ExtTooltip, java.awt.event.MouseEvent)
      */
     @Override
-    public int getTooltipDelay(Point mousePositionOnScreen) {  return 0;    }  @Override public boolean updateTooltip(ExtTooltip activeToolTip, MouseEvent e) {
+    public int getTooltipDelay(final Point mousePositionOnScreen) {  return 0;    }  @Override public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
         // TODO Auto-generated method stub
         return false;
     }

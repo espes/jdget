@@ -1,12 +1,14 @@
 package org.appwork.swing.synthetica;
 
 import java.awt.Font;
+import java.awt.Window;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JWindow;
 import javax.swing.UIManager;
 
 import org.appwork.exceptions.WTFException;
@@ -88,7 +90,7 @@ public class SyntheticaHelper {
 
     /**
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     private static String readLicense() throws IOException {
         final URL url = Application.getRessourceURL("cfg/synthetica-license.key");
@@ -112,6 +114,16 @@ public class SyntheticaHelper {
      * @throws IOException
      */
     public static void init(final String laf, String license) throws IOException {
+
+  
+        if (CrossSystem.isMac()) {
+
+            if (checkIfMacInitWillFail()) {
+                System.runFinalization();
+                System.gc();
+                if (checkIfMacInitWillFail()) { throw new IOException("Cannot Init LookAndFeel. Windows Are Open"); }
+            }
+        }
         if (StringUtils.isEmpty(license)) {
             license = readLicense();
         }
@@ -212,6 +224,22 @@ public class SyntheticaHelper {
             Log.L.info("LAF Init duration: " + time + "ms");
 
         }
+    }
+
+    protected static boolean checkIfMacInitWillFail() {
+
+        // synthetica init fails on mac if there are already active windows
+        Window awindow[];
+        final int j = (awindow = Window.getWindows()).length;
+
+        for (int i = 0; i < j; i++) {
+            final Window window = awindow[i];
+
+            final boolean flag = !(window instanceof JWindow) && !(window instanceof JFrame) && !(window instanceof JDialog);
+            if (!window.getClass().getName().contains("Popup$HeavyWeightWindow") && !flag) { return true; }
+
+        }
+        return false;
     }
 
 }

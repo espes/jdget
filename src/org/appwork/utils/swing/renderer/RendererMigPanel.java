@@ -11,6 +11,7 @@ package org.appwork.utils.swing.renderer;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.Rectangle;
 
 import javax.swing.border.Border;
@@ -42,7 +43,7 @@ public class RendererMigPanel extends MigPanel {
 
     @Override
     public boolean isEnabled() {
-        return this._enabled;
+        return _enabled;
     }
 
     /**
@@ -71,6 +72,25 @@ public class RendererMigPanel extends MigPanel {
 
     }
 
+    @Override
+    protected void paintComponent(final Graphics g) {
+        final Color bg = getBackground();
+        if (isOpaque() && bg != null) {
+            //Synthstyles paint a different background if panel is disabled.  We want the renderer to decide about the background
+            g.setColor(bg);
+            g.fillRect(0, 0, getWidth(), getHeight());
+        } else {
+            super.paintComponent(g);
+        }
+
+    }
+
+    @Override
+    public void paint(final Graphics g) {
+        // TODO Auto-generated method stub
+        super.paint(g);
+    }
+
     /**
      * * Overridden for performance reasons.
      */
@@ -97,9 +117,9 @@ public class RendererMigPanel extends MigPanel {
 
     @Override
     public void setBackground(final Color bg) {
-        if (bg != null && bg.equals(this.getBackground())) { return; }
+        if (bg != null && bg.equals(getBackground())) { return; }
         super.setBackground(bg);
-        for (final Component c : this.getComponents()) {
+        for (final Component c : getComponents()) {
             c.setBackground(bg);
         }
 
@@ -107,32 +127,32 @@ public class RendererMigPanel extends MigPanel {
 
     @Override
     public void setBorder(final Border border) {
-        if (border == this.getBorder()) { return; }
+        if (border == getBorder()) { return; }
         super.setBorder(border);
     }
 
     @Override
     public void setEnabled(final boolean enabled) {
-        if (this._enabled != null && this._enabled == enabled) { return; }
-        this._enabled = enabled;
-        for (final Component c : this.getComponents()) {
+        if (_enabled != null && _enabled == enabled) { return; }
+        _enabled = enabled;
+        for (final Component c : getComponents()) {
             c.setEnabled(enabled);
         }
     }
 
     @Override
     public void setForeground(final Color fg) {
-        if (fg != null && fg.equals(this.getForeground())) { return; }
+        if (fg != null && fg.equals(getForeground())) { return; }
         super.setForeground(fg);
-        for (final Component c : this.getComponents()) {
+        for (final Component c : getComponents()) {
             c.setForeground(fg);
         }
     }
 
     @Override
     public void setOpaque(final boolean isOpaque) {
-        if (this._opaque != null && this._opaque == isOpaque) { return; }
-        this._opaque = isOpaque;
+        if (_opaque != null && _opaque == isOpaque) { return; }
+        _opaque = isOpaque;
         super.setOpaque(isOpaque);
     }
 

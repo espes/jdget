@@ -38,7 +38,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
              */
             private static final long serialVersionUID = 1045896241157027789L;
 
-            protected void paintComponent(Graphics g) {
+            protected void paintComponent(final Graphics g) {
                 super.paintComponent(g);
             }
 
@@ -49,7 +49,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
             }
         };
         this.renderer.setHorizontalAlignment(SwingConstants.RIGHT);
-        this.setRowSorter(new ExtDefaultRowSorter<E>() {
+        setRowSorter(new ExtDefaultRowSorter<E>() {
             /**
              * sorts the icon by hashcode
              */
@@ -58,7 +58,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
                 final long s1 = ExtFileSizeColumn.this.getBytes(o1);
                 final long s2 = ExtFileSizeColumn.this.getBytes(o2);
                 if (s1 == s2) { return 0; }
-                if (this.getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
+                if (getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
                     return s1 > s2 ? -1 : 1;
                 } else {
                     return s1 < s2 ? -1 : 1;
@@ -172,7 +172,6 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
     @Override
     public void resetRenderer() {
 
-        this.renderer.setOpaque(false);
         this.renderer.setBorder(ExtColumn.DEFAULT_BORDER);
 
     }

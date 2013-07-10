@@ -14,7 +14,8 @@ import java.util.HashMap;
 
 import javax.swing.JComponent;
 import javax.swing.border.Border;
-import javax.swing.text.JTextComponent;
+
+import org.appwork.utils.swing.SwingUtils;
 
 /**
  * @author thomas Highlighterclass which can be added to ExtTableModel.
@@ -139,11 +140,8 @@ public abstract class ExtComponentRowHighlighter<E> {
             if (this.background != null) {
                 final Color bg = getBackground(comp.getBackground());
                 comp.setBackground(bg);
-                comp.setOpaque(true);
-                // important for synthetica textcomponents
-                if (comp instanceof JTextComponent) {
-                    comp.putClientProperty("Synthetica.opaque", Boolean.FALSE);
-                }
+                SwingUtils.setOpaque(comp,true);
+               
             }
             if (this.foreground != null) {
                 comp.setForeground(getForeground(comp.getForeground()));

@@ -30,6 +30,7 @@ import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
+import org.appwork.utils.swing.SwingUtils;
 
 /**
  * ExtColums define a single column of an extended Table. It contains all
@@ -108,11 +109,14 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
         try {
             final List<ExtComponentRowHighlighter<E>> hs = this.getModel().getExtComponentRowHighlighters();
-            comp.setBackground(getModel().getTable().getBackground());
-            comp.setForeground(getModel().getTable().getForeground());
+            // set background back
+            SwingUtils.setOpaque(comp, false);
+            comp.setBackground(null);
+            comp.setForeground(null);
             for (final ExtComponentRowHighlighter<E> rh : hs) {
                 if (rh.highlight(this, comp, value, isSelected, hasFocus, row)) {
-                    //no break. we may have mixing highlighters
+
+                    // no break. we may have mixing highlighters
                 }
             }
         } catch (final Throwable e) {
@@ -193,7 +197,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
                             }
                         }.getReturnValue();
-                        
+
                         final Rectangle view = new EDTHelper<Rectangle>() {
 
                             @Override
@@ -204,8 +208,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                                 return rec;
 
                             }
-                        }.getReturnValue(); 
-                     
+                        }.getReturnValue();
+
                         final E selObject = getModel().getObjectbyRow(sel.intValue());
                         final java.util.List<E> data = ExtColumn.this.model.getElements();
                         try {
@@ -227,7 +231,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                                 } else {
                                     // scroll to 0,
                                     // getModel().getRowforObject(selObject)
-                                    getModel().getTable().scrollToRow(0,view.x);
+                                    getModel().getTable().scrollToRow(0, view.x);
 
                                 }
                                 return null;
@@ -421,6 +425,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             this.modifying = true;
             final JComponent ret = this.getEditorComponent(value, isSelected, row, column);
             this.resetEditor();
+            // set background back
+            SwingUtils.setOpaque(ret, false);
+            ret.setBackground(null);
             this.configureEditorHighlighters(ret, value, isSelected, row);
             if (editing) {
                 // while editing, we call a different method, which can be used
@@ -452,6 +459,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             this.modifying = true;
             final JComponent ret = this.getRendererComponent((E) value, isSelected, hasFocus, row, column);
             this.resetRenderer();
+          
             this.configureRendererHighlighters(ret, (E) value, isSelected, hasFocus, row);
             this.configureRendererComponent((E) value, isSelected, hasFocus, row, column);
             ret.setEnabled(this.getModel().getTable().isEnabled() && this.isEnabled((E) value));
@@ -578,7 +586,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     }
 
     public boolean isResizable() {
-        return getModel().getTable().osResizeableColumns()&&!this.getModel().getTable().getColumnStore("ColumnWidthLocked_" , this.getID(), !this.isDefaultResizable());
+        return getModel().getTable().osResizeableColumns() && !this.getModel().getTable().getColumnStore("ColumnWidthLocked_", this.getID(), !this.isDefaultResizable());
     }
 
     /**
@@ -643,7 +651,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * 
      * @param e
      * @param obj
-     */ 
+     */
     public boolean onSingleClick(final MouseEvent e, final E obj) {
         return false;
     }
@@ -679,9 +687,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     public void setResizable(final boolean resizeAllowed) {
 
-        this.getModel().getStorage().put(getModel().getTable().getColumnStoreKey("ColumnWidthLocked_" ,this.getID()), !resizeAllowed);
+        this.getModel().getStorage().put(getModel().getTable().getColumnStoreKey("ColumnWidthLocked_", this.getID()), !resizeAllowed);
         this.updateColumnGui();
- 
+
         // if
         // (!this.getModel().getExtColumnByViewIndex(this.getModel().getExtViewColumnCount()
         // - 1).isResizable()) {
@@ -729,7 +737,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             // Set stored columnwidth
             int w = ExtColumn.this.getDefaultWidth();
             try {
-                w = ExtColumn.this.getModel().getTable().getColumnStore("WIDTH_COL_" , ExtColumn.this.getID(), w);
+                w = ExtColumn.this.getModel().getTable().getColumnStore("WIDTH_COL_", ExtColumn.this.getID(), w);
             } catch (final Exception e) {
                 Log.exception(e);
             } finally {
@@ -776,8 +784,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                 ExtColumn.this.editableProgrammaticly = true;
                 try {
                     ExtColumn.this.getModel().getTable().editCellAt(ExtColumn.this.getModel().getTable().getModel().getRowforObject(obj), ExtColumn.this.getIndex());
-            
-            
+
                 } finally {
                     ExtColumn.this.editableProgrammaticly = false;
                 }
@@ -818,12 +825,12 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
      * @return
      */
     public String getHeaderTooltip() {
-if(isResizable()){
-    return _AWU.T.tableheader_tooltip_normal(getName());
-}else{
-    return _AWU.T.tableheader_tooltip_locked(getName()); 
-}
-     
+        if (isResizable()) {
+            return _AWU.T.tableheader_tooltip_normal(getName());
+        } else {
+            return _AWU.T.tableheader_tooltip_locked(getName());
+        }
+
     }
 
 }
