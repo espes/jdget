@@ -180,6 +180,10 @@ public class PathChooser extends MigPanel {
 
     }
 
+    public ExtTextField getTxt() {
+        return txt;
+    }
+
     protected boolean auto(final JTextField oldTextField) {
         final String txt = oldTextField.getText();
 
