@@ -16,11 +16,10 @@
 
 package jd.http;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -240,13 +239,17 @@ public class Browser {
 
     private static boolean VERBOSE                  = false;
 
+    public static String correctURL(final String url) {
+        return Browser.correctURL(url, false);
+    }
+
     /**
      * Returns a corrected url, where multiple / and ../. are removed
      * 
      * @param url
      * @return
      */
-    public static String correctURL(String url) {
+    public static String correctURL(String url, final boolean replaceDoubleSlash) {
         if (url == null) { return url; }
         /* check if we need to correct url */
         int begin = url.indexOf("://");
@@ -285,7 +288,11 @@ public class Browser {
          * 
          * http://svn.jdownloader.org/issues/5610
          */
-        tmp = tmp.replaceAll("/{3,}", "/");
+        if (replaceDoubleSlash) {
+            tmp = tmp.replaceAll("/{2,}", "/");
+        } else {
+            tmp = tmp.replaceAll("/{3,}", "/");
+        }
 
         /* filter .. and . */
         final String parts[] = tmp.split("/");
@@ -358,23 +365,18 @@ public class Browser {
         }
         file.createNewFile();
         FileOutputStream fos = null;
-        BufferedOutputStream output = null;
-        BufferedInputStream input = null;
+        InputStream input = null;
         boolean okay = false;
         try {
-            output = new BufferedOutputStream(fos = new FileOutputStream(file, false));
-            input = new BufferedInputStream(con.getInputStream());
-            final byte[] b = new byte[1024];
+            fos = new FileOutputStream(file, false);
+            input = con.getInputStream();
+            final byte[] b = new byte[32767];
             int len;
             while ((len = input.read(b)) != -1) {
-                output.write(b, 0, len);
+                fos.write(b, 0, len);
             }
             okay = true;
         } finally {
-            try {
-                output.close();
-            } catch (final Throwable e) {
-            }
             try {
                 input.close();
             } catch (final Throwable e) {

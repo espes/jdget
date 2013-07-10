@@ -609,7 +609,7 @@ public class HTMLParser {
             sb.append(path, end, path.length());
         }
 
-        return Browser.correctURL(sb.toString());
+        return Browser.correctURL(sb.toString(), true);
     }
 
 }
