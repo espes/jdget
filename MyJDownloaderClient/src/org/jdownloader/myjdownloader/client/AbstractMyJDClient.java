@@ -283,7 +283,7 @@ public abstract class AbstractMyJDClient {
         try {
             md = MessageDigest.getInstance("SHA-256");
 
-            return md.digest((username.toLowerCase(Locale.ENGLISH) + password + domain).getBytes("UTF-8"));
+            return md.digest((username.toLowerCase(Locale.ENGLISH) + password + domain.toLowerCase(Locale.ENGLISH)).getBytes("UTF-8"));
         } catch (final NoSuchAlgorithmException e) {
             throw new BadResponseException("Secret Creation Failed", e);
 
