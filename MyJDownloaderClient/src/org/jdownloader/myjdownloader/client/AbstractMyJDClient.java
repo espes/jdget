@@ -10,6 +10,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Locale;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -282,7 +283,7 @@ public abstract class AbstractMyJDClient {
         try {
             md = MessageDigest.getInstance("SHA-256");
 
-            return md.digest((username + password + domain).getBytes("UTF-8"));
+            return md.digest((username.toLowerCase(Locale.ENGLISH) + password + domain).getBytes("UTF-8"));
         } catch (final NoSuchAlgorithmException e) {
             throw new BadResponseException("Secret Creation Failed", e);
 
