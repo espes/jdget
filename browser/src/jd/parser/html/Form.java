@@ -35,7 +35,10 @@ import org.appwork.utils.logging.Log;
 public class Form {
 
     public enum MethodType {
-        GET, POST, PUT, UNKNOWN
+        GET,
+        POST,
+        PUT,
+        UNKNOWN
     }
 
     /**
@@ -44,9 +47,8 @@ public class Form {
     private static final long serialVersionUID = 5837247484638868257L;
 
     /**
-     * Ein Array mit allen Forms dessen Inhalt dem matcher entspricht. Achtung
-     * der Matcher bezieht sich nicht auf die Properties einer Form sondern auf
-     * den Text der zwischen der Form steht. DafÃ¼r gibt es die formProperties
+     * Ein Array mit allen Forms dessen Inhalt dem matcher entspricht. Achtung der Matcher bezieht sich nicht auf die Properties einer Form
+     * sondern auf den Text der zwischen der Form steht. DafÃ¼r gibt es die formProperties
      */
     public static Form[] getForms(final Object requestInfo) {
         final LinkedList<Form> forms = new LinkedList<Form>();
@@ -68,18 +70,18 @@ public class Form {
     /**
      * Action der Form entspricht auch oft einer URL
      */
-    private String action;
+    private String                        action;
 
-    private java.util.List<InputField> inputfields;
+    private java.util.List<InputField>    inputfields;
 
-    private String htmlcode = null;
+    private String                        htmlcode = null;
 
-    private MethodType method = MethodType.GET;
+    private MethodType                    method   = MethodType.GET;
 
     /* default encoding for http forms */
-    private String encoding = "application/x-www-form-urlencoded";
+    private String                        encoding = "application/x-www-form-urlencoded";
 
-    private InputField preferredSubmit;
+    private InputField                    preferredSubmit;
 
     private final HashMap<String, String> keyValueMap;
 
@@ -131,6 +133,7 @@ public class Form {
             }
         }
         String ret = this.action;
+        final boolean isHTTPs = baseURL != null && baseURL.startsWith("https");
         if (this.action == null || this.action.matches("[\\s]*")) {
             if (baseurl == null) { return null; }
             ret = baseurl.toString();
@@ -172,6 +175,9 @@ public class Form {
                 }
             }
         }
+        if (isHTTPs) {
+            ret = ret.replaceFirst("http://", "https://");
+        }
         return ret;
     }
 
@@ -204,8 +210,7 @@ public class Form {
     }
 
     /**
-     * Gets the first inputfiled with this key. REMEMBER. There can be more than
-     * one file with this key
+     * Gets the first inputfiled with this key. REMEMBER. There can be more than one file with this key
      * 
      * @param key
      * @return
@@ -442,8 +447,7 @@ public class Form {
     }
 
     /**
-     * Changes the value of the first filed with the key key to value. if no
-     * field exists, a new one is created.
+     * Changes the value of the first filed with the key key to value. if no field exists, a new one is created.
      * 
      * @param key
      * @param value
@@ -458,16 +462,14 @@ public class Form {
     }
 
     /**
-     * Removes the first inputfiled with this key. REMEMBER. There can be more
-     * than one file with this key
+     * Removes the first inputfiled with this key. REMEMBER. There can be more than one file with this key
      * 
      * @param key
      * @return
      */
     public void remove(final String key) {
         /*
-         * inputfields extends hashmap which overrides hashCode, thats why we
-         * use iterator here
+         * inputfields extends hashmap which overrides hashCode, thats why we use iterator here
          */
         final Iterator<InputField> it = this.inputfields.iterator();
         while (it.hasNext()) {
