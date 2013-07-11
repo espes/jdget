@@ -42,7 +42,7 @@ public class ConfigUtils {
 
         }
         strBuild.append("\r\n");
-        strBuild.append("public static final StorageHandler<" + configInterface.getSimpleName() + ">                 SH                               = (StorageHandler<" + configInterface.getSimpleName() + ">) CFG.getStorageHandler();");
+        strBuild.append("public static final StorageHandler<" + configInterface.getSimpleName() + ">                 SH                               = (StorageHandler<" + configInterface.getSimpleName() + ">) CFG._getStorageHandler();");
         strBuild.append("\r\n");
         strBuild.append("//let's do this mapping here. If we map all methods to static handlers, access is faster, and we get an error on init if mappings are wrong.");
 

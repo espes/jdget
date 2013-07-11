@@ -25,16 +25,22 @@ import org.appwork.utils.swing.SwingUtils;
  */
 public abstract class ExtComponentRowHighlighter<E> {
 
-    public static Color mixColors(final Color ca, final Color cb) {
+    public static Color mixColors(final Color bg, final Color fg) {
 
         int r, g, b;
-        final int aa = ca.getAlpha();
-        final int ba = cb.getAlpha();
-        r = (ca.getRed() * aa + cb.getRed() * ba) / (aa + ba);
-        g = (ca.getGreen() * aa + cb.getGreen() * ba) / (aa + ba);
-        b = (ca.getBlue() * aa + cb.getBlue() * ba) / (aa + ba);
 
-        return new Color(r, g, b);
+        final int ba = fg.getAlpha();
+        final int aa = 0xff - ba;
+
+        r = (bg.getRed() * aa + fg.getRed() * ba) / (aa + ba);
+        g = (bg.getGreen() * aa + fg.getGreen() * ba) / (aa + ba);
+        b = (bg.getBlue() * aa + fg.getBlue() * ba) / (aa + ba);
+
+        final double transbg = (255 - bg.getAlpha())/255d;
+        final double transfg = (255 - fg.getAlpha())/255d;
+        final int a = (int) (255 * (transbg*transfg));
+
+        return new Color(r, g, b, (255-a));
 
     }
 
@@ -85,7 +91,7 @@ public abstract class ExtComponentRowHighlighter<E> {
         if (!this.bgMixEnabled) { return this.background; }
         if (current == null) {
 
-        return null; }
+        return background; }
         final String id = current + "_" + this.background;
 
         Color cached = this.cache.get(id);
@@ -143,10 +149,14 @@ public abstract class ExtComponentRowHighlighter<E> {
         if (this.accept(column, value, selected, focus, row)) {
 
             if (this.background != null) {
+//                final Color current = comp.isBackgroundSet() ? comp.getBackground() : null;
+         
                 final Color bg = this.getBackground(comp.getBackground());
                 comp.setBackground(bg);
-                SwingUtils.setOpaque(comp,true);
-               
+
+             
+                SwingUtils.setOpaque(comp, true);
+
             }
             if (this.foreground != null) {
                 comp.setForeground(this.getForeground(comp.getForeground()));
@@ -157,6 +167,28 @@ public abstract class ExtComponentRowHighlighter<E> {
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param background2
+     * @return
+     */
+    static String toString(final Color background2) {
+        // TODO Auto-generated method stub
+        return toHex(background2);
+    }
+
+    private static String hex(final int alpha) {
+        String ret = Integer.toHexString(alpha);
+        while (ret.length() < 2) {
+            ret = "0" + ret;
+        }
+        return ret;
+    }
+
+    public static String toHex(final Color c) {
+        if (c == null) { return "Null"; }
+        return hex(c.getAlpha()) + hex(c.getRed()) + hex(c.getGreen()) + hex(c.getBlue());
     }
 
     /**

@@ -112,7 +112,8 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             // set background back
             SwingUtils.setOpaque(comp, false);
             comp.setBackground(null);
-            comp.setForeground(null);
+            comp.setForeground(null); 
+           
             for (final ExtComponentRowHighlighter<E> rh : hs) {
                 if (rh.highlight(this, comp, value, isSelected, hasFocus, row)) {
 
