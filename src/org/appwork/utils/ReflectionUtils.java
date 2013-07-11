@@ -135,45 +135,47 @@ public class ReflectionUtils {
     /**
      * @return
      */
-    public static Collection<GetterSetter> getGettersSetteres(final Class<?> clazz) {
+    public static Collection<GetterSetter> getGettersSetteres(Class<?> clazz) {
         final HashMap<String, GetterSetter> map = new HashMap<String, GetterSetter>();
+        while (clazz != null) {
+            for (final Method m : clazz.getDeclaredMethods()) {
+                String key = null;
+                boolean getter = false;
+                if (m.getName().startsWith("is") && Clazz.isBoolean(m.getReturnType()) && m.getParameterTypes().length == 0) {
+                    key = m.getName().substring(2);
+                    getter = true;
 
-        for (final Method m : clazz.getDeclaredMethods()) {
-            String key = null;
-            boolean getter = false;
-            if (m.getName().startsWith("is") && Clazz.isBoolean(m.getReturnType()) && m.getParameterTypes().length == 0) {
-                key = m.getName().substring(2);
-                getter = true;
+                } else if (m.getName().startsWith("get") && m.getParameterTypes().length == 0) {
+                    key = m.getName().substring(3);
+                    getter = true;
 
-            } else if (m.getName().startsWith("get") && m.getParameterTypes().length == 0) {
-                key = m.getName().substring(3);
-                getter = true;
+                } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
+                    key = m.getName().substring(3);
+                    getter = false;
 
-            } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
-                key = m.getName().substring(3);
-                getter = false;
+                }
 
+                if (StringUtils.isNotEmpty(key)) {
+                    GetterSetter v = map.get(key);
+                    if (v == null) {
+                        v = new GetterSetter(key);
+                        map.put(key, v);
+                    }
+                    if (getter) {
+                        v.setGetter(m);
+                    } else {
+                        v.setSetter(m);
+                    }
+                    Field field;
+                    try {
+                        field = clazz.getField(key.substring(0, 1).toLowerCase(Locale.ENGLISH) + key.substring(1));
+                        v.setField(field);
+                    } catch (final NoSuchFieldException e) {
+                    }
+
+                }
             }
-
-            if (StringUtils.isNotEmpty(key)) {
-                GetterSetter v = map.get(key);
-                if (v == null) {
-                    v = new GetterSetter(key);
-                    map.put(key, v);
-                }
-                if (getter) {
-                    v.setGetter(m);
-                } else {
-                    v.setSetter(m);
-                }
-                Field field;
-                try {
-                    field = clazz.getField(key.substring(0, 1).toLowerCase(Locale.ENGLISH) + key.substring(1));
-                    v.setField(field);
-                } catch (final NoSuchFieldException e) {
-                }
-
-            }
+            clazz=clazz.getSuperclass();
         }
         return map.values();
     }
@@ -181,16 +183,15 @@ public class ReflectionUtils {
     /**
      * @param type
      * @return
-     * @throws SecurityException 
-     * @throws NoSuchMethodException 
-     * @throws InvocationTargetException 
-     * @throws IllegalArgumentException 
-     * @throws IllegalAccessException 
+     * @throws SecurityException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
      */
     public static Object[] getEnumValues(final Class<? extends Enum> type) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-   
-            return (Object[]) type.getMethod("values", new Class[] {}).invoke(null, new Object[] {});
-    
+
+        return (Object[]) type.getMethod("values", new Class[] {}).invoke(null, new Object[] {});
 
     }
 
@@ -198,15 +199,14 @@ public class ReflectionUtils {
      * @param type
      * @param value
      * @return
-     * @throws SecurityException 
-     * @throws NoSuchMethodException 
-     * @throws InvocationTargetException 
-     * @throws IllegalArgumentException 
-     * @throws IllegalAccessException 
+     * @throws SecurityException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     * @throws IllegalArgumentException
+     * @throws IllegalAccessException
      */
     public static Object getEnumValueOf(final Class<? extends Enum> type, final String value) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         return type.getMethod("valueOf", new Class[] { String.class }).invoke(null, new Object[] { value });
-        
-       
+
     }
 }
