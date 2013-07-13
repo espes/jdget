@@ -10,6 +10,7 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Component;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -399,9 +400,12 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
             setVisible(true);
 
             // if the dt has been interrupted,s setVisible will return even for
+
             // modal dialogs
             // however the dialog will stay open. Make sure to close it here
-            this.dispose();
+            if (getDialog().getModalityType() != ModalityType.MODELESS) {
+                this.dispose();
+            }
             // dialog gets closed
             // 17.11.2011 I did not comment this - may be debug code while
             // finding the problem with dialogs with closed parent...s
@@ -752,9 +756,7 @@ public abstract class AbstractDialog<T> extends TimerDialog implements ActionLis
 
             @Override
             protected void runInEDT() {
-                if (!isInitialized()) {
-                    return;
-                }
+                if (!isInitialized()) { return; }
                 if (isDisposed() && returnBitMask != (Dialog.RETURN_CLOSED | Dialog.RETURN_INTERRUPT) && isDeveloperMode()) {
 
                 throw new IllegalStateException("Dialog already disposed");
