@@ -8,6 +8,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
@@ -44,7 +45,15 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
         this(name, null);
 
     }
+    public boolean onRenameClick(final MouseEvent e, final E obj) {
+        if (isEditable(obj)) {
+            startEditing(obj);
+            return true;
+        } else {
+            return super.onRenameClick(e, obj);
+        }
 
+    }
     public ExtTextAreaColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
         this.txt = new JTextArea();

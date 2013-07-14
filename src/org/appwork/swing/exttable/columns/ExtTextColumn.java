@@ -8,6 +8,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
 import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
@@ -49,6 +50,17 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
      */
     public ExtTextColumn(final String name) {
         this(name, null);
+
+    }
+
+    public boolean onRenameClick(final MouseEvent e, final E obj) {
+        if (isEditable(obj)) {
+            startEditing(obj);
+            System.out.println("Start");
+            return true;
+        } else {
+            return super.onRenameClick(e, obj);
+        }
 
     }
 
@@ -123,8 +135,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             }
 
         };
-      
-  
+
         this.rendererForeground = this.rendererField.getForeground();
         this.editorForeground = this.editorField.getForeground();
         this.rendererFont = this.rendererField.getFont();
@@ -261,7 +272,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
      */
     @Override
     public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-  
+
         return this.renderer;
     }
 
@@ -320,13 +331,13 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     public void resetEditor() {
         this.editor.setEnabled(true);
         this.editorField.setFont(this.editorFont);
-        this.editorField.setForeground(this.editorForeground); 
+        this.editorField.setForeground(this.editorForeground);
         this.editorField.setBackground(null);
         this.editorIconLabel.setIcon(null);
-        
+
         SwingUtils.setOpaque(editorIconLabel, false);
         SwingUtils.setOpaque(editorField, false);
-   
+
     }
 
     @Override
@@ -340,7 +351,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.rendererField.setForeground(this.rendererForeground);
         this.renderer.setOpaque(false);
         this.rendererIcon.setIcon(null);
-        
+
         SwingUtils.setOpaque(rendererIcon, false);
         SwingUtils.setOpaque(rendererField, false);
 

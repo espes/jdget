@@ -535,6 +535,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
     /**
      * override this to enable cell editing if the cell is disabled
+     * IMPORTANT: YOU jave to override {@link #isEditable(Object)} as well if you override this method
      * 
      * @param obj
      * @param enabled

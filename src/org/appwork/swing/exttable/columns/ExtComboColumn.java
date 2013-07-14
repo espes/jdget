@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 
+import javax.swing.AbstractButton;
 import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
@@ -17,6 +18,7 @@ import net.miginfocom.swing.MigLayout;
 import org.appwork.resources.AWUTheme;
 import org.appwork.swing.action.BasicAction;
 import org.appwork.swing.exttable.ExtTableModel;
+import org.appwork.utils.swing.renderer.RenderLabel;
 
 import sun.swing.SwingUtilities2;
 
@@ -34,6 +36,23 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
         super(name, table);
         renderer.removeAll();
         renderer.setLayout(new MigLayout("ins 0", "[grow,fill]0[12]5", "[grow,fill]"));
+
+        this.rendererField = new RenderLabel() {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void setText(final String text) {
+                if (text != null && text.equals(getText())) { return; }
+                if (text == null && getText() == null) { return; }
+                super.setText(text);
+            }
+
+        };
+
         renderer.add(rendererField);
         renderer.add(rendererIcon);
         this.dataModel = model;
@@ -63,34 +82,61 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
         }
 
     }
+    public boolean onDoubleClick(final MouseEvent e, final E value) {
+        if (!isEditable(value)) { return false; }
+
+        int row = getModel().getTable().rowAtPoint(new Point(e.getX(), e.getY()));
+        // int column = getModel().getTable().columnAtPoint(new Point(e.getX(),
+        // e.getY()));
+
+        return startEdit(value, row);
+    }
+    @Override
+    public boolean onRenameClick(MouseEvent e, E value) {
+        if (!isEditable(value)) { return false; }
+
+        int row = getModel().getTable().rowAtPoint(new Point(e.getX(), e.getY()));
+        // int column = getModel().getTable().columnAtPoint(new Point(e.getX(),
+        // e.getY()));
+
+        return startEdit(value, row);
+    }
 
     public boolean onSingleClick(final MouseEvent e, final E value) {
         if (!isEditable(value)) { return false; }
+
+        int row = getModel().getTable().rowAtPoint(new Point(e.getX(), e.getY()));
+        // int column = getModel().getTable().columnAtPoint(new Point(e.getX(),
+        // e.getY()));
+
+        return startEdit(value, row);
+    }
+
+    /**
+     * @param value
+     * @param row
+     * @return
+     */
+    protected boolean startEdit(final E value, int row) {
         final JPopupMenu popup = new JPopupMenu();
         try {
             final ModelType selected = getSelectedItem(value);
             for (int i = 0; i < dataModel.getSize(); i++) {
                 final ModelType o = dataModel.getElementAt(i);
-                popup.add(new JMenuItem(new BasicAction(o.toString()) {
-                    {
-
-                        setName(modelItemToString(o));
-
-                        if (selected == o) {
-                            setSmallIcon(AWUTheme.I().getIcon("enable", 16));
-                        }
-
-                    }
+                AbstractButton bt = getPopupElement(o, selected == o);
+                bt.addActionListener(new ActionListener() {
 
                     @Override
-                    public void actionPerformed(final ActionEvent e) {
+                    public void actionPerformed(ActionEvent e) {
                         setValue(o, value);
-                    }
+                        popup.setVisible(false);
 
-                }));
+                    }
+                });
+                popup.add(bt);
             }
 
-            final Rectangle bounds = getModel().getTable().getCellRect(getModel().getTable().rowAtPoint(new Point(e.getX(), e.getY())), getModel().getTable().columnAtPoint(new Point(e.getX(), e.getY())), true);
+            final Rectangle bounds = getModel().getTable().getCellRect(row, getIndex(), true);
             final Dimension pref = popup.getPreferredSize();
             popup.setPreferredSize(new Dimension(Math.max(pref.width, bounds.width), pref.height));
             popup.show(getModel().getTable(), bounds.x, bounds.y + bounds.height);
@@ -101,14 +147,39 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
         return false;
     }
 
-    protected Icon getIcon(final E value) {
+    /**
+     * @param b
+     * @param o2
+     * @return
+     */
+    protected AbstractButton getPopupElement(final ModelType o, final boolean selected) {
+        return new JMenuItem(new BasicAction(o.toString()) {
+            {
+
+                setName(modelItemToString(o));
+
+                if (selected) {
+                    setSmallIcon(AWUTheme.I().getIcon("enable", 16));
+                }
+
+            }
+
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+
+            }
+
+        });
+    }
+
+    final protected Icon getIcon(final E value) {
         return AWUTheme.I().getIcon("popdownButton", -1);
     }
 
     @Override
     public String getStringValue(final E value) {
 
-        return modelItemToString(getSelectedItem(value));
+        return null;
     }
 
     /**
