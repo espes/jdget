@@ -179,7 +179,7 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
     @Override
     public String getStringValue(final E value) {
 
-        return null;
+        return modelItemToString(getSelectedItem(value));
     }
 
     /**
