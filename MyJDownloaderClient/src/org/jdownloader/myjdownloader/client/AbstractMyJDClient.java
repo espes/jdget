@@ -99,7 +99,7 @@ public abstract class AbstractMyJDClient {
         return sha256_HMAC.doFinal(content);
     }
 
-    private String       serverRoot = "http://api.jdownloader.org";
+    private String       serverRoot = "http://api.jdownloader.org:10101";
 
     private String       email;
     private long         counter;
@@ -234,8 +234,8 @@ public abstract class AbstractMyJDClient {
     }
 
     /**
-     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with #getSessionInfo
-     * #setSessionInfo and #reconnect to restore a session
+     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with
+     * #getSessionInfo #setSessionInfo and #reconnect to restore a session
      * 
      * @param email
      * @param password
@@ -543,7 +543,7 @@ public abstract class AbstractMyJDClient {
         }
     }
 
-    private long inc() {
+    protected long inc() {
         return this.counter++;
     }
 
@@ -611,8 +611,8 @@ public abstract class AbstractMyJDClient {
     }
 
     /**
-     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins. We use a regain
-     * token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
+     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins.
+     * We use a regain token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
      * 
      * @throws MyJDownloaderException
      */
@@ -657,22 +657,15 @@ public abstract class AbstractMyJDClient {
      * @throws MyJDownloaderException
      */
     public synchronized void requestPasswordResetEmail(final CaptchaChallenge challenge, final String email) throws MyJDownloaderException {
-
-        String uncrypted;
         try {
-            uncrypted = this.uncryptedPost("/my/requestpasswordresetemail?email=" + this.urlencode(email) + "&captchaResponse=" + this.urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + this.urlencode(challenge.getCaptchaChallenge()));
+            this.uncryptedPost("/my/requestpasswordresetemail?email=" + this.urlencode(email) + "&captchaResponse=" + this.urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + this.urlencode(challenge.getCaptchaChallenge()));
         } catch (final APIException e) {
             throw new RuntimeException(e);
-
         }
-
-        final boolean ret = this.jsonToObject(uncrypted, boolean.class);
-        if (!ret) { throw new BadResponseException("Unexpected False"); }
-
     }
 
     /**
-     * register for a new MyJDownloader Account. If there is a registration problem, this method throws an MyJDownloaderException
+     * Register for a new MyJDownloader Account. If there is a registration problem, this method throws an MyJDownloaderException
      * 
      * @see #getChallenge()
      * @see #requestConfirmationEmail(CaptchaChallenge);
@@ -683,16 +676,11 @@ public abstract class AbstractMyJDClient {
      * @throws MyJDownloaderException
      */
     public synchronized void requestRegistrationEmail(final CaptchaChallenge challenge, final String email, final String referer) throws MyJDownloaderException {
-
-        // final byte[] loginSecret = this.createSecret(email, password, "server");
-
         try {
             this.uncryptedPost("/my/requestregistrationemail?email=" + this.urlencode(email) + "&captchaResponse=" + this.urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + this.urlencode(challenge.getCaptchaChallenge()) + "&referer=" + this.urlencode(referer == null ? this.appKey : referer));
         } catch (final APIException e) {
             throw new RuntimeException(e);
-
         }
-
     }
 
     public void setServerRoot(final String serverRoot) {
@@ -718,7 +706,6 @@ public abstract class AbstractMyJDClient {
             this.sessionToken = info.getSessionToken();
             this.regainToken = info.getRegainToken();
         }
-
     }
 
     private String sign(final byte[] key, final String data) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException {
