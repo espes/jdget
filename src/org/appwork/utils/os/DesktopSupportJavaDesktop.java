@@ -27,8 +27,10 @@ public class DesktopSupportJavaDesktop implements DesktopSupport {
 
     @Override
     public void browseURL(final URL url) throws IOException, URISyntaxException {
-        final Desktop desktop = Desktop.getDesktop();
-        desktop.browse(url.toURI());
+        if (this.isBrowseURLSupported()) {
+            final Desktop desktop = Desktop.getDesktop();
+            desktop.browse(url.toURI());
+        }
     }
 
     @Override
@@ -36,13 +38,15 @@ public class DesktopSupportJavaDesktop implements DesktopSupport {
         if (this.browseURLSupported != null) { return this.browseURLSupported; }
         if (!Desktop.isDesktopSupported()) {
             this.browseURLSupported = false;
+            return false;
         }
         final Desktop desktop = Desktop.getDesktop();
         if (!desktop.isSupported(Desktop.Action.BROWSE)) {
             this.browseURLSupported = false;
+            return false;
         }
         this.browseURLSupported = true;
-        return this.browseURLSupported;
+        return true;
     }
 
     @Override
@@ -54,16 +58,19 @@ public class DesktopSupportJavaDesktop implements DesktopSupport {
         final Desktop desktop = Desktop.getDesktop();
         if (!desktop.isSupported(Desktop.Action.OPEN)) {
             this.openFileSupported = false;
+            return false;
         }
         this.openFileSupported = true;
-        return this.openFileSupported;
+        return true;
     }
 
     @Override
     public void openFile(final File file) throws IOException {
-        final Desktop desktop = Desktop.getDesktop();
-        final URI uri = file.getCanonicalFile().toURI();
-        desktop.open(new File(uri));
+        if (this.isOpenFileSupported()) {
+            final Desktop desktop = Desktop.getDesktop();
+            final URI uri = file.getCanonicalFile().toURI();
+            desktop.open(new File(uri));
+        }
     }
 
 }

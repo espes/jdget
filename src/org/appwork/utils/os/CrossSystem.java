@@ -157,6 +157,23 @@ public class CrossSystem {
         return pathPart.trim();
     }
 
+    public static String fixPathSeperators(String path) {
+        if (StringUtils.isEmpty(path)) {
+            if (path != null) { return path; }
+            return null;
+        }
+        if (CrossSystem.isWindows()) {
+            /* windows uses \ as path seperator */
+            path = path.replaceAll("[/]+", "\\\\");
+            path = path.replaceAll("[\\\\]+", "\\\\");
+        } else {
+            /* mac/linux uses / as path seperator */
+            path = path.replaceAll("[\\\\]+", "/");
+            path = path.replaceAll("[/]+", "/");
+        }
+        return path;
+    }
+
     public static String[] getBrowserCommandLine() {
         return CrossSystem.BROWSER_COMMANDLINE;
     }
@@ -611,7 +628,7 @@ public class CrossSystem {
 
             ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
                 {
-                    setHookPriority(Integer.MIN_VALUE);
+                    this.setHookPriority(Integer.MIN_VALUE);
                 }
 
                 @Override
