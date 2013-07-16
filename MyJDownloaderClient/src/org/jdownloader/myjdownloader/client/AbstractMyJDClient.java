@@ -99,7 +99,7 @@ public abstract class AbstractMyJDClient {
         return sha256_HMAC.doFinal(content);
     }
 
-    private String       serverRoot = "http://api.jdownloader.org:10101";
+    private String       serverRoot = "http://api.jdownloader.org";
 
     private String       email;
     private long         counter;
@@ -391,7 +391,7 @@ public abstract class AbstractMyJDClient {
     }
 
     /**
-     * COnfirm your email by sending the COnfirm Key.
+     * Confirm your email by sending the Confirm Key.
      * 
      * @param key
      * @param email
