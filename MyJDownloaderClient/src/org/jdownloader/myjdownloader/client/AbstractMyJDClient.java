@@ -233,9 +233,17 @@ public abstract class AbstractMyJDClient {
         }
     }
 
+    public synchronized void cancelRegistrationEmail(final String email, final String key) throws MyJDownloaderException {
+        try {
+            this.uncryptedPost("/my/cancelregistrationemail?email=" + this.urlencode(email) + "&key=" + this.urlencode(key));
+        } catch (final APIException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
-     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with
-     * #getSessionInfo #setSessionInfo and #reconnect to restore a session
+     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with #getSessionInfo
+     * #setSessionInfo and #reconnect to restore a session
      * 
      * @param email
      * @param password
@@ -611,8 +619,8 @@ public abstract class AbstractMyJDClient {
     }
 
     /**
-     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins.
-     * We use a regain token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
+     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins. We use a regain
+     * token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
      * 
      * @throws MyJDownloaderException
      */
