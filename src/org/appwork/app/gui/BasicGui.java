@@ -72,7 +72,7 @@ public abstract class BasicGui {
                                                 System.out.println(i);
                                             }
 
-                                            WindowManager.getInstance().toFront(getFrame(),FrameState.FOCUS);
+                                            WindowManager.getInstance().toFront(getFrame());
                                         } catch (final InterruptedException e) {
                                             // TODO Auto-generated catch block
                                             e.printStackTrace();
@@ -223,7 +223,9 @@ public abstract class BasicGui {
         frame.setLocation(JSonStorage.getPlainStorage("Interface").get("LOCATION_X", x), JSonStorage.getPlainStorage("Interface").get("LOCATION_Y", y));
 
         frame.pack();
-        WindowManager.getInstance().show(frame, FrameState.TO_FRONT, FrameState.FOCUS);
+        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+//        WindowManager.getInstance().show(frame);
+     
 
     }
 

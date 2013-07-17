@@ -11,12 +11,12 @@ package org.appwork.utils.swing;
 
 import java.awt.AWTException;
 import java.awt.Frame;
+import java.awt.Point;
 import java.awt.Robot;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.awt.event.WindowListener;
@@ -37,7 +37,12 @@ import org.appwork.utils.IO;
  */
 public class WindowsWindowManager extends WindowManager {
 
-    private Robot robot;
+    private Robot  robot;
+    private String blocker;
+
+    public String getBlocker() {
+        return blocker;
+    }
 
     public static void writeForegroundLockTimeout(final int foregroundLockTimeout) {
         try {
@@ -244,42 +249,21 @@ public class WindowsWindowManager extends WindowManager {
     /**
      * @param w
      * @param b
-     */
-    private void setAutoRequestFocus(final Window w, final boolean b) {
-        System.out.println("Call setAutoRequestFocus " + b);
-        w.setAutoRequestFocus(b);
-
-    }
-
-    /**
-     * @param w
-     * @param b
      * @return
      */
     protected boolean setAlwaysOnTop(final Window w, final boolean b) {
         final boolean ret = w.isAlwaysOnTop();
         if (b == ret) { return ret; }
-        System.out.println("Call setAlwaysOnTop " + b);
-        w.setAlwaysOnTop(b);
+
+        blocker = "alwaysOnTop";
+        try {
+            System.out.println("Call setAlwaysOnTop " + b);
+            w.setAlwaysOnTop(b);
+
+        } finally {
+            blocker = null;
+        }
         return ret;
-
-    }
-
-    public static abstract class WindowResetListener extends WindowAdapter {
-
-        private FrameState[] flags;
-
-        public FrameState[] getFlags() {
-            return flags;
-        }
-
-        /**
-         * @param flags
-         */
-        public void setFlags(final FrameState[] flags) {
-            this.flags = flags;
-
-        }
 
     }
 
@@ -297,13 +281,65 @@ public class WindowsWindowManager extends WindowManager {
             return;
         }
         final boolean requestFocus = FrameState.FOCUS.containedBy(flags);
-        final boolean forceToFront = requestFocus || FrameState.TO_FRONT.containedBy(flags);
+        final boolean toFront = requestFocus || FrameState.TO_FRONT.containedBy(flags);
 
-        System.out.println("Focus: " + requestFocus + " front: " + forceToFront);
+        System.out.println("Focus: " + requestFocus + " front: " + toFront);
 
         addDebugListener(w);
-        final boolean oldFocusableWindowState = w.getFocusableWindowState();
-        final boolean oldFocusable = w.isFocusable();
+
+        if (visible) {
+
+            final WindowResetListener listener = assignWindowOpenListener(w, flags);
+
+            if (requestFocus) {
+                setFocusableWindowState(w, true);
+            } else {
+                // avoid that the dialog get's focues
+                setFocusableWindowState(w, false);
+                setFocusable(w, false);
+
+                if (!toFront) {
+                    if (w instanceof Frame) {
+
+                        ((Frame) w).setExtendedState(Frame.ICONIFIED);
+                    } else {
+                        // on some systems, the window comes to front, even of
+                        // focusable and focusablewindowstate are false
+                        Point offscreen = setLocation(w, listener.getOffScreenPoint());
+                        listener.setOffScreenPoint(offscreen);
+                    }
+                    //
+                }
+
+            }
+
+            setVisibleInternal(w, visible);
+
+        } else {
+            setVisibleInternal(w, false);
+        }
+        System.out.println("SetVisible Returns");
+    }
+
+    /**
+     * @param w
+     * @param minValue
+     * @param minValue2
+     * @return
+     */
+    private Point setLocation(Window w, Point offscreen) {
+
+        System.out.println("call setLocation " + offscreen);
+        w.setLocation(offscreen);
+        return w.getLocation();
+    }
+
+    /**
+     * @param w
+     * @param flags
+     * @return
+     */
+    public WindowResetListener assignWindowOpenListener(final Window w, final FrameState... flags) {
         WindowResetListener hasListener = null;
         for (final WindowListener wl : w.getWindowListeners()) {
             if (wl != null && wl instanceof WindowResetListener) {
@@ -312,74 +348,13 @@ public class WindowsWindowManager extends WindowManager {
             }
         }
 
-        WindowResetListener windowOpenedResetListener = null;
         if (hasListener != null) {
             hasListener.setFlags(flags);
         } else {
-            windowOpenedResetListener = new WindowResetListener() {
-                {
-                    setFlags(flags);
-                }
 
-                @Override
-                public void windowOpened(final WindowEvent windowevent) {
-                    // it is important to reset focus states before calling
-                    // toFront
-
-                    final boolean requestFocus = FrameState.FOCUS.containedBy(getFlags());
-                    final boolean forceToFront = requestFocus || FrameState.TO_FRONT.containedBy(getFlags());
-                    setFocusableWindowState(w, oldFocusableWindowState);
-                    setFocusable(w, oldFocusable);
-                    if (requestFocus || forceToFront) {
-                        toFront(w, getFlags());
-
-                    } else {
-                        toBack(w);
-
-                    }
-
-                    w.removeWindowListener(this);
-
-                }
-
-            };
+            w.addWindowListener(hasListener = new WindowResetListener(this, w, flags));
         }
-        if (visible) {
-            if (windowOpenedResetListener != null) {
-                w.addWindowListener(windowOpenedResetListener);
-            }
-            if (requestFocus) {
-                setFocusableWindowState(w, true);
-            } else {
-                // avoid that the dialog get's focues
-                setFocusableWindowState(w, false);
-
-            }
-            if (!forceToFront) {
-                setFocusableWindowState(w, false);
-                // setFocusable(w, false);
-
-                // w.addComponentListener(new ComponentAdapter() {
-                //
-                // @Override
-                // public void componentShown(final ComponentEvent
-                // componentevent) {
-                // toBack(w);
-                // setFocusableWindowState(w, true);
-                // setFocusable(w, true);
-                //
-                // w.removeComponentListener(this);
-                //
-                // }
-                //
-                // });
-            }
-
-            setVisibleInternal(w, visible);
-
-        } else {
-            setVisibleInternal(w, false);
-        }
+        return hasListener;
     }
 
     protected void addDebugListener(final Window w) {
@@ -449,6 +424,53 @@ public class WindowsWindowManager extends WindowManager {
 
             }
         });
+        // w.addComponentListener(new ComponentListener() {
+        //
+        // @Override
+        // public void componentShown(ComponentEvent e) {
+        // System.out.println(e);
+        //
+        // }
+        //
+        // @Override
+        // public void componentResized(ComponentEvent e) {
+        // System.out.println(e);
+        //
+        // }
+        //
+        // @Override
+        // public void componentMoved(ComponentEvent e) {
+        // System.out.println(e);
+        //
+        // }
+        //
+        // @Override
+        // public void componentHidden(ComponentEvent e) {
+        // System.out.println(e);
+        //
+        // }
+        // });
+
+        // w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
+        //
+        // @Override
+        // public void ancestorResized(HierarchyEvent e) {
+        // System.out.println(e);
+        // }
+        //
+        // @Override
+        // public void ancestorMoved(HierarchyEvent e) {
+        // System.out.println(e);
+        // }
+        // });
+        // w.addHierarchyListener(new HierarchyListener() {
+        //
+        // @Override
+        // public void hierarchyChanged(HierarchyEvent e) {
+        // System.out.println(e);
+        //
+        // }
+        // });
     }
 
     /**
@@ -456,10 +478,16 @@ public class WindowsWindowManager extends WindowManager {
      * @param b
      */
     protected void setFocusable(final Window w, final boolean b) {
-        System.out.println("Call setFocusable " + b);
 
-        w.setFocusable(b);
+        blocker = "focusable";
+        try {
+            System.out.println("Call setFocusable " + b);
 
+            w.setFocusable(b);
+
+        } finally {
+            blocker = null;
+        }
     }
 
     /**
@@ -472,8 +500,12 @@ public class WindowsWindowManager extends WindowManager {
         if (ret == b) { return ret; }
 
         System.out.println("Call setFocusableWindowState " + b);
-
-        w.setFocusableWindowState(b);
+        blocker = "focusableWindowState";
+        try {
+            w.setFocusableWindowState(b);
+        } finally {
+            blocker = null;
+        }
         return ret;
     }
 
@@ -491,8 +523,15 @@ public class WindowsWindowManager extends WindowManager {
      * @param b
      */
     private void setVisibleInternal(final Window w, final boolean b) {
-        System.out.println("Call setVisible " + b);
-        w.setVisible(b);
+
+        blocker = "visible";
+        try {
+            System.out.println("Call setVisible " + b);
+            w.setVisible(b);
+        } finally {
+            blocker = null;
+        }
+
     }
 
     /**
