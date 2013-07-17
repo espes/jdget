@@ -11,15 +11,12 @@ package org.appwork.utils.net.httpconnection;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-
-import org.appwork.utils.Application;
 
 /**
  * @author daniel

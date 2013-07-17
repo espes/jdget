@@ -3,7 +3,6 @@ package org.appwork.swing.exttable;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.swing.JComponent;
 import javax.swing.JTable;

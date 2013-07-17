@@ -277,8 +277,8 @@ public class WindowsWindowManager extends WindowManager {
          * @param flags
          */
         public void setFlags(final FrameState[] flags) {
-          this.flags=flags;
-            
+            this.flags = flags;
+
         }
 
     }
@@ -307,24 +307,25 @@ public class WindowsWindowManager extends WindowManager {
         WindowResetListener hasListener = null;
         for (final WindowListener wl : w.getWindowListeners()) {
             if (wl != null && wl instanceof WindowResetListener) {
-                hasListener=(WindowResetListener) wl;
+                hasListener = (WindowResetListener) wl;
                 break;
             }
         }
-       
+
         WindowResetListener windowOpenedResetListener = null;
-        if(hasListener!=null){
+        if (hasListener != null) {
             hasListener.setFlags(flags);
-        }else {
+        } else {
             windowOpenedResetListener = new WindowResetListener() {
                 {
-                   setFlags(flags);
+                    setFlags(flags);
                 }
+
                 @Override
                 public void windowOpened(final WindowEvent windowevent) {
                     // it is important to reset focus states before calling
                     // toFront
-                    
+
                     final boolean requestFocus = FrameState.FOCUS.containedBy(getFlags());
                     final boolean forceToFront = requestFocus || FrameState.TO_FRONT.containedBy(getFlags());
                     setFocusableWindowState(w, oldFocusableWindowState);

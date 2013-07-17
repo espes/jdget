@@ -20,7 +20,6 @@ import java.util.logging.Level;
 import org.appwork.storage.simplejson.Ignore;
 import org.appwork.storage.simplejson.Ignores;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.reflection.Clazz;
 
 /**
  * @author thomas

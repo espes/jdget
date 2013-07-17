@@ -9,8 +9,6 @@
  */
 package org.appwork.utils.parser.test;
 
-import java.util.ArrayList;
-
 import org.appwork.utils.parser.HTMLParser;
 import org.junit.Assert;
 import org.junit.Test;

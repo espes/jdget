@@ -28,7 +28,7 @@ import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.WindowManager;
-import org.appwork.utils.swing.WindowManager.WindowState;
+import org.appwork.utils.swing.WindowManager.FrameState;
 import org.appwork.utils.swing.dialog.AbstractDialog;
 
 public abstract class BasicGui {
@@ -72,7 +72,7 @@ public abstract class BasicGui {
                                                 System.out.println(i);
                                             }
 
-                                            WindowManager.getInstance().toFront(getFrame(),WindowState.FOCUS);
+                                            WindowManager.getInstance().toFront(getFrame(),FrameState.FOCUS);
                                         } catch (final InterruptedException e) {
                                             // TODO Auto-generated catch block
                                             e.printStackTrace();
@@ -223,7 +223,7 @@ public abstract class BasicGui {
         frame.setLocation(JSonStorage.getPlainStorage("Interface").get("LOCATION_X", x), JSonStorage.getPlainStorage("Interface").get("LOCATION_Y", y));
 
         frame.pack();
-        WindowManager.getInstance().show(frame, WindowState.TO_FRONT, WindowState.FOCUS);
+        WindowManager.getInstance().show(frame, FrameState.TO_FRONT, FrameState.FOCUS);
 
     }
 

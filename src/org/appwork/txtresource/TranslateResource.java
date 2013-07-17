@@ -18,7 +18,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 
 import org.appwork.utils.Files;
 import org.appwork.utils.IO;

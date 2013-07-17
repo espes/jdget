@@ -19,7 +19,7 @@ import org.appwork.utils.os.CrossSystem;
  * 
  */
 public abstract class WindowManager {
-    public static enum WindowState {
+    public static enum FrameState {
         TO_FRONT,
         FOCUS;
 
@@ -27,9 +27,9 @@ public abstract class WindowManager {
          * @param flags
          * @return
          */
-        public boolean containedBy(final WindowState[] flags) {
+        public boolean containedBy(final FrameState[] flags) {
             if (flags == null) { return false; }
-            for (final WindowState f : flags) {
+            for (final FrameState f : flags) {
                 if (f == this) { return true; }
             }
             return false;
@@ -69,13 +69,13 @@ public abstract class WindowManager {
     /**
      * @param w
      */
-    abstract public void toFront(Window w, WindowState... flags);
+    abstract public void toFront(Window w, FrameState... flags);
 
-    abstract public void setVisible(Window w, boolean visible, WindowState... flags);
+    abstract public void setVisible(Window w, boolean visible, FrameState... flags);
 
-    abstract public void show(Window w, WindowState... flags);
+    abstract public void show(Window w, FrameState... flags);
 
-    abstract public void hide(Window w, WindowState... flags);
+    abstract public void hide(Window w, FrameState... flags);
 
     public static WindowManager getInstance() {
         return INSTANCE;
@@ -86,6 +86,5 @@ public abstract class WindowManager {
      * @param normal
      */
     abstract public void setExtendedState(Frame w, WindowExtendedState state);
-
 
 }

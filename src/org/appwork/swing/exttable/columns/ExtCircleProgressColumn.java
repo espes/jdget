@@ -1,6 +1,5 @@
 package org.appwork.swing.exttable.columns;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;

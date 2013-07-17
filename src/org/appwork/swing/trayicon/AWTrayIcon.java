@@ -27,7 +27,7 @@ import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.WindowManager;
-import org.appwork.utils.swing.WindowManager.WindowState;
+import org.appwork.utils.swing.WindowManager.FrameState;
 
 /**
  * @author thomas
@@ -233,7 +233,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
 
             @Override
             public Object edtRun() {
-                 WindowManager.getInstance().setVisible(frame, visible, WindowState.FOCUS);
+                 WindowManager.getInstance().setVisible(frame, visible, FrameState.FOCUS);
                 return null;
             }
 

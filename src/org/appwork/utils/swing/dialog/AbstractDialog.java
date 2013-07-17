@@ -67,7 +67,7 @@ import org.appwork.utils.net.Base64OutputStream;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.WindowManager;
-import org.appwork.utils.swing.WindowManager.WindowState;
+import org.appwork.utils.swing.WindowManager.FrameState;
 import org.appwork.utils.swing.dialog.dimensor.DialogDimensor;
 import org.appwork.utils.swing.dialog.locator.CenterOfScreenDialogLocator;
 import org.appwork.utils.swing.dialog.locator.DialogLocator;
@@ -393,7 +393,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             // Toolkit.getDefaultToolkit().getScreenSize();
 
             // this.setMaximumSize(Toolkit.getDefaultToolkit().getScreenSize());
-          
 
             // if (this.getDesiredSize() != null) {
             // this.setSize(this.getDesiredSize());
@@ -1423,14 +1422,14 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             @Override
             protected void runInEDT() {
-                final ArrayList<WindowState> state = new ArrayList<WindowState>();
+                final ArrayList<FrameState> state = new ArrayList<FrameState>();
                 if (isRequestFocusOnVisible()) {
-                    state.add(WindowState.FOCUS);
+                    state.add(FrameState.FOCUS);
                 }
                 if (isToFrontOnVisible()) {
-                    state.add(WindowState.TO_FRONT);
+                    state.add(FrameState.TO_FRONT);
                 }
-                WindowManager.getInstance().setVisible(getDialog(), b, state.toArray(new WindowState[] {}));
+                WindowManager.getInstance().setVisible(getDialog(), b, state.toArray(new FrameState[] {}));
 
             }
         };
