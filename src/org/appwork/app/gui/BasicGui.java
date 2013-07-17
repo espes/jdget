@@ -18,6 +18,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+import org.appwork.shutdown.ShutdownController;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storage;
 import org.appwork.swing.action.BasicAction;
@@ -27,6 +28,7 @@ import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.SwingUtils;
+import org.appwork.utils.swing.WindowManager.WindowState;
 import org.appwork.utils.swing.dialog.AbstractDialog;
 
 public abstract class BasicGui {
@@ -50,9 +52,9 @@ public abstract class BasicGui {
 
                     @Override
                     protected void layoutPanel() {
-                        
-                       final  ExtButton bt;
-                        getFrame().add(bt=new ExtButton(new BasicAction(" button") {
+
+                        final ExtButton bt;
+                        getFrame().add(bt = new ExtButton(new BasicAction(" button") {
 
                             /**
                              * 
@@ -70,7 +72,7 @@ public abstract class BasicGui {
                                                 System.out.println(i);
                                             }
 
-                                            SwingUtils.getWindowManager().toFront(getFrame(), false);
+                                            SwingUtils.getWindowManager().toFront(getFrame(),WindowState.FOCUS);
                                         } catch (final InterruptedException e) {
                                             // TODO Auto-generated catch block
                                             e.printStackTrace();
@@ -81,26 +83,26 @@ public abstract class BasicGui {
 
                             }
                         }));
-                        
+
                         getFrame().addWindowFocusListener(new WindowFocusListener() {
-                            
+
                             @Override
                             public void windowLostFocus(final WindowEvent windowevent) {
                                 bt.setText(" :( No Focus para mi");
-                                
+
                             }
-                            
+
                             @Override
                             public void windowGainedFocus(final WindowEvent windowevent) {
                                 bt.setText("JIPPIE! I Got Focused");
-                                
+
                             }
                         });
                     }
 
                     @Override
                     protected void requestExit() {
-                        // TODO Auto-generated method stub
+                        ShutdownController.getInstance().requestShutdown();
 
                     }
                 };
@@ -221,9 +223,7 @@ public abstract class BasicGui {
         frame.setLocation(JSonStorage.getPlainStorage("Interface").get("LOCATION_X", x), JSonStorage.getPlainStorage("Interface").get("LOCATION_Y", y));
 
         frame.pack();
-        SwingUtils.getWindowManager().setVisible(frame, true, true, true);
-        
-        
+        SwingUtils.getWindowManager().show(frame, WindowState.TO_FRONT, WindowState.FOCUS);
 
     }
 

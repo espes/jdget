@@ -34,21 +34,18 @@ import org.appwork.utils.IO;
  * 
  */
 public class WindowsWindowManager implements WindowManager {
-    private int   foregroundLockTimeout = -1;
+   
     private Robot robot;
 
-    public int getForegroundLockTimeout() {
-        return foregroundLockTimeout;
-    }
 
-    public void writeForegroundLockTimeout(final int foregroundLockTimeout) {
+    public static void writeForegroundLockTimeout(final int foregroundLockTimeout) {
         try {
 
             final Process p = Runtime.getRuntime().exec("reg add \"HKEY_CURRENT_USER\\Control Panel\\Desktop\" /v \"ForegroundLockTimeout\" /t REG_DWORD /d 0x" + Integer.toHexString(foregroundLockTimeout) + " /f");
             IO.readInputStreamToString(p.getInputStream());
             final int exitCode = p.exitValue();
             if (exitCode == 0) {
-                this.foregroundLockTimeout = foregroundLockTimeout;
+             
             } else {
                 throw new IOException("Reg add execution failed");
             }
@@ -63,12 +60,6 @@ public class WindowsWindowManager implements WindowManager {
     }
 
     public WindowsWindowManager() {
-        try {
-            foregroundLockTimeout = readForegroundLockTimeout();
-
-        } catch (final Exception e) {
-
-        }
 
     }
 
@@ -77,7 +68,7 @@ public class WindowsWindowManager implements WindowManager {
      * @throws IOException
      * @throws UnsupportedEncodingException
      */
-    public int readForegroundLockTimeout() throws UnsupportedEncodingException, IOException {
+    public static int readForegroundLockTimeout() throws UnsupportedEncodingException, IOException {
         final String iconResult = IO.readInputStreamToString(Runtime.getRuntime().exec("reg query \"HKEY_CURRENT_USER\\Control Panel\\Desktop\" /v \"ForegroundLockTimeout\"").getInputStream());
         final Matcher matcher = Pattern.compile("ForegroundLockTimeout\\s+REG_DWORD\\s+0x(.*)").matcher(iconResult);
         matcher.find();
@@ -91,28 +82,10 @@ public class WindowsWindowManager implements WindowManager {
      * @see org.appwork.utils.swing.WindowManager#toFront(java.awt.Window)
      */
     @Override
-    public void toFront(final Window w, final boolean requestFocus) {
-
-        new EDTRunner() {
-
-            @Override
-            protected void runInEDT() {
-
-                if (foregroundLockTimeout <= 0) {
-                    toFrontWithoutForegroundLock(w, requestFocus);
-                } else {
-                    toFrontWithForegroundLock(w, requestFocus);
-                }
-            }
-        };
-
-    }
-
-    /**
-     * @param w
-     * @param requestFocus
-     */
-    protected void toFrontWithForegroundLock(final Window w, final boolean requestFocus) {
+    public void toFront(final Window w, final WindowState... flags) {
+        
+      final boolean requestFocus = WindowState.FOCUS.containedBy(flags);
+      final boolean forceToFront = WindowState.TO_FRONT.containedBy(flags);
         if (requestFocus) {
             // setAutoRequestFocus status seems to be not important because we
             // requestFocus below. we prefer to request focus, because
@@ -159,7 +132,10 @@ public class WindowsWindowManager implements WindowManager {
             });
             toFrontAltWorkaround(w, false);
         }
+
     }
+
+
 
     /**
      * @param actionListener
@@ -255,47 +231,6 @@ public class WindowsWindowManager implements WindowManager {
         w.toFront();
     }
 
-    /**
-     * @param w
-     * @param requestFocus
-     */
-    protected void toFrontWithoutForegroundLock(final Window w, final boolean requestFocus) {
-        if (!requestFocus) {
-
-            setAutoRequestFocus(w, false);
-            setFocusableWindowState(w, false);
-
-            setAlwaysOnTop(w, true);
-
-            final Timer timer = new Timer(1000, new ActionListener() {
-
-                @Override
-                public void actionPerformed(final ActionEvent e) {
-                    // it is important that we
-                    // 1. setAlwaysOnTop back
-                    // 2. setFocusableWindowState back
-
-                    // else setAlwaysOnTop would fire a WINDOW_ACTIVATED and a
-                    // WINDOW_GAINED_FOCUS even if the window does not get
-                    // active or focused
-                    setAlwaysOnTop(w, false);
-                    setFocusableWindowState(w, true);
-                    setAutoRequestFocus(w, true);
-                }
-            });
-            timer.setRepeats(false);
-            timer.restart();
-
-            toFront(w);
-            repaint(w);
-
-        } else {
-            toFront(w);
-            repaint(w);
-            requestFocus(w);
-        }
-
-    }
 
     /**
      * @param w
@@ -328,7 +263,12 @@ public class WindowsWindowManager implements WindowManager {
      * boolean, boolean, boolean)
      */
     @Override
-    public void setVisible(final Window w, final boolean visible, final boolean requestFocus, final boolean forceToFront) {
+    public void setVisible(final Window w, final boolean visible,  final WindowState... flags) {
+
+        
+      final boolean requestFocus = WindowState.FOCUS.containedBy(flags);
+      final boolean forceToFront = WindowState.TO_FRONT.containedBy(flags);
+
         System.out.println("Focus: " + requestFocus + " front: " + forceToFront);
 
         addDebugListener(w);
@@ -338,17 +278,16 @@ public class WindowsWindowManager implements WindowManager {
 
             @Override
             public void windowOpened(final WindowEvent windowevent) {
-                //it is important to reset focus states before calling toFront
+                // it is important to reset focus states before calling toFront
                 setFocusableWindowState(w, oldFocusableWindowState);
                 setFocusable(w, oldFocusable);
                 if (requestFocus || forceToFront) {
-                    toFront(w, requestFocus);
+                    toFront(w, flags);
 
                 } else {
                     toBack(w);
 
                 }
-              
 
                 w.removeWindowListener(this);
 
@@ -508,12 +447,29 @@ public class WindowsWindowManager implements WindowManager {
      * @param w
      */
     private void requestFocus(final Window w) {
-        //if a frame is active, one of its components has the focus, if we da a requestfocus now, these components will lose the focus again
-        if( w.getFocusOwner()!=null||w.hasFocus()) {
-            return;
-        }
-       
+        // if a frame is active, one of its components has the focus, if we da a
+        // requestfocus now, these components will lose the focus again
+        if (w.getFocusOwner() != null || w.hasFocus()) { return; }
+
         System.out.println("Call requestFocus");
         w.requestFocus();
+    }
+
+    /* (non-Javadoc)
+     * @see org.appwork.utils.swing.WindowManager#show(java.awt.Window, org.appwork.utils.swing.WindowManager.WindowState[])
+     */
+    @Override
+    public void show(final Window w, final WindowState... flags) {
+       setVisible(w, true, flags);
+        
+    }
+
+    /* (non-Javadoc)
+     * @see org.appwork.utils.swing.WindowManager#hide(java.awt.Window, org.appwork.utils.swing.WindowManager.WindowState[])
+     */
+    @Override
+    public void hide(final Window w, final WindowState... flags) {
+        setVisible(w, false, flags);
+        
     }
 }

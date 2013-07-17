@@ -13,15 +13,35 @@ import java.awt.Window;
 
 /**
  * @author Thomas
- *
+ * 
  */
 public interface WindowManager {
+    public static enum WindowState {
+        TO_FRONT,
+        FOCUS;
+
+        /**
+         * @param flags
+         * @return
+         */
+        public boolean containedBy(final WindowState[] flags) {
+            if (flags == null) { return false; }
+            for (final WindowState f : flags) {
+                if (f == this) { return true; }
+            }
+            return false;
+        }
+    }
 
     /**
      * @param w
      */
-    void toFront(Window w,boolean requestFocus);
-    
-    void setVisible(Window w,boolean visible,boolean requestFocus,boolean forceToFront);
+    void toFront(Window w, WindowState... flags);
+
+    void setVisible(Window w, boolean visible, WindowState... flags);
+
+    void show(Window w, WindowState... flags);
+
+    void hide(Window w, WindowState... flags);
 
 }

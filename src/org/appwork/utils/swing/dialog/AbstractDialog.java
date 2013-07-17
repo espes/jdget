@@ -30,6 +30,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -66,6 +67,7 @@ import org.appwork.utils.net.Base64OutputStream;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.SwingUtils;
+import org.appwork.utils.swing.WindowManager.WindowState;
 import org.appwork.utils.swing.dialog.dimensor.DialogDimensor;
 import org.appwork.utils.swing.dialog.locator.CenterOfScreenDialogLocator;
 import org.appwork.utils.swing.dialog.locator.DialogLocator;
@@ -1162,8 +1164,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 }
             }
         }
-      
-
 
     }
 
@@ -1420,14 +1420,21 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     public void setVisible(final boolean b) {
         onSetVisible(b);
         new EDTRunner() {
-            
+
             @Override
             protected void runInEDT() {
-                SwingUtils.getWindowManager().setVisible(  getDialog(), b, isRequestFocusOnVisible(),isToFrontOnVisible());
- 
+                final ArrayList<WindowState> state = new ArrayList<WindowState>();
+                if (isRequestFocusOnVisible()) {
+                    state.add(WindowState.FOCUS);
+                }
+                if (isToFrontOnVisible()) {
+                    state.add(WindowState.TO_FRONT);
+                }
+                SwingUtils.getWindowManager().setVisible(getDialog(), b, state.toArray(new WindowState[] {}));
+
             }
         };
-      
+
     }
 
     public UserIODefinition show() {
