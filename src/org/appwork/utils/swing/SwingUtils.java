@@ -12,7 +12,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.text.JTextComponent;
 
-import org.appwork.utils.os.CrossSystem;
 
 public class SwingUtils {
     /**
@@ -149,27 +148,6 @@ public class SwingUtils {
 
     }
 
-    private static WindowManager WINDOW_MANAGER;
-    static {
-        switch (CrossSystem.OS_ID) {
-        case CrossSystem.OS_WINDOWS_2000:
-        case CrossSystem.OS_WINDOWS_2003:
-        case CrossSystem.OS_WINDOWS_7:
-        case CrossSystem.OS_WINDOWS_8:
-        case CrossSystem.OS_WINDOWS_NT:
-        case CrossSystem.OS_WINDOWS_OTHER:
-        case CrossSystem.OS_WINDOWS_SERVER_2008:
-        case CrossSystem.OS_WINDOWS_VISTA:
-        case CrossSystem.OS_WINDOWS_XP:
-            WINDOW_MANAGER = new WindowsWindowManager();
-            break;
-        default:
-            WINDOW_MANAGER = new DefaultWindowManager();
-        }
-    }
-
-    public static WindowManager getWindowManager() {
-        return WINDOW_MANAGER;
-    }
+  
 
 }

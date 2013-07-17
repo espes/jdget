@@ -67,75 +67,75 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
         this.owner = owner;
         this.owner.addFocusListener(this);
 
-        this.caseSensitive = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_CASESENSITIVE());
-        this.regularExpression = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION());
+        caseSensitive = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_CASESENSITIVE());
+        regularExpression = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION());
         try {
-            this.caseSensitive.setSelected(owner.getStorage().get("caseSensitive", false));
-            this.regularExpression.setSelected(owner.getStorage().get("regularExpression", false));
+            caseSensitive.setSelected(owner.getStorage().get("caseSensitive", false));
+            regularExpression.setSelected(owner.getStorage().get("regularExpression", false));
 
             final ActionListener saveListener = new ActionListener() {
 
                 public void actionPerformed(final ActionEvent e) {
-                    owner.getStorage().put("caseSensitive", SearchDialog.this.caseSensitive.isSelected());
-                    owner.getStorage().put("regularExpression", SearchDialog.this.regularExpression.isSelected());
+                    owner.getStorage().put("caseSensitive", caseSensitive.isSelected());
+                    owner.getStorage().put("regularExpression", regularExpression.isSelected());
                 }
 
             };
 
-            this.caseSensitive.addActionListener(saveListener);
-            this.regularExpression.addActionListener(saveListener);
+            caseSensitive.addActionListener(saveListener);
+            regularExpression.addActionListener(saveListener);
         } catch (final Exception e) {
             Log.exception(e);
         }
-        this.caseSensitive.setVisible(BinaryLogic.containsNone(flag, SearchDialog.NO_CASE_FLAG));
-        this.regularExpression.setVisible(BinaryLogic.containsNone(flag, SearchDialog.NO_REGEX_FLAG));
-        this.setLayout(new MigLayout("ins 5", "[fill,grow]", "[fill,grow][][]"));
+        caseSensitive.setVisible(BinaryLogic.containsNone(flag, SearchDialog.NO_CASE_FLAG));
+        regularExpression.setVisible(BinaryLogic.containsNone(flag, SearchDialog.NO_REGEX_FLAG));
+        setLayout(new MigLayout("ins 5", "[fill,grow]", "[fill,grow][][]"));
         // Dispose dialog on close
-        this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        this.addWindowListener(this);
-        this.okButton = new JButton(_AWU.T.SEARCHDIALOG_BUTTON_FIND());
-        this.okButton.addActionListener(this);
+        addWindowListener(this);
+        okButton = new JButton(_AWU.T.SEARCHDIALOG_BUTTON_FIND());
+        okButton.addActionListener(this);
 
         this.add(new JLabel(AWUTheme.I().getIcon("dialog/find", 32)), "alignx left,aligny center,shrinkx,gapright 10,spany");
 
-        this.input = new JTextField();
-        this.input.setBorder(BorderFactory.createEtchedBorder());
+        input = new JTextField();
+        input.setBorder(BorderFactory.createEtchedBorder());
 
-        this.add(this.input, "pushy,growy,spanx,wrap");
+        this.add(input, "pushy,growy,spanx,wrap");
 
-        this.input.selectAll();
+        input.selectAll();
 
-        this.add(this.regularExpression);
-        this.add(this.caseSensitive);
-        this.add(this.okButton, "skip 2,alignx right,wrap");
+        this.add(regularExpression);
+        this.add(caseSensitive);
+        this.add(okButton, "skip 2,alignx right,wrap");
 
         // pack dialog
-        this.invalidate();
-        this.pack();
-        this.setResizable(false);
+        invalidate();
+        pack();
+        setResizable(false);
 
-        this.toFront();
+     
 
-        if (!this.getParent().isDisplayable() || !this.getParent().isVisible()) {
+        if (!getParent().isDisplayable() || !getParent().isVisible()) {
             final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-            this.setLocation(new Point((int) (screenSize.getWidth() - this.getWidth()) / 2, (int) (screenSize.getHeight() - this.getHeight()) / 2));
-        } else if (this.getParent() instanceof Frame && ((Frame) this.getParent()).getExtendedState() == Frame.ICONIFIED) {
+            this.setLocation(new Point((int) (screenSize.getWidth() - getWidth()) / 2, (int) (screenSize.getHeight() - getHeight()) / 2));
+        } else if (getParent() instanceof Frame && ((Frame) getParent()).getExtendedState() == Frame.ICONIFIED) {
             // dock dialog at bottom right if mainframe is not visible
             final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-            this.setLocation(new Point((int) (screenSize.getWidth() - this.getWidth() - 20), (int) (screenSize.getHeight() - this.getHeight() - 60)));
+            this.setLocation(new Point((int) (screenSize.getWidth() - getWidth() - 20), (int) (screenSize.getHeight() - getHeight() - 60)));
         } else {
-            this.setLocation(SwingUtils.getCenter(this.getParent(), this));
+            this.setLocation(SwingUtils.getCenter(getParent(), this));
         }
 
         // register an escape listener to cancel the dialog
         KeyStroke ks = KeyStroke.getKeyStroke("ESCAPE");
-        this.okButton.getInputMap().put(ks, "ESCAPE");
-        this.okButton.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ESCAPE");
-        this.okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
-        this.okButton.getActionMap().put("ESCAPE", new AbstractAction() {
+        okButton.getInputMap().put(ks, "ESCAPE");
+        okButton.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ESCAPE");
+        okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
+        okButton.getActionMap().put("ESCAPE", new AbstractAction() {
 
             private static final long serialVersionUID = -6666144330707394562L;
 
@@ -146,31 +146,31 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
         });
 
         ks = KeyStroke.getKeyStroke("ENTER");
-        this.okButton.getInputMap().put(ks, "ENTER");
-        this.okButton.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ENTER");
-        this.okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ENTER");
-        this.okButton.getActionMap().put("ENTER", new AbstractAction() {
+        okButton.getInputMap().put(ks, "ENTER");
+        okButton.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ENTER");
+        okButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ENTER");
+        okButton.getActionMap().put("ENTER", new AbstractAction() {
 
             private static final long serialVersionUID = -1331741306700505613L;
 
             public void actionPerformed(final ActionEvent e) {
-                SearchDialog.this.okButton.doClick();
+                okButton.doClick();
             }
 
         });
 
-        this.setVisible(true);
+        setVisible(true);
 
         this.requestFocus();
-        this.input.requestFocusInWindow();
-        this.input.requestFocus();
+        input.requestFocusInWindow();
+        input.requestFocus();
     }
 
     abstract public void actionPerformed(ActionEvent e);
 
     private void close() {
-        this.owner.removeFocusListener(this);
-        this.dispose();
+        owner.removeFocusListener(this);
+        dispose();
     }
 
     public void focusGained(final FocusEvent e) {
@@ -178,27 +178,27 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
 
     public void focusLost(final FocusEvent e) {
         if (!e.isTemporary()) {
-            this.close();
+            close();
         }
     }
 
     public String getReturnID() {
-        return this.input.getText();
+        return input.getText();
     }
 
     public boolean isCaseSensitive() {
-        return this.caseSensitive.isSelected();
+        return caseSensitive.isSelected();
     }
 
     public boolean isRegex() {
-        return this.regularExpression.isSelected();
+        return regularExpression.isSelected();
     }
 
     @Override
     public void requestFocus() {
         super.requestFocus();
-        this.input.requestFocusInWindow();
-        this.input.requestFocus();
+        input.requestFocusInWindow();
+        input.requestFocus();
     }
 
     public void windowActivated(final WindowEvent arg0) {
@@ -208,7 +208,7 @@ public abstract class SearchDialog extends JDialog implements WindowListener, Ac
     }
 
     public void windowClosing(final WindowEvent arg0) {
-        this.close();
+        close();
     }
 
     public void windowDeactivated(final WindowEvent arg0) {

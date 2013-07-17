@@ -10,6 +10,7 @@
 package org.appwork.utils.swing;
 
 import java.awt.AWTException;
+import java.awt.Frame;
 import java.awt.Robot;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -25,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JFrame;
 import javax.swing.Timer;
 
 import org.appwork.utils.IO;
@@ -33,7 +35,7 @@ import org.appwork.utils.IO;
  * @author Thomas
  * 
  */
-public class WindowsWindowManager implements WindowManager {
+public class WindowsWindowManager extends WindowManager {
    
     private Robot robot;
 
@@ -180,13 +182,14 @@ public class WindowsWindowManager implements WindowManager {
 
                     toFront(w);
                     repaint(w);
+
                 } finally {
                     releaseAlt();
                 }
 
             } else {
                 toFront(w);
-                repaint(w);
+                 repaint(w);
             }
 
         } catch (final Exception e) {
@@ -223,9 +226,11 @@ public class WindowsWindowManager implements WindowManager {
 
     protected void repaint(final Window w) {
         System.out.println("Call repaint ");
-        w.repaint();
+        // This repaint may cause a kind of flickering on some systems. we have reports from windows and linux users
+      
+//        w.repaint();
     }
-
+ 
     protected void toFront(final Window w) {
         System.out.println("Call toFront ");
         w.toFront();
@@ -470,6 +475,19 @@ public class WindowsWindowManager implements WindowManager {
     @Override
     public void hide(final Window w, final WindowState... flags) {
         setVisible(w, false, flags);
+        
+    }
+
+    /* (non-Javadoc)
+     * @see org.appwork.utils.swing.WindowManager#setWindowExtendedState(javax.swing.JFrame, org.appwork.utils.swing.WindowManager.WindowExtendedState)
+     */
+    @Override
+    public void setExtendedState(final Frame w, final WindowExtendedState state) {
+        switch(state){
+        case NORMAL:
+            w.setExtendedState(JFrame.NORMAL);  
+        }
+
         
     }
 }

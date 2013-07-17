@@ -9,13 +9,16 @@
  */
 package org.appwork.utils.swing;
 
+import java.awt.Frame;
 import java.awt.Window;
+
+import org.appwork.utils.os.CrossSystem;
 
 /**
  * @author Thomas
  * 
  */
-public interface WindowManager {
+public abstract class WindowManager {
     public static enum WindowState {
         TO_FRONT,
         FOCUS;
@@ -33,15 +36,56 @@ public interface WindowManager {
         }
     }
 
+    public static enum WindowExtendedState {
+        NORMAL
+
+    }
+
+    static WindowManager INSTANCE = createOsWindowManager();
+
+    /**
+     * @return
+     */
+    private static WindowManager createOsWindowManager() {
+
+        switch (CrossSystem.OS_ID) {
+        case CrossSystem.OS_WINDOWS_2000:
+        case CrossSystem.OS_WINDOWS_2003:
+        case CrossSystem.OS_WINDOWS_7:
+        case CrossSystem.OS_WINDOWS_8:
+        case CrossSystem.OS_WINDOWS_NT:
+        case CrossSystem.OS_WINDOWS_OTHER:
+        case CrossSystem.OS_WINDOWS_SERVER_2008:
+        case CrossSystem.OS_WINDOWS_VISTA:
+        case CrossSystem.OS_WINDOWS_XP:
+            return new WindowsWindowManager();
+
+        default:
+            return new DefaultWindowManager();
+        }
+
+    }
+
     /**
      * @param w
      */
-    void toFront(Window w, WindowState... flags);
+    abstract public void toFront(Window w, WindowState... flags);
 
-    void setVisible(Window w, boolean visible, WindowState... flags);
+    abstract public void setVisible(Window w, boolean visible, WindowState... flags);
 
-    void show(Window w, WindowState... flags);
+    abstract public void show(Window w, WindowState... flags);
 
-    void hide(Window w, WindowState... flags);
+    abstract public void hide(Window w, WindowState... flags);
+
+    public static WindowManager getInstance() {
+        return INSTANCE;
+    }
+
+    /**
+     * @param mainFrame
+     * @param normal
+     */
+    abstract public void setExtendedState(Frame w, WindowExtendedState state);
+
 
 }

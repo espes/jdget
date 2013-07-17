@@ -26,6 +26,8 @@ import org.appwork.utils.event.BasicEventSender;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
+import org.appwork.utils.swing.WindowManager;
+import org.appwork.utils.swing.WindowManager.WindowState;
 
 /**
  * @author thomas
@@ -64,20 +66,20 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
      * @param title
      * @throws AWTException
      */
-    public AWTrayIcon(JFrame frame, Image icon, String title) throws AWTException {
+    public AWTrayIcon(final JFrame frame, final Image icon, final String title) throws AWTException {
         this.frame = frame;
-        this.eventSender = new BasicEventSender<AWTrayIcon>();
+        eventSender = new BasicEventSender<AWTrayIcon>();
         final SystemTray systemTray = SystemTray.getSystemTray();
         /*
          * trayicon message must be set, else windows cannot handle icon right
          * (eg autohide feature)
          */
-        this.trayIcon = new ExtTrayIcon(icon, title);
+        trayIcon = new ExtTrayIcon(icon, title);
 
-        this.trayIcon.addMouseListener(this);
-        this.trayIcon.addTrayMouseListener(this);
+        trayIcon.addMouseListener(this);
+        trayIcon.addTrayMouseListener(this);
 
-        systemTray.add(this.trayIcon);
+        systemTray.add(trayIcon);
     }
 
     public TrayIconPopup createPopup() {
@@ -96,18 +98,18 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
             @Override
             protected void runInEDT() {
                 try {
-                    if (AWTrayIcon.this.trayIcon != null) {
+                    if (trayIcon != null) {
 
-                        SystemTray.getSystemTray().remove(AWTrayIcon.this.trayIcon);
-                        AWTrayIcon.this.trayIcon.removeMouseListener(AWTrayIcon.this);
-                        AWTrayIcon.this.trayIcon.removeTrayMouseListener(AWTrayIcon.this);
-                        AWTrayIcon.this.trayIcon = null;
+                        SystemTray.getSystemTray().remove(trayIcon);
+                        trayIcon.removeMouseListener(AWTrayIcon.this);
+                        trayIcon.removeTrayMouseListener(AWTrayIcon.this);
+                        trayIcon = null;
                         AWTrayIcon.this.hideToolTip();
-                        if (AWTrayIcon.this.trayIconPopup != null) {
-                            AWTrayIcon.this.trayIconPopup.dispose();
+                        if (trayIconPopup != null) {
+                            trayIconPopup.dispose();
 
-                            AWTrayIcon.this.trayIconPopup = null;
-                            AWTrayIcon.this.eventSender.fireEvent(new BasicEvent<AWTrayIcon>(AWTrayIcon.this, AWTrayIcon.EVENT_HIDE_POPUP, AWTrayIcon.this, null));
+                            trayIconPopup = null;
+                            eventSender.fireEvent(new BasicEvent<AWTrayIcon>(AWTrayIcon.this, AWTrayIcon.EVENT_HIDE_POPUP, AWTrayIcon.this, null));
                         }
                     }
                 } catch (final Exception e) {
@@ -122,18 +124,18 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
      * @return the eventSender
      */
     public BasicEventSender<AWTrayIcon> getEventSender() {
-        return this.eventSender;
+        return eventSender;
     }
 
     public JFrame getFrame() {
-        return this.frame;
+        return frame;
     }
 
     private void hideToolTip() {
     }
 
     public boolean isFrameVisible() {
-        return frame != null && this.frame.isVisible();
+        return frame != null && frame.isVisible();
     }
 
     public void mouseClicked(final MouseEvent e) {
@@ -143,68 +145,68 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
     }
 
     public void mouseExited(final MouseEvent e) {
-        this.hideToolTip();
+        hideToolTip();
     }
 
     public void mouseMoveOverTray(final MouseEvent me) {
-        if (this.trayIconPopup != null && this.trayIconPopup.isVisible()) { return; }
-        this.displayToolTip();
+        if (trayIconPopup != null && trayIconPopup.isVisible()) { return; }
+        displayToolTip();
     }
 
     public void mousePressed(final MouseEvent e) {
-        this.hideToolTip();
+        hideToolTip();
 
         if (e.getSource() instanceof TrayIcon) {
             if (!CrossSystem.isMac()) {
-                if (e.getClickCount() == this.visibleToggleClickCount && !SwingUtilities.isRightMouseButton(e)) {
-                    this.eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_TOGGLE_FRAME_VISIBILITY, this, null));
+                if (e.getClickCount() == visibleToggleClickCount && !SwingUtilities.isRightMouseButton(e)) {
+                    eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_TOGGLE_FRAME_VISIBILITY, this, null));
 
-                    this.onToggleVisibility();
+                    onToggleVisibility();
 
                 } else {
-                    if (this.trayIconPopup != null && this.trayIconPopup.isShowing()) {
-                        this.trayIconPopup.dispose();
+                    if (trayIconPopup != null && trayIconPopup.isShowing()) {
+                        trayIconPopup.dispose();
 
-                        this.trayIconPopup = null;
-                        this.eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_HIDE_POPUP, this, null));
+                        trayIconPopup = null;
+                        eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_HIDE_POPUP, this, null));
 
                     } else if (SwingUtilities.isRightMouseButton(e)) {
 
-                        this.trayIconPopup = this.createPopup();
-                        if (this.trayIconPopup == null) { return; }
+                        trayIconPopup = createPopup();
+                        if (trayIconPopup == null) { return; }
 
-                        this.trayIconPopup.setPosition(e.getPoint());
-                        this.trayIconPopup.setVisible(true);
-                        this.trayIconPopup.startAutoHide();
-                        this.eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_SHOW_POPUP, this, null));
+                        trayIconPopup.setPosition(e.getPoint());
+                        trayIconPopup.setVisible(true);
+                        trayIconPopup.startAutoHide();
+                        eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_SHOW_POPUP, this, null));
 
                     }
                 }
             } else {
                 if (SwingUtilities.isLeftMouseButton(e)) {
-                    if (e.getClickCount() == this.visibleToggleClickCount && !SwingUtilities.isLeftMouseButton(e)) {
-                        this.eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_TOGGLE_FRAME_VISIBILITY, this, null));
+                    if (e.getClickCount() == visibleToggleClickCount && !SwingUtilities.isLeftMouseButton(e)) {
+                        eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_TOGGLE_FRAME_VISIBILITY, this, null));
 
-                        this.onToggleVisibility();
+                        onToggleVisibility();
                     } else {
-                        if (this.trayIconPopup != null && this.trayIconPopup.isShowing()) {
-                            this.trayIconPopup.dispose();
-                            this.trayIconPopup = null;
-                            this.eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_HIDE_POPUP, this, null));
+                        if (trayIconPopup != null && trayIconPopup.isShowing()) {
+                            trayIconPopup.dispose();
+                            trayIconPopup = null;
+                            eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_HIDE_POPUP, this, null));
 
                         } else if (SwingUtilities.isLeftMouseButton(e)) {
 
-                            this.trayIconPopup = this.createPopup();
-                            if (this.trayIconPopup == null) { return; }
+                            trayIconPopup = createPopup();
+                            if (trayIconPopup == null) { return; }
                             final Point pointOnScreen = e.getLocationOnScreen();
                             if (e.getX() > 0) {
                                 pointOnScreen.x -= e.getPoint().x;
                             }
 
-                            this.trayIconPopup.setPosition(pointOnScreen);
-                            this.trayIconPopup.setVisible(true);
-                            this.trayIconPopup.startAutoHide();
-                            this.eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_SHOW_POPUP, this, null));
+                            trayIconPopup.setPosition(pointOnScreen);
+                            trayIconPopup.setVisible(true);
+                            trayIconPopup.startAutoHide();
+                            eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_SHOW_POPUP, this, null));
 
                         }
                     }
@@ -220,45 +222,18 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
      * 
      */
     public void onToggleVisibility() {
-        this.setFrameVisible(!this.isFrameVisible());
+        setFrameVisible(!isFrameVisible());
     }
 
     public void setFrameVisible(final boolean visible) {
-        if (frame == null) return;
+        if (frame == null) {
+            return;
+        }
         new EDTHelper<Object>() {
 
             @Override
             public Object edtRun() {
-                /*
-                 * This is a workaround, because toFront does not work on all
-                 * systems. Originally,this workaround used a Timer that resets
-                 * the alwaysontop setting after 2000ms. This should work, too
-                 */
-                final JFrame resetAlwaysOnTop;
-
-                if (!visible) {
-                    AWTrayIcon.this.frame.setVisible(false);
-                    resetAlwaysOnTop = null;
-                } else {
-                    if (!AWTrayIcon.this.frame.isAlwaysOnTop()) {
-                        resetAlwaysOnTop = AWTrayIcon.this.frame;
-                    } else {
-                        resetAlwaysOnTop = null;
-                    }
-                    AWTrayIcon.this.frame.setAlwaysOnTop(true);
-                    AWTrayIcon.this.frame.setVisible(true);
-                    AWTrayIcon.this.frame.toFront();
-                }
-
-                if (visible && resetAlwaysOnTop != null) {
-                    SwingUtilities.invokeLater(new Runnable() {
-
-                        public void run() {
-                            resetAlwaysOnTop.setAlwaysOnTop(false);
-                        }
-
-                    });
-                }
+                 WindowManager.getInstance().setVisible(frame, visible, WindowState.FOCUS);
                 return null;
             }
 
@@ -266,11 +241,11 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
     }
 
     public void setImage(final Image icon) {
-        this.trayIcon.setImage(icon);
+        trayIcon.setImage(icon);
     }
 
     public void setToolTip(final String tooltip) {
-        this.trayIcon.setToolTip(tooltip);
+        trayIcon.setToolTip(tooltip);
     }
 
 }

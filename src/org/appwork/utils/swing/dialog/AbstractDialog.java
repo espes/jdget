@@ -66,7 +66,7 @@ import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.Base64OutputStream;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
-import org.appwork.utils.swing.SwingUtils;
+import org.appwork.utils.swing.WindowManager;
 import org.appwork.utils.swing.WindowManager.WindowState;
 import org.appwork.utils.swing.dialog.dimensor.DialogDimensor;
 import org.appwork.utils.swing.dialog.locator.CenterOfScreenDialogLocator;
@@ -393,7 +393,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             // Toolkit.getDefaultToolkit().getScreenSize();
 
             // this.setMaximumSize(Toolkit.getDefaultToolkit().getScreenSize());
-            // getDialog().toFront();
+          
 
             // if (this.getDesiredSize() != null) {
             // this.setSize(this.getDesiredSize());
@@ -1430,7 +1430,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 if (isToFrontOnVisible()) {
                     state.add(WindowState.TO_FRONT);
                 }
-                SwingUtils.getWindowManager().setVisible(getDialog(), b, state.toArray(new WindowState[] {}));
+                WindowManager.getInstance().setVisible(getDialog(), b, state.toArray(new WindowState[] {}));
 
             }
         };

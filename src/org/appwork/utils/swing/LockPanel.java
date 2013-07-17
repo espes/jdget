@@ -98,7 +98,8 @@ public class LockPanel extends JPanel {
 
             public void windowActivated(final WindowEvent e) {
                 if (waitingPanel.isVisible()) {
-                    waitingPanel.toFront();
+                    WindowManager.getInstance().toFront(    waitingPanel);
+                
                 }
 
             }
@@ -160,7 +161,7 @@ public class LockPanel extends JPanel {
      * @return
      */
     private BufferedImage createScreenShot() {
-        frame.toFront();
+        WindowManager.getInstance().toFront(    frame);
         final boolean top = frame.isAlwaysOnTop();
         try {
             return new EDTHelper<BufferedImage>() {
