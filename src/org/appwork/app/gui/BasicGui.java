@@ -9,13 +9,13 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
 
 import org.appwork.storage.JSonStorage;
@@ -24,55 +24,97 @@ import org.appwork.swing.action.BasicAction;
 import org.appwork.swing.components.ExtButton;
 import org.appwork.swing.trayicon.AWTrayIcon;
 import org.appwork.utils.os.CrossSystem;
+import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.LockPanel;
-import org.appwork.utils.swing.dialog.Dialog;
+import org.appwork.utils.swing.SwingUtils;
+import org.appwork.utils.swing.dialog.AbstractDialog;
 
 public abstract class BasicGui {
 
     public static void main(final String[] args) {
-        final BasicGui bg = new BasicGui("Test") {
+        try {
+            for (int i = 5; i >= 0; i--) {
+                Thread.sleep(1000);
+                System.out.println(i);
+            }
+        } catch (final InterruptedException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+        new EDTRunner() {
 
             @Override
-            protected void layoutPanel() {
+            protected void runInEDT() {
 
-                getFrame().add(new ExtButton(new BasicAction("DOIT") {
-
-                    /**
-                     * 
-                     */
-                    private static final long serialVersionUID = -4007724735998967065L;
+                final BasicGui bg = new BasicGui("Test") {
 
                     @Override
-                    public void actionPerformed(final ActionEvent e) {
-                        new Thread() {
+                    protected void layoutPanel() {
+                        
+                       final  ExtButton bt;
+                        getFrame().add(bt=new ExtButton(new BasicAction(" button") {
+
+                            /**
+                             * 
+                             */
+                            private static final long serialVersionUID = -4007724735998967065L;
+
                             @Override
-                            public void run() {
-                                try {
+                            public void actionPerformed(final ActionEvent e) {
+                                new Thread() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            for (int i = 5; i >= 0; i--) {
+                                                Thread.sleep(1000);
+                                                System.out.println(i);
+                                            }
 
-                                    Thread.sleep(5000);
-                                
-                                    getFrame().setVisible(false);
-                                    Thread.sleep(5000);
-                                  
-                                    getFrame().setVisible(true);
-                                } catch (final InterruptedException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                }
+                                            SwingUtils.getWindowManager().toFront(getFrame(), false);
+                                        } catch (final InterruptedException e) {
+                                            // TODO Auto-generated catch block
+                                            e.printStackTrace();
+                                        }
+                                    }
+
+                                }.start();
+
                             }
-
-                        }.start();
-                        JOptionPane.showMessageDialog(getFrame(), "bla");
+                        }));
+                        
+                        getFrame().addWindowFocusListener(new WindowFocusListener() {
+                            
+                            @Override
+                            public void windowLostFocus(final WindowEvent windowevent) {
+                                bt.setText(" :( No Focus para mi");
+                                
+                            }
+                            
+                            @Override
+                            public void windowGainedFocus(final WindowEvent windowevent) {
+                                bt.setText("JIPPIE! I Got Focused");
+                                
+                            }
+                        });
                     }
-                }));
-            }
 
-            @Override
-            protected void requestExit() {
-                // TODO Auto-generated method stub
+                    @Override
+                    protected void requestExit() {
+                        // TODO Auto-generated method stub
+
+                    }
+                };
 
             }
         };
+
+        try {
+            Thread.sleep(1000000);
+        } catch (final InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -93,6 +135,7 @@ public abstract class BasicGui {
              * 
              */
             private static final long serialVersionUID = -8325715174242107194L;
+            private boolean           notToFront       = false;                 ;
 
             @Override
             public void setVisible(final boolean b) {
@@ -101,21 +144,28 @@ public abstract class BasicGui {
                 if (!b) {
                     for (final Window w : getOwnedWindows()) {
                         if (w instanceof JDialog && ((JDialog) w).isModal() && w.isActive()) {
-                          
+
                             Toolkit.getDefaultToolkit().beep();
                             throw new ActiveDialogException((JDialog) w);
                         }
 
                     }
                 }
+
                 super.setVisible(b);
+
             }
 
+            public void toFront() {
+                // if (notToFront) { return; }
+                super.toFront();
+            }
         };
 
         // dilaog init
         storage = JSonStorage.getPlainStorage("BasicGui");
-        Dialog.getInstance().setParentOwner(frame);
+
+        AbstractDialog.setRootFrame(frame);
 
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -131,6 +181,7 @@ public abstract class BasicGui {
                     }.start();
                 } else {
                     if (BasicGui.this.getFrame().isVisible()) {
+
                         BasicGui.this.getFrame().setVisible(false);
                     }
                 }
@@ -170,8 +221,9 @@ public abstract class BasicGui {
         frame.setLocation(JSonStorage.getPlainStorage("Interface").get("LOCATION_X", x), JSonStorage.getPlainStorage("Interface").get("LOCATION_Y", y));
 
         frame.pack();
-
-        frame.setVisible(true);
+        SwingUtils.getWindowManager().setVisible(frame, true, true, true);
+        
+        
 
     }
 

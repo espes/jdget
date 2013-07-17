@@ -12,6 +12,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.text.JTextComponent;
 
+import org.appwork.utils.os.CrossSystem;
+
 public class SwingUtils {
     /**
      * Calculates the position of a frame to be in the center of an other frame.
@@ -74,7 +76,7 @@ public class SwingUtils {
     public static JComponent setOpaque(final JComponent descriptionField, final boolean b) {
         descriptionField.setOpaque(b);
         descriptionField.putClientProperty("Synthetica.opaque", b ? Boolean.TRUE : Boolean.FALSE);
-return descriptionField;
+        return descriptionField;
     }
 
     /**
@@ -123,7 +125,7 @@ return descriptionField;
         // c.setVisible(false);
         for (int i = 0; i < fc.getComponentCount(); i++) {
             final Component cc = fc.getComponent(i);
-            System.out.println(string + "[" + i + "]" + cc.getClass().getSuperclass().getSimpleName() + ":" + cc+ " Opaque: "+cc.isOpaque());
+            System.out.println(string + "[" + i + "]" + cc.getClass().getSuperclass().getSimpleName() + ":" + cc + " Opaque: " + cc.isOpaque());
 
             if (cc instanceof JComponent) {
                 printComponentTree((JComponent) cc, string + "[" + i + "]");
@@ -146,4 +148,28 @@ return descriptionField;
         return parent;
 
     }
+
+    private static WindowManager WINDOW_MANAGER;
+    static {
+        switch (CrossSystem.OS_ID) {
+        case CrossSystem.OS_WINDOWS_2000:
+        case CrossSystem.OS_WINDOWS_2003:
+        case CrossSystem.OS_WINDOWS_7:
+        case CrossSystem.OS_WINDOWS_8:
+        case CrossSystem.OS_WINDOWS_NT:
+        case CrossSystem.OS_WINDOWS_OTHER:
+        case CrossSystem.OS_WINDOWS_SERVER_2008:
+        case CrossSystem.OS_WINDOWS_VISTA:
+        case CrossSystem.OS_WINDOWS_XP:
+            WINDOW_MANAGER = new WindowsWindowManager();
+            break;
+        default:
+            WINDOW_MANAGER = new DefaultWindowManager();
+        }
+    }
+
+    public static WindowManager getWindowManager() {
+        return WINDOW_MANAGER;
+    }
+
 }

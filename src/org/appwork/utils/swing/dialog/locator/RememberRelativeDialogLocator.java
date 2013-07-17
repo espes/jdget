@@ -6,7 +6,7 @@ import java.awt.Window;
 import javax.swing.JFrame;
 
 import org.appwork.utils.swing.dialog.AbstractDialog;
-import org.appwork.utils.swing.dialog.TimerDialog.InternDialog;
+import org.appwork.utils.swing.dialog.InternDialog;
 import org.appwork.utils.swing.locator.AbstractLocator;
 import org.appwork.utils.swing.locator.RememberRelativeLocator;
 
@@ -22,7 +22,7 @@ public class RememberRelativeDialogLocator implements DialogLocator {
     public RememberRelativeDialogLocator(final String id, final JFrame jFrame) {
         this.id = id;
         if (id == null) { throw new IllegalArgumentException("id ==null"); }
-        this.delegate = new RememberRelativeLocator(id, jFrame) {
+        delegate = new RememberRelativeLocator(id, jFrame) {
             /*
              * (non-Javadoc)
              * 
@@ -44,12 +44,12 @@ public class RememberRelativeDialogLocator implements DialogLocator {
      * @return
      */
     protected String getID(final Window frame) {
-        return this.id;
+        return id;
     }
 
     @Override
     public Point getLocationOnScreen(final AbstractDialog<?> dialog) {
-        return this.delegate.getLocationOnScreen(dialog.getDialog());
+        return delegate.getLocationOnScreen(dialog.getDialog());
 
     }
 
@@ -62,7 +62,7 @@ public class RememberRelativeDialogLocator implements DialogLocator {
      */
     @Override
     public void onClose(final AbstractDialog<?> abstractDialog) {
-        this.delegate.onClose(abstractDialog.getDialog());
+        delegate.onClose(abstractDialog.getDialog());
 
     }
 
@@ -70,19 +70,19 @@ public class RememberRelativeDialogLocator implements DialogLocator {
      * @param rememberAbsoluteDialogLocator
      */
     public void setFallbackLocator(final DialogLocator fallback) {
-        this.delegate.setFallbackLocator(new AbstractLocator() {
+        delegate.setFallbackLocator(new AbstractLocator() {
 
             @Override
             public Point getLocationOnScreen(final Window frame) {
 
-                return fallback.getLocationOnScreen((AbstractDialog<?>) ((InternDialog) frame).getDialogModel());
+                return fallback.getLocationOnScreen(((InternDialog) frame).getDialogModel());
 
             }
 
             @Override
             public void onClose(final Window frame) {
                 try {
-                    fallback.onClose((AbstractDialog<?>) ((InternDialog) frame).getDialogModel());
+                    fallback.onClose(((InternDialog) frame).getDialogModel());
                 } catch (final Exception e) {
                     e.printStackTrace();
                 }

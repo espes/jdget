@@ -9,17 +9,10 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import java.awt.Component;
 import java.awt.Image;
-import java.awt.Window;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowFocusListener;
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
 import javax.swing.ListCellRenderer;
 
 import org.appwork.resources.AWUTheme;
@@ -35,7 +28,7 @@ import org.appwork.utils.swing.EDTRunner;
  * A Dialog Instance which provides extended Dialog features and thus replaces
  * JOptionPane
  */
-public class Dialog implements WindowFocusListener {
+public class Dialog   {
     /**
      * 
      */
@@ -241,9 +234,9 @@ public class Dialog implements WindowFocusListener {
     /**
      * Parent window for all dialogs created with abstractdialog
      */
-    private Component                    owner         = null;
 
-    private final java.util.List<Window> parents;
+
+
 
     private LAFManagerInterface          lafManager;
 
@@ -252,7 +245,7 @@ public class Dialog implements WindowFocusListener {
     private DialogHandler                defaultHandler;
 
     private Dialog() {
-        parents = new ArrayList<Window>();
+    
         defaultHandler = new DialogHandler() {
 
             @Override
@@ -291,24 +284,7 @@ public class Dialog implements WindowFocusListener {
         }
     }
 
-    /**
-     * @return the {@link Dialog#owner}
-     * @see Dialog#owner
-     */
-    public Component getParentOwner() {
 
-        return owner;
-    }
-
-    /**
-     * returns all windows which have been registerted by
-     * {@link #registerFrame(Window)}
-     * 
-     * @return
-     */
-    public java.util.List<Window> getRegisteredParents() {
-        return parents;
-    }
 
     /**
      * 
@@ -322,17 +298,7 @@ public class Dialog implements WindowFocusListener {
         }
     }
 
-    /**
-     * Register all windows here that might become parent for dialogs.
-     * Dialogsystem will set them as parent if they gain focus
-     * 
-     * @param frame
-     */
-    public void registerFrame(final Window frame) {
-        frame.addWindowFocusListener(this);
-
-        parents.add(frame);
-    }
+  
 
     /**
      * @param countdownTime
@@ -349,7 +315,7 @@ public class Dialog implements WindowFocusListener {
         }
         this.handler = handler;
     }
-
+@Deprecated
     public void setIconList(final List<? extends Image> iconList) {
         this.iconList = iconList;
     }
@@ -360,21 +326,6 @@ public class Dialog implements WindowFocusListener {
         }
     }
 
-    /**
-     * @param parent
-     *            this is needed for correct parentWindow handling for correct
-     *            dialog show order the {@link Dialog#owner} to set
-     * @see Dialog#owner
-     */
-    public void setParentOwner(final Component parent) {
-        if (owner == parent) { return; }
-        owner = parent;
-
-        if (parent == null) {
-            Log.exception(new NullPointerException("parent == null"));
-        }
-
-    }
 
     /**
      * 
@@ -875,68 +826,8 @@ public class Dialog implements WindowFocusListener {
         return this.showDialog(new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter));
     }
 
-    /**
-     * @param chatFrame
-     */
-    public void unregisterFrame(final Window win) {
-        win.removeWindowFocusListener(this);
-        parents.remove(win);
+  
 
-    }
 
-    private File validateFileType(final File ret, final Integer fileSelectionMode, final boolean mkdir) {
-        if (ret == null) { return null; }
-        if (fileSelectionMode != null) {
-            if (fileSelectionMode == JFileChooser.DIRECTORIES_ONLY) {
-                if (ret.isFile()) {
-                    /*
-                     * is file, we need parent folder here
-                     */
-                    return ret.getParentFile();
-                } else if (!ret.exists() && mkdir) {
-                    /*
-                     * folder but it does not exist yet, we create it
-                     */
-                    ret.mkdirs();
-                    ret.mkdir();
-                } else if (!ret.exists()) { return null; }
-            } else if (fileSelectionMode == JFileChooser.FILES_ONLY) {
-                if (ret.isDirectory()) {
-                    /*
-                     * we return null cause directory is not a file
-                     */
-                    return null;
-                }
-            }
-        }
-        return ret;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.awt.event.WindowFocusListener#windowGainedFocus(java.awt.event.
-     * WindowEvent)
-     */
-    @Override
-    public void windowGainedFocus(final WindowEvent e) {
-
-        if (e.getSource() instanceof Window) {
-
-            setParentOwner((Component) e.getSource());
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * java.awt.event.WindowFocusListener#windowLostFocus(java.awt.event.WindowEvent
-     * )
-     */
-    @Override
-    public void windowLostFocus(final WindowEvent e) {
-        // TODO Auto-generated method stub
-
-    }
+   
 }
