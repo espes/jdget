@@ -247,7 +247,6 @@ public class CrossSystem {
             final File java = new File(new File(javaHome), "/bin/" + javaBinary);
             if (java.exists() && java.isFile()) {
                 CrossSystem.JAVAINT = java.getAbsolutePath();
-
             }
         } else {
             CrossSystem.JAVAINT = javaBinary;
