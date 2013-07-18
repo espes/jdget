@@ -100,19 +100,20 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
         final File rootFile = new File(root.toURI());
         final String name = Dialog.getInstance().showInputDialog("Enter Name");
 
-        ExtFileChooserDialog d = new ExtFileChooserDialog(0, "Choose folder", null, null);
+        final ExtFileChooserDialog d = new ExtFileChooserDialog(0, "Choose folder", null, null);
         d.setStorageID("EventSenderCReater");
         d.setFileSelectionMode(FileChooserSelectionMode.DIRECTORIES_ONLY);
 
+        
         d.setType(FileChooserType.OPEN_DIALOG);
         d.setMultiSelection(false);
         d.setPreSelection(rootFile.getParentFile().getParentFile());
         try {
             Dialog.I().showDialog(d);
-        } catch (DialogClosedException e) {
+        } catch (final DialogClosedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (DialogCanceledException e) {
+        } catch (final DialogCanceledException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }

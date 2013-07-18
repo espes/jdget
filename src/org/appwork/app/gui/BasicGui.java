@@ -4,6 +4,7 @@ import java.awt.AWTException;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -21,6 +22,7 @@ import javax.swing.WindowConstants;
 import org.appwork.shutdown.ShutdownController;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storage;
+import org.appwork.swing.ExtJFrame;
 import org.appwork.swing.action.BasicAction;
 import org.appwork.swing.components.ExtButton;
 import org.appwork.swing.trayicon.AWTrayIcon;
@@ -74,36 +76,36 @@ public abstract class BasicGui {
 
                                             getFrame().setAlwaysOnTop(false);
                                             WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
-
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            Thread.sleep(200);
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
-                                            Thread.sleep(200);
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
-                                            Thread.sleep(200);
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
-                                            Thread.sleep(200);
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
-                                            Thread.sleep(200);
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+//
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            Thread.sleep(200);
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+//                                            Thread.sleep(200);
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+//                                            Thread.sleep(200);
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+//                                            Thread.sleep(200);
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+//                                            Thread.sleep(200);
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame());
+//                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
                                         } catch (final InterruptedException e) {
                                             // TODO Auto-generated catch block
                                             e.printStackTrace();
@@ -163,7 +165,7 @@ public abstract class BasicGui {
 
     protected BasicGui(final String title) {
 
-        frame = new JFrame(title) {
+        frame = new ExtJFrame(title) {
             /**
              * 
              */
@@ -254,42 +256,45 @@ public abstract class BasicGui {
         frame.setLocation(JSonStorage.getPlainStorage("Interface").get("LOCATION_X", x), JSonStorage.getPlainStorage("Interface").get("LOCATION_Y", y));
 
         frame.pack();
-
-        WindowManager.getInstance().show(frame);
-        try {
-            Thread.sleep(100);
-        } catch (final InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
-        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
-        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
-        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
-        try {
-            Thread.sleep(100);
-        } catch (final InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
-        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
-        try {
-            Thread.sleep(100);
-        } catch (final InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
-        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
-        try {
-            Thread.sleep(100);
-        } catch (final InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
         
-        WindowManager.getInstance().show(frame, FrameState.FOCUS);
+        WindowManager.getInstance().show(frame);
+        frame.setLocation(new Point(0,0));
+//        frame.setExtendedState(Frame.NORMAL);
+//        try {
+//            Thread.sleep(5000);
+//        } catch (final InterruptedException e) {sky   
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//        WindowManager.getInstance().toFront(frame);
+//        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+//        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+//        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+//        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+//        try {
+//            Thread.sleep(100);
+//        } catch (final InterruptedException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+//        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+//        try {
+//            Thread.sleep(100);
+//        } catch (final InterruptedException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+//        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+//        try {
+//            Thread.sleep(100);
+//        } catch (final InterruptedException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//        
+//        WindowManager.getInstance().show(frame, FrameState.FOCUS);
 
     }
 

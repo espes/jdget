@@ -14,14 +14,13 @@ import java.awt.Image;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JDialog;
-
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.resources.AWUTheme;
+import org.appwork.swing.ExtJDialog;
 import org.appwork.utils.swing.EDTRunner;
 
-public class InternDialog<T> extends JDialog {
+public class InternDialog<T> extends ExtJDialog {
 
     /**
      * 

@@ -11,10 +11,18 @@ package org.appwork.utils.swing;
 
 import java.awt.AWTException;
 import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Window;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.HierarchyBoundsListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
@@ -29,6 +37,7 @@ import java.util.regex.Pattern;
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
+import org.appwork.swing.ExtJFrame;
 import org.appwork.utils.IO;
 
 /**
@@ -90,9 +99,16 @@ public class WindowsWindowManager extends WindowManager {
      * @see org.appwork.utils.swing.WindowManager#toFront(java.awt.Window)
      */
     @Override
-    public void toFront(final Window w, final FrameState... flags) {
+    public void toFront(final Window w, FrameState... flags) {
 
         final boolean requestFocus = FrameState.FOCUS.containedBy(flags);
+        if (!FrameState.TO_FRONT.containedBy(flags)) {
+            final FrameState[] newFlags = new FrameState[flags.length + 1];
+            newFlags[0] = FrameState.TO_FRONT;
+            System.arraycopy(flags, 0, newFlags, 1, flags.length);
+            flags = newFlags;
+
+        }
 
         if (requestFocus) {
             // setAutoRequestFocus status seems to be not important because we
@@ -102,37 +118,31 @@ public class WindowsWindowManager extends WindowManager {
             // window would not even go to front.
 
             final WindowResetListener hasListener = findListener(w);
-            if (hasListener != null) {
-                hasListener.setFlags(flags);
-            } else {
 
-                ResetRunnable runner = runnerMap.get(w);
-                if (runner == null) {
-                    runner = new ResetRunnable(this, w);
-                    runnerMap.put(w, runner);
-                    executeAfterASecond(runner);
-                }
-                runner.setFlags(flags);
-
+            ResetRunnable runner = runnerMap.get(w);
+            if (runner == null) {
+                runner = new ResetRunnable(this, w, hasListener);
+                runnerMap.put(w, runner);
+                executeAfterASecond(runner);
             }
+            runner.setFlags(flags);
 
             setFocusableWindowState(w, true);
+            setFocusable(w, true);
             toFrontAltWorkaround(w, true);
             requestFocus(w);
 
         } else {
             final WindowResetListener hasListener = findListener(w);
-            if (hasListener != null) {
-                hasListener.setFlags(flags);
-            } else {
-                ResetRunnable runner = runnerMap.get(w);
-                if (runner == null) {
-                    runner = new ResetRunnable(this, w);
-                    runnerMap.put(w, runner);
-                    executeAfterASecond(runner);
-                }
-                runner.setFlags(flags);
+
+            ResetRunnable runner = runnerMap.get(w);
+            if (runner == null) {
+                runner = new ResetRunnable(this, w, hasListener);
+                runnerMap.put(w, runner);
+                executeAfterASecond(runner);
             }
+            runner.setFlags(flags);
+
             setFocusableWindowState(w, false);
             setAlwaysOnTop(w, true);
 
@@ -147,7 +157,7 @@ public class WindowsWindowManager extends WindowManager {
     private void executeAfterASecond(final ActionListener actionListener) {
         System.out.println("Launch timer");
         final Timer timer = new Timer(1000, actionListener);
-        timer.setRepeats(false);       
+        timer.setRepeats(false);
         timer.restart();
 
     }
@@ -256,7 +266,7 @@ public class WindowsWindowManager extends WindowManager {
         final boolean ret = w.isAlwaysOnTop();
         if (b == ret) { return ret; }
 
-        blocker = "alwaysOnTop";
+        blocker = ExtJFrame.PROPERTY_ALWAYS_ON_TOP;
         try {
             System.out.println("Call setAlwaysOnTop " + b);
             w.setAlwaysOnTop(b);
@@ -300,14 +310,26 @@ public class WindowsWindowManager extends WindowManager {
                 setFocusable(w, false);
 
                 if (!toFront) {
-                    if (w instanceof Frame) {
+                    if (w instanceof Frame && false) {
 
-                        ((Frame) w).setExtendedState(Frame.ICONIFIED);
+                        setExtendedState(((Frame) w), Frame.ICONIFIED);
                     } else {
                         // on some systems, the window comes to front, even of
                         // focusable and focusablewindowstate are false
-                        final Point offscreen = setLocation(w, listener.getOffScreenPoint());
-                        listener.setOffScreenPoint(offscreen);
+                        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                        final GraphicsDevice[] screens = ge.getScreenDevices();
+
+                        final Point p = new Point(Integer.MIN_VALUE, Integer.MIN_VALUE);
+                        // search offscreen position
+                        for (final GraphicsDevice screen : screens) {
+                            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();                         
+                            p.x = Math.max(bounds.x+bounds.width, p.x);
+                            p.y = Math.max(bounds.y+bounds.height, p.y);
+                        }
+                        p.x++;
+                        p.y++;
+                        setLocation(w, p);
+
                     }
                     //
                 }
@@ -330,9 +352,33 @@ public class WindowsWindowManager extends WindowManager {
      */
     private Point setLocation(final Window w, final Point offscreen) {
 
-        System.out.println("call setLocation " + offscreen);
-        w.setLocation(offscreen);
+        blocker = ExtJFrame.PROPERTY_LOCATION;
+        try {
+            System.out.println("call setLocation " + offscreen);
+            w.setLocation(offscreen);
+
+        } finally {
+            blocker = null;
+        }
         return w.getLocation();
+    }
+
+    /**
+     * @param w
+     * @param frameExtendedState
+     */
+    protected void setExtendedState(final Frame w, final int frameExtendedState) {
+        blocker = ExtJFrame.PROPERTY_EXTENDED_STATE;
+        try {
+            if (frameExtendedState == w.getExtendedState()) { return; }
+            System.out.println("Call setExtendedState " + frameExtendedState);
+
+            w.setExtendedState(frameExtendedState);
+
+        } finally {
+            blocker = null;
+        }
+
     }
 
     /**
@@ -347,7 +393,8 @@ public class WindowsWindowManager extends WindowManager {
             hasListener.setFlags(flags);
         } else {
 
-            w.addWindowListener(hasListener = new WindowResetListener(this, w, flags));
+            hasListener = new WindowResetListener(this, w, flags);
+            hasListener.add();
         }
         return hasListener;
     }
@@ -430,53 +477,53 @@ public class WindowsWindowManager extends WindowManager {
 
             }
         });
-        // w.addComponentListener(new ComponentListener() {
-        //
-        // @Override
-        // public void componentShown(ComponentEvent e) {
-        // System.out.println(e);
-        //
-        // }
-        //
-        // @Override
-        // public void componentResized(ComponentEvent e) {
-        // System.out.println(e);
-        //
-        // }
-        //
-        // @Override
-        // public void componentMoved(ComponentEvent e) {
-        // System.out.println(e);
-        //
-        // }
-        //
-        // @Override
-        // public void componentHidden(ComponentEvent e) {
-        // System.out.println(e);
-        //
-        // }
-        // });
+        w.addComponentListener(new ComponentListener() {
 
-        // w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
-        //
-        // @Override
-        // public void ancestorResized(HierarchyEvent e) {
-        // System.out.println(e);
-        // }
-        //
-        // @Override
-        // public void ancestorMoved(HierarchyEvent e) {
-        // System.out.println(e);
-        // }
-        // });
-        // w.addHierarchyListener(new HierarchyListener() {
-        //
-        // @Override
-        // public void hierarchyChanged(HierarchyEvent e) {
-        // System.out.println(e);
-        //
-        // }
-        // });
+            @Override
+            public void componentShown(final ComponentEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void componentResized(final ComponentEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void componentMoved(final ComponentEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void componentHidden(final ComponentEvent e) {
+                System.out.println(e);
+
+            }
+        });
+
+        w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
+
+            @Override
+            public void ancestorResized(final HierarchyEvent e) {
+                System.out.println(e);
+            }
+
+            @Override
+            public void ancestorMoved(final HierarchyEvent e) {
+                System.out.println(e);
+            }
+        });
+        w.addHierarchyListener(new HierarchyListener() {
+
+            @Override
+            public void hierarchyChanged(final HierarchyEvent e) {
+                System.out.println(e);
+
+            }
+        });
     }
 
     /**
@@ -485,7 +532,7 @@ public class WindowsWindowManager extends WindowManager {
      */
     protected void setFocusable(final Window w, final boolean b) {
 
-        blocker = "focusable";
+        blocker = ExtJFrame.PROPERTY_FOCUSABLE;
         try {
             System.out.println("Call setFocusable " + b);
 
@@ -506,7 +553,7 @@ public class WindowsWindowManager extends WindowManager {
         if (ret == b) { return ret; }
 
         System.out.println("Call setFocusableWindowState " + b);
-        blocker = "focusableWindowState";
+        blocker = ExtJFrame.PROPERTY_FOCUSABLE_WINDOW_STATE;
         try {
             w.setFocusableWindowState(b);
         } finally {
@@ -530,7 +577,7 @@ public class WindowsWindowManager extends WindowManager {
      */
     private void setVisibleInternal(final Window w, final boolean b) {
 
-        blocker = "visible";
+        blocker = ExtJFrame.PROPERTY_VISIBLE;
         try {
             System.out.println("Call setVisible " + b);
             w.setVisible(b);
@@ -588,6 +635,8 @@ public class WindowsWindowManager extends WindowManager {
         if (state == null) { throw new NullPointerException("State is null"); }
         switch (state) {
         case NORMAL:
+            // dont use the #setExtendedState(Frame,State) method. it's for
+            // internal usage only
             w.setExtendedState(JFrame.NORMAL);
         }
 
@@ -600,4 +649,5 @@ public class WindowsWindowManager extends WindowManager {
         runnerMap.remove(resetRunnable.getWindow());
 
     }
+
 }

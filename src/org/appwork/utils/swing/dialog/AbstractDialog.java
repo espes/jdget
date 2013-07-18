@@ -83,9 +83,9 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected static final WindowStack            WINDOW_STACK              = new WindowStack();
 
-    public static boolean                         NEW_DIALOGS_REQUEST_FOCUS = false;
+    public static boolean                         NEW_DIALOGS_REQUEST_FOCUS = true;
 
-    public static boolean                         PUSH_NEW_DIALOGS_TO_FRONT = false;
+    public static boolean                         PUSH_NEW_DIALOGS_TO_FRONT = true;
 
     public static int getButtonHeight() {
         return AbstractDialog.BUTTON_HEIGHT;
