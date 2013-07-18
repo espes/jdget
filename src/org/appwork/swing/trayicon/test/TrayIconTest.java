@@ -17,6 +17,8 @@ import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
 import org.appwork.swing.trayicon.AWTrayIcon;
+import org.appwork.utils.swing.WindowManager;
+import org.appwork.utils.swing.WindowManager.FrameState;
 
 /**
  * @author thomas
@@ -30,7 +32,7 @@ public class TrayIconTest {
         frame.getContentPane().add(comp, BorderLayout.CENTER);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 300);
-        frame.setVisible(true);
+          WindowManager.getInstance().setVisible(frame,true,FrameState.FOCUS);
 
         new AWTrayIcon(frame);
     }

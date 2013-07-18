@@ -14,7 +14,6 @@ import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Robot;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
@@ -23,6 +22,7 @@ import java.awt.event.WindowListener;
 import java.awt.event.WindowStateListener;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,8 +37,9 @@ import org.appwork.utils.IO;
  */
 public class WindowsWindowManager extends WindowManager {
 
-    private Robot  robot;
-    private String blocker;
+    private Robot                          robot;
+    private String                         blocker;
+    private HashMap<Window, ResetRunnable> runnerMap;
 
     public String getBlocker() {
         return blocker;
@@ -67,6 +68,7 @@ public class WindowsWindowManager extends WindowManager {
 
     public WindowsWindowManager() {
 
+        runnerMap = new HashMap<Window, ResetRunnable>();
     }
 
     /**
@@ -99,43 +101,41 @@ public class WindowsWindowManager extends WindowManager {
             // setFocusableWindowState is important. if it would be false, the
             // window would not even go to front.
 
-            final boolean oldFocusableWindowState = setFocusableWindowState(w, true);
-            // setAlwaysOnTop is not important.
+            final WindowResetListener hasListener = findListener(w);
+            if (hasListener != null) {
+                hasListener.setFlags(flags);
+            } else {
 
-            executeAfterASecond(new ActionListener() {
-
-                @Override
-                public void actionPerformed(final ActionEvent e) {
-
-                    setFocusableWindowState(w, oldFocusableWindowState);
-
+                ResetRunnable runner = runnerMap.get(w);
+                if (runner == null) {
+                    runner = new ResetRunnable(this, w);
+                    runnerMap.put(w, runner);
+                    executeAfterASecond(runner);
                 }
-            });
+                runner.setFlags(flags);
+
+            }
+
+            setFocusableWindowState(w, true);
             toFrontAltWorkaround(w, true);
             requestFocus(w);
 
         } else {
-
-            final boolean oldFocusableWindowState = setFocusableWindowState(w, false);
-            final boolean oldAlwaysOnTop = setAlwaysOnTop(w, true);
-
-            executeAfterASecond(new ActionListener() {
-
-                @Override
-                public void actionPerformed(final ActionEvent e) {
-
-                    // it is important that we
-                    // 1. setAlwaysOnTop back
-                    // 2. setFocusableWindowState back
-
-                    // else setAlwaysOnTop would fire a WINDOW_ACTIVATED and a
-                    // WINDOW_GAINED_FOCUS even if the window does not get
-                    // active or focused
-                    setAlwaysOnTop(w, oldAlwaysOnTop);
-                    setFocusableWindowState(w, oldFocusableWindowState);
-
+            final WindowResetListener hasListener = findListener(w);
+            if (hasListener != null) {
+                hasListener.setFlags(flags);
+            } else {
+                ResetRunnable runner = runnerMap.get(w);
+                if (runner == null) {
+                    runner = new ResetRunnable(this, w);
+                    runnerMap.put(w, runner);
+                    executeAfterASecond(runner);
                 }
-            });
+                runner.setFlags(flags);
+            }
+            setFocusableWindowState(w, false);
+            setAlwaysOnTop(w, true);
+
             toFrontAltWorkaround(w, false);
         }
 
@@ -145,8 +145,9 @@ public class WindowsWindowManager extends WindowManager {
      * @param actionListener
      */
     private void executeAfterASecond(final ActionListener actionListener) {
+        System.out.println("Launch timer");
         final Timer timer = new Timer(1000, actionListener);
-        timer.setRepeats(false);
+        timer.setRepeats(false);       
         timer.restart();
 
     }
@@ -305,7 +306,7 @@ public class WindowsWindowManager extends WindowManager {
                     } else {
                         // on some systems, the window comes to front, even of
                         // focusable and focusablewindowstate are false
-                        Point offscreen = setLocation(w, listener.getOffScreenPoint());
+                        final Point offscreen = setLocation(w, listener.getOffScreenPoint());
                         listener.setOffScreenPoint(offscreen);
                     }
                     //
@@ -327,7 +328,7 @@ public class WindowsWindowManager extends WindowManager {
      * @param minValue2
      * @return
      */
-    private Point setLocation(Window w, Point offscreen) {
+    private Point setLocation(final Window w, final Point offscreen) {
 
         System.out.println("call setLocation " + offscreen);
         w.setLocation(offscreen);
@@ -340,19 +341,24 @@ public class WindowsWindowManager extends WindowManager {
      * @return
      */
     public WindowResetListener assignWindowOpenListener(final Window w, final FrameState... flags) {
-        WindowResetListener hasListener = null;
-        for (final WindowListener wl : w.getWindowListeners()) {
-            if (wl != null && wl instanceof WindowResetListener) {
-                hasListener = (WindowResetListener) wl;
-                break;
-            }
-        }
+        WindowResetListener hasListener = findListener(w);
 
         if (hasListener != null) {
             hasListener.setFlags(flags);
         } else {
 
             w.addWindowListener(hasListener = new WindowResetListener(this, w, flags));
+        }
+        return hasListener;
+    }
+
+    protected WindowResetListener findListener(final Window w) {
+        WindowResetListener hasListener = null;
+        for (final WindowListener wl : w.getWindowListeners()) {
+            if (wl != null && wl instanceof WindowResetListener) {
+                hasListener = (WindowResetListener) wl;
+                break;
+            }
         }
         return hasListener;
     }
@@ -584,6 +590,14 @@ public class WindowsWindowManager extends WindowManager {
         case NORMAL:
             w.setExtendedState(JFrame.NORMAL);
         }
+
+    }
+
+    /**
+     * @param resetRunnable
+     */
+    public void removeTimer(final ResetRunnable resetRunnable) {
+        runnerMap.remove(resetRunnable.getWindow());
 
     }
 }

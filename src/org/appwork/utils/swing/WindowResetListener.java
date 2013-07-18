@@ -27,20 +27,23 @@ public class WindowResetListener extends WindowAdapter implements PropertyChange
     private WindowsWindowManager windowsWindowManager;
     private Point                location;
     private Point                offscreenpoint;
+    private boolean oldAlwaysOnTop;
 
     /**
      * @param windowsWindowManager
      * @param w
      * @param flags2
      */
-    public WindowResetListener(WindowsWindowManager windowsWindowManager, Window w, FrameState[] flags2) {
+    public WindowResetListener(final WindowsWindowManager windowsWindowManager, final Window w, final FrameState[] flags2) {
         this.w = w;
-        this.flags = flags2;
+        flags = flags2;
         this.windowsWindowManager = windowsWindowManager;
         oldFocusableWindowState = w.getFocusableWindowState();
+        oldAlwaysOnTop=w.isAlwaysOnTop();
         oldFocusable = w.isFocusable();
-        location = w.getLocation();
         w.addPropertyChangeListener(this);
+        location = w.getLocation();
+       
         offscreenpoint = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
 
@@ -58,7 +61,7 @@ public class WindowResetListener extends WindowAdapter implements PropertyChange
 
     @Override
     public void windowOpened(final WindowEvent windowevent) {
-
+System.out.println("Reset After Window Opened");
         final boolean requestFocus = FrameState.FOCUS.containedBy(getFlags());
         final boolean forceToFront = requestFocus || FrameState.TO_FRONT.containedBy(getFlags());
 
@@ -79,10 +82,10 @@ public class WindowResetListener extends WindowAdapter implements PropertyChange
             windowsWindowManager.setFocusable(w, oldFocusable);
 
         }
-
+        windowsWindowManager.setAlwaysOnTop(w, oldAlwaysOnTop);
         w.removeWindowListener(this);
         w.removePropertyChangeListener(this);
-        Point loc = w.getLocation();
+        final Point loc = w.getLocation();
         if (w.getLocation().equals(getOffScreenPoint())) {
             w.setLocation(location);
         } else {
@@ -98,15 +101,18 @@ public class WindowResetListener extends WindowAdapter implements PropertyChange
      * PropertyChangeEvent)
      */
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
+    public void propertyChange(final PropertyChangeEvent evt) {
         // ignore changes from the windowmanager itself
-        if (evt.getPropertyName() == null || evt.getPropertyName().equals(windowsWindowManager.getBlocker())) return;
+        if (evt.getPropertyName() == null || evt.getPropertyName().equals(windowsWindowManager.getBlocker())) {
+            return;
+        }
         if ("focusableWindowState".equals(evt.getPropertyName())) {
             oldFocusableWindowState = (Boolean) evt.getNewValue();
         } else if ("focusable".equals(evt.getPropertyName())) {
             oldFocusable = (Boolean) evt.getNewValue();
+        }else if ("alwaysOnTop".equals(evt.getPropertyName())) {
+            oldAlwaysOnTop = (Boolean) evt.getNewValue();
         }
-
     }
 
     /**
@@ -120,7 +126,7 @@ public class WindowResetListener extends WindowAdapter implements PropertyChange
     /**
      * @param offscreen
      */
-    public void setOffScreenPoint(Point offscreen) {
+    public void setOffScreenPoint(final Point offscreen) {
         offscreenpoint = offscreen;
 
     };

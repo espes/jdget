@@ -43,6 +43,7 @@ import net.miginfocom.swing.MigLayout;
 import org.appwork.resources.AWUTheme;
 import org.appwork.utils.ImageProvider.ImageProvider;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.swing.WindowManager.FrameState;
 
 /**
  * @author Unknown
@@ -98,8 +99,8 @@ public class LockPanel extends JPanel {
 
             public void windowActivated(final WindowEvent e) {
                 if (waitingPanel.isVisible()) {
-                    WindowManager.getInstance().toFront(    waitingPanel);
-                
+                    WindowManager.getInstance().toFront(waitingPanel);
+
                 }
 
             }
@@ -134,17 +135,17 @@ public class LockPanel extends JPanel {
         waitingPanel.setContentPane(p = new JPanel());
         p.setLayout(new MigLayout("ins 10", "[][fill,grow]", "[fill,grow]"));
         JLabel lbl;
-        p.add(lbl=new JLabel(AWUTheme.I().getIcon("wait", 32)));
+        p.add(lbl = new JLabel(AWUTheme.I().getIcon("wait", 32)));
 
         p.add(text = new JTextArea(), "spanx,aligny center");
-        
+
         Color bg = p.getBackground();
-        if(bg==null) {
-            bg=lbl.getBackground();
+        if (bg == null) {
+            bg = lbl.getBackground();
         }
-        
-        if(bg==null) {
-            bg=Color.LIGHT_GRAY;
+
+        if (bg == null) {
+            bg = Color.LIGHT_GRAY;
         }
         p.setBorder(BorderFactory.createLineBorder(bg.darker().darker()));
         JProgressBar bar;
@@ -161,7 +162,7 @@ public class LockPanel extends JPanel {
      * @return
      */
     private BufferedImage createScreenShot() {
-        WindowManager.getInstance().toFront(    frame);
+        WindowManager.getInstance().toFront(frame);
         final boolean top = frame.isAlwaysOnTop();
         try {
             return new EDTHelper<BufferedImage>() {
@@ -308,13 +309,13 @@ public class LockPanel extends JPanel {
 
     public void setWaitingPanelText(final String wait) {
         if (wait == null) {
-            waitingPanel.setVisible(false);
+            WindowManager.getInstance().setVisible(waitingPanel, false, FrameState.FOCUS);
         } else {
 
             text.setText(wait);
             waitingPanel.pack();
             waitingPanel.setLocation(SwingUtils.getCenter(frame, waitingPanel));
-            waitingPanel.setVisible(true);
+            WindowManager.getInstance().setVisible(waitingPanel, true, FrameState.FOCUS);
 
         }
 

@@ -74,14 +74,18 @@ import org.appwork.utils.swing.dialog.locator.DialogLocator;
 
 public abstract class AbstractDialog<T> implements ActionListener, WindowListener, OKCancelCloseUserIODefinition {
 
-    private static int                            BUTTON_HEIGHT           = -1;
+    private static int                            BUTTON_HEIGHT             = -1;
 
-    public static DialogLocator                   DEFAULT_LOCATOR         = null;
-    public static final DialogLocator             LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
+    public static DialogLocator                   DEFAULT_LOCATOR           = null;
+    public static final DialogLocator             LOCATE_CENTER_OF_SCREEN   = new CenterOfScreenDialogLocator();
 
-    private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN  = new HashMap<String, Integer>();
+    private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN    = new HashMap<String, Integer>();
 
-    protected static final WindowStack            WINDOW_STACK            = new WindowStack();
+    protected static final WindowStack            WINDOW_STACK              = new WindowStack();
+
+    public static boolean                         NEW_DIALOGS_REQUEST_FOCUS = false;
+
+    public static boolean                         PUSH_NEW_DIALOGS_TO_FRONT = false;
 
     public static int getButtonHeight() {
         return AbstractDialog.BUTTON_HEIGHT;
@@ -1171,7 +1175,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public boolean isRequestFocusOnVisible() {
 
-        return true;
+        return NEW_DIALOGS_REQUEST_FOCUS;
     }
 
     /**
@@ -1422,11 +1426,23 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             @Override
             protected void runInEDT() {
+
                 final ArrayList<FrameState> state = new ArrayList<FrameState>();
-                if (isRequestFocusOnVisible()) {
-                    state.add(FrameState.FOCUS);
+                boolean parentHasFocus = false;
+                if (!parentHasFocus && getDialog().getParent() != null && getDialog().getParent().isFocusOwner()) {
+                    parentHasFocus = true;
                 }
-                if (isToFrontOnVisible()) {
+                if (!parentHasFocus && getDialog().getParent() != null && getDialog().getParent() instanceof Window && ((Window) getDialog().getParent()).getFocusOwner() != null) {
+                    parentHasFocus = true;
+
+                }
+
+                if (isRequestFocusOnVisible() || parentHasFocus) {
+                    state.add(FrameState.FOCUS);
+
+                }
+
+                if (isToFrontOnVisible() || parentHasFocus) {
                     state.add(FrameState.TO_FRONT);
                 }
                 WindowManager.getInstance().setVisible(getDialog(), b, state.toArray(new FrameState[] {}));
@@ -1496,6 +1512,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public boolean isToFrontOnVisible() {
         // TODO Auto-generated method stub
-        return true;
+        return PUSH_NEW_DIALOGS_TO_FRONT;
     }
 }

@@ -72,7 +72,38 @@ public abstract class BasicGui {
                                                 System.out.println(i);
                                             }
 
+                                            getFrame().setAlwaysOnTop(false);
                                             WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            Thread.sleep(200);
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+                                            Thread.sleep(200);
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+                                            Thread.sleep(200);
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+                                            Thread.sleep(200);
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+                                            Thread.sleep(200);
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
                                         } catch (final InterruptedException e) {
                                             // TODO Auto-generated catch block
                                             e.printStackTrace();
@@ -184,7 +215,7 @@ public abstract class BasicGui {
                 } else {
                     if (BasicGui.this.getFrame().isVisible()) {
 
-                        BasicGui.this.getFrame().setVisible(false);
+                        WindowManager.getInstance().setVisible(BasicGui.this.getFrame(), false, FrameState.FOCUS);
                     }
                 }
             }
@@ -223,9 +254,42 @@ public abstract class BasicGui {
         frame.setLocation(JSonStorage.getPlainStorage("Interface").get("LOCATION_X", x), JSonStorage.getPlainStorage("Interface").get("LOCATION_Y", y));
 
         frame.pack();
+
+        WindowManager.getInstance().show(frame);
+        try {
+            Thread.sleep(100);
+        } catch (final InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
-//        WindowManager.getInstance().show(frame);
-     
+        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+        try {
+            Thread.sleep(100);
+        } catch (final InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+        try {
+            Thread.sleep(100);
+        } catch (final InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+        WindowManager.getInstance().show(frame, FrameState.TO_FRONT);
+        try {
+            Thread.sleep(100);
+        } catch (final InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        WindowManager.getInstance().show(frame, FrameState.FOCUS);
 
     }
 
@@ -243,7 +307,7 @@ public abstract class BasicGui {
         if (ti != null) {
             ti.dispose();
         }
-        frame.setVisible(false);
+        WindowManager.getInstance().setVisible(frame, false, FrameState.TO_FRONT);
         frame.dispose();
     }
 

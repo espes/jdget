@@ -12,6 +12,8 @@ package org.appwork.utils.swing;
 import java.awt.Frame;
 import java.awt.Window;
 
+import javax.swing.JFrame;
+
 import org.appwork.utils.os.CrossSystem;
 
 /**
@@ -37,7 +39,26 @@ public abstract class WindowManager {
     }
 
     public static enum WindowExtendedState {
-        NORMAL
+        NORMAL,
+        MAXIMIZED_BOTH,
+        ICONIFIED;
+
+        /**
+         * @param state
+         * @return
+         */
+        public static WindowExtendedState get(final int state) {
+            if ((state & JFrame.NORMAL) != 0) {
+                return NORMAL;
+            }
+            if ((state & JFrame.MAXIMIZED_BOTH) != 0) {
+                return MAXIMIZED_BOTH;
+            }
+            if ((state & JFrame.ICONIFIED) != 0) {
+                return ICONIFIED;
+            }
+            return null;
+        }
 
     }
 
