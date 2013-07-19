@@ -101,7 +101,7 @@ public class WindowsWindowManager extends WindowManager {
         case OS_DEFAULT:
             // do nothing
             return;
-        
+
         case TO_FRONT_FOCUSED:
 
             // setAutoRequestFocus status seems to be not important because we
@@ -109,9 +109,7 @@ public class WindowsWindowManager extends WindowManager {
             // setAutoRequestFocus is java 1.7 only
             // setFocusableWindowState is important. if it would be false, the
             // window would not even go to front.
-if(w.hasFocus()) {
-    return;
-}
+            if (w.hasFocus()) { return; }
             // if (true) { return; }
             WindowResetListener hasListener = findListener(w);
 
@@ -197,13 +195,6 @@ if(w.hasFocus()) {
                 } finally {
                     releaseAlt();
                 }
-                try {
-                    // press alt again, because one alt click focuses the menu
-                    pressAlt();
-
-                } finally {
-                    releaseAlt();
-                }
 
             } else {
                 toFront(w);
@@ -223,7 +214,20 @@ if(w.hasFocus()) {
     private void releaseAlt() {
         if (robot != null) {
             System.out.println("key: Alt released");
+
+            // actually, we only need to asure that alt is pressed during
+            // tofront
+            // this would activte the window context menu.
+            // that's why we use alt+ctrl+shit+ü - let's hope that no
+            // application uses this shortcut. else we would trigger it when
+            // bringing a window to front.
+            // we probably need this workaround only if foregroundtimeoutlock
+            // is>0
             robot.keyRelease(KeyEvent.VK_ALT);
+            robot.keyRelease(KeyEvent.VK_SHIFT);
+            robot.keyRelease(KeyEvent.VK_CONTROL);
+            // ü
+            robot.keyRelease(65);
             robot = null;
         }
 
@@ -238,7 +242,17 @@ if(w.hasFocus()) {
             robot = new Robot();
         }
         System.out.println("key: Alt pressed");
+        // actually, we only need to asure that alt is pressed during tofront
+        // this would activte the window context menu.
+        // that's why we use alt+ctrl+shit+ü - let's hope that no application
+        // uses this shortcut. else we would trigger it when bringing a window
+        // to front.
+        // we probably need this workaround only if foregroundtimeoutlock is>0
         robot.keyPress(KeyEvent.VK_ALT);
+        robot.keyPress(KeyEvent.VK_SHIFT);
+        robot.keyPress(KeyEvent.VK_CONTROL);
+        // ü
+        robot.keyPress(65);
 
     }
 
@@ -481,53 +495,53 @@ if(w.hasFocus()) {
 
             }
         });
-//        w.addComponentListener(new ComponentListener() {
-//
-//            @Override
-//            public void componentShown(final ComponentEvent e) {
-//                System.out.println(e);
-//
-//            }
-//
-//            @Override
-//            public void componentResized(final ComponentEvent e) {
-//                System.out.println(e);
-//
-//            }
-//
-//            @Override
-//            public void componentMoved(final ComponentEvent e) {
-//                System.out.println(e);
-//
-//            }
-//
-//            @Override
-//            public void componentHidden(final ComponentEvent e) {
-//                System.out.println(e);
-//
-//            }
-//        });
-//
-//        w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
-//
-//            @Override
-//            public void ancestorResized(final HierarchyEvent e) {
-//                System.out.println(e);
-//            }
-//
-//            @Override
-//            public void ancestorMoved(final HierarchyEvent e) {
-//                System.out.println(e);
-//            }
-//        });
-//        w.addHierarchyListener(new HierarchyListener() {
-//
-//            @Override
-//            public void hierarchyChanged(final HierarchyEvent e) {
-//                System.out.println(e);
-//
-//            }
-//        });
+        // w.addComponentListener(new ComponentListener() {
+        //
+        // @Override
+        // public void componentShown(final ComponentEvent e) {
+        // System.out.println(e);
+        //
+        // }
+        //
+        // @Override
+        // public void componentResized(final ComponentEvent e) {
+        // System.out.println(e);
+        //
+        // }
+        //
+        // @Override
+        // public void componentMoved(final ComponentEvent e) {
+        // System.out.println(e);
+        //
+        // }
+        //
+        // @Override
+        // public void componentHidden(final ComponentEvent e) {
+        // System.out.println(e);
+        //
+        // }
+        // });
+        //
+        // w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
+        //
+        // @Override
+        // public void ancestorResized(final HierarchyEvent e) {
+        // System.out.println(e);
+        // }
+        //
+        // @Override
+        // public void ancestorMoved(final HierarchyEvent e) {
+        // System.out.println(e);
+        // }
+        // });
+        // w.addHierarchyListener(new HierarchyListener() {
+        //
+        // @Override
+        // public void hierarchyChanged(final HierarchyEvent e) {
+        // System.out.println(e);
+        //
+        // }
+        // });
     }
 
     /**
@@ -543,9 +557,7 @@ if(w.hasFocus()) {
      * @return
      */
     private String name(final Component window) {
-        if (window == null) {
-            return null;
-        }
+        if (window == null) { return null; }
         String ret = window.getName();
         if (StringUtils.isEmpty(ret)) {
             ret = window.getClass().getName();
@@ -664,7 +676,7 @@ if(w.hasFocus()) {
     private void requestFocus(final Window w) {
         // if a frame is active, one of its components has the focus, if we da a
         // requestfocus now, these components will lose the focus again
-        if (w.getFocusOwner() != null || w.isFocusOwner()||w.isFocused()) { return; }
+        if (w.getFocusOwner() != null || w.isFocusOwner() || w.isFocused()) { return; }
 
         System.out.println("Call requestFocus");
         w.requestFocus();
