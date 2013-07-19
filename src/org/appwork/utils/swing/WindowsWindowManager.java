@@ -17,6 +17,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -112,7 +113,6 @@ public class WindowsWindowManager extends WindowManager {
             if (w.hasFocus()) { return; }
             // if (true) { return; }
             WindowResetListener hasListener = findListener(w);
-
             ResetRunnable runner = runnerMap.get(w);
             if (runner == null) {
                 runner = new ResetRunnable(this, w, hasListener);
@@ -186,7 +186,12 @@ public class WindowsWindowManager extends WindowManager {
             // org.appwork.utils.swing.WindowsWindowManager.setVisible(Window,
             // boolean, boolean, boolean) method
             if (requestFocus) {
+                final boolean isOn = Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_NUM_LOCK);
                 try {
+
+                    if (!isOn) {
+                        Toolkit.getDefaultToolkit().setLockingKeyState(KeyEvent.VK_NUM_LOCK, true);
+                    }
                     pressAlt();
 
                     toFront(w);
@@ -194,6 +199,7 @@ public class WindowsWindowManager extends WindowManager {
 
                 } finally {
                     releaseAlt();
+                    Toolkit.getDefaultToolkit().setLockingKeyState(KeyEvent.VK_NUM_LOCK, isOn);
                 }
 
             } else {
@@ -223,9 +229,7 @@ public class WindowsWindowManager extends WindowManager {
             // bringing a window to front.
             // we probably need this workaround only if foregroundtimeoutlock
             // is>0
-      
-            
-            
+
             robot.keyRelease(KeyEvent.VK_ALT);
             robot.keyRelease(KeyEvent.VK_SHIFT);
             robot.keyRelease(KeyEvent.VK_NUMPAD1);
@@ -242,6 +246,7 @@ public class WindowsWindowManager extends WindowManager {
         if (robot == null) {
             robot = new Robot();
         }
+
         System.out.println("key: Alt pressed");
         // actually, we only need to asure that alt is pressed during tofront
         // this would activte the window context menu.
@@ -252,8 +257,6 @@ public class WindowsWindowManager extends WindowManager {
         robot.keyPress(KeyEvent.VK_ALT);
         robot.keyPress(KeyEvent.VK_SHIFT);
         robot.keyPress(KeyEvent.VK_NUMPAD1);
- 
-
 
     }
 

@@ -31,7 +31,6 @@ import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.WindowManager;
 import org.appwork.utils.swing.WindowManager.FrameState;
 import org.appwork.utils.swing.dialog.AbstractDialog;
-import org.appwork.utils.swing.dialog.Dialog;
 
 public abstract class BasicGui {
 
@@ -258,20 +257,9 @@ public abstract class BasicGui {
         frame.pack();
 
         
-        WindowManager.getInstance().show(frame);
+        WindowManager.getInstance().show(frame,FrameState.TO_FRONT_FOCUSED);
         
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(5000);
-                } catch (final InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                Dialog.getInstance().showErrorDialog("ff");
-            };
-        }.start();
+  
 //        frame.setLocation(new Point(0,0));
 //        frame.setExtendedState(Frame.NORMAL);
 //        try {
