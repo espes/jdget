@@ -25,10 +25,10 @@ import org.appwork.utils.os.CrossSystem;
 public class SyntheticaHelper {
 
     public static String getDefaultFont() {
-        switch (CrossSystem.OS_ID) {
-        case CrossSystem.OS_WINDOWS_7:
-        case CrossSystem.OS_WINDOWS_8:
-        case CrossSystem.OS_WINDOWS_VISTA:
+        switch (CrossSystem.getOS()) {
+        case WINDOWS_7:
+        case WINDOWS_8:
+        case WINDOWS_VISTA:
             return "Segoe UI";
         }
 

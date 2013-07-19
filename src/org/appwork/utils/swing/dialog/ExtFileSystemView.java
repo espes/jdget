@@ -130,9 +130,10 @@ public class ExtFileSystemView extends FileSystemView {
             final File[] ret;
 
             if (dir == networkFolder) {
-
+Log.L.info("getFilesShellfolder" );
                 ret = getFilesShellfolder((NetWorkFolder) dir, useFileHiding);
             } else {
+                Log.L.info("org.getFiles(dir, useFileHiding);" );
                 ret = org.getFiles(dir, useFileHiding);
             }
 

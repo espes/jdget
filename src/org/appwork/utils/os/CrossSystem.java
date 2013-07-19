@@ -52,21 +52,9 @@ import org.appwork.utils.swing.dialog.FileChooserType;
  */
 
 public class CrossSystem {
-    public static final byte      OS_OS2                 = 11;
-    public static final byte      OS_LINUX_OTHER         = 6;
-    public static final byte      OS_MAC_OTHER           = 5;
-    public static final byte      OS_WINDOWS_OTHER       = 4;
-    public static final byte      OS_WINDOWS_NT          = 3;
-    public static final byte      OS_WINDOWS_2000        = 2;
-    public static final byte      OS_WINDOWS_XP          = 0;
-    public static final byte      OS_WINDOWS_2003        = 7;
-    public static final byte      OS_WINDOWS_VISTA       = 1;
-    public static final byte      OS_WINDOWS_7           = 8;
-    public static final byte      OS_WINDOWS_SERVER_2008 = 9;
-    public static final byte      OS_WINDOWS_8           = 10;
 
-    private static String         JAVAINT                = null;
-    private static DesktopSupport DESKTOP_SUPPORT        = null;
+    private static String         JAVAINT             = null;
+    private static DesktopSupport DESKTOP_SUPPORT     = null;
 
     /**
      * Cache to store the OS string in
@@ -74,21 +62,19 @@ public class CrossSystem {
     private final static String   OS_STRING;
 
     /**
-     * Cache to store the OS ID in
-     */
-    public final static byte      OS_ID;
-
-    /**
      * Cache to store the Mime Class in
      */
     private static final Mime     MIME;
-    private static String[]       BROWSER_COMMANDLINE    = null;
-    private static String[]       FILE_COMMANDLINE       = null;
-    private static Boolean        OS64BIT                = null;
+
+    private static String[]       BROWSER_COMMANDLINE = null;
+    private static String[]       FILE_COMMANDLINE    = null;
+    private static Boolean        OS64BIT             = null;
+    public static OperatingSystem OS;
     static {
         /* Init OS_ID */
         OS_STRING = System.getProperty("os.name");
-        OS_ID = CrossSystem.getOSID(CrossSystem.OS_STRING);
+        OS = CrossSystem.getOSByString(CrossSystem.OS_STRING);
+
         /* Init MIME */
         if (CrossSystem.isWindows()) {
             MIME = new MimeWindows();
@@ -113,6 +99,69 @@ public class CrossSystem {
             CrossSystem.DESKTOP_SUPPORT.openFile(file);
         }
 
+    }
+
+    public static enum OperatingSystem {
+        WINDOWS_8(OSFamily.WINDOWS),
+        WINDOWS_7(OSFamily.WINDOWS),
+        WINDOWS_XP(OSFamily.WINDOWS),
+        WINDOWS_VISTA(OSFamily.WINDOWS),
+        WINDOWS_2000(OSFamily.WINDOWS),
+        WINDOWS_2003(OSFamily.WINDOWS),
+        WINDOWS_SERVER_2008(OSFamily.WINDOWS),
+        WINDOWS_NT(OSFamily.WINDOWS),
+        WINDOWS_OTHERS(OSFamily.WINDOWS),
+        MAC(OSFamily.MAC),
+        OS2(OSFamily.OS2),
+        LINUX(OSFamily.LINUX);
+
+        private OSFamily family;
+
+        public OSFamily getFamily() {
+            return family;
+        }
+
+        private OperatingSystem(final OSFamily family) {
+
+            this.family = family;
+        }
+    }
+
+    /**
+     * @param osString
+     * @return
+     */
+    private static OperatingSystem getOSByString(final String osString) {
+        if (osString == null) {
+            /* fallback to latest Windows */
+            return OperatingSystem.WINDOWS_8;
+        }
+        final String os = osString.toLowerCase();
+        if (os.contains("windows 8")) {
+            return OperatingSystem.WINDOWS_8;
+        } else if (os.contains("windows 7")) {
+            return OperatingSystem.WINDOWS_7;
+        } else if (os.contains("windows xp")) {
+            return OperatingSystem.WINDOWS_XP;
+        } else if (os.contains("windows vista")) {
+            return OperatingSystem.WINDOWS_VISTA;
+        } else if (os.contains("windows 2000")) {
+            return OperatingSystem.WINDOWS_2000;
+        } else if (os.contains("windows 2003")) {
+            return OperatingSystem.WINDOWS_2003;
+        } else if (os.contains("windows server 2008")) {
+            return OperatingSystem.WINDOWS_SERVER_2008;
+        } else if (os.contains("nt")) {
+            return OperatingSystem.WINDOWS_NT;
+        } else if (os.contains("windows")) {
+            return OperatingSystem.WINDOWS_OTHERS;
+        } else if (os.contains("mac")) {
+            return OperatingSystem.MAC;
+        } else if (os.contains("OS/2")) {
+            return OperatingSystem.OS2;
+        } else {
+            return OperatingSystem.LINUX;
+        }
     }
 
     /**
@@ -231,10 +280,6 @@ public class CrossSystem {
         return CrossSystem.FILE_COMMANDLINE;
     }
 
-    public static byte getID() {
-        return CrossSystem.OS_ID;
-    }
-
     public static String getJavaBinary() {
         if (CrossSystem.JAVAINT != null) { return CrossSystem.JAVAINT; }
         String javaBinary = "java";
@@ -262,44 +307,6 @@ public class CrossSystem {
      */
     public static Mime getMime() {
         return CrossSystem.MIME;
-    }
-
-    /**
-     * @param osString
-     * @return
-     */
-    public static byte getOSID(final String osString) {
-        if (osString == null) {
-            /* fallback to latest Windows */
-            return CrossSystem.OS_WINDOWS_7;
-        }
-        final String OS = osString.toLowerCase();
-        if (OS.contains("windows 8")) {
-            return CrossSystem.OS_WINDOWS_8;
-        } else if (OS.contains("windows 7")) {
-            return CrossSystem.OS_WINDOWS_7;
-        } else if (OS.contains("windows xp")) {
-            return CrossSystem.OS_WINDOWS_XP;
-        } else if (OS.contains("windows vista")) {
-            return CrossSystem.OS_WINDOWS_VISTA;
-        } else if (OS.contains("windows 2000")) {
-            return CrossSystem.OS_WINDOWS_2000;
-        } else if (OS.contains("windows 2003")) {
-            return CrossSystem.OS_WINDOWS_2003;
-        } else if (OS.contains("windows server 2008")) {
-            return CrossSystem.OS_WINDOWS_SERVER_2008;
-        } else if (OS.contains("nt")) {
-            return CrossSystem.OS_WINDOWS_NT;
-        } else if (OS.contains("windows")) {
-            return CrossSystem.OS_WINDOWS_OTHER;
-        } else if (OS.contains("mac")) {
-            return CrossSystem.OS_MAC_OTHER;
-        } else if (OS.contains("OS/2")) {
-            return CrossSystem.OS_OS2;
-        } else {
-            return CrossSystem.OS_LINUX_OTHER;
-        }
-
     }
 
     public static String getOSString() {
@@ -396,12 +403,12 @@ public class CrossSystem {
      * 
      * @return
      */
-    public static boolean isLinux() {
-        return CrossSystem.isLinux(CrossSystem.OS_ID);
+    public static OSFamily getOSFamily() {
+        return OS.getFamily();
     }
 
-    public static boolean isLinux(final byte osID) {
-        return osID == CrossSystem.OS_LINUX_OTHER;
+    public static boolean isLinux() {
+        return OS.getFamily() == OSFamily.LINUX;
     }
 
     /**
@@ -409,12 +416,9 @@ public class CrossSystem {
      * 
      * @return
      */
-    public static boolean isMac() {
-        return CrossSystem.isMac(CrossSystem.OS_ID);
-    }
 
-    public static boolean isMac(final byte osID) {
-        return osID == CrossSystem.OS_MAC_OTHER;
+    public static boolean isMac() {
+        return OS.getFamily() == OSFamily.LINUX;
     }
 
     /**
@@ -436,11 +440,7 @@ public class CrossSystem {
     }
 
     public static boolean isOS2() {
-        return CrossSystem.isOS2(CrossSystem.OS_ID);
-    }
-
-    public static boolean isOS2(final byte osID) {
-        return osID == CrossSystem.OS_OS2;
+        return OS.getFamily() == OSFamily.OS2;
     }
 
     /**
@@ -449,27 +449,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isWindows() {
-        return CrossSystem.isWindows(CrossSystem.OS_ID);
-    }
-
-    /**
-     * @param osId
-     * @return
-     */
-    public static boolean isWindows(final byte osId) {
-        switch (osId) {
-        case OS_WINDOWS_8:
-        case OS_WINDOWS_XP:
-        case OS_WINDOWS_VISTA:
-        case OS_WINDOWS_2000:
-        case OS_WINDOWS_2003:
-        case OS_WINDOWS_NT:
-        case OS_WINDOWS_OTHER:
-        case OS_WINDOWS_7:
-        case OS_WINDOWS_SERVER_2008:
-            return true;
-        }
-        return false;
+        return OS.getFamily() == OSFamily.WINDOWS;
     }
 
     private static boolean openCustom(final String[] custom, final String what) throws IOException {
@@ -696,6 +676,20 @@ public class CrossSystem {
         final String name = new Regex(filename, "(.*?)(\\.+[^\\.]*$|$)").getMatch(0);
         return new String[] { name, extension };
     }
-    
-  
+
+    public static enum OSFamily {
+        WINDOWS,
+        LINUX,
+        MAC,
+        OTHERS,
+        OS2
+    }
+
+    /**
+     * @return
+     */
+    public static OperatingSystem getOS() {
+        return OS;
+    }
+
 }
