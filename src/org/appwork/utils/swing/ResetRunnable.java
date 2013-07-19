@@ -105,6 +105,7 @@ public class ResetRunnable implements ActionListener, PropertySetListener {
         }
         windowsWindowManager.removeTimer(ResetRunnable.this);
 
+
         // it is important that we
         // 1. setAlwaysOnTop back
         // 2. setFocusableWindowState back

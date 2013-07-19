@@ -10,6 +10,7 @@
 package org.appwork.utils.swing;
 
 import java.awt.AWTException;
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -18,11 +19,6 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Window;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.HierarchyBoundsListener;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
@@ -38,6 +34,7 @@ import javax.swing.Timer;
 
 import org.appwork.swing.ExtJFrame;
 import org.appwork.utils.IO;
+import org.appwork.utils.StringUtils;
 
 /**
  * @author Thomas
@@ -104,6 +101,7 @@ public class WindowsWindowManager extends WindowManager {
         case OS_DEFAULT:
             // do nothing
             return;
+        
         case TO_FRONT_FOCUSED:
 
             // setAutoRequestFocus status seems to be not important because we
@@ -111,7 +109,10 @@ public class WindowsWindowManager extends WindowManager {
             // setAutoRequestFocus is java 1.7 only
             // setFocusableWindowState is important. if it would be false, the
             // window would not even go to front.
-
+if(w.hasFocus()) {
+    return;
+}
+            // if (true) { return; }
             WindowResetListener hasListener = findListener(w);
 
             ResetRunnable runner = runnerMap.get(w);
@@ -124,7 +125,9 @@ public class WindowsWindowManager extends WindowManager {
 
             setFocusableWindowState(w, true);
             setFocusable(w, true);
+
             toFrontAltWorkaround(w, true);
+
             requestFocus(w);
             break;
         default:
@@ -417,56 +420,56 @@ public class WindowsWindowManager extends WindowManager {
             @Override
             public void windowLostFocus(final WindowEvent windowevent) {
                 // TODO Auto-generated method stub
-                System.out.println(windowevent);
+                log(windowevent);
             }
 
             @Override
             public void windowGainedFocus(final WindowEvent windowevent) {
                 // TODO Auto-generated method stub
-                System.out.println(windowevent);
+                log(windowevent);
             }
         });
         w.addWindowListener(new WindowListener() {
 
             @Override
             public void windowOpened(final WindowEvent windowevent) {
-                System.out.println(windowevent);
+                log(windowevent);
 
             }
 
             @Override
             public void windowIconified(final WindowEvent windowevent) {
-                System.out.println(windowevent);
+                log(windowevent);
 
             }
 
             @Override
             public void windowDeiconified(final WindowEvent windowevent) {
-                System.out.println(windowevent);
+                log(windowevent);
 
             }
 
             @Override
             public void windowDeactivated(final WindowEvent windowevent) {
-                System.out.println(windowevent);
+                log(windowevent);
 
             }
 
             @Override
             public void windowClosing(final WindowEvent windowevent) {
-                System.out.println(windowevent);
+                log(windowevent);
 
             }
 
             @Override
             public void windowClosed(final WindowEvent windowevent) {
-                System.out.println(windowevent);
+                log(windowevent);
 
             }
 
             @Override
             public void windowActivated(final WindowEvent windowevent) {
-                System.out.println(windowevent);
+                log(windowevent);
 
             }
         });
@@ -474,57 +477,124 @@ public class WindowsWindowManager extends WindowManager {
 
             @Override
             public void windowStateChanged(final WindowEvent windowevent) {
-                System.out.println(windowevent);
+                log(windowevent);
 
             }
         });
-        w.addComponentListener(new ComponentListener() {
+//        w.addComponentListener(new ComponentListener() {
+//
+//            @Override
+//            public void componentShown(final ComponentEvent e) {
+//                System.out.println(e);
+//
+//            }
+//
+//            @Override
+//            public void componentResized(final ComponentEvent e) {
+//                System.out.println(e);
+//
+//            }
+//
+//            @Override
+//            public void componentMoved(final ComponentEvent e) {
+//                System.out.println(e);
+//
+//            }
+//
+//            @Override
+//            public void componentHidden(final ComponentEvent e) {
+//                System.out.println(e);
+//
+//            }
+//        });
+//
+//        w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
+//
+//            @Override
+//            public void ancestorResized(final HierarchyEvent e) {
+//                System.out.println(e);
+//            }
+//
+//            @Override
+//            public void ancestorMoved(final HierarchyEvent e) {
+//                System.out.println(e);
+//            }
+//        });
+//        w.addHierarchyListener(new HierarchyListener() {
+//
+//            @Override
+//            public void hierarchyChanged(final HierarchyEvent e) {
+//                System.out.println(e);
+//
+//            }
+//        });
+    }
 
-            @Override
-            public void componentShown(final ComponentEvent e) {
-                System.out.println(e);
+    /**
+     * @param windowevent
+     */
+    protected void log(final WindowEvent windowevent) {
+        System.out.println(name(windowevent.getWindow()) + "." + name(windowevent.getComponent()) + " " + type(windowevent.getID()) + " to " + name(windowevent.getOppositeWindow()));
 
-            }
+    }
 
-            @Override
-            public void componentResized(final ComponentEvent e) {
-                System.out.println(e);
+    /**
+     * @param window
+     * @return
+     */
+    private String name(final Component window) {
+        if (window == null) {
+            return null;
+        }
+        String ret = window.getName();
+        if (StringUtils.isEmpty(ret)) {
+            ret = window.getClass().getName();
+        }
+        return ret;
+    }
 
-            }
+    /**
+     * @param id
+     * @return
+     */
+    private String type(final int id) {
 
-            @Override
-            public void componentMoved(final ComponentEvent e) {
-                System.out.println(e);
+        /* 389 */switch (id) {
 
-            }
+        /* 391 */case 200: /* 391 */
+            return "WINDOW_OPENED";
 
-            @Override
-            public void componentHidden(final ComponentEvent e) {
-                System.out.println(e);
+            /* 394 */case 201: /* 394 */
+            return "WINDOW_CLOSING";
 
-            }
-        });
+            /* 397 */case 202: /* 397 */
+            return "WINDOW_CLOSED";
 
-        w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
+            /* 400 */case 203: /* 400 */
+            return "WINDOW_ICONIFIED";
 
-            @Override
-            public void ancestorResized(final HierarchyEvent e) {
-                System.out.println(e);
-            }
+            /* 403 */case 204: /* 403 */
+            return "WINDOW_DEICONIFIED";
 
-            @Override
-            public void ancestorMoved(final HierarchyEvent e) {
-                System.out.println(e);
-            }
-        });
-        w.addHierarchyListener(new HierarchyListener() {
+            /* 406 */case 205: /* 406 */
+            return "WINDOW_ACTIVATED";
 
-            @Override
-            public void hierarchyChanged(final HierarchyEvent e) {
-                System.out.println(e);
+            /* 409 */case 206: /* 409 */
+            return "WINDOW_DEACTIVATED";
 
-            }
-        });
+            /* 412 */case 207: /* 412 */
+            return "WINDOW_GAINED_FOCUS";
+
+            /* 415 */case 208: /* 415 */
+            return "WINDOW_LOST_FOCUS";
+
+            /* 418 */case 209: /* 418 */
+            return "WINDOW_STATE_CHANGED";
+
+            /* 421 */default:/* 421 */
+            return "unknown type";
+
+        }
     }
 
     /**
@@ -532,7 +602,7 @@ public class WindowsWindowManager extends WindowManager {
      * @param b
      */
     protected void setFocusable(final Window w, final boolean b) {
-
+        if (w.isFocusable() == b) { return; }
         blocker = ExtJFrame.PROPERTY_FOCUSABLE;
         try {
             System.out.println("Call setFocusable " + b);
@@ -594,7 +664,7 @@ public class WindowsWindowManager extends WindowManager {
     private void requestFocus(final Window w) {
         // if a frame is active, one of its components has the focus, if we da a
         // requestfocus now, these components will lose the focus again
-        if (w.getFocusOwner() != null || w.isFocusOwner()) { return; }
+        if (w.getFocusOwner() != null || w.isFocusOwner()||w.isFocused()) { return; }
 
         System.out.println("Call requestFocus");
         w.requestFocus();

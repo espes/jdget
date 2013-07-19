@@ -10,6 +10,7 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
@@ -28,6 +29,7 @@ import java.awt.event.HierarchyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.awt.event.WindowListener;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
@@ -82,7 +84,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected static final WindowStack            WINDOW_STACK            = new WindowStack();
 
-    public static FrameState                      WINDOW_STATE_ON_VISIBLE = FrameState.OS_DEFAULT;
+    public static FrameState                      WINDOW_STATE_ON_VISIBLE = FrameState.TO_FRONT_FOCUSED;
 
     public static int getButtonHeight() {
         return AbstractDialog.BUTTON_HEIGHT;
@@ -279,7 +281,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                 @Override
                 public void focusGained(final FocusEvent e) {
-
+                    System.out.println(" -->" + e);
                     final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
                     if (root != null && e.getComponent() instanceof JButton) {
                         root.setDefaultButton((JButton) e.getComponent());
@@ -288,7 +290,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                 @Override
                 public void focusLost(final FocusEvent e) {
-
+                    System.out.println(" -->" + e);
                     final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
                     if (root != null) {
                         root.setDefaultButton(null);
@@ -961,7 +963,27 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @param focus
      */
     protected void initFocus(final JComponent focus) {
-        focus.requestFocusInWindow();
+
+        getDialog().addWindowFocusListener(new WindowFocusListener() {
+
+            @Override
+            public void windowLostFocus(final WindowEvent windowevent) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void windowGainedFocus(final WindowEvent windowevent) {
+                System.out.println("Focus rquest!");
+                final Component focusOwner = getDialog().getFocusOwner();
+                if (focusOwner != null) {
+                    // dialog component has already focus...
+                    return;
+                }
+                final boolean success = focus.requestFocusInWindow();
+
+            }
+        });
 
     }
 
@@ -1219,7 +1241,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public void requestFocus() {
-        getDialog().requestFocus();
+        WindowManager.getInstance().setZState(getDialog(), FrameState.TO_FRONT_FOCUSED);
+
     }
 
     /**
@@ -1431,7 +1454,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         return WINDOW_STATE_ON_VISIBLE;
     }
 
- 
     public UserIODefinition show() {
         final UserIODefinition ret = UIOManager.I().show(UserIODefinition.class, this);
 
