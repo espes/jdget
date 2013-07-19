@@ -27,13 +27,13 @@ public class ResetRunnable implements ActionListener, PropertySetListener {
 
     private WindowsWindowManager windowsWindowManager;
     private Window               w;
-    private FrameState[]         flags;
+    private FrameState           state;
     private boolean              oldFocusableWindowState;
     private boolean              oldAlwaysOnTop;
     private boolean              oldFocusable;
 
-    public FrameState[] getFlags() {
-        return flags;
+    public FrameState getState() {
+        return state;
     }
 
     /**
@@ -44,14 +44,14 @@ public class ResetRunnable implements ActionListener, PropertySetListener {
     public ResetRunnable(final WindowsWindowManager windowsWindowManager, final Window w, final WindowResetListener hasListener) {
 
         this.windowsWindowManager = windowsWindowManager;
-        this.w = w;        
-        if(hasListener!=null) {
+        this.w = w;
+        if (hasListener != null) {
             hasListener.resetProperties();
         }
         oldFocusableWindowState = w.getFocusableWindowState();
         oldAlwaysOnTop = w.isAlwaysOnTop();
         oldFocusable = w.isFocusable();
-      
+
         if (w instanceof PropertyStateEventProviderInterface) {
             ((PropertyStateEventProviderInterface) w).getPropertySetEventSender().addListener(this, true);
         }
@@ -65,8 +65,8 @@ public class ResetRunnable implements ActionListener, PropertySetListener {
     /**
      * @param flags
      */
-    public void setFlags(final FrameState[] flags) {
-        this.flags = flags;
+    public void setState(final FrameState flags) {
+        state = flags;
 
     }
 
@@ -80,7 +80,7 @@ public class ResetRunnable implements ActionListener, PropertySetListener {
     @Override
     public void onPropertySet(final Component caller, final String propertyName, final Object oldValue, final Object newValue) {
         if (propertyName == null || propertyName.equals(windowsWindowManager.getBlocker())) { return; }
-        System.out.println("Property Update: "+propertyName+" - "+newValue);
+        System.out.println("Property Update: " + propertyName + " - " + newValue);
         if (ExtJFrame.PROPERTY_FOCUSABLE_WINDOW_STATE.equals(propertyName)) {
             oldFocusableWindowState = (Boolean) newValue;
         } else if (ExtJFrame.PROPERTY_FOCUSABLE.equals(propertyName)) {
@@ -104,8 +104,6 @@ public class ResetRunnable implements ActionListener, PropertySetListener {
             ((PropertyStateEventProviderInterface) w).getPropertySetEventSender().removeListener(ResetRunnable.this);
         }
         windowsWindowManager.removeTimer(ResetRunnable.this);
-        final boolean requestFocus = FrameState.FOCUS.containedBy(getFlags());
-        final boolean forceToFront = requestFocus || FrameState.TO_FRONT.containedBy(getFlags());
 
         // it is important that we
         // 1. setAlwaysOnTop back
@@ -115,13 +113,17 @@ public class ResetRunnable implements ActionListener, PropertySetListener {
         // WINDOW_GAINED_FOCUS even if the window does not get
         // active or focused
         windowsWindowManager.setAlwaysOnTop(w, oldAlwaysOnTop);
-        if (requestFocus || forceToFront) {
+        switch (getState()) {
+        case TO_FRONT_FOCUSED:
+        case TO_FRONT:
+
             // it is important to reset focus states before calling
             // toFront
             windowsWindowManager.setFocusableWindowState(w, oldFocusableWindowState);
             windowsWindowManager.setFocusable(w, oldFocusable);
+            break;
 
-        } else {
+        default:
 
             // // it's important to call toBack first. else we see a flicker
             // // (window appears and disappears)

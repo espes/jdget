@@ -30,7 +30,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -74,18 +73,16 @@ import org.appwork.utils.swing.dialog.locator.DialogLocator;
 
 public abstract class AbstractDialog<T> implements ActionListener, WindowListener, OKCancelCloseUserIODefinition {
 
-    private static int                            BUTTON_HEIGHT             = -1;
+    private static int                            BUTTON_HEIGHT           = -1;
 
-    public static DialogLocator                   DEFAULT_LOCATOR           = null;
-    public static final DialogLocator             LOCATE_CENTER_OF_SCREEN   = new CenterOfScreenDialogLocator();
+    public static DialogLocator                   DEFAULT_LOCATOR         = null;
+    public static final DialogLocator             LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
 
-    private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN    = new HashMap<String, Integer>();
+    private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN  = new HashMap<String, Integer>();
 
-    protected static final WindowStack            WINDOW_STACK              = new WindowStack();
+    protected static final WindowStack            WINDOW_STACK            = new WindowStack();
 
-    public static boolean                         NEW_DIALOGS_REQUEST_FOCUS = true;
-
-    public static boolean                         PUSH_NEW_DIALOGS_TO_FRONT = true;
+    public static FrameState                      WINDOW_STATE_ON_VISIBLE = FrameState.OS_DEFAULT;
 
     public static int getButtonHeight() {
         return AbstractDialog.BUTTON_HEIGHT;
@@ -1171,14 +1168,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     /**
-     * @return
-     */
-    public boolean isRequestFocusOnVisible() {
-
-        return NEW_DIALOGS_REQUEST_FOCUS;
-    }
-
-    /**
      * Handle timeout
      */
 
@@ -1427,31 +1416,22 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             @Override
             protected void runInEDT() {
 
-                final ArrayList<FrameState> state = new ArrayList<FrameState>();
-                boolean parentHasFocus = false;
-                if (!parentHasFocus && getDialog().getParent() != null && getDialog().getParent().isFocusOwner()) {
-                    parentHasFocus = true;
-                }
-                if (!parentHasFocus && getDialog().getParent() != null && getDialog().getParent() instanceof Window && ((Window) getDialog().getParent()).getFocusOwner() != null) {
-                    parentHasFocus = true;
-
-                }
-
-                if (isRequestFocusOnVisible() || parentHasFocus) {
-                    state.add(FrameState.FOCUS);
-
-                }
-
-                if (isToFrontOnVisible() || parentHasFocus) {
-                    state.add(FrameState.TO_FRONT);
-                }
-                WindowManager.getInstance().setVisible(getDialog(), b, state.toArray(new FrameState[] {}));
+                WindowManager.getInstance().setVisible(getDialog(), b, getWindowStateOnVisible());
 
             }
         };
 
     }
 
+    /**
+     * @return
+     */
+    protected FrameState getWindowStateOnVisible() {
+
+        return WINDOW_STATE_ON_VISIBLE;
+    }
+
+ 
     public UserIODefinition show() {
         final UserIODefinition ret = UIOManager.I().show(UserIODefinition.class, this);
 
@@ -1507,11 +1487,4 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     public void windowOpened(final WindowEvent arg0) {
     }
 
-    /**
-     * @return
-     */
-    public boolean isToFrontOnVisible() {
-        // TODO Auto-generated method stub
-        return PUSH_NEW_DIALOGS_TO_FRONT;
-    }
 }

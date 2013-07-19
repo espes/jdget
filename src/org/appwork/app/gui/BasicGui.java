@@ -4,7 +4,6 @@ import java.awt.AWTException;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Image;
-import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -32,6 +31,7 @@ import org.appwork.utils.swing.LockPanel;
 import org.appwork.utils.swing.WindowManager;
 import org.appwork.utils.swing.WindowManager.FrameState;
 import org.appwork.utils.swing.dialog.AbstractDialog;
+import org.appwork.utils.swing.dialog.Dialog;
 
 public abstract class BasicGui {
 
@@ -75,9 +75,9 @@ public abstract class BasicGui {
                                             }
 
                                             getFrame().setAlwaysOnTop(false);
-                                            WindowManager.getInstance().toFront(getFrame());
+                                            WindowManager.getInstance().setZState(getFrame(),FrameState.TO_FRONT);
 //                                            WindowManager.getInstance().toFront(getFrame());
-//                                            WindowManager.getInstance().toFront(getFrame(), FrameState.FOCUS);
+                                            WindowManager.getInstance().setZState(getFrame(), FrameState.TO_FRONT_FOCUSED);
 //
 //                                            WindowManager.getInstance().toFront(getFrame());
 //                                            WindowManager.getInstance().toFront(getFrame());
@@ -217,7 +217,7 @@ public abstract class BasicGui {
                 } else {
                     if (BasicGui.this.getFrame().isVisible()) {
 
-                        WindowManager.getInstance().setVisible(BasicGui.this.getFrame(), false, FrameState.FOCUS);
+                        WindowManager.getInstance().setVisible(BasicGui.this.getFrame(), false);
                     }
                 }
             }
@@ -256,9 +256,23 @@ public abstract class BasicGui {
         frame.setLocation(JSonStorage.getPlainStorage("Interface").get("LOCATION_X", x), JSonStorage.getPlainStorage("Interface").get("LOCATION_Y", y));
 
         frame.pack();
+
         
         WindowManager.getInstance().show(frame);
-        frame.setLocation(new Point(0,0));
+        
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (final InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                Dialog.getInstance().showErrorDialog("ff");
+            };
+        }.start();
+//        frame.setLocation(new Point(0,0));
 //        frame.setExtendedState(Frame.NORMAL);
 //        try {
 //            Thread.sleep(5000);
@@ -312,7 +326,7 @@ public abstract class BasicGui {
         if (ti != null) {
             ti.dispose();
         }
-        WindowManager.getInstance().setVisible(frame, false, FrameState.TO_FRONT);
+        WindowManager.getInstance().setVisible(frame, false);
         frame.dispose();
     }
 

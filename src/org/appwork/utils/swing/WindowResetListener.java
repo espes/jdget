@@ -23,11 +23,11 @@ import org.appwork.swing.PropertyStateEventProviderInterface;
 import org.appwork.swing.event.PropertySetListener;
 import org.appwork.utils.swing.WindowManager.FrameState;
 
-public class WindowResetListener implements PropertySetListener, HierarchyListener,WindowListener {
+public class WindowResetListener implements PropertySetListener, HierarchyListener, WindowListener {
 
-    private FrameState[] flags;
-    private Window       w;
-    private boolean      oldFocusableWindowState;
+    private FrameState state;
+    private Window     w;
+    private boolean    oldFocusableWindowState;
 
     public boolean isOldFocusableWindowState() {
         return oldFocusableWindowState;
@@ -52,9 +52,9 @@ public class WindowResetListener implements PropertySetListener, HierarchyListen
      * @param w
      * @param flags2
      */
-    public WindowResetListener(final WindowsWindowManager windowsWindowManager, final Window w, final FrameState[] flags2) {
+    public WindowResetListener(final WindowsWindowManager windowsWindowManager, final Window w, final FrameState state) {
         this.w = w;
-        flags = flags2;
+        this.state = state;
         this.windowsWindowManager = windowsWindowManager;
         oldFocusableWindowState = w.getFocusableWindowState();
         oldAlwaysOnTop = w.isAlwaysOnTop();
@@ -69,15 +69,15 @@ public class WindowResetListener implements PropertySetListener, HierarchyListen
 
     }
 
-    public FrameState[] getFlags() {
-        return flags;
+    public FrameState getState() {
+        return state;
     }
 
     /**
      * @param flags
      */
-    public void setFlags(final FrameState[] flags) {
-        this.flags = flags;
+    public void setState(final FrameState flags) {
+        state = flags;
 
     }
 
@@ -87,16 +87,16 @@ public class WindowResetListener implements PropertySetListener, HierarchyListen
     public void resetProperties() {
         removeListeners();
 
-        final boolean requestFocus = FrameState.FOCUS.containedBy(getFlags());
-        final boolean forceToFront = requestFocus || FrameState.TO_FRONT.containedBy(getFlags());
-
-        if (requestFocus || forceToFront) {
+        switch (getState()) {
+        case TO_FRONT:
+        case TO_FRONT_FOCUSED:
 
             windowsWindowManager.setFocusableWindowState(w, oldFocusableWindowState);
             windowsWindowManager.setFocusable(w, oldFocusable);
             windowsWindowManager.setAlwaysOnTop(w, oldAlwaysOnTop);
+            break;
+        default:
 
-        } else {
             windowsWindowManager.setFocusableWindowState(w, oldFocusableWindowState);
             windowsWindowManager.setFocusable(w, oldFocusable);
             if (w instanceof Frame) {
@@ -132,21 +132,22 @@ public class WindowResetListener implements PropertySetListener, HierarchyListen
         System.out.println("Reset After Window Opened");
         removeListeners();
 
-        final boolean requestFocus = FrameState.FOCUS.containedBy(getFlags());
-        final boolean forceToFront = requestFocus || FrameState.TO_FRONT.containedBy(getFlags());
+        switch (getState()) {
+        case TO_FRONT:
+        case TO_FRONT_FOCUSED:
 
-        if (requestFocus || forceToFront) {
             // it is important to reset focus states before calling
             // toFront
             windowsWindowManager.setFocusableWindowState(w, oldFocusableWindowState);
             windowsWindowManager.setFocusable(w, oldFocusable);
             windowsWindowManager.setAlwaysOnTop(w, oldAlwaysOnTop);
-            windowsWindowManager.toFront(w, getFlags());
+            windowsWindowManager.setZState(w, getState());
 
-        } else {
+            break;
+        default:
             if (w instanceof Frame) {
 
-                windowsWindowManager.setExtendedState((Frame)w,frameExtendedState);
+                windowsWindowManager.setExtendedState((Frame) w, frameExtendedState);
             }
             // it's important to call toBack first. else we see a flicker
             // (window appears and disappears)
@@ -171,7 +172,7 @@ public class WindowResetListener implements PropertySetListener, HierarchyListen
     @Override
     public void onPropertySet(final Component caller, final String propertyName, final Object oldValue, final Object newValue) {
         if (propertyName == null || propertyName.equals(windowsWindowManager.getBlocker())) { return; }
-        System.out.println("Property Update: "+propertyName+" - "+newValue);
+        System.out.println("Property Update: " + propertyName + " - " + newValue);
         if (ExtJFrame.PROPERTY_FOCUSABLE_WINDOW_STATE.equals(propertyName)) {
             oldFocusableWindowState = (Boolean) newValue;
         } else if (ExtJFrame.PROPERTY_FOCUSABLE.equals(propertyName)) {
@@ -190,63 +191,83 @@ public class WindowResetListener implements PropertySetListener, HierarchyListen
      * 
      */
     public void add() {
-//      w.addHierarchyListener(this);
+        // w.addHierarchyListener(this);
         w.addWindowListener(this);
-        
+
     }
 
-    /* (non-Javadoc)
-     * @see java.awt.event.WindowListener#windowActivated(java.awt.event.WindowEvent)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.WindowListener#windowActivated(java.awt.event.WindowEvent)
      */
     @Override
     public void windowActivated(final WindowEvent windowevent) {
         // TODO Auto-generated method stub
-        
+
     }
 
-    /* (non-Javadoc)
-     * @see java.awt.event.WindowListener#windowClosed(java.awt.event.WindowEvent)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.WindowListener#windowClosed(java.awt.event.WindowEvent)
      */
     @Override
     public void windowClosed(final WindowEvent windowevent) {
         // TODO Auto-generated method stub
-        
+
     }
 
-    /* (non-Javadoc)
-     * @see java.awt.event.WindowListener#windowClosing(java.awt.event.WindowEvent)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.WindowListener#windowClosing(java.awt.event.WindowEvent)
      */
     @Override
     public void windowClosing(final WindowEvent windowevent) {
         // TODO Auto-generated method stub
-        
+
     }
 
-    /* (non-Javadoc)
-     * @see java.awt.event.WindowListener#windowDeactivated(java.awt.event.WindowEvent)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.WindowListener#windowDeactivated(java.awt.event.WindowEvent
+     * )
      */
     @Override
     public void windowDeactivated(final WindowEvent windowevent) {
         // TODO Auto-generated method stub
-        
+
     }
 
-    /* (non-Javadoc)
-     * @see java.awt.event.WindowListener#windowDeiconified(java.awt.event.WindowEvent)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.WindowListener#windowDeiconified(java.awt.event.WindowEvent
+     * )
      */
     @Override
     public void windowDeiconified(final WindowEvent windowevent) {
         // TODO Auto-generated method stub
-        
+
     }
 
-    /* (non-Javadoc)
-     * @see java.awt.event.WindowListener#windowIconified(java.awt.event.WindowEvent)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * java.awt.event.WindowListener#windowIconified(java.awt.event.WindowEvent)
      */
     @Override
     public void windowIconified(final WindowEvent windowevent) {
         // TODO Auto-generated method stub
-        
+
     }
 
 }

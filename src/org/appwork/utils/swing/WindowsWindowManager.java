@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.JFrame;
 import javax.swing.Timer;
 
 import org.appwork.swing.ExtJFrame;
@@ -99,25 +98,21 @@ public class WindowsWindowManager extends WindowManager {
      * @see org.appwork.utils.swing.WindowManager#toFront(java.awt.Window)
      */
     @Override
-    public void toFront(final Window w, FrameState... flags) {
+    public void setZState(final Window w, final FrameState state) {
 
-        final boolean requestFocus = FrameState.FOCUS.containedBy(flags);
-        if (!FrameState.TO_FRONT.containedBy(flags)) {
-            final FrameState[] newFlags = new FrameState[flags.length + 1];
-            newFlags[0] = FrameState.TO_FRONT;
-            System.arraycopy(flags, 0, newFlags, 1, flags.length);
-            flags = newFlags;
+        switch (state) {
+        case OS_DEFAULT:
+            // do nothing
+            return;
+        case TO_FRONT_FOCUSED:
 
-        }
-
-        if (requestFocus) {
             // setAutoRequestFocus status seems to be not important because we
             // requestFocus below. we prefer to request focus, because
             // setAutoRequestFocus is java 1.7 only
             // setFocusableWindowState is important. if it would be false, the
             // window would not even go to front.
 
-            final WindowResetListener hasListener = findListener(w);
+            WindowResetListener hasListener = findListener(w);
 
             ResetRunnable runner = runnerMap.get(w);
             if (runner == null) {
@@ -125,23 +120,23 @@ public class WindowsWindowManager extends WindowManager {
                 runnerMap.put(w, runner);
                 executeAfterASecond(runner);
             }
-            runner.setFlags(flags);
+            runner.setState(state);
 
             setFocusableWindowState(w, true);
             setFocusable(w, true);
             toFrontAltWorkaround(w, true);
             requestFocus(w);
+            break;
+        default:
+            hasListener = findListener(w);
 
-        } else {
-            final WindowResetListener hasListener = findListener(w);
-
-            ResetRunnable runner = runnerMap.get(w);
+            runner = runnerMap.get(w);
             if (runner == null) {
                 runner = new ResetRunnable(this, w, hasListener);
                 runnerMap.put(w, runner);
                 executeAfterASecond(runner);
             }
-            runner.setFlags(flags);
+            runner.setState(state);
 
             setFocusableWindowState(w, false);
             setAlwaysOnTop(w, true);
@@ -285,31 +280,37 @@ public class WindowsWindowManager extends WindowManager {
      * boolean, boolean, boolean)
      */
     @Override
-    public void setVisible(final Window w, final boolean visible, final FrameState... flags) {
+    public void setVisible(final Window w, final boolean visible, final FrameState state) {
 
         if (w.isVisible()) {
-            toFront(w, flags);
+            setZState(w, state);
             return;
         }
-        final boolean requestFocus = FrameState.FOCUS.containedBy(flags);
-        final boolean toFront = requestFocus || FrameState.TO_FRONT.containedBy(flags);
 
-        System.out.println("Focus: " + requestFocus + " front: " + toFront);
+        System.out.println("Focus: " + state);
 
         addDebugListener(w);
 
         if (visible) {
+            if (state == FrameState.OS_DEFAULT) {
+                setVisibleInternal(w, visible);
+                return;
+            }
+            final WindowResetListener listener = assignWindowOpenListener(w, state);
 
-            final WindowResetListener listener = assignWindowOpenListener(w, flags);
+            switch (state) {
+            case TO_FRONT_FOCUSED:
 
-            if (requestFocus) {
                 setFocusableWindowState(w, true);
-            } else {
+                break;
+
+            default:
+
                 // avoid that the dialog get's focues
                 setFocusableWindowState(w, false);
                 setFocusable(w, false);
 
-                if (!toFront) {
+                if (state != FrameState.TO_FRONT) {
                     if (w instanceof Frame && false) {
 
                         setExtendedState(((Frame) w), Frame.ICONIFIED);
@@ -322,9 +323,9 @@ public class WindowsWindowManager extends WindowManager {
                         final Point p = new Point(Integer.MIN_VALUE, Integer.MIN_VALUE);
                         // search offscreen position
                         for (final GraphicsDevice screen : screens) {
-                            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();                         
-                            p.x = Math.max(bounds.x+bounds.width, p.x);
-                            p.y = Math.max(bounds.y+bounds.height, p.y);
+                            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
+                            p.x = Math.max(bounds.x + bounds.width, p.x);
+                            p.y = Math.max(bounds.y + bounds.height, p.y);
                         }
                         p.x++;
                         p.y++;
@@ -386,14 +387,14 @@ public class WindowsWindowManager extends WindowManager {
      * @param flags
      * @return
      */
-    public WindowResetListener assignWindowOpenListener(final Window w, final FrameState... flags) {
+    public WindowResetListener assignWindowOpenListener(final Window w, final FrameState state) {
         WindowResetListener hasListener = findListener(w);
 
         if (hasListener != null) {
-            hasListener.setFlags(flags);
+            hasListener.setState(state);
         } else {
 
-            hasListener = new WindowResetListener(this, w, flags);
+            hasListener = new WindowResetListener(this, w, state);
             hasListener.add();
         }
         return hasListener;
@@ -597,49 +598,6 @@ public class WindowsWindowManager extends WindowManager {
 
         System.out.println("Call requestFocus");
         w.requestFocus();
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.swing.WindowManager#show(java.awt.Window,
-     * org.appwork.utils.swing.WindowManager.WindowState[])
-     */
-    @Override
-    public void show(final Window w, final FrameState... flags) {
-        setVisible(w, true, flags);
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.swing.WindowManager#hide(java.awt.Window,
-     * org.appwork.utils.swing.WindowManager.WindowState[])
-     */
-    @Override
-    public void hide(final Window w, final FrameState... flags) {
-        setVisible(w, false, flags);
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.appwork.utils.swing.WindowManager#setWindowExtendedState(javax.swing
-     * .JFrame, org.appwork.utils.swing.WindowManager.WindowExtendedState)
-     */
-    @Override
-    public void setExtendedState(final Frame w, final WindowExtendedState state) {
-        if (state == null) { throw new NullPointerException("State is null"); }
-        switch (state) {
-        case NORMAL:
-            // dont use the #setExtendedState(Frame,State) method. it's for
-            // internal usage only
-            w.setExtendedState(JFrame.NORMAL);
-        }
-
     }
 
     /**

@@ -32,7 +32,7 @@ public class TrayIconTest {
         frame.getContentPane().add(comp, BorderLayout.CENTER);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 300);
-          WindowManager.getInstance().setVisible(frame,true,FrameState.FOCUS);
+          WindowManager.getInstance().setVisible(frame,true,FrameState.OS_DEFAULT);
 
         new AWTrayIcon(frame);
     }

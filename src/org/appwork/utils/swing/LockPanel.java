@@ -99,7 +99,7 @@ public class LockPanel extends JPanel {
 
             public void windowActivated(final WindowEvent e) {
                 if (waitingPanel.isVisible()) {
-                    WindowManager.getInstance().toFront(waitingPanel);
+                    WindowManager.getInstance().setZState(waitingPanel,FrameState.TO_FRONT);
 
                 }
 
@@ -162,7 +162,7 @@ public class LockPanel extends JPanel {
      * @return
      */
     private BufferedImage createScreenShot() {
-        WindowManager.getInstance().toFront(frame);
+        WindowManager.getInstance().setZState(frame,FrameState.TO_FRONT);
         final boolean top = frame.isAlwaysOnTop();
         try {
             return new EDTHelper<BufferedImage>() {
@@ -309,13 +309,13 @@ public class LockPanel extends JPanel {
 
     public void setWaitingPanelText(final String wait) {
         if (wait == null) {
-            WindowManager.getInstance().setVisible(waitingPanel, false, FrameState.FOCUS);
+            WindowManager.getInstance().setVisible(waitingPanel, false,FrameState.OS_DEFAULT);
         } else {
 
             text.setText(wait);
             waitingPanel.pack();
             waitingPanel.setLocation(SwingUtils.getCenter(frame, waitingPanel));
-            WindowManager.getInstance().setVisible(waitingPanel, true, FrameState.FOCUS);
+            WindowManager.getInstance().setVisible(waitingPanel, true,FrameState.OS_DEFAULT);
 
         }
 

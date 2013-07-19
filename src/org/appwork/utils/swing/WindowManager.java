@@ -22,20 +22,11 @@ import org.appwork.utils.os.CrossSystem;
  */
 public abstract class WindowManager {
     public static enum FrameState {
+        OS_DEFAULT,
         TO_FRONT,
-        FOCUS;
+        TO_BACK,
+        TO_FRONT_FOCUSED;
 
-        /**
-         * @param flags
-         * @return
-         */
-        public boolean containedBy(final FrameState[] flags) {
-            if (flags == null) { return false; }
-            for (final FrameState f : flags) {
-                if (f == this) { return true; }
-            }
-            return false;
-        }
     }
 
     public static enum WindowExtendedState {
@@ -48,15 +39,9 @@ public abstract class WindowManager {
          * @return
          */
         public static WindowExtendedState get(final int state) {
-            if ((state & JFrame.NORMAL) != 0) {
-                return NORMAL;
-            }
-            if ((state & JFrame.MAXIMIZED_BOTH) != 0) {
-                return MAXIMIZED_BOTH;
-            }
-            if ((state & JFrame.ICONIFIED) != 0) {
-                return ICONIFIED;
-            }
+            if ((state & JFrame.NORMAL) != 0) { return NORMAL; }
+            if ((state & JFrame.MAXIMIZED_BOTH) != 0) { return MAXIMIZED_BOTH; }
+            if ((state & JFrame.ICONIFIED) != 0) { return ICONIFIED; }
             return null;
         }
 
@@ -68,20 +53,11 @@ public abstract class WindowManager {
      * @return
      */
     private static WindowManager createOsWindowManager() {
-
-        switch (CrossSystem.OS_ID) {
-        case CrossSystem.OS_WINDOWS_2000:
-        case CrossSystem.OS_WINDOWS_2003:
-        case CrossSystem.OS_WINDOWS_7:
-        case CrossSystem.OS_WINDOWS_8:
-        case CrossSystem.OS_WINDOWS_NT:
-        case CrossSystem.OS_WINDOWS_OTHER:
-        case CrossSystem.OS_WINDOWS_SERVER_2008:
-        case CrossSystem.OS_WINDOWS_VISTA:
-        case CrossSystem.OS_WINDOWS_XP:
+        if (CrossSystem.isWindows()) {
             return new WindowsWindowManager();
-
-        default:
+        } else if (CrossSystem.isLinux()) {
+            return new DefaultWindowManager();
+        } else {
             return new DefaultWindowManager();
         }
 
@@ -90,22 +66,65 @@ public abstract class WindowManager {
     /**
      * @param w
      */
-    abstract public void toFront(Window w, FrameState... flags);
+    abstract public void setZState(Window w, FrameState state);
 
-    abstract public void setVisible(Window w, boolean visible, FrameState... flags);
+    abstract public void setVisible(Window w, boolean visible, FrameState state);
 
-    abstract public void show(Window w, FrameState... flags);
-
-    abstract public void hide(Window w, FrameState... flags);
+    public void setVisible(final Window w, final boolean visible) {
+        setVisible(w, visible, FrameState.OS_DEFAULT);
+    }
 
     public static WindowManager getInstance() {
         return INSTANCE;
     }
 
+    public void show(final Window w, final FrameState state) {
+        setVisible(w, true, state);
+
+    }
+
+    public void hide(final Window w, final FrameState state) {
+        setVisible(w, false, state);
+
+    }
+
+    public void show(final Window w) {
+        setVisible(w, true, FrameState.OS_DEFAULT);
+
+    }
+
+    public void hide(final Window w) {
+        setVisible(w, false, FrameState.OS_DEFAULT);
+
+    }
+
+    public void setExtendedState(final Frame w, final WindowExtendedState state) {
+        if (state == null) { throw new NullPointerException("State is null"); }
+        switch (state) {
+        case NORMAL:
+            w.setExtendedState(JFrame.NORMAL);
+            break;
+        case ICONIFIED:
+            w.setExtendedState(JFrame.ICONIFIED);
+            break;
+        case MAXIMIZED_BOTH:
+            w.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            break;
+        }
+
+    }
+
     /**
      * @param mainFrame
-     * @param normal
+     * @return
      */
-    abstract public void setExtendedState(Frame w, WindowExtendedState state);
+    public boolean hasFocus(final Window window) {
+        if (window != null && window.isFocusOwner()) { return true; }
+        if (window != null && window.getFocusOwner() != null) { return true;
+
+        }
+        return false;
+
+    }
 
 }

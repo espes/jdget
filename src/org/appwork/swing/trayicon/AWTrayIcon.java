@@ -176,7 +176,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
                         if (trayIconPopup == null) { return; }
 
                         trayIconPopup.setPosition(e.getPoint());
-                        WindowManager.getInstance().setVisible(trayIconPopup, true, FrameState.FOCUS);
+                        WindowManager.getInstance().setVisible(trayIconPopup, true,FrameState.OS_DEFAULT);
                         trayIconPopup.startAutoHide();
                         eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_SHOW_POPUP, this, null));
 
@@ -204,7 +204,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
                             }
 
                             trayIconPopup.setPosition(pointOnScreen);
-                            WindowManager.getInstance().setVisible(trayIconPopup, true, FrameState.FOCUS);
+                            WindowManager.getInstance().setVisible(trayIconPopup, true,FrameState.OS_DEFAULT);
                             trayIconPopup.startAutoHide();
                             eventSender.fireEvent(new BasicEvent<AWTrayIcon>(this, AWTrayIcon.EVENT_SHOW_POPUP, this, null));
 
@@ -232,7 +232,7 @@ public class AWTrayIcon implements MouseListener, TrayMouseListener {
             @Override
             public Object edtRun() {
 
-                WindowManager.getInstance().setVisible(frame, visible, FrameState.FOCUS);
+                WindowManager.getInstance().setVisible(frame, visible,FrameState.OS_DEFAULT);
 
                 return null;
             }
