@@ -223,11 +223,12 @@ public class WindowsWindowManager extends WindowManager {
             // bringing a window to front.
             // we probably need this workaround only if foregroundtimeoutlock
             // is>0
+      
+            
+            
             robot.keyRelease(KeyEvent.VK_ALT);
             robot.keyRelease(KeyEvent.VK_SHIFT);
-            robot.keyRelease(KeyEvent.VK_CONTROL);
-            // ü
-            robot.keyRelease(65);
+            robot.keyRelease(KeyEvent.VK_NUMPAD1);
             robot = null;
         }
 
@@ -250,9 +251,9 @@ public class WindowsWindowManager extends WindowManager {
         // we probably need this workaround only if foregroundtimeoutlock is>0
         robot.keyPress(KeyEvent.VK_ALT);
         robot.keyPress(KeyEvent.VK_SHIFT);
-        robot.keyPress(KeyEvent.VK_CONTROL);
-        // ü
-        robot.keyPress(65);
+        robot.keyPress(KeyEvent.VK_NUMPAD1);
+ 
+
 
     }
 
