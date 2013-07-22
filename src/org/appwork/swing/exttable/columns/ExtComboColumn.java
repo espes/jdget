@@ -37,7 +37,7 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
         renderer.removeAll();
         renderer.setLayout(new MigLayout("ins 0", "[grow,fill]0[12]5", "[grow,fill]"));
 
-        this.rendererField = new RenderLabel() {
+        rendererField = new RenderLabel() {
 
             /**
              * 
@@ -85,17 +85,17 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
     public boolean onDoubleClick(final MouseEvent e, final E value) {
         if (!isEditable(value)) { return false; }
 
-        int row = getModel().getTable().rowAtPoint(new Point(e.getX(), e.getY()));
+        final int row = getModel().getTable().rowAtPoint(new Point(e.getX(), e.getY()));
         // int column = getModel().getTable().columnAtPoint(new Point(e.getX(),
         // e.getY()));
 
         return startEdit(value, row);
     }
     @Override
-    public boolean onRenameClick(MouseEvent e, E value) {
+    public boolean onRenameClick(final MouseEvent e, final E value) {
         if (!isEditable(value)) { return false; }
 
-        int row = getModel().getTable().rowAtPoint(new Point(e.getX(), e.getY()));
+        final int row = getModel().getTable().rowAtPoint(new Point(e.getX(), e.getY()));
         // int column = getModel().getTable().columnAtPoint(new Point(e.getX(),
         // e.getY()));
 
@@ -105,7 +105,7 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
     public boolean onSingleClick(final MouseEvent e, final E value) {
         if (!isEditable(value)) { return false; }
 
-        int row = getModel().getTable().rowAtPoint(new Point(e.getX(), e.getY()));
+        final int row = getModel().getTable().rowAtPoint(new Point(e.getX(), e.getY()));
         // int column = getModel().getTable().columnAtPoint(new Point(e.getX(),
         // e.getY()));
 
@@ -117,17 +117,18 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
      * @param row
      * @return
      */
-    protected boolean startEdit(final E value, int row) {
+    protected boolean startEdit(final E value, final int row) {
         final JPopupMenu popup = new JPopupMenu();
         try {
             final ModelType selected = getSelectedItem(value);
-            for (int i = 0; i < dataModel.getSize(); i++) {
-                final ModelType o = dataModel.getElementAt(i);
-                AbstractButton bt = getPopupElement(o, selected == o);
+            final ComboBoxModel<ModelType> dm = updateModel(dataModel,value);
+            for (int i = 0; i < dm.getSize(); i++) {
+                final ModelType o = dm.getElementAt(i);
+                final AbstractButton bt = getPopupElement(o, selected == o);
                 bt.addActionListener(new ActionListener() {
 
                     @Override
-                    public void actionPerformed(ActionEvent e) {
+                    public void actionPerformed(final ActionEvent e) {
                         setValue(o, value);
                         popup.setVisible(false);
 
@@ -208,7 +209,7 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
 
     @Override
     public boolean isEditable(final E obj) {
-        return this.dataModel.getSize() > 1;
+        return updateModel(dataModel,obj).getSize() > 1;
     }
 
     @Override
