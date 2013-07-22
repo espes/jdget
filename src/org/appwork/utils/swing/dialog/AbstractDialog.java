@@ -134,6 +134,9 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @param frame
      */
     public static void setRootFrame(final Window frame) {
+        if(frame==null) {
+            return;
+        }
         new EDTRunner() {
 
             @Override
@@ -491,7 +494,11 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                     WINDOW_STACK.remove(i);
                     System.out.println("Window Stack After " + WINDOW_STACK.size());
                     for (final Window w : WINDOW_STACK) {
-                        System.out.println(w.getName() + " - " + w);
+                        if(w==null){
+                            System.out.println("Window null");
+                        }else{
+                            System.out.println(w.getName() + " - " + w);
+                        }
                     }
 
                 }
