@@ -536,6 +536,7 @@ public class JSonStorage {
     }
 /**
  * USe this method for debug code only. IKt is NOT guaranteed that this method returns  json formated text.
+ * Use {@link #serializeToJson(Object)} instead
  * @param list
  * @return
  */
