@@ -6,15 +6,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 
+import org.appwork.exceptions.WTFException;
 import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storage;
@@ -78,7 +81,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     private final ImageIcon                                     iconDesc;
     private final PropertyChangeListener                        replaceDelayer;
     private List<E>                                             delayedNewTableData = null;
-    private List<E>                                             delayedSelection    = null;
+    private boolean                                             debugTableModel     = false;
 
     /**
      * Create a new ExtTableModel.
@@ -141,31 +144,22 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         ltable.removePropertyChangeListener(this);
                     }
 
-                    ExtTableModel.this._replaceTableData(ExtTableModel.this.delayedNewTableData, ExtTableModel.this.delayedSelection, false);
+                    ExtTableModel.this._replaceTableData(ExtTableModel.this.delayedNewTableData, false);
                 }
             }
 
         };
     }
 
-    public void _fireTableStructureChanged(List<E> newtableData, final boolean refreshSort) {
+    public void _fireTableStructureChanged(final List<E> newtableData, final boolean refreshSort) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            Log.exception(new WTFException("_fireTableStructureChanged inside EDT! "));
+        }
         if (refreshSort) {
-            newtableData = this.refreshSort(newtableData);
+            this._replaceTableData(this.refreshSort(newtableData), true);
+        } else {
+            this._replaceTableData(newtableData, true);
         }
-        final List<E> newdata = newtableData;
-        final List<E> selection = new EDTHelper<List<E>>() {
-
-            @Override
-            public List<E> edtRun() {
-                return ExtTableModel.this.getSelectedObjects();
-            }
-
-        }.getReturnValue();
-        if (selection != null) {
-            selection.retainAll(newdata);
-        }
-
-        this._replaceTableData(newdata, selection, true);
     }
 
     /**
@@ -183,82 +177,107 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param selection
      * @param checkEditing
      */
-    protected void _replaceTableData(final List<E> newtableData, final List<E> selection, final boolean checkEditing) {
-
+    protected void _replaceTableData(final List<E> newtableData, final boolean checkEditing) {
         if (newtableData == null) { return; }
         new EDTRunner() {
+
             @Override
             protected void runInEDT() {
-
                 final ExtTable<E> ltable = ExtTableModel.this.getTable();
-
                 final boolean replaceNow = !checkEditing || ltable == null || !ltable.isEditing();
                 if (replaceNow) {
-
                     if (ltable != null) {
-
                         /* replace now */
                         /* clear delayed TableData and Selection */
                         ExtTableModel.this.delayedNewTableData = null;
-                        ExtTableModel.this.delayedSelection = null;
                         ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
                         /* replace TableData and set Selection */
+                        final LinkedHashSet<E> selection = new LinkedHashSet<E>(ExtTableModel.this.getSelectedObjects());
                         final ListSelectionModel s = ltable.getSelectionModel();
                         final boolean adjusting = s.getValueIsAdjusting();
-                        int anchor = s.getAnchorSelectionIndex();
-                        int lead = s.getLeadSelectionIndex();
-                        int minIndex = s.getMinSelectionIndex();
-                        int maxIndex = s.getMaxSelectionIndex();
-
-                        final E minObject = minIndex < 0 ? null : ExtTableModel.this.getObjectbyRow(minIndex);
-                        final E maxObject = maxIndex < 0 ? null : ExtTableModel.this.getObjectbyRow(maxIndex);
-                        final E anchorObject = anchor < 0 ? null : ExtTableModel.this.getObjectbyRow(anchor);
-                        final E leadObject = lead < 0 ? null : ExtTableModel.this.getObjectbyRow(lead);
-
+                        int leadIndex = s.getLeadSelectionIndex();
+                        int anchorIndex = s.getAnchorSelectionIndex();
+                        final E leadObject = leadIndex >= 0 ? ExtTableModel.this.getObjectbyRow(leadIndex) : null;
+                        final E anchorObject = anchorIndex >= 0 ? ExtTableModel.this.getObjectbyRow(anchorIndex) : null;
+                        if (ExtTableModel.this.isDebugTableModel()) {
+                            System.out.println("before:leadIndex=" + leadIndex + "->" + leadObject + "|anchorIndex=" + anchorIndex + "->" + anchorObject);
+                        }
                         ExtTableModel.this.setTableData(newtableData);
-
                         ExtTableModel.this.fireTableStructureChanged();
                         if (ExtTableModel.this.getRowCount() > 0) {
                             if (selection != null) {
-                                ExtTableModel.this.setSelectedObjects(selection);
-                            }
+                                /*
+                                 * restore selection, first we remove all
+                                 * vanished objects, then set the remaining ones
+                                 */
+                                selection.retainAll(newtableData);
+                                ExtTableModel.this.setSelectedObjects(new ArrayList<E>(selection));
 
-                            if (adjusting || true) {
-
-                                final E newMinObject = minIndex < 0 ? null : ExtTableModel.this.getObjectbyRow(minIndex);
-                                final E newMaxObject = maxIndex < 0 ? null : ExtTableModel.this.getObjectbyRow(maxIndex);
-                                final E newAnchorObject = anchor < 0 ? null : ExtTableModel.this.getObjectbyRow(anchor);
-                                final E newLeadObject = lead < 0 ? null : ExtTableModel.this.getObjectbyRow(lead);
-
-                                if (newAnchorObject != anchorObject) {
-                                    // we have to adjust minINdex
-
-                                    anchor = ExtTableModel.this.getRowforObject(anchorObject);
+                                if (leadObject != null) {
+                                    /* check if our leadObject does still exist */
+                                    leadIndex = ExtTableModel.this.getRowforObject(leadObject);
+                                } else {
+                                    leadIndex = -1;
                                 }
-                                if (newLeadObject != leadObject) {
-                                    // we have to adjust minINdex
-
-                                    lead = ExtTableModel.this.getRowforObject(leadObject);
+                                if (anchorObject != null) {
+                                    /*
+                                     * check if our anchorObject does still
+                                     * exist
+                                     */
+                                    anchorIndex = ExtTableModel.this.getRowforObject(anchorObject);
+                                } else {
+                                    anchorIndex = -1;
                                 }
-                                if (newMinObject != minObject) {
-                                    // we have to adjust minINdex
-
-                                    minIndex = ExtTableModel.this.getRowforObject(minObject);
+                                if (ExtTableModel.this.isDebugTableModel()) {
+                                    System.out.println("after:leadIndex=" + leadIndex + "->" + leadObject + "|anchorIndex=" + anchorIndex + "->" + anchorObject);
                                 }
+                                if (leadIndex >= 0 && anchorIndex >= 0) {
+                                    /*
+                                     * sort begin/end so we can loop through the
+                                     * items
+                                     */
+                                    int begin = leadIndex;
+                                    int end = anchorIndex;
+                                    if (end < begin) {
+                                        begin = anchorIndex;
+                                        end = leadIndex;
+                                    }
+                                    /* check if we have holes in our Selection */
+                                    boolean selectionHole = false;
+                                    for (int index = begin; index <= end; index++) {
+                                        if (s.isSelectedIndex(index) == false) {
+                                            selectionHole = true;
+                                            break;
+                                        }
+                                    }
+                                    /*
+                                     * only set adjusting if we have a
+                                     * lead/anchor
+                                     */
+                                    s.setValueIsAdjusting(adjusting);
+                                    if (selectionHole == false) {
+                                        if (ExtTableModel.this.isDebugTableModel()) {
+                                            System.out.println("No holes in selection: from " + begin + " to " + end);
+                                        }
+                                        s.setAnchorSelectionIndex(anchorIndex);
+                                        s.setLeadSelectionIndex(leadIndex);
+                                    } else {
+                                        if (leadIndex > anchorIndex) {
+                                            if (ExtTableModel.this.isDebugTableModel()) {
+                                                System.out.println("Holes in selection from " + begin + " to " + end + "!Use leadIndex " + leadIndex);
+                                            }
+                                            s.setAnchorSelectionIndex(leadIndex);
+                                            s.setLeadSelectionIndex(leadIndex);
+                                        } else {
+                                            if (ExtTableModel.this.isDebugTableModel()) {
+                                                System.out.println("Holes in selection from " + begin + " to " + end + "!Use anchorIndex " + anchorIndex);
+                                            }
+                                            s.setAnchorSelectionIndex(anchorIndex);
+                                            s.setLeadSelectionIndex(anchorIndex);
+                                        }
+                                    }
 
-                                if (newMaxObject != maxObject) {
-                                    // we have to adjust maxIndex
-                                    maxIndex = ExtTableModel.this.getRowforObject(maxObject);
                                 }
-                                // The execution order is important.
-                                s.setValueIsAdjusting(adjusting);
-                                // first set interval - this sets anchor and
-                                // lead as well
-                                s.setSelectionInterval(minIndex, maxIndex);
-                                // then correct anchor and lead
-                                s.setAnchorSelectionIndex(anchor);
-                                s.setLeadSelectionIndex(lead);
-
                             }
                         }
                     } else {
@@ -268,17 +287,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 } else {
                     /* replace later because table is in editing mode */
                     /* set delayed TableData and Selection */
-                    ExtTableModel.this.delayedNewTableData = newtableData;
-                    ExtTableModel.this.delayedSelection = selection;
-                    ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
-                    ltable.addPropertyChangeListener(ExtTableModel.this.replaceDelayer);
+                    if (ltable != null) {
+                        ExtTableModel.this.delayedNewTableData = newtableData;
+                        ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
+                        ltable.addPropertyChangeListener(ExtTableModel.this.replaceDelayer);
+                    }
                 }
             }
 
-            private String toString(final ListSelectionModel s) {
-                // TODO Auto-generated method stub
-                return "Anchor " + s.getAnchorSelectionIndex() + " lead " + s.getLeadSelectionIndex() + " min: " + s.getMinSelectionIndex() + " max: " + s.getMaxSelectionIndex();
-            }
         };
     }
 
@@ -337,21 +353,21 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     public synchronized void addExtComponentRowHighlighter(final ExtComponentRowHighlighter<E> h) {
         this.extComponentRowHighlighters.add(h);
-      Collections.sort(extComponentRowHighlighters, new Comparator<ExtComponentRowHighlighter<E>>() {
+        Collections.sort(this.extComponentRowHighlighters, new Comparator<ExtComponentRowHighlighter<E>>() {
 
-        @Override
-        public int compare(final ExtComponentRowHighlighter<E> o1, final ExtComponentRowHighlighter<E> o2) {
-            // TODO Auto-generated method stub
-            return new Integer(o1.getPriority()).compareTo(new Integer(o2.getPriority()));
-        }
-    });
+            @Override
+            public int compare(final ExtComponentRowHighlighter<E> o1, final ExtComponentRowHighlighter<E> o2) {
+                // TODO Auto-generated method stub
+                return new Integer(o1.getPriority()).compareTo(new Integer(o2.getPriority()));
+            }
+        });
     }
 
     /**
      * 
      */
     public void clear() {
-        ExtTableModel.this._replaceTableData(new ArrayList<E>(), null, true);
+        ExtTableModel.this._replaceTableData(new ArrayList<E>(), true);
     }
 
     /**
@@ -577,7 +593,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public List<E> getSelectedObjects(final int maxItems) {
         final ExtTable<E> ltable = this.getTable();
         if (ltable == null) { return new ArrayList<E>(0); }
-        final int[] rows = ltable.getSelectedRows();
+        final int[] rows = new EDTHelper<int[]>() {
+
+            @Override
+            public int[] edtRun() {
+                return ltable.getSelectedRows();
+            }
+        }.getReturnValue();
         final List<E> ret = new ArrayList<E>(rows.length);
         final List<E> data = this.getTableData();
         for (final int row : rows) {
@@ -685,6 +707,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     /**
+     * @return the debugTableModel
+     */
+    public boolean isDebugTableModel() {
+        return this.debugTableModel;
+    }
+
+    /**
      * checks if this column is allowed to be hidden
      * 
      * @param column
@@ -759,14 +788,17 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     public List<E> refreshSort(final List<E> data) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            Log.exception(new WTFException("refreshSort inside EDT! "));
+        }
         try {
             boolean sameTable = false;
-            if (this.tableData == data) {
+            if (data == this.tableData) {
                 sameTable = true;
             }
             final List<E> ret = this.sort(data, this.sortColumn);
             if (this.tableData == ret && sameTable) {
-                Log.exception(new Throwable("WARNING: sorting on live backend!"));
+                Log.exception(new WTFException("WARNING: sorting on live backend!"));
             }
             if (ret == null) { return data; }
             return ret;
@@ -851,6 +883,14 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
         this.setColumnVisible(this.getExtColumnByModelIndex(modelColumnIndex), visible);
 
+    }
+
+    /**
+     * @param debugTableModel
+     *            the debugTableModel to set
+     */
+    public void setDebugTableModel(final boolean debugTableModel) {
+        this.debugTableModel = debugTableModel;
     }
 
     /**

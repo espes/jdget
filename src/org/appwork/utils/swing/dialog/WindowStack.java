@@ -30,7 +30,6 @@ public class WindowStack extends ArrayList<Window> {
         if (frame != null) {
             this.add(frame);
         }
-
     }
 
 }
