@@ -104,7 +104,6 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
         d.setStorageID("EventSenderCReater");
         d.setFileSelectionMode(FileChooserSelectionMode.DIRECTORIES_ONLY);
 
-        
         d.setType(FileChooserType.OPEN_DIALOG);
         d.setMultiSelection(false);
         d.setPreSelection(rootFile.getParentFile().getParentFile());
@@ -118,8 +117,6 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
             e.printStackTrace();
         }
 
-        
-        
         Eventsender.create(name, d.getSelectedFile());
         System.exit(1);
     }
@@ -131,7 +128,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
     transient volatile protected java.util.List<ListenerType>                strongListeners = null;
     transient volatile protected java.util.List<WeakReference<ListenerType>> weakListener    = null;
 
-    private final Object                                                LOCK            = new Object();
+    private final Object                                                     LOCK            = new Object();
 
     /**
      * List of Listeners that are requested for removal
