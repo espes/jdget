@@ -15,6 +15,8 @@ package org.appwork.utils.swing;
  *
  */
 public class DefaultWindowManager extends WindowsWindowManager {
-
+    protected void initForegroundLock() {
+     
+    }
 
 }

@@ -76,6 +76,10 @@ public class WindowsWindowManager extends WindowManager {
 
         runnerMap = new HashMap<Window, ResetRunnable>();
 
+        initForegroundLock();
+    }
+
+    protected void initForegroundLock() {
         try {
             foregroundLock = readForegroundLockTimeout();
         } catch (final Exception e) {
