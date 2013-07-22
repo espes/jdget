@@ -123,6 +123,12 @@ public abstract class WindowManager {
         if (window != null && window.getFocusOwner() != null) { return true;
 
         }
+        if (window != null && window.isFocused()) { return true;
+
+        }
+        if (window != null && window.hasFocus()) { return true;
+
+        }
         return false;
 
     }
