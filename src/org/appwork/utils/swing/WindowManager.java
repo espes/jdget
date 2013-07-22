@@ -42,7 +42,7 @@ public abstract class WindowManager {
             if ((state & JFrame.NORMAL) != 0) { return NORMAL; }
             if ((state & JFrame.MAXIMIZED_BOTH) != 0) { return MAXIMIZED_BOTH; }
             if ((state & JFrame.ICONIFIED) != 0) { return ICONIFIED; }
-            return null;
+            return NORMAL;
         }
 
     }
