@@ -26,8 +26,10 @@ public class WindowStack extends ArrayList<Window> {
      * @param frame
      */
     public void reset(final Window frame) {
-        clear();
-        add(frame);
+        this.clear();
+        if (frame != null) {
+            this.add(frame);
+        }
 
     }
 
