@@ -828,7 +828,12 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 destination.setText(text);
                 if (orgPresel != null && orgPresel.exists()) {
                     if (orgPresel.isDirectory()) {
-                        destination.setText(orgPresel.getAbsolutePath() + File.separatorChar);
+                        if(orgPresel.getAbsolutePath().endsWith(File.separatorChar+"")){
+                            destination.setText(orgPresel.getAbsolutePath());
+                        }else{
+                            destination.setText(orgPresel.getAbsolutePath() + File.separatorChar);
+                                
+                        }
                     } else {
 
                         destination.setText(orgPresel.getAbsolutePath());

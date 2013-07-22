@@ -78,7 +78,7 @@ public class WindowsWindowManager extends WindowManager {
 
         try {
             foregroundLock = readForegroundLockTimeout();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -312,7 +312,7 @@ public class WindowsWindowManager extends WindowManager {
     @Override
     public void setVisible(final Window w, final boolean visible, final FrameState state) {
 
-        if (w.isVisible()) {
+        if (w.isVisible()&&visible) {
             setZState(w, state);
             return;
         }
