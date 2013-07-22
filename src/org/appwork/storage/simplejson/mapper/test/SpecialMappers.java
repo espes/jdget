@@ -22,15 +22,15 @@ import org.appwork.utils.Application;
  * 
  */
 public class SpecialMappers {
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
 
         ((SimpleMapper) JSonStorage.getMapper()).getMapper().addMapper(Color.class, new ColorMapper());
-        String str = JSonStorage.toString(new SpecialObject(Application.getResource("list.txt"), SpecialMappers.class.getResource("SpecialMappers.class"), SpecialMappers.class));
+        final String str = JSonStorage.serializeToJson(new SpecialObject(Application.getResource("list.txt"), SpecialMappers.class.getResource("SpecialMappers.class"), SpecialMappers.class));
 
-        SpecialObject obj = JSonStorage.restoreFromString(str, new TypeRef<SpecialObject>() {
+        final SpecialObject obj = JSonStorage.restoreFromString(str, new TypeRef<SpecialObject>() {
         }, null);
 
-        String str2 = JSonStorage.toString(obj);
+        final String str2 = JSonStorage.serializeToJson(obj);
         if (str2.equals(str)) {
             System.out.println("OK");
             System.out.println(str);

@@ -32,18 +32,18 @@ public abstract class Streaming {
     protected java.util.List<WeakReference<StreamingInputStream>>  connectedInputStreams  = new ArrayList<WeakReference<StreamingInputStream>>();
     protected java.util.List<WeakReference<StreamingOutputStream>> connectedOutputStreams = new ArrayList<WeakReference<StreamingOutputStream>>();
 
-    protected final String                                    outputFile;
-    private boolean                                           isClosed               = false;
+    protected final String                                         outputFile;
+    private boolean                                                isClosed               = false;
 
-    private final Comparator<StreamingChunk>                  comparator             = new Comparator<StreamingChunk>() {
+    private final Comparator<StreamingChunk>                       comparator             = new Comparator<StreamingChunk>() {
 
-                                                                                         @Override
-                                                                                         public int compare(final StreamingChunk o1, final StreamingChunk o2) {
-                                                                                             final long x = o1.getChunkStartPosition();
-                                                                                             final long y = o2.getChunkStartPosition();
-                                                                                             return x < y ? 1 : x == y ? 0 : -1;
-                                                                                         }
-                                                                                     };
+                                                                                              @Override
+                                                                                              public int compare(final StreamingChunk o1, final StreamingChunk o2) {
+                                                                                                  final long x = o1.getChunkStartPosition();
+                                                                                                  final long y = o2.getChunkStartPosition();
+                                                                                                  return x < y ? 1 : x == y ? 0 : -1;
+                                                                                              }
+                                                                                          };
 
     public Streaming(final String outputFile) throws IOException {
         this.outputFile = outputFile;

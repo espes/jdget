@@ -24,7 +24,7 @@ public class GenericTest {
         ret.add(1);
         ret.add(2);
 
-        final String str = JSonStorage.toString(ret);
+        final String str = JSonStorage.serializeToJson(ret);
         final DataList fl = JSonStorage.restoreFromString(str, new TypeRef<DataList>() {
         }, null);
         System.out.println(fl);

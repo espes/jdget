@@ -43,6 +43,8 @@ public class ZipIOReader {
     private int        zipEntriesSize        = -1;
     private ZipEntry[] zipEntries            = null;
 
+    private boolean    breakOnError          = true;
+
     public ZipIOReader(final byte[] byteArray) {
         this.byteArray = byteArray;
     }
@@ -94,7 +96,7 @@ public class ZipIOReader {
             if (this.isOverwrite()) {
                 Files.deleteRecursiv(output);
                 if (output.exists()) {
-                    if (isBreakOnError()) {
+                    if (this.isBreakOnError()) {
                         throw new IOException("Cannot extract File to Directory " + output);
                     } else {
                         Log.L.severe("Cannot extract File to Directory " + output);
@@ -112,7 +114,7 @@ public class ZipIOReader {
                 output.delete();
                 if (output.exists()) {
 
-                    if (isBreakOnError()) {
+                    if (this.isBreakOnError()) {
                         throw new IOException("Cannot overwrite File " + output);
                     } else {
                         Log.L.severe("Cannot overwrite File " + output);
@@ -132,7 +134,7 @@ public class ZipIOReader {
                 ret.add(output.getParentFile());
                 if (!output.getParentFile().exists()) {
 
-                    if (isBreakOnError()) {
+                    if (this.isBreakOnError()) {
                         throw new IOException("Cannot create folder for File " + output);
                     } else {
                         Log.L.severe("Cannot create folder for File " + output);
@@ -145,7 +147,7 @@ public class ZipIOReader {
                 return ret;
             }
         }
-        extract(entry, new FileOutputStream(output));
+        this.extract(entry, new FileOutputStream(output));
         ret.add(output);
         return ret;
     }
@@ -156,10 +158,10 @@ public class ZipIOReader {
      * @throws ZipIOException
      * @throws IOException
      */
-    public void extract(ZipEntry entry, OutputStream stream) throws ZipIOException, IOException {
+    public void extract(final ZipEntry entry, final OutputStream stream) throws ZipIOException, IOException {
         if (entry.isDirectory()) {
 
-            if (isBreakOnError()) {
+            if (this.isBreakOnError()) {
                 throw new ZipIOException("Cannot extract a directory", entry);
             } else {
                 Log.L.severe("Cannot extract a directory " + entry.getName());
@@ -177,7 +179,7 @@ public class ZipIOReader {
                 stream.write(buffer, 0, len);
             }
             if (entry.getCrc() != -1 && entry.getCrc() != in.getChecksum().getValue()) {
-                if (isBreakOnError()) {
+                if (this.isBreakOnError()) {
                     throw new ZipIOException("CRC32 Failed", entry);
                 } else {
                     Log.L.severe("CRC32 Failed " + entry);
@@ -201,14 +203,14 @@ public class ZipIOReader {
     public synchronized java.util.List<File> extractTo(final File outputDirectory) throws ZipIOException, IOException {
         if (outputDirectory.exists() && outputDirectory.isFile()) {
 
-            if (isBreakOnError()) {
+            if (this.isBreakOnError()) {
                 throw new IOException("cannot extract to a file " + outputDirectory);
             } else {
                 Log.L.severe("cannot extract to a file " + outputDirectory);
             }
         }
         if (!outputDirectory.exists() && !(this.autoCreateExtractPath && outputDirectory.mkdirs())) {
-            if (isBreakOnError()) {
+            if (this.isBreakOnError()) {
                 throw new IOException("could not create outputDirectory " + outputDirectory);
             } else {
                 Log.L.severe("could not create outputDirectory " + outputDirectory);
@@ -223,7 +225,7 @@ public class ZipIOReader {
                 if (!out.exists()) {
                     if (this.isAutoCreateSubDirs()) {
                         if (!out.mkdir()) {
-                            if (isBreakOnError()) {
+                            if (this.isBreakOnError()) {
                                 throw new IOException("could not create outputDirectory " + out);
                             } else {
                                 Log.L.severe("could not create outputDirectory " + out);
@@ -241,22 +243,6 @@ public class ZipIOReader {
             }
         }
         return ret;
-    }
-
-    private boolean breakOnError = true;
-
-    public boolean isBreakOnError() {
-        return breakOnError;
-    }
-
-    /**
-     * Set to true of you want to extract as many files as possible. if false,
-     * the first error throws an exception and interrupts the process
-     * 
-     * @param breakOnError
-     */
-    public void setBreakOnError(boolean breakOnError) {
-        this.breakOnError = breakOnError;
     }
 
     /**
@@ -314,8 +300,23 @@ public class ZipIOReader {
                         close = false;
                         return new InputStream() {
                             @Override
+                            public int available() throws IOException {
+                                return zis2.available();
+                            }
+
+                            @Override
                             public void close() throws IOException {
                                 zis2.close();
+                            }
+
+                            @Override
+                            public synchronized void mark(final int readlimit) {
+                                zis2.mark(readlimit);
+                            }
+
+                            @Override
+                            public boolean markSupported() {
+                                return zis2.markSupported();
                             }
 
                             @Override
@@ -331,6 +332,16 @@ public class ZipIOReader {
                             @Override
                             public int read(final byte b[], final int off, final int len) throws IOException {
                                 return zis2.read(b, off, len);
+                            }
+
+                            @Override
+                            public synchronized void reset() throws IOException {
+                                zis2.reset();
+                            }
+
+                            @Override
+                            public long skip(final long n) throws IOException {
+                                return zis2.skip(n);
                             }
 
                         };
@@ -487,6 +498,10 @@ public class ZipIOReader {
         return this.autoCreateSubDirs;
     }
 
+    public boolean isBreakOnError() {
+        return this.breakOnError;
+    }
+
     /**
      * @return
      */
@@ -514,6 +529,16 @@ public class ZipIOReader {
 
     public void setAutoCreateSubDirs(final boolean autoCreateSubDirs) {
         this.autoCreateSubDirs = autoCreateSubDirs;
+    }
+
+    /**
+     * Set to true of you want to extract as many files as possible. if false,
+     * the first error throws an exception and interrupts the process
+     * 
+     * @param breakOnError
+     */
+    public void setBreakOnError(final boolean breakOnError) {
+        this.breakOnError = breakOnError;
     }
 
     public void setOverwrite(final boolean overwrite) {

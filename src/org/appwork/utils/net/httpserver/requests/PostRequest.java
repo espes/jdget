@@ -173,7 +173,7 @@ public class PostRequest extends HttpRequest {
                      */
                     this.postParameters.add(new String[] { parameter.toString(), null });
                 } else {
-                    final String jsonParameter = JSonStorage.toString(parameter);
+                    final String jsonParameter = JSonStorage.serializeToJson(parameter);
                     this.postParameters.add(new String[] { jsonParameter, null });
                 }
             }

@@ -14,19 +14,20 @@ import org.appwork.storage.JSonStorage;
 
 /**
  * @author Thomas
- *
+ * 
  */
 public class RawJSonWrapper extends AbstractResponseWrapper<Object> {
 
-    
-    
-    /* (non-Javadoc)
-     * @see org.appwork.remoteapi.AbstractResponseWrapper#toString(java.lang.Object)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.remoteapi.AbstractResponseWrapper#toString(java.lang.Object)
      */
     @Override
     public String toString(final Object responseObject) {
 
-        return JSonStorage.toString(responseObject);
+        return JSonStorage.serializeToJson(responseObject);
     }
 
 }

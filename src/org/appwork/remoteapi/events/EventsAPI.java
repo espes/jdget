@@ -129,7 +129,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
         } catch (final InterruptedException e) {
         }
         try {
-            final byte[] bytes = JSonStorage.toString(eventStorables).getBytes("UTF-8");
+            final byte[] bytes = JSonStorage.serializeToJson(eventStorables).getBytes("UTF-8");
             response.setResponseCode(ResponseCode.SUCCESS_OK);
             RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), false, bytes);
         } catch (final Throwable e) {

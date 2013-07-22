@@ -17,6 +17,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.logging.Level;
 
 import javax.swing.filechooser.FileFilter;
@@ -53,27 +54,62 @@ import org.appwork.utils.swing.dialog.FileChooserType;
 
 public class CrossSystem {
 
+    public static enum OperatingSystem {
+        WINDOWS_8(OSFamily.WINDOWS),
+        WINDOWS_7(OSFamily.WINDOWS),
+        WINDOWS_XP(OSFamily.WINDOWS),
+        WINDOWS_VISTA(OSFamily.WINDOWS),
+        WINDOWS_2000(OSFamily.WINDOWS),
+        WINDOWS_2003(OSFamily.WINDOWS),
+        WINDOWS_SERVER_2008(OSFamily.WINDOWS),
+        WINDOWS_NT(OSFamily.WINDOWS),
+        WINDOWS_OTHERS(OSFamily.WINDOWS),
+        MAC(OSFamily.MAC),
+        OS2(OSFamily.OS2),
+        LINUX(OSFamily.LINUX);
+
+        private final OSFamily family;
+
+        private OperatingSystem(final OSFamily family) {
+
+            this.family = family;
+        }
+
+        public OSFamily getFamily() {
+            return this.family;
+        }
+    }
+
+    public static enum OSFamily {
+        WINDOWS,
+        LINUX,
+        MAC,
+        OTHERS,
+        OS2
+    }
+
     private static String         JAVAINT             = null;
+
     private static DesktopSupport DESKTOP_SUPPORT     = null;
 
     /**
      * Cache to store the OS string in
      */
     private final static String   OS_STRING;
-
     /**
      * Cache to store the Mime Class in
      */
     private static final Mime     MIME;
-
     private static String[]       BROWSER_COMMANDLINE = null;
     private static String[]       FILE_COMMANDLINE    = null;
     private static Boolean        OS64BIT             = null;
+
     public static OperatingSystem OS;
+
     static {
         /* Init OS_ID */
         OS_STRING = System.getProperty("os.name");
-        OS = CrossSystem.getOSByString(CrossSystem.OS_STRING);
+        CrossSystem.OS = CrossSystem.getOSByString(CrossSystem.OS_STRING);
 
         /* Init MIME */
         if (CrossSystem.isWindows()) {
@@ -99,69 +135,6 @@ public class CrossSystem {
             CrossSystem.DESKTOP_SUPPORT.openFile(file);
         }
 
-    }
-
-    public static enum OperatingSystem {
-        WINDOWS_8(OSFamily.WINDOWS),
-        WINDOWS_7(OSFamily.WINDOWS),
-        WINDOWS_XP(OSFamily.WINDOWS),
-        WINDOWS_VISTA(OSFamily.WINDOWS),
-        WINDOWS_2000(OSFamily.WINDOWS),
-        WINDOWS_2003(OSFamily.WINDOWS),
-        WINDOWS_SERVER_2008(OSFamily.WINDOWS),
-        WINDOWS_NT(OSFamily.WINDOWS),
-        WINDOWS_OTHERS(OSFamily.WINDOWS),
-        MAC(OSFamily.MAC),
-        OS2(OSFamily.OS2),
-        LINUX(OSFamily.LINUX);
-
-        private OSFamily family;
-
-        public OSFamily getFamily() {
-            return family;
-        }
-
-        private OperatingSystem(final OSFamily family) {
-
-            this.family = family;
-        }
-    }
-
-    /**
-     * @param osString
-     * @return
-     */
-    private static OperatingSystem getOSByString(final String osString) {
-        if (osString == null) {
-            /* fallback to latest Windows */
-            return OperatingSystem.WINDOWS_8;
-        }
-        final String os = osString.toLowerCase();
-        if (os.contains("windows 8")) {
-            return OperatingSystem.WINDOWS_8;
-        } else if (os.contains("windows 7")) {
-            return OperatingSystem.WINDOWS_7;
-        } else if (os.contains("windows xp")) {
-            return OperatingSystem.WINDOWS_XP;
-        } else if (os.contains("windows vista")) {
-            return OperatingSystem.WINDOWS_VISTA;
-        } else if (os.contains("windows 2000")) {
-            return OperatingSystem.WINDOWS_2000;
-        } else if (os.contains("windows 2003")) {
-            return OperatingSystem.WINDOWS_2003;
-        } else if (os.contains("windows server 2008")) {
-            return OperatingSystem.WINDOWS_SERVER_2008;
-        } else if (os.contains("nt")) {
-            return OperatingSystem.WINDOWS_NT;
-        } else if (os.contains("windows")) {
-            return OperatingSystem.WINDOWS_OTHERS;
-        } else if (os.contains("mac")) {
-            return OperatingSystem.MAC;
-        } else if (os.contains("OS/2")) {
-            return OperatingSystem.OS2;
-        } else {
-            return OperatingSystem.LINUX;
-        }
     }
 
     /**
@@ -309,12 +282,87 @@ public class CrossSystem {
         return CrossSystem.MIME;
     }
 
+    /**
+     * @return
+     */
+    public static OperatingSystem getOS() {
+        return CrossSystem.OS;
+    }
+
+    /**
+     * @param osString
+     * @return
+     */
+    private static OperatingSystem getOSByString(final String osString) {
+        if (osString == null) {
+            /* fallback to latest Windows */
+            return OperatingSystem.WINDOWS_8;
+        }
+        final String os = osString.toLowerCase();
+        if (os.contains("windows 8")) {
+            return OperatingSystem.WINDOWS_8;
+        } else if (os.contains("windows 7")) {
+            return OperatingSystem.WINDOWS_7;
+        } else if (os.contains("windows xp")) {
+            return OperatingSystem.WINDOWS_XP;
+        } else if (os.contains("windows vista")) {
+            return OperatingSystem.WINDOWS_VISTA;
+        } else if (os.contains("windows 2000")) {
+            return OperatingSystem.WINDOWS_2000;
+        } else if (os.contains("windows 2003")) {
+            return OperatingSystem.WINDOWS_2003;
+        } else if (os.contains("windows server 2008")) {
+            return OperatingSystem.WINDOWS_SERVER_2008;
+        } else if (os.contains("nt")) {
+            return OperatingSystem.WINDOWS_NT;
+        } else if (os.contains("windows")) {
+            return OperatingSystem.WINDOWS_OTHERS;
+        } else if (os.contains("mac")) {
+            return OperatingSystem.MAC;
+        } else if (os.contains("OS/2")) {
+            return OperatingSystem.OS2;
+        } else {
+            return OperatingSystem.LINUX;
+        }
+    }
+
+    /**
+     * Returns true if the OS is a linux system
+     * 
+     * @return
+     */
+    public static OSFamily getOSFamily() {
+        return CrossSystem.OS.getFamily();
+    }
+
     public static String getOSString() {
         return CrossSystem.OS_STRING;
     }
 
-    public static double getSystemCPUUsage() {
+    public static String[] getPathComponents(final File input) throws IOException {
+        final LinkedList<String> ret = new LinkedList<String>();
+        if (input != null) {
+            /*
+             * getCanonicalFile once, so we are sure all .././symlinks are
+             * evaluated
+             */
+            File file = input.getCanonicalFile();
+            final String seperator = File.separatorChar + "";
+            while (file != null) {
+                if (file.getPath().endsWith(seperator)) {
+                    // for example c:\ file.getName() would be "" in this case.
+                    ret.add(0, file.getPath());
+                    break;
+                } else {
+                    ret.add(0, file.getName());
+                }
+                file = file.getParentFile();
+            }
+        }
+        return ret.toArray(new String[] {});
+    }
 
+    public static double getSystemCPUUsage() {
         try {
             final java.lang.management.OperatingSystemMXBean operatingSystemMXBean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
             double sysload = operatingSystemMXBean.getSystemLoadAverage();
@@ -322,7 +370,6 @@ public class CrossSystem {
                 final java.lang.reflect.Method method = operatingSystemMXBean.getClass().getDeclaredMethod("getSystemCpuLoad", new Class[] {});
                 method.setAccessible(true);
                 sysload = (Double) method.invoke(operatingSystemMXBean, new Object[] {});
-
             }
             return sysload;
         } catch (final Throwable e) {
@@ -398,17 +445,8 @@ public class CrossSystem {
         return false;
     }
 
-    /**
-     * Returns true if the OS is a linux system
-     * 
-     * @return
-     */
-    public static OSFamily getOSFamily() {
-        return OS.getFamily();
-    }
-
     public static boolean isLinux() {
-        return OS.getFamily() == OSFamily.LINUX;
+        return CrossSystem.OS.getFamily() == OSFamily.LINUX;
     }
 
     /**
@@ -418,7 +456,7 @@ public class CrossSystem {
      */
 
     public static boolean isMac() {
-        return OS.getFamily() == OSFamily.LINUX;
+        return CrossSystem.OS.getFamily() == OSFamily.LINUX;
     }
 
     /**
@@ -440,7 +478,7 @@ public class CrossSystem {
     }
 
     public static boolean isOS2() {
-        return OS.getFamily() == OSFamily.OS2;
+        return CrossSystem.OS.getFamily() == OSFamily.OS2;
     }
 
     /**
@@ -449,7 +487,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isWindows() {
-        return OS.getFamily() == OSFamily.WINDOWS;
+        return CrossSystem.OS.getFamily() == OSFamily.WINDOWS;
     }
 
     private static boolean openCustom(final String[] custom, final String what) throws IOException {
@@ -607,7 +645,7 @@ public class CrossSystem {
 
             ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
                 {
-                    setHookPriority(Integer.MIN_VALUE);
+                    this.setHookPriority(Integer.MIN_VALUE);
                 }
 
                 @Override
@@ -675,21 +713,6 @@ public class CrossSystem {
         final String extension = new Regex(filename, "\\.+([^\\.]*$)").getMatch(0);
         final String name = new Regex(filename, "(.*?)(\\.+[^\\.]*$|$)").getMatch(0);
         return new String[] { name, extension };
-    }
-
-    public static enum OSFamily {
-        WINDOWS,
-        LINUX,
-        MAC,
-        OTHERS,
-        OS2
-    }
-
-    /**
-     * @return
-     */
-    public static OperatingSystem getOS() {
-        return OS;
     }
 
 }

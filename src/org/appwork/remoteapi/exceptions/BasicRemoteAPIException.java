@@ -68,7 +68,7 @@ public class BasicRemoteAPIException extends RequestException {
     public boolean handle(final HttpResponse response) throws IOException {
 
         byte[] bytes;
-        final String str = JSonStorage.toString(new DeviceErrorResponse(this.getType(), this.data));
+        final String str = JSonStorage.serializeToJson(new DeviceErrorResponse(this.getType(), this.data));
         bytes = str.getBytes("UTF-8");
         response.setResponseCode(this.getCode());
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text; charset=UTF-8"));

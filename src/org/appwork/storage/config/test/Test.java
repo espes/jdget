@@ -53,21 +53,23 @@ public class Test {
             final MyInterface jc = JsonConfig.create(MyInterface.class);
 
             HashSet<String> storedSet = jc.getSet();
-            if (storedSet == null) storedSet = new HashSet<String>();
+            if (storedSet == null) {
+                storedSet = new HashSet<String>();
+            }
             storedSet.add(System.currentTimeMillis() + "");
             jc.setSet(storedSet);
             //
             jc._getStorageHandler().getEventSender().addListener(new ConfigEventListener() {
 
                 @Override
-                public void onConfigValueModified(KeyHandler<Object> keyHandler, Object newValue) {
-                    System.out.println("New value: " + keyHandler);
+                public void onConfigValidatorError(final KeyHandler<Object> keyHandler, final Object invalidValue, final ValidationException validateException) {
+                    // TODO Auto-generated method stub
 
                 }
 
                 @Override
-                public void onConfigValidatorError(KeyHandler<Object> keyHandler, Object invalidValue, ValidationException validateException) {
-                    // TODO Auto-generated method stub
+                public void onConfigValueModified(final KeyHandler<Object> keyHandler, final Object newValue) {
+                    System.out.println("New value: " + keyHandler);
 
                 }
 
@@ -75,13 +77,13 @@ public class Test {
             MyInterface.INT.getEventSender().addListener(new GenericConfigEventListener<Integer>() {
 
                 @Override
-                public void onConfigValidatorError(KeyHandler<Integer> keyHandler, Integer invalidValue, ValidationException validateException) {
+                public void onConfigValidatorError(final KeyHandler<Integer> keyHandler, final Integer invalidValue, final ValidationException validateException) {
                     // TODO Auto-generated method stub
 
                 }
 
                 @Override
-                public void onConfigValueModified(KeyHandler<Integer> keyHandler, Integer newValue) {
+                public void onConfigValueModified(final KeyHandler<Integer> keyHandler, final Integer newValue) {
                     // TODO Auto-generated method stub
 
                 }
@@ -90,7 +92,7 @@ public class Test {
 
             double[] ar = jc.getDoubleArray();
             jc.setDoubleArray(new double[] { 1.2, 3.4, 5.6 });
-            System.out.println(JSonStorage.toString(jc.getObject()));
+            System.out.println(JSonStorage.serializeToJson(jc.getObject()));
             ar = jc.getDoubleArray();
             /*
              * 3. Use getters and setters as if your storage would be a normal
@@ -106,17 +108,17 @@ public class Test {
             list.add(new TestObject());
             jc.setGenericList(list);
             jc.setObject(o);
-            System.out.println(JSonStorage.toString(jc.getIntArray()));
-            System.out.println(JSonStorage.toString(jc.getObject()));
-            System.out.println(JSonStorage.toString(jc.getGenericList()));
+            System.out.println(JSonStorage.serializeToJson(jc.getIntArray()));
+            System.out.println(JSonStorage.serializeToJson(jc.getObject()));
+            System.out.println(JSonStorage.serializeToJson(jc.getGenericList()));
 
-            System.out.println(JSonStorage.toString(jc.getStringArray()));
+            System.out.println(JSonStorage.serializeToJson(jc.getStringArray()));
 
             /*
              * 4. get values by key
              */
 
-            StorageHandler<?> storageHandler = MyInterface.CFG._getStorageHandler();
+            final StorageHandler<?> storageHandler = MyInterface.CFG._getStorageHandler();
             System.out.println(storageHandler.getValue("Float"));
             System.out.println(MyInterface.CFG.getInt());
             // Set Statics in the interface to use compiletime checks
@@ -125,7 +127,7 @@ public class Test {
              */
             try {
                 MyInterface.CFG.setInt(2000);
-            } catch (ValidationException e) {
+            } catch (final ValidationException e) {
                 System.out.println("OK. 2000 is not valid for " + MyInterface.INT.getAnnotation(SpinnerValidator.class));
             }
             System.out.println("TEST SUCCESSFULL");

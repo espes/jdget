@@ -35,7 +35,7 @@ public class GenericArrayTest {
 
         System.out.println(simple);
         System.out.println(jackons);
-        System.out.println("SUCCESS: " + JSonStorage.toString(simple).equals(JSonStorage.toString(jackons)));
+        System.out.println("SUCCESS: " + JSonStorage.serializeToJson(simple).equals(JSonStorage.serializeToJson(jackons)));
         System.out.println("SUCCESS: " + EqualsBuilder.reflectionEquals(simple, jackons));
 
     }

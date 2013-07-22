@@ -490,8 +490,6 @@ public class JSonStorage {
                 return JSonStorage.JSON_MAPPER.objectToString(list);
             } catch (final Exception e) {
                 throw new StorageException(e);
-            } finally {
-
             }
         }
     }
@@ -510,8 +508,6 @@ public class JSonStorage {
                 JSonStorage.saveTo(string, JSonStorage.serializeToJson(list));
             } catch (final Exception e) {
                 throw new StorageException(e);
-            } finally {
-
             }
         }
     }
@@ -534,12 +530,15 @@ public class JSonStorage {
             }
         }
     }
-/**
- * USe this method for debug code only. IKt is NOT guaranteed that this method returns  json formated text.
- * Use {@link #serializeToJson(Object)} instead
- * @param list
- * @return
- */
+
+    /**
+     * USe this method for debug code only. It is NOT guaranteed that this
+     * method returns json formated text. Use {@link #serializeToJson(Object)}
+     * instead
+     * 
+     * @param list
+     * @return
+     */
     public static String toString(final Object list) {
         synchronized (JSonStorage.LOCK) {
             try {
