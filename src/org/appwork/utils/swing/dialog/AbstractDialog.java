@@ -476,7 +476,12 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             WINDOW_STACK.add(d);
             System.out.println("Window Stack Before " + WINDOW_STACK.size());
             for (final Window w : WINDOW_STACK) {
-                System.out.println(w.getName() + " - " + w);
+                if(w==null){
+                    System.out.println("Window null");
+                }else{
+                    System.out.println(w.getName() + " - " + w);
+                }
+        
             }
             try {
                 setVisible(true);
