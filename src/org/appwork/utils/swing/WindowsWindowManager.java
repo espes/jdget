@@ -17,7 +17,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
-import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -46,6 +45,7 @@ public class WindowsWindowManager extends WindowManager {
     private Robot                          robot;
     private String                         blocker;
     private HashMap<Window, ResetRunnable> runnerMap;
+    private int                            foregroundLock = -1;
 
     public String getBlocker() {
         return blocker;
@@ -75,6 +75,13 @@ public class WindowsWindowManager extends WindowManager {
     public WindowsWindowManager() {
 
         runnerMap = new HashMap<Window, ResetRunnable>();
+
+        try {
+            foregroundLock = readForegroundLockTimeout();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -127,6 +134,12 @@ public class WindowsWindowManager extends WindowManager {
             toFrontAltWorkaround(w, true);
 
             requestFocus(w);
+            break;
+            
+            
+        case TO_BACK:
+            setAlwaysOnTop(w, false);
+            toBack(w);
             break;
         default:
             hasListener = findListener(w);
@@ -185,31 +198,30 @@ public class WindowsWindowManager extends WindowManager {
             // Tested: WIN7
             // org.appwork.utils.swing.WindowsWindowManager.setVisible(Window,
             // boolean, boolean, boolean) method
-            if (requestFocus) {
-                final boolean isOn = Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_NUM_LOCK);
+            if (requestFocus && foregroundLock > 0) {
                 try {
 
-                    if (!isOn) {
-                        Toolkit.getDefaultToolkit().setLockingKeyState(KeyEvent.VK_NUM_LOCK, true);
-                    }
                     pressAlt();
 
                     toFront(w);
+                    //this may flicker on linux?
                     repaint(w);
 
                 } finally {
                     releaseAlt();
-                    Toolkit.getDefaultToolkit().setLockingKeyState(KeyEvent.VK_NUM_LOCK, isOn);
+
                 }
 
             } else {
                 toFront(w);
+                //this may flicker on linux?
                 repaint(w);
             }
 
         } catch (final Exception e) {
             e.printStackTrace();
             toFront(w);
+            //this may flicker on linux?
             repaint(w);
         }
     }
@@ -224,15 +236,14 @@ public class WindowsWindowManager extends WindowManager {
             // actually, we only need to asure that alt is pressed during
             // tofront
             // this would activte the window context menu.
-            // that's why we use alt+ctrl+shit+ü - let's hope that no
-            // application uses this shortcut. else we would trigger it when
-            // bringing a window to front.
+            // alt + shift is actually not a shortcut. only modifiers. so this
+            // one should not create problems
             // we probably need this workaround only if foregroundtimeoutlock
             // is>0
 
             robot.keyRelease(KeyEvent.VK_ALT);
             robot.keyRelease(KeyEvent.VK_SHIFT);
-            robot.keyRelease(KeyEvent.VK_NUMPAD1);
+            robot.keyRelease(KeyEvent.VK_CONTROL);
             robot = null;
         }
 
@@ -247,17 +258,15 @@ public class WindowsWindowManager extends WindowManager {
             robot = new Robot();
         }
 
-        System.out.println("key: Alt pressed");
+        System.out.println("key: Alt+sh pressed");
         // actually, we only need to asure that alt is pressed during tofront
         // this would activte the window context menu.
-        // that's why we use alt+ctrl+shit+ü - let's hope that no application
-        // uses this shortcut. else we would trigger it when bringing a window
-        // to front.
+        // alt + shift is actually not a shortcut. only modifiers. so this one
+        // should not create problems
         // we probably need this workaround only if foregroundtimeoutlock is>0
         robot.keyPress(KeyEvent.VK_ALT);
         robot.keyPress(KeyEvent.VK_SHIFT);
-        robot.keyPress(KeyEvent.VK_NUMPAD1);
-
+        robot.keyPress(KeyEvent.VK_CONTROL);
     }
 
     protected void repaint(final Window w) {

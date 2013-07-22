@@ -74,9 +74,9 @@ public abstract class BasicGui {
                                             }
 
                                             getFrame().setAlwaysOnTop(false);
-                                            WindowManager.getInstance().setZState(getFrame(),FrameState.TO_FRONT);
+                                            WindowManager.getInstance().setZState(getFrame(),FrameState.TO_FRONT_FOCUSED);
 //                                            WindowManager.getInstance().toFront(getFrame());
-                                            WindowManager.getInstance().setZState(getFrame(), FrameState.TO_FRONT_FOCUSED);
+//                                            WindowManager.getInstance().setZState(getFrame(), FrameState.TO_FRONT_FOCUSED);
 //
 //                                            WindowManager.getInstance().toFront(getFrame());
 //                                            WindowManager.getInstance().toFront(getFrame());
