@@ -191,8 +191,9 @@ public class WindowResetListener implements PropertySetListener, HierarchyListen
      * 
      */
     public void add() {
-        // w.addHierarchyListener(this);
-        w.addWindowListener(this);
+         w.addHierarchyListener(this);
+         // do not use the window opened listener. it is only called the FIRST time a window gets visible
+//        w.addWindowListener(this);
 
     }
 

@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import javax.swing.Timer;
 
 import org.appwork.swing.ExtJFrame;
+import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.StringUtils;
 
@@ -139,8 +140,7 @@ public class WindowsWindowManager extends WindowManager {
 
             requestFocus(w);
             break;
-            
-            
+
         case TO_BACK:
             setAlwaysOnTop(w, false);
             toBack(w);
@@ -208,7 +208,7 @@ public class WindowsWindowManager extends WindowManager {
                     pressAlt();
 
                     toFront(w);
-                    //this may flicker on linux?
+                    // this may flicker on linux?
                     repaint(w);
 
                 } finally {
@@ -218,14 +218,14 @@ public class WindowsWindowManager extends WindowManager {
 
             } else {
                 toFront(w);
-                //this may flicker on linux?
+                // this may flicker on linux?
                 repaint(w);
             }
 
         } catch (final Exception e) {
             e.printStackTrace();
             toFront(w);
-            //this may flicker on linux?
+            // this may flicker on linux?
             repaint(w);
         }
     }
@@ -316,7 +316,7 @@ public class WindowsWindowManager extends WindowManager {
     @Override
     public void setVisible(final Window w, final boolean visible, final FrameState state) {
 
-        if (w.isVisible()&&visible) {
+        if (w.isVisible() && visible) {
             setZState(w, state);
             return;
         }
@@ -330,7 +330,7 @@ public class WindowsWindowManager extends WindowManager {
                 setVisibleInternal(w, visible);
                 return;
             }
-            final WindowResetListener listener = assignWindowOpenListener(w, state);
+             assignWindowOpenListener(w, state);
 
             switch (state) {
             case TO_FRONT_FOCUSED:
@@ -345,10 +345,7 @@ public class WindowsWindowManager extends WindowManager {
                 setFocusable(w, false);
 
                 if (state != FrameState.TO_FRONT) {
-                    if (w instanceof Frame && false) {
-
-                        setExtendedState(((Frame) w), Frame.ICONIFIED);
-                    } else {
+                
                         // on some systems, the window comes to front, even of
                         // focusable and focusablewindowstate are false
                         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -365,7 +362,7 @@ public class WindowsWindowManager extends WindowManager {
                         p.y++;
                         setLocation(w, p);
 
-                    }
+                    
                     //
                 }
 
@@ -446,6 +443,7 @@ public class WindowsWindowManager extends WindowManager {
     }
 
     protected void addDebugListener(final Window w) {
+        if (Application.isJared(WindowsWindowManager.class)) { return; }
         w.addWindowFocusListener(new WindowFocusListener() {
 
             @Override

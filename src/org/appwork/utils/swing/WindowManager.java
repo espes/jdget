@@ -39,8 +39,8 @@ public abstract class WindowManager {
          * @return
          */
         public static WindowExtendedState get(final int state) {
-            if ((state & JFrame.NORMAL) != 0) { return NORMAL; }
             if ((state & JFrame.MAXIMIZED_BOTH) != 0) { return MAXIMIZED_BOTH; }
+            if ((state & JFrame.NORMAL) != 0) { return NORMAL; } 
             if ((state & JFrame.ICONIFIED) != 0) { return ICONIFIED; }
             return NORMAL;
         }
@@ -131,6 +131,14 @@ public abstract class WindowManager {
         }
         return false;
 
+    }
+
+    /**
+     * @return
+     */
+    public WindowExtendedState getExtendedState(final Frame w) {
+
+        return WindowExtendedState.get(w.getExtendedState());
     }
 
 }
