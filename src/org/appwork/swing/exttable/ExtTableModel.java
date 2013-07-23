@@ -152,7 +152,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     public void _fireTableStructureChanged(final List<E> newtableData, final boolean refreshSort) {
-        if (SwingUtilities.isEventDispatchThread()) {
+        if (this.isDebugTableModel() && SwingUtilities.isEventDispatchThread()) {
             Log.exception(new WTFException("_fireTableStructureChanged inside EDT! "));
         }
         if (refreshSort) {
@@ -788,7 +788,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     public List<E> refreshSort(final List<E> data) {
-        if (SwingUtilities.isEventDispatchThread()) {
+        if (this.isDebugTableModel() && SwingUtilities.isEventDispatchThread()) {
             Log.exception(new WTFException("refreshSort inside EDT! "));
         }
         try {
@@ -797,7 +797,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 sameTable = true;
             }
             final List<E> ret = this.sort(data, this.sortColumn);
-            if (this.tableData == ret && sameTable) {
+            if (this.isDebugTableModel() && this.tableData == ret && sameTable) {
                 Log.exception(new WTFException("WARNING: sorting on live backend!"));
             }
             if (ret == null) { return data; }
