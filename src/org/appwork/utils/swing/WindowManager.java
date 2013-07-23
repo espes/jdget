@@ -12,8 +12,6 @@ package org.appwork.utils.swing;
 import java.awt.Frame;
 import java.awt.Window;
 
-import javax.swing.JFrame;
-
 import org.appwork.utils.os.CrossSystem;
 
 /**
@@ -39,15 +37,15 @@ public abstract class WindowManager {
          * @return
          */
         public static WindowExtendedState get(final int state) {
-            if ((state & JFrame.MAXIMIZED_BOTH) != 0) { return MAXIMIZED_BOTH; }
-            if ((state & JFrame.NORMAL) != 0) { return NORMAL; } 
-            if ((state & JFrame.ICONIFIED) != 0) { return ICONIFIED; }
+            if ((state & Frame.MAXIMIZED_BOTH) != 0) { return MAXIMIZED_BOTH; }
+            if ((state & Frame.NORMAL) != 0) { return NORMAL; }
+            if ((state & Frame.ICONIFIED) != 0) { return ICONIFIED; }
             return NORMAL;
         }
 
     }
 
-    static WindowManager INSTANCE = createOsWindowManager();
+    static WindowManager INSTANCE = WindowManager.createOsWindowManager();
 
     /**
      * @return
@@ -56,62 +54,23 @@ public abstract class WindowManager {
         if (CrossSystem.isWindows()) {
             return new WindowsWindowManager();
         } else if (CrossSystem.isLinux()) {
-            return new DefaultWindowManager();
+            return new LinuxWindowManager();
         } else {
             return new DefaultWindowManager();
         }
 
     }
 
-    /**
-     * @param w
-     */
-    abstract public void setZState(Window w, FrameState state);
-
-    abstract public void setVisible(Window w, boolean visible, FrameState state);
-
-    public void setVisible(final Window w, final boolean visible) {
-        setVisible(w, visible, FrameState.OS_DEFAULT);
-    }
-
     public static WindowManager getInstance() {
-        return INSTANCE;
+        return WindowManager.INSTANCE;
     }
 
-    public void show(final Window w, final FrameState state) {
-        setVisible(w, true, state);
+    /**
+     * @return
+     */
+    public WindowExtendedState getExtendedState(final Frame w) {
 
-    }
-
-    public void hide(final Window w, final FrameState state) {
-        setVisible(w, false, state);
-
-    }
-
-    public void show(final Window w) {
-        setVisible(w, true, FrameState.OS_DEFAULT);
-
-    }
-
-    public void hide(final Window w) {
-        setVisible(w, false, FrameState.OS_DEFAULT);
-
-    }
-
-    public void setExtendedState(final Frame w, final WindowExtendedState state) {
-        if (state == null) { throw new NullPointerException("State is null"); }
-        switch (state) {
-        case NORMAL:
-            w.setExtendedState(JFrame.NORMAL);
-            break;
-        case ICONIFIED:
-            w.setExtendedState(JFrame.ICONIFIED);
-            break;
-        case MAXIMIZED_BOTH:
-            w.setExtendedState(JFrame.MAXIMIZED_BOTH);
-            break;
-        }
-
+        return WindowExtendedState.get(w.getExtendedState());
     }
 
     /**
@@ -133,12 +92,51 @@ public abstract class WindowManager {
 
     }
 
-    /**
-     * @return
-     */
-    public WindowExtendedState getExtendedState(final Frame w) {
+    public void hide(final Window w) {
+        this.setVisible(w, false, FrameState.OS_DEFAULT);
 
-        return WindowExtendedState.get(w.getExtendedState());
+    }
+
+    public void hide(final Window w, final FrameState state) {
+        this.setVisible(w, false, state);
+
+    }
+
+    public void setExtendedState(final Frame w, final WindowExtendedState state) {
+        if (state == null) { throw new NullPointerException("State is null"); }
+        switch (state) {
+        case NORMAL:
+            w.setExtendedState(Frame.NORMAL);
+            break;
+        case ICONIFIED:
+            w.setExtendedState(Frame.ICONIFIED);
+            break;
+        case MAXIMIZED_BOTH:
+            w.setExtendedState(Frame.MAXIMIZED_BOTH);
+            break;
+        }
+
+    }
+
+    public void setVisible(final Window w, final boolean visible) {
+        this.setVisible(w, visible, FrameState.OS_DEFAULT);
+    }
+
+    abstract public void setVisible(Window w, boolean visible, FrameState state);
+
+    /**
+     * @param w
+     */
+    abstract public void setZState(Window w, FrameState state);
+
+    public void show(final Window w) {
+        this.setVisible(w, true, FrameState.OS_DEFAULT);
+
+    }
+
+    public void show(final Window w, final FrameState state) {
+        this.setVisible(w, true, state);
+
     }
 
 }

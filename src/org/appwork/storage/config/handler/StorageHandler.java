@@ -535,9 +535,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     @SuppressWarnings("unchecked")
     public <E extends KeyHandler<?>> E getKeyHandler(final String key, final Class<E> class1) {
         final KeyHandler<?> ret = this.keyHandlerMap.get(key.toLowerCase(Locale.ENGLISH));
-        if (ret == null) { 
+        if (ret == null) {
             //
-            throw new NullPointerException("No KeyHandler: " + key + " in " + this.configInterface); }
+            throw new NullPointerException("No KeyHandler: " + key + " in " + this.configInterface);
+        }
         return (E) ret;
     }
 
@@ -1043,14 +1044,19 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             final int interval = this.getDelayedSaveInterval();
             final long maxInterval = this.getDelayedSaveMaxInterval();
             if (interval < 0) {
+                final DelayedRunnable ldelayedSaver = this.delayedSaver;
                 this.delayedSaver = null;
+                ldelayedSaver.stop();
             } else {
-
                 this.delayedSaver = new DelayedRunnable(StorageHandler.TIMINGQUEUE, interval, maxInterval) {
-
                     @Override
                     public void delayedrun() {
                         StorageHandler.this.write();
+                    }
+
+                    @Override
+                    public String getID() {
+                        return "StorageHandler_" + StorageHandler.this.getConfigInterface().getName();
                     }
                 };
             }
@@ -1058,7 +1064,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     public void write() {
-
         this.primitiveStorage.save();
     }
 

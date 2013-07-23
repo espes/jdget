@@ -63,72 +63,72 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
 
     public ProxyDialog(final HTTPProxy usedProxy, final String message) {
         super(Dialog.STYLE_HIDE_ICON, _AWU.T.proxydialog_title(), null, _AWU.T.lit_save(), _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL());
-        proxy = usedProxy;
+        this.proxy = usedProxy;
         this.message = message;
     }
 
     @Override
     public void actionPerformed(final ActionEvent e) {
-        if (e.getSource() == cmbType) {
+        if (e.getSource() == this.cmbType) {
 
-            switch (cmbType.getSelectedIndex()) {
+            switch (this.cmbType.getSelectedIndex()) {
             case 0:
                 // http
-                txtPass.setEnabled(true);
-                lblPass.setEnabled(true);
-                txtPort.setEnabled(true);
-                lblUser.setEnabled(true);
-                txtUser.setEnabled(true);
-                lblPort.setEnabled(true);
+                this.txtPass.setEnabled(true);
+                this.lblPass.setEnabled(true);
+                this.txtPort.setEnabled(true);
+                this.lblUser.setEnabled(true);
+                this.txtUser.setEnabled(true);
+                this.lblPort.setEnabled(true);
 
-                if (StringUtils.isEmpty(txtPort.getText())) {
-                    txtPort.setText("8080");
+                if (StringUtils.isEmpty(this.txtPort.getText())) {
+                    this.txtPort.setText("8080");
                 }
                 break;
             case 1:
                 // socks5
-                txtPass.setEnabled(true);
-                lblPass.setEnabled(true);
-                txtPort.setEnabled(true);
-                lblUser.setEnabled(true);
-                txtUser.setEnabled(true);
-                lblPort.setEnabled(true);
-                if (StringUtils.isEmpty(txtPort.getText())) {
-                    txtPort.setText("1080");
+                this.txtPass.setEnabled(true);
+                this.lblPass.setEnabled(true);
+                this.txtPort.setEnabled(true);
+                this.lblUser.setEnabled(true);
+                this.txtUser.setEnabled(true);
+                this.lblPort.setEnabled(true);
+                if (StringUtils.isEmpty(this.txtPort.getText())) {
+                    this.txtPort.setText("1080");
                 }
                 break;
             case 2:
                 // socks4
-                txtPass.setEnabled(false);
-                lblPass.setEnabled(false);
-                txtPort.setEnabled(true);
-                lblUser.setEnabled(true);
-                txtUser.setEnabled(true);
-                lblPort.setEnabled(true);
-                if (StringUtils.isEmpty(txtPort.getText())) {
-                    txtPort.setText("1080");
+                this.txtPass.setEnabled(false);
+                this.lblPass.setEnabled(false);
+                this.txtPort.setEnabled(true);
+                this.lblUser.setEnabled(true);
+                this.txtUser.setEnabled(true);
+                this.lblPort.setEnabled(true);
+                if (StringUtils.isEmpty(this.txtPort.getText())) {
+                    this.txtPort.setText("1080");
                 }
                 break;
             case 3:
                 // direct
-                txtPass.setEnabled(false);
-                lblPass.setEnabled(false);
-                txtPort.setEnabled(false);
-                lblUser.setEnabled(false);
-                txtUser.setEnabled(false);
-                lblPort.setEnabled(false);
+                this.txtPass.setEnabled(false);
+                this.lblPass.setEnabled(false);
+                this.txtPort.setEnabled(false);
+                this.lblUser.setEnabled(false);
+                this.txtUser.setEnabled(false);
+                this.lblPort.setEnabled(false);
                 break;
             default:
-                txtPass.setEnabled(false);
-                lblPass.setEnabled(false);
-                lblUser.setEnabled(true);
-                txtUser.setEnabled(true);
-                lblPort.setEnabled(true);
-                if (StringUtils.isEmpty(txtPort.getText())) {
-                    txtPort.setText("1080");
+                this.txtPass.setEnabled(false);
+                this.lblPass.setEnabled(false);
+                this.lblUser.setEnabled(true);
+                this.txtUser.setEnabled(true);
+                this.lblPort.setEnabled(true);
+                if (StringUtils.isEmpty(this.txtPort.getText())) {
+                    this.txtPort.setText("1080");
                 }
             }
-            cbAuth.updateDependencies();
+            this.cbAuth.updateDependencies();
 
         } else {
             super.actionPerformed(e);
@@ -142,10 +142,10 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
     public void caretUpdate(final CaretEvent e) {
         boolean enable = false;
         try {
-            if (cmbType.getSelectedIndex() != 2) {
-                if (txtHost.getDocument().getLength() > 0 && txtPort.getDocument().getLength() > 0) {
+            if (this.cmbType.getSelectedIndex() != 2) {
+                if (this.txtHost.getDocument().getLength() > 0 && this.txtPort.getDocument().getLength() > 0) {
                     try {
-                        final int port = Integer.parseInt(txtPort.getText());
+                        final int port = Integer.parseInt(this.txtPort.getText());
                         if (port > 0 && port < 65535) {
                             enable = true;
                         }
@@ -153,12 +153,12 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
                     }
                 }
             } else {
-                if (txtHost.getDocument().getLength() > 0) {
+                if (this.txtHost.getDocument().getLength() > 0) {
                     enable = true;
                 }
             }
         } finally {
-            okButton.setEnabled(enable);
+            this.okButton.setEnabled(enable);
         }
     }
 
@@ -167,30 +167,30 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
      */
     @Override
     protected HTTPProxy createReturnValue() {
-        final int mask = getReturnmask();
+        final int mask = this.getReturnmask();
         if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { return null; }
         if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { return null; }
         try {
 
             HTTPProxy.TYPE type = null;
-            if (cmbType.getSelectedIndex() == 0) {
+            if (this.cmbType.getSelectedIndex() == 0) {
                 type = HTTPProxy.TYPE.HTTP;
-            } else if (cmbType.getSelectedIndex() == 1) {
+            } else if (this.cmbType.getSelectedIndex() == 1) {
                 type = HTTPProxy.TYPE.SOCKS5;
-            } else if (cmbType.getSelectedIndex() == 2) {
+            } else if (this.cmbType.getSelectedIndex() == 2) {
                 type = HTTPProxy.TYPE.SOCKS4;
-            } else if (cmbType.getSelectedIndex() == 3) {
+            } else if (this.cmbType.getSelectedIndex() == 3) {
                 type = HTTPProxy.TYPE.DIRECT;
-                return HTTPProxy.parseHTTPProxy("direct://" + txtHost.getText());
+                return HTTPProxy.parseHTTPProxy("direct://" + this.txtHost.getText());
             } else {
                 return null;
             }
-            final HTTPProxy ret = new HTTPProxy(type, txtHost.getText(), Integer.parseInt(txtPort.getText().trim()));
-            if (proxy != null) {
-                ret.setPreferNativeImplementation(proxy.isPreferNativeImplementation());
+            final HTTPProxy ret = new HTTPProxy(type, this.txtHost.getText(), Integer.parseInt(this.txtPort.getText().trim()));
+            if (this.proxy != null) {
+                ret.setPreferNativeImplementation(this.proxy.isPreferNativeImplementation());
             }
-            ret.setPass(txtPass.getText());
-            ret.setUser(txtUser.getText());
+            ret.setPass(this.txtPass.getText());
+            ret.setUser(this.txtUser.getText());
             return ret;
         } catch (final Throwable e) {
             Log.exception(e);
@@ -202,10 +202,10 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
     public void dispose() {
         try {
             super.dispose();
-            delayer.stop();
+            this.delayer.stop();
         } finally {
             try {
-                executer.shutdown();
+                this.executer.shutdown();
             } catch (final Throwable e) {
             }
         }
@@ -216,7 +216,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
      */
     public String getHost() {
         // TODO Auto-generated method stub
-        return txtHost.getText();
+        return this.txtHost.getText();
     }
 
     /**
@@ -224,7 +224,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
      */
     public String getPass() {
         // TODO txtP-generated method stub
-        return txtPass.getText();
+        return this.txtPass.getText();
     }
 
     /**
@@ -232,7 +232,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
      */
     public int getPort() {
         try {
-            return Integer.parseInt(txtPort.getText());
+            return Integer.parseInt(this.txtPort.getText());
         } catch (final Exception e) {
             return -1;
         }
@@ -242,15 +242,15 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
      * @return
      */
     public HTTPProxy getProxy() {
-        final HTTPProxy ret = new HTTPProxy(getType());
-        ret.setHost(getHost());
-        ret.setPort(getPort());
-        if (proxy != null) {
-            ret.setPreferNativeImplementation(proxy.isPreferNativeImplementation());
+        final HTTPProxy ret = new HTTPProxy(this.getType());
+        ret.setHost(this.getHost());
+        ret.setPort(this.getPort());
+        if (this.proxy != null) {
+            ret.setPreferNativeImplementation(this.proxy.isPreferNativeImplementation());
         }
-        if (isAuthEnabled()) {
-            ret.setUser(getUser());
-            ret.setPass(getPass());
+        if (this.isAuthEnabled()) {
+            ret.setUser(this.getUser());
+            ret.setPass(this.getPass());
         }
         return ret;
     }
@@ -259,7 +259,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
      * @return
      */
     public TYPE getType() {
-        switch (cmbType.getSelectedIndex()) {
+        switch (this.cmbType.getSelectedIndex()) {
         case 0:
             // http
             return TYPE.HTTP;
@@ -271,7 +271,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
             // socks4
             return TYPE.SOCKS4;
         case 3:
-            if (StringUtils.isEmpty(txtHost.getText())) {
+            if (StringUtils.isEmpty(this.txtHost.getText())) {
                 return TYPE.NONE;
             } else {
                 return TYPE.DIRECT;
@@ -286,7 +286,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
      */
     public String getUser() {
         // TODO Auto-generated method stub
-        return txtUser.getText();
+        return this.txtUser.getText();
     }
 
     /**
@@ -294,36 +294,36 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
      */
     private boolean isAuthEnabled() {
 
-        return cbAuth.isSelected();
+        return this.cbAuth.isSelected();
     }
 
     public boolean isAuthRequired() {
-        return authRequired;
+        return this.authRequired;
     }
 
     @Override
     public JComponent layoutDialogContent() {
         final JPanel panel = new JPanel(new MigLayout("ins 0, wrap 4", "[][grow 10,fill][][grow 3,fill]"));
-        desc = new ExtTextArea();
-        desc.setText(message);
-        desc.setLabelMode(true);
-        cmbType = new JComboBox(types);
-        cmbType.addActionListener(this);
-        lblHost = new JLabel(_AWU.T.ProxyDialog_hostport());
-        desc.setFont(lblHost.getFont());
-        txtHost = new ExtTextField() {
+        this.desc = new ExtTextArea();
+        this.desc.setText(this.message);
+        this.desc.setLabelMode(true);
+        this.cmbType = new JComboBox(this.types);
+        this.cmbType.addActionListener(this);
+        this.lblHost = new JLabel(_AWU.T.ProxyDialog_hostport());
+        this.desc.setFont(this.lblHost.getFont());
+        this.txtHost = new ExtTextField() {
             @Override
             public void onChanged() {
 
-                if (delayer != null) {
-                    delayer.resetAndStart();
+                if (ProxyDialog.this.delayer != null) {
+                    ProxyDialog.this.delayer.resetAndStart();
                 }
 
             }
 
         };
-        executer = Executors.newSingleThreadScheduledExecutor();
-        delayer = new DelayedRunnable(executer, 2000) {
+        this.executer = Executors.newSingleThreadScheduledExecutor();
+        this.delayer = new DelayedRunnable(this.executer, 2000) {
 
             @Override
             public void delayedrun() {
@@ -331,62 +331,67 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
 
                     @Override
                     protected void runInEDT() {
-                        ProxyDialog.this.set(txtHost.getText());
+                        ProxyDialog.this.set(ProxyDialog.this.txtHost.getText());
 
                     }
                 };
 
             }
 
+            @Override
+            public String getID() {
+                return "ProxyDialog";
+            }
+
         };
-        txtHost.addCaretListener(this);
-        lblPort = new JLabel(":");
-        txtPort = new ExtTextField();
+        this.txtHost.addCaretListener(this);
+        this.lblPort = new JLabel(":");
+        this.txtPort = new ExtTextField();
 
-        txtPort.setText("8080");
-        txtPort.addCaretListener(this);
-        lblUser = new JLabel(_AWU.T.ProxyDialog_username());
-        txtUser = new ExtTextField();
+        this.txtPort.setText("8080");
+        this.txtPort.addCaretListener(this);
+        this.lblUser = new JLabel(_AWU.T.ProxyDialog_username());
+        this.txtUser = new ExtTextField();
 
-        lblPass = new JLabel(_AWU.T.ProxyDialog_password());
-        txtPass = new ExtPasswordField();
+        this.lblPass = new JLabel(_AWU.T.ProxyDialog_password());
+        this.txtPass = new ExtPasswordField();
 
         ;
-        cbAuth = new ExtCheckBox(txtUser, lblPass, txtPass, lblUser);
+        this.cbAuth = new ExtCheckBox(this.txtUser, this.lblPass, this.txtPass, this.lblUser);
 
-        txtHost.setHelpText(_AWU.T.ProxyDialog_hostport_help());
-        txtUser.setHelpText(_AWU.T.ProxyDialog_username_help());
-        txtPass.setHelpText(_AWU.T.ProxyDialog_password_help());
+        this.txtHost.setHelpText(_AWU.T.ProxyDialog_hostport_help());
+        this.txtUser.setHelpText(_AWU.T.ProxyDialog_username_help());
+        this.txtPass.setHelpText(_AWU.T.ProxyDialog_password_help());
 
         final JLabel lblCheckBox = new JLabel(_AWU.T.ProxyDialog_requires_auth());
         final MigPanel cbPanel = new MigPanel("ins 0", "[][grow]", "[]");
 
-        cbPanel.add(cbAuth);
+        cbPanel.add(this.cbAuth);
         cbPanel.add(lblCheckBox);
         // Layout#
 
-        panel.add(desc, "spanx,pushx,growx,gapbottom 10");
+        panel.add(this.desc, "spanx,pushx,growx,gapbottom 10");
         panel.add(new JLabel(_AWU.T.ProxyDialog_type()), "gapleft 10");
-        panel.add(cmbType, "spanx");
-        panel.add(lblHost, "gapleft 10");
-        panel.add(txtHost);
-        panel.add(lblPort);
-        panel.add(txtPort, "shrinkx");
+        panel.add(this.cmbType, "spanx");
+        panel.add(this.lblHost, "gapleft 10");
+        panel.add(this.txtHost);
+        panel.add(this.lblPort);
+        panel.add(this.txtPort, "shrinkx");
         panel.add(cbPanel, "spanx,gaptop 5,gapleft 5");
-        panel.add(lblUser, "gapleft 10");
-        panel.add(txtUser, "spanx");
+        panel.add(this.lblUser, "gapleft 10");
+        panel.add(this.txtUser, "spanx");
 
-        panel.add(lblPass, "gapleft 10");
-        panel.add(txtPass, "spanx");
+        panel.add(this.lblPass, "gapleft 10");
+        panel.add(this.txtPass, "spanx");
 
-        okButton.setEnabled(true);
-        registerFocus(txtPort);
-        registerFocus(txtUser);
-        registerFocus(txtHost);
+        this.okButton.setEnabled(true);
+        this.registerFocus(this.txtPort);
+        this.registerFocus(this.txtUser);
+        this.registerFocus(this.txtHost);
         // set(ClipboardMonitoring.getINSTANCE().getCurrentContent());
-        this.set(proxy);
-        cbAuth.setSelected(isAuthRequired());
-        cbAuth.updateDependencies();
+        this.set(this.proxy);
+        this.cbAuth.setSelected(this.isAuthRequired());
+        this.cbAuth.updateDependencies();
         return panel;
     }
 
@@ -423,31 +428,31 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
              */
             @Override
             protected void runInEDT() {
-                txtUser.setText(p.getUser());
+                ProxyDialog.this.txtUser.setText(p.getUser());
                 switch (p.getType()) {
                 case DIRECT:
                 case NONE:
-                    cmbType.setSelectedIndex(3);
-                    txtHost.setText(p.getLocalIP() == null ? "" : p.getLocalIP().getHostAddress());
+                    ProxyDialog.this.cmbType.setSelectedIndex(3);
+                    ProxyDialog.this.txtHost.setText(p.getLocalIP() == null ? "" : p.getLocalIP().getHostAddress());
 
                     break;
                 case HTTP:
-                    cmbType.setSelectedIndex(0);
-                    txtHost.setText(p.getHost());
-                    txtPort.setText(p.getPort() + "");
-                    txtUser.setText(p.getUser());
+                    ProxyDialog.this.cmbType.setSelectedIndex(0);
+                    ProxyDialog.this.txtHost.setText(p.getHost());
+                    ProxyDialog.this.txtPort.setText(p.getPort() + "");
+                    ProxyDialog.this.txtUser.setText(p.getUser());
                     break;
 
                 case SOCKS4:
-                    cmbType.setSelectedIndex(2);
-                    txtHost.setText(p.getHost());
-                    txtPort.setText(p.getPort() + "");
+                    ProxyDialog.this.cmbType.setSelectedIndex(2);
+                    ProxyDialog.this.txtHost.setText(p.getHost());
+                    ProxyDialog.this.txtPort.setText(p.getPort() + "");
                     break;
                 case SOCKS5:
-                    cmbType.setSelectedIndex(1);
-                    txtHost.setText(p.getHost());
-                    txtPort.setText(p.getPort() + "");
-                    txtUser.setText(p.getUser());
+                    ProxyDialog.this.cmbType.setSelectedIndex(1);
+                    ProxyDialog.this.txtHost.setText(p.getHost());
+                    ProxyDialog.this.txtPort.setText(p.getPort() + "");
+                    ProxyDialog.this.txtUser.setText(p.getUser());
                     break;
                 }
             }
@@ -456,24 +461,24 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
 
     protected void set(final String text) {
 
-        final int carPos = txtHost.getCaretPosition();
+        final int carPos = this.txtHost.getCaretPosition();
         String myText = text;
         if (myText.endsWith(":")) { return; }
         for (int i = 0; i < 2; i++) {
             try {
                 final URL url = new URL(myText);
-                txtHost.setText(url.getHost());
+                this.txtHost.setText(url.getHost());
                 if (url.getPort() > 0) {
-                    txtPort.setText(url.getPort() + "");
+                    this.txtPort.setText(url.getPort() + "");
                 }
                 final String userInfo = url.getUserInfo();
                 if (userInfo != null) {
                     final int in = userInfo.indexOf(":");
                     if (in >= 0) {
-                        txtUser.setText(userInfo.substring(0, in));
-                        txtPass.setText(userInfo.substring(in + 1));
+                        this.txtUser.setText(userInfo.substring(0, in));
+                        this.txtPass.setText(userInfo.substring(in + 1));
                     } else {
-                        txtUser.setText(userInfo);
+                        this.txtUser.setText(userInfo);
                     }
                 }
                 return;
@@ -484,7 +489,7 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
             }
         }
 
-        txtHost.setCaretPosition(carPos);
+        this.txtHost.setCaretPosition(carPos);
 
     }
 
@@ -492,13 +497,13 @@ public class ProxyDialog extends AbstractDialog<HTTPProxy> implements CaretListe
      * @param b
      */
     public void setAuthRequired(final boolean b) {
-        authRequired = b;
-        if (cbAuth != null) {
+        this.authRequired = b;
+        if (this.cbAuth != null) {
             new EDTRunner() {
 
                 @Override
                 protected void runInEDT() {
-                    cbAuth.setSelected(b);
+                    ProxyDialog.this.cbAuth.setSelected(b);
 
                 }
             };

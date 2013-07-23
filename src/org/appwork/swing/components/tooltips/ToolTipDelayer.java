@@ -18,18 +18,14 @@ import org.appwork.utils.swing.EDTRunner;
  */
 public class ToolTipDelayer extends DelayedRunnable {
 
-    private long delay;
-
-    public long getDelay() {
-        return delay;
-    }
+    private final long delay;
 
     /**
      * @param minDelayInMS
      */
-    public ToolTipDelayer(long minDelayInMS) {
+    public ToolTipDelayer(final long minDelayInMS) {
         super(ToolTipController.EXECUTER, minDelayInMS);
-        delay = minDelayInMS;
+        this.delay = minDelayInMS;
         // TODO ToolTipController.EXECUTER-generated constructor stub
     }
 
@@ -44,6 +40,15 @@ public class ToolTipDelayer extends DelayedRunnable {
             }
         };
 
+    }
+
+    public long getDelay() {
+        return this.delay;
+    }
+
+    @Override
+    public String getID() {
+        return "ToolTipDelayer";
     }
 
 }

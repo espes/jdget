@@ -10,9 +10,8 @@
 package org.appwork.storage.config;
 
 import java.lang.ref.WeakReference;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.appwork.scheduler.DelayedRunnable;
 
@@ -21,46 +20,11 @@ import org.appwork.scheduler.DelayedRunnable;
  * 
  */
 public class MinTimeWeakReference<T> extends WeakReference<T> {
-    static class DaemonThreadFactory implements ThreadFactory {
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r, "org.appwork.storage.config.MinTimeWeakReference.EXECUTER");
-            thread.setDaemon(true);
-            return thread;
-        }
-    }
 
-    private static final ScheduledExecutorService EXECUTER = Executors.newSingleThreadScheduledExecutor(new DaemonThreadFactory());
-
-    // private static final ReferenceQueue<? super Object> QUEUE = new
-    // ReferenceQueue<Object>();
-
+    private static final ScheduledThreadPoolExecutor EXECUTER = new ScheduledThreadPoolExecutor(1);
     static {
-
-        // new Thread() {
-        // @Override
-        // public void run() {
-        // while (true) {
-        //
-        // try {
-        // Thread.sleep(1000);
-        // } catch (final InterruptedException e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // }
-        // Reference<?> sv;
-        // while ((sv = MinTimeWeakReference.QUEUE.poll()) != null) {
-        // System.out.println("KILLED " + sv);
-        // }
-        // }
-        // }
-        // }.start();
-    }
-
-    /**
-     * @return the executer
-     */
-    public static ScheduledExecutorService getExecuter() {
-        return MinTimeWeakReference.EXECUTER;
+        MinTimeWeakReference.EXECUTER.setKeepAliveTime(10000, TimeUnit.MILLISECONDS);
+        MinTimeWeakReference.EXECUTER.allowCoreThreadTimeOut(true);
     }
 
     public static void main(final String[] args) {
@@ -115,6 +79,11 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
                 synchronized (MinTimeWeakReference.this) {
                     MinTimeWeakReference.this.hard = null;
                 }
+            }
+
+            @Override
+            public String getID() {
+                return "MinTimeWeakReference_" + id;
             }
 
         };
