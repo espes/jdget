@@ -929,11 +929,10 @@ public class Browser {
         return this.allowedResponseCodes;
     }
 
-    private String getBase(final String string) {
-        if (string == null) { return ""; }
-
-        final String base = this.getRegex("<base\\s*href=\"(.*?)\"").getMatch(0);
-        if (base != null) { return base; }
+    private String getBase() {
+        /* always use url from current connection */
+        // final String base = this.getRegex("<base\\s*href=\"(.*?)\"").getMatch(0);
+        // if (base != null) { return base; }
 
         final URL url = this.request.getHttpConnection().getURL();
         final String host = url.getHost();
@@ -1177,7 +1176,7 @@ public class Browser {
             new URL(string);
         } catch (final Exception e) {
             if (this.request == null || this.request.getHttpConnection() == null) { return string; }
-            final String base = this.getBase(string);
+            final String base = this.getBase();
             if (string.startsWith("/") || string.startsWith("\\")) {
                 try {
                     final URL bUrl = new URL(base);

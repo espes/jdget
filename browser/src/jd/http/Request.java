@@ -148,20 +148,20 @@ public abstract class Request {
      * default timeouts, because 0 is infinite and BAD, if we need 0 then we have to set it manually
      */
     protected int                  connectTimeout = 30000;
-
     protected int                  readTimeout    = 60000;
     protected Cookies              cookies        = null;
+
     protected RequestHeader        headers;
 
     protected String               htmlCode;
-
     protected URLConnectionAdapter httpConnection;
-    private long                   readTime       = -1;
 
+    private long                   readTime       = -1;
     protected boolean              requested      = false;
     protected HTTPProxy            proxy;
     protected String               orgURL;
     protected String               customCharset  = null;
+
     protected byte[]               byteArray      = null;
 
     protected boolean              contentDecoded = true;
