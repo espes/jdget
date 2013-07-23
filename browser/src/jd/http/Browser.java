@@ -485,7 +485,9 @@ public class Browser {
         String check = null;
         while (it.hasNext()) {
             check = it.next();
-            if (check.contains(host)) {
+            if (check == null) {
+                this.cookies.remove(null);
+            } else if (check.contains(host)) {
                 this.cookies.get(check).clear();
                 break;
             }
@@ -523,8 +525,7 @@ public class Browser {
      * @throws IOException
      */
     public void connect(final Request request) throws IOException {
-        // sets request BEVOR connection. this enhables to find the request in
-        // the protocol handlers
+        // sets request BEFORE connection. this enables to find the request in the protocol handlers
         this.request = request;
         try {
             Browser.waitForPageAccess(this, request);
@@ -1177,8 +1178,12 @@ public class Browser {
         } catch (final Exception e) {
             if (this.request == null || this.request.getHttpConnection() == null) { return string; }
             final String base = this.getBase();
-            if (string.startsWith("/") || string.startsWith("\\")) {
+            if (string.startsWith("/") || string.startsWith("\\") || string.startsWith("?")) {
                 try {
+                    if (string.startsWith("?") && this.getURL() != null) {
+                        // '?' requests are amendments from current browser URL, base shouldn't be determined by browser html or the code below.
+                        string  = this.getURL() + string;
+                    } else {
                     final URL bUrl = new URL(base);
                     String proto = "http://";
                     if (base.startsWith("https")) {
@@ -1189,6 +1194,7 @@ public class Browser {
                         portUse = ":" + bUrl.getPort();
                     }
                     string = proto + new URL(base).getHost() + portUse + string;
+                    }
                 } catch (final MalformedURLException e1) {
                     e1.printStackTrace();
                 }
