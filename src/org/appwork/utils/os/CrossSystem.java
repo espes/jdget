@@ -456,7 +456,7 @@ public class CrossSystem {
      */
 
     public static boolean isMac() {
-        return CrossSystem.OS.getFamily() == OSFamily.LINUX;
+        return CrossSystem.OS.getFamily() == OSFamily.MAC;
     }
 
     /**
