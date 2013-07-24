@@ -99,7 +99,6 @@ public class BasicRemoteAPIException extends Exception {
      * @throws IOException
      */
     public boolean handle(final HttpResponse response) throws IOException {
-
         byte[] bytes;
         final String str = JSonStorage.serializeToJson(new DeviceErrorResponse(getType(), data));
         bytes = str.getBytes("UTF-8");
