@@ -75,25 +75,34 @@ import org.appwork.utils.swing.dialog.locator.DialogLocator;
 
 public abstract class AbstractDialog<T> implements ActionListener, WindowListener, OKCancelCloseUserIODefinition {
 
-    private static int                            BUTTON_HEIGHT           = -1;
+    private static int                                    BUTTON_HEIGHT           = -1;
 
-    public static DialogLocator                   DEFAULT_LOCATOR         = null;
-    public static final DialogLocator             LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
+    public static DialogLocator                           DEFAULT_LOCATOR         = null;
+    public static final DialogLocator                     LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
 
-    private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN  = new HashMap<String, Integer>();
+    private static final HashMap<String, Integer>         SESSION_DONTSHOW_AGAIN  = new HashMap<String, Integer>();
 
-    public static final OwnerFinder               DEFAULT_OWNER_FINDER    = new OwnerFinder() {
+    public static final OwnerFinder                       DEFAULT_OWNER_FINDER    = new OwnerFinder() {
 
-                                                                              @Override
-                                                                              public Window findDialogOwner(final AbstractDialog<?> dialogModel, final WindowStack windowStack) {
-                                                                                  final Window ret = windowStack.size() == 0 ? null : windowStack.get(windowStack.size() - 1);
-                                                                                  System.out.println("Dialog Owner: " + ret);
-                                                                                  return ret;
-                                                                              }
+                                                                                      @Override
+                                                                                      public Window findDialogOwner(final AbstractDialog<?> dialogModel, final WindowStack windowStack) {
+                                                                                          final Window ret = windowStack.size() == 0 ? null : windowStack.get(windowStack.size() - 1);
+                                                                                          System.out.println("Dialog Owner: " + ret);
+                                                                                          return ret;
+                                                                                      }
 
-                                                                          };
-    private static OwnerFinder                    OWNER_FINDER            = DEFAULT_OWNER_FINDER;
-    public static FrameState                      WINDOW_STATE_ON_VISIBLE = FrameState.TO_FRONT_FOCUSED;
+                                                                                  };
+    private static OwnerFinder                            OWNER_FINDER            = AbstractDialog.DEFAULT_OWNER_FINDER;
+    public static FrameState                              WINDOW_STATE_ON_VISIBLE = FrameState.TO_FRONT_FOCUSED;
+
+    private static final WeakHashMap<Object, WindowStack> STACK_MAP               = new WeakHashMap<Object, WindowStack>();
+
+    /**
+     * @param desiredRootFrame
+     * @return
+     */
+
+    private static final Object                           NULL_KEY                = new Object();
 
     public static int getButtonHeight() {
         return AbstractDialog.BUTTON_HEIGHT;
@@ -103,10 +112,40 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         return AbstractDialog.DEFAULT_LOCATOR;
     }
 
+    /**
+     * @return
+     */
+    public static Window getDefaultRoot() {
+        final WindowStack stack = AbstractDialog.getWindowStackByRoot(null);
+        return stack.size() == 0 ? null : stack.get(0);
+    }
+
+    /**
+     * @return
+     */
+    public static OwnerFinder getGlobalOwnerFinder() {
+
+        return AbstractDialog.OWNER_FINDER;
+    }
+
     public static Integer getSessionDontShowAgainValue(final String key) {
         final Integer ret = AbstractDialog.SESSION_DONTSHOW_AGAIN.get(key);
         if (ret == null) { return -1; }
 
+        return ret;
+    }
+
+    private static WindowStack getWindowStackByRoot(final Window desiredRootFrame) {
+
+        Object key = desiredRootFrame;
+        if (key == null || !desiredRootFrame.isVisible()) {
+            key = AbstractDialog.NULL_KEY;
+        }
+        WindowStack ret = AbstractDialog.STACK_MAP.get(key);
+        if (ret == null) {
+            ret = new WindowStack(desiredRootFrame);
+            AbstractDialog.STACK_MAP.put(key, ret);
+        }
         return ret;
     }
 
@@ -131,7 +170,19 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         AbstractDialog.DEFAULT_LOCATOR = dEFAULT_LOCATOR;
     }
 
+    /**
+     * @param frame
+     */
+    public static void setDefaultRoot(final Window frame) {
+        AbstractDialog.getWindowStackByRoot(null).reset(frame);
+    }
+
+    public static void setGlobalOwnerFinder(final OwnerFinder finder) {
+        AbstractDialog.OWNER_FINDER = finder == null ? AbstractDialog.DEFAULT_OWNER_FINDER : finder;
+    }
+
     protected AbstractAction[] actions                = null;
+
     protected JButton          cancelButton;
 
     private final String       cancelOption;
@@ -215,10 +266,10 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     protected void _init() {
 
-        layoutDialog();
+        this.layoutDialog();
 
         if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_COUNTDOWN)) {
-            timerLbl.addMouseListener(new MouseAdapter() {
+            this.timerLbl.addMouseListener(new MouseAdapter() {
 
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -227,11 +278,12 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 }
 
             });
-            timerLbl.setToolTipText(_AWU.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
+            this.timerLbl.setToolTipText(_AWU.T.TIMERDIALOG_TOOLTIP_TIMERLABEL());
 
-            timerLbl.setIcon(AWUTheme.I().getIcon("dialog/cancel", 16));
+            this.timerLbl.setIcon(AWUTheme.I().getIcon("dialog/cancel", 16));
         }
-
+        WindowStack windowStack = null;
+        InternDialog<T> dialog = null;
         try {
 
             this.setTitle(this.title);
@@ -263,8 +315,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             // Layout manager
 
             // Dispose dialog on close
-            getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-            getDialog().addWindowListener(this);
+            this.getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            this.getDialog().addWindowListener(this);
             this.defaultButtonFocusListener = new FocusListener() {
 
                 @Override
@@ -304,21 +356,21 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             // add icon if available
             if (this.icon != null) {
-                getDialog().setLayout(new MigLayout("ins 5,wrap 2", "[][grow,fill]", "[grow,fill][]"));
-                getDialog().add(this.getIconComponent(), this.getIconConstraints());
+                this.getDialog().setLayout(new MigLayout("ins 5,wrap 2", "[][grow,fill]", "[grow,fill][]"));
+                this.getDialog().add(this.getIconComponent(), this.getIconConstraints());
             } else {
-                getDialog().setLayout(new MigLayout("ins 5,wrap 1", "[grow,fill]", "[grow,fill][]"));
+                this.getDialog().setLayout(new MigLayout("ins 5,wrap 1", "[grow,fill]", "[grow,fill][]"));
             }
             // Layout the dialog content and add it to the contentpane
             this.panel = this.layoutDialogContent();
 
-            getDialog().add(this.panel, "");
+            this.getDialog().add(this.panel, "");
 
             // add the countdown timer
             final MigPanel bottom = this.createBottomPanel();
             bottom.setOpaque(false);
 
-            bottom.add(timerLbl);
+            bottom.add(this.timerLbl);
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
                 this.dontshowagain = new JCheckBox(this.getDontShowAgainLabelText());
@@ -335,7 +387,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             if ((this.flagMask & UIOManager.BUTTONS_HIDE_OK) == 0) {
 
                 // Set OK as defaultbutton
-                getDialog().getRootPane().setDefaultButton(this.okButton);
+                this.getDialog().getRootPane().setDefaultButton(this.okButton);
                 this.okButton.addHierarchyListener(new HierarchyListener() {
                     public void hierarchyChanged(final HierarchyEvent e) {
                         if ((e.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0) {
@@ -357,7 +409,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                 this.defaultButtons.addCancelButton(this.cancelButton);
                 if (BinaryLogic.containsAll(this.flagMask, UIOManager.BUTTONS_HIDE_OK)) {
-                    getDialog().getRootPane().setDefaultButton(this.cancelButton);
+                    this.getDialog().getRootPane().setDefaultButton(this.cancelButton);
 
                     // focus is on cancel if OK is hidden
                     focus = this.cancelButton;
@@ -367,16 +419,16 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_COUNTDOWN)) {
                 // show timer
-                initTimer(getCountdown());
+                this.initTimer(this.getCountdown());
             } else {
-                timerLbl.setText(null);
+                this.timerLbl.setText(null);
             }
-            getDialog().add(bottom, "spanx,growx,pushx");
+            this.getDialog().add(bottom, "spanx,growx,pushx");
             // pack dialog
-            getDialog().invalidate();
+            this.getDialog().invalidate();
             // this.setMinimumSize(this.getPreferredSize());
 
-            getDialog().setResizable(this.isResizable());
+            this.getDialog().setResizable(this.isResizable());
 
             // minimum size foir a dialog
 
@@ -389,11 +441,11 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             // this.setSize(this.getDesiredSize());
             // }
 
-            pack();
+            this.pack();
             if (this.dimensor != null) {
                 final Dimension ret = this.dimensor.getDimension(AbstractDialog.this);
                 if (ret != null) {
-                    getDialog().setSize(ret);
+                    this.getDialog().setSize(ret);
                 }
 
             }// register an escape listener to cancel the dialog
@@ -409,10 +461,10 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 e.printStackTrace();
             }
             if (loc != null) {
-                getDialog().setLocation(loc);
+                this.getDialog().setLocation(loc);
             } else {
                 try {
-                    getDialog().setLocation(AbstractDialog.LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(this));
+                    this.getDialog().setLocation(AbstractDialog.LOCATE_CENTER_OF_SCREEN.getLocationOnScreen(this));
                 } catch (final Exception e) {
                     e.printStackTrace();
                 }
@@ -434,7 +486,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             // ((Window) getDialog().getParent()).setAlwaysOnTop(true);
             // ((Window) getDialog().getParent()).setAlwaysOnTop(false);
             // }
-            getDialog().addComponentListener(new ComponentListener() {
+            this.getDialog().addComponentListener(new ComponentListener() {
 
                 @Override
                 public void componentHidden(final ComponentEvent e) {
@@ -460,9 +512,9 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                     System.out.println(AbstractDialog.this.orgLocationOnScreen);
                 }
             });
-            final InternDialog<T> d = getDialog();
-            final WindowStack windowStack = getWindowStackByRoot(getDesiredRootFrame());
-            windowStack.add(d);
+            dialog = this.getDialog();
+            windowStack = AbstractDialog.getWindowStackByRoot(this.getDesiredRootFrame());
+            windowStack.add(dialog);
             System.out.println("Window Stack Before " + windowStack.size());
             for (final Window w : windowStack) {
                 if (w == null) {
@@ -470,31 +522,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 } else {
                     System.out.println(w.getName() + " - " + w);
                 }
-
             }
-            try {
-                setVisible(true);
-            } finally {
-
-                if (getDialog().getModalityType() != ModalityType.MODELESS) {
-                    this.dispose();
-                } else {
-                    final int i = windowStack.lastIndexOf(d);
-                    if (i >= 0) {
-                        windowStack.remove(i);
-                        System.out.println("Window Stack After " + windowStack.size());
-                        for (final Window w : windowStack) {
-                            if (w == null) {
-                                System.out.println("Window null");
-                            } else {
-                                System.out.println(w.getName() + " - " + w);
-                            }
-                        }
-
-                    }
-                }
-            }
-
+            this.setVisible(true);
             // if the dt has been interrupted,s setVisible will return even for
 
             // modal dialogs
@@ -518,7 +547,24 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             // this.dispose();
             // }
         } finally {
-            // System.out.println("SET OLD");
+            if (this.getDialog().getModalityType() != ModalityType.MODELESS) {
+                this.dispose();
+            } else {
+                if (windowStack != null && dialog != null) {
+                    final int i = windowStack.lastIndexOf(dialog);
+                    if (i >= 0) {
+                        windowStack.remove(i);
+                        System.out.println("Window Stack After " + windowStack.size());
+                        for (final Window w : windowStack) {
+                            if (w == null) {
+                                System.out.println("Window null");
+                            } else {
+                                System.out.println(w.getName() + " - " + w);
+                            }
+                        }
+                    }
+                }
+            }
 
         }
 
@@ -562,11 +608,11 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * interrupts the timer countdown
      */
     public void cancel() {
-        if (!isCountdownPausable()) { return; }
-        if (timer != null) {
-            timer.interrupt();
-            timer = null;
-            timerLbl.setEnabled(false);
+        if (!this.isCountdownPausable()) { return; }
+        if (this.timer != null) {
+            this.timer.interrupt();
+            this.timer = null;
+            this.timerLbl.setEnabled(false);
         }
     }
 
@@ -614,15 +660,15 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     public void dispose() {
 
-        if (this.dummyInit && dialog == null) { return; }
+        if (this.dummyInit && this.dialog == null) { return; }
         if (!this.initialized) { throw new IllegalStateException("Dialog has not been initialized yet. call displayDialog()"); }
 
         new EDTRunner() {
 
             @Override
             protected void runInEDT() {
-                final WindowStack windowStack = getWindowStackByRoot(getDesiredRootFrame());
-                final int i = windowStack.lastIndexOf(getDialog());
+                final WindowStack windowStack = AbstractDialog.getWindowStackByRoot(AbstractDialog.this.getDesiredRootFrame());
+                final int i = windowStack.lastIndexOf(AbstractDialog.this.getDialog());
                 if (i >= 0) {
                     windowStack.remove(i);
                     System.out.println("Window Stack After " + windowStack.size());
@@ -635,9 +681,9 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                     }
 
                 }
-                if (isDisposed()) { return; }
+                if (AbstractDialog.this.isDisposed()) { return; }
 
-                setDisposed(true);
+                AbstractDialog.this.setDisposed(true);
                 if (AbstractDialog.this.getDialog().isVisible()) {
                     try {
                         AbstractDialog.this.getLocator().onClose(AbstractDialog.this);
@@ -653,8 +699,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                     }
                 }
 
-                setDisposed(true);
-                getDialog().realDispose();
+                AbstractDialog.this.setDisposed(true);
+                AbstractDialog.this.getDialog().realDispose();
 
                 if (AbstractDialog.this.timer != null) {
                     AbstractDialog.this.timer.interrupt();
@@ -690,7 +736,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                          */
                         if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_CANCEL) && BinaryLogic.containsAll(ret, Dialog.RETURN_CANCEL)) { return false; }
                         if (BinaryLogic.containsAll(this.flagMask, UIOManager.LOGIC_DONT_SHOW_AGAIN_IGNORES_OK) && BinaryLogic.containsAll(ret, Dialog.RETURN_OK)) { return false; }
-                        if (isDeveloperMode() && isDisposed() && returnBitMask != ret) { throw new IllegalStateException("Dialog already disposed"); }
+                        if (this.isDeveloperMode() && this.isDisposed() && this.returnBitMask != ret) { throw new IllegalStateException("Dialog already disposed"); }
                         this.returnBitMask = ret;
                         return true;
                     }
@@ -716,7 +762,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     protected Color getBackground() {
         // TODO Auto-generated method stub
-        return getDialog().getBackground();
+        return this.getDialog().getBackground();
     }
 
     @Override
@@ -735,8 +781,20 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @return the timeout a dialog actually should display
      */
     public long getCountdown() {
-        return getTimeout() > 0 ? getTimeout() : Dialog.getInstance().getDefaultTimeout();
+        return this.getTimeout() > 0 ? this.getTimeout() : Dialog.getInstance().getDefaultTimeout();
     }
+
+    // /**
+    // * should be overwritten and return a Dimension of the dialog should have
+    // a
+    // * special size
+    // *
+    // * @return
+    // */
+    // protected Dimension getDesiredSize() {
+    //
+    // return null;
+    // }
 
     /**
      * @return
@@ -753,9 +811,17 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     }
 
+    /**
+     * @return
+     */
+    protected Window getDesiredRootFrame() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     public InternDialog<T> getDialog() {
-        if (dialog == null) { throw new NullPointerException("Call #org.appwork.utils.swing.dialog.AbstractDialog.displayDialog() first"); }
-        return dialog;
+        if (this.dialog == null) { throw new NullPointerException("Call #org.appwork.utils.swing.dialog.AbstractDialog.displayDialog() first"); }
+        return this.dialog;
     }
 
     public DialogDimensor getDimensor() {
@@ -789,18 +855,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         return this.icon;
     }
 
-    // /**
-    // * should be overwritten and return a Dimension of the dialog should have
-    // a
-    // * special size
-    // *
-    // * @return
-    // */
-    // protected Dimension getDesiredSize() {
-    //
-    // return null;
-    // }
-
     /**
      * @return
      */
@@ -808,7 +862,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         this.iconLabel = new JLabel(this.icon);
         // iconLabel.setVerticalAlignment(JLabel.TOP);
         return this.iconLabel;
-    }
+    };
 
     /**
      * @return
@@ -879,49 +933,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public Window getOwner() {
 
-        return getGlobalOwnerFinder().findDialogOwner(this, getWindowStackByRoot(getDesiredRootFrame()));
-    }
-
-    private static final WeakHashMap<Object, WindowStack> STACK_MAP = new WeakHashMap<Object, WindowStack>();
-    /**
-     * @param desiredRootFrame
-     * @return
-     */
-
-    private static final Object                           NULL_KEY  = new Object();                           ;
-
-    private static WindowStack getWindowStackByRoot(final Window desiredRootFrame) {
-
-        Object key = desiredRootFrame;
-        if (key == null || !desiredRootFrame.isVisible()) {
-            key = NULL_KEY;
-        }
-        WindowStack ret = STACK_MAP.get(key);
-        if (ret == null) {
-            ret = new WindowStack(desiredRootFrame);
-            STACK_MAP.put(key, ret);
-        }
-        return ret;
-    }
-
-    /**
-     * @return
-     */
-    protected Window getDesiredRootFrame() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @return
-     */
-    public static OwnerFinder getGlobalOwnerFinder() {
-
-        return OWNER_FINDER;
-    }
-
-    public static void setGlobalOwnerFinder(final OwnerFinder finder) {
-        OWNER_FINDER = finder == null ? DEFAULT_OWNER_FINDER : finder;
+        return AbstractDialog.getGlobalOwnerFinder().findDialogOwner(this, AbstractDialog.getWindowStackByRoot(this.getDesiredRootFrame()));
     }
 
     /**
@@ -939,10 +951,10 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public Dimension getPreferredSize() {
 
-        final Dimension pref = getRawPreferredSize();
+        final Dimension pref = this.getRawPreferredSize();
 
-        int w = getPreferredWidth();
-        int h = getPreferredHeight();
+        int w = this.getPreferredWidth();
+        int h = this.getPreferredHeight();
         if (w <= 0) {
             w = pref.width;
         }
@@ -975,7 +987,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public Dimension getRawPreferredSize() {
 
-        return getDialog().getRawPreferredSize();
+        return this.getDialog().getRawPreferredSize();
     }
 
     /**
@@ -995,7 +1007,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public int getTimeout() {
-        return timeout;
+        return this.timeout;
     }
 
     /**
@@ -1003,7 +1015,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public String getTitle() {
         try {
-            return getDialog().getTitle();
+            return this.getDialog().getTitle();
         } catch (final NullPointerException e) {
             // not initialized yet
             return this.title;
@@ -1012,12 +1024,20 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     /**
+     * @return
+     */
+    protected FrameState getWindowStateOnVisible() {
+
+        return AbstractDialog.WINDOW_STATE_ON_VISIBLE;
+    }
+
+    /**
      * 
      * @return if the dialog has been moved by the user
      */
     public boolean hasBeenMoved() {
 
-        return this.orgLocationOnScreen != null && !getDialog().getLocationOnScreen().equals(this.orgLocationOnScreen);
+        return this.orgLocationOnScreen != null && !this.getDialog().getLocationOnScreen().equals(this.orgLocationOnScreen);
     }
 
     /**
@@ -1025,18 +1045,12 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     protected void initFocus(final JComponent focus) {
 
-        getDialog().addWindowFocusListener(new WindowFocusListener() {
-
-            @Override
-            public void windowLostFocus(final WindowEvent windowevent) {
-                // TODO Auto-generated method stub
-
-            }
+        this.getDialog().addWindowFocusListener(new WindowFocusListener() {
 
             @Override
             public void windowGainedFocus(final WindowEvent windowevent) {
                 System.out.println("Focus rquest!");
-                final Component focusOwner = getDialog().getFocusOwner();
+                final Component focusOwner = AbstractDialog.this.getDialog().getFocusOwner();
                 if (focusOwner != null) {
                     // dialog component has already focus...
                     return;
@@ -1044,13 +1058,19 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 final boolean success = focus.requestFocusInWindow();
 
             }
+
+            @Override
+            public void windowLostFocus(final WindowEvent windowevent) {
+                // TODO Auto-generated method stub
+
+            }
         });
 
     }
 
     protected void initTimer(final long time) {
-        counter = time / 1000;
-        timer = new Thread() {
+        this.counter = time / 1000;
+        this.timer = new Thread() {
 
             @Override
             public void run() {
@@ -1063,13 +1083,13 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                             break;
                         }
                     }
-                    long count = counter;
+                    long count = AbstractDialog.this.counter;
                     while (--count >= 0) {
                         if (!AbstractDialog.this.isVisible()) {
                             //
                             return;
                         }
-                        if (timer == null) {
+                        if (AbstractDialog.this.timer == null) {
                             //
                             return;
                         }
@@ -1079,7 +1099,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                             @Override
                             public Object edtRun() {
-                                timerLbl.setText(left);
+                                AbstractDialog.this.timerLbl.setText(left);
                                 return null;
                             }
 
@@ -1087,7 +1107,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                         Thread.sleep(1000);
 
-                        if (counter < 0) {
+                        if (AbstractDialog.this.counter < 0) {
                             //
                             return;
                         }
@@ -1097,11 +1117,11 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                         }
 
                     }
-                    if (counter < 0) {
+                    if (AbstractDialog.this.counter < 0) {
                         //
                         return;
                     }
-                    if (!isInterrupted()) {
+                    if (!this.isInterrupted()) {
                         AbstractDialog.this.onTimeout();
                     }
                 } catch (final InterruptedException e) {
@@ -1111,7 +1131,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
         };
 
-        timer.start();
+        this.timer.start();
     }
 
     /**
@@ -1123,8 +1143,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             @Override
             protected void runInEDT() {
-                if (!isInitialized()) { return; }
-                if (isDisposed() && returnBitMask != (Dialog.RETURN_CLOSED | Dialog.RETURN_INTERRUPT) && isDeveloperMode()) {
+                if (!AbstractDialog.this.isInitialized()) { return; }
+                if (AbstractDialog.this.isDisposed() && AbstractDialog.this.returnBitMask != (Dialog.RETURN_CLOSED | Dialog.RETURN_INTERRUPT) && AbstractDialog.this.isDeveloperMode()) {
 
                 throw new IllegalStateException("Dialog already disposed");
 
@@ -1137,6 +1157,10 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     }
 
+    public boolean isCallerIsEDT() {
+        return this.callerIsEDT;
+    }
+
     /**
      * @return
      * 
@@ -1147,7 +1171,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public boolean isCountdownPausable() {
-        return countdownPausable;
+        return this.countdownPausable;
     }
 
     /**
@@ -1159,7 +1183,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public boolean isDisposed() {
-        return disposed;
+        return this.disposed;
     }
 
     /**
@@ -1207,23 +1231,23 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     protected boolean isVisible() {
         // TODO Auto-generated method stub
-        return getDialog().isVisible();
+        return this.getDialog().isVisible();
     }
 
     protected void layoutDialog() {
         Dialog.getInstance().initLaf();
-        ModalityType modality = getModalityType();
-        if (isCallerIsEDT()) {
+        ModalityType modality = this.getModalityType();
+        if (this.isCallerIsEDT()) {
             modality = ModalityType.APPLICATION_MODAL;
         }
-        dialog = new InternDialog<T>(this, modality);
+        this.dialog = new InternDialog<T>(this, modality);
 
-        if (preferredSize != null) {
-            dialog.setPreferredSize(preferredSize);
+        if (this.preferredSize != null) {
+            this.dialog.setPreferredSize(this.preferredSize);
         }
 
-        timerLbl = new JLabel(TimeFormatter.formatSeconds(getCountdown(), 0));
-        timerLbl.setEnabled(isCountdownPausable());
+        this.timerLbl = new JLabel(TimeFormatter.formatSeconds(this.getCountdown(), 0));
+        this.timerLbl.setEnabled(this.isCountdownPausable());
 
     }
 
@@ -1236,7 +1260,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     public void onSetVisible(final boolean b) {
 
-        if (!b && getDialog().isVisible()) {
+        if (!b && this.getDialog().isVisible()) {
             try {
                 this.getLocator().onClose(AbstractDialog.this);
             } catch (final Exception e) {
@@ -1259,7 +1283,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     public void onTimeout() {
         this.setReturnmask(false);
-        if (isDeveloperMode() && isDisposed()) { throw new IllegalStateException("Dialog is already Disposed"); }
+        if (this.isDeveloperMode() && this.isDisposed()) { throw new IllegalStateException("Dialog is already Disposed"); }
         this.returnBitMask |= Dialog.RETURN_TIMEOUT;
 
         this.dispose();
@@ -1267,9 +1291,9 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     public void pack() {
 
-        getDialog().pack();
-        if (!getDialog().isMinimumSizeSet()) {
-            getDialog().setMinimumSize(getDialog().getPreferredSize());
+        this.getDialog().pack();
+        if (!this.getDialog().isMinimumSizeSet()) {
+            this.getDialog().setMinimumSize(this.getDialog().getPreferredSize());
         }
 
     }
@@ -1291,7 +1315,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 private static final long serialVersionUID = -6666144330707394562L;
 
                 public void actionPerformed(final ActionEvent e) {
-                    if (isDisposed()) { return; }
+                    if (AbstractDialog.this.isDisposed()) { return; }
                     Log.L.fine("Answer: Key<ESCAPE>");
 
                     AbstractDialog.this.setReturnmask(false);
@@ -1305,7 +1329,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public void requestFocus() {
-        WindowManager.getInstance().setZState(getDialog(), FrameState.TO_FRONT_FOCUSED);
+        WindowManager.getInstance().setZState(this.getDialog(), FrameState.TO_FRONT_FOCUSED);
 
     }
 
@@ -1320,19 +1344,27 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     protected void setAlwaysOnTop(final boolean b) {
-        getDialog().setAlwaysOnTop(b);
+        this.getDialog().setAlwaysOnTop(b);
+    }
+
+    /**
+     * @param b
+     */
+    public void setCallerIsEDT(final boolean b) {
+        this.callerIsEDT = b;
+
     }
 
     public void setCountdownPausable(final boolean b) {
-        countdownPausable = b;
+        this.countdownPausable = b;
 
         new EDTRunner() {
 
             @Override
             protected void runInEDT() {
-                if (timer != null && timer.isAlive()) {
+                if (AbstractDialog.this.timer != null && AbstractDialog.this.timer.isAlive()) {
 
-                    timerLbl.setEnabled(b);
+                    AbstractDialog.this.timerLbl.setEnabled(b);
                 }
             }
         };
@@ -1345,11 +1377,11 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     @Deprecated
     public void setCountdownTime(final int countdownTimeInSeconds) {
-        timeout = countdownTimeInSeconds * 1000;
+        this.timeout = countdownTimeInSeconds * 1000;
     }
 
     protected void setDefaultCloseOperation(final int doNothingOnClose) {
-        getDialog().setDefaultCloseOperation(doNothingOnClose);
+        this.getDialog().setDefaultCloseOperation(doNothingOnClose);
     }
 
     public void setDimensor(final DialogDimensor dimensor) {
@@ -1360,10 +1392,21 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @param b
      */
     protected void setDisposed(final boolean b) {
-        if (disposeCallBack != null) {
-            disposeCallBack.dialogDisposed(AbstractDialog.this);
+        try {
+            if (this.disposeCallBack != null) {
+                this.disposeCallBack.dialogDisposed(AbstractDialog.this);
+            }
+        } finally {
+            this.disposed = b;
         }
-        disposed = b;
+    }
+
+    /**
+     * @param disposeCallBack
+     */
+    public void setDisposedCallback(final DisposeCallBack disposeCallBack) {
+        this.disposeCallBack = disposeCallBack;
+
     }
 
     /**
@@ -1395,7 +1438,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * 
      */
     public void setInterrupted() {
-        if (isDeveloperMode() && isDisposed()) { throw new IllegalStateException("Dialog already disposed"); }
+        if (this.isDeveloperMode() && this.isDisposed()) { throw new IllegalStateException("Dialog already disposed"); }
         this.returnBitMask |= Dialog.RETURN_INTERRUPT;
 
     }
@@ -1423,7 +1466,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     protected void setMinimumSize(final Dimension dimension) {
-        getDialog().setMinimumSize(dimension);
+        this.getDialog().setMinimumSize(dimension);
     }
 
     /**
@@ -1431,14 +1474,14 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public void setPreferredSize(final Dimension dimension) {
         try {
-            getDialog().setPreferredSize(dimension);
+            this.getDialog().setPreferredSize(dimension);
         } catch (final NullPointerException e) {
-            preferredSize = dimension;
+            this.preferredSize = dimension;
         }
     }
 
     protected void setResizable(final boolean b) {
-        getDialog().setResizable(b);
+        this.getDialog().setResizable(b);
     }
 
     /**
@@ -1469,8 +1512,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 }
             }
         }
-        if (ret == returnBitMask) { return; }
-        if (isDeveloperMode() && isDisposed()) {
+        if (ret == this.returnBitMask) { return; }
+        if (this.isDeveloperMode() && this.isDisposed()) {
 
         throw new IllegalStateException("Dialog already disposed"); }
         this.returnBitMask = ret;
@@ -1482,7 +1525,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @param countdownTimeInMs
      */
     public void setTimeout(final int countdownTimeInMs) {
-        timeout = countdownTimeInMs;
+        this.timeout = countdownTimeInMs;
     }
 
     /**
@@ -1490,7 +1533,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public void setTitle(final String title2) {
         try {
-            getDialog().setTitle(title2);
+            this.getDialog().setTitle(title2);
         } catch (final NullPointerException e) {
             this.title = title2;
         }
@@ -1500,25 +1543,17 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @param b
      */
     public void setVisible(final boolean b) {
-        onSetVisible(b);
+        this.onSetVisible(b);
         new EDTRunner() {
 
             @Override
             protected void runInEDT() {
 
-                WindowManager.getInstance().setVisible(getDialog(), b, getWindowStateOnVisible());
+                WindowManager.getInstance().setVisible(AbstractDialog.this.getDialog(), b, AbstractDialog.this.getWindowStateOnVisible());
 
             }
         };
 
-    }
-
-    /**
-     * @return
-     */
-    protected FrameState getWindowStateOnVisible() {
-
-        return WINDOW_STATE_ON_VISIBLE;
     }
 
     public UserIODefinition show() {
@@ -1556,7 +1591,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     public void windowClosing(final WindowEvent arg0) {
         if (this.closeAllowed()) {
             Log.L.fine("Answer: Button<[X]>");
-            if (isDeveloperMode() && isDisposed()) { throw new IllegalStateException("Dialog already disposed"); }
+            if (this.isDeveloperMode() && this.isDisposed()) { throw new IllegalStateException("Dialog already disposed"); }
             this.returnBitMask |= Dialog.RETURN_CLOSED;
             this.dispose();
         } else {
@@ -1574,41 +1609,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public void windowOpened(final WindowEvent arg0) {
-    }
-
-    /**
-     * @param frame
-     */
-    public static void setDefaultRoot(final Window frame) {
-        getWindowStackByRoot(null).reset(frame);
-    }
-
-    /**
-     * @return
-     */
-    public static Window getDefaultRoot() {
-        final WindowStack stack = getWindowStackByRoot(null);
-        return stack.size() == 0 ? null : stack.get(0);
-    }
-
-    /**
-     * @param disposeCallBack
-     */
-    public void setDisposedCallback(final DisposeCallBack disposeCallBack) {
-        this.disposeCallBack = disposeCallBack;
-
-    }
-
-    /**
-     * @param b
-     */
-    public void setCallerIsEDT(final boolean b) {
-        callerIsEDT = b;
-
-    }
-
-    public boolean isCallerIsEDT() {
-        return callerIsEDT;
     }
 
 }
