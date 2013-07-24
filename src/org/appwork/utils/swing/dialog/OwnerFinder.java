@@ -10,32 +10,17 @@
 package org.appwork.utils.swing.dialog;
 
 import java.awt.Window;
-import java.util.ArrayList;
 
 /**
  * @author Thomas
- * 
+ *
  */
-public class WindowStack extends ArrayList<Window> {
-
-    private Window root;
-
-    public WindowStack(final Window root) {
-        this.root=root;
-        if(root!=null){
-            add(root);
-        }
-
-    }
+public interface OwnerFinder {
 
     /**
-     * @param frame
+     * @param windowStack 
+     * @return
      */
-    public void reset(final Window frame) {
-        clear();
-        if (frame != null) {
-            this.add(frame);
-        }
-    }
+    Window findDialogOwner(AbstractDialog<?> dialogModel,WindowStack windowStack);
 
 }

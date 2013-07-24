@@ -31,8 +31,8 @@ public class InternDialog<T> extends ExtJDialog {
      */
     private static final long       serialVersionUID = 1L;
 
-    public InternDialog(final AbstractDialog<T> abstractDialog) {
-        super(abstractDialog.getOwner(), abstractDialog.getModalityType());
+    public InternDialog(final AbstractDialog<T> abstractDialog, final ModalityType modality) {
+        super(abstractDialog.getOwner(), modality);
         dialogModel = abstractDialog;
 
         setLayout(new MigLayout("ins 5", "[]", "[fill,grow][]"));
@@ -66,8 +66,6 @@ public class InternDialog<T> extends ExtJDialog {
     public AbstractDialog<T> getDialogModel() {
         return dialogModel;
     }
-
-
 
     @Override
     public void dispose() {

@@ -14,6 +14,7 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.uio.UIOManager;
@@ -21,14 +22,13 @@ import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.interfaces.ValueConverter;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
-import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
 
 /**
  * A Dialog Instance which provides extended Dialog features and thus replaces
  * JOptionPane
  */
-public class Dialog   {
+public class Dialog {
     /**
      * 
      */
@@ -229,23 +229,20 @@ public class Dialog   {
     /**
      * The max counter value for a timeout Dialog
      */
-    private int                          defaultTimeout = 20000;
+    private int                 defaultTimeout = 20000;
 
     /**
      * Parent window for all dialogs created with abstractdialog
      */
 
+    private LAFManagerInterface lafManager;
 
+    private DialogHandler       handler        = null;
 
-
-    private LAFManagerInterface          lafManager;
-
-    private DialogHandler                handler       = null;
-
-    private DialogHandler                defaultHandler;
+    private DialogHandler       defaultHandler;
 
     private Dialog() {
-    
+
         defaultHandler = new DialogHandler() {
 
             @Override
@@ -284,8 +281,6 @@ public class Dialog   {
         }
     }
 
-
-
     /**
      * 
      */
@@ -297,8 +292,6 @@ public class Dialog   {
             }
         }
     }
-
-  
 
     /**
      * @param countdownTime
@@ -315,7 +308,8 @@ public class Dialog   {
         }
         this.handler = handler;
     }
-@Deprecated
+
+    @Deprecated
     public void setIconList(final List<? extends Image> iconList) {
         this.iconList = iconList;
     }
@@ -325,7 +319,6 @@ public class Dialog   {
             this.lafManager = lafManager;
         }
     }
-
 
     /**
      * 
@@ -490,17 +483,50 @@ public class Dialog   {
      */
     protected <T> T showDialogRaw(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
         if (dialog == null) { return null; }
-        final EDTHelper<T> edth = new EDTHelper<T>() {
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            return showDialogRawInEDT(dialog);
+        } else {
+            return showDialogRawOutsideEDT(dialog);
+        }
+
+    }
+
+    protected <T> T showDialogRawOutsideEDT(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
+        dialog.setCallerIsEDT(false);
+        final EDTRunner edth = new EDTRunner() {
             @Override
-            public T edtRun() {
+            protected void runInEDT() {
+                dialog.setDisposedCallback(new DisposeCallBack() {
+
+                    @Override
+                    public void dialogDisposed(final AbstractDialog<?> dialog) {
+                        synchronized (dialog) {
+                            dialog.notifyAll();
+                        }
+                    }
+
+                });
                 dialog.displayDialog();
-                return dialog.getReturnValue();
+
             }
 
         };
-        final T ret = edth.getReturnValue();
+        boolean interrupted = false;
+        try {
+            synchronized (dialog) {
+                while (!dialog.isDisposed()) {
 
-        if (edth.isInterrupted()) {
+                    dialog.wait(1000);
+
+                }
+
+            }
+
+        } catch (final InterruptedException e) {
+            interrupted = true;
+        }
+        if (edth.isInterrupted() || interrupted) {
 
             // Use a edtrunner here. AbstractCaptcha.dispose is edt save...
             // however there may be several CaptchaDialog classes with
@@ -517,14 +543,26 @@ public class Dialog   {
                     }
                 }
             };
-       
+
             throw new DialogClosedException(dialog.getReturnmask(), edth.getInterruptException());
         }
-
+        final T ret = dialog.getReturnValue();
         final int mask = dialog.getReturnmask();
         if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
         if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
         return ret;
+
+    }
+
+    protected <T> T showDialogRawInEDT(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
+       dialog.setCallerIsEDT(true);
+        dialog.displayDialog();
+        final T ret = dialog.getReturnValue();
+        final int mask = dialog.getReturnmask();
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
+        return ret;
+
     }
 
     /**
@@ -826,8 +864,4 @@ public class Dialog   {
         return this.showDialog(new ValueDialog(flag, title, message, icon, okOption, cancelOption, defaultMessage, min, max, step, valueConverter));
     }
 
-  
-
-
-   
 }

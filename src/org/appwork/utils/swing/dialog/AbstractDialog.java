@@ -11,7 +11,6 @@ package org.appwork.utils.swing.dialog;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Image;
@@ -34,6 +33,7 @@ import java.awt.event.WindowListener;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.List;
+import java.util.WeakHashMap;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -82,8 +82,17 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     private static final HashMap<String, Integer> SESSION_DONTSHOW_AGAIN  = new HashMap<String, Integer>();
 
-    protected static final WindowStack            WINDOW_STACK            = new WindowStack();
+    public static final OwnerFinder               DEFAULT_OWNER_FINDER    = new OwnerFinder() {
 
+                                                                              @Override
+                                                                              public Window findDialogOwner(final AbstractDialog<?> dialogModel, final WindowStack windowStack) {
+                                                                                  final Window ret = windowStack.size() == 0 ? null : windowStack.get(windowStack.size() - 1);
+                                                                                  System.out.println("Dialog Owner: " + ret);
+                                                                                  return ret;
+                                                                              }
+
+                                                                          };
+    private static OwnerFinder                    OWNER_FINDER            = DEFAULT_OWNER_FINDER;
     public static FrameState                      WINDOW_STATE_ON_VISIBLE = FrameState.TO_FRONT_FOCUSED;
 
     public static int getButtonHeight() {
@@ -92,14 +101,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     public static DialogLocator getDefaultLocator() {
         return AbstractDialog.DEFAULT_LOCATOR;
-    }
-
-    /**
-     * @return
-     */
-    public static Window getRootFrame() {
-
-        return WINDOW_STACK.size() == 0 ? null : WINDOW_STACK.get(0);
     }
 
     public static Integer getSessionDontShowAgainValue(final String key) {
@@ -128,26 +129,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     public static void setDefaultLocator(final DialogLocator dEFAULT_LOCATOR) {
         AbstractDialog.DEFAULT_LOCATOR = dEFAULT_LOCATOR;
-    }
-
-    /**
-     * @param frame
-     */
-    public static void setRootFrame(final Window frame) {
-        if(frame==null) {
-            return;
-        }
-        new EDTRunner() {
-
-            @Override
-            protected void runInEDT() {
-                if (WINDOW_STACK.size() > 0) {
-                    if (WINDOW_STACK.get(0) == frame) { return; }
-                }
-                WINDOW_STACK.reset(frame);
-            }
-        }.waitForEDT();
-
     }
 
     protected AbstractAction[] actions                = null;
@@ -214,6 +195,10 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     private String             title;
 
+    private DisposeCallBack    disposeCallBack;
+
+    private boolean            callerIsEDT            = false;
+
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
 
@@ -252,28 +237,28 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             this.setTitle(this.title);
 
             if (this.evaluateDontShowAgainFlag()) { return; }
-            final Container parent = getDialog().getParent();
-
-            if (parent == null || !parent.isShowing()) {
-                // final Window main = getRootFrame();
-                // if (main != null) {
-                // main.addWindowFocusListener(new WindowFocusListener() {
-                //
-                // @Override
-                // public void windowGainedFocus(final WindowEvent e) {
-                // SwingUtils.toFront(getDialog());
-                // main.removeWindowFocusListener(this);
-                //
-                // }
-                //
-                // @Override
-                // public void windowLostFocus(final WindowEvent e) {
-                //
-                // }
-                // });
-                // }
-                // // getDialog().setAlwaysOnTop(true);
-            }
+            // final Container parent = getDialog().getParent();
+            //
+            // if (parent == null || !parent.isShowing()) {
+            // // final Window main = getRootFrame();
+            // // if (main != null) {
+            // // main.addWindowFocusListener(new WindowFocusListener() {
+            // //
+            // // @Override
+            // // public void windowGainedFocus(final WindowEvent e) {
+            // // SwingUtils.toFront(getDialog());
+            // // main.removeWindowFocusListener(this);
+            // //
+            // // }
+            // //
+            // // @Override
+            // // public void windowLostFocus(final WindowEvent e) {
+            // //
+            // // }
+            // // });
+            // // }
+            // // // getDialog().setAlwaysOnTop(true);
+            // }
 
             // Layout manager
 
@@ -476,31 +461,37 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 }
             });
             final InternDialog<T> d = getDialog();
-            WINDOW_STACK.add(d);
-            System.out.println("Window Stack Before " + WINDOW_STACK.size());
-            for (final Window w : WINDOW_STACK) {
-                if(w==null){
+            final WindowStack windowStack = getWindowStackByRoot(getDesiredRootFrame());
+            windowStack.add(d);
+            System.out.println("Window Stack Before " + windowStack.size());
+            for (final Window w : windowStack) {
+                if (w == null) {
                     System.out.println("Window null");
-                }else{
+                } else {
                     System.out.println(w.getName() + " - " + w);
                 }
-        
+
             }
             try {
                 setVisible(true);
             } finally {
-                final int i = WINDOW_STACK.lastIndexOf(d);
-                if (i >= 0) {
-                    WINDOW_STACK.remove(i);
-                    System.out.println("Window Stack After " + WINDOW_STACK.size());
-                    for (final Window w : WINDOW_STACK) {
-                        if(w==null){
-                            System.out.println("Window null");
-                        }else{
-                            System.out.println(w.getName() + " - " + w);
-                        }
-                    }
 
+                if (getDialog().getModalityType() != ModalityType.MODELESS) {
+                    this.dispose();
+                } else {
+                    final int i = windowStack.lastIndexOf(d);
+                    if (i >= 0) {
+                        windowStack.remove(i);
+                        System.out.println("Window Stack After " + windowStack.size());
+                        for (final Window w : windowStack) {
+                            if (w == null) {
+                                System.out.println("Window null");
+                            } else {
+                                System.out.println(w.getName() + " - " + w);
+                            }
+                        }
+
+                    }
                 }
             }
 
@@ -508,9 +499,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             // modal dialogs
             // however the dialog will stay open. Make sure to close it here
-            if (getDialog().getModalityType() != ModalityType.MODELESS) {
-                this.dispose();
-            }
+
             // dialog gets closed
             // 17.11.2011 I did not comment this - may be debug code while
             // finding the problem with dialogs with closed parent...s
@@ -632,7 +621,22 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             @Override
             protected void runInEDT() {
+                final WindowStack windowStack = getWindowStackByRoot(getDesiredRootFrame());
+                final int i = windowStack.lastIndexOf(getDialog());
+                if (i >= 0) {
+                    windowStack.remove(i);
+                    System.out.println("Window Stack After " + windowStack.size());
+                    for (final Window w : windowStack) {
+                        if (w == null) {
+                            System.out.println("Window null");
+                        } else {
+                            System.out.println(w.getName() + " - " + w);
+                        }
+                    }
+
+                }
                 if (isDisposed()) { return; }
+
                 setDisposed(true);
                 if (AbstractDialog.this.getDialog().isVisible()) {
                     try {
@@ -864,15 +868,60 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @return
      */
     public ModalityType getModalityType() {
-        // TODO Auto-generated method stub
-        return ModalityType.TOOLKIT_MODAL;
+        // document modal:
+        // if there are several window stacks, the dialog blocks only it's own
+        // windowstack.
+        return ModalityType.DOCUMENT_MODAL;
     }
 
     /**
      * @return
      */
     public Window getOwner() {
-        return WINDOW_STACK.size() == 0 ? null : WINDOW_STACK.get(WINDOW_STACK.size() - 1);
+
+        return getGlobalOwnerFinder().findDialogOwner(this, getWindowStackByRoot(getDesiredRootFrame()));
+    }
+
+    private static final WeakHashMap<Object, WindowStack> STACK_MAP = new WeakHashMap<Object, WindowStack>();
+    /**
+     * @param desiredRootFrame
+     * @return
+     */
+
+    private static final Object                           NULL_KEY  = new Object();                           ;
+
+    private static WindowStack getWindowStackByRoot(final Window desiredRootFrame) {
+
+        Object key = desiredRootFrame;
+        if (key == null || !desiredRootFrame.isVisible()) {
+            key = NULL_KEY;
+        }
+        WindowStack ret = STACK_MAP.get(key);
+        if (ret == null) {
+            ret = new WindowStack(desiredRootFrame);
+            STACK_MAP.put(key, ret);
+        }
+        return ret;
+    }
+
+    /**
+     * @return
+     */
+    protected Window getDesiredRootFrame() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @return
+     */
+    public static OwnerFinder getGlobalOwnerFinder() {
+
+        return OWNER_FINDER;
+    }
+
+    public static void setGlobalOwnerFinder(final OwnerFinder finder) {
+        OWNER_FINDER = finder == null ? DEFAULT_OWNER_FINDER : finder;
     }
 
     /**
@@ -1163,8 +1212,11 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected void layoutDialog() {
         Dialog.getInstance().initLaf();
-
-        dialog = new InternDialog<T>(this);
+        ModalityType modality = getModalityType();
+        if (isCallerIsEDT()) {
+            modality = ModalityType.APPLICATION_MODAL;
+        }
+        dialog = new InternDialog<T>(this, modality);
 
         if (preferredSize != null) {
             dialog.setPreferredSize(preferredSize);
@@ -1308,6 +1360,9 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @param b
      */
     protected void setDisposed(final boolean b) {
+        if (disposeCallBack != null) {
+            disposeCallBack.dialogDisposed(AbstractDialog.this);
+        }
         disposed = b;
     }
 
@@ -1519,6 +1574,41 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public void windowOpened(final WindowEvent arg0) {
+    }
+
+    /**
+     * @param frame
+     */
+    public static void setDefaultRoot(final Window frame) {
+        getWindowStackByRoot(null).reset(frame);
+    }
+
+    /**
+     * @return
+     */
+    public static Window getDefaultRoot() {
+        final WindowStack stack = getWindowStackByRoot(null);
+        return stack.size() == 0 ? null : stack.get(0);
+    }
+
+    /**
+     * @param disposeCallBack
+     */
+    public void setDisposedCallback(final DisposeCallBack disposeCallBack) {
+        this.disposeCallBack = disposeCallBack;
+
+    }
+
+    /**
+     * @param b
+     */
+    public void setCallerIsEDT(final boolean b) {
+        callerIsEDT = b;
+
+    }
+
+    public boolean isCallerIsEDT() {
+        return callerIsEDT;
     }
 
 }

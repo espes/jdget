@@ -443,7 +443,7 @@ public class WindowsWindowManager extends WindowManager {
     }
 
     protected void addDebugListener(final Window w) {
-        if (Application.isJared(WindowsWindowManager.class)) { return; }
+        if (Application.isJared(WindowsWindowManager.class)||true) { return; }
         w.addWindowFocusListener(new WindowFocusListener() {
 
             @Override
