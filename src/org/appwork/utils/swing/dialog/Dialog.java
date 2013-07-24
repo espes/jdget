@@ -11,6 +11,7 @@ package org.appwork.utils.swing.dialog;
 
 import java.awt.Image;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.ImageIcon;
 import javax.swing.ListCellRenderer;
@@ -243,7 +244,7 @@ public class Dialog {
 
     private Dialog() {
 
-        defaultHandler = new DialogHandler() {
+        this.defaultHandler = new DialogHandler() {
 
             @Override
             public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
@@ -252,32 +253,32 @@ public class Dialog {
         };
     }
 
+    public DialogHandler getDefaultHandler() {
+        return this.defaultHandler;
+    }
+
     /**
      * @return the {@link Dialog#defaultTimeout}
      * @see Dialog#defaultTimeout
      */
     protected int getDefaultTimeout() {
-        return defaultTimeout;
-    }
-
-    public DialogHandler getDefaultHandler() {
-        return defaultHandler;
+        return this.defaultTimeout;
     }
 
     public DialogHandler getHandler() {
-        return handler;
+        return this.handler;
     }
 
     /**
      * @return
      */
     public List<? extends Image> getIconList() {
-        return iconList;
+        return this.iconList;
     }
 
     public LAFManagerInterface getLafManager() {
         synchronized (this) {
-            return lafManager;
+            return this.lafManager;
         }
     }
 
@@ -286,9 +287,9 @@ public class Dialog {
      */
     public void initLaf() {
         synchronized (this) {
-            if (lafManager != null) {
-                lafManager.init();
-                setLafManager(null);
+            if (this.lafManager != null) {
+                this.lafManager.init();
+                this.setLafManager(null);
             }
         }
     }
@@ -299,12 +300,12 @@ public class Dialog {
      * @see Dialog#defaultTimeout
      */
     public void setDefaultTimeout(final int countdownTime) {
-        defaultTimeout = countdownTime;
+        this.defaultTimeout = countdownTime;
     }
 
     public void setHandler(DialogHandler handler) {
         if (handler == null) {
-            handler = defaultHandler;
+            handler = this.defaultHandler;
         }
         this.handler = handler;
     }
@@ -471,7 +472,7 @@ public class Dialog {
      * @throws DialogCanceledException
      */
     public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
-        final DialogHandler lhandler = handler;
+        final DialogHandler lhandler = this.handler;
         if (lhandler != null) { return lhandler.showDialog(dialog); }
         return this.showDialogRaw(dialog);
     }
@@ -485,15 +486,27 @@ public class Dialog {
         if (dialog == null) { return null; }
 
         if (SwingUtilities.isEventDispatchThread()) {
-            return showDialogRawInEDT(dialog);
+            return this.showDialogRawInEDT(dialog);
         } else {
-            return showDialogRawOutsideEDT(dialog);
+            return this.showDialogRawOutsideEDT(dialog);
         }
+
+    }
+
+    protected <T> T showDialogRawInEDT(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
+        dialog.setCallerIsEDT(true);
+        dialog.displayDialog();
+        final T ret = dialog.getReturnValue();
+        final int mask = dialog.getReturnmask();
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
+        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
+        return ret;
 
     }
 
     protected <T> T showDialogRawOutsideEDT(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
         dialog.setCallerIsEDT(false);
+        final AtomicBoolean waitingLock = new AtomicBoolean(false);
         final EDTRunner edth = new EDTRunner() {
             @Override
             protected void runInEDT() {
@@ -501,28 +514,23 @@ public class Dialog {
 
                     @Override
                     public void dialogDisposed(final AbstractDialog<?> dialog) {
-                        synchronized (dialog) {
-                            dialog.notifyAll();
+                        synchronized (waitingLock) {
+                            waitingLock.set(true);
+                            waitingLock.notifyAll();
                         }
                     }
-
                 });
                 dialog.displayDialog();
-
             }
 
         };
         boolean interrupted = false;
         try {
-            synchronized (dialog) {
-                while (!dialog.isDisposed()) {
-
-                    dialog.wait(1000);
-
+            synchronized (waitingLock) {
+                if (waitingLock.get() == false) {
+                    waitingLock.wait();
                 }
-
             }
-
         } catch (final InterruptedException e) {
             interrupted = true;
         }
@@ -546,17 +554,6 @@ public class Dialog {
 
             throw new DialogClosedException(dialog.getReturnmask(), edth.getInterruptException());
         }
-        final T ret = dialog.getReturnValue();
-        final int mask = dialog.getReturnmask();
-        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
-        if (BinaryLogic.containsSome(mask, Dialog.RETURN_CANCEL)) { throw new DialogCanceledException(mask); }
-        return ret;
-
-    }
-
-    protected <T> T showDialogRawInEDT(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
-       dialog.setCallerIsEDT(true);
-        dialog.displayDialog();
         final T ret = dialog.getReturnValue();
         final int mask = dialog.getReturnmask();
         if (BinaryLogic.containsSome(mask, Dialog.RETURN_CLOSED)) { throw new DialogClosedException(mask); }
