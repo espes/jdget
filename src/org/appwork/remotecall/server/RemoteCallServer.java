@@ -17,13 +17,13 @@ public class RemoteCallServer {
 
     public RemoteCallServer() {
 
-        this.servicesMap = new HashMap<String, RemoteCallServiceWrapper>();
+        servicesMap = new HashMap<String, RemoteCallServiceWrapper>();
     }
 
     public <T extends RemoteCallInterface> void addHandler(final Class<T> class1, final T serviceImpl) throws ParsingException {
 
-        if (this.servicesMap.containsKey(class1.getSimpleName())) { throw new IllegalArgumentException("Service " + class1 + " already exists"); }
-        this.servicesMap.put(class1.getSimpleName(), new RemoteCallServiceWrapper(class1, serviceImpl));
+        if (servicesMap.containsKey(class1.getSimpleName())) { throw new IllegalArgumentException("Service " + class1 + " already exists"); }
+        servicesMap.put(class1.getSimpleName(), new RemoteCallServiceWrapper(class1, serviceImpl));
     }
 
     /**
@@ -38,20 +38,20 @@ public class RemoteCallServer {
      */
     protected Object handleRequestReturnData(final Requestor requestor, final String clazz, final String method, final String[] parameters) throws ServerInvokationException {
         try {
-            final RemoteCallServiceWrapper service = this.servicesMap.get(clazz);
+            final RemoteCallServiceWrapper service = servicesMap.get(clazz);
             if (service == null) { //
-                throw new ServerInvokationException(this.handleRequestError(requestor, new BadRequestException("Service not defined: " + clazz)), requestor);
+                throw new ServerInvokationException(handleRequestError(requestor, new BadRequestException("Service not defined: " + clazz)), requestor);
 
             }
             // find method
 
             final MethodHandler m = service.getHandler(method);
-            if (m == null) { throw new ServerInvokationException(this.handleRequestError(requestor, new BadRequestException("Routine not defined: " + method)), requestor); }
+            if (m == null) { throw new ServerInvokationException(handleRequestError(requestor, new BadRequestException("Routine not defined: " + method)), requestor); }
 
             final TypeRef<Object>[] types = m.getTypeRefs();
             if (types.length != parameters.length) {
                 //
-                throw new ServerInvokationException(this.handleRequestError(requestor, new BadRequestException("parameters did not match " + method)), requestor);
+                throw new ServerInvokationException(handleRequestError(requestor, new BadRequestException("parameters did not match " + method)), requestor);
             }
 
             final Object[] params = new Object[types.length];
@@ -75,7 +75,7 @@ public class RemoteCallServer {
                 }
 
             } catch (final Exception e) {
-                throw new ServerInvokationException(this.handleRequestError(requestor, new BadRequestException("Parameter deserialize error for " + method)), requestor);
+                throw new ServerInvokationException(handleRequestError(requestor, new BadRequestException("Parameter deserialize error for " + method)), requestor);
             }
 
             Object answer;
@@ -89,14 +89,14 @@ public class RemoteCallServer {
             if (cause != null) {
                 if (cause instanceof ResponseAlreadySentException) { throw (ResponseAlreadySentException) cause; }
                 Log.exception(e1);
-                throw new ServerInvokationException(this.handleRequestError(requestor, cause), requestor);
+                throw new ServerInvokationException(handleRequestError(requestor, cause), requestor);
             }
             Log.exception(e1);
-            throw new ServerInvokationException(this.handleRequestError(requestor, new RuntimeException(e1)), requestor);
+            throw new ServerInvokationException(handleRequestError(requestor, new RuntimeException(e1)), requestor);
         } catch (final ServerInvokationException e) {
             throw e;
         } catch (final Throwable e) {
-            throw new ServerInvokationException(this.handleRequestError(requestor, e), requestor);
+            throw new ServerInvokationException(handleRequestError(requestor, e), requestor);
         }
 
     }

@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.net.httpserver.handler;
 
+import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
@@ -20,8 +21,8 @@ import org.appwork.utils.net.httpserver.session.HttpSession;
  */
 public interface HttpSessionRequestHandler<T extends HttpSession> {
 
-    public abstract boolean onGetSessionRequest(final T session, final GetRequest request, final HttpResponse response) throws RequestException;
+    public abstract boolean onGetSessionRequest(final T session, final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException;
 
-    public abstract boolean onPostSessionRequest(final T session, final PostRequest request, final HttpResponse response) throws RequestException;
+    public abstract boolean onPostSessionRequest(final T session, final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException;
 
 }

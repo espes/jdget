@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.net.httpserver.handler;
 
+import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
@@ -19,8 +20,8 @@ import org.appwork.utils.net.httpserver.responses.HttpResponse;
  */
 public interface HttpRequestHandler {
 
-    public abstract boolean onGetRequest(final GetRequest request, final HttpResponse response) throws RequestException;
+    public abstract boolean onGetRequest(final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException;
 
-    public abstract boolean onPostRequest(final PostRequest request, final HttpResponse response) throws RequestException;
+    public abstract boolean onPostRequest(final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException;
 
 }
