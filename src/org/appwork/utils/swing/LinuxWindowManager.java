@@ -77,14 +77,13 @@ public class LinuxWindowManager extends WindowManager {
         private final AtomicReference<LinuxWindowListener> toFront = new AtomicReference<LinuxWindowListener>(null);
     }
 
-    private final Timer                                       timer             = new Timer("LinuxWindowManager", true);
-    private boolean                                           debugFlag         = true;
-    private final int                                         toBackTimer       = 100;
-    private final int                                         toFrontFocusTimer = 100;
-    private final int                                         toFrontTimer      = 100;
-    private boolean                                           useAlwaysOnTop    = false;
+    private final Timer                                       timer           = new Timer("LinuxWindowManager", true);
+    private boolean                                           debugFlag       = true;
+    private final int                                         toBackTimer     = 100;
+    private final int                                         toFrontTimer    = 100;
+    private boolean                                           useAlwaysOnTop  = false;
 
-    private final WeakHashMap<Window, LinuxWindowListenerMap> windowListeners   = new WeakHashMap<Window, LinuxWindowListenerMap>();
+    private final WeakHashMap<Window, LinuxWindowListenerMap> windowListeners = new WeakHashMap<Window, LinuxWindowListenerMap>();
 
     public boolean isDebugFlag() {
         return this.debugFlag;
@@ -131,6 +130,7 @@ public class LinuxWindowManager extends WindowManager {
             this.windowListeners.put(w, listenerMap);
         }
         LinuxWindowListener listener = null;
+        final boolean requestFocus = state == FrameState.TO_FRONT_FOCUSED;
         switch (state) {
         case TO_BACK:
             listener = listenerMap.toFront.getAndSet(null);
@@ -140,43 +140,57 @@ public class LinuxWindowManager extends WindowManager {
                 }
             }
             /* we set window invisible */
+            /* this does not block */
             w.setVisible(false);
             /* toBack should not steal focus */
             w.setFocusable(false);
             w.setFocusableWindowState(false);
-            /* make window visible again and put to back */
-            w.setVisible(true);
-            w.toBack();
-            if (this.isDebugFlag()) {
-                System.out.println("Request toBack(use focusable false and invisible/visible workaround): " + w);
-            }
-            /* delay restoring of focusable properties */
-            this.timer.schedule(new TimerTask() {
+            /*
+             * make window visible again and put to back, we need to invokeLater
+             * as w.setVisible(true) may block
+             */
+            SwingUtilities.invokeLater(new Runnable() {
 
                 @Override
                 public void run() {
-                    SwingUtilities.invokeLater(new Runnable() {
+                    /* window to back */
+                    w.toBack();
+                    if (LinuxWindowManager.this.isDebugFlag()) {
+                        System.out.println("Request toBack(use focusable false and invisible/visible workaround): " + w);
+                    }
+                    /* delay restoring of focusable properties */
+                    LinuxWindowManager.this.timer.schedule(new TimerTask() {
 
                         @Override
                         public void run() {
-                            if (LinuxWindowManager.this.isDebugFlag()) {
-                                System.out.println("Request toBack(timer,restore focusable true): " + w);
-                            }
-                            w.setFocusable(true);
-                            w.setFocusableWindowState(true);
+                            SwingUtilities.invokeLater(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    if (LinuxWindowManager.this.isDebugFlag()) {
+                                        System.out.println("Request toBack(timer,restore focusable true): " + w);
+                                    }
+                                    /* restore focusable */
+                                    w.setFocusable(true);
+                                    w.setFocusableWindowState(true);
+                                }
+                            });
                         }
-                    });
-                }
-            }, this.toBackTimer);
+                    }, LinuxWindowManager.this.toBackTimer);
+
+                };
+            });
+            /* this blocks for dialogs */
+            w.setVisible(true);
             break;
         case TO_FRONT:
+        case TO_FRONT_FOCUSED:
             listener = listenerMap.toFront.getAndSet(null);
             if (listener != null) {
                 if (listener.remove(w, false) && this.isDebugFlag()) {
                     System.out.println("Remove previous toFront listener(no undo): " + listener);
                 }
             }
-
             if (!w.isActive()) {
                 if (this.isUseAlwaysOnTop()) {
                     if (this.isDebugFlag()) {
@@ -193,12 +207,40 @@ public class LinuxWindowManager extends WindowManager {
 
                         @Override
                         public void windowActivated(final WindowEvent e) {
-                            this.remove(e.getWindow(), true);
+                            if (this.remove(e.getWindow(), true)) {
+                                if (requestFocus) {
+                                    SwingUtilities.invokeLater(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            if (LinuxWindowManager.this.isDebugFlag()) {
+                                                System.out.println("Request toFrontFocused(timer,toFront): " + w);
+                                            }
+                                            w.toFront();
+                                            w.requestFocus();
+                                        }
+                                    });
+                                }
+                            }
                         }
 
                         @Override
                         public void windowIconified(final WindowEvent e) {
-                            this.remove(e.getWindow(), true);
+                            if (this.remove(e.getWindow(), true)) {
+                                if (requestFocus) {
+                                    SwingUtilities.invokeLater(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            if (LinuxWindowManager.this.isDebugFlag()) {
+                                                System.out.println("Request toFrontFocused(timer,toFront): " + w);
+                                            }
+                                            w.toFront();
+                                            w.requestFocus();
+                                        }
+                                    });
+                                }
+                            }
                         }
                     };
                     listenerMap.toFront.set(listener);
@@ -215,57 +257,67 @@ public class LinuxWindowManager extends WindowManager {
                     /* toFront should not steal focus */
                     w.setFocusable(false);
                     w.setFocusableWindowState(false);
-                    if (w.isVisible()) {
-                        w.toFront();
-                    } else {
-                        w.setVisible(true);
-                        w.toFront();
-                    }
-                    /* delay restoring of focusable properties */
-                    this.timer.schedule(new TimerTask() {
+                    /*
+                     * w.setVisible(true) may block, so we need to invokeLater
+                     */
+                    SwingUtilities.invokeLater(new Runnable() {
 
                         @Override
                         public void run() {
-                            SwingUtilities.invokeLater(new Runnable() {
+                            /* delay restoring of focusable properties */
+                            LinuxWindowManager.this.timer.schedule(new TimerTask() {
 
                                 @Override
                                 public void run() {
-                                    if (LinuxWindowManager.this.isDebugFlag()) {
-                                        System.out.println("Request toFront(timer,restore focusable true): " + w);
-                                    }
-                                    w.setFocusable(true);
-                                    w.setFocusableWindowState(true);
+                                    SwingUtilities.invokeLater(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            w.toFront();
+                                            if (LinuxWindowManager.this.isDebugFlag()) {
+                                                System.out.println("Request toFront(timer,restore focusable true): " + w);
+                                            }
+                                            w.setFocusable(true);
+                                            w.setFocusableWindowState(true);
+                                            if (requestFocus) {
+                                                if (LinuxWindowManager.this.isDebugFlag()) {
+                                                    System.out.println("Request toFrontFocused(timer,toFront): " + w);
+                                                }
+                                                w.toFront();
+                                                w.requestFocus();
+                                            }
+                                        }
+                                    });
                                 }
-                            });
+                            }, LinuxWindowManager.this.toFrontTimer);
+
                         }
-                    }, this.toFrontTimer);
+                    });
+                    if (!w.isVisible()) {
+                        /* this may block */
+                        w.setVisible(true);
+                    }
                 }
             } else {
+                /* window is already toFront */
                 if (this.isDebugFlag()) {
                     System.out.println("Request toFront(window is active): " + w);
                 }
-            }
-            break;
-        case TO_FRONT_FOCUSED:
-            this.setZState(w, FrameState.TO_FRONT, makeVisible);
-            /* delay stealing focus */
-            this.timer.schedule(new TimerTask() {
-
-                @Override
-                public void run() {
+                if (requestFocus) {
                     SwingUtilities.invokeLater(new Runnable() {
 
+                        @Override
                         public void run() {
                             if (LinuxWindowManager.this.isDebugFlag()) {
                                 System.out.println("Request toFrontFocused(timer,toFront): " + w);
                             }
+                            /* request focus */
                             w.toFront();
                             w.requestFocus();
                         }
-
                     });
                 }
-            }, this.toFrontFocusTimer);
+            }
             break;
         case OS_DEFAULT:
             if (w.isVisible() == false) {
