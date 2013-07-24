@@ -448,4 +448,7 @@ public interface AWUTranslation extends TranslateInterface {
 
     @Default(lngs = { "en" }, values = { "%s1 (Resizing Locked)" })
     String tableheader_tooltip_locked(String name);
+
+    @Default(lngs = { "en" }, values = { "unlock columnwidth" })
+    String unLockColumnWidthAction();
 }

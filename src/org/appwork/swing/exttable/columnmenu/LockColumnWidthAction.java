@@ -34,10 +34,18 @@ public class LockColumnWidthAction extends AbstractAction {
      * @param extColumn
      */
     public LockColumnWidthAction(final ExtColumn<?> extColumn) {
-        super(_AWU.T.LockColumnWidthAction());
-        this.putValue(Action.SMALL_ICON, AWUTheme.getInstance().getIcon("exttable/lockColumn", extColumn.getModel().getTable().getContextIconSize()));
+        super();
+        putValue(Action.SMALL_ICON, AWUTheme.getInstance().getIcon("exttable/lockColumn", extColumn.getModel().getTable().getContextIconSize()));
         this.extColumn = extColumn;
-        this.putValue(Action.SELECTED_KEY, !extColumn.isResizable());
+        if(extColumn.isResizable()){
+            putValue(Action.SELECTED_KEY, false);
+            putValue(Action.NAME, _AWU.T.LockColumnWidthAction());
+         
+        }else{
+            putValue(Action.SELECTED_KEY, true);  
+            putValue(Action.NAME, _AWU.T.unLockColumnWidthAction()); 
+        }
+       
     }
 
     /*
@@ -48,7 +56,7 @@ public class LockColumnWidthAction extends AbstractAction {
      */
     @Override
     public void actionPerformed(final ActionEvent e) {
-        this.extColumn.setResizable(!this.extColumn.isResizable());
+        extColumn.setResizable(!extColumn.isResizable());
     }
 
 }
