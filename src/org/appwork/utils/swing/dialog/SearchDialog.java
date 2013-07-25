@@ -42,12 +42,12 @@ public class SearchDialog extends AbstractDialog<String> implements KeyListener,
     public SearchDialog(final int flag, final String title, final String message) {
         super(flag | UIOManager.BUTTONS_HIDE_CANCEL, title, AWUTheme.I().getIcon("dialog/find", 32), _AWU.T.SEARCHDIALOG_BUTTON_FIND(), null);
 
-        this.caseSensitive = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_CASESENSITIVE());
-        this.regularExpression = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION());
+        caseSensitive = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_CASESENSITIVE());
+        regularExpression = new JCheckBox(_AWU.T.SEARCHDIALOG_CHECKBOX_REGULAREXPRESSION());
 
-        this.caseSensitive.setSelected(JSonStorage.getStorage("SearchDialog").get("caseSensitive", false));
+        caseSensitive.setSelected(JSonStorage.getStorage("SearchDialog").get("caseSensitive", false));
 
-        this.regularExpression.setSelected(JSonStorage.getStorage("SearchDialog").get("regularExpression", false));
+        regularExpression.setSelected(JSonStorage.getStorage("SearchDialog").get("regularExpression", false));
 
         this.message = message;
     }
@@ -59,35 +59,35 @@ public class SearchDialog extends AbstractDialog<String> implements KeyListener,
      */
     @Override
     protected String createReturnValue() {
-        return this.getReturnID();
+        return getReturnID();
     }
 
     public String getReturnID() {
-        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
-        if (this.input.getText() == null || this.input.getText().equals("")) { return null; }
+        if ((getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
+        if (input.getText() == null || input.getText().equals("")) { return null; }
         try {
-            JSonStorage.getStorage("SearchDialog").put("caseSensitive", this.caseSensitive.isSelected());
+            JSonStorage.getStorage("SearchDialog").put("caseSensitive", caseSensitive.isSelected());
 
-            JSonStorage.getStorage("SearchDialog").put("regularExpression", this.regularExpression.isSelected());
+            JSonStorage.getStorage("SearchDialog").put("regularExpression", regularExpression.isSelected());
         } catch (final Exception e) {
 
             org.appwork.utils.logging.Log.exception(e);
         }
-        return this.input.getText();
+        return input.getText();
     }
 
     public boolean isCaseSensitive() {
 
-        return this.caseSensitive.isSelected();
+        return caseSensitive.isSelected();
     }
 
     public boolean isRegex() {
 
-        return this.regularExpression.isSelected();
+        return regularExpression.isSelected();
     }
 
     public void keyPressed(final KeyEvent e) {
-        this.cancel();
+        cancel();
     }
 
     public void keyReleased(final KeyEvent e) {
@@ -99,29 +99,29 @@ public class SearchDialog extends AbstractDialog<String> implements KeyListener,
     @Override
     public JComponent layoutDialogContent() {
         final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
-        this.messageArea = new JTextPane();
-        this.messageArea.setBorder(null);
-        this.messageArea.setBackground(null);
-        this.messageArea.setOpaque(false);
-        this.messageArea.setText(this.message);
-        this.messageArea.setEditable(false);
-        this.messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        messageArea = new JTextPane();
+        messageArea.setBorder(null);
+        messageArea.setBackground(null);
+        messageArea.setOpaque(false);
+        messageArea.setText(message);
+        messageArea.setEditable(false);
+        messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
-        contentpane.add(this.messageArea);
+        contentpane.add(messageArea);
 
-        this.input = new JTextField();
-        this.input.setBorder(BorderFactory.createEtchedBorder());
+        input = new JTextField();
+        input.setBorder(BorderFactory.createEtchedBorder());
 
-        this.input.addKeyListener(this);
-        this.input.addMouseListener(this);
-        contentpane.add(this.input, "pushy,growy");
-        contentpane.add(this.regularExpression, "split 2, alignx right, pushx");
-        contentpane.add(this.caseSensitive, " alignx right");
+        input.addKeyListener(this);
+        input.addMouseListener(this);
+        contentpane.add(input, "pushy,growy");
+        contentpane.add(regularExpression, "split 2, alignx right, pushx");
+        contentpane.add(caseSensitive, " alignx right");
         return contentpane;
     }
 
     public void mouseClicked(final MouseEvent e) {
-        this.cancel();
+        cancel();
     }
 
     public void mouseEntered(final MouseEvent e) {
@@ -135,12 +135,12 @@ public class SearchDialog extends AbstractDialog<String> implements KeyListener,
 
     public void mouseReleased(final MouseEvent e) {
     }
-
     @Override
-    protected void packed() {
-        this.input.selectAll();
-        this.requestFocus();
-        this.input.requestFocusInWindow();
+    protected void initFocus(final JComponent focus) {
+        input.selectAll();
+     
+        input.requestFocusInWindow();
     }
+  
 
 }

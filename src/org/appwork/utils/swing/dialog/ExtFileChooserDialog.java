@@ -213,6 +213,12 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
     private File[]                   selection         = null;
 
+    public void pack() {
+        final long t = System.currentTimeMillis();
+        super.pack();
+        System.out.println("Pack Duration: " + (System.currentTimeMillis() - t));
+    }
+
     /**
      * @param flag
      * @param title
@@ -356,14 +362,15 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
 
-    protected Icon getDirectoryIcon(final Icon ret, File f) {
-        if (f.isFile()) {
+    protected Icon getDirectoryIcon(File f) {
+
+        if (isFile(f)) {
             try {
                 final String ext = Files.getExtension(f.getName());
-                if (ext == null) { return ret; }
+                if (ext == null) { return null; }
                 return CrossSystem.getMime().getFileIcon(ext, 16, 16);
             } catch (final Exception e) {
-                return ret;
+                return null;
             }
         }
 
@@ -384,8 +391,25 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         } else if (f instanceof VirtualRoot) {
             key = ICON_KEY_HARDDRIVE;
         }
-        if (!AWUTheme.I().hasIcon(key)) { return ret; }
+        if (!AWUTheme.I().hasIcon(key)) { return null; }
         return AWUTheme.I().getIcon(key, 18);
+    }
+
+    /**
+     * @param f
+     * @return
+     */
+    private boolean isFile(final File f) {
+
+        if (CrossSystem.isWindows()) {
+            // let's try to speed up this. windows may take a log of time for
+            // f.isFile if the file is a network folder
+            if (f instanceof NetWorkFolder) { return false; }
+            // example c:\
+            if (StringUtils.isEmpty(f.getName())) { return false; }
+
+        }
+        return f.isFile();
     }
 
     public FileFilter getFileFilter() {
@@ -487,6 +511,8 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      */
     @Override
     public JComponent layoutDialogContent() {
+        final long t = System.currentTimeMillis();
+        System.out.println("Duration 0  " + (System.currentTimeMillis() - t));
         if (SwingUtilities.getRootPane(getDialog().getParent()) != null) {
             parentGlassPane = SwingUtilities.getRootPane(getDialog().getParent()).getGlassPane();
         }
@@ -498,10 +524,12 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         duringInit = true;
 
         putIcons();
-
+        System.out.println("Duration 1  " + (System.currentTimeMillis() - t));
         fc = new JFileChooser(fileSystemView = new ExtFileSystemView()) {
-            private Insets nullInsets;
+            private Insets  nullInsets;
+            private boolean initComplete = false;
             {
+                initComplete = true;
                 nullInsets = new Insets(0, 0, 0, 0);
             }
 
@@ -519,9 +547,13 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
             @Override
             public Icon getIcon(final File f) {
-                final Icon ret = super.getIcon(f);
 
-                return ExtFileChooserDialog.this.getDirectoryIcon(ret, f);
+                Icon ret = ExtFileChooserDialog.this.getDirectoryIcon(f);
+                if (ret == null) {
+                    ret = super.getIcon(f);
+                }
+
+                return ret;
             }
 
             @Override
@@ -531,6 +563,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
             @Override
             public void setCurrentDirectory(final File dir) {
+                if (!initComplete) { return; }
                 selecting = true;
                 try {
 
@@ -565,7 +598,9 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             }
 
         };
+        System.out.println("Duration 2  " + (System.currentTimeMillis() - t));
         cleanupIcons();
+        System.out.println("Duration 3  " + (System.currentTimeMillis() - t));
         fc.addActionListener(new ActionListener() {
 
             @Override
@@ -573,8 +608,9 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 Log.L.info(e + "");
                 if (JFileChooser.CANCEL_SELECTION.equals(e.getActionCommand())) {
                     Log.L.fine("Answer: FC CANCEL>");
-                    // this is called indirectly through #setReturnmask(false). so we use super here to avoid a loop
-                   ExtFileChooserDialog.super.setReturnmask(false);
+                    // this is called indirectly through #setReturnmask(false).
+                    // so we use super here to avoid a loop
+                    ExtFileChooserDialog.super.setReturnmask(false);
                     //
                     ExtFileChooserDialog.this.dispose();
                 } else if (JFileChooser.APPROVE_SELECTION.equals(e.getActionCommand())) {
@@ -586,13 +622,13 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
             }
         });
-
+        System.out.println("Duration 4  " + (System.currentTimeMillis() - t));
         try {
             fcUI = (BasicFileChooserUI) fc.getUI();
         } catch (final Throwable e) {
             Log.exception(e);
         }
-
+        System.out.println("Duration 5  " + (System.currentTimeMillis() - t));
         if (isFilePreviewEnabled()) {
             fc.setAccessory(new FilePreview(fc));
         }
@@ -611,7 +647,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         } else {
             fc.setMultiSelectionEnabled(false);
         }
-
+        System.out.println("Duration 6  " + (System.currentTimeMillis() - t));
         /* preSelection */
 
         Log.L.info("Given presel: " + preSelection);
@@ -677,11 +713,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                     view = View.LIST;
                 }
             });
-        } catch (final Throwable t) {
+        } catch (final Throwable t1) {
 
             // might throw exceptions, because the path, and the whole
             // detailsview thingy is part of the ui/LAF
-            Log.exception(t);
+            Log.exception(t1);
         }
 
         if (fileSelectionMode.getId() == FileChooserSelectionMode.DIRECTORIES_ONLY.getId()) {
@@ -828,11 +864,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 destination.setText(text);
                 if (orgPresel != null && orgPresel.exists()) {
                     if (orgPresel.isDirectory()) {
-                        if(orgPresel.getAbsolutePath().endsWith(File.separatorChar+"")){
+                        if (orgPresel.getAbsolutePath().endsWith(File.separatorChar + "")) {
                             destination.setText(orgPresel.getAbsolutePath());
-                        }else{
+                        } else {
                             destination.setText(orgPresel.getAbsolutePath() + File.separatorChar);
-                                
+
                         }
                     } else {
 

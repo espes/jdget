@@ -97,6 +97,7 @@ public class JacksonMapper implements JSONMapper {
                 }
 
             };
+     
             // this (T) is required because of java bug
             // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6302954
             // (compiles in eclipse, but not with javac)

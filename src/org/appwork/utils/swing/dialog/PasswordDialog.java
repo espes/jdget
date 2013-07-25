@@ -37,19 +37,19 @@ public class PasswordDialog extends AbstractDialog<String> implements KeyListene
     private JTextComponent    input2;
     private JTextComponent    input3;
 
-    public PasswordDialog(int flag, String title, String message, ImageIcon icon, String okOption, String cancelOption) {
+    public PasswordDialog(final int flag, final String title, final String message, final ImageIcon icon, final String okOption, final String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
         this.message = message;
     }
 
     @Override
     public JComponent layoutDialogContent() {
-        JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 2", "[fill,grow]"));
+        final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 2", "[fill,grow]"));
         messageArea = new JTextPane();
         messageArea.setBorder(null);
         messageArea.setBackground(null);
         messageArea.setOpaque(false);
-        messageArea.setText(this.message);
+        messageArea.setText(message);
         messageArea.setEditable(false);
         messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
@@ -96,43 +96,42 @@ public class PasswordDialog extends AbstractDialog<String> implements KeyListene
 
         return contentpane;
     }
-
     @Override
-    protected void packed() {
-        input1.selectAll();
-        requestFocus();
+    protected void initFocus(final JComponent focus) {
+        input1.selectAll();  
         input1.requestFocusInWindow();
     }
 
-    public void keyPressed(KeyEvent e) {
-        this.cancel();
+
+    public void keyPressed(final KeyEvent e) {
+        cancel();
     }
 
-    public void keyReleased(KeyEvent e) {
+    public void keyReleased(final KeyEvent e) {
     }
 
-    public void keyTyped(KeyEvent e) {
+    public void keyTyped(final KeyEvent e) {
     }
 
-    public void mouseClicked(MouseEvent e) {
-        this.cancel();
+    public void mouseClicked(final MouseEvent e) {
+        cancel();
     }
 
-    public void mouseEntered(MouseEvent e) {
+    public void mouseEntered(final MouseEvent e) {
     }
 
-    public void mouseExited(MouseEvent e) {
+    public void mouseExited(final MouseEvent e) {
     }
 
-    public void mousePressed(MouseEvent e) {
+    public void mousePressed(final MouseEvent e) {
     }
 
-    public void mouseReleased(MouseEvent e) {
+    public void mouseReleased(final MouseEvent e) {
     }
 
     @Override
     protected String createReturnValue() {
-        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
+        if ((getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
         return new String(((JPasswordField) input1).getPassword()) + ";" + new String(((JPasswordField) input2).getPassword()) + ";" + new String(((JPasswordField) input3).getPassword());
     }
 

@@ -232,6 +232,11 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
 
     @Override
     protected void packed() {
+
+    }
+
+    protected void initFocus(final JComponent focus) {
+
         if (input != null) {
             input.selectAll();
             input.requestFocusInWindow();
@@ -240,11 +245,7 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
             bigInput.selectAll();
             bigInput.requestFocusInWindow();
         }
-        requestFocus();
-
-    }
-
-    protected void initFocus(final JComponent focus) {
+    
 
     }
 

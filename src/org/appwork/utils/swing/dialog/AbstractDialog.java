@@ -73,7 +73,7 @@ import org.appwork.utils.swing.dialog.dimensor.DialogDimensor;
 import org.appwork.utils.swing.dialog.locator.CenterOfScreenDialogLocator;
 import org.appwork.utils.swing.dialog.locator.DialogLocator;
 
-public abstract class AbstractDialog<T> implements ActionListener, WindowListener, OKCancelCloseUserIODefinition {
+public abstract class AbstractDialog<T> implements ActionListener, WindowListener, OKCancelCloseUserIODefinition, WindowFocusListener {
 
     private static int                                    BUTTON_HEIGHT           = -1;
 
@@ -120,6 +120,11 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         return stack.size() == 0 ? null : stack.get(0);
     }
 
+    protected void registerEscape(final JComponent contentpane) {
+        focusButton = contentpane;
+        registerEscape();
+    }
+
     /**
      * @return
      */
@@ -133,6 +138,18 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         if (ret == null) { return -1; }
 
         return ret;
+    }
+
+    @Override
+    public void windowGainedFocus(final WindowEvent e) {
+        initFocus(focusButton);
+
+    }
+
+    @Override
+    public void windowLostFocus(final WindowEvent e) {
+        // TODO Auto-generated method stub
+
     }
 
     private static WindowStack getWindowStackByRoot(final Window desiredRootFrame) {
@@ -249,6 +266,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     private DisposeCallBack    disposeCallBack;
 
     private boolean            callerIsEDT            = false;
+
+    protected JComponent       focusButton;
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
@@ -449,7 +468,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 }
 
             }// register an escape listener to cancel the dialog
-            this.registerEscape(focus);
+            this.focusButton = focus;
+            this.registerEscape();
             this.packed();
 
             Point loc = null;
@@ -513,6 +533,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 }
             });
             dialog = this.getDialog();
+
+            dialog.addWindowFocusListener(this);
             windowStack = AbstractDialog.getWindowStackByRoot(this.getDesiredRootFrame());
             windowStack.add(dialog);
             System.out.println("Window Stack Before " + windowStack.size());
@@ -1044,27 +1066,14 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @param focus
      */
     protected void initFocus(final JComponent focus) {
-
-        this.getDialog().addWindowFocusListener(new WindowFocusListener() {
-
-            @Override
-            public void windowGainedFocus(final WindowEvent windowevent) {
-                System.out.println("Focus rquest!");
-                final Component focusOwner = AbstractDialog.this.getDialog().getFocusOwner();
-                if (focusOwner != null) {
-                    // dialog component has already focus...
-                    return;
-                }
-                final boolean success = focus.requestFocusInWindow();
-
-            }
-
-            @Override
-            public void windowLostFocus(final WindowEvent windowevent) {
-                // TODO Auto-generated method stub
-
-            }
-        });
+        if (focus == null) { return; }
+        System.out.println("Focus rquest!");
+        final Component focusOwner = AbstractDialog.this.getDialog().getFocusOwner();
+        if (focusOwner != null) {
+            // dialog component has already focus...
+            return;
+        }
+        final boolean success = focus.requestFocusInWindow();
 
     }
 
@@ -1121,7 +1130,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                         //
                         return;
                     }
-                    if (!this.isInterrupted()) {
+                    if (!isInterrupted()) {
                         AbstractDialog.this.onTimeout();
                     }
                 } catch (final InterruptedException e) {
@@ -1304,13 +1313,13 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     protected void packed() {
     }
 
-    protected void registerEscape(final JComponent focus) {
-        if (focus != null) {
+    protected void registerEscape() {
+        if (focusButton != null) {
             final KeyStroke ks = KeyStroke.getKeyStroke("ESCAPE");
-            focus.getInputMap().put(ks, "ESCAPE");
-            focus.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ESCAPE");
-            focus.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
-            focus.getActionMap().put("ESCAPE", new AbstractAction() {
+            focusButton.getInputMap().put(ks, "ESCAPE");
+            focusButton.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(ks, "ESCAPE");
+            focusButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ks, "ESCAPE");
+            focusButton.getActionMap().put("ESCAPE", new AbstractAction() {
 
                 private static final long serialVersionUID = -6666144330707394562L;
 
@@ -1323,14 +1332,9 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                     AbstractDialog.this.dispose();
                 }
             });
-            this.initFocus(focus);
+            this.initFocus(focusButton);
 
         }
-    }
-
-    public void requestFocus() {
-        WindowManager.getInstance().setZState(this.getDialog(), FrameState.TO_FRONT_FOCUSED);
-
     }
 
     /**

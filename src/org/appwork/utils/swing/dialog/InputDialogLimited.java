@@ -39,7 +39,7 @@ public class InputDialogLimited extends AbstractDialog<String> implements KeyLis
     private int limit = 0;
     private Pattern validCharsRegex = null;
 
-    public InputDialogLimited(int flag, String title, String message, String defaultMessage, ImageIcon icon, String okOption, String cancelOption, int limit, Pattern validCharsRegex) {
+    public InputDialogLimited(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption, final int limit, final Pattern validCharsRegex) {
         super(flag, title, icon, okOption, cancelOption);
 
         this.defaultMessage = defaultMessage;
@@ -51,12 +51,12 @@ public class InputDialogLimited extends AbstractDialog<String> implements KeyLis
 
     @Override
     public JComponent layoutDialogContent() {
-        JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
+        final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
         messageArea = new JTextPane();
         messageArea.setBorder(null);
         messageArea.setBackground(null);
         messageArea.setOpaque(false);
-        messageArea.setText(this.message);
+        messageArea.setText(message);
         messageArea.setEditable(false);
         messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
@@ -64,7 +64,7 @@ public class InputDialogLimited extends AbstractDialog<String> implements KeyLis
 
         input = new JTextFieldLimited(limit, validCharsRegex);
         input.setBorder(BorderFactory.createEtchedBorder());
-        input.setText(this.defaultMessage);
+        input.setText(defaultMessage);
         input.addKeyListener(this);
         input.addMouseListener(this);
         contentpane.add(input, "pushy,growy,w 450");
@@ -73,15 +73,19 @@ public class InputDialogLimited extends AbstractDialog<String> implements KeyLis
     }
 
     @Override
-    protected void packed() {
+    protected void initFocus(final JComponent focus) {
         input.selectAll();
-        requestFocus();
+        
         input.requestFocusInWindow();
     }
 
+ 
+
     public String getReturnID() {
-        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
-        if (input == null || input.getText() == null) return null;
+        if ((getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
+        if (input == null || input.getText() == null) {
+            return null;
+        }
         return input.getText();
     }
 
@@ -90,30 +94,30 @@ public class InputDialogLimited extends AbstractDialog<String> implements KeyLis
         return getReturnID();
     }
 
-    public void keyPressed(KeyEvent e) {
-        this.cancel();
+    public void keyPressed(final KeyEvent e) {
+        cancel();
     }
 
-    public void keyReleased(KeyEvent e) {
+    public void keyReleased(final KeyEvent e) {
     }
 
-    public void keyTyped(KeyEvent e) {
+    public void keyTyped(final KeyEvent e) {
     }
 
-    public void mouseClicked(MouseEvent e) {
-        this.cancel();
+    public void mouseClicked(final MouseEvent e) {
+        cancel();
     }
 
-    public void mouseEntered(MouseEvent e) {
+    public void mouseEntered(final MouseEvent e) {
     }
 
-    public void mouseExited(MouseEvent e) {
+    public void mouseExited(final MouseEvent e) {
     }
 
-    public void mousePressed(MouseEvent e) {
+    public void mousePressed(final MouseEvent e) {
     }
 
-    public void mouseReleased(MouseEvent e) {
+    public void mouseReleased(final MouseEvent e) {
     }
 
 }

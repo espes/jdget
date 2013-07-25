@@ -89,6 +89,7 @@ public class InternDialog<T> extends ExtJDialog {
     }
 
     public Dimension getRawPreferredSize() {
+       
         return super.getPreferredSize();
 
     }

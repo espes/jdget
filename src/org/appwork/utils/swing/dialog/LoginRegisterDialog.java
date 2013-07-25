@@ -208,10 +208,11 @@ public class LoginRegisterDialog extends AbstractDialog<String[]> implements Key
     }
 
     @Override
-    protected void packed() {
+    protected void initFocus(final JComponent focus) {
         login.selectAll();
-        requestFocus();
+        
         login.requestFocusInWindow();
     }
+  
 
 }

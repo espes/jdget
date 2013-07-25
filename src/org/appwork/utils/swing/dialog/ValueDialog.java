@@ -60,7 +60,7 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
             defaultValue /= 2;
             min /= 2;
             step = Math.max(step / 2, 1);
-            this.faktor *= 2;
+            faktor *= 2;
 
         }
         this.defaultValue = defaultValue;
@@ -72,12 +72,12 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
 
                 public String toString(final long value) {
 
-                    return value * ValueDialog.this.faktor + "";
+                    return value * faktor + "";
                 }
 
             };
         }
-        this.valueconverter = valueConverter;
+        valueconverter = valueConverter;
     }
 
     /*
@@ -87,13 +87,13 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
      */
     @Override
     protected Long createReturnValue() {
-        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return 0l; }
-        this.updateSlider();
-        return (long) this.slider.getValue() * (long) this.faktor;
+        if ((getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return 0l; }
+        updateSlider();
+        return (long) slider.getValue() * (long) faktor;
     }
 
     public void keyPressed(final KeyEvent e) {
-        this.cancel();
+        cancel();
     }
 
     public void keyReleased(final KeyEvent e) {
@@ -105,26 +105,26 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
     @Override
     public JComponent layoutDialogContent() {
         final JPanel contentpane = new JPanel(new MigLayout("ins 0,wrap 1", "[fill,grow]"));
-        this.messageArea = new JTextPane();
-        this.messageArea.setBorder(null);
-        this.messageArea.setBackground(null);
-        this.messageArea.setOpaque(false);
-        this.messageArea.setText(this.message);
-        this.messageArea.setEditable(false);
-        this.messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
+        messageArea = new JTextPane();
+        messageArea.setBorder(null);
+        messageArea.setBackground(null);
+        messageArea.setOpaque(false);
+        messageArea.setText(message);
+        messageArea.setEditable(false);
+        messageArea.putClientProperty("Synthetica.opaque", Boolean.FALSE);
 
-        contentpane.add(this.messageArea);
-        if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_LARGE)) {
-            this.converted = new JTextArea(this.valueconverter.toString(this.defaultValue));
-            this.converted.setEditable(false);
-            this.converted.setBackground(null);
-            this.slider = new JSlider(SwingConstants.HORIZONTAL, (int) this.min, (int) this.max, (int) this.defaultValue);
-            this.slider.setMajorTickSpacing((int) this.step);
-            this.slider.setSnapToTicks(true);
-            this.slider.addKeyListener(this);
-            this.slider.addMouseListener(this);
-            this.editable = new JTextField();
-            this.editable.addFocusListener(new FocusListener() {
+        contentpane.add(messageArea);
+        if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
+            converted = new JTextArea(valueconverter.toString(defaultValue));
+            converted.setEditable(false);
+            converted.setBackground(null);
+            slider = new JSlider(SwingConstants.HORIZONTAL, (int) min, (int) max, (int) defaultValue);
+            slider.setMajorTickSpacing((int) step);
+            slider.setSnapToTicks(true);
+            slider.addKeyListener(this);
+            slider.addMouseListener(this);
+            editable = new JTextField();
+            editable.addFocusListener(new FocusListener() {
 
                 public void focusGained(final FocusEvent e) {
 
@@ -136,7 +136,7 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
                 }
 
             });
-            this.editable.addKeyListener(new KeyListener() {
+            editable.addKeyListener(new KeyListener() {
 
                 public void keyPressed(final KeyEvent e) {
 
@@ -154,44 +154,44 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
                 }
 
             });
-            this.slider.addChangeListener(new ChangeListener() {
+            slider.addChangeListener(new ChangeListener() {
 
                 public void stateChanged(final ChangeEvent arg0) {
-                    ValueDialog.this.converted.setText(ValueDialog.this.valueconverter.toString((ValueDialog.this.slider.getValue() * ValueDialog.this.faktor)));
-                    ValueDialog.this.editable.setText(ValueDialog.this.slider.getValue() * ValueDialog.this.faktor + "");
+                    converted.setText(valueconverter.toString((slider.getValue() * faktor)));
+                    editable.setText(slider.getValue() * faktor + "");
                 }
 
             });
-            this.editable.setText(this.defaultValue + "");
-            contentpane.add(this.slider, "split 2,pushy,growy,w 250");
-            contentpane.add(this.editable, "growx,pushx,width 80:n:n");
-            contentpane.add(this.converted, "pushy,growy,w 250");
+            editable.setText(defaultValue + "");
+            contentpane.add(slider, "split 2,pushy,growy,w 250");
+            contentpane.add(editable, "growx,pushx,width 80:n:n");
+            contentpane.add(converted, "pushy,growy,w 250");
         } else {
-            this.converted = new JTextArea(this.valueconverter.toString(this.defaultValue));
-            this.slider = new JSlider(SwingConstants.HORIZONTAL, (int) this.min, (int) this.max, (int) this.defaultValue);
-            this.slider.setMajorTickSpacing((int) this.step);
-            this.slider.setSnapToTicks(true);
-            this.slider.setBorder(BorderFactory.createEtchedBorder());
-            this.slider.addKeyListener(this);
-            this.slider.addMouseListener(this);
-            this.slider.addChangeListener(new ChangeListener() {
+            converted = new JTextArea(valueconverter.toString(defaultValue));
+            slider = new JSlider(SwingConstants.HORIZONTAL, (int) min, (int) max, (int) defaultValue);
+            slider.setMajorTickSpacing((int) step);
+            slider.setSnapToTicks(true);
+            slider.setBorder(BorderFactory.createEtchedBorder());
+            slider.addKeyListener(this);
+            slider.addMouseListener(this);
+            slider.addChangeListener(new ChangeListener() {
 
                 public void stateChanged(final ChangeEvent arg0) {
-                    ValueDialog.this.converted.setText(ValueDialog.this.valueconverter.toString((ValueDialog.this.slider.getValue() * ValueDialog.this.faktor)));
-                    ValueDialog.this.editable.setText(ValueDialog.this.slider.getValue() * ValueDialog.this.faktor + "");
+                    converted.setText(valueconverter.toString((slider.getValue() * faktor)));
+                    editable.setText(slider.getValue() * faktor + "");
                 }
 
             });
 
-            contentpane.add(this.slider, "pushy,growy,w 250");
-            contentpane.add(this.converted, "pushy,growy,w 250");
+            contentpane.add(slider, "pushy,growy,w 250");
+            contentpane.add(converted, "pushy,growy,w 250");
         }
 
         return contentpane;
     }
 
     public void mouseClicked(final MouseEvent e) {
-        this.cancel();
+        cancel();
     }
 
     public void mouseEntered(final MouseEvent e) {
@@ -206,12 +206,12 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
     public void mouseReleased(final MouseEvent e) {
     }
 
-    @Override
-    protected void packed() {
-        this.requestFocus();
-        this.slider.requestFocusInWindow();
-    }
 
+
+    @Override
+    protected void initFocus(final JComponent focus) {
+        slider.requestFocusInWindow();
+    }
     private void updateSlider() {
         // new Thread() {
         // public void run() {
@@ -220,11 +220,11 @@ public class ValueDialog extends AbstractDialog<Long> implements KeyListener, Mo
         // 
         // public Object edtRun() {
         try {
-            final long value = Long.parseLong(this.editable.getText());
-            this.slider.setValue((int) (value / this.faktor));
+            final long value = Long.parseLong(editable.getText());
+            slider.setValue((int) (value / faktor));
         } catch (final Exception e) {
-            if (this.editable != null) {
-                this.editable.setText(this.slider.getValue() * this.faktor + "");
+            if (editable != null) {
+                editable.setText(slider.getValue() * faktor + "");
             }
         }
         // return null;

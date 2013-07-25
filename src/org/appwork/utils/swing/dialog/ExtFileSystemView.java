@@ -83,7 +83,7 @@ public class ExtFileSystemView extends FileSystemView {
      */
     public ExtFileSystemView() {
         org = FileSystemView.getFileSystemView();
-        if (ExtFileSystemView.SAMBA_SCANNED) {
+        if (!ExtFileSystemView.SAMBA_SCANNED) {
             new Exception("run ExtFileSystemView.runSambaScanner() as early as possible in your app!");
             ExtFileSystemView.runSambaScanner();
         }

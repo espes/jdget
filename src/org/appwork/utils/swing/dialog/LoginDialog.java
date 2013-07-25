@@ -47,15 +47,15 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
         }
 
         public String getPassword() {
-            return this.password;
+            return password;
         }
 
         public String getUsername() {
-            return this.username;
+            return username;
         }
 
         public boolean isSave() {
-            return this.save;
+            return save;
         }
     }
 
@@ -89,7 +89,7 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
     private final boolean  rememberDisabled;
     private  String   message;
 
-    public void setMessage(String message) {
+    public void setMessage(final String message) {
         this.message = message;
     }
 
@@ -99,13 +99,13 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
 
     public LoginDialog(final int flag, final String title, final String message, final ImageIcon icon) {
         super(flag & 0xffffffff & ~Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN, title, icon, null, null);
-        this.rememberDisabled = BinaryLogic.containsAll(flag, LoginDialog.DISABLE_REMEMBER);
+        rememberDisabled = BinaryLogic.containsAll(flag, LoginDialog.DISABLE_REMEMBER);
         this.message = message;
     }
 
     private JLabel addSettingName(final String name) {
         final JLabel lbl = new JLabel(name); 
-        lbl.setForeground(this.titleColor);
+        lbl.setForeground(titleColor);
         return lbl;
     }
 
@@ -114,58 +114,63 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
     }
 
     public void caretUpdate(final CaretEvent e) {
-        if (this.accid.getText().length() == 0) {
-            this.okButton.setEnabled(false);
+        if (accid.getText().length() == 0) {
+            okButton.setEnabled(false);
         } else {
-            this.okButton.setEnabled(true);
+            okButton.setEnabled(true);
         }
 
     }
 
     @Override
     protected LoginData createReturnValue() {
-        if ((this.getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
-        return new LoginData(this.accid.getText(), new String(this.pass.getPassword()), this.save.isSelected());
+        if ((getReturnmask() & (Dialog.RETURN_OK | Dialog.RETURN_TIMEOUT)) == 0) { return null; }
+        return new LoginData(accid.getText(), new String(pass.getPassword()), save.isSelected());
     }
 
     @Override
     public JComponent layoutDialogContent() {
 
         final JPanel contentpane = new JPanel();
-        this.titleColor = Color.DARK_GRAY;
-        this.accid = new JTextField(10);
-        this.accid.addCaretListener(this);
-        this.pass = new JPasswordField(10);
-        this.save = new JCheckBox();
-        if (this.rememberDisabled) {
-            this.save.setEnabled(false);
+        titleColor = Color.DARK_GRAY;
+        accid = new JTextField(10);
+        accid.addCaretListener(this);
+        pass = new JPasswordField(10);
+        save = new JCheckBox();
+        if (rememberDisabled) {
+            save.setEnabled(false);
         }
 
         contentpane.setLayout(new MigLayout("ins 5, wrap 2", "[]10[grow,fill]", "[][]"));
-        contentpane.add(new JLabel(this.message), "spanx");
-        contentpane.add(this.addSettingName(_AWU.T.AccountNew_layoutDialogContent_accountname()));
-        contentpane.add(this.accid, "sizegroup g1,width 100:250:n");
-        contentpane.add(this.addSettingName(_AWU.T.AccountNew_layoutDialogContent_password()));
-        contentpane.add(this.pass, "sizegroup g1");
-        contentpane.add(this.addSettingName(_AWU.T.AccountNew_layoutDialogContent_save()));
-        contentpane.add(this.save, "sizegroup g1");
-        this.accid.setText(this.preUser);
-        this.pass.setText(this.prePass);
-        this.save.setSelected(this.preSave);
+        contentpane.add(new JLabel(message), "spanx");
+        contentpane.add(addSettingName(_AWU.T.AccountNew_layoutDialogContent_accountname()));
+        contentpane.add(accid, "sizegroup g1,width 100:250:n");
+        contentpane.add(addSettingName(_AWU.T.AccountNew_layoutDialogContent_password()));
+        contentpane.add(pass, "sizegroup g1");
+        contentpane.add(addSettingName(_AWU.T.AccountNew_layoutDialogContent_save()));
+        contentpane.add(save, "sizegroup g1");
+        accid.setText(preUser);
+        pass.setText(prePass);
+        save.setSelected(preSave);
         return contentpane;
     }
 
     @Override
     protected void packed() {
         super.packed();
-        this.setResizable(false);
-        this.accid.selectAll();
-        this.requestFocus();
-        this.accid.requestFocusInWindow();
+        setResizable(false);
+      
     }
 
+    
+    @Override
+    protected void initFocus(final JComponent focus) {
+        accid.selectAll();
+        
+        accid.requestFocusInWindow();
+    }
     public void setPasswordDefault(final String password) {
-        this.prePass = password;
+        prePass = password;
     }
 
     public void setRememberDefault(final boolean preSave) {
@@ -173,7 +178,7 @@ public class LoginDialog extends AbstractDialog<LoginData> implements ActionList
     }
 
     public void setUsernameDefault(final String user) {
-        this.preUser = user;
+        preUser = user;
 
     }
 
