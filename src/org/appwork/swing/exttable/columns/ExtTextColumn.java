@@ -203,7 +203,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
         this.rendererIcon.setIcon(this.getIcon(value));
         String str = this.getStringValue(value);
-        if (str == null) {
+       if (str == null) {
             // under substance, setting setText(null) somehow sets the label
             // opaque.
             str = "";
