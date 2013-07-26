@@ -11,6 +11,10 @@ package org.appwork.utils.net.throttledconnection;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+
+import org.appwork.utils.net.NullOutputStream;
+import org.appwork.utils.speedmeter.AverageSpeedMeter;
 
 /**
  * @author daniel
@@ -18,19 +22,41 @@ import java.io.OutputStream;
  */
 public class ThrottledOutputStream extends OutputStream implements ThrottledConnection {
 
-    private ThrottledConnectionHandler handler;
-    private OutputStream               out;
+    /**
+     * Tester
+     * 
+     * @param args
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static void main(final String[] args) throws IOException, InterruptedException {
+        final MeteredThrottledOutputStream os = new MeteredThrottledOutputStream(new NullOutputStream(), new AverageSpeedMeter(5));
+        os.setLimit(99 * 1024);
+        final byte[] buffer = new byte[18 * 1024];
+        while (true) {
+            os.write(buffer);
+            final long speed = os.getSpeedMeter();
+            System.out.println("speed is " + speed + " limit is " + os.getLimit() + " difference " + (os.getLimit() - speed));
+        }
+    }
 
+    private ThrottledConnectionHandler handler;
+
+    private OutputStream               out;
     protected volatile long            transferedCounter  = 0;
     protected volatile long            transferedCounter2 = 0;
     private volatile int               limitCurrent       = 0;
-    private int                        limitCounter       = 0;
 
+    private int                        limitCounter       = 0;
     private int                        offset;
     private int                        todo;
     private int                        rest;
     private long                       slotTimeLeft       = 0;
-    private long                       lastTimeWrite      = 0;
+
+    private long                       lastTimeReset      = 0;
+    private final long                 onems              = 1000000l;
+    private final long                 onesec             = 1000000000l;
 
     /**
      * constructor for not managed ThrottledOutputStream
@@ -125,35 +151,13 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
             this.rest = len;
             while (this.rest > 0) {
                 /* loop until all data is written */
-                this.slotTimeLeft = 0;
-                if (this.limitCounter <= 0 && (this.slotTimeLeft = System.currentTimeMillis() - this.lastTimeWrite) < 1000) {
-                    /* Limit reached and slotTime not over yet */
-                    synchronized (this) {
-                        try {
-                            this.wait(1000 - this.slotTimeLeft);
-                        } catch (final InterruptedException e) {
-                            throw new IOException("throttle interrupted");
-                        }
-                    }
-                    /* refill Limit */
-                    this.limitCounter = this.limitCurrent;
-                    if (this.limitCounter <= 0) {
-                        this.limitCounter = this.rest;
-                    }
-                } else if (this.slotTimeLeft > 1000) {
-                    /* slotTime is over, refill Limit too */
-                    this.limitCounter = this.limitCurrent;
-                    if (this.limitCounter <= 0) {
-                        this.limitCounter = this.rest;
-                    }
-                }
+                this.writeWait(this.rest);
                 this.todo = Math.min(this.limitCounter, this.rest);
                 this.out.write(b, this.offset, this.todo);
                 this.offset += this.todo;
                 this.rest -= this.todo;
                 this.transferedCounter += this.todo;
                 this.limitCounter -= this.todo;
-                this.lastTimeWrite = System.currentTimeMillis();
             }
         }
     }
@@ -168,23 +172,39 @@ public class ThrottledOutputStream extends OutputStream implements ThrottledConn
         if (this.limitCurrent != 0) {
             /* a Limit is set */
             this.limitCounter--;
-            this.slotTimeLeft = 0;
-            if (this.limitCounter <= 0 && (this.slotTimeLeft = System.currentTimeMillis() - this.lastTimeWrite) < 1000) {
-                /* Limit reached and slotTime not over yet */
-                synchronized (this) {
-                    try {
-                        this.wait(1000 - this.slotTimeLeft);
-                    } catch (final InterruptedException e) {
-                        throw new IOException("throttle interrupted");
-                    }
+            this.writeWait(1);
+        }
+    }
+
+    private final void writeWait(final int len) throws IOException {
+        /* a Limit is set */
+        final long current = System.nanoTime();
+        this.slotTimeLeft = Math.max(0, current - this.lastTimeReset);
+        if (this.limitCounter <= 0 && this.slotTimeLeft < this.onesec) {
+            /* Limit reached and slotTime not over yet */
+            synchronized (this) {
+                try {
+                    long wait = this.onesec - this.slotTimeLeft;
+                    this.lastTimeReset = current + wait;
+                    final long ns = wait % this.onems;
+                    wait = wait / this.onems;
+                    this.wait(wait, (int) ns);
+                } catch (final InterruptedException e) {
+                    throw new IOException("throttle interrupted", e);
                 }
-                /* refill Limit */
-                this.limitCounter = this.limitCurrent;
-            } else if (this.slotTimeLeft > 1000) {
-                /* slotTime is over, refill Limit too */
-                this.limitCounter = this.limitCurrent;
             }
-            this.lastTimeWrite = System.currentTimeMillis();
+            /* refill Limit */
+            this.limitCounter = this.limitCurrent;
+            if (this.limitCounter <= 0) {
+                this.limitCounter = len;
+            }
+        } else if (this.slotTimeLeft >= this.onesec) {
+            /* slotTime is over, refill Limit too */
+            this.limitCounter = this.limitCurrent;
+            this.lastTimeReset = current;
+            if (this.limitCounter <= 0) {
+                this.limitCounter = len;
+            }
         }
     }
 

@@ -61,8 +61,11 @@ public class Files {
     public static void deleteRecursiv(final File file) throws IOException {
         if (!file.exists()) { throw new FileNotFoundException(file.getAbsolutePath()); }
         if (file.isDirectory()) {
-            for (final File f : file.listFiles()) {
-                Files.deleteRecursiv(f);
+            final File[] files = file.listFiles();
+            if (files != null) {
+                for (final File f : files) {
+                    Files.deleteRecursiv(f);
+                }
             }
         }
         final boolean fd = file.delete();

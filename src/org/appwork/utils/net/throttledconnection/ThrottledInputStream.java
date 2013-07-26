@@ -11,6 +11,10 @@ package org.appwork.utils.net.throttledconnection;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+
+import org.appwork.utils.net.NullInputStream;
+import org.appwork.utils.speedmeter.AverageSpeedMeter;
 
 /**
  * @author daniel
@@ -18,16 +22,38 @@ import java.io.InputStream;
  */
 public class ThrottledInputStream extends InputStream implements ThrottledConnection {
 
+    /**
+     * Tester
+     * 
+     * @param args
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static void main(final String[] args) throws MalformedURLException, IOException, InterruptedException {
+        final MeteredThrottledInputStream is = new MeteredThrottledInputStream(new NullInputStream(), new AverageSpeedMeter(5));
+        is.setLimit(19 * 1022);
+        int read = 0;
+        final byte[] buffer = new byte[1024];
+        while ((read = is.read(buffer)) != -1) {
+            final long speed = is.getSpeedMeter();
+            System.out.println("speed is " + speed + " limit is " + is.getLimit() + " difference " + (is.getLimit() - speed));
+        }
+    }
+
     private ThrottledConnectionHandler handler;
     private InputStream                in;
     protected volatile long            transferedCounter  = 0;
     protected volatile long            transferedCounter2 = 0;
     private volatile int               limitCurrent       = 0;
     private int                        limitCounter       = 0;
-    private int                        lastRead2;
 
+    private int                        lastRead2;
     private long                       slotTimeLeft       = 0;
-    private long                       lastTimeRead       = 0;
+
+    private long                       lastTimeReset      = 0;
+    private final long                 onems              = 1000000l;
+    private final long                 onesec             = 1000000000l;
 
     /**
      * constructor for not managed ThrottledInputStream
@@ -97,23 +123,8 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
         if (this.limitCurrent != 0) {
             /* a Limit is set */
             this.limitCounter--;
-            this.slotTimeLeft = 0;
-            if (this.limitCounter <= 0 && (this.slotTimeLeft = System.currentTimeMillis() - this.lastTimeRead) < 1000) {
-                /* Limit reached and slotTime not over yet */
-                synchronized (this) {
-                    try {
-                        this.wait(1000 - this.slotTimeLeft);
-                    } catch (final InterruptedException e) {
-                        throw new IOException("throttle interrupted", e);
-                    }
-                }
-                /* refill Limit */
-                this.limitCounter = this.limitCurrent;
-            } else if (this.slotTimeLeft > 1000) {
-                /* slotTime is over, refill Limit too */
-                this.limitCounter = this.limitCurrent;
-            }
-            this.lastTimeRead = System.currentTimeMillis();
+            /* a Limit is set */
+            this.readWait(1);
         }
         return this.lastRead2;
     }
@@ -128,29 +139,7 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
             }
             this.transferedCounter += this.lastRead2;
         } else {
-            /* a Limit is set */
-            this.slotTimeLeft = 0;
-            if (this.limitCounter <= 0 && (this.slotTimeLeft = System.currentTimeMillis() - this.lastTimeRead) < 1000) {
-                /* Limit reached and slotTime not over yet */
-                synchronized (this) {
-                    try {
-                        this.wait(1000 - this.slotTimeLeft);
-                    } catch (final InterruptedException e) {
-                        throw new IOException("throttle interrupted", e);
-                    }
-                }
-                /* refill Limit */
-                this.limitCounter = this.limitCurrent;
-                if (this.limitCounter <= 0) {
-                    this.limitCounter = len;
-                }
-            } else if (this.slotTimeLeft > 1000) {
-                /* slotTime is over, refill Limit too */
-                this.limitCounter = this.limitCurrent;
-                if (this.limitCounter <= 0) {
-                    this.limitCounter = len;
-                }
-            }
+            this.readWait(len);
             this.lastRead2 = this.in.read(b, off, Math.min(this.limitCounter, len));
             if (this.lastRead2 == -1) {
                 /* end of line */
@@ -158,9 +147,40 @@ public class ThrottledInputStream extends InputStream implements ThrottledConnec
             }
             this.transferedCounter += this.lastRead2;
             this.limitCounter -= this.lastRead2;
-            this.lastTimeRead = System.currentTimeMillis();
         }
         return this.lastRead2;
+    }
+
+    private final void readWait(final int len) throws IOException {
+        /* a Limit is set */
+        final long current = System.nanoTime();
+        this.slotTimeLeft = Math.max(0, current - this.lastTimeReset);
+        if (this.limitCounter <= 0 && this.slotTimeLeft < this.onesec) {
+            /* Limit reached and slotTime not over yet */
+            synchronized (this) {
+                try {
+                    long wait = this.onesec - this.slotTimeLeft;
+                    this.lastTimeReset = current + wait;
+                    final long ns = wait % this.onems;
+                    wait = wait / this.onems;
+                    this.wait(wait, (int) ns);
+                } catch (final InterruptedException e) {
+                    throw new IOException("throttle interrupted", e);
+                }
+            }
+            /* refill Limit */
+            this.limitCounter = this.limitCurrent;
+            if (this.limitCounter <= 0) {
+                this.limitCounter = len;
+            }
+        } else if (this.slotTimeLeft >= this.onesec) {
+            /* slotTime is over, refill Limit too */
+            this.limitCounter = this.limitCurrent;
+            this.lastTimeReset = current;
+            if (this.limitCounter <= 0) {
+                this.limitCounter = len;
+            }
+        }
     }
 
     @Override
