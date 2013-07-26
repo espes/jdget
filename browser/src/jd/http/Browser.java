@@ -1162,6 +1162,7 @@ public class Browser {
                 try {
                     final String currentURL = this.getURL();
                     if (string.startsWith("?") && currentURL != null) {
+                        /* TODO: this needs to be rechecked!! */
                         // '?' requests are amendments from current browser URL, base shouldn't be determined by browser html or the code
                         // below.
                         string = currentURL + string;
