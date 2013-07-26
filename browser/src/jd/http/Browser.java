@@ -42,6 +42,7 @@ import jd.parser.Regex;
 import jd.parser.html.Form;
 import jd.parser.html.InputField;
 
+import org.appwork.exceptions.WTFException;
 import org.appwork.utils.logging2.LogSource;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
@@ -460,9 +461,10 @@ public class Browser {
      */
     private void checkContentLengthLimit(final Request request) throws BrowserException {
         long length = -1;
+        request.setReadLimit(this.getLoadLimit());
         if (request == null || request.getHttpConnection() == null || (length = request.getHttpConnection().getLongContentLength()) < 0) {
             return;
-        } else if (length > this.limit) {
+        } else if (length > this.getLoadLimit()) {
             final Logger llogger = this.getLogger();
             if (llogger != null) {
                 llogger.severe(request.printHeaders());
@@ -930,39 +932,12 @@ public class Browser {
         return this.allowedResponseCodes;
     }
 
-    private String getBase() {
-        /* always use url from current connection */
-        // final String base = this.getRegex("<base\\s*href=\"(.*?)\"").getMatch(0);
-        // if (base != null) { return base; }
-
-        final URL url = this.request.getHttpConnection().getURL();
-        final String host = url.getHost();
-        String portUse = "";
-        if (url.getDefaultPort() > 0 && url.getPort() > 0 && url.getDefaultPort() != url.getPort()) {
-            portUse = ":" + url.getPort();
-        }
-        String proto = "http://";
-        if (url.toString().startsWith("https")) {
-            proto = "https://";
-        }
-        String path = url.getPath();
-        int id;
-        if ((id = path.lastIndexOf('/')) >= 0) {
-            path = path.substring(0, id);
-        }
-        return proto + host + portUse + path + "/";
-    }
-
     public String getBaseURL() {
         if (this.request == null) { return null; }
-
-        final String base = this.request.getUrl().toString();
-        // if (base.matches("http://.*/.*")) {
-        // return base.substring(0, base.lastIndexOf("/")) + "/";
-        // } else {
-        // return base + "/";
-        // }
-        return base.matches("https?://.*/.*") ? base.substring(0, base.lastIndexOf("/")) + "/" : base + "/";
+        final String url = this.request.getUrl();
+        final String base = new Regex(url, "(https?://.+)/").getMatch(0);
+        if (base != null) { return base + "/"; }
+        throw new WTFException("no baseURL for " + url);
     }
 
     /**
@@ -1088,6 +1063,10 @@ public class Browser {
         return this.request.getHttpConnection();
     }
 
+    public int getLoadLimit() {
+        return this.limit;
+    }
+
     public Logger getLogger() {
         final Logger llogger = this.logger;
         if (llogger != null) { return llogger; }
@@ -1160,7 +1139,7 @@ public class Browser {
     }
 
     public String getURL() {
-        return this.request == null ? null : this.request.getUrl().toString();
+        return this.request == null ? null : this.request.getUrl();
     }
 
     /**
@@ -1174,26 +1153,29 @@ public class Browser {
         }
         if (string == null) { throw new BrowserException("Null URL"); }
         try {
+            /* this checks if string contains a full/correct URL */
             new URL(string);
         } catch (final Exception e) {
             if (this.request == null || this.request.getHttpConnection() == null) { return string; }
-            final String base = this.getBase();
+            final String base = this.getBaseURL();
             if (string.startsWith("/") || string.startsWith("\\") || string.startsWith("?")) {
                 try {
-                    if (string.startsWith("?") && this.getURL() != null) {
-                        // '?' requests are amendments from current browser URL, base shouldn't be determined by browser html or the code below.
-                        string  = this.getURL() + string;
+                    final String currentURL = this.getURL();
+                    if (string.startsWith("?") && currentURL != null) {
+                        // '?' requests are amendments from current browser URL, base shouldn't be determined by browser html or the code
+                        // below.
+                        string = currentURL + string;
                     } else {
-                    final URL bUrl = new URL(base);
-                    String proto = "http://";
-                    if (base.startsWith("https")) {
-                        proto = "https://";
-                    }
-                    String portUse = "";
-                    if (bUrl.getDefaultPort() > 0 && bUrl.getPort() > 0 && bUrl.getDefaultPort() != bUrl.getPort()) {
-                        portUse = ":" + bUrl.getPort();
-                    }
-                    string = proto + new URL(base).getHost() + portUse + string;
+                        final URL bUrl = new URL(base);
+                        String proto = "http://";
+                        if (base.startsWith("https")) {
+                            proto = "https://";
+                        }
+                        String portUse = "";
+                        if (bUrl.getDefaultPort() > 0 && bUrl.getPort() > 0 && bUrl.getDefaultPort() != bUrl.getPort()) {
+                            portUse = ":" + bUrl.getPort();
+                        }
+                        string = proto + bUrl.getHost() + portUse + string;
                     }
                 } catch (final MalformedURLException e1) {
                     e1.printStackTrace();
@@ -1504,7 +1486,7 @@ public class Browser {
     }
 
     public void setLoadLimit(final int i) {
-        this.limit = i;
+        this.limit = Math.max(0, i);
     }
 
     public void setLogger(final Logger logger) {

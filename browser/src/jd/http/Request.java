@@ -91,7 +91,8 @@ public abstract class Request {
         return ret;
     }
 
-    public static byte[] read(final URLConnectionAdapter con) throws IOException {
+    public static byte[] read(final URLConnectionAdapter con, int readLimit) throws IOException {
+        readLimit = Math.max(0, readLimit);
         final InputStream is = con.getInputStream();
         byte[] ret = null;
         if (is == null) {
@@ -113,6 +114,7 @@ public abstract class Request {
             final byte[] buffer = new byte[32767];
             while ((len = is.read(buffer)) != -1) {
                 if (len > 0) {
+                    if (tmpOut.size() + len > readLimit) { throw new IOException("Content-length too big " + tmpOut.size() + len + " >= " + readLimit); }
                     tmpOut.write(buffer, 0, len);
                 }
             }
@@ -158,14 +160,17 @@ public abstract class Request {
 
     private long                   readTime       = -1;
     protected boolean              requested      = false;
+    protected int                  readLimit      = 1 * 1024 * 1024;
+
     protected HTTPProxy            proxy;
+
     protected String               orgURL;
+
     protected String               customCharset  = null;
 
     protected byte[]               byteArray      = null;
 
     protected boolean              contentDecoded = true;
-
     protected boolean              keepByteArray  = false;
 
     public Request(final String url) throws MalformedURLException {
@@ -394,6 +399,10 @@ public abstract class Request {
         return this.proxy;
     }
 
+    public int getReadLimit() {
+        return this.readLimit;
+    }
+
     public long getReadTime() {
         return this.readTime;
     }
@@ -502,7 +511,7 @@ public abstract class Request {
         this.keepByteArray = keepByteArray;
         final long tima = System.currentTimeMillis();
         this.httpConnection.setCharset(this.customCharset);
-        this.byteArray = Request.read(this.httpConnection);
+        this.byteArray = Request.read(this.httpConnection, this.getReadLimit());
         this.readTime = System.currentTimeMillis() - tima;
         return this;
     }
@@ -538,6 +547,10 @@ public abstract class Request {
 
     public void setProxy(final HTTPProxy proxy) {
         this.proxy = proxy;
+    }
+
+    public void setReadLimit(final int readLimit) {
+        this.readLimit = Math.max(0, readLimit);
     }
 
     public void setReadTimeout(final int readTimeout) {
