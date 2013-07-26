@@ -19,6 +19,11 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Window;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.HierarchyBoundsListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
@@ -510,53 +515,54 @@ public class WindowsWindowManager extends WindowManager {
 
             }
         });
-        // w.addComponentListener(new ComponentListener() {
-        //
-        // @Override
-        // public void componentShown(final ComponentEvent e) {
-        // System.out.println(e);
-        //
-        // }
-        //
-        // @Override
-        // public void componentResized(final ComponentEvent e) {
-        // System.out.println(e);
-        //
-        // }
-        //
-        // @Override
-        // public void componentMoved(final ComponentEvent e) {
-        // System.out.println(e);
-        //
-        // }
-        //
-        // @Override
-        // public void componentHidden(final ComponentEvent e) {
-        // System.out.println(e);
-        //
-        // }
-        // });
-        //
-        // w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
-        //
-        // @Override
-        // public void ancestorResized(final HierarchyEvent e) {
-        // System.out.println(e);
-        // }
-        //
-        // @Override
-        // public void ancestorMoved(final HierarchyEvent e) {
-        // System.out.println(e);
-        // }
-        // });
-        // w.addHierarchyListener(new HierarchyListener() {
-        //
-        // @Override
-        // public void hierarchyChanged(final HierarchyEvent e) {
-        // System.out.println(e);
-        //
-        // }
-        // });
+         w.addComponentListener(new ComponentListener() {
+        
+         @Override
+         public void componentShown(final ComponentEvent e) {
+         System.out.println(e);
+        
+         }
+        
+         @Override
+         public void componentResized(final ComponentEvent e) {
+         System.out.println(e);
+        
+         }
+        
+         @Override
+         public void componentMoved(final ComponentEvent e) {
+         System.out.println(e);
+        
+         }
+        
+         @Override
+         public void componentHidden(final ComponentEvent e) {
+         System.out.println(e);
+        
+         }
+         });
+        
+         w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
+        
+         @Override
+         public void ancestorResized(final HierarchyEvent e) {
+         System.out.println(e);
+         }
+        
+         @Override
+         public void ancestorMoved(final HierarchyEvent e) {
+         System.out.println(e);
+         }
+         });
+         w.addHierarchyListener(new HierarchyListener() {
+        
+         @Override
+         public void hierarchyChanged(final HierarchyEvent e) {
+         System.out.println(e);
+        
+         }
+         });
+        
     }
 
     /**
