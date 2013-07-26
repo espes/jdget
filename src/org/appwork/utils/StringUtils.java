@@ -10,7 +10,7 @@ public class StringUtils {
      * @param ip
      * @return
      */
-    public static boolean isEmpty(String ip) {
+    public static boolean isEmpty(final String ip) {
         return ip == null || ip.trim().length() == 0;
     }
 
@@ -19,7 +19,7 @@ public class StringUtils {
      * @param jdPkgRule
      * @return
      */
-    public static boolean endsWithCaseInsensitive(String name, String jdPkgRule) {
+    public static boolean endsWithCaseInsensitive(final String name, final String jdPkgRule) {
         return name.toLowerCase(Locale.ENGLISH).endsWith(jdPkgRule.toLowerCase(Locale.ENGLISH));
     }
 
@@ -28,9 +28,13 @@ public class StringUtils {
      * @param pass2
      * @return
      */
-    public static boolean equalsIgnoreCase(String pass, String pass2) {
-        if (pass == pass2) return true;
-        if (pass == null && pass2 != null) return false;
+    public static boolean equalsIgnoreCase(final String pass, final String pass2) {
+        if (pass == pass2) {
+            return true;
+        }
+        if (pass == null && pass2 != null) {
+            return false;
+        }
         return pass.equalsIgnoreCase(pass2);
     }
 
@@ -39,9 +43,13 @@ public class StringUtils {
      * @param pass2
      * @return
      */
-    public static boolean equals(String pass, String pass2) {
-        if (pass == pass2) return true;
-        if (pass == null && pass2 != null) return false;
+    public static boolean equals(final String pass, final String pass2) {
+        if (pass == pass2) {
+            return true;
+        }
+        if (pass == null && pass2 != null) {
+            return false;
+        }
         return pass.equals(pass2);
     }
 
@@ -49,15 +57,16 @@ public class StringUtils {
      * @param value
      * @return
      */
-    public static boolean isNotEmpty(String value) {
+    public static boolean isNotEmpty(final String value) {
         return !isEmpty(value);
     }
 
+    public static String fillPost(final String string, final String filler, final int minCount) {
+        if (string.length() >= minCount) {
+            return string;
+        }
 
-    public static String fillPost(String string, String filler, int minCount) {
-        if (string.length() >= minCount) return string;
-
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
 
         sb.append(string);
         while (sb.length() < minCount) {
@@ -65,6 +74,27 @@ public class StringUtils {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * @param sameSource
+     * @param sourceUrl
+     * @return
+     */
+    public static String getCommonalities(final String a, final String b) {
+        if(a==null) {
+            return b;
+        }
+        if(b==null) {
+            return a;
+        }
+        int i=0;
+        for ( i = 0; i < Math.min(a.length(), b.length()); i++) {
+            if (a.charAt(i) != b.charAt(i)) {                
+                return a.substring(0, i);
+            }
+        }
+         return a.substring(0, i);
     }
 
 }
