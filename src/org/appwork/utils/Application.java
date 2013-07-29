@@ -40,22 +40,19 @@ import org.appwork.utils.os.CrossSystem;
  */
 public class Application {
 
-
     static {
         Application.redirectOutputStreams();
     }
-    private static String       APP_FOLDER  = ".appwork";
+    private static String  APP_FOLDER  = ".appwork";
+    private static String  ROOT;
+    private static long    javaVersion = 0;
+    public static long     JAVA15      = 15000000;
+    public static long     JAVA16      = 16000000;
+    public static long     JAVA17      = 17000000;
+    public static long     JAVA18      = 18000000;
+    private static Boolean JVM64BIT    = null;
 
-    private static String       ROOT;
-
-    private static long         javaVersion = 0;
-    public static long          JAVA15      = 15000000;
-    public static long          JAVA16      = 16000000;
-    public static long          JAVA17      = 17000000;
-    public static long          JAVA18      = 18000000;
-    private static Boolean      JVM64BIT    = null;
-
-    private static boolean      REDIRECTED  = false;
+    private static boolean REDIRECTED  = false;
 
     /**
      * Adds a folder to the System classloader classpath this might fail if
