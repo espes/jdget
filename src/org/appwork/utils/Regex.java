@@ -61,6 +61,12 @@ public class Regex {
 
     private boolean memOpt = true;
 
+    public Regex(final CharSequence data, final Pattern pattern) {
+        if (data != null && pattern != null) {
+            this.matcher = pattern.matcher(data);
+        }
+    }
+
     public Regex(final Matcher matcher) {
         if (matcher != null) {
             this.matcher = matcher;
