@@ -17,6 +17,10 @@ import java.util.regex.Pattern;
  */
 public class Regex extends org.appwork.utils.Regex {
 
+    public Regex(final CharSequence data, final Pattern pattern) {
+        super(data, pattern);
+    }
+
     public Regex(final Matcher matcher) {
         super(matcher);
     }

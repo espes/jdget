@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,6 +34,152 @@ import org.appwork.utils.encoding.Hex;
 import org.appwork.utils.logging.Log;
 
 public class HTMLParser {
+
+    private static class HtmlParserCharSequence implements CharSequence {
+
+        final char[] chars;
+        final int    start;
+        final int    end;
+
+        private HtmlParserCharSequence(final HtmlParserCharSequence source, final int start, final int end) {
+            this.chars = source.chars;
+            this.start = start;
+            this.end = end;
+        }
+
+        public HtmlParserCharSequence(final String input) {
+            this.chars = new char[input.length()];
+            input.getChars(0, input.length(), this.chars, 0);
+            this.start = 0;
+            this.end = input.length();
+        }
+
+        @Override
+        public char charAt(int index) {
+            index = index + this.getStartIndex();
+            if (index > this.getStopIndex()) { throw new IndexOutOfBoundsException("index " + index + " > end " + this.getStopIndex()); }
+            return this.chars[index];
+        }
+
+        public boolean contains(final CharSequence s) {
+            return this.indexOf(s.toString()) > -1;
+        }
+
+        public int getStartIndex() {
+            return this.start;
+        }
+
+        public int getStopIndex() {
+            return this.end;
+        }
+
+        private int indexOf(final char[] source, final int sourceOffset, final int sourceCount, final CharSequence target, final int targetOffset, final int targetCount, int fromIndex) {
+            if (fromIndex >= sourceCount) { return targetCount == 0 ? sourceCount : -1; }
+            if (fromIndex < 0) {
+                fromIndex = 0;
+            }
+            if (targetCount == 0) { return fromIndex; }
+
+            final char first = target.charAt(targetOffset);
+            final int max = sourceOffset + sourceCount - targetCount;
+
+            for (int i = sourceOffset + fromIndex; i <= max; i++) {
+                /* Look for first character. */
+                if (source[i] != first) {
+                    while (++i <= max && source[i] != first) {
+                        ;
+                    }
+                }
+
+                /* Found first character, now look at the rest of v2 */
+                if (i <= max) {
+                    int j = i + 1;
+                    final int end = j + targetCount - 1;
+                    for (int k = targetOffset + 1; j < end && source[j] == target.charAt(k); j++, k++) {
+                        ;
+                    }
+
+                    if (j == end) {
+                        /* Found whole string. */
+                        return i - sourceOffset;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        public int indexOf(final CharSequence indexOf, final int fromIndex) {
+            return this.indexOf(this.chars, this.getStartIndex(), this.length(), indexOf, 0, indexOf.length(), fromIndex);
+        }
+
+        public int indexOf(final String str) {
+            return this.indexOf(str, 0);
+        }
+
+        @Override
+        public int length() {
+            return this.getStopIndex() - this.getStartIndex();
+        }
+
+        public HtmlParserCharSequence subSequence(final int start) {
+            return new HtmlParserCharSequence(this, this.getStartIndex() + start, this.getStopIndex());
+        }
+
+        @Override
+        public HtmlParserCharSequence subSequence(final int start, final int end) {
+            return new HtmlParserCharSequence(this, this.getStartIndex() + start, this.getStartIndex() + end);
+        }
+
+        @Override
+        public String toString() {
+            final String ret = new String(this.chars, this.getStartIndex(), this.length());
+            return ret;
+        }
+    }
+
+    private static class HtmlParserResultSet extends LinkedHashSet<String> {
+        /**
+         * 
+         */
+        private static final long         serialVersionUID = -8661894478609472993L;
+        protected final ArrayList<String> results          = new ArrayList<String>();
+
+        @Override
+        public boolean add(String e) {
+            if (e != null) {
+                int index = e.indexOf("\r");
+                if (index < 0) {
+                    index = e.indexOf("\n");
+                }
+                if (index < 0) {
+                    index = e.indexOf("\t");
+                }
+                if (index > 0) {
+                    e = e.substring(0, index);
+                }
+                if (e.contains("\"")) {
+                    e = e.replaceAll("\"", "");
+                }
+            }
+            if (super.add(e)) {
+                this.results.add(e);
+                return true;
+            }
+            return false;
+        }
+
+        public int getLastResultIndex() {
+            return this.results.size();
+        }
+
+        public List<String> getResults() {
+            return this.results;
+        }
+
+        public List<String> getResultsSublist(final int index) {
+            return this.results.subList(index, this.results.size());
+        }
+    }
 
     final static class Httppattern {
         public Pattern p;
@@ -49,6 +196,7 @@ public class HTMLParser {
     final private static Pattern[]     basePattern        = new Pattern[] { Pattern.compile("href=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("src=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
     final private static Pattern       pat1               = Pattern.compile("(" + HTMLParser.protocolPattern + "|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern       protocols          = Pattern.compile("(" + HTMLParser.protocolPattern + ")");
+
     private static Pattern             mp                 = null;
 
     static {
@@ -59,16 +207,31 @@ public class HTMLParser {
         }
     }
 
-    private static HashSet<String> _getHttpLinksDeepWalker(String data, final String url, HashSet<String> results) {
+    final private static Pattern       unescapePattern    = Pattern.compile("unescape\\(('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern       unhexPattern       = Pattern.compile("(([0-9a-fA-F]{2}| )+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    final private static Pattern       baseURLPattern     = Pattern.compile("(.*?\\..*?(/|$))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    final private static Pattern       paramsCut1         = Pattern.compile("://[^\r\n]*?/[^\r\n]+\\?.[^\r\n]*?=(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    final private static Pattern       paramsCut2         = Pattern.compile("://[^\r\n]*?/[^\r\n]*?\\?(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    private static final Pattern       inTagsPattern      = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    final private static Pattern       endTagPattern      = Pattern.compile("^(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    final private static Pattern       taglessPattern     = Pattern.compile("^(.*?)$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    private static HtmlParserResultSet _getHttpLinksDeepWalker(String data, final String url, HtmlParserResultSet results) {
         if (results == null) {
-            results = new HashSet<String>();
+            results = new HtmlParserResultSet();
         }
         if (data == null || (data = data.trim()).length() < 13) { return results; }
         if ((data.startsWith("directhttp://") || data.startsWith("httpviajd://") || data.startsWith("httpsviajd://")) && results.contains(data)) {
             /* we don't have to further check urls with those prefixes */
             return results;
         }
-        final int sizeBefore = results.size();
+        final int indexBefore = results.getLastResultIndex();
         /* find reversed */
         String reversedata = new StringBuilder(data).reverse().toString();
         HTMLParser._getHttpLinksFinder(reversedata, url, results);
@@ -84,9 +247,9 @@ public class HTMLParser {
         HTMLParser._getHttpLinksFinder(base64Data, url, results);
         base64Data = null;
         /* parse escaped js stuff */
-        if (data.length() > 23) {
-            String unescaped[] = new Regex(data, "unescape\\(('|\")(.*?)('|\")").getColumn(1);
-            if (unescaped != null) {
+        if (data.length() > 23 && data.contains("unescape")) {
+            String unescaped[] = new Regex(data, HTMLParser.unescapePattern).getColumn(1);
+            if (unescaped != null && unescaped.length > 0) {
                 for (String unescape : unescaped) {
                     unescape = Encoding.htmlDecode(unescape);
                     HTMLParser._getHttpLinksFinder(unescape, url, results);
@@ -95,8 +258,8 @@ public class HTMLParser {
             }
         }
         /* find hex'ed */
-        if (results.size() == sizeBefore && data.length() >= 24) {
-            String hex = new Regex(data, "(([0-9a-fA-F]{2}| )+)").getMatch(0);
+        if (HTMLParser.deepWalkCheck(results, indexBefore) && data.length() >= 24) {
+            String hex = new Regex(data, HTMLParser.unhexPattern).getMatch(0);
             if (hex != null && hex.length() >= 24) {
                 try {
                     /* remove spaces from hex-coded string */
@@ -110,17 +273,17 @@ public class HTMLParser {
                 }
             }
         }
-        if (results.size() == sizeBefore && data.contains("%3A%2F%2")) {
+        if (HTMLParser.deepWalkCheck(results, indexBefore)) {
             /* no changes in results size, and data contains urlcoded http://, so lets urldecode it */
             HTMLParser._getHttpLinksFinder(Encoding.urlDecode(data, true), url, results);
         }
         return results;
     }
 
-    private static HashSet<String> _getHttpLinksFinder(String data, String url, HashSet<String> results) {
+    private static HtmlParserResultSet _getHttpLinksFinder(String data, String url, HtmlParserResultSet results) {
         final String baseUrl = url;
         if (results == null) {
-            results = new HashSet<String>();
+            results = new HtmlParserResultSet();
         }
         if (data == null || (data = data.trim()).length() == 0) { return results; }
         if (!data.matches(".*<.*>.*")) {
@@ -141,7 +304,6 @@ public class HTMLParser {
                 }
             }
         }
-
         url = url == null ? "" : url;
         Matcher m;
         String link;
@@ -160,7 +322,7 @@ public class HTMLParser {
         if (baseUrl != null && url != null && (url.startsWith("./") || pro == null)) {
             /* combine baseURL and href url */
             if (pro == null) {
-                final String base = new Regex(baseUrl, "(.*?\\..*?(/|$))").getMatch(0);
+                final String base = new Regex(baseUrl, HTMLParser.baseURLPattern).getMatch(0);
                 if (url.startsWith("/") /* || url.startsWith("#") */) {
                     /* absolute from root url or anchor from root */
                     if (base != null) {
@@ -226,27 +388,34 @@ public class HTMLParser {
                     }
                 }
                 if (start != -1) {
-                    results.add(new String(HTMLParser.correctURL(link.substring(start))));
+                    final String check = link.substring(start);
+                    results.add(new String(HTMLParser.correctURL(check)));
+                    if (data.equals(check)) {
+                        /* data equals check, so we can leave this loop */
+                        break;
+                    }
                 }
-                link = link.replaceAll("^h.{2,3}://", "http://");
-                link = link.replaceFirst("^www\\.", "http://www\\.");
-                results.add(new String(HTMLParser.correctURL(link)));
+                String check = link.replaceAll("^h.{2,3}://", "http://");
+                check = check.replaceFirst("^www\\.", "http://www\\.");
+                if (!link.equals(check)) {
+                    results.add(new String(HTMLParser.correctURL(check)));
+                }
 
             }
         }
         return results;
     }
 
-    private static HashSet<String> _getHttpLinksWalker(String data, final String url, HashSet<String> results, String tagRegex) {
+    private static HtmlParserResultSet _getHttpLinksWalker(HtmlParserCharSequence data, final String url, HtmlParserResultSet results, Pattern tagRegex) {
         // System.out.println("Call: "+data.length());
         if (results == null) {
-            results = new HashSet<String>();
+            results = new HtmlParserResultSet();
         }
-        if (data == null || (data = data.trim()).length() < 13) { return results; }
+        if (data == null || data.length() < 13) { return results; }
         /* filtering tags, recursion command me ;) */
         while (true) {
             if (tagRegex == null) {
-                tagRegex = "<(.*?)>";
+                tagRegex = HTMLParser.inTagsPattern;
             }
             final String nexttag = new Regex(data, tagRegex).setMemoryOptimized(false).getMatch(0);
             if (nexttag == null || nexttag.length() == 0) {
@@ -254,39 +423,39 @@ public class HTMLParser {
                 break;
             } else {
                 /* lets check if tag contains links */
-                HTMLParser._getHttpLinksWalker(nexttag, url, results, "<(.*?)>");
-                int tagClose = data.indexOf('<' + nexttag);
-                if (tagClose >= 0) {
-                    tagClose = tagClose + nexttag.length() + 1;
+                HTMLParser._getHttpLinksWalker(new HtmlParserCharSequence(nexttag), url, results, HTMLParser.inTagsPattern);
+                final int tagOpen = data.indexOf('<' + nexttag);
+                int tagClose = -1;
+                if (tagOpen >= 0) {
+                    tagClose = tagOpen + nexttag.length() + 1;
                 }
                 if (tagClose >= 0 && data.length() >= tagClose + 1) {
-                    final int tagOpen = data.indexOf('<' + nexttag);
                     if (tagOpen > 0) {
                         /*
                          * there might be some data left before the tag, do not remove that data
                          */
-                        final String dataLeft = data.substring(0, tagOpen);
-                        final String dataLeft2 = data.substring(tagClose + 1);
+                        final HtmlParserCharSequence dataLeft = data.subSequence(0, tagOpen);
+                        final HtmlParserCharSequence dataLeft2 = data.subSequence(tagClose + 1);
                         data = null;
                         if (dataLeft.contains(">")) {
-                            HTMLParser._getHttpLinksWalker(dataLeft, url, results, "^(.*?)>");
+                            HTMLParser._getHttpLinksWalker(dataLeft, url, results, HTMLParser.endTagPattern);
                         } else {
-                            HTMLParser._getHttpLinksWalker(dataLeft, url, results, "^(.*?)$");
+                            HTMLParser._getHttpLinksWalker(dataLeft, url, results, HTMLParser.taglessPattern);
                         }
                         data = dataLeft2;
                     } else {
                         /* remove tag at begin of data */
-                        data = data.substring(tagClose + 1);
+                        data = data.subSequence(tagClose + 1);
                         if (data.length() == 0) { return results; }
                     }
                     // System.out.println("SubCall: "+data.length());
                 } else {
                     if (tagClose < 0) {
-                        data = data.substring(nexttag.length());
+                        data = data.subSequence(nexttag.length());
                         if (data.length() == 0) { return results; }
                     } else {
                         /* remove tag at begin of data */
-                        data = data.substring(tagClose + 1);
+                        data = data.subSequence(tagClose + 1);
                         if (data.length() == 0) { return results; }
                     }
                 }
@@ -304,23 +473,53 @@ public class HTMLParser {
                 return results;
             }
         }
-        final int sizeBefore = results.size();
-        HTMLParser._getHttpLinksFinder(data, url, results);
-        if (results.size() == sizeBefore) {
-            HTMLParser._getHttpLinksDeepWalker(data, url, results);
+        final int indexBefore = results.getResults().size();
+        HTMLParser._getHttpLinksFinder(data.toString(), url, results);
+        if (HTMLParser.deepWalkCheck(results, indexBefore)) {
+            HTMLParser._getHttpLinksDeepWalker(data.toString(), url, results);
             /* cut of ?xy= parts if needed */
-            String newdata = new Regex(data, "://[^\r\n]*?/[^\r\n]+\\?.[^\r\n]*?=(.*?)($|\r|\n)").setMemoryOptimized(false).getMatch(0);
-            HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
+            String newdata = new Regex(data, HTMLParser.paramsCut1).setMemoryOptimized(false).getMatch(0);
+            if (!data.equals(newdata)) {
+                HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
+            }
             /* use of ?xy parts if available */
-            newdata = new Regex(data, "://[^\r\n]*?/[^\r\n]*?\\?(.*?)($|\r|\n)").setMemoryOptimized(false).getMatch(0);
-            HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
+            newdata = new Regex(data, HTMLParser.paramsCut2).setMemoryOptimized(false).getMatch(0);
+            if (!data.equals(newdata)) {
+                HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
+            }
         }
         return results;
     }
 
-    private static String correctURL(final String input) {
+    private static String correctURL(String input) {
+        final int indexofa = input.indexOf("&");
+        if (indexofa > 0 && input.indexOf("?") == -1) {
+            /* this can happen when we found a link as urlparameter */
+            /**
+             * eg test.com/?u=http%3A%2F%2Fwww...&bla=
+             * 
+             * then we get
+             * 
+             * http://www...&bla
+             * 
+             * we cut of the invalid urlParameter &bla
+             */
+            input = input.substring(0, indexofa);
+        }
         /* spaces must be %20 encoded */
         return input.replaceAll(" ", "%20");
+    }
+
+    private static boolean deepWalkCheck(final HtmlParserResultSet results, final int indexBefore) {
+        final int latestIndex = results.getLastResultIndex();
+        final boolean ret = latestIndex == indexBefore;
+        if (!ret) {
+            final List<String> subList = results.getResultsSublist(indexBefore);
+            for (final String check : subList) {
+                if (check.contains("%3A%2F%2")) { return true; }
+            }
+        }
+        return ret;
     }
 
     /**
@@ -448,35 +647,8 @@ public class HTMLParser {
         // data = data.replaceAll("(?i)<span.*?>", "");
         // data = data.replaceAll("(?i)</span.*?>", "");
         data = data.replaceAll("(?s)\\[(url|link)\\](.*?)\\[/(url|link)\\]", "<$2>");
-        final HashSet<String> results = new LinkedHashSet<String>() {
-
-            /**
-             * 
-             */
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean add(String e) {
-                if (e != null) {
-                    int index = e.indexOf("\r");
-                    if (index < 0) {
-                        index = e.indexOf("\n");
-                    }
-                    if (index < 0) {
-                        index = e.indexOf("\t");
-                    }
-                    if (index > 0) {
-                        e = e.substring(0, index);
-                    }
-                    if (e.contains("\"")) {
-                        e = e.replaceAll("\"", "");
-                    }
-                }
-                return super.add(e);
-            }
-
-        };
-        HTMLParser._getHttpLinksWalker(data, url, results, null);
+        final HtmlParserResultSet results = new HtmlParserResultSet();
+        HTMLParser._getHttpLinksWalker(new HtmlParserCharSequence(data), url, results, null);
         /* we don't want baseurl to be included in result set */
         results.remove(url);
         if (results.isEmpty()) { return null; }
