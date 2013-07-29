@@ -36,9 +36,8 @@ public class Form {
 
     public enum MethodType {
         GET,
-        POST,
-        PUT,
-        UNKNOWN
+        POST
+
     }
 
     /**
@@ -421,9 +420,8 @@ public class Form {
                     this.setMethod(MethodType.POST);
                 } else if (lowvalue.matches(".*get.*")) {
                     this.setMethod(MethodType.GET);
-                } else if (lowvalue.matches(".*put.*")) {
-                    this.setMethod(MethodType.PUT);
                 } else {
+                    /* fallback */
                     this.setMethod(MethodType.POST);
                 }
             } else {
@@ -552,11 +550,6 @@ public class Form {
             ret.append("Method: POST\n");
         } else if (this.method == MethodType.GET) {
             ret.append("Method: GET\n");
-        } else if (this.method == MethodType.PUT) {
-            ret.append("Method: PUT is not supported\n");
-
-        } else if (this.method == MethodType.UNKNOWN) {
-            ret.append("Method: Unknown\n");
         }
         for (final InputField ipf : this.inputfields) {
 
