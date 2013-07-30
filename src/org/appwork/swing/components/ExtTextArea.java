@@ -1,32 +1,42 @@
 package org.appwork.swing.components;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
 
+import javax.swing.JComponent;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.appwork.swing.components.tooltips.ExtTooltip;
+import org.appwork.swing.components.tooltips.ToolTipController;
+import org.appwork.swing.components.tooltips.ToolTipHandler;
+import org.appwork.swing.components.tooltips.TooltipFactory;
+import org.appwork.swing.components.tooltips.TooltipTextDelegateFactory;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.swing.SwingUtils;
 
-public class ExtTextArea extends JTextArea implements FocusListener, DocumentListener {
+public class ExtTextArea extends JTextArea implements FocusListener, DocumentListener, ToolTipHandler {
     /**
      * 
      */
     private static final long serialVersionUID = -2215616004852131754L;
-    protected Color             defaultColor;
+    protected Color           defaultColor;
     private Color             helpColor;
+    private TooltipFactory    tooltipFactory;
 
     {
-
-        this.getDocument().addDocumentListener(this);
-        this.addFocusListener(this);
-        this.defaultColor = this.getForeground();
-        this.helpColor = (Color) UIManager.get("TextField.disabledForeground");
-        if (this.helpColor == null) {
-            this.helpColor = Color.LIGHT_GRAY;
+        tooltipFactory = new TooltipTextDelegateFactory(this);
+        getDocument().addDocumentListener(this);
+        addFocusListener(this);
+        defaultColor = getForeground();
+        helpColor = (Color) UIManager.get("TextField.disabledForeground");
+        if (helpColor == null) {
+            helpColor = Color.LIGHT_GRAY;
         }
     }
     private String            helpText         = null;
@@ -39,39 +49,39 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
      */
     @Override
     public void changedUpdate(final DocumentEvent e) {
-        this.onChanged();
+        onChanged();
     }
 
     public void focusGained(final FocusEvent arg0) {
 
-        if (super.getText().equals(this.helpText)) {
-            this.setText("");
+        if (super.getText().equals(helpText)) {
+            setText("");
 
         }
-        this.setForeground(this.defaultColor);
+        setForeground(defaultColor);
     }
 
     public void focusLost(final FocusEvent arg0) {
 
-        if (this.getDocument().getLength() == 0 || super.getText().equals(this.helpText)) {
-            this.setText(this.helpText);
-            this.setForeground(this.helpColor);
+        if (getDocument().getLength() == 0 || super.getText().equals(helpText)) {
+            setText(helpText);
+            setForeground(helpColor);
         }
 
     }
 
     public Color getHelpColor() {
-        return this.helpColor;
+        return helpColor;
     }
 
     public String getHelpText() {
-        return this.helpText;
+        return helpText;
     }
 
     @Override
     public String getText() {
         String ret = super.getText();
-        if (ret.equals(this.helpText)) {
+        if (ret.equals(helpText)) {
             ret = "";
         }
         return ret;
@@ -85,18 +95,18 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
      */
     @Override
     public void insertUpdate(final DocumentEvent e) {
-        this.onChanged();
+        onChanged();
     }
 
     public boolean isHelpTextVisible() {
-        return this.helpText != null && this.helpText.equals(super.getText());
+        return helpText != null && helpText.equals(super.getText());
     }
 
     /**
      * 
      */
     public void onChanged() {
-       
+
     }
 
     /*
@@ -107,7 +117,7 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
      */
     @Override
     public void removeUpdate(final DocumentEvent e) {
-        this.onChanged();
+        onChanged();
     }
 
     public void setHelpColor(final Color helpColor) {
@@ -120,8 +130,8 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
     public void setHelpText(final String helpText) {
         this.helpText = helpText;
         if (this.getText().length() == 0) {
-            this.setText(this.helpText);
-            this.setForeground(this.helpColor);
+            setText(this.helpText);
+            setForeground(helpColor);
         }
 
     }
@@ -132,27 +142,103 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
      * @param b
      */
     public void setLabelMode(final boolean b) {
-        this.setEditable(!b);
-        this.setFocusable(!b);
-        this.setBorder(b ? null : new JTextArea().getBorder());
+        setEditable(!b);
+        setFocusable(!b);
+        setBorder(b ? null : new JTextArea().getBorder());
         SwingUtils.setOpaque(this, !b);
     }
 
     @Override
     public void setText(String t) {
-        if (!this.hasFocus() && this.helpText != null && (t == null || t.length() == 0)) {
-            t = this.helpText;
+        if (!hasFocus() && helpText != null && (t == null || t.length() == 0)) {
+            t = helpText;
         }
 
         super.setText(t);
-        if (this.helpText != null) {
-            if (this.helpText.equals(t)) {
-                this.setForeground(this.helpColor);
+        if (helpText != null) {
+            if (helpText.equals(t)) {
+                setForeground(helpColor);
             } else {
 
-                this.setForeground(this.defaultColor);
+                setForeground(defaultColor);
             }
         }
+    }
+
+    public ExtTextArea setTooltipsEnabled(final boolean b) {
+        if (b) {
+            ToolTipController.getInstance().register(this);
+        } else {
+            ToolTipController.getInstance().unregister(this);
+
+        }
+        return this;
+    }
+
+    @Override
+    public void setToolTipText(final String text) {
+
+        putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, text);
+
+        setTooltipsEnabled(StringUtils.isNotEmpty(getToolTipText()));
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.swing.components.tooltips.ToolTipHandler#updateTooltip(org
+     * .appwork.swing.components.tooltips.ExtTooltip, java.awt.event.MouseEvent)
+     */
+    @Override
+    public int getTooltipDelay(final Point mousePositionOnScreen) {
+        return 0;
+    }
+
+    @Override
+    public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.swing.components.tooltips.ToolTipHandler#createExtTooltip
+     * (java.awt.Point)
+     */
+    @Override
+    public ExtTooltip createExtTooltip(final Point mousePosition) {
+
+        return getTooltipFactory().createTooltip();
+    }
+
+    public void setTooltipFactory(final TooltipFactory tooltipFactory) {
+        this.tooltipFactory = tooltipFactory;
+        ToolTipController.getInstance().register(this);
+    }
+
+    public TooltipFactory getTooltipFactory() {
+
+        return tooltipFactory;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.swing.components.tooltips.ToolTipHandler#
+     * isTooltipDisabledUntilNextRefocus()
+     */
+    @Override
+    public boolean isTooltipDisabledUntilNextRefocus() {
+
+        return true;
+    }
+
+    @Override
+    public boolean isTooltipWithoutFocusEnabled() {
+        // TODO Auto-generated method stub
+        return true;
     }
 
 }

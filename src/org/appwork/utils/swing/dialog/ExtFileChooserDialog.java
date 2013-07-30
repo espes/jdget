@@ -334,7 +334,11 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 return new File[] { f };
             }
         } finally {
+            try{
             getIDConfig().setLastSelection(fc.getCurrentDirectory().getAbsolutePath());
+            }catch(final Exception e){
+                //may throw nullpointers
+            }
         }
 
     }

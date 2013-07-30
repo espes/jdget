@@ -48,14 +48,14 @@ public class ToolTip extends ExtTooltip {
     @Override
     public TooltipPanel createContent() {
         final TooltipPanel p = new TooltipPanel("ins 2,wrap 1", "[]", "[]");
-        this.tf = new JLabel();
+        tf = new JLabel();
         // this.tf.setEnabled(false);
-        this.tf.setForeground(new Color(this.getConfig().getForegroundColor()));
-        this.tf.setBackground(null);
+        tf.setForeground(new Color(getConfig().getForegroundColor()));
+        tf.setBackground(null);
 
-        SwingUtils.setOpaque(this.tf, false);
+        SwingUtils.setOpaque(tf, false);
 
-        p.add(this.tf);
+        p.add(tf);
 
         return p;
     }
@@ -65,15 +65,23 @@ public class ToolTip extends ExtTooltip {
      */
 
     public void setTipText(String txt) {
-
-        if (txt.contains("\r") || txt.contains("\n") && !txt.startsWith("<html>")) {
-            txt = "<html>" + txt.replaceAll("[\r\n]{1,2}", "<br>") + "</html>";
+        if (txt != null) {
+            if (txt.contains("\r") || txt.contains("\n") && !txt.startsWith("<html>")) {
+                txt = "<html>" + txt.replaceAll("[\r\n]{1,2}", "<br>") + "</html>";
+            }
         }
 
-        this.tf.setText(txt);
+        tf.setText(txt);
         panel.invalidate();
-       
 
+    }
+
+    /**
+     * DO NOT USE. use #toText instead
+     */
+    @Deprecated
+    public String getTipText() {
+        return null;
     }
 
     /*
