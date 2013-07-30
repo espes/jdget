@@ -286,7 +286,6 @@ public class HTMLParser {
             }
             if (super.add(e)) {
                 this.results.add(e);
-                System.out.println("Found " + this.results.size());
                 return true;
             }
             return false;
