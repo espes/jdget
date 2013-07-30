@@ -16,6 +16,7 @@
 
 package jd.parser.html;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,10 +37,32 @@ import org.appwork.utils.logging.Log;
 public class HTMLParser {
 
     private static class HtmlParserCharSequence implements CharSequence {
+        private final static boolean offsetValueCountAvailable;
+        private static Field         offsetField;
+        private static Field         valueField;
+        private static Field         countField;
+        static {
+            boolean ret = false;
+            try {
+                HtmlParserCharSequence.offsetField = String.class.getDeclaredField("offset");
+                HtmlParserCharSequence.countField = String.class.getDeclaredField("count");
+                HtmlParserCharSequence.valueField = String.class.getDeclaredField("value");
+                HtmlParserCharSequence.offsetField.setAccessible(true);
+                HtmlParserCharSequence.valueField.setAccessible(true);
+                HtmlParserCharSequence.countField.setAccessible(true);
+                ret = true;
+            } catch (final Throwable e) {
+            }
+            offsetValueCountAvailable = ret;
+        }
 
-        final char[] chars;
-        final int    start;
-        final int    end;
+        public static final boolean isAvoidCopyPossible() {
+            return HtmlParserCharSequence.offsetValueCountAvailable;
+        }
+
+        char[] chars;
+        int    start;
+        int    end;
 
         private HtmlParserCharSequence(final HtmlParserCharSequence source, final int start, final int end) {
             this.chars = source.chars;
@@ -48,6 +71,20 @@ public class HTMLParser {
         }
 
         public HtmlParserCharSequence(final String input) {
+            if (HtmlParserCharSequence.offsetValueCountAvailable) {
+                /* this avoids copy of charArray from String to this HtmlParserCharSequence */
+                try {
+                    if (HtmlParserCharSequence.offsetField != null && HtmlParserCharSequence.valueField != null && HtmlParserCharSequence.countField != null) {
+                        this.chars = (char[]) HtmlParserCharSequence.valueField.get(input);
+                        this.start = HtmlParserCharSequence.offsetField.getInt(input);
+                        this.end = this.start + HtmlParserCharSequence.countField.getInt(input);
+                        return;
+                    }
+                } catch (final Throwable e) {
+                }
+            }
+            /* seems we are java >=1.7_6 */
+            /* http://java-performance.info/changes-to-string-java-1-7-0_06/ */
             this.chars = new char[input.length()];
             input.getChars(0, input.length(), this.chars, 0);
             this.start = 0;
@@ -65,12 +102,53 @@ public class HTMLParser {
             return this.indexOf(s.toString()) > -1;
         }
 
+        @Override
+        public boolean equals(final Object anObject) {
+            if (this == anObject) { return true; }
+            if (anObject instanceof CharSequence) {
+                final CharSequence anotherString = (CharSequence) anObject;
+                int n = this.length();
+                if (n == anotherString.length()) {
+                    int i = 0;
+                    while (n-- != 0) {
+                        if (this.charAt(i) != anotherString.charAt(i)) { return false; }
+                        i++;
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public int getStartIndex() {
             return this.start;
         }
 
         public int getStopIndex() {
             return this.end;
+        }
+
+        /**
+         * create a String from this HtmlParserCharSequence and avoid copy if possible , see offsetValueCountAvailable
+         * 
+         * @return
+         */
+        public String getStringAvoidCopy() {
+            if (HtmlParserCharSequence.offsetValueCountAvailable) {
+                try {
+                    final String ret = new String();
+                    HtmlParserCharSequence.valueField.set(ret, this.chars);
+                    HtmlParserCharSequence.offsetField.setInt(ret, this.start);
+                    HtmlParserCharSequence.countField.setInt(ret, this.length());
+                    return ret;
+                } catch (final Throwable e) {
+                }
+            }
+            return this.getStringCopy();
+        }
+
+        public String getStringCopy() {
+            return new String(this.chars, this.getStartIndex(), this.length());
         }
 
         private int indexOf(final char[] source, final int sourceOffset, final int sourceCount, final CharSequence target, final int targetOffset, final int targetCount, int fromIndex) {
@@ -108,17 +186,49 @@ public class HTMLParser {
             return -1;
         }
 
-        public int indexOf(final CharSequence indexOf, final int fromIndex) {
-            return this.indexOf(this.chars, this.getStartIndex(), this.length(), indexOf, 0, indexOf.length(), fromIndex);
+        public int indexOf(final CharSequence str) {
+            return this.indexOf(str, 0);
         }
 
-        public int indexOf(final String str) {
-            return this.indexOf(str, 0);
+        public int indexOf(final CharSequence indexOf, final int fromIndex) {
+            return this.indexOf(this.chars, this.getStartIndex(), this.length(), indexOf, 0, indexOf.length(), fromIndex);
         }
 
         @Override
         public int length() {
             return this.getStopIndex() - this.getStartIndex();
+        }
+
+        public boolean matches(final Pattern regex) {
+            return regex.matcher(this).matches();
+        }
+
+        public HtmlParserCharSequence replaceAll(final Pattern regex, final String replacement) {
+            final String ret = regex.matcher(this).replaceAll(replacement);
+            if (this.equals(ret)) { return this; }
+            return new HtmlParserCharSequence(ret);
+        }
+
+        public HtmlParserCharSequence replaceFirst(final Pattern regex, final String replacement) {
+            final String ret = regex.matcher(this).replaceFirst(replacement);
+            if (this.equals(ret)) { return this; }
+            return new HtmlParserCharSequence(ret);
+        }
+
+        public boolean startsWith(final CharSequence prefix) {
+            return this.startsWith(prefix, 0);
+        }
+
+        public boolean startsWith(final CharSequence prefix, final int toffset) {
+            int to = toffset;
+            int po = 0;
+            int pc = prefix.length();
+            // Note: toffset might be near -1>>>1.
+            if (toffset < 0 || toffset > this.length() - pc) { return false; }
+            while (--pc >= 0) {
+                if (this.charAt(to++) != prefix.charAt(po++)) { return false; }
+            }
+            return true;
         }
 
         public HtmlParserCharSequence subSequence(final int start) {
@@ -132,9 +242,22 @@ public class HTMLParser {
 
         @Override
         public String toString() {
-            final String ret = new String(this.chars, this.getStartIndex(), this.length());
-            return ret;
+            return this.getStringAvoidCopy();
         }
+
+        public HtmlParserCharSequence trim() {
+            int len = this.length();
+            int st = 0;
+
+            while (st < len && this.charAt(st) <= ' ') {
+                st++;
+            }
+            while (st < len && this.charAt(st) <= ' ') {
+                len--;
+            }
+            return st > 0 || len < this.length() ? this.subSequence(st, len) : this;
+        }
+
     }
 
     private static class HtmlParserResultSet extends LinkedHashSet<String> {
@@ -163,6 +286,7 @@ public class HTMLParser {
             }
             if (super.add(e)) {
                 this.results.add(e);
+                System.out.println("Found " + this.results.size());
                 return true;
             }
             return false;
@@ -191,13 +315,13 @@ public class HTMLParser {
         }
     }
 
-    final private static Httppattern[] linkAndFormPattern = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("src.*?=(.*?)[ |>]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/(link|url)\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
-    final private static String        protocolPattern    = "(directhttp://https?://|flashget://|https?viajd://|https?://|ccf://|dlc://|ftp://|jd://|rsdf://|jdlist://|file://)";
-    final private static Pattern[]     basePattern        = new Pattern[] { Pattern.compile("href=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("src=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
-    final private static Pattern       pat1               = Pattern.compile("(" + HTMLParser.protocolPattern + "|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern       protocols          = Pattern.compile("(" + HTMLParser.protocolPattern + ")");
+    final private static Httppattern[]          linkAndFormPattern    = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("src.*?=(.*?)[ |>]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/(link|url)\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
+    final private static String                 protocolPattern       = "(directhttp://https?://|flashget://|https?viajd://|https?://|ccf://|dlc://|ftp://|jd://|rsdf://|jdlist://|file://)";
+    final private static Pattern[]              basePattern           = new Pattern[] { Pattern.compile("href=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("src=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
+    final private static Pattern                pat1                  = Pattern.compile("(" + HTMLParser.protocolPattern + "|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                protocols             = Pattern.compile("(" + HTMLParser.protocolPattern + ")");
 
-    private static Pattern             mp                 = null;
+    private static Pattern                      mp                    = null;
 
     static {
         try {
@@ -207,44 +331,64 @@ public class HTMLParser {
         }
     }
 
-    final private static Pattern       unescapePattern    = Pattern.compile("unescape\\(('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern       unhexPattern       = Pattern.compile("(([0-9a-fA-F]{2}| )+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                unescapePattern       = Pattern.compile("unescape\\(('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                unhexPattern          = Pattern.compile("(([0-9a-fA-F]{2}| )+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern       baseURLPattern     = Pattern.compile("(.*?\\..*?(/|$))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                baseURLPattern        = Pattern.compile("(.*?\\..*?(/|$))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern       paramsCut1         = Pattern.compile("://[^\r\n]*?/[^\r\n]+\\?.[^\r\n]*?=(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                paramsCut1            = Pattern.compile("://[^\r\n]*?/[^\r\n]+\\?.[^\r\n]*?=(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern       paramsCut2         = Pattern.compile("://[^\r\n]*?/[^\r\n]*?\\?(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                paramsCut2            = Pattern.compile("://[^\r\n]*?/[^\r\n]*?\\?(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    private static final Pattern       inTagsPattern      = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern                inTagsPattern         = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern       endTagPattern      = Pattern.compile("^(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                endTagPattern         = Pattern.compile("^(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern       taglessPattern     = Pattern.compile("^(.*?)$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                taglessPattern        = Pattern.compile("^(.*?)$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    private static HtmlParserResultSet _getHttpLinksDeepWalker(String data, final String url, HtmlParserResultSet results) {
+    final private static HtmlParserCharSequence directHTTP            = new HtmlParserCharSequence("directhttp://");
+    final private static HtmlParserCharSequence httpviajd             = new HtmlParserCharSequence("httpviajd://");
+    final private static HtmlParserCharSequence httpsviajd            = new HtmlParserCharSequence("httpsviajd://");
+
+    final private static Pattern                tagsPattern           = Pattern.compile(".*<.*>.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    final private static Pattern                protocolPattern2      = Pattern.compile("^\"?(" + HTMLParser.protocolPattern + "://|www\\.).*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    final private static Pattern                spacePattern          = Pattern.compile("\\s", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                singleSpacePattern    = Pattern.compile(" ", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                space2Pattern         = Pattern.compile(".*\\s.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                hdotsPattern          = Pattern.compile("h.{2,3}://", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                specialReplacePattern = Pattern.compile("'", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                missingHTTPPattern    = Pattern.compile("^www\\.", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                removeTagsPattern     = Pattern.compile("[<>\"]*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    private static HtmlParserResultSet _getHttpLinksDeepWalker(HtmlParserCharSequence data, final String url, HtmlParserResultSet results) {
         if (results == null) {
             results = new HtmlParserResultSet();
         }
         if (data == null || (data = data.trim()).length() < 13) { return results; }
-        if ((data.startsWith("directhttp://") || data.startsWith("httpviajd://") || data.startsWith("httpsviajd://")) && results.contains(data)) {
+        if ((data.startsWith(HTMLParser.directHTTP) || data.startsWith(HTMLParser.httpviajd) || data.startsWith(HTMLParser.httpsviajd)) && results.contains(data)) {
             /* we don't have to further check urls with those prefixes */
             return results;
         }
         final int indexBefore = results.getLastResultIndex();
         /* find reversed */
         String reversedata = new StringBuilder(data).reverse().toString();
-        HTMLParser._getHttpLinksFinder(reversedata, url, results);
+        if (!data.equals(reversedata)) {
+            HTMLParser._getHttpLinksFinder(new HtmlParserCharSequence(reversedata), url, results);
+        }
         reversedata = null;
         /* find base64'ed */
-        String urlDecoded = Encoding.urlDecode(data, true);
+        String urlDecoded = Encoding.urlDecode(data.getStringAvoidCopy(), true);
         String base64Data = Encoding.Base64Decode(urlDecoded);
         if (base64Data.equals(urlDecoded)) {
             /* no base64 content found */
             base64Data = null;
         }
         urlDecoded = null;
-        HTMLParser._getHttpLinksFinder(base64Data, url, results);
+        if (base64Data != null && !data.equals(base64Data)) {
+            HTMLParser._getHttpLinksFinder(new HtmlParserCharSequence(base64Data), url, results);
+        }
         base64Data = null;
         /* parse escaped js stuff */
         if (data.length() > 23 && data.contains("unescape")) {
@@ -252,7 +396,7 @@ public class HTMLParser {
             if (unescaped != null && unescaped.length > 0) {
                 for (String unescape : unescaped) {
                     unescape = Encoding.htmlDecode(unescape);
-                    HTMLParser._getHttpLinksFinder(unescape, url, results);
+                    HTMLParser._getHttpLinksFinder(new HtmlParserCharSequence(unescape), url, results);
                 }
                 unescaped = null;
             }
@@ -266,7 +410,7 @@ public class HTMLParser {
                     hex = hex.replaceAll(" ", "");
                     String hexString = Hex.hex2String(hex);
                     hex = null;
-                    HTMLParser._getHttpLinksFinder(hexString, url, results);
+                    HTMLParser._getHttpLinksFinder(new HtmlParserCharSequence(hexString), url, results);
                     hexString = null;
                 } catch (final Throwable e) {
                     Log.exception(e);
@@ -275,31 +419,31 @@ public class HTMLParser {
         }
         if (HTMLParser.deepWalkCheck(results, indexBefore)) {
             /* no changes in results size, and data contains urlcoded http://, so lets urldecode it */
-            HTMLParser._getHttpLinksFinder(Encoding.urlDecode(data, true), url, results);
+            HTMLParser._getHttpLinksFinder(new HtmlParserCharSequence(Encoding.urlDecode(data.getStringAvoidCopy(), true)), url, results);
         }
         return results;
     }
 
-    private static HtmlParserResultSet _getHttpLinksFinder(String data, String url, HtmlParserResultSet results) {
+    private static HtmlParserResultSet _getHttpLinksFinder(HtmlParserCharSequence data, String url, HtmlParserResultSet results) {
         final String baseUrl = url;
         if (results == null) {
             results = new HtmlParserResultSet();
         }
         if (data == null || (data = data.trim()).length() == 0) { return results; }
-        if (!data.matches(".*<.*>.*")) {
+        if (!data.matches(HTMLParser.tagsPattern)) {
             final int c = new Regex(data, HTMLParser.pat1).count();
             if (c == 0) {
                 if (!data.contains("href") && !data.contains("src=")) {
                     /* no href inside */
                     return results;
                 }
-            } else if (c == 1 && data.length() < 100 && data.matches("^\"?(" + HTMLParser.protocolPattern + "://|www\\.).*")) {
+            } else if (c == 1 && data.length() < 100 && data.matches(HTMLParser.protocolPattern2)) {
                 if (data.startsWith("file://")) {
-                    results.add(new String(data.replaceAll("\\s", "%20")));
+                    results.add(data.replaceAll(HTMLParser.spacePattern, "%20").getStringCopy());
                 } else {
-                    final String link = data.replaceFirst("h.{2,3}://", "http://").replaceFirst("^www\\.", "http://www.").replaceAll("[<>\"]*", "");
-                    if (!link.matches(".*\\s.*")) {
-                        results.add(new String(HTMLParser.correctURL(link)));
+                    final HtmlParserCharSequence link = data.replaceFirst(HTMLParser.hdotsPattern, "http://").replaceFirst(HTMLParser.missingHTTPPattern, "http://www.").replaceAll(HTMLParser.removeTagsPattern, "");
+                    if (!link.matches(HTMLParser.space2Pattern)) {
+                        results.add(HTMLParser.correctURL(link).getStringCopy());
                     }
                 }
             }
@@ -340,7 +484,7 @@ public class HTMLParser {
 
         if (url != null && url.trim().length() > 0) {
             if (pro != null) {
-                results.add(new String(HTMLParser.correctURL(url)));
+                results.add(HTMLParser.correctURL(url).getStringCopy());
             }
         } else {
             url = "";
@@ -364,12 +508,12 @@ public class HTMLParser {
                     }
                 }
                 link = link.trim();
-                results.add(new String(HTMLParser.correctURL(link)));
+                results.add(HTMLParser.correctURL(link).getStringCopy());
             }
         }
         if (HTMLParser.mp != null) {
             /* replace ' with %27 */
-            data = data.replaceAll("'", "%27");
+            data = data.replaceAll(HTMLParser.specialReplacePattern, "%27");
             m = HTMLParser.mp.matcher(data);
             while (m.find()) {
                 link = m.group(0);
@@ -383,13 +527,13 @@ public class HTMLParser {
                     if (start == -1) {
                         start = mlinks.start();
                     } else {
-                        results.add(new String(HTMLParser.correctURL(link.substring(start, mlinks.start()))));
+                        results.add(HTMLParser.correctURL(link.substring(start, mlinks.start())).getStringCopy());
                         start = mlinks.start();
                     }
                 }
                 if (start != -1) {
                     final String check = link.substring(start);
-                    results.add(new String(HTMLParser.correctURL(check)));
+                    results.add(HTMLParser.correctURL(check).getStringCopy());
                     if (data.equals(check)) {
                         /* data equals check, so we can leave this loop */
                         break;
@@ -398,7 +542,7 @@ public class HTMLParser {
                 String check = link.replaceAll("^h.{2,3}://", "http://");
                 check = check.replaceFirst("^www\\.", "http://www\\.");
                 if (!link.equals(check)) {
-                    results.add(new String(HTMLParser.correctURL(check)));
+                    results.add(HTMLParser.correctURL(check).getStringCopy());
                 }
 
             }
@@ -411,7 +555,7 @@ public class HTMLParser {
         if (results == null) {
             results = new HtmlParserResultSet();
         }
-        if (data == null || data.length() < 13) { return results; }
+        if (data == null || (data = data.trim()).length() < 13) { return results; }
         /* filtering tags, recursion command me ;) */
         while (true) {
             if (tagRegex == null) {
@@ -474,24 +618,24 @@ public class HTMLParser {
             }
         }
         final int indexBefore = results.getResults().size();
-        HTMLParser._getHttpLinksFinder(data.toString(), url, results);
+        HTMLParser._getHttpLinksFinder(data, url, results);
         if (HTMLParser.deepWalkCheck(results, indexBefore)) {
-            HTMLParser._getHttpLinksDeepWalker(data.toString(), url, results);
+            HTMLParser._getHttpLinksDeepWalker(data, url, results);
             /* cut of ?xy= parts if needed */
             String newdata = new Regex(data, HTMLParser.paramsCut1).setMemoryOptimized(false).getMatch(0);
             if (!data.equals(newdata)) {
-                HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
+                HTMLParser._getHttpLinksDeepWalker(new HtmlParserCharSequence(newdata), url, results);
             }
             /* use of ?xy parts if available */
             newdata = new Regex(data, HTMLParser.paramsCut2).setMemoryOptimized(false).getMatch(0);
             if (!data.equals(newdata)) {
-                HTMLParser._getHttpLinksDeepWalker(newdata, url, results);
+                HTMLParser._getHttpLinksDeepWalker(new HtmlParserCharSequence(newdata), url, results);
             }
         }
         return results;
     }
 
-    private static String correctURL(String input) {
+    private static HtmlParserCharSequence correctURL(HtmlParserCharSequence input) {
         final int indexofa = input.indexOf("&");
         if (indexofa > 0 && input.indexOf("?") == -1) {
             /* this can happen when we found a link as urlparameter */
@@ -504,10 +648,14 @@ public class HTMLParser {
              * 
              * we cut of the invalid urlParameter &bla
              */
-            input = input.substring(0, indexofa);
+            input = input.subSequence(0, indexofa);
         }
         /* spaces must be %20 encoded */
-        return input.replaceAll(" ", "%20");
+        return input.replaceAll(HTMLParser.singleSpacePattern, "%20");
+    }
+
+    private static HtmlParserCharSequence correctURL(final String input) {
+        return HTMLParser.correctURL(new HtmlParserCharSequence(input));
     }
 
     private static boolean deepWalkCheck(final HtmlParserResultSet results, final int indexBefore) {

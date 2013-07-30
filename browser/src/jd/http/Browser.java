@@ -469,7 +469,7 @@ public class Browser {
             if (llogger != null) {
                 llogger.severe(request.printHeaders());
             }
-            throw new BrowserException("Content-length too big", request.getHttpConnection());
+            throw new BrowserException("Content-length too big " + length, request.getHttpConnection());
         }
     }
 
