@@ -51,7 +51,26 @@ public class WindowsWindowManager extends WindowManager {
     private Robot                          robot;
     private String                         blocker;
     private HashMap<Window, ResetRunnable> runnerMap;
-    private int                            foregroundLock = -1;
+    private int                            foregroundLock       = -1;
+    private boolean                        altWorkaroundEnabled = true;
+
+    private int[]                          altWorkaroundKeys    = new int[] { KeyEvent.VK_SHIFT,KeyEvent.VK_ALT,  KeyEvent.VK_CONTROL };
+
+    public boolean isAltWorkaroundEnabled() {
+        return altWorkaroundEnabled;
+    }
+
+    public void setAltWorkaroundEnabled(final boolean altWorkaroundEnabled) {
+        this.altWorkaroundEnabled = altWorkaroundEnabled;
+    }
+
+    public int[] getAltWorkaroundKeys() {
+        return altWorkaroundKeys;
+    }
+
+    public void setAltWorkaroundKeys(final int[] altWorkaroundKeys) {
+        this.altWorkaroundKeys = altWorkaroundKeys;
+    }
 
     public String getBlocker() {
         return blocker;
@@ -207,7 +226,7 @@ public class WindowsWindowManager extends WindowManager {
             // Tested: WIN7
             // org.appwork.utils.swing.WindowsWindowManager.setVisible(Window,
             // boolean, boolean, boolean) method
-            if (requestFocus && foregroundLock > 0) {
+            if (requestFocus && foregroundLock > 0 && altWorkaroundEnabled) {
                 try {
 
                     pressAlt();
@@ -239,21 +258,25 @@ public class WindowsWindowManager extends WindowManager {
      * 
      */
     private void releaseAlt() {
-        if (robot != null) {
-            System.out.println("key: Alt released");
+        if (altWorkaroundEnabled) {
+            if (robot != null) {
+                System.out.println("key: Alt released");
 
-            // actually, we only need to asure that alt is pressed during
-            // tofront
-            // this would activte the window context menu.
-            // alt + shift is actually not a shortcut. only modifiers. so this
-            // one should not create problems
-            // we probably need this workaround only if foregroundtimeoutlock
-            // is>0
+                // actually, we only need to asure that alt is pressed during
+                // tofront
+                // this would activte the window context menu.
+                // alt + shift is actually not a shortcut. only modifiers. so
+                // this
+                // one should not create problems
+                // we probably need this workaround only if
+                // foregroundtimeoutlock
+                // is>0
+                for (final int key : altWorkaroundKeys) {
+                    robot.keyRelease(key);
+                }
 
-            robot.keyRelease(KeyEvent.VK_ALT);
-            robot.keyRelease(KeyEvent.VK_SHIFT);
-            robot.keyRelease(KeyEvent.VK_CONTROL);
-            robot = null;
+                robot = null;
+            }
         }
 
     }
@@ -263,19 +286,25 @@ public class WindowsWindowManager extends WindowManager {
      * @throws AWTException
      */
     private void pressAlt() throws AWTException {
-        if (robot == null) {
-            robot = new Robot();
-        }
+        if (altWorkaroundEnabled) {
+            if (robot == null) {
+                robot = new Robot();
+            }
 
-        System.out.println("key: Alt+sh pressed");
-        // actually, we only need to asure that alt is pressed during tofront
-        // this would activte the window context menu.
-        // alt + shift is actually not a shortcut. only modifiers. so this one
-        // should not create problems
-        // we probably need this workaround only if foregroundtimeoutlock is>0
-        robot.keyPress(KeyEvent.VK_ALT);
-        robot.keyPress(KeyEvent.VK_SHIFT);
-        robot.keyPress(KeyEvent.VK_CONTROL);
+            System.out.println("key: Alt+sh pressed");
+            // actually, we only need to asure that alt is pressed during
+            // tofront
+            // this would activte the window context menu.
+            // alt + shift is actually not a shortcut. only modifiers. so this
+            // one
+            // should not create problems
+            // we probably need this workaround only if foregroundtimeoutlock
+            // is>0
+            for (final int key : altWorkaroundKeys) {
+                robot.keyPress(key);
+            }
+
+        }
     }
 
     protected void repaint(final Window w) {
@@ -335,7 +364,7 @@ public class WindowsWindowManager extends WindowManager {
                 setVisibleInternal(w, visible);
                 return;
             }
-             assignWindowOpenListener(w, state);
+            assignWindowOpenListener(w, state);
 
             switch (state) {
             case TO_FRONT_FOCUSED:
@@ -350,24 +379,23 @@ public class WindowsWindowManager extends WindowManager {
                 setFocusable(w, false);
 
                 if (state != FrameState.TO_FRONT) {
-                
-                        // on some systems, the window comes to front, even of
-                        // focusable and focusablewindowstate are false
-                        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                        final GraphicsDevice[] screens = ge.getScreenDevices();
 
-                        final Point p = new Point(Integer.MIN_VALUE, Integer.MIN_VALUE);
-                        // search offscreen position
-                        for (final GraphicsDevice screen : screens) {
-                            final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
-                            p.x = Math.max(bounds.x + bounds.width, p.x);
-                            p.y = Math.max(bounds.y + bounds.height, p.y);
-                        }
-                        p.x++;
-                        p.y++;
-                        setLocation(w, p);
+                    // on some systems, the window comes to front, even of
+                    // focusable and focusablewindowstate are false
+                    final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                    final GraphicsDevice[] screens = ge.getScreenDevices();
 
-                    
+                    final Point p = new Point(Integer.MIN_VALUE, Integer.MIN_VALUE);
+                    // search offscreen position
+                    for (final GraphicsDevice screen : screens) {
+                        final Rectangle bounds = screen.getDefaultConfiguration().getBounds();
+                        p.x = Math.max(bounds.x + bounds.width, p.x);
+                        p.y = Math.max(bounds.y + bounds.height, p.y);
+                    }
+                    p.x++;
+                    p.y++;
+                    setLocation(w, p);
+
                     //
                 }
 
@@ -448,7 +476,7 @@ public class WindowsWindowManager extends WindowManager {
     }
 
     protected void addDebugListener(final Window w) {
-        if (Application.isJared(WindowsWindowManager.class)||true) { return; }
+        if (Application.isJared(WindowsWindowManager.class) || true) { return; }
         w.addWindowFocusListener(new WindowFocusListener() {
 
             @Override
@@ -515,54 +543,54 @@ public class WindowsWindowManager extends WindowManager {
 
             }
         });
-         w.addComponentListener(new ComponentListener() {
-        
-         @Override
-         public void componentShown(final ComponentEvent e) {
-         System.out.println(e);
-        
-         }
-        
-         @Override
-         public void componentResized(final ComponentEvent e) {
-         System.out.println(e);
-        
-         }
-        
-         @Override
-         public void componentMoved(final ComponentEvent e) {
-         System.out.println(e);
-        
-         }
-        
-         @Override
-         public void componentHidden(final ComponentEvent e) {
-         System.out.println(e);
-        
-         }
-         });
-        
-         w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
-        
-         @Override
-         public void ancestorResized(final HierarchyEvent e) {
-         System.out.println(e);
-         }
-        
-         @Override
-         public void ancestorMoved(final HierarchyEvent e) {
-         System.out.println(e);
-         }
-         });
-         w.addHierarchyListener(new HierarchyListener() {
-        
-         @Override
-         public void hierarchyChanged(final HierarchyEvent e) {
-         System.out.println(e);
-        
-         }
-         });
-        
+        w.addComponentListener(new ComponentListener() {
+
+            @Override
+            public void componentShown(final ComponentEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void componentResized(final ComponentEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void componentMoved(final ComponentEvent e) {
+                System.out.println(e);
+
+            }
+
+            @Override
+            public void componentHidden(final ComponentEvent e) {
+                System.out.println(e);
+
+            }
+        });
+
+        w.addHierarchyBoundsListener(new HierarchyBoundsListener() {
+
+            @Override
+            public void ancestorResized(final HierarchyEvent e) {
+                System.out.println(e);
+            }
+
+            @Override
+            public void ancestorMoved(final HierarchyEvent e) {
+                System.out.println(e);
+            }
+        });
+        w.addHierarchyListener(new HierarchyListener() {
+
+            @Override
+            public void hierarchyChanged(final HierarchyEvent e) {
+                System.out.println(e);
+
+            }
+        });
+
     }
 
     /**

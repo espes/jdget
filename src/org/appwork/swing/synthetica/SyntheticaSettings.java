@@ -22,7 +22,7 @@ import org.appwork.storage.config.annotations.RequiresRestart;
  * 
  */
 public interface SyntheticaSettings extends ConfigInterface {
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     @AboutConfig
     void setLanguage(String lng);
 
@@ -32,25 +32,25 @@ public interface SyntheticaSettings extends ConfigInterface {
     @AboutConfig
     @DescriptionForConfigEntry("Font to be used. Default value is default. For foreign chars use e.g. Dialog")
     @DefaultStringValue("default")
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     String getFontName();
 
     @AboutConfig
     @DescriptionForConfigEntry("Font scale factor in percent. Default value is 100 which means no font scaling.")
     @DefaultIntValue(100)
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     int getFontScaleFactor();
 
     @AboutConfig
     @DescriptionForConfigEntry("Disable animation and all animation threads. Optional value. Default value is true.")
     @DefaultBooleanValue(true)
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     boolean isAnimationEnabled();
 
     @AboutConfig
     @DescriptionForConfigEntry("Enable/disable support for system DPI settings. Default value is true.")
     @DefaultBooleanValue(true)
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     boolean isFontRespectsSystemDPI();
 
 
@@ -58,7 +58,7 @@ public interface SyntheticaSettings extends ConfigInterface {
     @AboutConfig
     @DescriptionForConfigEntry("Enable/disable window opacity on Java 6u10 and above. A value of 'false' disables window opacity which means that the window corner background which is visible for non-rectangular windows disappear. Furthermore the shadow for popupMenus makes use of real translucent window. Some themes like SyntheticaSimple2D support translucent titlePanes if opacity is disabled. The property is ignored on JRE's below 6u10. Note: It is recommended to activate this feature only if your graphics hardware acceleration is supported by the JVM - a value of 'false' can affect application performance. Default value is false which means the translucency feature is enabled")
     @DefaultBooleanValue(false)
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     boolean isWindowOpaque();
 
     void setAnimationEnabled(boolean b);
@@ -73,7 +73,7 @@ public interface SyntheticaSettings extends ConfigInterface {
     @AboutConfig
     @DescriptionForConfigEntry("Paint all labels/text with or without antialias. Default value is false.")
     @DefaultBooleanValue(false)
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     boolean isTextAntiAliasEnabled();
     void setTextAntiAliasEnabled(boolean b);
 

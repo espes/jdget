@@ -27,34 +27,34 @@ public interface LogConfig extends ConfigInterface {
     @DefaultIntValue(2)
     @SpinnerValidator(min = 0, max = Integer.MAX_VALUE)
     @DescriptionForConfigEntry("Automatic remove logs older than x days")
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     int getCleanupLogsOlderThanXDays();
 
     @AboutConfig
     @DefaultIntValue(60)
     @SpinnerValidator(min = 30, max = Integer.MAX_VALUE)
     @DescriptionForConfigEntry("Timeout in secs after which the logger will be flushed/closed")
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     int getLogFlushTimeout();
 
     @AboutConfig
     @DefaultIntValue(5)
     @SpinnerValidator(min = 1, max = Integer.MAX_VALUE)
     @DescriptionForConfigEntry("Max number of logfiles for each logger")
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     int getMaxLogFiles();
 
     @AboutConfig
     @DefaultIntValue(10 * 1024 * 1024)
     @SpinnerValidator(min = 100 * 1024, max = Integer.MAX_VALUE)
     @DescriptionForConfigEntry("Max logfile size in bytes")
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     int getMaxLogFileSize();
 
     @AboutConfig
     @DefaultBooleanValue(false)
     @DescriptionForConfigEntry("Enable debug mode, nearly everything will be logged!")
-    @RequiresRestart
+    @RequiresRestart("A JDownloader Restart is Required")
     boolean isDebugModeEnabled();
 
     void setCleanupLogsOlderThanXDays(int x);
