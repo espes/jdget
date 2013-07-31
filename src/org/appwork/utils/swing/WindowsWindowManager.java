@@ -54,7 +54,7 @@ public class WindowsWindowManager extends WindowManager {
     private int                            foregroundLock       = -1;
     private boolean                        altWorkaroundEnabled = true;
 
-    private int[]                          altWorkaroundKeys    = new int[] { KeyEvent.VK_SHIFT,KeyEvent.VK_ALT,  KeyEvent.VK_CONTROL };
+    private int[]                          altWorkaroundKeys    = new int[] { KeyEvent.VK_CONTROL, KeyEvent.VK_ALT, KeyEvent.VK_SHIFT };
 
     public boolean isAltWorkaroundEnabled() {
         return altWorkaroundEnabled;
