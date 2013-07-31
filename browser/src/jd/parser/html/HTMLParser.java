@@ -622,12 +622,12 @@ public class HTMLParser {
             HTMLParser._getHttpLinksDeepWalker(data, url, results);
             /* cut of ?xy= parts if needed */
             String newdata = new Regex(data, HTMLParser.paramsCut1).setMemoryOptimized(false).getMatch(0);
-            if (!data.equals(newdata)) {
+            if (newdata != null && !data.equals(newdata)) {
                 HTMLParser._getHttpLinksDeepWalker(new HtmlParserCharSequence(newdata), url, results);
             }
             /* use of ?xy parts if available */
             newdata = new Regex(data, HTMLParser.paramsCut2).setMemoryOptimized(false).getMatch(0);
-            if (!data.equals(newdata)) {
+            if (newdata != null && !data.equals(newdata)) {
                 HTMLParser._getHttpLinksDeepWalker(new HtmlParserCharSequence(newdata), url, results);
             }
         }
