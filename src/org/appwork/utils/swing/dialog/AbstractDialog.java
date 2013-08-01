@@ -209,7 +209,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     private ImageIcon                              icon;
 
-    private JLabel                                 iconLabel;
+    protected JLabel                                 iconLabel;
 
     private boolean                                initialized            = false;
 

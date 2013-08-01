@@ -435,12 +435,12 @@ public class Application {
      */
     public static boolean isOutdatedJavaVersion(final boolean supportJAVA15) {
         final long java = Application.getJavaVersion();
-        if (java < 16000000l && !CrossSystem.isMac()) {
+        if (java < Application.JAVA16 && !CrossSystem.isMac()) {
             Log.L.warning("Java 1.6 should be available on your System, please upgrade!");
             /* this is no mac os, so please use java>=1.6 */
             return true;
         }
-        if (java < 16000000l && !supportJAVA15) {
+        if (java < Application.JAVA16 && !supportJAVA15) {
             Log.L.warning("Java 1.5 no longer supported!");
             /* we no longer support java 1.5 */
             return true;

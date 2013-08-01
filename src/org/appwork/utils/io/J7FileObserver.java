@@ -53,9 +53,9 @@ public abstract class J7FileObserver implements Runnable {
      * @param object
      */
     public J7FileObserver(final String name, final String hash) {
-        this.filename = name;
+        filename = name;
         this.hash = hash;
-        if (Application.getJavaVersion() < 17000000 /*
+        if (Application.getJavaVersion() < Application.JAVA17 /*
                                                      * ||
                                                      * !CrossSystem.isWindows()
                                                      */) { throw new IllegalStateException("This Class is Java 1.7 and Windows only"); }
@@ -66,13 +66,13 @@ public abstract class J7FileObserver implements Runnable {
     @Override
     public void run() {
         WatchService watcher;
-        this.keys = new ArrayList<WatchKey>();
+        keys = new ArrayList<WatchKey>();
         try {
             watcher = FileSystems.getDefault().newWatchService();
 
             for (final Path next : FileSystems.getDefault().getRootDirectories()) {
                 try {
-                    this.keys.add(next.register(watcher, new WatchEvent.Kind[] { java.nio.file.StandardWatchEventKinds.ENTRY_CREATE }, ExtendedWatchEventModifier.FILE_TREE));
+                    keys.add(next.register(watcher, new WatchEvent.Kind[] { java.nio.file.StandardWatchEventKinds.ENTRY_CREATE }, ExtendedWatchEventModifier.FILE_TREE));
 
                 } catch (final Throwable e) {
 
@@ -115,7 +115,7 @@ public abstract class J7FileObserver implements Runnable {
                             // einem anderen Prozess verwendet wird)
 
                             final String localHash = Hash.getMD5(abp.toFile());
-                            if (localHash == null && this.hash != null) {
+                            if (localHash == null && hash != null) {
                                 try {
                                     Thread.sleep(200);
                                 } catch (final InterruptedException e) {
@@ -124,9 +124,9 @@ public abstract class J7FileObserver implements Runnable {
                                 }
                                 continue;
                             }
-                            System.out.println(this.hash + " - " + localHash);
-                            if (this.hash == null || this.hash.equals(localHash)) {
-                                this.onFound(abp.toFile());
+                            System.out.println(hash + " - " + localHash);
+                            if (hash == null || hash.equals(localHash)) {
+                                onFound(abp.toFile());
                                 return;
                             }
 
@@ -150,20 +150,20 @@ public abstract class J7FileObserver implements Runnable {
      * 
      */
     public void start() {
-        if (this.runner != null) { throw new IllegalStateException("Already running"); }
-        this.runner = new Thread(this);
-        this.runner.start();
+        if (runner != null) { throw new IllegalStateException("Already running"); }
+        runner = new Thread(this);
+        runner.start();
     }
 
     /**
      * 
      */
     public void stop() {
-        if (this.runner != null) {
-            this.runner.interrupt();
-            this.runner = null;
+        if (runner != null) {
+            runner.interrupt();
+            runner = null;
         }
-        for (final WatchKey w : this.keys) {
+        for (final WatchKey w : keys) {
             w.cancel();
         }
 
