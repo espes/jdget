@@ -428,7 +428,7 @@ public class Browser {
     private boolean                  debug               = false;
     private boolean                  doRedirects         = false;
     private RequestHeader            headers;
-    private int                      limit               = 1 * 1024 * 1024;
+    private int                      limit               = 2 * 1024 * 1024;
     private Logger                   logger              = null;
     private HTTPProxy                proxy;
     private int                      readTimeout         = -1;
