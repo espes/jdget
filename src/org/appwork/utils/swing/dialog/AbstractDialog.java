@@ -34,7 +34,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -61,6 +60,7 @@ import org.appwork.uio.UIOManager;
 import org.appwork.uio.UserIODefinition;
 import org.appwork.utils.Application;
 import org.appwork.utils.BinaryLogic;
+import org.appwork.utils.NullsafeAtomicReference;
 import org.appwork.utils.formatter.TimeFormatter;
 import org.appwork.utils.images.IconIO;
 import org.appwork.utils.locale._AWU;
@@ -181,71 +181,71 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         AbstractDialog.OWNER_FINDER = finder == null ? AbstractDialog.DEFAULT_OWNER_FINDER : finder;
     }
 
-    protected AbstractAction[]                     actions                = null;
+    protected AbstractAction[]                             actions                = null;
 
-    protected JButton                              cancelButton;
+    protected JButton                                      cancelButton;
 
-    private final String                           cancelOption;
+    private final String                                   cancelOption;
 
-    private boolean                                countdownPausable      = true;
+    private boolean                                        countdownPausable      = true;
 
-    private FocusListener                          defaultButtonFocusListener;
+    private FocusListener                                  defaultButtonFocusListener;
 
-    private DefaultButtonPanel                     defaultButtons;
+    private DefaultButtonPanel                             defaultButtons;
 
-    protected InternDialog<T>                      dialog;
+    protected InternDialog<T>                              dialog;
 
-    private DialogDimensor                         dimensor;
+    private DialogDimensor                                 dimensor;
 
-    protected boolean                              disposed               = false;
+    protected boolean                                      disposed               = false;
 
-    protected boolean                              doNotShowAgainSelected = false;
+    protected boolean                                      doNotShowAgainSelected = false;
 
-    protected JCheckBox                            dontshowagain;
+    protected JCheckBox                                    dontshowagain;
 
-    private boolean                                dummyInit              = false;
+    private boolean                                        dummyInit              = false;
 
-    protected int                                  flagMask;
+    protected int                                          flagMask;
 
-    private ImageIcon                              icon;
+    private ImageIcon                                      icon;
 
-    protected JLabel                                 iconLabel;
+    protected JLabel                                       iconLabel;
 
-    private boolean                                initialized            = false;
+    private boolean                                        initialized            = false;
 
-    private DialogLocator                          locator;
+    private DialogLocator                                  locator;
 
-    protected JButton                              okButton;
+    protected JButton                                      okButton;
 
-    private final String                           okOption;
+    private final String                                   okOption;
 
-    private Point                                  orgLocationOnScreen;
+    private Point                                          orgLocationOnScreen;
 
-    protected JComponent                           panel;
+    protected JComponent                                   panel;
 
-    protected Dimension                            preferredSize;
+    protected Dimension                                    preferredSize;
 
-    protected int                                  returnBitMask          = 0;
+    protected int                                          returnBitMask          = 0;
 
-    private int                                    timeout                = 0;
+    private int                                            timeout                = 0;
 
     /**
      * Timer Thread to count down the {@link #counter}
      */
-    protected AtomicReference<AbstractTimerThread> timer                  = new AtomicReference<AbstractTimerThread>(null);
+    protected NullsafeAtomicReference<AbstractTimerThread> timer                  = new NullsafeAtomicReference<AbstractTimerThread>(null);
 
     /**
      * Label to display the timervalue
      */
-    protected JLabel                               timerLbl;
+    protected JLabel                                       timerLbl;
 
-    private String                                 title;
+    private String                                         title;
 
-    private DisposeCallBack                        disposeCallBack;
+    private DisposeCallBack                                disposeCallBack;
 
-    private boolean                                callerIsEDT            = false;
+    private boolean                                        callerIsEDT            = false;
 
-    protected JComponent                           focusButton;
+    protected JComponent                                   focusButton;
 
     public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
         super();
@@ -999,7 +999,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         return this.timeout;
     }
 
-    protected AtomicReference<AbstractTimerThread> getTimer() {
+    protected NullsafeAtomicReference<AbstractTimerThread> getTimer() {
         return this.timer;
     }
 
