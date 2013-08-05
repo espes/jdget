@@ -13,7 +13,6 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -27,6 +26,7 @@ import org.appwork.utils.Regex;
 import org.appwork.utils.net.Base64InputStream;
 import org.appwork.utils.net.ChunkedInputStream;
 import org.appwork.utils.net.CountingOutputStream;
+import org.appwork.utils.net.LimitedInputStream;
 
 public class HTTPConnectionImpl implements HTTPConnection {
 
@@ -34,7 +34,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
      * 
      */
     public static final String               UNKNOWN_HTTP_RESPONSE      = "unknown HTTP response";
-    protected LinkedHashMap<String, String>  requestProperties          = null;
+    protected LowerCaseHashMap<String>       requestProperties          = null;
     protected long[]                         ranges;
 
     protected String                         customcharset              = null;
@@ -72,7 +72,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     public HTTPConnectionImpl(final URL url, final HTTPProxy p) {
         this.httpURL = url;
         this.proxy = p;
-        this.requestProperties = new LinkedHashMap<String, String>();
+        this.requestProperties = new LowerCaseHashMap<String>();
         this.headers = new LowerCaseHashMap<List<String>>();
     }
 
@@ -346,6 +346,20 @@ public class HTTPConnectionImpl implements HTTPConnection {
         final int code = this.getResponseCode();
         if (this.isOK() || code == 404 || code == 403 || code == 416) {
             if (this.convertedInputStream != null) { return this.convertedInputStream; }
+            final boolean chunked = "chunked".equalsIgnoreCase(this.getHeaderField("Transfer-Encoding"));
+            final boolean keepAlive = "Keep-Alive".equalsIgnoreCase(this.getRequestProperty("connection"));
+            final String connectionResponse = this.getHeaderField("connection");
+            if (chunked == false && ("Keep-Alive".equalsIgnoreCase(connectionResponse) || keepAlive && connectionResponse == null)) {
+                /* RFC2616, 4.4 Transfer-Encoding and Content-Length */
+                /*
+                 * wrap inputStream into limitedInputStream to avoid readTimeout
+                 * on keep-alive connections
+                 */
+                final long contentLength = this.getContentLength();
+                if (contentLength >= 0) {
+                    this.inputStream = new LimitedInputStream(this.inputStream, contentLength);
+                }
+            }
             if (this.contentDecoded) {
                 final String encodingTransfer = this.getHeaderField("Content-Transfer-Encoding");
                 if ("base64".equalsIgnoreCase(encodingTransfer)) {
@@ -559,14 +573,15 @@ public class HTTPConnectionImpl implements HTTPConnection {
         return false;
     }
 
-    protected LinkedHashMap<String, String> putHostToTop(final LinkedHashMap<String, String> oldRequestProperties) {
-        final LinkedHashMap<String, String> newRet = new LinkedHashMap<String, String>();
+    protected void putHostToTop(final Map<String, String> oldRequestProperties) {
+        final LowerCaseHashMap<String> newRet = new LowerCaseHashMap<String>();
         final String host = oldRequestProperties.remove("Host");
         if (host != null) {
             newRet.put("Host", host);
         }
         newRet.putAll(oldRequestProperties);
-        return newRet;
+        oldRequestProperties.clear();
+        oldRequestProperties.putAll(newRet);
     }
 
     public InetAddress[] resolvHostIP(final String host) throws IOException {
@@ -603,7 +618,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
             /* host entry does not exist,lets add it */
             this.addHostHeader();
         }
-        this.requestProperties = this.putHostToTop(this.requestProperties);
+        this.putHostToTop(this.requestProperties);
         final Iterator<Entry<String, String>> it = this.requestProperties.entrySet().iterator();
         while (it.hasNext()) {
             final Entry<String, String> next = it.next();

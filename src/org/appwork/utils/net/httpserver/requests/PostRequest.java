@@ -48,6 +48,12 @@ public class PostRequest extends HttpRequest {
         super(connection);
     }
 
+    /**
+     * TODO: modify these to check if we need to wrap the inputstream again
+     * 
+     * @return
+     * @throws IOException
+     */
     public synchronized InputStream getInputStream() throws IOException {
         if (this.inputStream == null) {
             final HTTPHeader transferEncoding = this.getRequestHeaders().get(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING);

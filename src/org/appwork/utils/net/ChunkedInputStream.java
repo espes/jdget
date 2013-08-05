@@ -99,7 +99,17 @@ public class ChunkedInputStream extends InputStream {
      * @throws IOException
      */
     private void exhaustInputStream() throws IOException {
-        while (this.is.read() > 0) {
+        /* check for final \r\n CRLF of trailers ending */
+        int read = -1;
+        boolean gotNL = false;
+        while ((read = this.is.read()) >= 0) {
+            if (gotNL) {
+                if (read == 10) { return; }
+                gotNL = false;
+            }
+            if (read == 13) {
+                gotNL = true;
+            }
         }
     }
 
