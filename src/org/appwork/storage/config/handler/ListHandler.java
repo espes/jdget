@@ -146,6 +146,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
         } finally {
             if (!this.path.exists() && url == null) {
                 this.write(getDefaultValue());
+                
             }
 
         }
@@ -169,6 +170,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
     protected void write(final T object) {
 
         JSonStorage.saveTo(this.path, !crypted, cryptKey, JSonStorage.serializeToJson(object));
+        url=null;
 
     }
 
