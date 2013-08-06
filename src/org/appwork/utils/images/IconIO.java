@@ -1,5 +1,6 @@
 package org.appwork.utils.images;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -379,6 +380,32 @@ public class IconIO {
         g.drawImage(src, 0, 0, null);
         g.dispose();
         return image;
+    }
+
+    /**
+     * @param icon
+     * @param f
+     * @return
+     */
+    public static Image getTransparent(final Image src, final float f) {
+        final int w = src.getWidth(null);
+        final int h = src.getHeight(null);
+        final BufferedImage image = new BufferedImage(w, h, Transparency.TRANSLUCENT);
+        final Graphics2D g = image.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, f));
+        g.drawImage(src, 0, 0, null);
+        g.dispose();
+        return image;
+    }
+
+    /**
+     * @param image
+     * @param f
+     * @return
+     */
+    public static ImageIcon getTransparentIcon(final Image src, final float f) {
+
+        return new ImageIcon(getTransparent(src, f));
     }
 
 }
