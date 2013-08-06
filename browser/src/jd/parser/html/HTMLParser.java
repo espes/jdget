@@ -314,9 +314,9 @@ public class HTMLParser {
         }
     }
 
-    final private static Httppattern[]          linkAndFormPattern    = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("src.*?=(.*?)[ |>]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/(link|url)\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
+    final private static Httppattern[]          linkAndFormPattern    = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("src.*?=(.*?)[ |>]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)(\\2)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/(link|url)\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
     final private static String                 protocolPattern       = "(directhttp://https?://|flashget://|https?viajd://|https?://|ccf://|dlc://|ftp://|jd://|rsdf://|jdlist://|file://)";
-    final private static Pattern[]              basePattern           = new Pattern[] { Pattern.compile("href=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("src=('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
+    final private static Pattern[]              basePattern           = new Pattern[] { Pattern.compile("href=('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE), Pattern.compile("src=('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
     final private static Pattern                pat1                  = Pattern.compile("(" + HTMLParser.protocolPattern + "|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern                protocols             = Pattern.compile("(" + HTMLParser.protocolPattern + ")");
 
@@ -330,7 +330,7 @@ public class HTMLParser {
         }
     }
 
-    final private static Pattern                unescapePattern       = Pattern.compile("unescape\\(('|\")(.*?)('|\")", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                unescapePattern       = Pattern.compile("unescape\\(('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern                unhexPattern          = Pattern.compile("(([0-9a-fA-F]{2}| )+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     final private static Pattern                baseURLPattern        = Pattern.compile("(.*?\\..*?(/|$))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -511,8 +511,6 @@ public class HTMLParser {
             }
         }
         if (HTMLParser.mp != null) {
-            /* replace ' with %27 */
-            data = data.replaceAll(HTMLParser.specialReplacePattern, "%27");
             m = HTMLParser.mp.matcher(data);
             while (m.find()) {
                 link = m.group(0);
@@ -649,6 +647,7 @@ public class HTMLParser {
              */
             input = input.subSequence(0, indexofa);
         }
+        input = input.replaceAll(HTMLParser.specialReplacePattern, "%27");
         /* spaces must be %20 encoded */
         return input.replaceAll(HTMLParser.singleSpacePattern, "%20");
     }
