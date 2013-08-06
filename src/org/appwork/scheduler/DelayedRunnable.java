@@ -72,7 +72,6 @@ public abstract class DelayedRunnable implements Runnable {
 
             private void delayAgain(final long currentTime, Long nextDelay, final long minDif, final long thisRequestRun) {
                 if (DelayedRunnable.this.delayerSet.get() == false) { return; }
-                DelayedRunnable.this.firstRunRequest.set(currentTime);
                 if (nextDelay == null) {
                     nextDelay = Math.max(0, DelayedRunnable.this.delayInMS - minDif);
                 }
@@ -111,6 +110,7 @@ public abstract class DelayedRunnable implements Runnable {
             private void runNow(final long currentTime, final long thisRunRequest, final long minDif) {
                 DelayedRunnable.this.delayedrun();
                 if (thisRunRequest != DelayedRunnable.this.lastRunRequest.get()) {
+                    DelayedRunnable.this.firstRunRequest.set(currentTime);
                     this.delayAgain(currentTime, DelayedRunnable.this.delayInMS, minDif, thisRunRequest);
                 } else {
                     this.stop();
