@@ -647,6 +647,7 @@ public class HTMLParser {
              */
             input = input.subSequence(0, indexofa);
         }
+        /* ' must be %27 encoded */
         input = input.replaceAll(HTMLParser.specialReplacePattern, "%27");
         /* spaces must be %20 encoded */
         return input.replaceAll(HTMLParser.singleSpacePattern, "%20");
