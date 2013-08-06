@@ -44,9 +44,6 @@ public abstract class DelayedRunnable implements Runnable {
 
     abstract public void delayedrun();
 
-    /**
-     * @return the id
-     */
     public String getID() {
         return null;
     }
