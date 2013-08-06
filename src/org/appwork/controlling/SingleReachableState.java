@@ -9,6 +9,9 @@
  */
 package org.appwork.controlling;
 
+import java.util.ArrayList;
+
+import org.appwork.utils.NullsafeAtomicReference;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -17,73 +20,51 @@ import org.appwork.utils.logging.Log;
  */
 public class SingleReachableState {
 
-    private StateMachine stateMachine = null;
-    private static State WAITING      = new State("WAITING");
-    private static State REACHED      = new State("REACHED");
-    static {
-        SingleReachableState.WAITING.addChildren(SingleReachableState.REACHED);
-    }
-    private String       name;
+    private final NullsafeAtomicReference<ArrayList<Runnable>> stateMachine;
+
+    private final String                                       name;
 
     public SingleReachableState(final String name) {
-        this.stateMachine = new StateMachine(new StateMachineInterface() {
-            @Override
-            public StateMachine getStateMachine() {
-                return SingleReachableState.this.stateMachine;
-            }
-
-        }, SingleReachableState.WAITING, SingleReachableState.REACHED);
+        this.stateMachine = new NullsafeAtomicReference<ArrayList<Runnable>>(new ArrayList<Runnable>());
         this.name = name;
     }
 
     public void executeWhenReached(final Runnable run) {
         if (run == null) { return; }
-        boolean runRunnable = true;
-        if (this.stateMachine != null) {
-            synchronized (this) {
-                if (this.stateMachine == null) {
-                    runRunnable = true;
-                } else {
-                    runRunnable = false;
-                    this.stateMachine.executeOnceOnState(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            try {
-                                run.run();
-                            } catch (final Throwable e) {
-                                Log.exception(e);
-                            }
-                        }
-
-                    }, SingleReachableState.REACHED);
-                }
+        while (true) {
+            final ArrayList<Runnable> runnables = this.stateMachine.get();
+            if (runnables == null) {
+                this.run(run);
+                return;
             }
-        }
-        if (runRunnable) {
-            try {
-                run.run();
-            } catch (final Throwable e) {
-                Log.exception(e);
-            }
+            final ArrayList<Runnable> newRunnables = new ArrayList<Runnable>(runnables);
+            newRunnables.add(run);
+            if (this.stateMachine.compareAndSet(runnables, newRunnables)) { return; }
         }
     }
 
-    public synchronized boolean isReached() {
-        return this.stateMachine == null;
+    public boolean isReached() {
+        return this.stateMachine.get() == null;
+    }
+
+    private void run(final Runnable run) {
+        try {
+            run.run();
+        } catch (final Throwable e) {
+            Log.exception(e);
+        }
     }
 
     public void setReached() {
-        if (this.stateMachine == null) { return; }
-        synchronized (this) {
-            if (this.stateMachine == null) { return; }
-            this.stateMachine.setStatus(SingleReachableState.REACHED);
-            this.stateMachine = null;
+        final ArrayList<Runnable> runnables = this.stateMachine.getAndSet(null);
+        if (runnables == null) { return; }
+        for (final Runnable run : runnables) {
+            this.run(run);
         }
     }
 
     @Override
     public String toString() {
-        return "SingleReachableState: " + this.name + " reached:" + (this.stateMachine == null);
+        return "SingleReachableState: " + this.name + " reached: " + (this.stateMachine.get() != null);
     }
 }
