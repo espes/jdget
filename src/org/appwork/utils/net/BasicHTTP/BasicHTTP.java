@@ -3,6 +3,7 @@ package org.appwork.utils.net.BasicHTTP;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,20 +85,24 @@ public class BasicHTTP {
      * @throws InterruptedException
      * @throws IOException
      */
-    public void download(final URL url, final DownloadProgress progress, final File file) throws IOException, InterruptedException {
+    public void download(final URL url, final DownloadProgress progress, final File file) throws BasicHTTPException, InterruptedException {
         FileOutputStream fos = null;
         try {
+
             fos = new FileOutputStream(file, true);
             try {
                 this.download(url, progress, 0, fos, file.length());
             } catch (final BasicHTTPException e) {
                 throw e;
-            } catch (final WriteIOException e) {
+            }catch(final InterruptedException e){
                 throw e;
-            } catch (final IOException e) {
-                final IOException ex = new BasicHTTPException(connection, e);
-                throw ex;
+            } catch (final Exception e) {
+                // we cannot say if read or write
+                throw new BasicHTTPException(connection, e);
+
             }
+        } catch (final FileNotFoundException e) {
+            throw new BasicHTTPException(connection, new WriteIOException(e));
         } finally {
             try {
                 fos.close();
@@ -106,7 +111,7 @@ public class BasicHTTP {
         }
     }
 
-    public byte[] download(final URL url, final DownloadProgress progress, final long maxSize) throws IOException, InterruptedException {
+    public byte[] download(final URL url, final DownloadProgress progress, final long maxSize) throws BasicHTTPException, InterruptedException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
 
@@ -116,13 +121,13 @@ public class BasicHTTP {
             // }
         } catch (final BasicHTTPException e) {
             throw e;
-        } catch (final WriteIOException e) {
+        }catch(final InterruptedException e){
             throw e;
-        } catch (final IOException e) {
+        } catch (final Exception e) {
             if (baos.size() > 0) {
-                throw new BasicHTTPException(connection, e);
+                throw new BasicHTTPException(connection, new ReadIOException(e));
             } else {
-                throw e;
+                throw new BasicHTTPException(connection, new WriteIOException(e));
             }
         } finally {
             try {
@@ -144,7 +149,7 @@ public class BasicHTTP {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void download(final URL url, final DownloadProgress progress, final long maxSize, final OutputStream baos, final long resumePosition) throws IOException, InterruptedException {
+    public void download(final URL url, final DownloadProgress progress, final long maxSize, final OutputStream baos, final long resumePosition) throws BasicHTTPException, InterruptedException {
         InputStream input = null;
         int ioExceptionWhere = 0;
         try {
@@ -158,12 +163,17 @@ public class BasicHTTP {
             for (final Entry<String, String> next : requestHeader.entrySet()) {
                 connection.setRequestProperty(next.getKey(), next.getValue());
             }
+ 
             if (resumePosition > 0) {
                 connection.setRequestProperty("Range", "bytes=" + resumePosition + "-");
             }
             connection.setRequestProperty("Connection", "Close");
 
             connection.connect();
+            final boolean ranged = connection.getRequestProperty("Range") != null;
+            if (ranged && connection.getResponseCode() == 200) { 
+                //
+                throw new BadRangeResponse(connection); }
             if (connection.getResponseCode() == 302) {
                 final String red = connection.getHeaderField("Location");
                 if (red != null) {
@@ -199,7 +209,7 @@ public class BasicHTTP {
                 if ((len = input.read(b)) == -1) {
                     break;
                 }
-                if (Thread.currentThread().isInterrupted()) {
+                if (Thread.interrupted()) {
 
                 throw new InterruptedException();
 
@@ -223,9 +233,11 @@ public class BasicHTTP {
             if (connection.getCompleteContentLength() >= 0) {
                 if (loaded != connection.getCompleteContentLength()) { throw new IOException("Incomplete download! " + loaded + " from " + connection.getCompleteContentLength()); }
             }
-        } catch (final WriteIOException e) {
+        } catch (final BasicHTTPException e) {
             throw e;
-        } catch (final IOException e) {
+        }catch(final InterruptedException e){
+            throw e;
+        } catch (final Exception e) {
             if (ioExceptionWhere == 1) { throw new BasicHTTPException(connection, new ReadIOException(e)); }
             if (ioExceptionWhere == 2) { throw new BasicHTTPException(connection, new WriteIOException(e)); }
             throw new BasicHTTPException(connection, e);
@@ -363,7 +375,7 @@ public class BasicHTTP {
         return this.openGetConnection(url, readTimeout);
     }
 
-    public HTTPConnection openGetConnection(final URL url, final int readTimeout) throws IOException, InterruptedException {
+    public HTTPConnection openGetConnection(final URL url, final int readTimeout) throws BasicHTTPException, InterruptedException {
         boolean close = true;
         synchronized (BasicHTTP.CALL_LOCK) {
             try {
@@ -390,12 +402,16 @@ public class BasicHTTP {
                             Thread.sleep(200);
                         }
                     }
-                } catch (final IOException e) {
-                    throw new ReadIOException(e);
+                }catch(final InterruptedException e){
+                    throw e;
+                } catch (final Exception e) {
+                    throw new BasicHTTPException(connection, new ReadIOException(e));
                 }
                 close = false;
                 checkResponseCode();
                 return connection;
+            } catch (final InvalidResponseCode e) {
+                throw new BasicHTTPException(connection, new ReadIOException(e));
             } finally {
                 try {
                     if (logger != null) {
@@ -413,7 +429,7 @@ public class BasicHTTP {
         }
     }
 
-    public HTTPConnection openPostConnection(final URL url, final UploadProgress progress, final InputStream is, final HashMap<String, String> header) throws IOException, InterruptedException {
+    public HTTPConnection openPostConnection(final URL url, final UploadProgress progress, final InputStream is, final HashMap<String, String> header) throws BasicHTTPException, InterruptedException {
         boolean close = true;
         synchronized (BasicHTTP.CALL_LOCK) {
             OutputStream outputStream = null;
@@ -450,23 +466,34 @@ public class BasicHTTP {
                         }
                     }
                 } catch (final IOException e) {
-                    throw new ReadIOException(e);
+                    throw new BasicHTTPException(connection, new ReadIOException(e));
                 }
                 outputStream = connection.getOutputStream();
                 int read = 0;
                 while ((read = is.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, read);
+                    try {
+                        outputStream.write(buffer, 0, read);
+                    } catch (final IOException e) {
+                        throw new BasicHTTPException(connection, new WriteIOException(e));
+                    }
                     if (progress != null) {
                         progress.onBytesUploaded(buffer, read);
                         progress.increaseUploaded(read);
                     }
-                    if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
+                    if (Thread.interrupted()) { throw new InterruptedException(); }
                 }
-                outputStream.flush();
+                try {
+                    outputStream.flush();
+                } catch (final IOException e) {
+                    throw new BasicHTTPException(connection, new WriteIOException(e));
+                }
                 connection.finalizeConnect();
                 checkResponseCode();
                 close = false;
                 return connection;
+
+            } catch (final IOException e) {
+                throw new BasicHTTPException(connection, new ReadIOException(e));
             } finally {
                 try {
                     if (logger != null) {
@@ -580,7 +607,7 @@ public class BasicHTTP {
                     } catch (final IOException e) {
                         throw new ReadIOException(e);
                     }
-                    if (Thread.currentThread().isInterrupted()) { throw new InterruptedException(); }
+                    if (Thread.interrupted()) { throw new InterruptedException(); }
                     if (len > 0) {
                         try {
                             baos.write(b, 0, len);

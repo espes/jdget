@@ -244,7 +244,7 @@ public class Dialog {
 
     private Dialog() {
 
-        this.defaultHandler = new DialogHandler() {
+        defaultHandler = new DialogHandler() {
 
             @Override
             public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
@@ -254,7 +254,7 @@ public class Dialog {
     }
 
     public DialogHandler getDefaultHandler() {
-        return this.defaultHandler;
+        return defaultHandler;
     }
 
     /**
@@ -262,23 +262,23 @@ public class Dialog {
      * @see Dialog#defaultTimeout
      */
     protected int getDefaultTimeout() {
-        return this.defaultTimeout;
+        return defaultTimeout;
     }
 
     public DialogHandler getHandler() {
-        return this.handler;
+        return handler;
     }
 
     /**
      * @return
      */
     public List<? extends Image> getIconList() {
-        return this.iconList;
+        return iconList;
     }
 
     public LAFManagerInterface getLafManager() {
         synchronized (this) {
-            return this.lafManager;
+            return lafManager;
         }
     }
 
@@ -287,9 +287,9 @@ public class Dialog {
      */
     public void initLaf() {
         synchronized (this) {
-            if (this.lafManager != null) {
-                this.lafManager.init();
-                this.setLafManager(null);
+            if (lafManager != null) {
+                lafManager.init();
+                setLafManager(null);
             }
         }
     }
@@ -300,12 +300,12 @@ public class Dialog {
      * @see Dialog#defaultTimeout
      */
     public void setDefaultTimeout(final int countdownTime) {
-        this.defaultTimeout = countdownTime;
+        defaultTimeout = countdownTime;
     }
 
     public void setHandler(DialogHandler handler) {
         if (handler == null) {
-            handler = this.defaultHandler;
+            handler = defaultHandler;
         }
         this.handler = handler;
     }
@@ -472,7 +472,7 @@ public class Dialog {
      * @throws DialogCanceledException
      */
     public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
-        final DialogHandler lhandler = this.handler;
+        final DialogHandler lhandler = handler;
         if (lhandler != null) { return lhandler.showDialog(dialog); }
         return this.showDialogRaw(dialog);
     }
@@ -506,7 +506,9 @@ public class Dialog {
 
     protected <T> T showDialogRawOutsideEDT(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
         dialog.setCallerIsEDT(false);
+        if (Thread.interrupted()) { throw new DialogClosedException(Dialog.RETURN_INTERRUPT, new InterruptedException()); }
         final AtomicBoolean waitingLock = new AtomicBoolean(false);
+
         final EDTRunner edth = new EDTRunner() {
             @Override
             protected void runInEDT() {
@@ -526,11 +528,15 @@ public class Dialog {
         };
         boolean interrupted = false;
         try {
-            synchronized (waitingLock) {
-                if (waitingLock.get() == false) {
-                    waitingLock.wait();
+            if (Thread.interrupted()) { throw new DialogClosedException(Dialog.RETURN_INTERRUPT, new InterruptedException()); }
+         
+         
+                synchronized (waitingLock) {
+                    if (waitingLock.get() == false) {
+                        waitingLock.wait();
+                    }
                 }
-            }
+            
         } catch (final InterruptedException e) {
             interrupted = true;
         }
@@ -551,8 +557,12 @@ public class Dialog {
                     }
                 }
             };
-
-            throw new DialogClosedException(dialog.getReturnmask(), edth.getInterruptException());
+            try {
+                throw new DialogClosedException(dialog.getReturnmask() | Dialog.RETURN_INTERRUPT, edth.getInterruptException());
+            } catch (final IllegalStateException e) {
+                // if we cannot get the returnmask from the dialog
+                throw new DialogClosedException(Dialog.RETURN_INTERRUPT, new InterruptedException());
+            }
         }
         final T ret = dialog.getReturnValue();
         final int mask = dialog.getReturnmask();

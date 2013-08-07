@@ -13,7 +13,7 @@ public class BasicHTTPException extends IOException {
     private static final long serialVersionUID = 1L;
     private final HTTPConnection connection;
 
-    public BasicHTTPException(final HTTPConnection connection, final IOException e) {
+    public BasicHTTPException(final HTTPConnection connection, final Exception e) {
         super(e);
         this.connection = connection;
 
