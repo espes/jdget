@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.appwork.exceptions.WTFException;
@@ -59,9 +60,19 @@ import org.appwork.utils.swing.dialog.Dialog;
  * 
  */
 public class StorageHandler<T extends ConfigInterface> implements InvocationHandler {
-    public final static ScheduledThreadPoolExecutor                  TIMINGQUEUE            = new ScheduledThreadPoolExecutor(1);
+    public final static ScheduledThreadPoolExecutor                  TIMINGQUEUE            = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+
+                                                                                                @Override
+                                                                                                public Thread newThread(final Runnable r) {
+                                                                                                    final Thread ret = new Thread(r);
+                                                                                                    ret.setName("StorageHandler");
+                                                                                                    return ret;
+
+                                                                                                }
+                                                                                            });
     static {
         StorageHandler.TIMINGQUEUE.setKeepAliveTime(30000, TimeUnit.MILLISECONDS);
+        StorageHandler.TIMINGQUEUE.allowCoreThreadTimeOut(true);
     }
     private final Class<T>                                           configInterface;
     private HashMap<Method, KeyHandler<?>>                           methodMap;

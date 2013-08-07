@@ -9,11 +9,12 @@
  */
 package org.appwork.utils.event.queue;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.ListIterator;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.appwork.utils.NullsafeAtomicReference;
 import org.appwork.utils.logging.Log;
 
 /**
@@ -22,7 +23,7 @@ import org.appwork.utils.logging.Log;
  * @param <T>
  * 
  */
-public abstract class Queue extends Thread {
+public abstract class Queue {
 
     public enum QueuePriority {
         HIGH,
@@ -30,91 +31,25 @@ public abstract class Queue extends Thread {
         NORM
     }
 
-    protected boolean                                                                debugFlag          = false;
-    protected QueuePriority[]                                                        prios;
-    protected HashMap<QueuePriority, java.util.List<QueueAction<?, ? extends Throwable>>> queue              = new HashMap<QueuePriority, java.util.List<QueueAction<?, ? extends Throwable>>>();
-    protected final Object                                                           queueLock          = new Object();
+    protected boolean                                             debugFlag           = false;
+    protected ArrayDeque<QueueAction<?, ? extends Throwable>>     queue               = new ArrayDeque<QueueAction<?, ? extends Throwable>>();
 
-    protected java.util.List<QueueAction<?, ? extends Throwable>>                         queueThreadHistory = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
-    protected Thread                                                                 thread             = null;
-    protected boolean                                                                waitFlag           = true;
-    private QueueAction<?, ? extends Throwable>                                      sourceItem         = null;
-    private QueueAction<?, ?>                                                        currentJob;
+    protected java.util.List<QueueAction<?, ? extends Throwable>> queueThreadHistory  = new ArrayList<QueueAction<?, ? extends Throwable>>(20);
+    protected NullsafeAtomicReference<QueueThread>                thread              = new NullsafeAtomicReference<QueueThread>(null);
+    private QueueAction<?, ? extends Throwable>                   sourceItem          = null;
+    private QueueAction<?, ?>                                     currentJob;
 
-    protected QueueAction<?, ?> getCurrentJob() {
-        return currentJob;
-    }
+    protected AtomicLong                                          addStats            = new AtomicLong(0);
+    protected AtomicLong                                          addWaitStats        = new AtomicLong(0);
+    protected AtomicLong                                          addRunStats         = new AtomicLong(0);
 
-    protected static AtomicInteger QUEUELOOPPREVENTION = new AtomicInteger(0);
+    protected static AtomicInteger                                QUEUELOOPPREVENTION = new AtomicInteger(0);
+    private final String                                          id;
+    protected long                                                timeout             = 10 * 1000l;
 
     public Queue(final String id) {
-        super(id);
+        this.id = id;
         Queue.QUEUELOOPPREVENTION.incrementAndGet();
-        /* init queue */
-        this.prios = QueuePriority.values();
-        for (final QueuePriority prio : this.prios) {
-            this.queue.put(prio, new ArrayList<QueueAction<?, ? extends Throwable>>());
-        }
-        /* jvm should not wait for waiting queues */
-        this.setDaemon(true);
-        this.start();
-    }
-
-    public java.util.List<QueueAction<?, ?>> getEntries() {
-        java.util.List<QueueAction<?, ?>> ret = new ArrayList<QueueAction<?, ?>>();
-        synchronized (this.queueLock) {
-
-            if (currentJob != null) {
-                ret.add(currentJob);
-            }
-            for (final QueuePriority prio : this.prios) {
-                ListIterator<QueueAction<?, ? extends Throwable>> li = this.queue.get(prio).listIterator();
-                while (li.hasNext()) {
-                    QueueAction<?, ? extends Throwable> next = li.next();
-                    ret.add(next);
-                }
-            }
-        }
-        return ret;
-    }
-
-    public int size() {
-        int counter = 0;
-        synchronized (this.queueLock) {
-            if (currentJob != null) {
-                counter++;
-            }
-            for (final QueuePriority prio : this.prios) {
-                ListIterator<QueueAction<?, ? extends Throwable>> li = this.queue.get(prio).listIterator();
-                while (li.hasNext()) {
-                    QueueAction<?, ? extends Throwable> next = li.next();
-                    counter++;
-                }
-            }
-        }
-        return counter;
-    }
-
-    public boolean remove(QueueAction<?, ?> action) {
-
-        synchronized (this.queueLock) {
-            java.util.List<QueueAction<?, ? extends Throwable>> list = this.queue.get(action.getQueuePrio());
-            if (list.remove(action)) {
-                action.kill();
-                synchronized (action) {
-                    action.notify();
-                }
-                return true;
-            }else if(action == currentJob){
-                action.kill();
-                synchronized (action) {
-                    action.notify();
-                }
-                return true;
-            }
-            return false;
-        }
-
     }
 
     /**
@@ -137,13 +72,15 @@ public abstract class Queue extends Thread {
             /*
              * call comes from current running item, so lets start item
              */
-            final QueueAction<?, ? extends Throwable> source = ((Queue) Thread.currentThread()).getSourceQueueAction();
+            final QueueAction<?, ? extends Throwable> source = ((QueueThread) Thread.currentThread()).getSourceQueueAction();
             if (source != null) {
                 /* forward source priority */
                 action.setQueuePrio(source.getQueuePrio());
             }
+            this.addRunStats.incrementAndGet();
             this.startItem(action, false);
         } else {
+            this.addStats.incrementAndGet();
             /* call does not come from current running item, so lets queue it */
             this.internalAdd(action);
         }
@@ -163,6 +100,7 @@ public abstract class Queue extends Thread {
         if (action.allowAsync() == false && this.isQueueThread(action)) {
             throw new RuntimeException("called addAsynch from the queue itself");
         } else {
+            this.addStats.incrementAndGet();
             action.reset();
             action.setCallerThread(this, Thread.currentThread());
             this.internalAdd(action);
@@ -180,25 +118,25 @@ public abstract class Queue extends Thread {
              * excaption handling is passed to top item. startItem throws an
              * exception in error case
              */
-            final QueueAction<?, ? extends Throwable> source = ((Queue) Thread.currentThread()).getSourceQueueAction();
+            final QueueAction<?, ? extends Throwable> source = ((QueueThread) Thread.currentThread()).getSourceQueueAction();
             if (source != null) {
                 /* forward source priority */
                 item.setQueuePrio(source.getQueuePrio());
             }
+            this.addRunStats.incrementAndGet();
             this.startItem(item, false);
         } else {
+            this.addWaitStats.incrementAndGet();
             /* call does not come from current running item, so lets queue it */
             this.internalAdd(item);
             /* wait till item is finished */
             try {
                 while (!item.isFinished()) {
-
                     synchronized (item) {
-
-                        item.wait(1000);
-
+                        if (!item.isFinished()) {
+                            item.wait(1000);
+                        }
                     }
-
                 }
             } catch (final InterruptedException e) {
                 item.handleException(e);
@@ -212,15 +150,11 @@ public abstract class Queue extends Thread {
                         throw (T) item.getExeption();
                     }
                 }
-
             }
             if (item.gotKilled() && !item.gotStarted()) {
-
                 item.handleException(new InterruptedException("Queue got killed!"));
             }
-
         }
-
         return item.getResult();
     }
 
@@ -231,6 +165,27 @@ public abstract class Queue extends Thread {
         this.internalAdd(action);
     }
 
+    protected QueueAction<?, ?> getCurrentJob() {
+        return this.currentJob;
+    }
+
+    public java.util.List<QueueAction<?, ?>> getEntries() {
+        final java.util.List<QueueAction<?, ?>> ret = new ArrayList<QueueAction<?, ?>>();
+        synchronized (this.queue) {
+            if (this.currentJob != null) {
+                ret.add(this.currentJob);
+            }
+            for (final QueueAction<?, ? extends Throwable> item : this.queue) {
+                ret.add(item);
+            }
+        }
+        return ret;
+    }
+
+    public String getID() {
+        return this.id;
+    }
+
     protected QueueAction<?, ? extends Throwable> getLastHistoryItem() {
         synchronized (this.queueThreadHistory) {
             if (this.queueThreadHistory.size() == 0) { return null; }
@@ -238,18 +193,16 @@ public abstract class Queue extends Thread {
         }
     }
 
-    /* returns size of queue with given priority */
-    public long getQueueSize(final QueuePriority prio) {
-        if (prio == null) { return -1; }
-        synchronized (this.queueLock) {
-            final java.util.List<QueueAction<?, ? extends Throwable>> ret = this.queue.get(prio);
-            if (ret == null) { return -1; }
-            return ret.size();
-        }
+    public QueueThread getQueueThread() {
+        return this.thread.get();
     }
 
     protected QueueAction<?, ? extends Throwable> getSourceQueueAction() {
         return this.sourceItem;
+    }
+
+    public long getTimeout() {
+        return this.timeout;
     }
 
     /**
@@ -261,14 +214,22 @@ public abstract class Queue extends Thread {
     }
 
     public void internalAdd(final QueueAction<?, ?> action) {
-        synchronized (this.queueLock) {
-            this.queue.get(action.getQueuePrio()).add(action);
-        }
-        synchronized (this) {
-            if (this.waitFlag) {
-                this.waitFlag = false;
-                this.notify();
+        synchronized (this.queue) {
+            switch (action.getQueuePrio()) {
+            case NORM:
+                this.queue.offer(action);
+                break;
+            case HIGH:
+                this.queue.offerFirst(action);
+                break;
+            default:
+                this.queue.offer(action);
+                break;
             }
+            if (this.thread.get() == null) {
+                this.thread.set(new QueueThread(this));
+            }
+            this.queue.notifyAll();
         }
     }
 
@@ -282,11 +243,8 @@ public abstract class Queue extends Thread {
     }
 
     public boolean isEmpty() {
-        synchronized (this.queueLock) {
-            for (final QueuePriority prio : this.prios) {
-                if (!this.queue.get(prio).isEmpty()) { return false; }
-            }
-            return true;
+        synchronized (this.queue) {
+            return this.queue.size() == 0;
         }
     }
 
@@ -296,7 +254,7 @@ public abstract class Queue extends Thread {
      * QueueItem
      */
     public boolean isQueueThread(final QueueAction<?, ? extends Throwable> item) {
-        if (Thread.currentThread() == this.thread) { return true; }
+        if (Thread.currentThread() == this.thread.get()) { return true; }
         QueueAction<?, ? extends Throwable> last = item;
         Thread t = null;
         /*
@@ -305,14 +263,14 @@ public abstract class Queue extends Thread {
          */
         int loopprevention = 0;
         while (last != null && (t = last.getCallerThread()) != null) {
-            if (t != null && t instanceof Queue) {
-                if (t == this.thread) {
+            if (t != null && t instanceof QueueThread) {
+                if (t == this.getQueueThread()) {
                     if (this.debugFlag) {
                         org.appwork.utils.logging.Log.L.warning("Multiple queues detected-> external synchronization may be required! " + item);
                     }
                     return true;
                 }
-                last = ((Queue) t).getLastHistoryItem();
+                last = ((QueueThread) t).getLastHistoryItem();
                 if (loopprevention > Queue.QUEUELOOPPREVENTION.get()) {
                     /*
                      * loop prevention: while can only loop max
@@ -332,65 +290,67 @@ public abstract class Queue extends Thread {
         return false;
     }
 
-    public boolean isWaiting() {
-        return this.waitFlag;
-    }
-
     /**
      * Does NOT kill the currently running job
      * 
      */
     public void killQueue() {
-        synchronized (this.queueLock) {
-            System.out.println(this.queue);
-            for (final QueuePriority prio : this.prios) {
-                for (final QueueAction<?, ? extends Throwable> item : this.queue.get(prio)) {
-                    /* kill item */
-                    System.out.println("K");
-                    item.kill();
-                    synchronized (item) {
-                        item.notify();
-                    }
-                }
-                /* clear queue */
-
-                this.queue.get(prio).clear();
+        final ArrayList<QueueAction<?, ? extends Throwable>> killList = new ArrayList<QueueAction<?, ? extends Throwable>>();
+        synchronized (this.queue) {
+            System.out.println("Kill: " + this);
+            for (final QueueAction<?, ? extends Throwable> item : this.queue) {
+                /* kill item */
+                System.out.println("K");
+                killList.add(item);
             }
-
+            /* clear queue */
+            this.queue.clear();
+        }
+        for (final QueueAction<?, ? extends Throwable> item : killList) {
+            item.kill();
         }
     }
 
-    @Override
-    public void run() {
-        if (this.thread != null) { return; }
-        this.thread = this;
+    /**
+     * @param item
+     */
+    protected void onItemHandled(final QueueAction<?, ? extends Throwable> item) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public boolean remove(final QueueAction<?, ?> action) {
+        QueueAction<?, ?> kill = null;
+        synchronized (this.queue) {
+            if (this.queue.remove(action)) {
+                kill = action;
+            } else if (action == this.currentJob) {
+                kill = action;
+            }
+        }
+        if (kill != null) {
+            kill.kill();
+            return true;
+        }
+        return false;
+
+    }
+
+    protected void runQueue() {
         QueueAction<?, ? extends Throwable> item = null;
         while (true) {
             try {
                 this.handlePreRun();
-                synchronized (this) {
-                    while (this.waitFlag) {
-                        try {
-                            this.wait();
-                        } catch (final Exception e) {
-                            org.appwork.utils.logging.Log.exception(e);
-                        }
-                    }
-                }
-                synchronized (this.queueLock) {
-                    item = null;
-                    for (final QueuePriority prio : this.prios) {
-                        if (this.queue.get(prio).size() > 0) {
-                            item = this.queue.get(prio).remove(0);
-                            break;
-                        }
-                    }
+                synchronized (this.queue) {
+                    item = this.queue.poll();
                     if (item == null) {
-                        this.waitFlag = true;
+                        this.queue.wait(this.getTimeout());
+                        item = this.queue.poll();
+                        if (item == null) {
+                            this.thread.set(null);
+                            return;
+                        }
                     }
-                }
-                if (item == null || this.waitFlag) {
-                    continue;
                 }
                 try {
                     this.sourceItem = item;
@@ -398,22 +358,13 @@ public abstract class Queue extends Thread {
                 } catch (final Throwable e) {
                 } finally {
                     this.sourceItem = null;
-                    
-                    onItemHandled(item);
+                    this.onItemHandled(item);
                 }
             } catch (final Throwable e) {
                 Log.L.info("Queue rescued!");
                 Log.exception(e);
             }
         }
-    }
-
-    /**
-     * @param item
-     */
-    protected void onItemHandled(QueueAction<?, ? extends Throwable> item) {
-        // TODO Auto-generated method stub
-        
     }
 
     /**
@@ -425,12 +376,26 @@ public abstract class Queue extends Thread {
         this.debugFlag = b;
     }
 
+    public void setTimeout(long timeout) {
+        timeout = Math.max(0, timeout);
+        this.timeout = timeout;
+        synchronized (this.queue) {
+            this.queue.notifyAll();
+        }
+    }
+
+    public int size() {
+        synchronized (this.queue) {
+            return this.queue.size();
+        }
+    }
+
     /* if you override this, DON'T forget to notify item when its done! */
     @SuppressWarnings("unchecked")
     protected <T extends Throwable> void startItem(final QueueAction<?, T> item, final boolean callExceptionhandler) throws T {
         try {
-            currentJob = item;
-            if (this.thread != item.getCallerThread()) {
+            this.currentJob = item;
+            if (this.getQueueThread() != item.getCallerThread()) {
                 synchronized (this.queueThreadHistory) {
                     this.queueThreadHistory.add(item);
                 }
@@ -445,19 +410,26 @@ public abstract class Queue extends Thread {
                 }
             }
         } finally {
-            item.setFinished(true);
-            if (this.thread != item.getCallerThread()) {
+            if (this.getQueueThread() != item.getCallerThread()) {
                 synchronized (this.queueThreadHistory) {
                     if (this.queueThreadHistory.size() != 0) {
                         this.queueThreadHistory.remove(this.queueThreadHistory.size() - 1);
                     }
                 }
             }
-            synchronized (item) {
-                item.notify();
-            }
-            currentJob = null;
+            item.setFinished(true);
+            this.currentJob = null;
 
         }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Thread#toString()
+     */
+    @Override
+    public String toString() {
+        return this.id + ": add=" + this.addStats.get() + " addWait=" + this.addWaitStats.get() + " addRun=" + this.addRunStats.get();
     }
 }

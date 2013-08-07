@@ -9,7 +9,10 @@
  */
 package org.appwork.scheduler;
 
+import java.lang.reflect.Modifier;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -20,6 +23,51 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class DelayedRunnable implements Runnable {
 
+    public static String getCaller() {
+        final Throwable stackTrace = new Throwable().fillInStackTrace();
+        try {
+            for (final StackTraceElement element : stackTrace.getStackTrace()) {
+                final String currentClassName = element.getClassName();
+                final Class<?> currentClass = Class.forName(currentClassName, true, Thread.currentThread().getContextClassLoader());
+                if (Modifier.isAbstract(currentClass.getModifiers())) {
+                    /* we dont want the abstract class to be used */
+                    continue;
+                }
+                if (Modifier.isInterface(currentClass.getModifiers())) {
+                    /* we dont want the interface class to be used */
+                    continue;
+                }
+                return currentClassName;
+            }
+        } catch (final Throwable e2) {
+        }
+        return null;
+    }
+
+    /**
+     * return a ScheduledExecutorService with deamon Threads,
+     * allowCoreThreadTimeOut(true) and maxPoolSize(1)
+     */
+    public static ScheduledExecutorService getNewScheduledExecutorService() {
+        final String caller = DelayedRunnable.getCaller();
+        final ScheduledThreadPoolExecutor ret = new ScheduledThreadPoolExecutor(0, new ThreadFactory() {
+
+            @Override
+            public Thread newThread(final Runnable r) {
+                final Thread thread = new Thread(r);
+                if (caller != null) {
+                    thread.setName("Scheduler:" + caller);
+                }
+                thread.setDaemon(true);
+                return thread;
+            }
+        });
+        ret.setMaximumPoolSize(1);
+        ret.setKeepAliveTime(10000, TimeUnit.MILLISECONDS);
+        ret.allowCoreThreadTimeOut(true);
+        return ret;
+    }
+
     private final ScheduledExecutorService service;
     private final long                     delayInMS;
     private final AtomicLong               nextDelay       = new AtomicLong(0);
@@ -28,6 +76,14 @@ public abstract class DelayedRunnable implements Runnable {
     private final AtomicBoolean            delayerSet      = new AtomicBoolean(false);
     private final long                     maxInMS;
     private final AtomicBoolean            delayerEnabled  = new AtomicBoolean(true);
+
+    public DelayedRunnable(final long minDelayInMS) {
+        this(DelayedRunnable.getNewScheduledExecutorService(), minDelayInMS);
+    }
+
+    public DelayedRunnable(final long minDelayInMS, final long maxDelayInMS) {
+        this(DelayedRunnable.getNewScheduledExecutorService(), minDelayInMS, maxDelayInMS);
+    }
 
     public DelayedRunnable(final ScheduledExecutorService service, final long delayInMS) {
         this(service, delayInMS, -1);

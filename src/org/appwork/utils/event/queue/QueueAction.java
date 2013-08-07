@@ -107,9 +107,12 @@ public abstract class QueueAction<T, E extends Throwable> {
     }
 
     public void kill() {
-        if (this.finished == true) { return; }
-        this.killed = true;
-        this.finished = true;
+        synchronized (this) {
+            if (this.finished == true) { return; }
+            this.killed = true;
+            this.finished = true;
+            this.notifyAll();
+        }
     }
 
     protected void postRun() {
@@ -144,7 +147,10 @@ public abstract class QueueAction<T, E extends Throwable> {
      *            the finished to set
      */
     public void setFinished(final boolean finished) {
-        this.finished = finished;
+        synchronized (this) {
+            this.finished = finished;
+            this.notifyAll();
+        }
     }
 
     public void setQueuePrio(final QueuePriority prio) {

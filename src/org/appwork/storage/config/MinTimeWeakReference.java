@@ -10,8 +10,7 @@
 package org.appwork.storage.config;
 
 import java.lang.ref.WeakReference;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.appwork.scheduler.DelayedRunnable;
 
@@ -21,11 +20,7 @@ import org.appwork.scheduler.DelayedRunnable;
  */
 public class MinTimeWeakReference<T> extends WeakReference<T> {
 
-    private static final ScheduledThreadPoolExecutor EXECUTER = new ScheduledThreadPoolExecutor(1);
-    static {
-        MinTimeWeakReference.EXECUTER.setKeepAliveTime(10000, TimeUnit.MILLISECONDS);
-        MinTimeWeakReference.EXECUTER.allowCoreThreadTimeOut(true);
-    }
+    private static final ScheduledExecutorService EXECUTER = DelayedRunnable.getNewScheduledExecutorService();
 
     public static void main(final String[] args) {
 
