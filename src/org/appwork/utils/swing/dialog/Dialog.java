@@ -244,7 +244,7 @@ public class Dialog {
 
     private Dialog() {
 
-        defaultHandler = new DialogHandler() {
+        this.defaultHandler = new DialogHandler() {
 
             @Override
             public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
@@ -254,7 +254,7 @@ public class Dialog {
     }
 
     public DialogHandler getDefaultHandler() {
-        return defaultHandler;
+        return this.defaultHandler;
     }
 
     /**
@@ -262,23 +262,23 @@ public class Dialog {
      * @see Dialog#defaultTimeout
      */
     protected int getDefaultTimeout() {
-        return defaultTimeout;
+        return this.defaultTimeout;
     }
 
     public DialogHandler getHandler() {
-        return handler;
+        return this.handler;
     }
 
     /**
      * @return
      */
     public List<? extends Image> getIconList() {
-        return iconList;
+        return this.iconList;
     }
 
     public LAFManagerInterface getLafManager() {
         synchronized (this) {
-            return lafManager;
+            return this.lafManager;
         }
     }
 
@@ -287,9 +287,9 @@ public class Dialog {
      */
     public void initLaf() {
         synchronized (this) {
-            if (lafManager != null) {
-                lafManager.init();
-                setLafManager(null);
+            if (this.lafManager != null) {
+                this.lafManager.init();
+                this.setLafManager(null);
             }
         }
     }
@@ -300,12 +300,12 @@ public class Dialog {
      * @see Dialog#defaultTimeout
      */
     public void setDefaultTimeout(final int countdownTime) {
-        defaultTimeout = countdownTime;
+        this.defaultTimeout = countdownTime;
     }
 
     public void setHandler(DialogHandler handler) {
         if (handler == null) {
-            handler = defaultHandler;
+            handler = this.defaultHandler;
         }
         this.handler = handler;
     }
@@ -472,7 +472,7 @@ public class Dialog {
      * @throws DialogCanceledException
      */
     public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
-        final DialogHandler lhandler = handler;
+        final DialogHandler lhandler = this.handler;
         if (lhandler != null) { return lhandler.showDialog(dialog); }
         return this.showDialogRaw(dialog);
     }
@@ -528,24 +528,32 @@ public class Dialog {
         };
         boolean interrupted = false;
         try {
-            if (Thread.interrupted()) { throw new DialogClosedException(Dialog.RETURN_INTERRUPT, new InterruptedException()); }
-         
-         
-                synchronized (waitingLock) {
-                    if (waitingLock.get() == false) {
-                        waitingLock.wait();
+            if (Thread.interrupted()) {
+                new EDTRunner() {
+
+                    @Override
+                    protected void runInEDT() {
+                        try {
+                            // close dialog if open
+                            dialog.interrupt();
+                        } catch (final Exception e) {
+                        }
                     }
+                };
+                throw new DialogClosedException(Dialog.RETURN_INTERRUPT, new InterruptedException());
+            }
+            synchronized (waitingLock) {
+                if (waitingLock.get() == false) {
+                    waitingLock.wait();
                 }
-            
+            }
         } catch (final InterruptedException e) {
             interrupted = true;
         }
         if (edth.isInterrupted() || interrupted) {
-
             // Use a edtrunner here. AbstractCaptcha.dispose is edt save...
             // however there may be several CaptchaDialog classes with
             // overriddden unsave dispose methods...
-
             new EDTRunner() {
 
                 @Override
