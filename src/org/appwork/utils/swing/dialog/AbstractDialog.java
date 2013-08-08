@@ -93,7 +93,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                                                                                   };
     private static OwnerFinder                            OWNER_FINDER            = AbstractDialog.DEFAULT_OWNER_FINDER;
-    public static FrameState                              WINDOW_STATE_ON_VISIBLE = FrameState.TO_FRONT_FOCUSED;
+    public static WindowZHandler                          ZHANDLER = new BasicZHandler();
 
     private static final WeakHashMap<Object, WindowStack> STACK_MAP               = new WeakHashMap<Object, WindowStack>();
 
@@ -1021,7 +1021,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     protected FrameState getWindowStateOnVisible() {
 
-        return AbstractDialog.WINDOW_STATE_ON_VISIBLE;
+        return ZHANDLER.getWindowStateOnVisible(this);
     }
 
     /**
