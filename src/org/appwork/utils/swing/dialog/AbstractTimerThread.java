@@ -59,13 +59,13 @@ public class AbstractTimerThread extends Thread {
     }
 
     protected boolean isVisible() {
-        return new EDTHelper<Boolean>() {
+        return Boolean.TRUE.equals(new EDTHelper<Boolean>() {
 
             @Override
             public Boolean edtRun() {
                 return AbstractTimerThread.this.dialog.isVisible();
             }
-        }.getReturnValue();
+        }.getReturnValue());
     }
 
     public void reset() {
