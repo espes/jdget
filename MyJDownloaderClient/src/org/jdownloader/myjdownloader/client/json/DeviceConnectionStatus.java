@@ -1,6 +1,8 @@
 package org.jdownloader.myjdownloader.client.json;
 
 public enum DeviceConnectionStatus {
+    /* Outdated Session */
+    OUTDATED(6),
     /* Session is not bound to a device */
     UNBOUND(5),
     /* normal keepAlive=close, current syncMark will be send too */

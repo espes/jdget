@@ -29,9 +29,11 @@ import org.jdownloader.myjdownloader.client.exceptions.EmailNotAllowedException;
 import org.jdownloader.myjdownloader.client.exceptions.EmailNotValidatedException;
 import org.jdownloader.myjdownloader.client.exceptions.ExceptionResponse;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderException;
+import org.jdownloader.myjdownloader.client.exceptions.OutdatedException;
 import org.jdownloader.myjdownloader.client.exceptions.OverloadException;
 import org.jdownloader.myjdownloader.client.exceptions.TokenException;
 import org.jdownloader.myjdownloader.client.exceptions.TooManyRequestsException;
+import org.jdownloader.myjdownloader.client.exceptions.UnexpectedIOException;
 import org.jdownloader.myjdownloader.client.json.CaptchaChallenge;
 import org.jdownloader.myjdownloader.client.json.ConnectResponse;
 import org.jdownloader.myjdownloader.client.json.DeviceConnectResponse;
@@ -496,21 +498,21 @@ public abstract class AbstractMyJDClient {
 
     protected void handleInvalidResponseCodes(final ExceptionResponse e) throws MyJDownloaderException, APIException {
         if (e != null && e.getContent() != null && e.getContent().trim().length() != 0) {
-            final ErrorResponse error = this.jsonToObject(e.getContent(), ErrorResponse.class);
+            ErrorResponse error = null;
             try {
+                error = this.jsonToObject(e.getContent(), ErrorResponse.class);
                 switch (error.getSrc()) {
-
                 case DEVICE:
                     throw new APIException(error.getType(), error.getData());
-
                 case MYJD:
                     final ServerErrorType type = ServerErrorType.valueOf(error.getType());
-
                     switch (type) {
                     case AUTH_FAILED:
                         throw new AuthException();
                     case ERROR_EMAIL_NOT_CONFIRMED:
                         throw new EmailNotValidatedException();
+                    case OUTDATED:
+                        throw new OutdatedException();
                     case OFFLINE:
                         throw new DeviceIsOfflineException();
                     case TOKEN_INVALID:
@@ -527,17 +529,16 @@ public abstract class AbstractMyJDClient {
                         throw new OverloadException();
                     case TOO_MANY_REQUESTS:
                         throw new TooManyRequestsException();
-
                     }
                     break;
-
                 }
             } catch (final MyJDownloaderException e1) {
                 e1.setSource(error.getSrc());
                 throw e1;
+            } catch (final Exception e2) {
+                throw new UnexpectedIOException(e2);
             }
         }
-
         switch (e.getResponseCode()) {
         case 403:
             throw new AuthException();
@@ -547,7 +548,8 @@ public abstract class AbstractMyJDClient {
             throw new EmailNotValidatedException();
         case 407:
             throw new TokenException();
-
+        default:
+            throw new UnexpectedIOException();
         }
     }
 

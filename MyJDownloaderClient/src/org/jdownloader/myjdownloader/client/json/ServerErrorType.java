@@ -5,6 +5,7 @@ public enum ServerErrorType {
     OVERLOAD(503),
     TOO_MANY_REQUESTS(429),
     ERROR_EMAIL_NOT_CONFIRMED(401),
+    OUTDATED(403),
     TOKEN_INVALID(403),
     OFFLINE(504),
     UNKNOWN(500),
