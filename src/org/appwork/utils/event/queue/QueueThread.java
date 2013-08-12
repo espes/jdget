@@ -26,6 +26,10 @@ public class QueueThread extends Thread {
 
     protected QueueAction<?, ? extends Throwable> getLastHistoryItem() {
         return this.queue.getLastHistoryItem();
+    }
+
+    public Queue getQueue() {
+        return this.queue;
     };
 
     protected QueueAction<?, ? extends Throwable> getSourceQueueAction() {
