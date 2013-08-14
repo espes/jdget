@@ -192,6 +192,7 @@ public class LogSource extends Logger implements LogInterface {
         /* make sure we have gathered all information about current class/method */
         /* this will collect current class/method if net set yet */
         record.getSourceClassName();
+        /* Thread.getName creates fresh copy of name each time -> memleak! */
         // record.setLoggerName(Thread.currentThread().getName());
         int recordSize = 0;
         if (record.getMessage() != null) {
