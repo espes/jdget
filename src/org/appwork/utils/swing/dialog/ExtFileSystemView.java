@@ -52,11 +52,8 @@ public class ExtFileSystemView extends FileSystemView {
             public void run() {
                 final ExtFileSystemView view = new ExtFileSystemView();
                 view.getRoots();
-
                 try {
-
                     if (view.networkFolder != null) {
-
                         view.networkFolder.listFiles();
                         Log.L.info("List Networkfolder done " + (System.currentTimeMillis() - tt));
                     }

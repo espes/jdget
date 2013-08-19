@@ -186,8 +186,10 @@ public class CrossSystem {
         }
         if (CrossSystem.isWindows()) {
             /* windows uses \ as path seperator */
+            boolean network=path.startsWith("\\\\");
             path = path.replaceAll("[/]+", "\\\\");
             path = path.replaceAll("[\\\\]+", "\\\\");
+            if (network)path="\\"+path;
         } else {
             /* mac/linux uses / as path seperator */
             path = path.replaceAll("[\\\\]+", "/");
