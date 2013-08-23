@@ -24,13 +24,11 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
-import org.appwork.utils.LowerCaseHashMap;
 import org.appwork.utils.Regex;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.CountingOutputStream;
@@ -43,8 +41,8 @@ import org.appwork.utils.net.NullOutputStream;
 public class NativeHTTPConnectionImpl implements HTTPConnection {
     protected URL                                 httpURL              = null;
     protected HTTPProxy                           proxy                = null;
-    protected LinkedHashMap<String, String>       requestProperties    = null;
-    protected LowerCaseHashMap<List<String>>      headers              = null;
+    protected HTTPHeaderMap<String>               requestProperties    = null;
+    protected HTTPHeaderMap<List<String>>         headers              = null;
     private HttpURLConnection                     con;
     protected int                                 readTimeout          = 30000;
     protected int                                 connectTimeout       = 30000;
@@ -102,15 +100,15 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
     public NativeHTTPConnectionImpl(final URL url) {
         this.httpURL = url;
         this.proxy = null;
-        this.requestProperties = new LinkedHashMap<String, String>();
-        this.headers = new LowerCaseHashMap<List<String>>();
+        this.requestProperties = new HTTPHeaderMap<String>();
+        this.headers = new HTTPHeaderMap<List<String>>();
     }
 
     public NativeHTTPConnectionImpl(final URL url, final HTTPProxy p) {
         this.httpURL = url;
         this.proxy = p;
-        this.requestProperties = new LinkedHashMap<String, String>();
-        this.headers = new LowerCaseHashMap<List<String>>();
+        this.requestProperties = new HTTPHeaderMap<String>();
+        this.headers = new HTTPHeaderMap<List<String>>();
         if (this.proxy != null) {
             switch (this.proxy.getType()) {
             case HTTP:

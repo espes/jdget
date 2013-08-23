@@ -21,7 +21,6 @@ import java.util.zip.GZIPInputStream;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 
-import org.appwork.utils.LowerCaseHashMap;
 import org.appwork.utils.Regex;
 import org.appwork.utils.net.Base64InputStream;
 import org.appwork.utils.net.ChunkedInputStream;
@@ -33,37 +32,37 @@ public class HTTPConnectionImpl implements HTTPConnection {
     /**
      * 
      */
-    public static final String               UNKNOWN_HTTP_RESPONSE      = "unknown HTTP response";
-    protected LowerCaseHashMap<String>       requestProperties          = null;
-    protected long[]                         ranges;
+    public static final String            UNKNOWN_HTTP_RESPONSE      = "unknown HTTP response";
+    protected HTTPHeaderMap<String>       requestProperties          = null;
+    protected long[]                      ranges;
 
-    protected String                         customcharset              = null;
+    protected String                      customcharset              = null;
 
-    protected Socket                         httpSocket                 = null;
-    protected URL                            httpURL                    = null;
-    protected HTTPProxy                      proxy                      = null;
-    protected String                         httpPath                   = null;
+    protected Socket                      httpSocket                 = null;
+    protected URL                         httpURL                    = null;
+    protected HTTPProxy                   proxy                      = null;
+    protected String                      httpPath                   = null;
 
-    protected RequestMethod                  httpMethod                 = RequestMethod.GET;
-    protected LowerCaseHashMap<List<String>> headers                    = null;
-    protected int                            httpResponseCode           = -1;
-    protected String                         httpResponseMessage        = "";
-    protected int                            readTimeout                = 30000;
-    protected int                            connectTimeout             = 30000;
-    protected long                           requestTime                = -1;
-    protected OutputStream                   outputStream               = null;
-    protected InputStream                    inputStream                = null;
-    protected InputStream                    convertedInputStream       = null;
-    protected boolean                        inputStreamConnected       = false;
-    protected String                         httpHeader                 = null;
+    protected RequestMethod               httpMethod                 = RequestMethod.GET;
+    protected HTTPHeaderMap<List<String>> headers                    = null;
+    protected int                         httpResponseCode           = -1;
+    protected String                      httpResponseMessage        = "";
+    protected int                         readTimeout                = 30000;
+    protected int                         connectTimeout             = 30000;
+    protected long                        requestTime                = -1;
+    protected OutputStream                outputStream               = null;
+    protected InputStream                 inputStream                = null;
+    protected InputStream                 convertedInputStream       = null;
+    protected boolean                     inputStreamConnected       = false;
+    protected String                      httpHeader                 = null;
 
-    protected boolean                        outputClosed               = false;
-    private boolean                          contentDecoded             = true;
-    protected long                           postTodoLength             = -1;
-    private int[]                            allowedResponseCodes       = new int[0];
-    private InetSocketAddress                proxyInetSocketAddress     = null;
-    protected InetSocketAddress              connectedInetSocketAddress = null;
-    private SSLException                     sslException               = null;
+    protected boolean                     outputClosed               = false;
+    private boolean                       contentDecoded             = true;
+    protected long                        postTodoLength             = -1;
+    private int[]                         allowedResponseCodes       = new int[0];
+    private InetSocketAddress             proxyInetSocketAddress     = null;
+    protected InetSocketAddress           connectedInetSocketAddress = null;
+    private SSLException                  sslException               = null;
 
     public HTTPConnectionImpl(final URL url) {
         this(url, null);
@@ -72,8 +71,8 @@ public class HTTPConnectionImpl implements HTTPConnection {
     public HTTPConnectionImpl(final URL url, final HTTPProxy p) {
         this.httpURL = url;
         this.proxy = p;
-        this.requestProperties = new LowerCaseHashMap<String>();
-        this.headers = new LowerCaseHashMap<List<String>>();
+        this.requestProperties = new HTTPHeaderMap<String>();
+        this.headers = new HTTPHeaderMap<List<String>>();
     }
 
     /* this will add Host header at the beginning */
@@ -574,7 +573,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     protected void putHostToTop(final Map<String, String> oldRequestProperties) {
-        final LowerCaseHashMap<String> newRet = new LowerCaseHashMap<String>();
+        final HTTPHeaderMap<String> newRet = new HTTPHeaderMap<String>();
         final String host = oldRequestProperties.remove("Host");
         if (host != null) {
             newRet.put("Host", host);
