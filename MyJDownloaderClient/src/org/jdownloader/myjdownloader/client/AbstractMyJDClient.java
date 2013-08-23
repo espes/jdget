@@ -28,6 +28,7 @@ import org.jdownloader.myjdownloader.client.exceptions.EmailInvalidException;
 import org.jdownloader.myjdownloader.client.exceptions.EmailNotAllowedException;
 import org.jdownloader.myjdownloader.client.exceptions.EmailNotValidatedException;
 import org.jdownloader.myjdownloader.client.exceptions.ExceptionResponse;
+import org.jdownloader.myjdownloader.client.exceptions.MaintenanceException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderException;
 import org.jdownloader.myjdownloader.client.exceptions.OutdatedException;
 import org.jdownloader.myjdownloader.client.exceptions.OverloadException;
@@ -529,6 +530,8 @@ public abstract class AbstractMyJDClient {
                         throw new OverloadException();
                     case TOO_MANY_REQUESTS:
                         throw new TooManyRequestsException();
+                    case MAINTENANCE:
+                        throw new MaintenanceException();
                     }
                     break;
                 }

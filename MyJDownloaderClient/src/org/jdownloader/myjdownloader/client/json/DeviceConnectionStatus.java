@@ -1,6 +1,8 @@
 package org.jdownloader.myjdownloader.client.json;
 
 public enum DeviceConnectionStatus {
+    MAINTENANCE(8),
+    OVERLOAD(7),
     /* Outdated Session */
     OUTDATED(6),
     /* Session is not bound to a device */
