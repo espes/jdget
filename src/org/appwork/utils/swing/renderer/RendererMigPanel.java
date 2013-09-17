@@ -43,6 +43,9 @@ public class RendererMigPanel extends MigPanel {
 
     @Override
     public boolean isEnabled() {
+        if(_enabled==null) {
+            return super.isEnabled();
+        }
         return _enabled;
     }
 
