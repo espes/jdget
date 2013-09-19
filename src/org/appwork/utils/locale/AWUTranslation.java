@@ -161,8 +161,8 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en", "de" }, values = { "%s1 TB", "%s1 TB" })
     String literally_tebibyte(String format);
 
-    @Default(lngs = { "en", "de" }, values = { "Lock Columnwidth", "Spaltenbreite festsetzen" })
-    String LockColumnWidthAction();
+    @Default(lngs = { "en", "de" }, values = { "Column width locked", "Spaltenbreite verankert" })
+    String LockColumnWidthAction2();
 
     @Default(lngs = { "en", "de" }, values = { "Login", "Anmelden" })
     String LOGINDIALOG_BUTTON_LOGIN();
@@ -449,6 +449,6 @@ public interface AWUTranslation extends TranslateInterface {
     @Default(lngs = { "en" }, values = { "%s1 (Resizing Locked)" })
     String tableheader_tooltip_locked(String name);
 
-    @Default(lngs = { "en" }, values = { "unlock columnwidth" })
-    String unLockColumnWidthAction();
+    @Default(lngs = { "en", "de" }, values = { "Column width locked", "Spaltenbreite verankert" })
+    String unLockColumnWidthAction2();
 }

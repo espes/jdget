@@ -39,11 +39,11 @@ public class LockColumnWidthAction extends AbstractAction {
         this.extColumn = extColumn;
         if(extColumn.isResizable()){
             putValue(Action.SELECTED_KEY, false);
-            putValue(Action.NAME, _AWU.T.LockColumnWidthAction());
+            putValue(Action.NAME, _AWU.T.LockColumnWidthAction2());
          
         }else{
             putValue(Action.SELECTED_KEY, true);  
-            putValue(Action.NAME, _AWU.T.unLockColumnWidthAction()); 
+            putValue(Action.NAME, _AWU.T.unLockColumnWidthAction2()); 
         }
        
     }
