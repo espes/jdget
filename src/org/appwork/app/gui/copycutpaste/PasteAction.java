@@ -5,7 +5,6 @@ package org.appwork.app.gui.copycutpaste;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
@@ -30,11 +29,11 @@ public class PasteAction extends AbstractAction {
 
     public PasteAction(final JTextComponent c) {
         super(_AWU.T.COPYCUTPASTE_PASTE());
-        this.text = c;
+        text = c;
 
-        this.putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("paste", 16));
+        putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("paste", 16));
 
-        this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
+        putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
     }
 
@@ -46,13 +45,13 @@ public class PasteAction extends AbstractAction {
      */
 
     public void actionPerformed(final ActionEvent e) {
-        this.text.paste();
+        text.paste();
 
     }
 
     @Override
     public boolean isEnabled() {
-        if (this.text.isEditable() && this.text.isEnabled()) {
+        if (text.isEditable() && text.isEnabled()) {
             return Toolkit.getDefaultToolkit().getSystemClipboard().isDataFlavorAvailable(ClipboardUtils.stringFlavor);
         } else {
             return false;

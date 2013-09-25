@@ -18,11 +18,6 @@ import javax.swing.filechooser.FileFilter;
 
 import net.miginfocom.swing.MigLayout;
 
-import org.appwork.app.gui.copycutpaste.CopyAction;
-import org.appwork.app.gui.copycutpaste.CutAction;
-import org.appwork.app.gui.copycutpaste.DeleteAction;
-import org.appwork.app.gui.copycutpaste.PasteAction;
-import org.appwork.app.gui.copycutpaste.SelectAction;
 import org.appwork.storage.JSonStorage;
 import org.appwork.swing.MigPanel;
 import org.appwork.swing.components.ExtButton;
@@ -94,7 +89,7 @@ public class PathChooser extends MigPanel {
             private static final long serialVersionUID = 3243788323043431841L;
 
             @Override
-            public JPopupMenu getPopupMenu(final CutAction cutAction, final CopyAction copyAction, final PasteAction pasteAction, final DeleteAction deleteAction, final SelectAction selectAction) {
+            public JPopupMenu getPopupMenu(final AbstractAction cutAction, final AbstractAction copyAction, final AbstractAction pasteAction, final AbstractAction deleteAction, final AbstractAction selectAction) {
                 final JPopupMenu self = PathChooser.this.getPopupMenu(txt, cutAction, copyAction, pasteAction, deleteAction, selectAction);
 
                 if (self == null) { return super.getPopupMenu(cutAction, copyAction, pasteAction, deleteAction, selectAction); }
@@ -344,7 +339,7 @@ public class PathChooser extends MigPanel {
         return txt.getText();
     }
 
-    public JPopupMenu getPopupMenu(final ExtTextField txt, final CutAction cutAction, final CopyAction copyAction, final PasteAction pasteAction, final DeleteAction deleteAction, final SelectAction selectAction) {
+    public JPopupMenu getPopupMenu(final ExtTextField txt, final AbstractAction cutAction, final AbstractAction copyAction, final AbstractAction pasteAction, final AbstractAction deleteAction, final AbstractAction selectAction) {
         return null;
     }
 

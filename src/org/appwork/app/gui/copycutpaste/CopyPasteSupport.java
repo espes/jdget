@@ -15,6 +15,7 @@ import java.awt.Point;
 import java.awt.event.AWTEventListener;
 import java.awt.event.MouseEvent;
 
+import javax.swing.AbstractAction;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
@@ -76,28 +77,45 @@ public class CopyPasteSupport implements AWTEventListener {
         // Check if deepest component is a textcomponent
         if (!(c instanceof JTextComponent) && !(c instanceof ContextMenuAdapter)) { return; }
         if (MenuSelectionManager.defaultManager().getSelectedPath().length > 0) { return; }
-
+ 
         JPopupMenu menu;
         final JTextComponent t = (JTextComponent) c;
         if (c instanceof ContextMenuAdapter) {
-            menu = ((ContextMenuAdapter) c).getPopupMenu(new CutAction(t), new CopyAction(t), new PasteAction(t), new DeleteAction(t), new SelectAction(t));
+            menu = ((ContextMenuAdapter) c).getPopupMenu(createCutAction(t), createCopyAction(t), createPasteAction(t), createDeleteAction(t), createSelectAction(t));
             if (menu == null) { return; }
         } else {
 
             // create menu
             menu = new JPopupMenu();
-            menu.add(new CutAction(t));
-            menu.add(new CopyAction(t));
-            menu.add(new PasteAction(t));
-            menu.add(new DeleteAction(t));
-            menu.add(new SelectAction(t));
+            menu.add(createCutAction(t));
+            menu.add(createCopyAction(t));
+            menu.add(createPasteAction(t));
+            menu.add(createDeleteAction(t));
+            menu.add(createSelectAction(t));
         }
         final Point pt = SwingUtilities.convertPoint(mouseEvent.getComponent(), mouseEvent.getPoint(), c);
         menu.show(c, pt.x, pt.y);
 
     }
 
+    protected AbstractAction createSelectAction(final JTextComponent t) {
+        return new SelectAction(t);
+    }
 
+    protected AbstractAction createDeleteAction(final JTextComponent t) {
+        return new DeleteAction(t);
+    }
 
+    protected AbstractAction createPasteAction(final JTextComponent t) {
+        return new PasteAction(t);
+    }
+
+    protected AbstractAction createCopyAction(final JTextComponent t) {
+        return new CopyAction(t);
+    }
+
+    protected AbstractAction createCutAction(final JTextComponent t) {
+        return new CutAction(t);
+    }
 
 }

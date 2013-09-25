@@ -3,8 +3,8 @@
  */
 package org.appwork.app.gui.copycutpaste;
 
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
@@ -29,11 +29,11 @@ public class CopyAction extends AbstractAction {
 
     public CopyAction(final JTextComponent c) {
         super(_AWU.T.COPYCUTPASTE_COPY());
-        this.text = c;
+        text = c;
 
-        this.putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("copy", 16));
+        putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("copy", 16));
 
-        this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK));
+        putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
     }
 
@@ -45,12 +45,12 @@ public class CopyAction extends AbstractAction {
      */
 
     public void actionPerformed(final ActionEvent e) {
-        this.text.copy();
+        text.copy();
 
     }
 
     @Override
     public boolean isEnabled() {
-        return !(this.text instanceof JPasswordField) && this.text.isEnabled() && this.text.getSelectedText() != null;
+        return !(text instanceof JPasswordField) && text.isEnabled() && text.getSelectedText() != null;
     }
 }

@@ -3,8 +3,8 @@
  */
 package org.appwork.app.gui.copycutpaste;
 
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
@@ -29,11 +29,11 @@ public class SelectAction extends AbstractAction {
 
     public SelectAction(final JTextComponent c) {
         super(_AWU.T.COPYCUTPASTE_SELECT());
-        this.text = c;
+        text = c;
 
-        this.putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("select", 16));
+        putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("select", 16));
 
-        this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_MASK));
+        putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
     }
 
@@ -45,12 +45,12 @@ public class SelectAction extends AbstractAction {
      */
 
     public void actionPerformed(final ActionEvent e) {
-        this.text.selectAll();
+        text.selectAll();
 
     }
 
     @Override
     public boolean isEnabled() {
-        return this.text.isEnabled() && this.text.getText().length() > 0;
+        return text.isEnabled() && text.getText().length() > 0;
     }
 }

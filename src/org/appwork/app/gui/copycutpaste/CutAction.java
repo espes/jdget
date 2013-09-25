@@ -3,8 +3,8 @@
  */
 package org.appwork.app.gui.copycutpaste;
 
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
@@ -29,11 +29,11 @@ public class CutAction extends AbstractAction {
 
     public CutAction(final JTextComponent c) {
         super(_AWU.T.COPYCUTPASTE_CUT());
-        this.text = c;
+        text = c;
 
-        this.putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("cut", 16));
+        putValue(Action.SMALL_ICON, AWUTheme.I().getIcon("cut", 16));
 
-        this.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_MASK));
+        putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
     }
 
@@ -45,12 +45,20 @@ public class CutAction extends AbstractAction {
      */
 
     public void actionPerformed(final ActionEvent e) {
-        this.text.cut();
+        if (text == null) {
+            if (e.getSource() instanceof JTextComponent) {
+                final JTextComponent text = (JTextComponent) e.getSource();
+                text.cut();
+            }
+        } else {
+            text.cut();
+        }
 
     }
 
     @Override
     public boolean isEnabled() {
-        return !(this.text instanceof JPasswordField) && this.text.isEnabled() && this.text.getSelectedText() != null;
+        if (text == null) { return true; }
+        return !(text instanceof JPasswordField) && text.isEnabled() && text.getSelectedText() != null;
     }
 }
