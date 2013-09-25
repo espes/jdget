@@ -93,7 +93,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                                                                                   };
     private static OwnerFinder                            OWNER_FINDER            = AbstractDialog.DEFAULT_OWNER_FINDER;
-    public static WindowZHandler                          ZHANDLER = new BasicZHandler();
+    public static WindowZHandler                          ZHANDLER                = new BasicZHandler();
 
     private static final WeakHashMap<Object, WindowStack> STACK_MAP               = new WeakHashMap<Object, WindowStack>();
 
@@ -650,6 +650,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public void displayDialog() {
         if (this.initialized) { return; }
+        Log.L.info("Display Dialog: " + this);
         this.initialized = true;
         this._init();
     }
@@ -694,8 +695,14 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                         e.printStackTrace();
                     }
                 }
+                //try to avoid java.lang.IllegalArgumentException: Window must not be zero for linux. 
+                //1. set Invisible before disposing the frame
+               
+                AbstractDialog.this.getDialog().setVisible(false);
+                //2. Dispose
+                AbstractDialog.this.getDialog().realDispose();   
+                //3. set disposed to true afterwards
                 AbstractDialog.this.setDisposed(true);
-                AbstractDialog.this.getDialog().realDispose();
             }
         };
     }
@@ -742,8 +749,16 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * model only.
      */
     public void forceDummyInit() {
-        this.initialized = true;
-        this.dummyInit = true;
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                Log.L.info("Force Dummy Init");
+                initialized = true;
+                dummyInit = true;
+            }
+        }.waitForEDT();
+
     }
 
     /**
@@ -1260,8 +1275,16 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
 
     public void resetDummyInit() {
-        this.initialized = false;
-        this.dummyInit = false;
+        new EDTRunner() {
+
+            @Override
+            protected void runInEDT() {
+                Log.L.info("Reset Dummy Info");
+                initialized = false;
+                dummyInit = false;
+            }
+        }.waitForEDT();
+
     }
 
     public void resetTimer() {
@@ -1432,7 +1455,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                             JSonStorage.getPlainStorage("Dialogs").save();
                         }
                     }
-
+ 
                 } catch (final Exception e) {
                     Log.exception(e);
                 }
