@@ -5,9 +5,65 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.KeyStroke;
 
+import org.appwork.utils.os.CrossSystem;
+
 public class KeyUtils {
-    public static String getShortcutString(final KeyEvent event,final boolean translated) {
-        return getShortcutString(event.getModifiers(), event.getKeyCode(),translated);
+    /**
+     * 
+     */
+    public static final String  MAC_TRANSLATED_REPLACE_SHIFT = KeyEvent.getKeyModifiersText(InputEvent.SHIFT_MASK) + "+";
+    /**
+     * 
+     */
+    private static final String MAC_TRANSLATED_REPLACE_ALT   = KeyEvent.getKeyModifiersText(InputEvent.ALT_MASK) + "+";
+    /**
+     * 
+     */
+    private static final String MAC_TRANSLATED_REPLACE_META  = KeyEvent.getKeyModifiersText(InputEvent.META_MASK) + "+";
+    /**
+     * 
+     */
+    public static final String  MAC_TRANSLATED_REPLACE_CTRL  = KeyEvent.getKeyModifiersText(InputEvent.CTRL_MASK) + "+";
+
+    public static final String  MAC_REPLACE_SHIFT            = KeyUtils.getKeyModifiersText(InputEvent.SHIFT_MASK) + "+";
+    /**
+     * 
+     */
+    private static final String MAC_REPLACE_ALT              = KeyUtils.getKeyModifiersText(InputEvent.ALT_MASK) + "+";
+    /**
+     * 
+     */
+    private static final String MAC_REPLACE_META             = KeyUtils.getKeyModifiersText(InputEvent.META_MASK) + "+";
+    /**
+     * 
+     */
+    public static final String  MAC_REPLACE_CTRL             = KeyUtils.getKeyModifiersText(InputEvent.CTRL_MASK) + "+";
+    /**
+     * 
+     */
+    public static final String  MAC_META                     = "⌘";
+    /**
+     * 
+     */
+    public static final String  MAC_CTRL                     = "⌃";
+    /**
+     * 
+     */
+    public static final String  MAC_ALT                      = "⌥";
+    /**
+     * 
+     */
+    public static final String  MAC_SHIFT                    = "⇧";
+
+    public static String getShortcutString(final KeyEvent event, final boolean translated) {
+        return getShortcutString(event.getModifiers(), event.getKeyCode(), translated);
+    }
+
+    public static void main(String[] args) {
+        KeyStroke ks = KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.SHIFT_MASK);
+        System.out.println(ks);
+        System.out.println(getShortcutString(ks, false));
+        System.out.println(getShortcutString(ks, true));
     }
 
     // Taken and modified from the KeyEvent Class
@@ -62,7 +118,7 @@ public class KeyUtils {
         case KeyEvent.VK_ALT:
             return ("Alt");
         case KeyEvent.VK_META:
-            return ("Meta");
+            return CrossSystem.isMac() ? MAC_META : "Meta";
         case KeyEvent.VK_ALT_GRAPH:
             return ("Alt Graph");
 
@@ -320,26 +376,34 @@ public class KeyUtils {
     public static String getKeyModifiersText(final int modifiers) {
         final StringBuilder buf = new StringBuilder();
         if ((modifiers & InputEvent.META_MASK) != 0) {
-            buf.append("Meta");
+
+            buf.append("Command");
             buf.append("+");
+
         }
         if ((modifiers & InputEvent.CTRL_MASK) != 0) {
+
             buf.append("Ctrl");
             buf.append("+");
+
         }
         if ((modifiers & InputEvent.ALT_MASK) != 0) {
+
             buf.append("Alt");
             buf.append("+");
+
         }
         if ((modifiers & InputEvent.SHIFT_MASK) != 0) {
+
             buf.append("Shift");
             buf.append("+");
+
         }
         if ((modifiers & InputEvent.ALT_GRAPH_MASK) != 0) {
             buf.append("Alt Graph");
             buf.append("+");
         }
-        if (buf.length() > 0) {
+        if (buf.length() > 0 && buf.charAt(buf.length() - 1) == '+') {
             buf.setLength(buf.length() - 1);
         }
         return buf.toString();
@@ -347,16 +411,14 @@ public class KeyUtils {
 
     public static String getShortcutString(final KeyStroke event, final boolean translated) {
         final int mod = event.getModifiers();
-        final int code = event.getKeyCode();   
-        return getShortcutString(mod, code,translated);
+        final int code = event.getKeyCode();
+        return getShortcutString(mod, code, translated);
     }
 
     public static String getShortcutString(final int mod, final int code, final boolean translated) {
-        
-        
-        
+
         String msg1 = "";
-        msg1 = translated?KeyEvent.getKeyModifiersText(mod):KeyUtils.getKeyModifiersText(mod);
+        msg1 = translated ? KeyEvent.getKeyModifiersText(mod) : KeyUtils.getKeyModifiersText(mod);
 
         switch (code) {
         case KeyEvent.VK_SHIFT:
@@ -368,12 +430,24 @@ public class KeyUtils {
 
         default:
             if (msg1.length() > 0) {
-                msg1 = msg1 + "+" + (translated?KeyEvent.getKeyText(code):KeyUtils.getKeyText(code));
+                msg1 = msg1 + "+" + (translated ? KeyEvent.getKeyText(code) : KeyUtils.getKeyText(code));
             } else {
-                msg1 = (translated?KeyEvent.getKeyText(code):KeyUtils.getKeyText(code));
+                msg1 = (translated ? KeyEvent.getKeyText(code) : KeyUtils.getKeyText(code));
             }
 
         }
+        if (translated) {
+            msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_CTRL, MAC_CTRL);
+            msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_META, MAC_META);
+            msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_ALT, MAC_ALT);
+            msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_SHIFT, MAC_SHIFT);
+        } else {
+            msg1 = msg1.replace(MAC_REPLACE_CTRL, MAC_CTRL);
+            msg1 = msg1.replace(MAC_REPLACE_META, MAC_META);
+            msg1 = msg1.replace(MAC_REPLACE_ALT, MAC_ALT);
+            msg1 = msg1.replace(MAC_REPLACE_SHIFT, MAC_SHIFT);
+        }
+
         return msg1;
     }
 
