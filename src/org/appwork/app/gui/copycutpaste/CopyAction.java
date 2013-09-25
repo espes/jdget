@@ -36,6 +36,9 @@ public class CopyAction extends AbstractAction {
         putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
     }
+    public Object getValue(String key) {
+        return super.getValue(key);
+    }
 
     /*
      * (non-Javadoc)
@@ -45,6 +48,7 @@ public class CopyAction extends AbstractAction {
      */
 
     public void actionPerformed(final ActionEvent e) {
+       
         text.copy();
 
     }
