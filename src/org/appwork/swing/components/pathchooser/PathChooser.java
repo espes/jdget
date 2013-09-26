@@ -73,6 +73,8 @@ public class PathChooser extends MigPanel {
     private String                   id;
     protected SearchComboBox<String> destination;
 
+
+
     public PathChooser(final String id) {
         this(id, false);
     }
@@ -406,6 +408,7 @@ public class PathChooser extends MigPanel {
      * @param downloadDestination
      */
     public void setPath(final String downloadDestination) {
+      
         if (destination != null) {
             destination.setText(downloadDestination);
         } else {
