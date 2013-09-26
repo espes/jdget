@@ -39,28 +39,65 @@ public class KeyUtils {
      */
     public static final String  MAC_REPLACE_CTRL             = KeyUtils.getKeyModifiersText(InputEvent.CTRL_MASK) + "+";
     /**
-     * 
+     * http://macbiblioblog.blogspot.de/2005/05/special-key-symbols.html
      */
-    public static final String  MAC_META                     = "⌘";
-    /**
-     * 
-     */
-    public static final String  MAC_CTRL                     = "⌃";
-    /**
-     * 
-     */
-    public static final String  MAC_ALT                      = "⌥";
-    /**
-     * 
-     */
-    public static final String  MAC_SHIFT                    = "⇧";
+    // ⎋ Escape U+238B
+    // ⇥ Tab forward U+21E5
+    // ⇤ Tab back U+21E4
+    // ⇪ Capslock U+21EA
+    // ⇧ Shift U+21E7
+    // ⌃ Control U+2303
+    // ⌥ Option (Alt, Alternative) U+2325
+    //  Apple symbol 1 U+F8FF
+    // ⌘ Command (Open Apple) 2 U+2318
+    // ␣ Space U+2423
+    // ⏎
+    // ↩ Return U+23CE
+    // U+21A9
+    // ⌫ Delete back U+232B
+    // ⌦ Delete forward U+2326
+    // ﹖⃝ Help U+003F & U+20DD
+    // ⇱
+    // ↖
+    // ↸ Home U+21F1
+    // U+2196
+    // U+21B8
+    // ⇲
+    // ↘ End U+21F2
+    // U+2198
+    // ⇞ Pageup U+21DE
+    // ⇟ Pagedown U+21DF
+    // ↑
+    // ⇡ Up arrow U+2191
+    // U+21E1
+    // ↓
+    // ⇣ Down arrow U+2193
+    // U+21E3
+    // ←
+    // ⇠ Left arrow U+2190
+    // U+21E0
+    // →
+    // ⇢ Right arrow U+2192
+    // U+21E2
+    // ⌧ Clear U+2327
+    // ⇭ Numberlock U+21ED
+    // ⌤ Enter U+2324
+    // ⏏ Eject U+23CF
+    // ⌽ Power 3 U+233D
+    public static final String  MAC_META                     = "\u2318";
+   
+    public static final String  MAC_CTRL                     = "\u2303";
+ 
+    public static final String  MAC_ALT                      = "\u2325";
+  
+    public static final String  MAC_SHIFT                    = "\u21E7";
 
     public static String getShortcutString(final KeyEvent event, final boolean translated) {
         return getShortcutString(event.getModifiers(), event.getKeyCode(), translated);
     }
 
-    public static void main(String[] args) {
-        KeyStroke ks = KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.SHIFT_MASK);
+    public static void main(final String[] args) {
+        final KeyStroke ks = KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.SHIFT_MASK);
         System.out.println(ks);
         System.out.println(getShortcutString(ks, false));
         System.out.println(getShortcutString(ks, true));
@@ -436,16 +473,18 @@ public class KeyUtils {
             }
 
         }
-        if (translated) {
-            msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_CTRL, MAC_CTRL);
-            msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_META, MAC_META);
-            msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_ALT, MAC_ALT);
-            msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_SHIFT, MAC_SHIFT);
-        } else {
-            msg1 = msg1.replace(MAC_REPLACE_CTRL, MAC_CTRL);
-            msg1 = msg1.replace(MAC_REPLACE_META, MAC_META);
-            msg1 = msg1.replace(MAC_REPLACE_ALT, MAC_ALT);
-            msg1 = msg1.replace(MAC_REPLACE_SHIFT, MAC_SHIFT);
+        if (CrossSystem.isMac()) {
+            if (translated) {
+                msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_CTRL, MAC_CTRL);
+                msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_META, MAC_META);
+                msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_ALT, MAC_ALT);
+                msg1 = msg1.replace(MAC_TRANSLATED_REPLACE_SHIFT, MAC_SHIFT);
+            } else {
+                msg1 = msg1.replace(MAC_REPLACE_CTRL, MAC_CTRL);
+                msg1 = msg1.replace(MAC_REPLACE_META, MAC_META);
+                msg1 = msg1.replace(MAC_REPLACE_ALT, MAC_ALT);
+                msg1 = msg1.replace(MAC_REPLACE_SHIFT, MAC_SHIFT);
+            }
         }
 
         return msg1;
