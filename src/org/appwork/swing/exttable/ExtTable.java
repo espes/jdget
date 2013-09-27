@@ -617,6 +617,9 @@ final ExtTableHeaderRenderer customRenderer = column.getHeaderRenderer(getTableH
         }
         final boolean ret = super.editCellAt(row, column, e);
         if (ret) {
+           if(renameClickDelayer!=null) {
+            this.renameClickDelayer.stop();
+        }
             // we want focus in the editor
             transferFocus();
         }
@@ -1200,6 +1203,7 @@ final ExtTableHeaderRenderer customRenderer = column.getHeaderRenderer(getTableH
     @SuppressWarnings("unchecked")
     @Override
     protected void processMouseEvent(final MouseEvent e) {
+        
         if (e.getID() == MouseEvent.MOUSE_RELEASED) {
             if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
                 final int row = rowAtPoint(e.getPoint());
@@ -1239,6 +1243,7 @@ final ExtTableHeaderRenderer customRenderer = column.getHeaderRenderer(getTableH
                 final E obj = this.getModel().getObjectbyRow(row);
                 final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
                 this.renameClickDelayer.stop();
+      
                 boolean ret = false;
                 if (col != null) {
                     ret = col.onDoubleClick(e, obj);
