@@ -10,6 +10,8 @@
 package org.appwork.swing.components.tooltips;
 
 import java.awt.AWTEvent;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
@@ -158,6 +160,11 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         if (event instanceof MouseEvent) {
             switch (event.getID()) {
             case MouseEvent.MOUSE_PRESSED:
+              final Container parent = SwingUtilities.getAncestorOfClass(ExtTooltip.class, (Component) event.getSource());
+              if(parent==activeToolTipPanel&&parent!=null){
+                  //user clicked in the tooltip!
+                  return;
+              }
                 hideTooltip();
                 // reset last Hidden. if we clicked to remove a tooltip it
                 // should
@@ -197,6 +204,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
 
     @Override
     public void mouseEntered(final MouseEvent e) {
+
         if (e.getSource() instanceof ToolTipHandler) {
             if (e.getSource() == activeComponent) { return; }
             // just to be sure

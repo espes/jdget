@@ -43,9 +43,41 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
 
     private Color              focusForeground;
     private Color              focusBackground;
-    private final Color        foregroundC;
-    private final Color        backgroundC;
+    private  Color        foregroundC;
+    public Color getFocusForeground() {
+        return focusForeground;
+    }
+
+    public void setFocusForeground(final Color focusForeground) {
+        this.focusForeground = focusForeground;
+    }
+
+    public Color getForegroundC() {
+        return foregroundC;
+    }
+
+    public void setForegroundC(final Color foregroundC) {
+        this.foregroundC = foregroundC;
+    }
+
+    private  Color        backgroundC;
     private Border             focusBorder;
+    public Color getFocusBackground() {
+        return focusBackground;
+    }
+
+    public void setFocusBackground(final Color focusBackground) {
+        this.focusBackground = focusBackground;
+    }
+
+    public Color getBackgroundC() {
+        return backgroundC;
+    }
+
+    public void setBackgroundC(final Color backgroundC) {
+        this.backgroundC = backgroundC;
+    }
+
     private Border             cellBorder;
     private final ImageIcon    lockedWidth;
 
@@ -129,6 +161,7 @@ public class ExtTableHeaderRenderer extends DefaultTableCellRenderer implements 
 
         setText(value == null ? "" : value.toString());
         setBorder(hasFocus ? focusBorder : cellBorder);
+
 
         // this.setBackground(Color.RED);
         // this.setOpaque(true);

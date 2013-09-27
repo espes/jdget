@@ -2,6 +2,7 @@ package org.appwork.swing.exttable;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
@@ -111,9 +112,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             final List<ExtComponentRowHighlighter<E>> hs = this.getModel().getExtComponentRowHighlighters();
             // set background back
             SwingUtils.setOpaque(comp, false);
-            comp.setBackground(null);
-            comp.setForeground(null); 
-           
+            comp.setBackground(getDefaultBackground());
+            comp.setForeground(getDefaultForeground());
+
             for (final ExtComponentRowHighlighter<E> rh : hs) {
                 if (rh.highlight(this, comp, value, isSelected, hasFocus, row)) {
 
@@ -123,6 +124,22 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         } catch (final Throwable e) {
             Log.exception(e);
         }
+    }
+
+    /**
+     * @return
+     */
+    protected Color getDefaultForeground() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @return
+     */
+    protected Color getDefaultBackground() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     /**
@@ -191,8 +208,11 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
                             @Override
                             public Integer edtRun() {
-                                final JViewport viewport = (JViewport) getModel().getTable().getParent();
-                                if (viewport == null) { return 0; }
+
+                                final Container p = getModel().getTable().getParent();
+                                if (p == null || !(p instanceof JViewport)) { return 0; }
+                                final JViewport viewport = (JViewport) p;
+
                                 final Rectangle rec = viewport.getViewRect();
                                 return getModel().getTable().rowAtPoint(new Point(0, (int) (rec.getY() + 15)));
 
@@ -203,8 +223,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
 
                             @Override
                             public Rectangle edtRun() {
-                                final JViewport viewport = (JViewport) getModel().getTable().getParent();
-                                if (viewport == null) { return null; }
+                                final Container p = getModel().getTable().getParent();
+                                if (p == null || !(p instanceof JViewport)) { return null; }
+                                final JViewport viewport = (JViewport) p;
                                 final Rectangle rec = viewport.getViewRect();
                                 return rec;
 
@@ -221,23 +242,25 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
                         }
                         ExtColumn.this.getModel()._fireTableStructureChanged(data, true);
 
-                        new EDTHelper<Object>() {
+                        if (view != null) {
+                            new EDTHelper<Object>() {
 
-                            @Override
-                            public Object edtRun() {
-                                ExtColumn.this.getModel().getTable().getTableHeader().repaint();
+                                @Override
+                                public Object edtRun() {
+                                    ExtColumn.this.getModel().getTable().getTableHeader().repaint();
 
-                                if (getModel().getTable().getSelectedRowCount() > 0) {
-                                    getModel().getTable().scrollToSelection(view.x);
-                                } else {
-                                    // scroll to 0,
-                                    // getModel().getRowforObject(selObject)
-                                    getModel().getTable().scrollToRow(0, view.x);
+                                    if (getModel().getTable().getSelectedRowCount() > 0) {
+                                        getModel().getTable().scrollToSelection(view.x);
+                                    } else {
+                                        // scroll to 0,
+                                        // getModel().getRowforObject(selObject)
+                                        getModel().getTable().scrollToRow(0, view.x);
 
+                                    }
+                                    return null;
                                 }
-                                return null;
-                            }
-                        }.waitForEDT();
+                            }.waitForEDT();
+                        }
                     } finally {
                         synchronized (ExtColumn.sortLOCK) {
                             ExtColumn.sortThread = null;
@@ -460,7 +483,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
             this.modifying = true;
             final JComponent ret = this.getRendererComponent((E) value, isSelected, hasFocus, row, column);
             this.resetRenderer();
-          
+
             this.configureRendererHighlighters(ret, (E) value, isSelected, hasFocus, row);
             this.configureRendererComponent((E) value, isSelected, hasFocus, row, column);
             ret.setEnabled(this.getModel().getTable().isEnabled() && this.isEnabled((E) value));
@@ -534,8 +557,9 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     public abstract boolean isEditable(E obj);
 
     /**
-     * override this to enable cell editing if the cell is disabled
-     * IMPORTANT: YOU jave to override {@link #isEditable(Object)} as well if you override this method
+     * override this to enable cell editing if the cell is disabled IMPORTANT:
+     * YOU jave to override {@link #isEditable(Object)} as well if you override
+     * this method
      * 
      * @param obj
      * @param enabled
