@@ -45,6 +45,7 @@ public class PasteAction extends AbstractAction {
      */
 
     public void actionPerformed(final ActionEvent e) {
+        
         text.paste();
 
     }

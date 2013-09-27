@@ -78,6 +78,13 @@ public class ExtTextArea extends JTextArea implements FocusListener, DocumentLis
         return helpText;
     }
 
+    public void replaceSelection(final String content) {
+        if ( super.getText().equals(helpText)&&StringUtils.isNotEmpty(content)) {
+            super.setText("");
+        }
+        super.replaceSelection(content);
+        setForeground(defaultColor);
+    }
     @Override
     public String getText() {
         String ret = super.getText();

@@ -80,6 +80,7 @@ public class CopyPasteSupport implements AWTEventListener {
  
         JPopupMenu menu;
         final JTextComponent t = (JTextComponent) c;
+        t.requestFocus();
         if (c instanceof ContextMenuAdapter) {
             menu = ((ContextMenuAdapter) c).getPopupMenu(createCutAction(t), createCopyAction(t), createPasteAction(t), createDeleteAction(t), createSelectAction(t));
             if (menu == null) { return; }

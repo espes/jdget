@@ -15,6 +15,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.appwork.app.gui.copycutpaste.ContextMenuAdapter;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.swing.SwingUtils;
 
 public class ExtTextField extends JTextField implements CaretListener, FocusListener, DocumentListener, ContextMenuAdapter, TextComponentInterface {
@@ -124,6 +125,14 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
         return menu;
     }
 
+
+    public void replaceSelection(final String content) {
+        if (isHelperEnabled() && super.getText().equals(helpText)&&StringUtils.isNotEmpty(content)) {
+            super.setText("");
+        }
+        super.replaceSelection(content);
+        setForeground(defaultColor);
+    }
     @Override
     public String getText() {
         String ret = super.getText();
