@@ -229,6 +229,7 @@ public class ExtTextField extends JTextField implements CaretListener, FocusList
 
     @Override
     public void setText(String t) {
+        if(setting)return;
         if (!isHelperEnabled()) {
             super.setText(t);
             return;
