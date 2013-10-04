@@ -160,11 +160,13 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
         if (event instanceof MouseEvent) {
             switch (event.getID()) {
             case MouseEvent.MOUSE_PRESSED:
-              final Container parent = SwingUtilities.getAncestorOfClass(ExtTooltip.class, (Component) event.getSource());
-              if(parent==activeToolTipPanel&&parent!=null){
-                  //user clicked in the tooltip!
-                  return;
-              }
+                if (event.getSource() instanceof Component) {
+                    final Container parent = SwingUtilities.getAncestorOfClass(ExtTooltip.class, (Component) event.getSource());
+                    if (parent == activeToolTipPanel && parent != null) {
+                        // user clicked in the tooltip!
+                        return;
+                    }
+                }
                 hideTooltip();
                 // reset last Hidden. if we clicked to remove a tooltip it
                 // should
@@ -176,8 +178,6 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
 
         }
     }
-
-
 
     /*
      * (non-Javadoc)

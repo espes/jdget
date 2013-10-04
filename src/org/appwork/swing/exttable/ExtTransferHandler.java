@@ -21,20 +21,26 @@ public class ExtTransferHandler<T> extends TransferHandler {
 
     private ExtTable<T> table;
 
+    public ExtTable<T> getTable() {
+        return table;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    public boolean importData(TransferSupport support) {
-        if(!canImport(support))return false;
-        JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();       
+    public boolean importData(final TransferSupport support) {
+        if(!canImport(support)) {
+            return false;
+        }
+        final JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();       
         if (dl.isInsertRow()) {
-            int dropRow = dl.getRow();
+            final int dropRow = dl.getRow();
             try {
                 return table.getModel().move((java.util.List<T>) support.getTransferable().getTransferData(table.getDataFlavor()), dropRow);
 
-            } catch (UnsupportedFlavorException e) {
+            } catch (final UnsupportedFlavorException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -44,7 +50,8 @@ public class ExtTransferHandler<T> extends TransferHandler {
     }
 
     @Override
-    public boolean canImport(TransferSupport support) {
+    public boolean canImport(final TransferSupport support) {
+   
         if (support.isDrop()) {
             return support.isDataFlavorSupported(table.getDataFlavor());
 
@@ -53,16 +60,16 @@ public class ExtTransferHandler<T> extends TransferHandler {
     }
 
     @Override
-    public int getSourceActions(JComponent c) {
+    public int getSourceActions(final JComponent c) {
         return TransferHandler.MOVE;
     }
 
-    public void setTable(ExtTable<T> table) {
+    public void setTable(final ExtTable<T> table) {
         this.table = table;
     }
 
     @Override
-    protected Transferable createTransferable(JComponent c) {
+    protected Transferable createTransferable(final JComponent c) {
         return new ExtTransferable(table.getDataFlavor(), table.getModel().getSelectedObjects());
 
     }
