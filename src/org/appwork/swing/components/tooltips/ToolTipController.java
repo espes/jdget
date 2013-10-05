@@ -411,7 +411,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
                 final GraphicsConfiguration gc = activeComponent.getGraphicsConfiguration();
                 final Rectangle screenBounds = gc.getBounds();
                 final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
-                final Point ttPosition = new Point(mousePosition.x, mousePosition.y);
+                Point ttPosition = new Point(mousePosition.x, mousePosition.y);
 
                 // if screen has insets, we have to deacrease the available
                 // space
@@ -446,6 +446,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
 
                 ToolTipController.this.activeToolTipPanel = tt;
                 tt.addMouseListener(ToolTipController.this);
+                ttPosition=activeToolTipPanel.getDesiredLocation(activeComponent,ttPosition);
                 activePopup = popupFactory.getPopup(activeComponent, activeToolTipPanel, ttPosition.x, ttPosition.y);
 
                 final Window ownerWindow = SwingUtilities.getWindowAncestor(activeComponent);

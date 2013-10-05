@@ -14,9 +14,11 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseListener;
 
+import javax.swing.JComponent;
 import javax.swing.JToolTip;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
@@ -296,4 +298,14 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
      * @return
      */
     abstract public String toText();
+
+    /**
+     * @param activeComponent
+     * @param ttPosition
+     * @return
+     */
+    public Point getDesiredLocation(JComponent activeComponent, Point ttPosition) {
+        // TODO Auto-generated method stub
+        return ttPosition;
+    }
 }
