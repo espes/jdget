@@ -98,7 +98,7 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
 
             });
         } else {
-            textField.setContentType("text");
+            textField.setContentType("text/plain");
             // this.textField.setMaximumSize(new Dimension(450, 600));
         }
 

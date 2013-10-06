@@ -140,7 +140,7 @@ public class ProgressDialog extends AbstractDialog<Integer> {
 
             });
         } else {
-            textField.setContentType("text");
+            textField.setContentType("text/plain");
             // this.textField.setMaximumSize(new Dimension(450, 600));
         }
 

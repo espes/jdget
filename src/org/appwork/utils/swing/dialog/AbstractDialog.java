@@ -695,13 +695,14 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                         e.printStackTrace();
                     }
                 }
-                //try to avoid java.lang.IllegalArgumentException: Window must not be zero for linux. 
-                //1. set Invisible before disposing the frame
-               
+                // try to avoid java.lang.IllegalArgumentException: Window must
+                // not be zero for linux.
+                // 1. set Invisible before disposing the frame
+
                 AbstractDialog.this.getDialog().setVisible(false);
-                //2. Dispose
-                AbstractDialog.this.getDialog().realDispose();   
-                //3. set disposed to true afterwards
+                // 2. Dispose
+                AbstractDialog.this.getDialog().realDispose();
+                // 3. set disposed to true afterwards
                 AbstractDialog.this.setDisposed(true);
             }
         };
@@ -1023,7 +1024,11 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public String getTitle() {
         try {
-            return this.getDialog().getTitle();
+            if (this.dialog == null) {
+                return title;
+            } else {
+                return this.getDialog().getTitle();
+            }
         } catch (final NullPointerException e) {
             // not initialized yet
             return this.title;
@@ -1422,11 +1427,13 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @param dimension
      */
     public void setPreferredSize(final Dimension dimension) {
-        try {
-            this.getDialog().setPreferredSize(dimension);
-        } catch (final NullPointerException e) {
+
+        if (dialog == null) {
             this.preferredSize = dimension;
+        } else {
+            this.getDialog().setPreferredSize(dimension);
         }
+
     }
 
     protected void setResizable(final boolean b) {
@@ -1455,7 +1462,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                             JSonStorage.getPlainStorage("Dialogs").save();
                         }
                     }
- 
+
                 } catch (final Exception e) {
                     Log.exception(e);
                 }
@@ -1481,11 +1488,13 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @param title2
      */
     public void setTitle(final String title2) {
-        try {
-            this.getDialog().setTitle(title2);
-        } catch (final NullPointerException e) {
+
+        if (dialog == null) {
             this.title = title2;
+        } else {
+            this.getDialog().setTitle(title2);
         }
+
     }
 
     /**

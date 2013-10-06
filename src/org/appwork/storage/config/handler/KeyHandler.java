@@ -107,7 +107,7 @@ public abstract class KeyHandler<RawClass> {
      */
     private void checkBadAnnotations(final Method m, final Class<? extends Annotation>... classes) {
 
-        final Class<?>[] okForAll = new Class<?>[] {HexColorString.class, CustomValueGetter.class, ValidatorFactory.class, DefaultJsonObject.class, DefaultFactory.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, DescriptionForConfigEntry.class, CryptedStorage.class, PlainStorage.class };
+        final Class<?>[] okForAll = new Class<?>[] { HexColorString.class, CustomValueGetter.class, ValidatorFactory.class, DefaultJsonObject.class, DefaultFactory.class, AboutConfig.class, RequiresRestart.class, AllowStorage.class, DescriptionForConfigEntry.class, CryptedStorage.class, PlainStorage.class };
         final Class<?>[] clazzes = new Class<?>[classes.length + okForAll.length];
         System.arraycopy(classes, 0, clazzes, 0, classes.length);
         System.arraycopy(okForAll, 0, clazzes, classes.length, okForAll.length);
@@ -151,8 +151,8 @@ public abstract class KeyHandler<RawClass> {
 
     @SuppressWarnings("unchecked")
     protected Class<? extends Annotation>[] getAllowedAnnotations() {
-      
-        return (Class<? extends Annotation>[]) new Class<?>[] {LookUpKeys.class};
+
+        return (Class<? extends Annotation>[]) new Class<?>[] { LookUpKeys.class };
 
     }
 
@@ -347,11 +347,17 @@ public abstract class KeyHandler<RawClass> {
         }
 
         try {
-            this.validatorFactory = (AbstractValidator<RawClass>) this.getAnnotation(ValidatorFactory.class).value().newInstance();
+            ValidatorFactory anno = (ValidatorFactory) this.getAnnotation(ValidatorFactory.class);
+            if (anno != null) {
+                this.validatorFactory = (AbstractValidator<RawClass>) anno.value().newInstance();
+            }
         } catch (final Throwable e) {
         }
         try {
-            this.customValueGetter = (AbstractCustomValueGetter<RawClass>) this.getAnnotation(CustomValueGetter.class).value().newInstance();
+            CustomValueGetter anno = this.getAnnotation(CustomValueGetter.class);
+            if (anno != null) {
+                this.customValueGetter = (AbstractCustomValueGetter<RawClass>) anno.value().newInstance();
+            }
         } catch (final Throwable e) {
         }
         this.checkBadAnnotations(this.getAllowedAnnotations());

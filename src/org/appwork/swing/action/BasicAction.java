@@ -149,7 +149,8 @@ public abstract class BasicAction extends AbstractAction {
      */
     public String getTooltipText() {
         try {
-            return getValue(AbstractAction.SHORT_DESCRIPTION).toString();
+            Object ret = getValue(AbstractAction.SHORT_DESCRIPTION);
+            return ret==null?null:ret.toString();
         } catch (final Exception e) {
             return null;
         }
