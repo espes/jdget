@@ -140,7 +140,14 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorForeground = this.editorField.getForeground();
         this.rendererFont = this.rendererField.getFont();
         this.editorFont = this.editorField.getFont();
-        this.editor = new MigPanel("ins 0", "[]5[grow,fill]", "[grow,fill]");
+        this.editor = new MigPanel("ins 0", "[]5[grow,fill]", "[grow,fill]") {
+
+            @Override
+            public void requestFocus() {
+                editorField.requestFocus();
+            }
+
+        };
 
         this.renderer = new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
 
@@ -203,7 +210,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
         this.rendererIcon.setIcon(this.getIcon(value));
         String str = this.getStringValue(value);
-       if (str == null) {
+        if (str == null) {
             // under substance, setting setText(null) somehow sets the label
             // opaque.
             str = "";

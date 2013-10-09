@@ -83,10 +83,66 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     /**
      * 
      */
-    private static final String                            DEFAULT_COLUMN_STORE = "";
-    private static final long                              serialVersionUID     = 2822230056021924679L;
+    private static final KeyStroke                         KEY_STROKE_ESCAPE         = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_CUT            = KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_PASTE          = KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_COPY           = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_FORCE_DELETE   = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, ActionEvent.SHIFT_MASK);
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_DELETE         = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_CTRL_BACKSPACE = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_SEARCH         = KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_UP             = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_DOWN           = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_SELECT_ALL     = KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_CTRL_HOME      = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_END            = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
+    /**
+     * 
+     */
+    private static final KeyStroke                         KEY_STROKE_CTRL_END       = KeyStroke.getKeyStroke(KeyEvent.VK_END, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final String                            DEFAULT_COLUMN_STORE      = "";
+    private static final long                              serialVersionUID          = 2822230056021924679L;
     // executer for renameclicks
-    private static final ScheduledExecutorService          EXECUTER             = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService          EXECUTER                  = Executors.newSingleThreadScheduledExecutor();
     /**
      * Column background color if column is NOT selected
      */
@@ -114,11 +170,11 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * true if search is enabled
      */
 
-    private boolean                                        searchEnabled        = false;
+    private boolean                                        searchEnabled             = false;
     private SearchDialog                                   searchDialog;
     private final ExtTableEventSender                      eventSender;
-    private JComponent                                     columnButton         = null;
-    private boolean                                        columnButtonVisible  = true;
+    private JComponent                                     columnButton              = null;
+    private boolean                                        columnButtonVisible       = true;
     private int                                            verticalScrollPolicy;
 
     protected boolean                                      headerDragging;
@@ -127,7 +183,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     private ExtDataFlavor<E>                               flavor;
     private DelayedRunnable                                renameClickDelayer;
     private Runnable                                       clickDelayerRunable;
-    private String                                         columnSaveID         = ExtTable.DEFAULT_COLUMN_STORE;
+    private String                                         columnSaveID              = ExtTable.DEFAULT_COLUMN_STORE;
 
     /**
      * Create an Extended Table instance
@@ -440,7 +496,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
             this.model.getExtColumnByModelIndex(j).setTableColumn(tableColumn, true);
             final ExtColumn<E> column = this.model.getExtColumnByModelIndex(j);
-final ExtTableHeaderRenderer customRenderer = column.getHeaderRenderer(getTableHeader());
+            final ExtTableHeaderRenderer customRenderer = column.getHeaderRenderer(getTableHeader());
             tableColumn.setHeaderRenderer(customRenderer != null ? customRenderer : createDefaultHeaderRenderer(column));
             // Save column width
 
@@ -617,9 +673,9 @@ final ExtTableHeaderRenderer customRenderer = column.getHeaderRenderer(getTableH
         }
         final boolean ret = super.editCellAt(row, column, e);
         if (ret) {
-           if(renameClickDelayer!=null) {
-            this.renameClickDelayer.stop();
-        }
+            if (renameClickDelayer != null) {
+                this.renameClickDelayer.stop();
+            }
             // we want focus in the editor
             transferFocus();
         }
@@ -1089,79 +1145,78 @@ final ExtTableHeaderRenderer customRenderer = column.getHeaderRenderer(getTableH
 
         }
         if (!pressed) { return super.processKeyBinding(stroke, evt, condition, pressed); }
-        switch (evt.getKeyCode()) {
-        case KeyEvent.VK_ESCAPE:
-            clearSelection();
-            return true;
-        case KeyEvent.VK_X:
-            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
+        final KeyStroke ks = stroke;
+        if (ks != null) {
+            if (ks.equals(KEY_STROKE_ESCAPE)) {
+                clearSelection();
+                return true;
+            }
+            if (ks.equals(KEY_STROKE_CUT)) {
+
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_CUT, this.getModel().getSelectedObjects()));
                 return this.onShortcutCut(this.getModel().getSelectedObjects(), evt);
+
             }
-            break;
-        case KeyEvent.VK_V:
-            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
+            if (ks.equals(KEY_STROKE_PASTE)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_PASTE, this.getModel().getSelectedObjects()));
                 return this.onShortcutPaste(this.getModel().getSelectedObjects(), evt);
             }
-            break;
-        case KeyEvent.VK_C:
-            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
+            if (ks.equals(KEY_STROKE_COPY)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_COPY, this.getModel().getSelectedObjects()));
                 return this.onShortcutCopy(this.getModel().getSelectedObjects(), evt);
             }
-            break;
-        case KeyEvent.VK_DELETE:
-            if (!evt.isAltDown()) {
-                /* no ctrl+alt+del */
+            if (ks.equals(KEY_STROKE_FORCE_DELETE)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getModel().getSelectedObjects(), BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK)));
-                return this.onShortcutDelete(this.getModel().getSelectedObjects(), evt, BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK));
+                return this.onShortcutDelete(this.getModel().getSelectedObjects(), evt, true);
             }
-            break;
-        case KeyEvent.VK_BACK_SPACE:
-            if ((evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) && !evt.isAltDown()) {
+
+            if (ks.equals(KEY_STROKE_DELETE)) {
+                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getModel().getSelectedObjects(), BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK)));
+                return this.onShortcutDelete(this.getModel().getSelectedObjects(), evt, false);
+            }
+            if (ks.equals(KEY_STROKE_CTRL_BACKSPACE)) {
                 /* no ctrl+alt+backspace = unix desktop restart */
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getModel().getSelectedObjects(), false));
 
                 return this.onShortcutDelete(this.getModel().getSelectedObjects(), evt, false);
             }
-            break;
-        case KeyEvent.VK_F:
-            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
+            if (ks.equals(KEY_STROKE_SEARCH)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_SEARCH, this.getModel().getSelectedObjects()));
 
                 return this.onShortcutSearch(this.getModel().getSelectedObjects(), evt);
             }
-            break;
-        case KeyEvent.VK_UP:
-            if (getSelectedRow() == 0 && !evt.isShiftDown()) {
-                if (this.getCellEditor() != null) {
-                    this.getCellEditor().stopCellEditing();
+
+            if (ks.equals(KEY_STROKE_UP)) {
+                if (getSelectedRow() == 0) {
+                    if (this.getCellEditor() != null) {
+                        this.getCellEditor().stopCellEditing();
+                    }
+                    changeSelection(getRowCount() - 1, 0, false, false);
+                    return true;
                 }
-                changeSelection(getRowCount() - 1, 0, false, false);
-                return true;
             }
-            break;
-        case KeyEvent.VK_DOWN:
-            if (getSelectedRow() == getRowCount() - 1 && !evt.isShiftDown()) {
-                if (this.getCellEditor() != null) {
-                    this.getCellEditor().stopCellEditing();
+
+            if (ks.equals(KEY_STROKE_DOWN)) {
+                if (getSelectedRow() == getRowCount() - 1) {
+                    if (this.getCellEditor() != null) {
+                        this.getCellEditor().stopCellEditing();
+                    }
+                    changeSelection(0, 0, false, false);
+                    return true;
                 }
-                changeSelection(0, 0, false, false);
-                return true;
             }
-            break;
-        case KeyEvent.VK_A:
-            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown()) {
+
+            if (ks.equals(KEY_STROKE_SELECT_ALL)) {
+
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
                 }
                 getSelectionModel().setSelectionInterval(0, getRowCount() - 1);
                 return true;
+
             }
-            break;
-        case KeyEvent.VK_HOME:
-            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown() || evt.isShiftDown()) {
+            if (ks.equals(KEY_STROKE_CTRL_HOME)) {
+
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
                 }
@@ -1170,15 +1225,11 @@ final ExtTableHeaderRenderer customRenderer = column.getHeaderRenderer(getTableH
                     /* to avoid selection by super.processKeyBinding */
                     return true;
                 }
-            } else {
-                if (this.getCellEditor() != null) {
-                    this.getCellEditor().stopCellEditing();
-                }
-                getSelectionModel().setSelectionInterval(0, 0);
+
             }
-            break;
-        case KeyEvent.VK_END:
-            if (evt.isControlDown() && !evt.isAltGraphDown() || evt.isMetaDown() || evt.isShiftDown()) {
+
+            if (ks.equals(KEY_STROKE_CTRL_END)) {
+
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
                 }
@@ -1187,23 +1238,26 @@ final ExtTableHeaderRenderer customRenderer = column.getHeaderRenderer(getTableH
                     /* to avoid selection by super.processKeyBinding */
                     return true;
                 }
-            } else {
+            }
+            if (ks.equals(KEY_STROKE_END)) {
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
                 }
                 if (getRowCount() != 0) {
                     getSelectionModel().setSelectionInterval(getRowCount() - 1, getRowCount() - 1);
                 }
+
             }
-            break;
+
         }
+
         return super.processKeyBinding(stroke, evt, condition, pressed);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected void processMouseEvent(final MouseEvent e) {
-        
+
         if (e.getID() == MouseEvent.MOUSE_RELEASED) {
             if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
                 final int row = rowAtPoint(e.getPoint());
@@ -1243,7 +1297,7 @@ final ExtTableHeaderRenderer customRenderer = column.getHeaderRenderer(getTableH
                 final E obj = this.getModel().getObjectbyRow(row);
                 final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
                 this.renameClickDelayer.stop();
-      
+
                 boolean ret = false;
                 if (col != null) {
                     ret = col.onDoubleClick(e, obj);
