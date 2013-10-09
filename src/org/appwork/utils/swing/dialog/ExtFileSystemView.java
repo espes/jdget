@@ -46,22 +46,22 @@ public class ExtFileSystemView extends FileSystemView {
         if (ExtFileSystemView.SAMBA_SCANNED) { return; }
         ExtFileSystemView.SAMBA_SCANNED = true;
 
-        final long tt = System.currentTimeMillis();
-        new Thread("Networkfolder Loader") {
-            @Override
-            public void run() {
-                final ExtFileSystemView view = new ExtFileSystemView();
-                view.getRoots();
-                try {
-                    if (view.networkFolder != null) {
-                        view.networkFolder.listFiles();
-                        Log.L.info("List Networkfolder done " + (System.currentTimeMillis() - tt));
-                    }
-                } catch (final Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
+//        final long tt = System.currentTimeMillis();
+//        new Thread("Networkfolder Loader") {
+//            @Override
+//            public void run() {
+//                final ExtFileSystemView view = new ExtFileSystemView();
+//                view.getRoots();
+//                try {
+//                    if (view.networkFolder != null) {
+//                        view.networkFolder.listFiles();
+//                        Log.L.info("List Networkfolder done " + (System.currentTimeMillis() - tt));
+//                    }
+//                } catch (final Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }.start();
 
     }
 

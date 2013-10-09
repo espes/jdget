@@ -34,7 +34,7 @@ public class NetWorkFolder extends File {
     /**
      * @param networkFolder
      */
-    public NetWorkFolder(File networkFolder) {
+    public NetWorkFolder(final File networkFolder) {
         super(networkFolder, "");
         this.networkFolder = networkFolder;
 
@@ -179,7 +179,7 @@ public class NetWorkFolder extends File {
     }
 
     @Override
-    public String[] list(FilenameFilter filter) {
+    public String[] list(final FilenameFilter filter) {
 
         return networkFolder.list(filter);
     }
@@ -191,13 +191,13 @@ public class NetWorkFolder extends File {
     }
 
     @Override
-    public File[] listFiles(FilenameFilter filter) {
+    public File[] listFiles(final FilenameFilter filter) {
 
         return networkFolder.listFiles(filter);
     }
 
     @Override
-    public File[] listFiles(FileFilter filter) {
+    public File[] listFiles(final FileFilter filter) {
 
         return networkFolder.listFiles(filter);
     }
@@ -215,13 +215,13 @@ public class NetWorkFolder extends File {
     }
 
     @Override
-    public boolean renameTo(File dest) {
+    public boolean renameTo(final File dest) {
 
         return networkFolder.renameTo(dest);
     }
 
     @Override
-    public boolean setLastModified(long time) {
+    public boolean setLastModified(final long time) {
 
         return networkFolder.setLastModified(time);
     }
@@ -233,37 +233,37 @@ public class NetWorkFolder extends File {
     }
 
     @Override
-    public boolean setWritable(boolean writable, boolean ownerOnly) {
+    public boolean setWritable(final boolean writable, final boolean ownerOnly) {
 
         return networkFolder.setWritable(writable, ownerOnly);
     }
 
     @Override
-    public boolean setWritable(boolean writable) {
+    public boolean setWritable(final boolean writable) {
 
         return networkFolder.setWritable(writable);
     }
 
     @Override
-    public boolean setReadable(boolean readable, boolean ownerOnly) {
+    public boolean setReadable(final boolean readable, final boolean ownerOnly) {
 
         return networkFolder.setReadable(readable, ownerOnly);
     }
 
     @Override
-    public boolean setReadable(boolean readable) {
+    public boolean setReadable(final boolean readable) {
 
         return networkFolder.setReadable(readable);
     }
 
     @Override
-    public boolean setExecutable(boolean executable, boolean ownerOnly) {
+    public boolean setExecutable(final boolean executable, final boolean ownerOnly) {
 
         return networkFolder.setExecutable(executable, ownerOnly);
     }
 
     @Override
-    public boolean setExecutable(boolean executable) {
+    public boolean setExecutable(final boolean executable) {
 
         return networkFolder.setExecutable(executable);
     }
@@ -293,13 +293,13 @@ public class NetWorkFolder extends File {
     }
 
     @Override
-    public int compareTo(File pathname) {
+    public int compareTo(final File pathname) {
 
         return networkFolder.compareTo(pathname);
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
 
         return networkFolder.equals(obj);
     }
@@ -326,12 +326,13 @@ public class NetWorkFolder extends File {
      * @param useFileHiding
      * @return
      */
-    public File[] listFiles(boolean useFileHiding) {
+    public File[] listFiles(final boolean useFileHiding) {
+       
         fileList = ((ShellFolder) networkFolder).listFiles(!useFileHiding);
 
         if (fileList != null) {
-            HashMap<String, File> map = new HashMap<String, File>();
-            for (File f : fileList) {
+            final HashMap<String, File> map = new HashMap<String, File>();
+            for (final File f : fileList) {
                 map.put(f.getAbsolutePath(), f);
             }
             this.map = map;
@@ -352,8 +353,10 @@ public class NetWorkFolder extends File {
      * @param absolutePath
      * @return
      */
-    public File get(String absolutePath) {
-        if (map != null) return map.get(absolutePath);
+    public File get(final String absolutePath) {
+        if (map != null) {
+            return map.get(absolutePath);
+        }
 
         return null;
     }

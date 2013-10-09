@@ -67,21 +67,23 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
 
         Class<?> clazz = this.interfaceClass;
         this.handler = new HashMap<String, MethodHandler>();
-        HashSet<String> dupe = new HashSet<String>();
+        final HashSet<String> dupe = new HashSet<String>();
         while (clazz != null && clazz != RemoteCallInterface.class) {
             for (final Method m : clazz.getDeclaredMethods()) {
 
                 if (!dupe.add(m.getName())) { throw new InterfaceParseException("Method " + m.getName() + " is avlailable twice in " + clazz); }
                 try {
-                    if (m.getGenericReturnType() != void.class) JSonStorage.canStore(m.getGenericReturnType(), false);
-                    for (Type t : m.getGenericParameterTypes()) {
+                    if (m.getGenericReturnType() != void.class) {
+                        JSonStorage.canStore(m.getGenericReturnType(), false);
+                    }
+                    for (final Type t : m.getGenericParameterTypes()) {
                         JSonStorage.canStore(t, false);
                     }
                 } catch (final InvalidTypeException e) {
                     Log.exception(e);
                     throw new InterfaceParseException("Json Serialize not possible for " + m);
                 }
-                for (Class<?> e : m.getExceptionTypes()) {
+                for (final Class<?> e : m.getExceptionTypes()) {
                     if (!RemoteCallException.class.isAssignableFrom(e)) {
                         //
 
@@ -90,7 +92,7 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
                     try {
                         e.getConstructors();
 
-                    } catch (Throwable e1) {
+                    } catch (final Throwable e1) {
                         throw new InterfaceParseException(e + " no accessable null constructor available");
                     }
                 }
@@ -120,7 +122,7 @@ public class InvocationHandlerImpl<T extends RemoteCallInterface> implements Inv
             } else if (returnValue instanceof byte[] && Clazz.isByteArray(method.getGenericReturnType())) {
                 return returnValue;
             } else {
-                TypeRef<Object> tr = new TypeRef<Object>(method.getGenericReturnType()) {
+                final TypeRef<Object> tr = new TypeRef<Object>(method.getGenericReturnType()) {
                 };
 
                 obj = JSonStorage.restoreFromString((String) returnValue, tr, null);
