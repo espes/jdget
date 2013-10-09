@@ -258,7 +258,7 @@ public class Dialog {
     }
 
     /**
-     * @return the {@link Dialog#defaultTimeout}
+     * @return the {@link Dialog#defaultTimeout} in ms
      * @see Dialog#defaultTimeout
      */
     protected int getDefaultTimeout() {

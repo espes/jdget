@@ -773,6 +773,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     @Override
     public CloseReason getCloseReason() {
         if (this.getReturnmask() == 0) { throw new IllegalStateException("Dialog has not been closed yet"); }
+
         if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_TIMEOUT)) { return CloseReason.TIMEOUT; }
         if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
         if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_CANCEL)) { return CloseReason.CANCEL; }
@@ -783,7 +784,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     /**
-     * @return the timeout a dialog actually should display
+     * @return the timeout a dialog actually should display in ms
      */
     public long getCountdown() {
         return this.getTimeout() > 0 ? this.getTimeout() : Dialog.getInstance().getDefaultTimeout();
@@ -1135,7 +1136,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public boolean isDontShowAgainSelected() {
-        if (this.isHiddenByDontShowAgain() || this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) { return true; }
+        if (this.isHiddenByDontShowAgain() || (dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled())) { return true; }
         return false;
 
     }
@@ -1593,6 +1594,29 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public void windowOpened(final WindowEvent arg0) {
+    }
+
+    /**
+     * @param e
+     */
+    public void fillReturnMask(final DialogClosedException e) {
+        if (returnBitMask < 0) {
+            returnBitMask = 0;
+        }
+        if (e.isCausedByClosed()) {
+            this.returnBitMask |= Dialog.RETURN_CLOSED;
+        }
+        if (e.isCausedbyESC()) {
+            this.returnBitMask |= Dialog.RETURN_CANCEL;
+        }
+        if (e.isCausedByInterrupt()) {
+            this.returnBitMask |= Dialog.RETURN_INTERRUPT;
+        }
+
+        if (e.isCausedByTimeout()) {
+            this.returnBitMask |= Dialog.RETURN_INTERRUPT;
+        }
+
     }
 
 }
