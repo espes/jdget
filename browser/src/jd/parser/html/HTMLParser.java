@@ -30,7 +30,6 @@ import jd.http.Browser;
 import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
 
-import org.appwork.utils.StringUtils;
 import org.appwork.utils.encoding.Hex;
 import org.appwork.utils.logging.Log;
 
@@ -56,13 +55,9 @@ public class HTMLParser {
             offsetValueCountAvailable = ret;
         }
 
-        public static final boolean isAvoidCopyPossible() {
-            return HtmlParserCharSequence.offsetValueCountAvailable;
-        }
-
-        char[] chars;
-        int    start;
-        int    end;
+        char[]                       chars;
+        int                          start;
+        int                          end;
 
         private HtmlParserCharSequence(final HtmlParserCharSequence source, final int start, final int end) {
             this.chars = source.chars;
@@ -314,52 +309,57 @@ public class HTMLParser {
         }
     }
 
-    final private static Httppattern[]          linkAndFormPattern    = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("src.*?=(.*?)[ |>]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 1), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)(\\2)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/(link|url)\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
-    final private static String                 protocolPattern       = "(directhttp://https?://|flashget://|https?viajd://|https?://|ccf://|dlc://|ftp://|jd://|rsdf://|jdlist://|file://)";
-    final private static Pattern[]              basePattern           = new Pattern[] { Pattern.compile("href=('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE), Pattern.compile("src=('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
-    final private static Pattern                pat1                  = Pattern.compile("(" + HTMLParser.protocolPattern + "|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern                protocols             = Pattern.compile("(" + HTMLParser.protocolPattern + ")");
+    final private static Httppattern[]          linkAndFormPattern          = new Httppattern[] { new Httppattern(Pattern.compile("src.*?=.*?('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)('|\")(.*?)(\\2)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 3), new Httppattern(Pattern.compile("(<[ ]?a[^>]*?href=|<[ ]?form[^>]*?action=)([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2), new Httppattern(Pattern.compile("\\[(link|url)\\](.*?)\\[/(link|url)\\]", Pattern.CASE_INSENSITIVE | Pattern.DOTALL), 2) };
+    final private static String                 protocolPattern             = "(directhttp://https?://|flashget://|https?viajd://|https?://|ccf://|dlc://|ftp://|jd://|rsdf://|jdlist://|file://)";
+    final private static Pattern[]              basePattern                 = new Pattern[] { Pattern.compile("href=('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE), Pattern.compile("src=('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?href=('|\")(.*?)\\1", Pattern.CASE_INSENSITIVE), Pattern.compile("(?s)<[ ]?base[^>]*?(href)=([^'\"][^\\s]*)", Pattern.CASE_INSENSITIVE) };
+    final private static Pattern                pat1                        = Pattern.compile("(" + HTMLParser.protocolPattern + "|(?<!://)www\\.)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                protocols                   = Pattern.compile("(" + HTMLParser.protocolPattern + ")");
+    final private static Pattern                LINKPROTOCOL                = Pattern.compile("^" + HTMLParser.protocolPattern, Pattern.CASE_INSENSITIVE);
 
-    private static Pattern                      mp                    = null;
+    final private static Pattern                mergePattern_Root           = Pattern.compile("(.*?\\..*?)(/|$)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                mergePattern_Path           = Pattern.compile("(.*?\\.[^?#]+/)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                mergePattern_FileORPath     = Pattern.compile("(.*?\\..*?/.*?)($|#|\\?)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    private static Pattern                      mp                          = null;
 
     static {
         try {
-            HTMLParser.mp = Pattern.compile("(" + HTMLParser.protocolPattern + "|www\\.)[^\\r\\t\\n\\v\\f<>'\"]*(((?!\\s" + HTMLParser.protocolPattern + "|\\swww\\.)[^<>'\"]){0,20}([\\?|\\&][^<>'^\\r\\t\\n\\v\\f\"]{1,10}\\=[^<>'^\\r\\t\\n\\v\\f\"]+|\\.([a-zA-Z0-9]{2,4})[^<>'^\\r\\t\\n\\v\\f\"]*))?", Pattern.CASE_INSENSITIVE);
+            HTMLParser.mp = Pattern.compile("(" + HTMLParser.protocolPattern + "|www\\.).+?(?=((\\s*" + HTMLParser.protocolPattern + "|\\s*www\\.)|<|>|\r|\n|\f|\t|$|\"|';|'\\)|'\\+|\\)))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
         } catch (final Throwable e) {
             Log.exception(e);
         }
     }
 
-    final private static Pattern                unescapePattern       = Pattern.compile("unescape\\(('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern                unhexPattern          = Pattern.compile("(([0-9a-fA-F]{2}| )+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                unescapePattern             = Pattern.compile("unescape\\(('|\")(.*?)(\\1)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                checkPatternHREFUNESCAPESRC = Pattern.compile(".*?(href|unescape|src=).*?", Pattern.CASE_INSENSITIVE);
+    final private static Pattern                checkPatternHREFSRC         = Pattern.compile(".*?(href|src=).*?", Pattern.CASE_INSENSITIVE);
+    final private static Pattern                unhexPattern                = Pattern.compile("(([0-9a-fA-F]{2}| )+)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern                baseURLPattern        = Pattern.compile("(.*?\\..*?(/|$))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                paramsCut1                  = Pattern.compile("://[^\r\n]*?/[^\r\n]+\\?.[^\r\n]*?=(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern                paramsCut1            = Pattern.compile("://[^\r\n]*?/[^\r\n]+\\?.[^\r\n]*?=(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                paramsCut2                  = Pattern.compile("://[^\r\n]*?/[^\r\n]*?\\?(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern                paramsCut2            = Pattern.compile("://[^\r\n]*?/[^\r\n]*?\\?(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern                inTagsPattern               = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    private static final Pattern                inTagsPattern         = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                endTagPattern               = Pattern.compile("^(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern                endTagPattern         = Pattern.compile("^(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                taglessPattern              = Pattern.compile("^(.*?)$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern                taglessPattern        = Pattern.compile("^(.*?)$", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static HtmlParserCharSequence directHTTP                  = new HtmlParserCharSequence("directhttp://");
+    final private static HtmlParserCharSequence httpviajd                   = new HtmlParserCharSequence("httpviajd://");
+    final private static HtmlParserCharSequence httpsviajd                  = new HtmlParserCharSequence("httpsviajd://");
 
-    final private static HtmlParserCharSequence directHTTP            = new HtmlParserCharSequence("directhttp://");
-    final private static HtmlParserCharSequence httpviajd             = new HtmlParserCharSequence("httpviajd://");
-    final private static HtmlParserCharSequence httpsviajd            = new HtmlParserCharSequence("httpsviajd://");
+    final private static Pattern                tagsPattern                 = Pattern.compile(".*<.*>.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern                tagsPattern           = Pattern.compile(".*<.*>.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                protocolPattern2            = Pattern.compile("^\"?(" + HTMLParser.protocolPattern + "://|www\\.).*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern                protocolPattern2      = Pattern.compile("^\"?(" + HTMLParser.protocolPattern + "://|www\\.).*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-
-    final private static Pattern                spacePattern          = Pattern.compile("\\s", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern                singleSpacePattern    = Pattern.compile(" ", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern                space2Pattern         = Pattern.compile(".*\\s.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern                hdotsPattern          = Pattern.compile("h.{2,3}://", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern                specialReplacePattern = Pattern.compile("'", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern                missingHTTPPattern    = Pattern.compile("^www\\.", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern                removeTagsPattern     = Pattern.compile("[<>\"]*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                spacePattern                = Pattern.compile("\\s", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                singleSpacePattern          = Pattern.compile(" ", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                space2Pattern               = Pattern.compile(".*\\s.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                hdotsPattern                = Pattern.compile("h.{2,3}://", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                specialReplacePattern       = Pattern.compile("'", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                missingHTTPPattern          = Pattern.compile("^www\\.", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                removeTagsPattern           = Pattern.compile("[<>\"]*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     private static HtmlParserResultSet _getHttpLinksDeepWalker(HtmlParserCharSequence data, final String url, HtmlParserResultSet results) {
         if (results == null) {
@@ -424,7 +424,6 @@ public class HTMLParser {
     }
 
     private static HtmlParserResultSet _getHttpLinksFinder(HtmlParserCharSequence data, String url, HtmlParserResultSet results) {
-        final String baseUrl = url;
         if (results == null) {
             results = new HtmlParserResultSet();
         }
@@ -432,7 +431,7 @@ public class HTMLParser {
         if (!data.matches(HTMLParser.tagsPattern)) {
             final int c = new Regex(data, HTMLParser.pat1).count();
             if (c == 0) {
-                if (!data.contains("href") && !data.contains("src=")) {
+                if (!data.matches(HTMLParser.checkPatternHREFSRC)) {
                     /* no href inside */
                     return results;
                 }
@@ -447,67 +446,56 @@ public class HTMLParser {
                 }
             }
         }
-        url = url == null ? "" : url;
+        if ("about:blank".equals(url)) {
+            // remove about:blank
+            url = null;
+        }
+        final String baseURL = url;
+        // AVOID recheck every time: if (HTMLParser.getProtocol(url) != null) baseURL = url;
+        url = null;
         Matcher m;
         String link;
-        final String basename = "";
-        final String host = "";
 
         for (final Pattern element : HTMLParser.basePattern) {
             m = element.matcher(data);
             if (m.find()) {
-                url = m.group(2);
+                final String found = m.group(2);
+                if ("about:blank".equals(found)) {
+                    continue;
+                }
+                url = found;
                 break;
             }
         }
-        /* get protocol of the url */
-        String pro = HTMLParser.getProtocol(url);
-        if (baseUrl != null && url != null && (url.startsWith("./") || pro == null)) {
-            /* combine baseURL and href url */
-            if (pro == null) {
-                final String base = new Regex(baseUrl, HTMLParser.baseURLPattern).getMatch(0);
-                if (url.startsWith("/") /* || url.startsWith("#") */) {
-                    /* absolute from root url or anchor from root */
-                    if (base != null) {
-                        url = HTMLParser.mergeUrl(base, url);
-                    } else {
-                        url = HTMLParser.mergeUrl(baseUrl, url);
-                    }
-                } else /* if (url.startsWith("./")) */{
-                    /* relative url */
-                    url = HTMLParser.mergeUrl(baseUrl, url);
-                }
-            }
-            pro = HTMLParser.getProtocol(url);
-        }
 
-        if (url != null && url.trim().length() > 0) {
-            if (pro != null) {
-                results.add(HTMLParser.correctURL(url).getStringCopy());
+        if (HTMLParser.getProtocol(url) == null) {
+            if (baseURL != null && url != null) {
+                url = HTMLParser.mergeUrl(baseURL, url);
+            } else {
+                /* no baseURL available, we are unable to try mergeURL */
+                url = null;
             }
-        } else {
-            url = "";
+        }
+        if (HTMLParser.getProtocol(url) != null) {
+            /* found a valid url with recognized protocol */
+            results.add(HTMLParser.correctURL(url).getStringCopy());
         }
 
         for (final Httppattern element : HTMLParser.linkAndFormPattern) {
             m = element.p.matcher(data);
             while (m.find()) {
                 link = m.group(element.group);
-                link = link.replaceAll("h.{2,3}://", "http://");
-                if (!(link.length() > 3 && link.matches("^" + HTMLParser.protocolPattern + "://.*")) && link.length() > 0) {
-                    if (link.length() > 2 && link.startsWith("www")) {
-                        link = pro + "://" + link;
-                    }
-                    if (link.charAt(0) == '/') {
-                        link = host + link;
-                    } else if (link.charAt(0) == '#') {
-                        link = url + link;
-                    } else {
-                        link = basename + link;
+                if (HTMLParser.getProtocol(link) == null) {
+                    link = link.replaceAll("h.{2,3}://", "http://");
+                }
+                if (HTMLParser.getProtocol(link) != null) {
+                    results.add(HTMLParser.correctURL(link).getStringCopy());
+                } else if (baseURL != null) {
+                    link = HTMLParser.mergeUrl(baseURL, link);
+                    if (HTMLParser.getProtocol(link) != null) {
+                        results.add(HTMLParser.correctURL(link).getStringCopy());
                     }
                 }
-                link = link.trim();
-                results.add(HTMLParser.correctURL(link).getStringCopy());
             }
         }
         if (HTMLParser.mp != null) {
@@ -515,6 +503,9 @@ public class HTMLParser {
             while (m.find()) {
                 link = m.group(0);
                 link = link.trim();
+                if (HTMLParser.getProtocol(link) == null) {
+                    link = link.replaceFirst("^www\\.", "http://www\\.");
+                }
                 final Matcher mlinks = HTMLParser.protocols.matcher(link);
                 int start = -1;
                 /*
@@ -536,12 +527,6 @@ public class HTMLParser {
                         break;
                     }
                 }
-                String check = link.replaceAll("^h.{2,3}://", "http://");
-                check = check.replaceFirst("^www\\.", "http://www\\.");
-                if (!link.equals(check)) {
-                    results.add(HTMLParser.correctURL(check).getStringCopy());
-                }
-
             }
         }
         return results;
@@ -609,7 +594,7 @@ public class HTMLParser {
         }
         if (!data.contains("://") && !data.contains("%3A%2F%2")) {
             /* data must contain at least the protocol separator */
-            if (!data.contains("href") && !data.contains("unescape") && !data.contains("src=")) {
+            if (!data.matches(HTMLParser.checkPatternHREFUNESCAPESRC)) {
                 /* maybe easy encrypted website or a href */
                 return results;
             }
@@ -850,29 +835,7 @@ public class HTMLParser {
 
     private static String getProtocol(final String url) {
         if (url == null) { return null; }
-        String pro = null;
-        if (url.startsWith("directhttp://")) {
-            pro = "directhttp";
-        } else if (url.startsWith("https://")) {
-            pro = "https";
-        } else if (url.startsWith("jd://")) {
-            pro = "jd";
-        } else if (url.startsWith("rsdf://")) {
-            pro = "rsdf";
-        } else if (url.startsWith("ccf://")) {
-            pro = "ccf";
-        } else if (url.startsWith("dlc://")) {
-            pro = "dlc";
-        } else if (url.startsWith("jdlist://")) {
-            pro = "jdlist";
-        } else if (url.startsWith("ftp://")) {
-            pro = "ftp";
-        } else if (url.startsWith("flashget://")) {
-            pro = "flashget";
-        } else if (url.startsWith("http://")) {
-            pro = "http";
-        }
-        return pro;
+        return new Regex(url, HTMLParser.LINKPROTOCOL).getMatch(0);
     }
 
     /**
@@ -901,34 +864,56 @@ public class HTMLParser {
         return buffer.toString();
     }
 
-    private static String mergeUrl(final String base, final String path) {
-        final StringBuilder sb = new StringBuilder();
-        int end = 0;
-        if (StringUtils.isEmpty(base) == false) {
-            end = base.length();
-            while (end >= 0 && base.charAt(end - 1) == '/') {
-                end--;
+    private static String mergeUrl(final String baseURL, final String path) {
+        if (path == null || baseURL == null || path.length() == 0) { return null; }
+        String merged = null;
+        final char first = path.charAt(0);
+        if (first == '/') {
+            /* absolut path relative to baseURL */
+            final String base = new Regex(baseURL, HTMLParser.mergePattern_Root).getMatch(0);
+            if (base != null) {
+                merged = base + path;
             }
-
-            if (end > 0) {
-                sb.append(base, 0, end);
+        } else if (first == '.' && (path.charAt(1) == '.' || path.charAt(1) == '/')) {
+            /* relative path relative to baseURL */
+            String base = new Regex(baseURL, HTMLParser.mergePattern_Path).getMatch(0);
+            if (base != null) {
+                /* relative to current path */
+                merged = base + path;
+            } else {
+                base = new Regex(baseURL, HTMLParser.mergePattern_Root).getMatch(0);
+                if (base != null) {
+                    /* relative to root */
+                    merged = base + "/" + path;
+                }
+            }
+        } else if (first == '#' || first == '?') {
+            /* append query/anchor to baseURL */
+            String base = new Regex(baseURL, HTMLParser.mergePattern_FileORPath).getMatch(0);
+            if (base != null) {
+                /* append query/anchor to current path/file */
+                merged = base + path;
+            } else {
+                base = new Regex(baseURL, HTMLParser.mergePattern_Root).getMatch(0);
+                if (base != null) {
+                    /* append query/anchor to root */
+                    merged = base + "/" + path;
+                }
             }
         } else {
-            sb.append(base);
-        }
-        sb.append("/");
-        if (StringUtils.isEmpty(path) == false) {
-            end = 0;
-            if (path.startsWith("./")) {
-                end = 2;
+            /* relative path relative to baseURL */
+            String base = new Regex(baseURL, HTMLParser.mergePattern_Path).getMatch(0);
+            if (base != null) {
+                /* relative to current path */
+                merged = base + path;
+            } else {
+                base = new Regex(baseURL, HTMLParser.mergePattern_Root).getMatch(0);
+                if (base != null) {
+                    /* relative to root */
+                    merged = base + "/" + path;
+                }
             }
-            while (path.length() <= end && path.charAt(end) == '/') {
-                end++;
-            }
-            sb.append(path, end, path.length());
         }
-
-        return Browser.correctURL(sb.toString(), true);
+        return Browser.correctURL(merged, true);
     }
-
 }
