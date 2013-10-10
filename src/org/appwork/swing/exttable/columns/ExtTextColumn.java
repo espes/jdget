@@ -53,17 +53,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     }
 
-    public boolean onRenameClick(final MouseEvent e, final E obj) {
-        if (isEditable(obj)) {
-            startEditing(obj);
-            System.out.println("Start");
-            return true;
-        } else {
-            return super.onRenameClick(e, obj);
-        }
-
-    }
-
     public ExtTextColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
         this.editorField = new JTextField();
@@ -75,7 +64,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             @Override
             public void setIcon(final Icon icon) {
 
-                setVisible(icon != null);
+                this.setVisible(icon != null);
                 if (icon != this.getIcon()) {
                     super.setIcon(icon);
                 }
@@ -110,7 +99,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             @Override
             public void setIcon(final Icon icon) {
 
-                setVisible(icon != null);
+                this.setVisible(icon != null);
                 super.setIcon(icon);
             }
         };
@@ -129,8 +118,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
             @Override
             public void setText(final String text) {
-                if (text != null && text.equals(getText())) { return; }
-                if (text == null && getText() == null) { return; }
+                if (text != null && text.equals(this.getText())) { return; }
+                if (text == null && this.getText() == null) { return; }
                 super.setText(text);
             }
 
@@ -153,7 +142,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
         this.layoutEditor(this.editor, this.editorIconLabel, this.editorField);
         this.layoutRenderer(this.renderer, this.rendererIcon, this.rendererField);
-        setRowSorter(new ExtDefaultRowSorter<E>() {
+        this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
             public int compare(final E o1, final E o2) {
@@ -165,7 +154,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
                 if (o2s == null) {
                     o2s = "";
                 }
-                if (getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
+                if (this.getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
                     return o1s.compareToIgnoreCase(o2s);
                 } else {
                     return o2s.compareToIgnoreCase(o1s);
@@ -179,7 +168,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     public void actionPerformed(final ActionEvent e) {
         this.editorField.removeActionListener(this);
-        fireEditingStopped();
+        this.fireEditingStopped();
     }
 
     @Override
@@ -190,7 +179,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
-
+        this.prepareColumn(value);
         this.editorField.removeActionListener(this);
         String str = this.getStringValue(value);
         if (str == null) {
@@ -207,7 +196,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     @Override
     public void configureRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-
+        this.prepareColumn(value);
         this.rendererIcon.setIcon(this.getIcon(value));
         String str = this.getStringValue(value);
         if (str == null) {
@@ -216,8 +205,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             str = "";
         }
 
-        if (getTableColumn() != null) {
-            this.rendererField.setText(SwingUtilities2.clipStringIfNecessary(this.rendererField, this.rendererField.getFontMetrics(this.rendererField.getFont()), str, getTableColumn().getWidth() - this.rendererIcon.getPreferredSize().width - 5));
+        if (this.getTableColumn() != null) {
+            this.rendererField.setText(SwingUtilities2.clipStringIfNecessary(this.rendererField, this.rendererField.getFontMetrics(this.rendererField.getFont()), str, this.getTableColumn().getWidth() - this.rendererIcon.getPreferredSize().width - 5));
         } else {
             this.rendererField.setText(str);
         }
@@ -335,6 +324,21 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     }
 
     @Override
+    public boolean onRenameClick(final MouseEvent e, final E obj) {
+        if (this.isEditable(obj)) {
+            this.startEditing(obj);
+            System.out.println("Start");
+            return true;
+        } else {
+            return super.onRenameClick(e, obj);
+        }
+
+    }
+
+    protected void prepareColumn(final E value) {
+    }
+
+    @Override
     public void resetEditor() {
         this.editor.setEnabled(true);
         this.editorField.setFont(this.editorFont);
@@ -342,8 +346,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorField.setBackground(null);
         this.editorIconLabel.setIcon(null);
 
-        SwingUtils.setOpaque(editorIconLabel, false);
-        SwingUtils.setOpaque(editorField, false);
+        SwingUtils.setOpaque(this.editorIconLabel, false);
+        SwingUtils.setOpaque(this.editorField, false);
 
     }
 
@@ -359,8 +363,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.renderer.setOpaque(false);
         this.rendererIcon.setIcon(null);
 
-        SwingUtils.setOpaque(rendererIcon, false);
-        SwingUtils.setOpaque(rendererField, false);
+        SwingUtils.setOpaque(this.rendererIcon, false);
+        SwingUtils.setOpaque(this.rendererField, false);
 
     }
 

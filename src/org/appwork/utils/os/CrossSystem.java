@@ -18,6 +18,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.logging.Level;
 
 import javax.swing.filechooser.FileFilter;
@@ -62,6 +63,7 @@ public class CrossSystem {
         WINDOWS_2000(OSFamily.WINDOWS),
         WINDOWS_2003(OSFamily.WINDOWS),
         WINDOWS_SERVER_2008(OSFamily.WINDOWS),
+        WINDOWS_SERVER_2012(OSFamily.WINDOWS),
         WINDOWS_NT(OSFamily.WINDOWS),
         WINDOWS_OTHERS(OSFamily.WINDOWS),
         MAC(OSFamily.MAC),
@@ -186,10 +188,12 @@ public class CrossSystem {
         }
         if (CrossSystem.isWindows()) {
             /* windows uses \ as path seperator */
-            boolean network=path.startsWith("\\\\");
+            final boolean network = path.startsWith("\\\\");
             path = path.replaceAll("[/]+", "\\\\");
             path = path.replaceAll("[\\\\]+", "\\\\");
-            if (network)path="\\"+path;
+            if (network) {
+                path = "\\" + path;
+            }
         } else {
             /* mac/linux uses / as path seperator */
             path = path.replaceAll("[\\\\]+", "/");
@@ -300,7 +304,7 @@ public class CrossSystem {
             /* fallback to latest Windows */
             return OperatingSystem.WINDOWS_8;
         }
-        final String os = osString.toLowerCase();
+        final String os = osString.toLowerCase(Locale.ENGLISH);
         if (os.contains("windows 8")) {
             return OperatingSystem.WINDOWS_8;
         } else if (os.contains("windows 7")) {
@@ -315,6 +319,8 @@ public class CrossSystem {
             return OperatingSystem.WINDOWS_2003;
         } else if (os.contains("windows server 2008")) {
             return OperatingSystem.WINDOWS_SERVER_2008;
+        } else if (os.contains("windows server 2012")) {
+            return OperatingSystem.WINDOWS_SERVER_2012;
         } else if (os.contains("nt")) {
             return OperatingSystem.WINDOWS_NT;
         } else if (os.contains("windows")) {

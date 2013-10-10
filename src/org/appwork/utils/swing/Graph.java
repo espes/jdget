@@ -186,6 +186,10 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
         return this.textFont;
     }
 
+    public int getTooltipDelay(final Point mousePositionOnScreen) {
+        return 0;
+    }
+
     public TooltipTextDelegateFactory getTooltipFactory() {
         return this.tooltipFactory;
     }
@@ -216,14 +220,14 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
     public void paintComponent(final Graphics g) {
 
         super.paintComponent(g);
-        paintComponent(g, true);
+        this.paintComponent(g, true);
     }
 
     /**
      * @param g
      * @param b
      */
-    public void paintComponent(Graphics g, boolean paintText) {
+    public void paintComponent(final Graphics g, final boolean paintText) {
         if (this.fetcherThread != null) {
             final Graphics2D g2 = (Graphics2D) g;
             if (!this.AntiAliasing) {
@@ -254,17 +258,18 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
             poly.addPoint(0, this.getHeight());
             final Polygon apoly = new Polygon();
             apoly.addPoint(0, this.getHeight());
+            final int[] lCache = this.cache;
+            final int[] laverageCache = this.averageCache;
+            for (int x = 0; x < lCache.length; x++) {
 
-            for (int x = 0; x < this.cache.length; x++) {
-
-                poly.addPoint(x * this.getWidth() / (this.cache.length - 1), this.getHeight() - (int) (height * this.cache[id] * 0.9) / max);
+                poly.addPoint(x * this.getWidth() / (lCache.length - 1), this.getHeight() - (int) (height * lCache[id] * 0.9) / max);
                 if (this.averageColor != null) {
-                    apoly.addPoint(x * this.getWidth() / (this.cache.length - 1), this.getHeight() - (int) (height * this.averageCache[id] * 0.9) / max);
+                    apoly.addPoint(x * this.getWidth() / (lCache.length - 1), this.getHeight() - (int) (height * laverageCache[id] * 0.9) / max);
                 }
 
                 id++;
 
-                id = id % this.cache.length;
+                id = id % lCache.length;
             }
 
             poly.addPoint(this.getWidth(), this.getHeight());
@@ -373,15 +378,16 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
     protected void setCapacity(final int cap) {
         if (this.fetcherThread != null) { throw new IllegalStateException("Already started"); }
         this.capacity = cap;
-        this.cache = new int[cap];
+        final int[] lcache = new int[cap];
         for (int x = 0; x < cap; x++) {
-            this.cache[x] = 0;
+            lcache[x] = 0;
         }
-
-        this.averageCache = new int[cap];
+        final int[] laverageCache = new int[cap];
         for (int x = 0; x < cap; x++) {
-            this.averageCache[x] = 0;
+            laverageCache[x] = 0;
         }
+        this.averageCache = laverageCache;
+        this.cache = lcache;
     }
 
     /**
@@ -518,7 +524,8 @@ abstract public class Graph extends JPanel implements ToolTipHandler {
         }
     }
 
-    public int getTooltipDelay(Point mousePositionOnScreen) {  return 0;    }  @Override public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
+    @Override
+    public boolean updateTooltip(final ExtTooltip activeToolTip, final MouseEvent e) {
         return false;
     }
 

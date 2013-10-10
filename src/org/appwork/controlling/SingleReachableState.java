@@ -29,18 +29,30 @@ public class SingleReachableState {
         this.name = name;
     }
 
-    public void executeWhenReached(final Runnable run) {
-        if (run == null) { return; }
+    public void executeWhen(final Runnable reached, final Runnable notreached) {
+        if (reached == null && notreached == null) { return; }
         while (true) {
             final ArrayList<Runnable> runnables = this.stateMachine.get();
             if (runnables == null) {
-                this.run(run);
+                this.run(reached);
                 return;
             }
-            final ArrayList<Runnable> newRunnables = new ArrayList<Runnable>(runnables);
-            newRunnables.add(run);
-            if (this.stateMachine.compareAndSet(runnables, newRunnables)) { return; }
+            if (reached != null) {
+                final ArrayList<Runnable> newRunnables = new ArrayList<Runnable>(runnables);
+                newRunnables.add(reached);
+                if (this.stateMachine.compareAndSet(runnables, newRunnables)) {
+                    this.run(notreached);
+                    return;
+                }
+            } else {
+                this.run(notreached);
+                return;
+            }
         }
+    }
+
+    public void executeWhenReached(final Runnable run) {
+        this.executeWhen(run, null);
     }
 
     public boolean isReached() {
@@ -49,7 +61,9 @@ public class SingleReachableState {
 
     private void run(final Runnable run) {
         try {
-            run.run();
+            if (run != null) {
+                run.run();
+            }
         } catch (final Throwable e) {
             Log.exception(e);
         }
