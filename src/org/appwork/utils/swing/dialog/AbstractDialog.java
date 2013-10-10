@@ -75,7 +75,7 @@ import org.appwork.utils.swing.dialog.locator.DialogLocator;
 
 public abstract class AbstractDialog<T> implements ActionListener, WindowListener, OKCancelCloseUserIODefinition, WindowFocusListener {
 
-    private static int                                    BUTTON_HEIGHT           = -1;
+    protected static int                                    BUTTON_HEIGHT           = -1;
 
     public static DialogLocator                           DEFAULT_LOCATOR         = null;
     public static final DialogLocator                     LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
