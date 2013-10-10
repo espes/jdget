@@ -5,48 +5,10 @@ public class SessionInfo {
     private byte[] deviceSecret;
     private byte[] deviceEncryptionToken;
 
-    public byte[] getDeviceSecret() {
-        return deviceSecret;
-    }
-
-    public void setDeviceSecret(final byte[] deviceSecret) {
-        this.deviceSecret = deviceSecret;
-    }
-
-    public byte[] getDeviceEncryptionToken() {
-        return deviceEncryptionToken;
-    }
-
-    public void setDeviceEncryptionToken(final byte[] deviceEncryptionToken) {
-        this.deviceEncryptionToken = deviceEncryptionToken;
-    }
-
-    public byte[] getServerEncryptionToken() {
-        return serverEncryptionToken;
-    }
-
-    public void setServerEncryptionToken(final byte[] serverEncryptionToken) {
-        this.serverEncryptionToken = serverEncryptionToken;
-    }
-
-    public String getSessionToken() {
-        return sessionToken;
-    }
-
-    public void setSessionToken(final String sessionToken) {
-        this.sessionToken = sessionToken;
-    }
-
-    public String getRegainToken() {
-        return regainToken;
-    }
-
-    public void setRegainToken(final String regainToken) {
-        this.regainToken = regainToken;
-    }
-
     private byte[] serverEncryptionToken;
+
     private String sessionToken;
+
     private String regainToken;
 
     public SessionInfo(/* STorable */) {
@@ -59,6 +21,46 @@ public class SessionInfo {
         this.serverEncryptionToken = serverEncryptionToken;
         this.sessionToken = sessionToken;
         this.regainToken = regainToken;
+    }
+
+    public byte[] getDeviceEncryptionToken() {
+        return this.deviceEncryptionToken;
+    }
+
+    public byte[] getDeviceSecret() {
+        return this.deviceSecret;
+    }
+
+    public String getRegainToken() {
+        return this.regainToken;
+    }
+
+    public byte[] getServerEncryptionToken() {
+        return this.serverEncryptionToken;
+    }
+
+    public String getSessionToken() {
+        return this.sessionToken;
+    }
+
+    public void setDeviceEncryptionToken(final byte[] deviceEncryptionToken) {
+        this.deviceEncryptionToken = deviceEncryptionToken;
+    }
+
+    public void setDeviceSecret(final byte[] deviceSecret) {
+        this.deviceSecret = deviceSecret;
+    }
+
+    public void setRegainToken(final String regainToken) {
+        this.regainToken = regainToken;
+    }
+
+    public void setServerEncryptionToken(final byte[] serverEncryptionToken) {
+        this.serverEncryptionToken = serverEncryptionToken;
+    }
+
+    public void setSessionToken(final String sessionToken) {
+        this.sessionToken = sessionToken;
     }
 
 }
