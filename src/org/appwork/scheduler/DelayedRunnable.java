@@ -50,7 +50,11 @@ public abstract class DelayedRunnable implements Runnable {
      */
     public static ScheduledExecutorService getNewScheduledExecutorService() {
         final String caller = DelayedRunnable.getCaller();
-        final ScheduledThreadPoolExecutor ret = new ScheduledThreadPoolExecutor(0, new ThreadFactory() {
+        /*
+         * changed core to 1 because of
+         * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7091003
+         */
+        final ScheduledThreadPoolExecutor ret = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
 
             @Override
             public Thread newThread(final Runnable r) {
@@ -70,7 +74,6 @@ public abstract class DelayedRunnable implements Runnable {
 
     private final ScheduledExecutorService service;
     private final long                     delayInMS;
-    private final AtomicLong               nextDelay       = new AtomicLong(0);
     private final AtomicLong               lastRunRequest  = new AtomicLong(0);
     private final AtomicLong               firstRunRequest = new AtomicLong(0);
     private final AtomicBoolean            delayerSet      = new AtomicBoolean(false);
@@ -92,7 +95,6 @@ public abstract class DelayedRunnable implements Runnable {
     public DelayedRunnable(final ScheduledExecutorService service, final long minDelayInMS, final long maxDelayInMS) {
         this.service = service;
         this.delayInMS = minDelayInMS;
-        this.nextDelay.set(this.delayInMS);
         this.maxInMS = maxDelayInMS;
         if (this.delayInMS <= 0) { throw new IllegalArgumentException("minDelay must be >0"); }
         if (this.maxInMS == 0) { throw new IllegalArgumentException("maxDelay must be !=0"); }
@@ -171,7 +173,6 @@ public abstract class DelayedRunnable implements Runnable {
             }
 
             private void stop() {
-                DelayedRunnable.this.nextDelay.set(DelayedRunnable.this.delayInMS);
                 DelayedRunnable.this.firstRunRequest.set(0);
                 DelayedRunnable.this.delayerSet.set(false);
             }
