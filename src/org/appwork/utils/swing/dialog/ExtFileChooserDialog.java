@@ -295,19 +295,21 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             }
 
             if (found && startsWith(f.getName(), name)) {
+                final boolean oldSelecting = selecting;
                 selecting = true;
                 oldTextField.setText(f.getAbsolutePath());
                 oldTextField.setSelectionStart(selstart);
                 oldTextField.setSelectionEnd(oldTextField.getText().length());
-                selecting = false;
+                selecting = oldSelecting;
                 return;
             }
         }
+        final boolean oldSelecting = selecting;
         selecting = true;
 
         oldTextField.setText(bef);
 
-        selecting = false;
+        selecting = oldSelecting;
 
     }
 
@@ -610,6 +612,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             }
 
             private void setCurrentDirectoryInternal(final File dir) {
+                final boolean oldSelecting = selecting;
                 selecting = true;
                 try {
                     if (dir == fileSystemView.getNetworkFolder()) {
@@ -620,7 +623,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                     setSelectedFile(null);
                     super.setCurrentDirectory(dir);
                 } finally {
-                    selecting = false;
+                    selecting = oldSelecting;
                     // setBusy(false);
                 }
 
@@ -653,12 +656,13 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
             @Override
             public void setSelectedFile(final File file) {
+                final boolean oldSelecting = selecting;
                 selecting = true;
                 try {
 
                     super.setSelectedFile(file);
                 } finally {
-                    selecting = false;
+                    selecting = oldSelecting;
                 }
             }
 
@@ -867,6 +871,8 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
                             return;
                         }
+                        final String txt = getText();
+                        System.out.println(txt);
                         SwingUtilities.invokeLater(new Runnable() {
 
                             private File getFile(final String txt) {
@@ -894,22 +900,25 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                                             if (f.getParentFile() == null || !f.getParentFile().exists() || parent) {
                                                 fc.setCurrentDirectory(f);
                                                 fc.setSelectedFile(null);
+                                                final boolean oldSelecting = selecting;
                                                 selecting = true;
                                                 setText(txt);
-                                                selecting = false;
+                                                selecting = oldSelecting;
                                             } else {
                                                 if (getText().endsWith("\\") || getText().endsWith("/") && f.isDirectory()) {
                                                     fc.setCurrentDirectory(f);
                                                     fc.setSelectedFile(null);
+                                                    final boolean oldSelecting = selecting;
                                                     selecting = true;
                                                     setText(txt);
-                                                    selecting = false;
+                                                    selecting = oldSelecting;
                                                 } else {
 
                                                     fc.setSelectedFile(f);
+                                                    final boolean oldSelecting = selecting;
                                                     selecting = true;
                                                     setText(txt);
-                                                    selecting = false;
+                                                    selecting = oldSelecting;
                                                 }
                                             }
                                             return;
