@@ -71,6 +71,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                                                                                                 }
                                                                                             });
     static {
+        StorageHandler.TIMINGQUEUE.setMaximumPoolSize(1);
         StorageHandler.TIMINGQUEUE.setKeepAliveTime(30000, TimeUnit.MILLISECONDS);
         StorageHandler.TIMINGQUEUE.allowCoreThreadTimeOut(true);
     }

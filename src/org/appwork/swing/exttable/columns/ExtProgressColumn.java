@@ -154,18 +154,20 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         this.prepareGetter(value);
         if (this.renderer == this.determinatedRenderer) {
             // Normalize value and maxvalue to fit in the integer range
-            long v = this.getValue(value);
             long m = this.getMax(value);
-            final double factor = Math.max(v / (double) Integer.MAX_VALUE, m / (double) Integer.MAX_VALUE);
+            long v = 0;
+            if (m >= 0) {
+                v = this.getValue(value);
+                final double factor = Math.max(v / (double) Integer.MAX_VALUE, m / (double) Integer.MAX_VALUE);
 
-            if (factor >= 1.0) {
-                v /= factor;
-                m /= factor;
+                if (factor >= 1.0) {
+                    v /= factor;
+                    m /= factor;
+                }
             }
             // take care to set the maximum before the value!!
             this.renderer.setMaximum((int) m);
             this.renderer.setValue((int) v);
-
             this.renderer.setString(this.getString(value, v, m));
         } else {
             this.renderer.setString(this.getString(value, -1, -1));
@@ -209,7 +211,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     }
 
     protected double getPercentString(final long current, final long total) {
-        if (total == 0) { return 0.00d; }
+        if (total <= 0) { return 0.00d; }
         return current * 10000 / total / 100.0d;
     }
 

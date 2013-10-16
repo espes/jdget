@@ -66,8 +66,10 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
         this.storageHandler.putPrimitive(this.getKey(), object);
     }
 
-    public void toggle() {
-        this.setValue(!this.getValue());
+    public boolean toggle() {
+        final boolean n = !this.getValue();
+        this.setValue(n);
+        return n;
     }
 
     /*
