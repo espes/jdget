@@ -40,9 +40,9 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
     protected String               defaultMessage;
     protected String               message;
 
-    private TextComponentInterface input;
+    protected TextComponentInterface input;
     private JTextPane              bigInput;
-    private JTextPane              textField;
+    protected JTextPane              textField;
 
     @Override
     public InputDialogInterface show() {
