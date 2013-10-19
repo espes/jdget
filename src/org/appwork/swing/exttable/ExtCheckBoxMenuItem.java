@@ -1,7 +1,10 @@
 package org.appwork.swing.exttable;
 
+import java.awt.AWTEvent;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
@@ -51,9 +54,19 @@ public class ExtCheckBoxMenuItem extends JCheckBoxMenuItem {
     protected void processMouseEvent(MouseEvent e) {
         if (!hideOnClick && e.getID() == MouseEvent.MOUSE_RELEASED) {
             for (ActionListener al : this.getActionListeners()) {
-                al.actionPerformed(new ActionEvent(this, 0, null));
+                
+                int modifiers = 0;
+                AWTEvent currentEvent = EventQueue.getCurrentEvent();
+                if (currentEvent instanceof InputEvent) {
+                    modifiers = ((InputEvent) currentEvent).getModifiers();
+                } else if (currentEvent instanceof ActionEvent) {
+                    modifiers = ((ActionEvent) currentEvent).getModifiers();
+                }
+                al.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, getActionCommand(), EventQueue.getMostRecentEventTime(), modifiers));
+                
+              
             }
-            doClick(0);
+//            doClick(0);
         } else {
             super.processMouseEvent(e);
         }
