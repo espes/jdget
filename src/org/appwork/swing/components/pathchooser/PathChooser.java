@@ -417,6 +417,10 @@ public class PathChooser extends MigPanel {
 
     }
 
+    public SearchComboBox<String> getDestination() {
+        return destination;
+    }
+
     public void setQuickSelectionList(final List<String> quickSelectionList) {
         destination.setList(quickSelectionList);
     }
