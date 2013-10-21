@@ -4,6 +4,8 @@ import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -73,8 +75,6 @@ public class PathChooser extends MigPanel {
     private String                   id;
     protected SearchComboBox<String> destination;
 
-
-
     public PathChooser(final String id) {
         this(id, false);
     }
@@ -110,6 +110,17 @@ public class PathChooser extends MigPanel {
                 @Override
                 public JTextField createTextField() {
                     return txt;
+                }
+
+                protected void sortFound(final List<String> found) {
+
+                    Collections.sort(found, new Comparator<String>() {
+
+                        @Override
+                        public int compare(final String o1, final String o2) {
+                            return o1.compareTo(o2);
+                        }
+                    });
                 }
 
                 @Override
@@ -194,11 +205,11 @@ public class PathChooser extends MigPanel {
         boolean found = sel.length() == 0;
         File root = new File(bef);
         while (root != null && !root.exists()) {
-            if (root.getParentFile() == root) { return  false; }
+            if (root.getParentFile() == root) { return false; }
             root = root.getParentFile();
 
         }
-        if (root == null) { return  false; }    
+        if (root == null) { return false; }
         for (final File f : root.listFiles()) {
             if (f.isFile()) {
                 continue;
@@ -408,7 +419,7 @@ public class PathChooser extends MigPanel {
      * @param downloadDestination
      */
     public void setPath(final String downloadDestination) {
-      
+
         if (destination != null) {
             destination.setText(downloadDestination);
         } else {

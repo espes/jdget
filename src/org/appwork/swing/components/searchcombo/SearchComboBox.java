@@ -73,7 +73,9 @@ public abstract class SearchComboBox<T> extends JComboBox {
     public void setActualMaximumRowCount(final int count) {
         actualMaximumRowCount = count;
     }
-
+    public boolean hasFocus() {
+       return super.hasFocus()||getTextField().hasFocus();
+    }
     public int getActualMaximumRowCount() {
         return actualMaximumRowCount;
     }
@@ -152,6 +154,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         private void auto() {
             if (!SearchComboBox.this.isAutoCompletionEnabled()) { return; }
             if (this.valueSetter.get() > 0) { return; }
+            System.out.println(1);
             // scheduler executes at least 50 ms after this submit.
             // this.sheduler.run();
             SwingUtilities.invokeLater(new Runnable() {
@@ -176,21 +179,24 @@ public abstract class SearchComboBox<T> extends JComboBox {
                 /* every string will begin with "" so we return here */
                 return false;
             }
+            final String finalRaw=rawtxt;
             if (this.searchComboBox.isSearchCaseSensitive() == false) {
                 rawtxt = rawtxt.toLowerCase(Locale.ENGLISH);
             }
             final String txt = rawtxt;
+        
             final T lValue = this.value;
             if (lValue != null && SearchComboBox.this.getTextForValue(lValue).equals(txt)) { return true; }
             String text = null;
             final java.util.List<T> found = new ArrayList<T>();
             for (int i = 0; i < getModel().getSize(); i++) {
                 text = SearchComboBox.this.getTextForValue((T) getModel().getElementAt(i));
-                if (text != null && (text.startsWith(txt) || this.searchComboBox.isSearchCaseSensitive() == false && text.toLowerCase(Locale.ENGLISH).startsWith(txt))) {
+                if (text != null && (text.startsWith(txt) || (this.searchComboBox.isSearchCaseSensitive() == false && text.toLowerCase(Locale.ENGLISH).startsWith(txt)))) {
                     found.add((T) getModel().getElementAt(i));
                 }
             }
 
+        sortFound(found);
             new EDTRunner() {
 
                 @Override
@@ -200,7 +206,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
                         hidePopup();
                         if (getSelectedIndex() != -1) {
                             setSelectedIndex(-1);
-                            Editor.this.safeSet(txt);
+                            Editor.this.safeSet(finalRaw);
                         }
                         // javax.swing.plaf.synth.SynthComboPopup
                     } else {
@@ -490,6 +496,14 @@ public abstract class SearchComboBox<T> extends JComboBox {
             }
         };
 
+    }
+
+    /**
+     * @param found
+     */
+    protected void sortFound(final List<T> found) {
+        // TODO Auto-generated method stub
+        
     }
 
     private final ColorState helpColorSet           = new ColorState(Color.LIGHT_GRAY);
@@ -840,6 +854,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * @param defaultDownloadFolder
      */
     public void setText(final String text) {
+        
         this.getTextField().setText(text);
         this.updateHelpText();
 

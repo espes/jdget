@@ -30,7 +30,7 @@ public class ExtCheckBoxMenuItem extends JCheckBoxMenuItem {
      * 
      * @param action
      */
-    public ExtCheckBoxMenuItem(AbstractAction action) {
+    public ExtCheckBoxMenuItem(final AbstractAction action) {
         super(action);
     }
 
@@ -39,7 +39,7 @@ public class ExtCheckBoxMenuItem extends JCheckBoxMenuItem {
      * 
      * @param name
      */
-    public ExtCheckBoxMenuItem(String name) {
+    public ExtCheckBoxMenuItem(final String name) {
         super(name);
     }
 
@@ -51,12 +51,13 @@ public class ExtCheckBoxMenuItem extends JCheckBoxMenuItem {
         return hideOnClick;
     }
 
-    protected void processMouseEvent(MouseEvent e) {
+    protected void processMouseEvent(final MouseEvent e) {
         if (!hideOnClick && e.getID() == MouseEvent.MOUSE_RELEASED) {
-            for (ActionListener al : this.getActionListeners()) {
+            setSelected(!isSelected());
+            for (final ActionListener al : getActionListeners()) {
                 
                 int modifiers = 0;
-                AWTEvent currentEvent = EventQueue.getCurrentEvent();
+                final AWTEvent currentEvent = EventQueue.getCurrentEvent();
                 if (currentEvent instanceof InputEvent) {
                     modifiers = ((InputEvent) currentEvent).getModifiers();
                 } else if (currentEvent instanceof ActionEvent) {
@@ -77,7 +78,7 @@ public class ExtCheckBoxMenuItem extends JCheckBoxMenuItem {
      *            the {@link ExtCheckBoxMenuItem#hideOnClick} to set
      * @see ExtCheckBoxMenuItem#hideOnClick
      */
-    public void setHideOnClick(boolean hideOnClick) {
+    public void setHideOnClick(final boolean hideOnClick) {
         this.hideOnClick = hideOnClick;
     }
 
