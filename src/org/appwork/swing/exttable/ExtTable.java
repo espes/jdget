@@ -589,8 +589,8 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         final ExtColumn<E> col = this.getExtColumnAtPoint(position);
         this.lastTooltipCol = col;
         this.lastTooltipRow = row;
-        if (row < 0) { return null; }
-        return col.createToolTip(position, this.getModel().getElementAt(row));
+        return createToolTip(col, row, position, this.getModel().getElementAt(row));
+
     }
 
     // public boolean editCellAt(int row, int column, EventObject e){
@@ -600,6 +600,19 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     // }
     // return false;
     // }
+
+    /**
+     * @param col
+     * @param row
+     * @param position
+     * @param elementAt
+     * @return
+     */
+    protected ExtTooltip createToolTip(final ExtColumn<E> col, final int row, final Point position, final E elementAt) {
+        if (row < 0) { return null; }
+
+        return col.createToolTip(position, elementAt);
+    }
 
     /**
      * By using {@link ExtColumn#setResizable(boolean)} you can lock the widths
