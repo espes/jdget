@@ -279,19 +279,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
             public void mouseClicked(final MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
 
-                    final int col = ExtTable.this.getExtColumnModelIndexByPoint(e.getPoint());
-                    if (col == -1) { return; }
-
-                    if (ExtTable.this.getModel().getExtColumnByModelIndex(col).isSortable(null)) {
-                        final ExtColumn<E> oldColumn = ExtTable.this.getModel().getSortColumn();
-                        final String oldIdentifier = oldColumn == null ? null : oldColumn.getSortOrderIdentifier();
-
-                        if (!ExtTable.this.onHeaderSortClick(e, oldColumn, oldIdentifier, ExtTable.this.getModel().getExtColumnByModelIndex(col))) {
-                            ExtTable.this.getModel().getExtColumnByModelIndex(col).doSort();
-                        }
-                        ExtTable.this.eventSender.fireEvent(new ExtTableEvent<MouseEvent>(ExtTable.this, ExtTableEvent.Types.SORT_HEADER_CLICK, e));
-
-                    }
+                    onSortHeaderClick(e);
 
                 }
             }
@@ -1747,6 +1735,33 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         final int row = this.getRowIndexByPoint(e.getPoint());
         final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
         return this.lastTooltipCol != col || this.lastTooltipRow != row;
+    }
+
+    /**
+     * @param e
+     */
+    protected void onSortHeaderClick(final MouseEvent e) {
+        final int col = ExtTable.this.getExtColumnModelIndexByPoint(e.getPoint());
+        if (col == -1) { return; }
+
+        final ExtColumn<E> oldColumn = ExtTable.this.getModel().getSortColumn();
+        final String oldIdentifier = oldColumn == null ? null : oldColumn.getSortOrderIdentifier();
+
+        if (!ExtTable.this.onHeaderSortClick(e, oldColumn, oldIdentifier, ExtTable.this.getModel().getExtColumnByModelIndex(col))) {
+            if (ExtTable.this.getModel().getExtColumnByModelIndex(col).isSortable(null)) {
+               doSortOnColumn( ExtTable.this.getModel().getExtColumnByModelIndex(col),e);
+            }
+        }
+        ExtTable.this.eventSender.fireEvent(new ExtTableEvent<MouseEvent>(ExtTable.this, ExtTableEvent.Types.SORT_HEADER_CLICK, e));
+
+    }
+
+    /**
+     * @param e 
+     * @param extColumnByModelIndex
+     */
+    protected void doSortOnColumn(ExtColumn<E> column, MouseEvent e) {
+        column.doSort();
     }
 
 }
