@@ -5,7 +5,9 @@ import java.awt.Window;
 
 import org.appwork.storage.config.JsonConfig;
 import org.appwork.utils.Application;
+import org.appwork.utils.Hash;
 import org.appwork.utils.swing.dialog.LocationStorage;
+import org.appwork.utils.swing.dimensor.RememberLastDimensor;
 
 public class RememberAbsoluteLocator extends AbstractLocator {
 
@@ -24,7 +26,37 @@ public class RememberAbsoluteLocator extends AbstractLocator {
      * @return
      */
     private LocationStorage createConfig(final Window dialog) {
-        return JsonConfig.create(Application.getResource("cfg/" + RememberAbsoluteLocator.class.getName() + "-" + this.getID(dialog)), LocationStorage.class);
+        String storageID = RememberAbsoluteLocator.class.getSimpleName() + "-" + this.getID(dialog);
+        if (storageID.length() > 128) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < storageID.length(); i++) {
+                char c = storageID.charAt(i);
+                switch (c) {
+                case 'U':
+                case 'E':
+                case 'I':
+                case 'O':
+                case 'A':
+                case 'J':
+                case 'u':
+                case 'e':
+                case 'i':
+                case 'o':
+                case 'a':
+                case 'j':
+                    continue;
+                default:
+                    sb.append(c);
+
+                }
+            }
+            storageID = sb.toString();
+
+        }
+        if (storageID.length() > 128) {
+            storageID = RememberAbsoluteLocator.class.getSimpleName() + "-" + Hash.getMD5(storageID);
+        }
+        return JsonConfig.create(Application.getResource("cfg/" + storageID), LocationStorage.class);
     }
 
     /**
