@@ -452,7 +452,7 @@ public abstract class AbstractMyJDClient {
      */
     public synchronized CaptchaChallenge getChallenge() throws MyJDownloaderException {
         try {
-            return this.jsonToObject(this.uncryptedPost("/captcha/getCaptcha", new Object[] { null }), CaptchaChallenge.class);
+            return this.jsonToObject(this.uncryptedPost("/captcha/getCaptcha", (Object[]) null), CaptchaChallenge.class);
         } catch (final APIException e) {
             throw new RuntimeException(e);
 
