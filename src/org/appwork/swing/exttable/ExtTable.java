@@ -65,6 +65,7 @@ import org.appwork.swing.exttable.columnmenu.SearchContextAction;
 import org.appwork.utils.Application;
 import org.appwork.utils.BinaryLogic;
 import org.appwork.utils.logging.Log;
+import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
 
@@ -1260,7 +1261,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     protected void processMouseEvent(final MouseEvent e) {
 
         if (e.getID() == MouseEvent.MOUSE_RELEASED) {
-            if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3) {
+            if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3||(CrossSystem.isMac()&&e.getButton()==MouseEvent.BUTTON1&&e.isControlDown())) {
                 final int row = rowAtPoint(e.getPoint());
                 final E obj = this.getModel().getObjectbyRow(row);
                 final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
