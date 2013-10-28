@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.swing;
+package org.appwork.utils.swing.windowmanager;
 
 import java.awt.Window;
 import java.awt.event.WindowEvent;
@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.SwingUtilities;
+
+import org.appwork.utils.swing.windowmanager.WindowManager.FrameState;
 
 /**
  * @author daniel

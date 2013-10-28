@@ -11,13 +11,22 @@ package org.appwork.utils.swing.dialog;
 
 import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JFrame;
+import javax.swing.Timer;
 
 import net.miginfocom.swing.MigLayout;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.swing.ExtJDialog;
+import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
 
 public class InternDialog<T> extends ExtJDialog {
@@ -31,8 +40,16 @@ public class InternDialog<T> extends ExtJDialog {
      */
     private static final long       serialVersionUID = 1L;
 
+    public void setVisible(boolean b) {
+     
+        super.setVisible(b);
+        
+//        ((JFrame) owner).setVisible(true);
+    }
+
     public InternDialog(final AbstractDialog<T> abstractDialog, final ModalityType modality) {
         super(abstractDialog.getOwner(), modality);
+
         dialogModel = abstractDialog;
 
         setLayout(new MigLayout("ins 5", "[]", "[fill,grow][]"));
@@ -53,6 +70,12 @@ public class InternDialog<T> extends ExtJDialog {
                 setIconImages(l);
             }
         }
+        if (CrossSystem.isMac()) {
+            final com.apple.eawt.Application application = com.apple.eawt.Application.getApplication();
+
+            application.requestUserAttention(true);
+        }
+        
 
     }
 
@@ -89,7 +112,7 @@ public class InternDialog<T> extends ExtJDialog {
     }
 
     public Dimension getRawPreferredSize() {
-       
+
         return super.getPreferredSize();
 
     }

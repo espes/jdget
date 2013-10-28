@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.swing;
+package org.appwork.utils.swing.windowmanager;
 
 
 /**

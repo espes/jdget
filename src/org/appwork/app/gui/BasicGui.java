@@ -28,9 +28,9 @@ import org.appwork.swing.trayicon.AWTrayIcon;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.LockPanel;
-import org.appwork.utils.swing.WindowManager;
-import org.appwork.utils.swing.WindowManager.FrameState;
 import org.appwork.utils.swing.dialog.AbstractDialog;
+import org.appwork.utils.swing.windowmanager.WindowManager;
+import org.appwork.utils.swing.windowmanager.WindowManager.FrameState;
 
 public abstract class BasicGui {
 

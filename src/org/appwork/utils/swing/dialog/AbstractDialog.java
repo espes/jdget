@@ -67,15 +67,15 @@ import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.Base64OutputStream;
 import org.appwork.utils.swing.EDTRunner;
-import org.appwork.utils.swing.WindowManager;
-import org.appwork.utils.swing.WindowManager.FrameState;
 import org.appwork.utils.swing.dialog.dimensor.DialogDimensor;
 import org.appwork.utils.swing.dialog.locator.CenterOfScreenDialogLocator;
 import org.appwork.utils.swing.dialog.locator.DialogLocator;
+import org.appwork.utils.swing.windowmanager.WindowManager;
+import org.appwork.utils.swing.windowmanager.WindowManager.FrameState;
 
 public abstract class AbstractDialog<T> implements ActionListener, WindowListener, OKCancelCloseUserIODefinition, WindowFocusListener {
 
-    protected static int                                    BUTTON_HEIGHT           = -1;
+    protected static int                                  BUTTON_HEIGHT           = -1;
 
     public static DialogLocator                           DEFAULT_LOCATOR         = null;
     public static final DialogLocator                     LOCATE_CENTER_OF_SCREEN = new CenterOfScreenDialogLocator();
@@ -1507,7 +1507,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             @Override
             protected void runInEDT() {
-
+                // getDialog().setVisible(b);
                 WindowManager.getInstance().setVisible(AbstractDialog.this.getDialog(), b, AbstractDialog.this.getWindowStateOnVisible());
 
             }

@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.swing;
+package org.appwork.utils.swing.windowmanager;
 
 import java.awt.Frame;
 import java.awt.Window;
@@ -55,6 +55,8 @@ public abstract class WindowManager {
             return new WindowsWindowManager();
         } else if (CrossSystem.isLinux()) {
             return new LinuxWindowManager();
+        }else if(CrossSystem.isMac()){
+            return new MacWindowManager();
         } else {
             return new DefaultWindowManager();
         }

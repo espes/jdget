@@ -26,8 +26,8 @@ import org.appwork.utils.event.BasicEventSender;
 import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTHelper;
 import org.appwork.utils.swing.EDTRunner;
-import org.appwork.utils.swing.WindowManager;
-import org.appwork.utils.swing.WindowManager.FrameState;
+import org.appwork.utils.swing.windowmanager.WindowManager;
+import org.appwork.utils.swing.windowmanager.WindowManager.FrameState;
 
 /**
  * @author thomas

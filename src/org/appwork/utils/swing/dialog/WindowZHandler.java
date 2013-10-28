@@ -9,7 +9,7 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import org.appwork.utils.swing.WindowManager.FrameState;
+import org.appwork.utils.swing.windowmanager.WindowManager.FrameState;
 
 /**
  * @author Thomas

@@ -11,8 +11,8 @@ package org.appwork.utils.swing.dialog;
 
 import java.awt.Window;
 
-import org.appwork.utils.swing.WindowManager;
-import org.appwork.utils.swing.WindowManager.FrameState;
+import org.appwork.utils.swing.windowmanager.WindowManager;
+import org.appwork.utils.swing.windowmanager.WindowManager.FrameState;
 
 /**
  * @author Thomas

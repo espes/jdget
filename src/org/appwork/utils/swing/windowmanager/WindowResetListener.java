@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.swing;
+package org.appwork.utils.swing.windowmanager;
 
 import java.awt.Component;
 import java.awt.Frame;
@@ -21,7 +21,7 @@ import java.awt.event.WindowListener;
 import org.appwork.swing.ExtJFrame;
 import org.appwork.swing.PropertyStateEventProviderInterface;
 import org.appwork.swing.event.PropertySetListener;
-import org.appwork.utils.swing.WindowManager.FrameState;
+import org.appwork.utils.swing.windowmanager.WindowManager.FrameState;
 
 public class WindowResetListener implements PropertySetListener, HierarchyListener, WindowListener {
 

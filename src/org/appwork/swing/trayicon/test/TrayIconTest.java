@@ -17,8 +17,8 @@ import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
 import org.appwork.swing.trayicon.AWTrayIcon;
-import org.appwork.utils.swing.WindowManager;
-import org.appwork.utils.swing.WindowManager.FrameState;
+import org.appwork.utils.swing.windowmanager.WindowManager;
+import org.appwork.utils.swing.windowmanager.WindowManager.FrameState;
 
 /**
  * @author thomas

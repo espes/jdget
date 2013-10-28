@@ -12,11 +12,17 @@ package org.appwork.swing;
 import java.awt.GraphicsConfiguration;
 import java.awt.HeadlessException;
 import java.awt.Point;
+import java.awt.Window;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
 
 import javax.swing.JFrame;
 
 import org.appwork.swing.event.PropertySetEvent;
 import org.appwork.swing.event.PropertySetEventSender;
+import org.appwork.utils.os.CrossSystem;
 
 /**
  * @author Thomas
@@ -38,6 +44,38 @@ public class ExtJFrame extends JFrame implements PropertyStateEventProviderInter
      */
     public ExtJFrame() throws HeadlessException {
         super();
+        macSpecials();
+
+    }
+
+    /**
+     * 
+     */
+    private void macSpecials() {
+        if (CrossSystem.isMac()) {
+            addWindowStateListener(new WindowStateListener() {
+
+                private boolean oldVisibleState = true;
+
+                @Override
+                public void windowStateChanged(WindowEvent e) {
+
+                    if ((getExtendedState() & JFrame.ICONIFIED) == JFrame.ICONIFIED) {
+                        // there is a bug that caused MAC OS 10.9 under java
+                        // 1.7.0_25-b15 to popup the iconified owner. the
+                        // visible owner
+                        // cannot be used or accessed in any way.
+                        // workaround: setting the frame invisible in iconified
+                        // state should do the job
+                        oldVisibleState = isVisible();
+                        setVisible(false);
+                    } else {
+                        setVisible(oldVisibleState);
+                    }
+
+                }
+            });
+        }
 
     }
 
@@ -46,6 +84,7 @@ public class ExtJFrame extends JFrame implements PropertyStateEventProviderInter
      */
     public ExtJFrame(final GraphicsConfiguration graphicsconfiguration) {
         super(graphicsconfiguration);
+        macSpecials();
 
     }
 
@@ -55,6 +94,7 @@ public class ExtJFrame extends JFrame implements PropertyStateEventProviderInter
      */
     public ExtJFrame(final String s) throws HeadlessException {
         super(s);
+        macSpecials();
     }
 
     /**
@@ -63,6 +103,7 @@ public class ExtJFrame extends JFrame implements PropertyStateEventProviderInter
      */
     public ExtJFrame(final String s, final GraphicsConfiguration graphicsconfiguration) {
         super(s, graphicsconfiguration);
+        macSpecials();
 
     }
 

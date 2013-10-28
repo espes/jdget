@@ -7,7 +7,7 @@
  * see the LICENSE file or http://www.opensource.org/licenses/artistic-license-2.0.php
  * for details
  */
-package org.appwork.utils.swing;
+package org.appwork.utils.swing.windowmanager;
 
 import java.awt.AWTException;
 import java.awt.Component;
@@ -50,7 +50,7 @@ public class WindowsWindowManager extends WindowManager {
 
     private Robot                          robot;
     private String                         blocker;
-    private HashMap<Window, ResetRunnable> runnerMap;
+    protected HashMap<Window, ResetRunnable> runnerMap;
     private int                            foregroundLock       = -1;
     private boolean                        altWorkaroundEnabled = true;
 
@@ -191,7 +191,7 @@ public class WindowsWindowManager extends WindowManager {
     /**
      * @param actionListener
      */
-    private void executeAfterASecond(final ActionListener actionListener) {
+    protected void executeAfterASecond(final ActionListener actionListener) {
         System.out.println("Launch timer");
         final Timer timer = new Timer(1000, actionListener);
         timer.setRepeats(false);
@@ -722,7 +722,7 @@ public class WindowsWindowManager extends WindowManager {
     /**
      * @param w
      */
-    private void requestFocus(final Window w) {
+    protected void requestFocus(final Window w) {
         // if a frame is active, one of its components has the focus, if we da a
         // requestfocus now, these components will lose the focus again
         if (w.getFocusOwner() != null || w.isFocusOwner() || w.isFocused()) { return; }
