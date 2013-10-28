@@ -40,48 +40,48 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * 
      */
-    public static final String                                  SORT_ORDER_ID_KEY   = "SORT_ORDER_ID";
+    public static final String                            SORT_ORDER_ID_KEY   = "SORT_ORDER_ID";
     /**
      * 
      */
-    public static final String                                  SORTCOLUMN_KEY      = "SORTCOLUMN";
+    public static final String                            SORTCOLUMN_KEY      = "SORTCOLUMN";
     /**
      * 
      */
-    private static final long                                   serialVersionUID    = 939549808899567618L;
+    private static final long                             serialVersionUID    = 939549808899567618L;
     /**
      * complete table structure has changed
      */
-    protected static final int                                  UPDATE_STRUCTURE    = 1;
+    protected static final int                            UPDATE_STRUCTURE    = 1;
     /**
      * Column instances
      */
-    protected java.util.List<ExtColumn<E>>                      columns             = new ArrayList<ExtColumn<E>>();
+    protected java.util.List<ExtColumn<E>>                columns             = new ArrayList<ExtColumn<E>>();
 
     /**
      * Modelid to have an seperate key for database savong
      */
-    private final String                                        modelID;
+    private final String                                  modelID;
 
     /**
      * the table that uses this model
      */
-    private ExtTable<E>                                         table               = null;
+    private ExtTable<E>                                   table               = null;
 
     /**
      * a list of objects. Each object represents one table row
      */
-    protected List<E>                                           tableData           = new ArrayList<E>();
+    protected List<E>                                     tableData           = new ArrayList<E>();
 
-    protected ExtColumn<E>                                      sortColumn;
+    protected ExtColumn<E>                                sortColumn;
 
-    private final java.util.List<ExtComponentRowHighlighter<E>> extComponentRowHighlighters;
+    private java.util.List<ExtComponentRowHighlighter<E>> extComponentRowHighlighters;
 
-    private final ImageIcon                                     iconAsc;
-    private final ImageIcon                                     iconDesc;
-    private final PropertyChangeListener                        replaceDelayer;
-    private List<E>                                             delayedNewTableData = null;
-    private boolean                                             debugTableModel     = false;
+    private ImageIcon                                     iconAsc;
+    private ImageIcon                                     iconDesc;
+    private PropertyChangeListener                        replaceDelayer;
+    private List<E>                                       delayedNewTableData = null;
+    private boolean                                       debugTableModel     = false;
 
     /**
      * Create a new ExtTableModel.
@@ -96,9 +96,38 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         super();
         this.extComponentRowHighlighters = new ArrayList<ExtComponentRowHighlighter<E>>();
         this.modelID = id;
-        this.initColumns();
         this.iconAsc = AWUTheme.I().getIcon("exttable/sortAsc", -1);
         this.iconDesc = AWUTheme.I().getIcon("exttable/sortDesc", -1);
+        initModel();
+        /**
+         * we use this PropertyChangeListener to avoid tableRefresh while the
+         * table is in editing mode
+         **/
+        this.replaceDelayer = new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(final PropertyChangeEvent evt) {
+                if ("tableCellEditor".equalsIgnoreCase(evt.getPropertyName()) && evt.getNewValue() == null) {
+                    /*
+                     * tableCellEditor is null again, now we can refresh the
+                     * TableData and Selection
+                     */
+                    final ExtTable<E> ltable = ExtTableModel.this.getTable();
+                    if (ltable != null) {
+                        ltable.removePropertyChangeListener(this);
+                    }
+
+                    ExtTableModel.this._replaceTableData(ExtTableModel.this.delayedNewTableData, false);
+                }
+            }
+
+        };
+    }
+
+    protected void initModel() {
+
+        this.initColumns();
+
         final ExtColumn<E> defSortColumn = this.getDefaultSortColumn();
         String columnId = defSortColumn == null ? null : defSortColumn.getID();
         String columnSortMode = null;
@@ -126,29 +155,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                 }
             }
         }
-        /**
-         * we use this PropertyChangeListener to avoid tableRefresh while the
-         * table is in editing mode
-         **/
-        this.replaceDelayer = new PropertyChangeListener() {
 
-            @Override
-            public void propertyChange(final PropertyChangeEvent evt) {
-                if ("tableCellEditor".equalsIgnoreCase(evt.getPropertyName()) && evt.getNewValue() == null) {
-                    /*
-                     * tableCellEditor is null again, now we can refresh the
-                     * TableData and Selection
-                     */
-                    final ExtTable<E> ltable = ExtTableModel.this.getTable();
-                    if (ltable != null) {
-                        ltable.removePropertyChangeListener(this);
-                    }
-
-                    ExtTableModel.this._replaceTableData(ExtTableModel.this.delayedNewTableData, false);
-                }
-            }
-
-        };
     }
 
     public void _fireTableStructureChanged(final List<E> newtableData, final boolean refreshSort) {
@@ -995,6 +1002,4 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         return data;
     }
 
-
-  
 }
