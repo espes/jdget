@@ -154,7 +154,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         private void auto() {
             if (!SearchComboBox.this.isAutoCompletionEnabled()) { return; }
             if (this.valueSetter.get() > 0) { return; }
-            System.out.println(1);
+     
             // scheduler executes at least 50 ms after this submit.
             // this.sheduler.run();
             SwingUtilities.invokeLater(new Runnable() {

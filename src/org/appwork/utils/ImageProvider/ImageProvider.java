@@ -197,11 +197,15 @@ public class ImageProvider {
      * @param icon
      * @return
      */
-    public static Icon getDisabledIcon(final Icon icon) {
+    public static Icon getDisabledIcon( Icon icon) {
         if (icon == null) { return null; }
         final MinTimeWeakReference<Icon> cache = ImageProvider.DISABLED_ICON_CACHE.get(icon);
         Icon ret = cache == null ? null : cache.get();
         if (ret != null) { return ret; }
+        if(!(icon instanceof ImageIcon)){
+            //getDisabledIcon only works for imageicons
+            icon=toImageIcon(icon);
+        }
         ret = UIManager.getLookAndFeel().getDisabledIcon(null, icon);
         ImageProvider.DISABLED_ICON_CACHE.put(icon, new MinTimeWeakReference<Icon>(ret, ImageProvider.MIN_LIFETIME, "disabled icon"));
         return ret;
@@ -528,6 +532,8 @@ public class ImageProvider {
             final GraphicsConfiguration gc = gd.getDefaultConfiguration();
             final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.BITMASK);
             final Graphics2D g = image.createGraphics();
+//            g.setColor(Color.RED);
+//            g.fillRect(0, 0, w, h);
             icon.paintIcon(null, g, 0, 0);
             g.dispose();
             return new ImageIcon(image);

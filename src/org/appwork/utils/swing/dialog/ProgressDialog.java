@@ -194,7 +194,7 @@ return textField;
         }
         System.out.println(getTextfield().getPreferredSize());
         System.out.println(bar.getPreferredSize());
-//        System.out.println(1);
+
         System.out.println(p.getPreferredSize());
         updater = new Timer(50, new ActionListener() {
 

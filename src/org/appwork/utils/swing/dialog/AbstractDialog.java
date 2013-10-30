@@ -1172,7 +1172,9 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @return
      */
     protected boolean isVisible() {
-        // TODO Auto-generated method stub
+        if (dialog == null) {
+            return false;
+        }
         return this.getDialog().isVisible();
     }
 
