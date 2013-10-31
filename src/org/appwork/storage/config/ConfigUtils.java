@@ -55,7 +55,7 @@ public class ConfigUtils {
                 continue;
             }
             strBuild.append("\r\n");
-            strBuild.append("// " + kh);
+        
             // String key = kh.getKey();
             final String methodname = kh.getGetter().getMethod().getName().startsWith("is") ? kh.getGetter().getMethod().getName().substring(2) : kh.getGetter().getMethod().getName().substring(3);
             final StringBuilder sb = new StringBuilder();
