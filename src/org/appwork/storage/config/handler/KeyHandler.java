@@ -73,9 +73,11 @@ public abstract class KeyHandler<RawClass> {
         this.storageHandler = storageHandler;
         this.key = key;
         // get parent crypt infos
-        this.crypted = storageHandler.isCrypted();
-        this.cryptKey = storageHandler.getKey();
-        this.primitiveStorage = storageHandler.primitiveStorage;
+        if (storageHandler != null) {
+            this.crypted = storageHandler.isCrypted();
+            this.cryptKey = storageHandler.getKey();
+            this.primitiveStorage = storageHandler.primitiveStorage;
+        }
 
         // this.refQueue = new ReferenceQueue<Object>();
 
@@ -141,8 +143,10 @@ public abstract class KeyHandler<RawClass> {
      * @param keyHandler
      * @param object
      */
-    private void fireEvent(final Types type, final KeyHandler<?> keyHandler, final Object parameter) {
+    protected void fireEvent(final Types type, final KeyHandler<?> keyHandler, final Object parameter) {
+      if(storageHandler!=null) {
         this.storageHandler.fireEvent(type, keyHandler, parameter);
+    }
         if (this.eventSender != null) {
             this.eventSender.fireEvent(new ConfigEvent(type, this, parameter));
         }
@@ -347,14 +351,14 @@ public abstract class KeyHandler<RawClass> {
         }
 
         try {
-            ValidatorFactory anno = (ValidatorFactory) this.getAnnotation(ValidatorFactory.class);
+            final ValidatorFactory anno = this.getAnnotation(ValidatorFactory.class);
             if (anno != null) {
                 this.validatorFactory = (AbstractValidator<RawClass>) anno.value().newInstance();
             }
         } catch (final Throwable e) {
         }
         try {
-            CustomValueGetter anno = this.getAnnotation(CustomValueGetter.class);
+            final CustomValueGetter anno = this.getAnnotation(CustomValueGetter.class);
             if (anno != null) {
                 this.customValueGetter = (AbstractCustomValueGetter<RawClass>) anno.value().newInstance();
             }

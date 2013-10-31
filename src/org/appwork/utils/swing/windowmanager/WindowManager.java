@@ -55,7 +55,7 @@ public abstract class WindowManager {
             return new WindowsWindowManager();
         } else if (CrossSystem.isLinux()) {
             return new LinuxWindowManager();
-        }else if(CrossSystem.isMac()){
+        } else if (CrossSystem.isMac()) {
             return new MacWindowManager();
         } else {
             return new DefaultWindowManager();
@@ -139,6 +139,18 @@ public abstract class WindowManager {
     public void show(final Window w, final FrameState state) {
         this.setVisible(w, true, state);
 
+    }
+
+    /**
+     * @return
+     */
+    public boolean hasFocus() {
+        for (final Window w : Window.getWindows()) {
+            if (hasFocus(w)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
