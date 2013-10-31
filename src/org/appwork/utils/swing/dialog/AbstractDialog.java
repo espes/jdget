@@ -772,12 +772,15 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     @Override
     public CloseReason getCloseReason() {
-        if (this.getReturnmask() == 0) { throw new IllegalStateException("Dialog has not been closed yet"); }
+        final int rm = this.getReturnmask();
+        if (rm == 0) { throw new IllegalStateException("Dialog has not been closed yet"); }
 
-        if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_TIMEOUT)) { return CloseReason.TIMEOUT; }
-        if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
-        if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_CANCEL)) { return CloseReason.CANCEL; }
-        if (BinaryLogic.containsSome(this.getReturnmask(), Dialog.RETURN_OK)) { return CloseReason.OK; }
+        if (BinaryLogic.containsSome(rm, Dialog.RETURN_TIMEOUT)) { return CloseReason.TIMEOUT; }
+        if (BinaryLogic.containsSome(rm, Dialog.RETURN_INTERRUPT)) { return CloseReason.INTERRUPT; }
+        if (BinaryLogic.containsSome(rm, Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
+        if (BinaryLogic.containsSome(rm, Dialog.RETURN_CANCEL)) { return CloseReason.CANCEL; }
+        if (BinaryLogic.containsSome(rm, Dialog.RETURN_OK)) { return CloseReason.OK; }
+   
 
         throw new WTFException();
 
