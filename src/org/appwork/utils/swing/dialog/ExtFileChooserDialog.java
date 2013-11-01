@@ -353,15 +353,9 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @return
      */
     protected boolean isAllowedPath(final String path) {
-        if (path.equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP)) {
-            return false;
-        }
-        if (path.equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
-            return false;
-        }
-        if (path.equals(_AWU.T.DIALOG_FILECHOOSER_networkfolder())) {
-            return false;
-        }
+        if (path.equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP)) { return false; }
+        if (path.equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) { return false; }
+        if (path.equals(_AWU.T.DIALOG_FILECHOOSER_networkfolder())) { return false; }
         return true;
     }
 
@@ -755,6 +749,10 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
             presel = StringUtils.isEmpty(path) ? null : new File(path);
 
         }
+        if (presel == null) {
+            presel = new File(System.getProperty("user.home"), "documents");
+        }
+  
         final File orgPresel = presel;
         while (presel != null) {
             if (!presel.exists()) {
@@ -890,7 +888,6 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                             public void run() {
                                 final String txt = getText();
                                 try {
-                                  
 
                                     File f = getFile(txt);
 
@@ -930,7 +927,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
                                 } finally {
                                     updateButtonsAndText(txt);
-                                   
+
                                 }
                             }
 
