@@ -339,13 +339,39 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                 return new File[] { f };
             }
         } finally {
+            // try {
+            // getIDConfig().setLastSelection(fc.getCurrentDirectory().getAbsolutePath());
+            // } catch (final Exception e) {
+            // // may throw nullpointers
+            // }
+        }
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.swing.dialog.AbstractDialog#setDisposed(boolean)
+     */
+    @Override
+    protected void setDisposed(boolean b) {
+        if (b) {
             try {
-                getIDConfig().setLastSelection(fc.getCurrentDirectory().getAbsolutePath());
+                File[] files = createReturnValue();
+
+                if (files.length > 0) {
+                    File file = files[0];
+                    if (file.isFile()) file = file.getParentFile();
+
+                    getIDConfig().setLastSelection(file.getAbsolutePath());
+
+                }
+
             } catch (final Exception e) {
                 // may throw nullpointers
             }
         }
-
+        super.setDisposed(b);
     }
 
     /**
@@ -443,7 +469,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
     /**
      * @return
      */
-    private ExtFileChooserIdConfig getIDConfig() {
+    protected ExtFileChooserIdConfig getIDConfig() {
 
         final File path = Application.getResource("cfg/FileChooser/" + getStorageID());
         path.getParentFile().mkdirs();
@@ -752,7 +778,7 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
         if (presel == null) {
             presel = new File(System.getProperty("user.home"), "documents");
         }
-  
+
         final File orgPresel = presel;
         while (presel != null) {
             if (!presel.exists()) {
