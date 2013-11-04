@@ -351,8 +351,6 @@ public class HTMLParser {
 
     final private static Pattern                tagsPattern                 = Pattern.compile(".*<.*>.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    final private static Pattern                protocolPattern2            = Pattern.compile("^\"?(" + HTMLParser.protocolPattern + "://|www\\.).*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-
     final private static Pattern                spacePattern                = Pattern.compile("\\s", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern                singleSpacePattern          = Pattern.compile(" ", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern                space2Pattern               = Pattern.compile(".*\\s.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -430,18 +428,21 @@ public class HTMLParser {
         if (data == null || (data = data.trim()).length() == 0) { return results; }
         if (!data.matches(HTMLParser.tagsPattern)) {
             final int c = new Regex(data, HTMLParser.pat1).count();
+            String protocol = null;
             if (c == 0) {
                 if (!data.matches(HTMLParser.checkPatternHREFSRC)) {
                     /* no href inside */
                     return results;
                 }
-            } else if (c == 1 && data.length() < 100 && data.matches(HTMLParser.protocolPattern2)) {
-                if (data.startsWith("file://")) {
+            } else if (c == 1 && data.length() < 256 && (protocol = HTMLParser.getProtocol(data.toString())) != null) {
+                if (protocol.startsWith("file://")) {
                     results.add(data.replaceAll(HTMLParser.spacePattern, "%20").getStringCopy());
+                    return results;
                 } else {
                     final HtmlParserCharSequence link = data.replaceFirst(HTMLParser.hdotsPattern, "http://").replaceFirst(HTMLParser.missingHTTPPattern, "http://www.").replaceAll(HTMLParser.removeTagsPattern, "");
                     if (!link.matches(HTMLParser.space2Pattern)) {
                         results.add(HTMLParser.correctURL(link).getStringCopy());
+                        return results;
                     }
                 }
             }
