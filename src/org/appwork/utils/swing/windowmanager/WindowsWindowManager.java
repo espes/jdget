@@ -355,7 +355,7 @@ public class WindowsWindowManager extends WindowManager {
             return;
         }
 
-        System.out.println("Focus: " + state);
+//        System.out.println("Focus: " + state);
 
         addDebugListener(w);
 
@@ -406,7 +406,7 @@ public class WindowsWindowManager extends WindowManager {
         } else {
             setVisibleInternal(w, false);
         }
-        System.out.println("SetVisible Returns");
+   
     }
 
     /**
@@ -711,7 +711,7 @@ public class WindowsWindowManager extends WindowManager {
 
         blocker = ExtJFrame.PROPERTY_VISIBLE;
         try {
-            System.out.println("Call setVisible " + b);
+//            System.out.println("Call setVisible " + b);
             w.setVisible(b);
         } finally {
             blocker = null;

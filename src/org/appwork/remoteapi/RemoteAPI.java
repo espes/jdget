@@ -122,7 +122,7 @@ public class RemoteAPI implements HttpRequestHandler {
 
             @Override
             public void close() throws IOException {
-                this.wrapperEnd();
+                wrapperEnd();
                 if (out != null) {
                     out.finish();
                     out.flush();
@@ -136,29 +136,29 @@ public class RemoteAPI implements HttpRequestHandler {
             }
 
             private void wrapperEnd() throws UnsupportedEncodingException, IOException {
-                if (this.wrapperEnd) {
+                if (wrapperEnd) {
                     uos.write(")".getBytes("UTF-8"));
-                    this.wrapperEnd = false;
+                    wrapperEnd = false;
                 }
             }
 
             private void wrapperHeader() throws UnsupportedEncodingException, IOException {
-                if (this.wrapperHeader) {
+                if (wrapperHeader) {
                     uos.write(request.getJqueryCallback().getBytes("UTF-8"));
                     uos.write("(".getBytes("UTF-8"));
-                    this.wrapperHeader = false;
+                    wrapperHeader = false;
                 }
             }
 
             @Override
             public void write(final byte[] b) throws IOException {
-                this.wrapperHeader();
+                wrapperHeader();
                 uos.write(b);
             }
 
             @Override
             public void write(final int b) throws IOException {
-                this.wrapperHeader();
+                wrapperHeader();
                 uos.write(b);
             }
         };
@@ -231,7 +231,7 @@ public class RemoteAPI implements HttpRequestHandler {
         try {
             if (method == null) { throw new ApiCommandNotAvailable(); }
 
-            this.authenticate(method, request, response);
+            authenticate(method, request, response);
 
             final Object[] parameters = new Object[method.getParameterTypes().length];
             boolean methodHasReturnTypeAndAResponseParameter = false;
@@ -267,7 +267,7 @@ public class RemoteAPI implements HttpRequestHandler {
                  */
                 return;
             }
-            this.writeResponse(responseData, method, request, response);
+            writeResponse(responseData, method, request, response);
         } catch (final BasicRemoteAPIException e) {
             // set request and response if it has not set yet
             if (e.getRequest() == null) {
@@ -333,7 +333,7 @@ public class RemoteAPI implements HttpRequestHandler {
         if (intf[1] == null) {
             intf[1] = "";
         }
-        interfaceHandler = this.interfaces.get(intf[1]);
+        interfaceHandler = interfaces.get(intf[1]);
         if (interfaceHandler == null) { return null; }
         final java.util.List<String> parameters = new ArrayList<String>();
         String jqueryCallback = null;
@@ -438,16 +438,16 @@ public class RemoteAPI implements HttpRequestHandler {
      * @return
      */
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
-        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
-        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response, this));
+        final RemoteAPIRequest apiRequest = getInterfaceHandler(request);
+        if (apiRequest == null) { return onUnknownRequest(request, response); }
+        _handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response, this));
         return true;
     }
 
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
-        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
-        this._handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response, this));
+        final RemoteAPIRequest apiRequest = getInterfaceHandler(request);
+        if (apiRequest == null) { return onUnknownRequest(request, response); }
+        _handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response, this));
         return true;
     }
 
@@ -490,7 +490,7 @@ public class RemoteAPI implements HttpRequestHandler {
                         // "->" + namespace);
                         // try {
 
-                        System.out.println("Register:   " + c.getName() + "->" + namespace);
+//                        System.out.println("Register:   " + c.getName() + "->" + namespace);
                         try {
                             InterfaceHandler<RemoteAPIInterface> handler = linterfaces.get(namespace);
                             if (handler == null) {
@@ -569,14 +569,14 @@ public class RemoteAPI implements HttpRequestHandler {
     public void writeResponse(Object responseData, final Method method, final RemoteAPIRequest request, final RemoteAPIResponse response) throws BasicRemoteAPIException {
         try {
             String text = null;
-            responseData = this.handleVoidMethods(responseData, method);
+            responseData = handleVoidMethods(responseData, method);
             if (method.getAnnotation(ResponseWrapper.class) != null) {
                 text = ((AbstractResponseWrapper<Object>) method.getAnnotation(ResponseWrapper.class).value().newInstance()).toString(responseData);
             } else {
                 text = this.toString(request, response, responseData);
             }
-            text = this.jQueryWrap(request, text);
-            this.sendText(request, response, text);
+            text = jQueryWrap(request, text);
+            sendText(request, response, text);
         } catch (final Throwable e) {
             e.printStackTrace();
             final InternalApiException internal = new InternalApiException(e);

@@ -87,7 +87,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                                                                                       @Override
                                                                                       public Window findDialogOwner(final AbstractDialog<?> dialogModel, final WindowStack windowStack) {
                                                                                           final Window ret = windowStack.size() == 0 ? null : windowStack.get(windowStack.size() - 1);
-                                                                                          System.out.println("Dialog Owner: " + ret);
+                                                                                       
                                                                                           return ret;
                                                                                       }
 
