@@ -106,9 +106,9 @@ public class HTTPProxy {
             return HTTPProxy.NONE;
         case DIRECT:
             ret = new HTTPProxy(TYPE.DIRECT);
-            if (ret.getHost() != null) {
+            if (storable.getAddress() != null) {
                 try {
-                    final InetAddress ip = InetAddress.getByName(ret.getHost());
+                    final InetAddress ip = InetAddress.getByName(storable.getAddress());
                     ret.setLocalIP(ip);
                 } catch (final Throwable e) {
                     e.printStackTrace();
@@ -120,14 +120,14 @@ public class HTTPProxy {
             break;
         case HTTP:
             ret = new HTTPProxy(TYPE.HTTP);
-            ret.host = storable.getAddress();
+            ret.setHost(storable.getAddress());
             break;
         case SOCKS4:
             ret = new HTTPProxy(TYPE.SOCKS4);
-            ret.host = storable.getAddress();
+            ret.setHost(storable.getAddress());
         case SOCKS5:
             ret = new HTTPProxy(TYPE.SOCKS5);
-            ret.host = storable.getAddress();
+            ret.setHost(storable.getAddress());
             break;
         }
         ret.setPreferNativeImplementation(storable.isPreferNativeImplementation());
