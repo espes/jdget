@@ -324,7 +324,7 @@ public class HTMLParser {
 
     static {
         try {
-            HTMLParser.mp = Pattern.compile("(" + HTMLParser.protocolPattern + "|www\\.).+?(?=((\\s*" + HTMLParser.protocolPattern + "|\\s*www\\.)|<|>|\r|\n|\f|\t|$|\"|';|'\\)|'\\+|\\)))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+            HTMLParser.mp = Pattern.compile("(" + HTMLParser.protocolPattern + "|www\\.).+?(?=((\\s*" + HTMLParser.protocolPattern + ")|<|>|\r|\n|\f|\t|$|\"|';|'\\)|'\\+|\\)))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
         } catch (final Throwable e) {
             Log.exception(e);
         }
