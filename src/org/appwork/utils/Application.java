@@ -175,10 +175,14 @@ public class Application {
     public static long getJavaVersion() {
         if (Application.javaVersion > 0) { return Application.javaVersion; }
         try {
-            final String version = System.getProperty("java.version");
+            /* this version info contains more information */
+            String version = System.getProperty("java.runtime.version");
+            if (version == null || version.trim().length() == 0) {
+                version = System.getProperty("java.version");
+            }
             String v = new Regex(version, "^(\\d+\\.\\d+\\.\\d+)").getMatch(0);
             final String u = new Regex(version, "^.*?_(\\d+)").getMatch(0);
-            final String b = new Regex(version, "^.*?_b(\\d+)").getMatch(0);
+            final String b = new Regex(version, "^.*?(_|-)b(\\d+)$").getMatch(1);
             v = v.replaceAll("\\.", "");
             /* 170uubbb */
             /* eg 1.6 = 16000000 */
