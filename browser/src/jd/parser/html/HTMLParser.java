@@ -324,7 +324,7 @@ public class HTMLParser {
 
     static {
         try {
-            HTMLParser.mp = Pattern.compile("(" + HTMLParser.protocolPattern + "|www\\.).+?(?=((\\s*" + HTMLParser.protocolPattern + ")|<|>|\r|\n|\f|\t|$|\"|';|'\\)|'\\+|\\)))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+            HTMLParser.mp = Pattern.compile("(\"|')?(" + HTMLParser.protocolPattern + "|www\\.).+?(?=((\\s*" + HTMLParser.protocolPattern + ")|<|>|\r|\n|\f|\t|$|(\\1)|';|'\\)|'\\+|\\)))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
         } catch (final Throwable e) {
             Log.exception(e);
         }
@@ -339,7 +339,7 @@ public class HTMLParser {
 
     final private static Pattern                paramsCut2                  = Pattern.compile("://[^\r\n]*?/[^\r\n]*?\\?(.*?)($|\r|\n)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
-    private static final Pattern                inTagsPattern               = Pattern.compile("<(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern                inTagsPattern               = Pattern.compile("<([^<]*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     final private static Pattern                endTagPattern               = Pattern.compile("^(.*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
@@ -779,7 +779,7 @@ public class HTMLParser {
         // not needed here because our filter below will take care of them
         // data = data.replaceAll("(?i)<span.*?>", "");
         // data = data.replaceAll("(?i)</span.*?>", "");
-        data = data.replaceAll("(?s)\\[(url|link)\\](.*?)\\[/(url|link)\\]", "<$2>");
+        data = data.replaceAll("(?s)\\[(url|link)\\](.*?)\\[/(\\2)\\]", "<$2>");
         final HtmlParserResultSet results = new HtmlParserResultSet();
         HTMLParser._getHttpLinksWalker(new HtmlParserCharSequence(data), url, results, null);
         /* we don't want baseurl to be included in result set */
