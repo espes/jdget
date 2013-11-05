@@ -80,7 +80,7 @@ public class PathChooser extends MigPanel {
     }
 
     public PathChooser(final String id, final boolean useQuickLIst) {
-        super("ins 0", "[grow,fill][]", "[grow,fill]");
+        super("ins 0", "[fill,grow][]", "[]");
         this.id = id;
         setOpaque(false);
         txt = new ExtTextField() {

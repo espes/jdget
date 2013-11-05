@@ -105,6 +105,8 @@ public abstract class SearchComboBox<T> extends JComboBox {
                 public void focusLost(final FocusEvent e) {
                     // TODO Auto-generated method stub
                     hidePopup();
+                    //to replaint the focus hilight
+                    repaint();
 
                 }
             });
