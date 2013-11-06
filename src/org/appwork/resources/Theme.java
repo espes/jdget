@@ -24,6 +24,7 @@ import javax.swing.ImageIcon;
 import javax.swing.UIManager;
 
 import org.appwork.storage.config.MinTimeWeakReference;
+import org.appwork.storage.config.MinTimeWeakReferenceCleanup;
 import org.appwork.utils.Application;
 import org.appwork.utils.IO;
 import org.appwork.utils.images.IconIO;
@@ -35,7 +36,7 @@ import org.appwork.utils.logging.Log;
  * @author thomas
  * 
  */
-public class Theme {
+public class Theme implements MinTimeWeakReferenceCleanup {
     private String                                                   path;
 
     // private final HashMap<String, MinTimeWeakReference<BufferedImage>>
@@ -55,24 +56,26 @@ public class Theme {
     }
 
     public void cache(final ImageIcon ret, final String key) {
-        this.imageIconCache.put(key, new MinTimeWeakReference<ImageIcon>(ret, this.getCacheLifetime(), key));
+        synchronized (this.imageIconCache) {
+            this.imageIconCache.put(key, new MinTimeWeakReference<ImageIcon>(ret, this.getCacheLifetime(), key, this));
+        }
     }
 
     /**
      * 
      */
     public void clearCache() {
-        this.imageIconCache.clear();
-    }
-
-    public boolean hasIcon(String string) {
-        return getURL("images/", string, ".png") != null;
+        synchronized (this.imageIconCache) {
+            this.imageIconCache.clear();
+        }
     }
 
     public ImageIcon getCached(final String key) {
-        final MinTimeWeakReference<ImageIcon> cache = this.imageIconCache.get(key);
-        if (cache != null) { return cache.get(); }
-        return null;
+        synchronized (this.imageIconCache) {
+            final MinTimeWeakReference<ImageIcon> cache = this.imageIconCache.get(key);
+            if (cache != null) { return cache.get(); }
+            return null;
+        }
     }
 
     /**
@@ -262,6 +265,24 @@ public class Theme {
             url = Theme.class.getResource(this.getDefaultPath(pre, relativePath, ext));
         }
         return url;
+    }
+
+    public boolean hasIcon(final String string) {
+        return this.getURL("images/", string, ".png") != null;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.storage.config.MinTimeWeakReferenceCleanup#
+     * onMinTimeWeakReferenceCleanup
+     * (org.appwork.storage.config.MinTimeWeakReference)
+     */
+    @Override
+    public void onMinTimeWeakReferenceCleanup(final MinTimeWeakReference<?> minTimeWeakReference) {
+        synchronized (this.imageIconCache) {
+            this.imageIconCache.remove(minTimeWeakReference.getID());
+        }
     }
 
     public void setCacheLifetime(final long cacheLifetime) {

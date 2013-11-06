@@ -45,15 +45,7 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
         this(name, null);
 
     }
-    public boolean onRenameClick(final MouseEvent e, final E obj) {
-        if (isEditable(obj)) {
-            startEditing(obj);
-            return true;
-        } else {
-            return super.onRenameClick(e, obj);
-        }
 
-    }
     public ExtTextAreaColumn(final String name, final ExtTableModel<E> table) {
         super(name, table);
         this.txt = new JTextArea();
@@ -256,6 +248,17 @@ public abstract class ExtTextAreaColumn<E> extends ExtColumn<E> implements Actio
     @Override
     public boolean matchSearch(final E object, final Pattern pattern) {
         return pattern.matcher(this.getStringValue(object)).matches();
+    }
+
+    @Override
+    public boolean onRenameClick(final MouseEvent e, final E obj) {
+        if (this.isEditable(obj)) {
+            this.startEditing(obj);
+            return true;
+        } else {
+            return super.onRenameClick(e, obj);
+        }
+
     }
 
     @Override

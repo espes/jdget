@@ -131,7 +131,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
     public StorageHandler(final File name, final Class<T> configInterface) {
 
-        if (!StorageHandler.DUPE_SET.add(configInterface.getName() + "." + name.getAbsolutePath())) { throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice"); }
+        if (!StorageHandler.DUPE_SET.add(configInterface.getName() + "." + name.getAbsolutePath())) {
+            //
+            throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice");
+        }
         final InitHook initHook = configInterface.getAnnotation(InitHook.class);
         if (initHook != null) {
             try {

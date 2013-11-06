@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.WeakHashMap;
 import java.util.logging.Level;
 
 import javax.imageio.IIOException;
@@ -36,6 +37,7 @@ import javax.swing.ImageIcon;
 import javax.swing.UIManager;
 
 import org.appwork.storage.config.MinTimeWeakReference;
+import org.appwork.storage.config.MinTimeWeakReferenceCleanup;
 import org.appwork.utils.Application;
 import org.appwork.utils.logging.Log;
 
@@ -48,15 +50,33 @@ import sun.awt.image.ToolkitImage;
  * 
  */
 public class ImageProvider {
-    private static final long                                           MIN_LIFETIME        = 20000l;
+    private static final long                                           MIN_LIFETIME            = 20000l;
     /**
      * Hashcashmap to cache images.
      */
-    private static HashMap<String, MinTimeWeakReference<BufferedImage>> IMAGE_CACHE         = new HashMap<String, MinTimeWeakReference<BufferedImage>>();
-    private static HashMap<String, MinTimeWeakReference<ImageIcon>>     IMAGEICON_CACHE     = new HashMap<String, MinTimeWeakReference<ImageIcon>>();
-    private static HashMap<Icon, MinTimeWeakReference<Icon>>            DISABLED_ICON_CACHE = new HashMap<Icon, MinTimeWeakReference<Icon>>();
+    private static HashMap<String, MinTimeWeakReference<BufferedImage>> IMAGE_CACHE             = new HashMap<String, MinTimeWeakReference<BufferedImage>>();
+    private static MinTimeWeakReferenceCleanup                          IMAGE_CACHE_CLEANUP     = new MinTimeWeakReferenceCleanup() {
 
-    private static Object                                               LOCK                = new Object();
+                                                                                                    @Override
+                                                                                                    public void onMinTimeWeakReferenceCleanup(final MinTimeWeakReference<?> minTimeWeakReference) {
+                                                                                                        synchronized (ImageProvider.LOCK) {
+                                                                                                            ImageProvider.IMAGE_CACHE.remove(minTimeWeakReference.getID());
+                                                                                                        }
+                                                                                                    }
+                                                                                                };
+    private static HashMap<String, MinTimeWeakReference<ImageIcon>>     IMAGEICON_CACHE         = new HashMap<String, MinTimeWeakReference<ImageIcon>>();
+    private static MinTimeWeakReferenceCleanup                          IMAGEICON_CACHE_CLEANUP = new MinTimeWeakReferenceCleanup() {
+
+                                                                                                    @Override
+                                                                                                    public void onMinTimeWeakReferenceCleanup(final MinTimeWeakReference<?> minTimeWeakReference) {
+                                                                                                        synchronized (ImageProvider.LOCK) {
+                                                                                                            ImageProvider.IMAGEICON_CACHE.remove(minTimeWeakReference.getID());
+                                                                                                        }
+                                                                                                    }
+                                                                                                };
+    private static WeakHashMap<Icon, MinTimeWeakReference<Icon>>        DISABLED_ICON_CACHE     = new WeakHashMap<Icon, MinTimeWeakReference<Icon>>();
+
+    private static Object                                               LOCK                    = new Object();
     // stringbuilder die concat strings fast
 
     static {
@@ -172,7 +192,7 @@ public class ImageProvider {
                         // Log.exception(new Throwable("BIG IMAGE IN CACHE: " +
                         // name));
                     }
-                    ImageProvider.IMAGE_CACHE.put(name, new MinTimeWeakReference<BufferedImage>(image, ImageProvider.MIN_LIFETIME, name));
+                    ImageProvider.IMAGE_CACHE.put(name, new MinTimeWeakReference<BufferedImage>(image, ImageProvider.MIN_LIFETIME, name, ImageProvider.IMAGE_CACHE_CLEANUP));
                 }
                 return image;
             } catch (final IOException e) {
@@ -197,18 +217,20 @@ public class ImageProvider {
      * @param icon
      * @return
      */
-    public static Icon getDisabledIcon( Icon icon) {
+    public static Icon getDisabledIcon(Icon icon) {
         if (icon == null) { return null; }
-        final MinTimeWeakReference<Icon> cache = ImageProvider.DISABLED_ICON_CACHE.get(icon);
-        Icon ret = cache == null ? null : cache.get();
-        if (ret != null) { return ret; }
-        if(!(icon instanceof ImageIcon)){
-            //getDisabledIcon only works for imageicons
-            icon=toImageIcon(icon);
+        synchronized (ImageProvider.LOCK) {
+            final MinTimeWeakReference<Icon> cache = ImageProvider.DISABLED_ICON_CACHE.get(icon);
+            Icon ret = cache == null ? null : cache.get();
+            if (ret != null) { return ret; }
+            if (!(icon instanceof ImageIcon)) {
+                // getDisabledIcon only works for imageicons
+                icon = ImageProvider.toImageIcon(icon);
+            }
+            ret = UIManager.getLookAndFeel().getDisabledIcon(null, icon);
+            ImageProvider.DISABLED_ICON_CACHE.put(icon, new MinTimeWeakReference<Icon>(ret, ImageProvider.MIN_LIFETIME, "disabled icon"));
+            return ret;
         }
-        ret = UIManager.getLookAndFeel().getDisabledIcon(null, icon);
-        ImageProvider.DISABLED_ICON_CACHE.put(icon, new MinTimeWeakReference<Icon>(ret, ImageProvider.MIN_LIFETIME, "disabled icon"));
-        return ret;
     }
 
     /**
@@ -269,7 +291,7 @@ public class ImageProvider {
             final BufferedImage referencelessVersion = ImageProvider.dereferenceImage(scaledWithFuckingReference);
             final ImageIcon imageicon = new ImageIcon(referencelessVersion);
             if (putIntoCache) {
-                ImageProvider.IMAGEICON_CACHE.put(key, new MinTimeWeakReference<ImageIcon>(imageicon, ImageProvider.MIN_LIFETIME, key));
+                ImageProvider.IMAGEICON_CACHE.put(key, new MinTimeWeakReference<ImageIcon>(imageicon, ImageProvider.MIN_LIFETIME, key, ImageProvider.IMAGEICON_CACHE_CLEANUP));
             }
             return imageicon;
         }
@@ -532,8 +554,8 @@ public class ImageProvider {
             final GraphicsConfiguration gc = gd.getDefaultConfiguration();
             final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.BITMASK);
             final Graphics2D g = image.createGraphics();
-//            g.setColor(Color.RED);
-//            g.fillRect(0, 0, w, h);
+            // g.setColor(Color.RED);
+            // g.fillRect(0, 0, w, h);
             icon.paintIcon(null, g, 0, 0);
             g.dispose();
             return new ImageIcon(image);

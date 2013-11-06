@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.appwork.exceptions.WTFException;
@@ -43,6 +44,38 @@ public class JsonKeyValueStorage extends Storage {
         this.map.putAll(load);
     }
 
+    /**
+     * @param file
+     * @param resource
+     * @param b
+     * @param key2
+     */
+    public JsonKeyValueStorage(final File file, final URL resource, final boolean plain, final byte[] key) {
+        this.map = new HashMap<String, Object>();
+        this.plain = plain;
+        this.file = file;
+        this.name = file.getName();
+        this.key = key;
+
+        if (resource != null) {
+            Log.L.info("Load JSon Storage from Classpath url: " + resource);
+            try {
+                final HashMap<String, Object> load = JSonStorage.restoreFromString(IO.readURL(resource), plain, key, new TypeRef<HashMap<String, Object>>() {
+                }, new HashMap<String, Object>());
+                this.map.putAll(load);
+            } catch (final IOException e) {
+                throw new WTFException(e);
+            }
+        }
+        if (file.exists()) {
+            Log.L.info("Prefer (merged) JSon Storage from File: " + file);
+            final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
+            }, new HashMap<String, Object>());
+
+            this.map.putAll(load);
+        }
+    }
+
     public JsonKeyValueStorage(final String name) throws StorageException {
         this(name, false);
     }
@@ -64,38 +97,6 @@ public class JsonKeyValueStorage extends Storage {
         }, new HashMap<String, Object>());
         // Log.L.finer(JSonStorage.toString(load));
         this.map.putAll(load);
-    }
-
-    /**
-     * @param file
-     * @param resource
-     * @param b
-     * @param key2
-     */
-    public JsonKeyValueStorage(File file, URL resource, boolean plain, byte[] key) {
-        this.map = new HashMap<String, Object>();
-        this.plain = plain;
-        this.file = file;
-        this.name = file.getName();
-        this.key = key;
-
-        if (resource != null) {
-            Log.L.info("Load JSon Storage from Classpath url: " + resource);
-            try {
-                final HashMap<String, Object> load = JSonStorage.restoreFromString(IO.readURL(resource), plain, key, new TypeRef<HashMap<String, Object>>() {
-                }, new HashMap<String, Object>());
-                this.map.putAll(load);
-            } catch (IOException e) {
-                throw new WTFException(e);
-            }
-        }
-        if (file.exists()) {
-            Log.L.info("Prefer (merged) JSon Storage from File: " + file);
-            final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
-            }, new HashMap<String, Object>());
-
-            this.map.putAll(load);
-        }
     }
 
     @Override
@@ -220,7 +221,7 @@ public class JsonKeyValueStorage extends Storage {
     }
 
     /* WARNING: you should know what you are doing! */
-    public HashMap<String, Object> getInternalStorageMap() {
+    public Map<String, Object> getInternalStorageMap() {
         return this.map;
     }
 
@@ -424,14 +425,12 @@ public class JsonKeyValueStorage extends Storage {
     public void save() throws StorageException {
         if (this.closed) { throw new StorageException("StorageChest already closed!"); }
         if (this.changed == false) { return; }
-        synchronized (JSonStorage.LOCK) {
-            /*
-             * writer are not threadsafe,
-             * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
-             */
-            final String json = JSonStorage.getMapper().objectToString(this.map);
-            JSonStorage.saveTo(this.file, this.plain, this.key, json);
-        }
+        /*
+         * writer are not threadsafe,
+         * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
+         */
+        final String json = JSonStorage.getMapper().objectToString(this.map);
+        JSonStorage.saveTo(this.file, this.plain, this.key, json);
     }
 
     /**

@@ -9,8 +9,11 @@
  */
 package org.appwork.storage.config;
 
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.appwork.scheduler.DelayedRunnable;
 
@@ -20,7 +23,25 @@ import org.appwork.scheduler.DelayedRunnable;
  */
 public class MinTimeWeakReference<T> extends WeakReference<T> {
 
-    private static final ScheduledExecutorService EXECUTER = DelayedRunnable.getNewScheduledExecutorService();
+    private static final ScheduledExecutorService EXECUTER     = DelayedRunnable.getNewScheduledExecutorService();
+    private static final ScheduledExecutorService QUEUECLEANUP = DelayedRunnable.getNewScheduledExecutorService();
+    private static final ReferenceQueue<Object>   QUEUE        = new ReferenceQueue<Object>();
+    static {
+        MinTimeWeakReference.QUEUECLEANUP.scheduleWithFixedDelay(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    Reference<?> remove = null;
+                    while ((remove = MinTimeWeakReference.QUEUE.poll()) != null) {
+                        ((MinTimeWeakReference) remove).onCleanup();
+                    }
+                } catch (final Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 10, 60, TimeUnit.SECONDS);
+    }
 
     public static void main(final String[] args) {
 
@@ -49,11 +70,13 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
     }
 
     @SuppressWarnings("unused")
-    private T               hard;
+    private T                                 hard;
 
     // private final String id;
 
-    private DelayedRunnable delayer;
+    private DelayedRunnable                   delayer;
+    private final MinTimeWeakReferenceCleanup cleanupMinTimeWeakReference;
+    private final String                      id;
 
     /**
      * @param ret
@@ -62,9 +85,14 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
      * @param ret2
      */
     public MinTimeWeakReference(final T ret, final long minlifetime, final String id) {
+        this(ret, minlifetime, id, null);
+    }
+
+    public MinTimeWeakReference(final T ret, final long minlifetime, final String id, final MinTimeWeakReferenceCleanup cleanupMinTimeWeakReference) {
         // super(ret, MinTimeWeakReference.QUEUE);
-        super(ret);
+        super(ret, MinTimeWeakReference.QUEUE);
         this.hard = ret;
+        this.id = id;
         // this.id = id;
         this.delayer = new DelayedRunnable(MinTimeWeakReference.EXECUTER, minlifetime) {
 
@@ -85,6 +113,7 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
         /* we get the item at least once to start the cleanup process here */
         this.get();
         // System.out.println("Created Week " + id);
+        this.cleanupMinTimeWeakReference = cleanupMinTimeWeakReference;
     }
 
     /**
@@ -115,6 +144,10 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
         return ret;
     }
 
+    public String getID() {
+        return this.id;
+    }
+
     public boolean isGone() {
         final T ret = super.get();
         if (ret == null) {
@@ -128,6 +161,12 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
             return true;
         }
         return false;
+    }
+
+    protected void onCleanup() {
+        if (this.cleanupMinTimeWeakReference != null) {
+            this.cleanupMinTimeWeakReference.onMinTimeWeakReferenceCleanup(this);
+        }
     }
 
     /**

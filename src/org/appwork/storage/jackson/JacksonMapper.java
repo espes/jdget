@@ -32,9 +32,9 @@ public class JacksonMapper implements JSONMapper {
 
     public JacksonMapper() {
 
-        mapper = new ObjectMapper(new ExtJsonFactory());
+        this.mapper = new ObjectMapper(new ExtJsonFactory());
 
-        mapper.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.mapper.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     }
 
@@ -52,9 +52,8 @@ public class JacksonMapper implements JSONMapper {
      */
     @Override
     public String objectToString(final Object o) throws JSonMapperException {
-
         try {
-            return mapper.writeValueAsString(o);
+            return this.mapper.writeValueAsString(o);
         } catch (final JsonGenerationException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {
@@ -66,9 +65,8 @@ public class JacksonMapper implements JSONMapper {
 
     @Override
     public <T> T stringToObject(final String jsonString, final Class<T> clazz) throws JSonMapperException {
-
         try {
-            return mapper.readValue(jsonString, clazz);
+            return this.mapper.readValue(jsonString, clazz);
         } catch (final JsonParseException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {
@@ -89,19 +87,16 @@ public class JacksonMapper implements JSONMapper {
     @Override
     public <T> T stringToObject(final String jsonString, final TypeRef<T> type) throws JSonMapperException {
         try {
-
             final TypeReference<T> tr = new TypeReference<T>() {
                 @Override
                 public Type getType() {
                     return type.getType();
                 }
-
             };
-     
             // this (T) is required because of java bug
             // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6302954
             // (compiles in eclipse, but not with javac)
-            return (T) mapper.readValue(jsonString, tr);
+            return (T) this.mapper.readValue(jsonString, tr);
         } catch (final JsonParseException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {
