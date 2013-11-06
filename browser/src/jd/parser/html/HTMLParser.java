@@ -324,7 +324,7 @@ public class HTMLParser {
 
     static {
         try {
-            HTMLParser.mp = Pattern.compile("(\"|')?(" + HTMLParser.protocolPattern + "|www\\.).+?(?=((\\s*" + HTMLParser.protocolPattern + ")|<|>|\r|\n|\f|\t|$|(\\1)|';|'\\)|'\\+|\\)))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+            HTMLParser.mp = Pattern.compile("(\"|')?((" + HTMLParser.protocolPattern + "|www\\.).+?(?=((\\s*" + HTMLParser.protocolPattern + ")|<|>|\r|\n|\f|\t|$|\\1|';|'\\)|'\\+)))", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
         } catch (final Throwable e) {
             Log.exception(e);
         }
@@ -502,7 +502,7 @@ public class HTMLParser {
         if (HTMLParser.mp != null) {
             m = HTMLParser.mp.matcher(data);
             while (m.find()) {
-                link = m.group(0);
+                link = m.group(2);
                 link = link.trim();
                 if (HTMLParser.getProtocol(link) == null) {
                     link = link.replaceFirst("^www\\.", "http://www\\.");
