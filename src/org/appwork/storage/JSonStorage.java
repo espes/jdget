@@ -52,7 +52,7 @@ public class JSonStorage {
 
             @Override
             public String toString() {
-                return "JSonStorage";
+                return "ShutdownEvent: Save JSonStorages";
             }
 
         });
