@@ -20,6 +20,13 @@ public class MigPanel extends JPanel {
         
     }
 
+    /**
+     * @param migLayout
+     */
+    public MigPanel(MigLayout migLayout) {
+      super(migLayout);
+    }
+
    
 
 }
