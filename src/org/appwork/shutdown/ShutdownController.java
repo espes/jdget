@@ -207,7 +207,6 @@ public class ShutdownController extends Thread {
             synchronized (originalShutdownHooks) {
                 originalShutdownHooks.add(event);
             }
-
         } else {
             synchronized (hooks) {
                 ShutdownEvent next;

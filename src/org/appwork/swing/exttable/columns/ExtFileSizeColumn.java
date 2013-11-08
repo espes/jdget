@@ -22,6 +22,7 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
     protected long            sizeValue;
     private StringBuffer      sb;
     private DecimalFormat     formatter;
+    private final String      zeroString       = "~";
 
     /**
      * @param createtablemodel_column_size
@@ -135,6 +136,8 @@ public abstract class ExtFileSizeColumn<E> extends ExtColumn<E> {
         if (fileSize >= 1024 * 1024 * 1024l) { return this.formatter.format(fileSize / (1024 * 1024 * 1024.0)) + " GiB"; }
         if (fileSize >= 1024 * 1024l) { return this.formatter.format(fileSize / (1024 * 1024.0)) + " MiB"; }
         if (fileSize >= 1024l) { return this.formatter.format(fileSize / 1024.0) + " KiB"; }
+        if (fileSize == 0) { return "0 B"; }
+        if (fileSize < 0) { return zeroString; }
         return fileSize + " B";
     }
 
