@@ -46,7 +46,14 @@ public class ExtButton extends JButton implements ToolTipHandler {
             setAccelerator((KeyStroke) action.getValue(Action.ACCELERATOR_KEY));
         }
     }
-
+/* (non-Javadoc)
+ * @see javax.swing.AbstractButton#setEnabled(boolean)
+ */
+@Override
+public void setEnabled(final boolean b) {
+    // TODO Auto-generated method stub
+    super.setEnabled(b);
+}
     /**
      * @param autoDetectAction
      */

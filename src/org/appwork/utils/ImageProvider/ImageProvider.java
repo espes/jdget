@@ -10,6 +10,7 @@
 package org.appwork.utils.ImageProvider;
 
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -409,19 +410,44 @@ public class ImageProvider {
         return ImageProvider.merge(back, front, xoffsetTop, yoffsetTop, xoffsetBottom, yoffsetBottom);
     }
 
-    public static BufferedImage merge(final Image back, final Image front, final int xoffsetBack, final int yoffsetBack, final int xoffsetFront, final int yoffsetFront) {
-
-        final int width = Math.max(xoffsetBack + back.getWidth(null), xoffsetFront + front.getWidth(null));
-        final int height = Math.max(yoffsetBack + back.getHeight(null), yoffsetFront + front.getHeight(null));
+    public static BufferedImage merge(final Icon back, final Icon front, final int xoffsetBack, final int yoffsetBack, final int xoffsetFront, final int yoffsetFront, final Composite backComposite, final Composite frontComposite) {
+        final int width = Math.max(xoffsetBack + back.getIconWidth(), xoffsetFront + front.getIconWidth());
+        final int height = Math.max(yoffsetBack + back.getIconHeight(), yoffsetFront + front.getIconHeight());
         final BufferedImage dest = new BufferedImage(width, height, Transparency.TRANSLUCENT);
         final Graphics2D g2 = dest.createGraphics();
-        g2.drawImage(back, xoffsetBack, yoffsetBack, null);
-        g2.drawImage(front, xoffsetFront, yoffsetFront, null);
-        g2.setColor(Color.RED);
+
+        if (backComposite != null) {
+            final Composite old = g2.getComposite();
+            g2.setComposite(backComposite);
+            back.paintIcon(null, g2, xoffsetBack, yoffsetBack);
+            g2.setComposite(old);
+        } else {
+
+            back.paintIcon(null, g2, xoffsetBack, yoffsetBack);
+        }
+        if (frontComposite != null) {
+            final Composite old = g2.getComposite();
+            g2.setComposite(frontComposite);
+            front.paintIcon(null, g2, xoffsetFront, yoffsetFront);
+            g2.setComposite(old);
+        } else {
+
+            front.paintIcon(null, g2, xoffsetFront, yoffsetFront);
+        }
 
         g2.dispose();
 
         return dest;
+
+    }
+
+    public static BufferedImage merge(final Icon back, final Icon front, final int xoffsetBack, final int yoffsetBack, final int xoffsetFront, final int yoffsetFront) {
+
+        return merge(back, front, xoffsetBack, yoffsetBack, xoffsetFront, yoffsetFront, null, null);
+    }
+
+    public static BufferedImage merge(final Image back, final Image front, final int xoffsetBack, final int yoffsetBack, final int xoffsetFront, final int yoffsetFront) {
+        return merge(new ImageIcon(back), new ImageIcon(front), xoffsetBack, yoffsetBack, xoffsetFront, yoffsetFront);
     }
 
     /* copied from ImageIO, to close the inputStream */

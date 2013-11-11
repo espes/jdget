@@ -17,6 +17,8 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 
@@ -87,6 +89,22 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     private final AtomicLong                                    tableDataVersion       = new AtomicLong(0);
     private boolean                                             debugTableModel        = false;
     private final AtomicBoolean                                 tableStructureChanging = new AtomicBoolean(false);
+    private ExtTableModelEventSender                            eventSender;
+
+    public ExtTableModelEventSender getEventSender() {
+        if (eventSender == null) {
+            eventSender = new ExtTableModelEventSender();
+            addTableModelListener(new TableModelListener() {
+
+                @Override
+                public void tableChanged(final TableModelEvent e) {
+                    eventSender.fireEvent(new ExtTableModelEventWrapper(ExtTableModel.this, e));
+
+                }
+            });
+        }
+        return eventSender;
+    }
 
     /**
      * Create a new ExtTableModel.
@@ -99,6 +117,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public ExtTableModel(final String id) {
         super();
+
         this.extComponentRowHighlighters = new ArrayList<ExtComponentRowHighlighter<E>>();
         this.modelID = id;
         this.iconAsc = AWUTheme.I().getIcon("exttable/sortAsc", -1);
