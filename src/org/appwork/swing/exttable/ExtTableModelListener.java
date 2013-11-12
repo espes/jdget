@@ -5,8 +5,8 @@ import java.util.EventListener;
 public interface ExtTableModelListener extends EventListener {
 
     /**
-     * @param listener
+     * @param event
      */
-    void onExtTableModelEvent(ExtTableModelListener listener);
+    void onExtTableModelEvent(ExtTableModelEventWrapper event);
 
 }

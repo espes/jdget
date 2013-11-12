@@ -30,7 +30,7 @@ public class ExtTableModelEventWrapper extends ExtTableModelEvent {
      */
     @Override
     public void fire(final ExtTableModelListener listener) {
-       listener.onExtTableModelEvent(listener);
+       listener.onExtTableModelEvent(this);
         
     }
 
