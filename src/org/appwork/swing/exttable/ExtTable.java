@@ -81,62 +81,7 @@ import sun.swing.SwingUtilities2;
  */
 public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChangeListener {
 
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_ESCAPE         = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_CUT            = KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_PASTE          = KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_COPY           = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_FORCE_DELETE   = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, ActionEvent.SHIFT_MASK);
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_DELETE         = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_CTRL_BACKSPACE = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_SEARCH         = KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_UP             = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_DOWN           = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_SELECT_ALL     = KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_CTRL_HOME      = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_END            = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
-    /**
-     * 
-     */
-    private static final KeyStroke                         KEY_STROKE_CTRL_END       = KeyStroke.getKeyStroke(KeyEvent.VK_END, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+ 
     /**
      * 
      */
@@ -1120,7 +1065,16 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         }
 
     }
-
+    
+   private static final KeyStroke                         KEY_STROKE_CTRL_HOME      = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+   /**
+    * 
+    */
+   private static final KeyStroke                         KEY_STROKE_END            = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
+   /**
+    * 
+    */
+   private static final KeyStroke                         KEY_STROKE_CTRL_END       = KeyStroke.getKeyStroke(KeyEvent.VK_END, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     /**
      * Key selection
      */
@@ -1147,48 +1101,44 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
         }
         if (!pressed) { return super.processKeyBinding(stroke, evt, condition, pressed); }
+
         final KeyStroke ks = stroke;
         if (ks != null) {
-            if (ks.equals(KEY_STROKE_ESCAPE)) {
+            if (CrossSystem.isClearSelectionTrigger(ks)) {
                 clearSelection();
                 return true;
             }
-            if (ks.equals(KEY_STROKE_CUT)) {
+            if (CrossSystem.isCutSelectionTrigger(ks)) {
 
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_CUT, this.getModel().getSelectedObjects()));
                 return this.onShortcutCut(this.getModel().getSelectedObjects(), evt);
 
             }
-            if (ks.equals(KEY_STROKE_PASTE)) {
+            if (CrossSystem.isPasteSelectionTrigger(ks)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_PASTE, this.getModel().getSelectedObjects()));
                 return this.onShortcutPaste(this.getModel().getSelectedObjects(), evt);
             }
-            if (ks.equals(KEY_STROKE_COPY)) {
+            if (CrossSystem.isCopySelectionTrigger(ks)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_COPY, this.getModel().getSelectedObjects()));
                 return this.onShortcutCopy(this.getModel().getSelectedObjects(), evt);
             }
-            if (ks.equals(KEY_STROKE_FORCE_DELETE)) {
+            if (CrossSystem.isDeleteFinalSelectionTrigger(ks)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getModel().getSelectedObjects(), BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK)));
                 return this.onShortcutDelete(this.getModel().getSelectedObjects(), evt, true);
             }
 
-            if (ks.equals(KEY_STROKE_DELETE)) {
+            if (CrossSystem.isDeleteSelectionTrigger(ks)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getModel().getSelectedObjects(), BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK)));
                 return this.onShortcutDelete(this.getModel().getSelectedObjects(), evt, false);
             }
-            if (ks.equals(KEY_STROKE_CTRL_BACKSPACE)) {
-                /* no ctrl+alt+backspace = unix desktop restart */
-                ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getModel().getSelectedObjects(), false));
-
-                return this.onShortcutDelete(this.getModel().getSelectedObjects(), evt, false);
-            }
-            if (ks.equals(KEY_STROKE_SEARCH)) {
+    
+            if (CrossSystem.isSearchTrigger(ks)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_SEARCH, this.getModel().getSelectedObjects()));
 
                 return this.onShortcutSearch(this.getModel().getSelectedObjects(), evt);
             }
 
-            if (ks.equals(KEY_STROKE_UP)) {
+            if (CrossSystem.isSelectionUpTrigger(ks)) {
                 if (getSelectedRow() == 0) {
                     if (this.getCellEditor() != null) {
                         this.getCellEditor().stopCellEditing();
@@ -1198,7 +1148,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 }
             }
 
-            if (ks.equals(KEY_STROKE_DOWN)) {
+            if (CrossSystem.isSelectionDownTrigger(ks)) {
                 if (getSelectedRow() == getRowCount() - 1) {
                     if (this.getCellEditor() != null) {
                         this.getCellEditor().stopCellEditing();
@@ -1208,7 +1158,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 }
             }
 
-            if (ks.equals(KEY_STROKE_SELECT_ALL)) {
+            if (CrossSystem.isSelectionAllTrigger(ks)) {
 
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
@@ -1261,7 +1211,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     protected void processMouseEvent(final MouseEvent e) {
 
         if (e.getID() == MouseEvent.MOUSE_RELEASED) {
-            if (e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3||(CrossSystem.isMac()&&e.getButton()==MouseEvent.BUTTON1&&e.isControlDown())) {
+            if (CrossSystem.isContextMenuTrigger(e)) {
                 final int row = rowAtPoint(e.getPoint());
                 final E obj = this.getModel().getObjectbyRow(row);
                 final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
