@@ -776,14 +776,19 @@ public class CrossSystem {
      * @param e
      * @return
      */
-    public static boolean isContextMenuTrigger(final MouseEvent e) {
-        if (CrossSystem.isMac()) {
-            return e.getButton() == MouseEvent.BUTTON1 && e.isControlDown();
-        } else {
-            return e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3;
+
+    public static boolean isContextMenuTrigger(MouseEvent e) {
+        if(CrossSystem.isMac()){
+            if( e.getButton()==MouseEvent.BUTTON1&&e.isControlDown())return true;
+            
         }
 
-    }
+            return e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3;
+
+
+        }
+
+
 
     /**
      * @param ks
