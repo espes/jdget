@@ -478,7 +478,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isOpenBrowserSupported() {
-        return CrossSystem.DESKTOP_SUPPORT.isBrowseURLSupported();
+        return CrossSystem.DESKTOP_SUPPORT.isBrowseURLSupported() || (CrossSystem.getBrowserCommandLine() != null && CrossSystem.getBrowserCommandLine().length > 0);
     }
 
     /**
