@@ -14,6 +14,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -408,7 +410,19 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
             }
             if (isClassicToolstipsEnabled()) {
                 final PopupFactory popupFactory = PopupFactory.getSharedInstance();
-                final GraphicsConfiguration gc = activeComponent.getGraphicsConfiguration();
+                GraphicsConfiguration gc = null;
+
+                if (activeComponent != null) {
+                    gc = activeComponent.getGraphicsConfiguration();
+                } else {
+
+                    for (final GraphicsDevice screen : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+                        if (screen.getDefaultConfiguration().getBounds().contains(mousePosition)) {
+                            gc = screen.getDefaultConfiguration();
+                            break;
+                        }
+                    }
+                }
                 final Rectangle screenBounds = gc.getBounds();
                 final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
                 Point ttPosition = new Point(mousePosition.x, mousePosition.y);
@@ -446,7 +460,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
 
                 ToolTipController.this.activeToolTipPanel = tt;
                 tt.addMouseListener(ToolTipController.this);
-                ttPosition=activeToolTipPanel.getDesiredLocation(activeComponent,ttPosition);
+                ttPosition = activeToolTipPanel.getDesiredLocation(activeComponent, ttPosition);
                 activePopup = popupFactory.getPopup(activeComponent, activeToolTipPanel, ttPosition.x, ttPosition.y);
 
                 final Window ownerWindow = SwingUtilities.getWindowAncestor(activeComponent);
