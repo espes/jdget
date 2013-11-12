@@ -733,7 +733,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @return
      */
     public ExtDataFlavor<E> getDataFlavor() {
-        // TODO Auto-generated method stub
+        
         return this.flavor;
     }
 
@@ -861,7 +861,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @return
      */
     protected boolean isAutoEditDisabledForCtrl() {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 
@@ -869,7 +869,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @return
      */
     protected boolean isAutoEditLimitedOnEnter() {
-        // TODO Auto-generated method stub
+        
         return true;
     }
 
@@ -905,7 +905,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      */
     @Override
     public boolean isTooltipWithoutFocusEnabled() {
-        // TODO Auto-generated method stub
+        
         return false;
     }
 
@@ -934,7 +934,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @return
      */
     protected boolean onHeaderSortClick(final MouseEvent e, final ExtColumn<E> oldColumn, final String oldIdentifier, final ExtColumn<E> newColumn) {
-        // TODO Auto-generated method stub
+        
         return false;
     }
 
@@ -1104,41 +1104,41 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
 
         final KeyStroke ks = stroke;
         if (ks != null) {
-            if (CrossSystem.isClearSelectionTrigger(ks)) {
+            if (isClearSelectionTrigger(ks)) {
                 clearSelection();
                 return true;
             }
-            if (CrossSystem.isCutSelectionTrigger(ks)) {
+            if (isCutSelectionTrigger(ks)) {
 
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_CUT, this.getModel().getSelectedObjects()));
                 return this.onShortcutCut(this.getModel().getSelectedObjects(), evt);
 
             }
-            if (CrossSystem.isPasteSelectionTrigger(ks)) {
+            if (isPasteSelectionTrigger(ks)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_PASTE, this.getModel().getSelectedObjects()));
                 return this.onShortcutPaste(this.getModel().getSelectedObjects(), evt);
             }
-            if (CrossSystem.isCopySelectionTrigger(ks)) {
+            if (isCopySelectionTrigger(ks)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_COPY, this.getModel().getSelectedObjects()));
                 return this.onShortcutCopy(this.getModel().getSelectedObjects(), evt);
             }
-            if (CrossSystem.isDeleteFinalSelectionTrigger(ks)) {
+            if (isDeleteFinalSelectionTrigger(ks)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getModel().getSelectedObjects(), BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK)));
                 return this.onShortcutDelete(this.getModel().getSelectedObjects(), evt, true);
             }
 
-            if (CrossSystem.isDeleteSelectionTrigger(ks)) {
+            if (isDeleteSelectionTrigger(ks)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<Object>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_DELETE, this.getModel().getSelectedObjects(), BinaryLogic.containsSome(evt.getModifiers(), ActionEvent.SHIFT_MASK)));
                 return this.onShortcutDelete(this.getModel().getSelectedObjects(), evt, false);
             }
     
-            if (CrossSystem.isSearchTrigger(ks)) {
+            if (isSearchTrigger(ks)) {
                 ExtTable.this.eventSender.fireEvent(new ExtTableEvent<List<E>>(ExtTable.this, ExtTableEvent.Types.SHORTCUT_SEARCH, this.getModel().getSelectedObjects()));
 
                 return this.onShortcutSearch(this.getModel().getSelectedObjects(), evt);
             }
 
-            if (CrossSystem.isSelectionUpTrigger(ks)) {
+            if (isSelectionUpTrigger(ks)) {
                 if (getSelectedRow() == 0) {
                     if (this.getCellEditor() != null) {
                         this.getCellEditor().stopCellEditing();
@@ -1148,7 +1148,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 }
             }
 
-            if (CrossSystem.isSelectionDownTrigger(ks)) {
+            if (isSelectionDownTrigger(ks)) {
                 if (getSelectedRow() == getRowCount() - 1) {
                     if (this.getCellEditor() != null) {
                         this.getCellEditor().stopCellEditing();
@@ -1158,7 +1158,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 }
             }
 
-            if (CrossSystem.isSelectionAllTrigger(ks)) {
+            if (isSelectionAllTrigger(ks)) {
 
                 if (this.getCellEditor() != null) {
                     this.getCellEditor().stopCellEditing();
@@ -1204,6 +1204,96 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
         }
 
         return super.processKeyBinding(stroke, evt, condition, pressed);
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    protected boolean isSelectionAllTrigger(final KeyStroke ks) {
+        
+        return CrossSystem.isSelectionAllTrigger(ks);
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    protected boolean isSelectionDownTrigger(final KeyStroke ks) {
+        
+        return CrossSystem.isSelectionDownTrigger(ks);
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    protected boolean isSelectionUpTrigger(final KeyStroke ks) {
+        
+        return CrossSystem.isSelectionUpTrigger(ks);
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    protected boolean isSearchTrigger(final KeyStroke ks) {
+        
+        return CrossSystem.isSearchTrigger(ks);
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    protected boolean isDeleteSelectionTrigger(final KeyStroke ks) {
+        
+        return CrossSystem.isDeleteSelectionTrigger(ks);
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    protected boolean isDeleteFinalSelectionTrigger(final KeyStroke ks) {
+        
+        return CrossSystem.isDeleteFinalSelectionTrigger(ks);
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    protected boolean isCopySelectionTrigger(final KeyStroke ks) {
+        
+        return CrossSystem.isCopySelectionTrigger(ks);
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    protected boolean isPasteSelectionTrigger(final KeyStroke ks) {
+        
+        return CrossSystem.isPasteSelectionTrigger(ks);
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    protected boolean isCutSelectionTrigger(final KeyStroke ks) {
+        
+        return CrossSystem.isCutSelectionTrigger(ks);
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    protected boolean isClearSelectionTrigger(final KeyStroke ks) {
+        
+        return CrossSystem.isClearSelectionTrigger(ks);
     }
 
     @SuppressWarnings("unchecked")
@@ -1711,7 +1801,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
      * @param e 
      * @param extColumnByModelIndex
      */
-    protected void doSortOnColumn(ExtColumn<E> column, MouseEvent e) {
+    protected void doSortOnColumn(final ExtColumn<E> column, final MouseEvent e) {
         column.doSort();
     }
 
