@@ -17,6 +17,7 @@ import net.miginfocom.swing.MigLayout;
 
 import org.appwork.resources.AWUTheme;
 import org.appwork.swing.action.BasicAction;
+import org.appwork.swing.components.CheckBoxIcon;
 import org.appwork.swing.exttable.ExtTableModel;
 import org.appwork.utils.swing.renderer.RenderLabel;
 
@@ -160,7 +161,9 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
                 setName(modelItemToString(o));
 
                 if (selected) {
-                    setSmallIcon(AWUTheme.I().getIcon("enable", 16));
+                    setSmallIcon(CheckBoxIcon.TRUE);
+                }else{
+                    setSmallIcon(CheckBoxIcon.FALSE);
                 }
 
             }

@@ -83,7 +83,7 @@ public class CrossSystem {
         }
 
         public OSFamily getFamily() {
-            return this.family;
+            return family;
         }
     }
 
@@ -658,7 +658,7 @@ public class CrossSystem {
 
             ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
                 {
-                    this.setHookPriority(Integer.MIN_VALUE);
+                    setHookPriority(Integer.MIN_VALUE);
                 }
 
                 @Override
@@ -727,159 +727,173 @@ public class CrossSystem {
         final String name = new Regex(filename, "(.*?)(\\.+[^\\.]*$|$)").getMatch(0);
         return new String[] { name, extension };
     }
+
     /**
      * 
      */
-    private static final KeyStroke                         KEY_STROKE_ESCAPE         = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+    private static final KeyStroke KEY_STROKE_ESCAPE       = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
     /**
      * 
      */
-    private static final KeyStroke                         KEY_STROKE_CUT            = KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_CUT          = KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     /**
      * 
      */
-    private static final KeyStroke                         KEY_STROKE_PASTE          = KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_PASTE        = KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     /**
      * 
      */
-    private static final KeyStroke                         KEY_STROKE_COPY           = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_COPY         = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     /**
      * 
      */
-    private static final KeyStroke                         KEY_STROKE_FORCE_DELETE   = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, ActionEvent.SHIFT_MASK);
+    private static final KeyStroke KEY_STROKE_FORCE_DELETE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, ActionEvent.SHIFT_MASK);
     /**
      * 
      */
-    private static final KeyStroke                         KEY_STROKE_DELETE         = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+    private static final KeyStroke KEY_STROKE_DELETE       = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
     /**
      * 
      */
-    private static final KeyStroke                         KEY_STROKE_CTRL_BACKSPACE = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_SEARCH       = KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     /**
      * 
      */
-    private static final KeyStroke                         KEY_STROKE_SEARCH         = KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_UP           = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
     /**
      * 
      */
-    private static final KeyStroke                         KEY_STROKE_UP             = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
+    private static final KeyStroke KEY_STROKE_DOWN         = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
     /**
      * 
      */
-    private static final KeyStroke                         KEY_STROKE_DOWN           = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
+    private static final KeyStroke KEY_STROKE_SELECT_ALL   = KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+
     /**
      * 
+     /**
+     * 
+     * @param e
+     * @return
      */
-    private static final KeyStroke                         KEY_STROKE_SELECT_ALL     = KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    public static boolean isContextMenuTrigger(final MouseEvent e) {
+        if (CrossSystem.isMac()) {
+            return e.getButton() == MouseEvent.BUTTON1 && e.isControlDown();
+        } else {
+            return e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3;
+        }
+
+    }
+
     /**
-     * 
+     * @param ks
+     * @return
+     */
+    public static boolean isClearSelectionTrigger(final KeyStroke ks) {
+        return ks == KEY_STROKE_ESCAPE;
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    public static boolean isCutSelectionTrigger(final KeyStroke ks) {
+        // TODO Auto-generated method stub
+        return ks == KEY_STROKE_CUT;
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    public static boolean isPasteSelectionTrigger(final KeyStroke ks) {
+        // TODO Auto-generated method stub
+        return ks == KEY_STROKE_PASTE;
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    public static boolean isDeleteFinalSelectionTrigger(final KeyStroke ks) {
+        if (isMac()) {
+
+            if (ks == KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | ActionEvent.SHIFT_MASK)) { return true; }
+        }
+        return ks == KEY_STROKE_FORCE_DELETE;
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    public static boolean isCopySelectionTrigger(final KeyStroke ks) {
+        // TODO Auto-generated method stub
+        return ks == KEY_STROKE_COPY;
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    public static boolean isDeleteSelectionTrigger(final KeyStroke ks) {
+        if (isMac()) {
+
+            if (ks == KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) { return true; }
+        }
+        return ks == KEY_STROKE_DELETE;
+    }
+
+    /**
+     * @return
+     */
+    public static KeyStroke getDeleteShortcut() {
+        if (CrossSystem.isMac()) { return KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()); }
+        return KEY_STROKE_DELETE;
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    public static boolean isSearchTrigger(final KeyStroke ks) {
+        // TODO Auto-generated method stub
+        return ks == KEY_STROKE_SEARCH;
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    public static boolean isSelectionUpTrigger(final KeyStroke ks) {
+        // TODO Auto-generated method stub
+        return ks == KEY_STROKE_UP;
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    public static boolean isSelectionDownTrigger(final KeyStroke ks) {
+        // TODO Auto-generated method stub
+        return ks == KEY_STROKE_DOWN;
+    }
+
+    /**
+     * @param ks
+     * @return
+     */
+    public static boolean isSelectionAllTrigger(final KeyStroke ks) {
+        // TODO Auto-generated method stub
+        return ks == KEY_STROKE_SELECT_ALL;
+    }
 
     /**
      * @param e
      * @return
      */
-    public static boolean isContextMenuTrigger(MouseEvent e) {
-        if(CrossSystem.isMac()){
-            return e.getButton()==MouseEvent.BUTTON1&&e.isControlDown();
-        }else{
-            return e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3;
-        }  
-      
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isClearSelectionTrigger(KeyStroke ks) {
-             return ks==KEY_STROKE_ESCAPE;
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isCutSelectionTrigger(KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks==KEY_STROKE_CUT;
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isPasteSelectionTrigger(KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks==KEY_STROKE_PASTE;
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isDeleteFinalSelectionTrigger(KeyStroke ks) {
-       if(isMac()){
-          
-           if(ks==KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()|ActionEvent.SHIFT_MASK))return true;
-       }
-        return ks==KEY_STROKE_FORCE_DELETE;
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isCopySelectionTrigger(KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks==KEY_STROKE_COPY;
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isDeleteSelectionTrigger(KeyStroke ks) {
-        if(isMac()){
-            
-            if(ks==KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()))return true;
-        }
-        return ks==KEY_STROKE_DELETE;
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isSearchTrigger(KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks==KEY_STROKE_SEARCH;
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isSelectionUpTrigger(KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks==KEY_STROKE_UP;
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isSelectionDownTrigger(KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks==KEY_STROKE_DOWN;
-    }
-
-    /**
-     * @param ks
-     * @return
-     */
-    public static boolean isSelectionAllTrigger(KeyStroke ks) {
-        // TODO Auto-generated method stub
-        return ks==KEY_STROKE_SELECT_ALL;
+    public static boolean isDeleteSelectionTrigger(final KeyEvent e) {
+        return isDeleteSelectionTrigger(KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers()));
     }
 
 }
