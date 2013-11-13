@@ -208,6 +208,13 @@ public void setEnabled(final boolean b) {
                         ExtButton.this.onRollOut();
 
                     }
+                    /* (non-Javadoc)
+                     * @see java.awt.event.MouseAdapter#mouseReleased(java.awt.event.MouseEvent)
+                     */
+                    @Override
+                    public void mouseReleased(final MouseEvent e) {
+                        ExtButton.this.onReleased();
+                    }
 
                 };
             }
@@ -220,6 +227,14 @@ public void setEnabled(final boolean b) {
                 rollOverlistener = null;
             }
         }
+    }
+
+    /**
+     * 
+     */
+    protected void onReleased() {
+        // TODO Auto-generated method stub
+        
     }
 
     public void setTooltipFactory(final TooltipFactory tooltipFactory) {
