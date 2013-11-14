@@ -361,6 +361,8 @@ public class ShutdownController extends Thread {
 
     public boolean requestShutdown(final ShutdownRequest request) {
         if (request == null) { throw new NullPointerException(); }
+        
+        new Exception("Shutdown Request Stacktrace").printStackTrace();
         requestedShutDowns.incrementAndGet();
         try {
 
