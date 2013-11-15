@@ -130,26 +130,6 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
         animatedProgress = 0.0f;
     }
 
-    /**
-     * @param size
-     * @param diameter
-     * @param degree
-     * @return
-     */
-    private Shape createClip(final Dimension size, final int diameter, final double progress) {
-        if (progress == 0.0f) { return null; }
-        Area a = null;
-        if (progress == 1.0f) {
-            return a = new Area(new Ellipse2D.Float((size.width - diameter * 2) / 2 + 1, (size.height - diameter * 2) / 2 + 1, diameter * 2, diameter * 2));
-        } else {
-
-            a = new Area(new Arc2D.Float((size.width - diameter * 2) / 2 + 1, (size.height - diameter * 2) / 2 + 1, diameter * 2, diameter * 2, 90, (float) (-progress * 360), Arc2D.PIE));
-
-        }
-        a.intersect(new Area(new Rectangle2D.Float(0, 0, size.width , size.height)));
-        return a;
-    }
-
     @Override
     public int getBaseline(final JComponent c, final int width, final int height) {
         return super.getBaseline(c, width, height);
@@ -229,19 +209,38 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
         final Insets b = circleBar.getInsets(); // area for border
         final Dimension size = circleBar.getSize();
         final int diameter = Math.min(size.height - b.top - b.bottom, size.width - b.left - b.right);
+        final int midy = b.top + ((size.height - b.top - b.bottom) / 2);
+        final int midx = b.left + ((size.width - b.left - b.right) / 2);
+        g2.translate(midx, midy);
+     
 
-        g2.translate(b.left, b.top);
-        final Shape clip = createClip(size, diameter, progress);
+        Area clip = null;
+        if (progress == 1.0f) {
+            clip = new Area(new Ellipse2D.Float(-diameter, -diameter, diameter * 2, diameter * 2));
+        } else if (progress > 0d) {
+
+            clip = new Area(new Arc2D.Float(-diameter, -diameter, diameter * 2, diameter * 2, 90, (float) (-progress * 360), Arc2D.PIE));
+
+        }
+
+        g2.setColor(Color.RED);
+        if (clip != null) {
+//            clip.intersect(new Area(new Rectangle2D.Float(0, 0, diameter, diameter)));
+            // g2.fillRect(-10, -diameter/2, diameter, diameter);
+//            g2.fill(clip);
+//            return;
+        }
+
         if (bgi != null) {
-            final Area a = new Area(new Rectangle2D.Double(0, 0, size.getWidth(), size.getHeight()));
+            final Area a = new Area(new Rectangle2D.Double(-diameter, -diameter, diameter*2, diameter*2));
             if (clip != null) {
                 a.subtract(new Area(clip));
             }
             // g2.setClip(a);
             bgi.paint(circleBar, g2, a, diameter, progress);
+            
         }
-
-        // Create the Polygon for the "upper" Icon
+        ;
 
         // g2.setClip(clip);
 
@@ -249,7 +248,7 @@ public class BasicCircleProgressBarUI extends CircleProgressBarUI {
             clipIcon.paint(circleBar, g2, clip, diameter, progress);
         }
 
-        g2.translate(-b.left, -b.top);
+        g2.translate(-midx, -midy);
         // g2.setColor(Color.BLACK);
         // g2.drawArc(0, 0, diameter, diameter, 0, 360);
     }

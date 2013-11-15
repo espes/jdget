@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.JButton;
 import javax.swing.JProgressBar;
@@ -100,12 +101,7 @@ public class TEst {
                         iconBar.setValueClipPainter(painter);
                         painter.setBackground(Color.GREEN);
                         iconBar.setNonvalueClipPainter(new ImagePainter(AWUTheme.I().getIcon("close", 32).getImage(), 0.3f));
-
-                        getFrame().getContentPane().setLayout(new MigLayout("ins 4, wrap 3", "[][][grow,fill]", "[grow,fill,32!]"));
-                        getFrame().getContentPane().add(cbar, "height 32!,width 32!");
-                        getFrame().getContentPane().add(iconBar);
-                        painter.setForeground(Color.RED);
-                        getFrame().getContentPane().add(bar);
+                    
 
                         final CircledProgressBar test = new CircledProgressBar();
                         final ImagePainter valuePainter = new ImagePainter(AWUTheme.I().getIcon("dev", 32).getImage(), 1.0f);
@@ -116,6 +112,18 @@ public class TEst {
                         test.setMaximum(360);
                         test.setToolTipText("Blabla Leberkäs");
                         test.setValue(90);
+                        test.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.ORANGE));
+                        iconBar.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.ORANGE));
+                        
+                        bar.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.ORANGE));
+                        cbar.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.ORANGE));
+                        painter.setForeground(Color.RED);
+   
+                        getFrame().getContentPane().setLayout(new MigLayout("ins 4, wrap 3", "[][][grow,fill]", "[grow,fill,32!]"));
+//                        getFrame().getContentPane().add(cbar, "height 32!,width 32!");
+//                        getFrame().getContentPane().add(iconBar,"height 32!,width 128!");
+            
+//                        getFrame().getContentPane().add(bar);
                         getFrame().getContentPane().add(test, "height 64!,width 64!");
 
                         getFrame().getContentPane().add(new JButton(new AbstractAction() {

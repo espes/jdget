@@ -20,7 +20,7 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
     protected CircledProgressBar determinatedRenderer;
     protected CompoundBorder     defaultBorder;
     private CircledProgressBar   indeterminatedRenderer;
-    private CircledProgressBar   renderer;
+    protected CircledProgressBar   renderer;
     private HashMap<E, Long>     map;
     private int                  columnIndex      = -1;
 
@@ -126,7 +126,7 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
         // });
         this.renderer = this.determinatedRenderer;
         this.defaultBorder = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1), this.determinatedRenderer.getBorder());
-        this.setRowSorter(new ExtDefaultRowSorter<E>() {
+        setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
             public int compare(final E o1, final E o2) {
@@ -134,7 +134,7 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
                 final double v2 = (double) ExtCircleProgressColumn.this.getValue(o2) / ExtCircleProgressColumn.this.getMax(o2);
 
                 if (v1 == v2) { return 0; }
-                if (this.getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
+                if (getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
                     return v1 > v2 ? -1 : 1;
                 } else {
                     return v2 > v1 ? -1 : 1;

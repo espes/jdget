@@ -334,6 +334,15 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         }
 
     }
+/* (non-Javadoc)
+ * @see org.appwork.swing.exttable.ExtColumn#getDefaultForeground()
+ */
+@Override
+protected Color getDefaultForeground() {   
+
+    return editorForeground;
+}
+
 
     protected void prepareColumn(final E value) {
     }
@@ -342,7 +351,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     public void resetEditor() {
         this.editor.setEnabled(true);
         this.editorField.setFont(this.editorFont);
-        this.editorField.setForeground(this.editorForeground);
         this.editorField.setBackground(null);
         this.editorIconLabel.setIcon(null);
 
@@ -359,7 +367,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.rendererField.setOpaque(false);
         this.rendererField.setBackground(null);
         this.rendererField.setFont(this.rendererFont);
-        this.rendererField.setForeground(this.rendererForeground);
+
         this.renderer.setOpaque(false);
         this.rendererIcon.setIcon(null);
 

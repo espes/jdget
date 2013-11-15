@@ -194,7 +194,7 @@ public class CircledProgressBar extends JComponent implements ToolTipHandler {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(CircledProgressBar.this.getForeground());
                 final Area a = new Area(shape);
-                a.intersect(new Area(new Ellipse2D.Float(0, 0, diameter, diameter)));
+                a.intersect(new Area(new Ellipse2D.Float(-diameter/2, -diameter/2, diameter, diameter)));
 
                 g2.fill(a);
 
