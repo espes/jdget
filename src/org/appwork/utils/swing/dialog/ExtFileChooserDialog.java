@@ -912,13 +912,14 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
 
                             @Override
                             public void run() {
-                                final String txt = getText();
+                                 String txt = getText();
                                 try {
 
                                     File f = getFile(txt);
 
                                     boolean parent = false;
                                     while (f != null && f.getParentFile() != f) {
+                                        txt = getText();
                                         if (ExtFileChooserDialog.this.exists(f)) {
                                             if (f.getParentFile() == null || !f.getParentFile().exists() || parent) {
                                                 fc.setCurrentDirectory(f);
@@ -928,7 +929,8 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                                                 setText(txt);
                                                 selecting = oldSelecting;
                                             } else {
-                                                if (getText().endsWith("\\") || getText().endsWith("/") && f.isDirectory()) {
+                                                if (f.isDirectory() ) {
+                                                    //||(txt.endsWith("\\") || txt.endsWith("/") && f.isDirectory())
                                                     fc.setCurrentDirectory(f);
                                                     fc.setSelectedFile(null);
                                                     final boolean oldSelecting = selecting;
