@@ -370,12 +370,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             bottom.add(this.timerLbl);
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
-                this.dontshowagain = new JCheckBox(this.getDontShowAgainLabelText());
-                this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
-                this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
-                this.dontshowagain.setSelected(this.doNotShowAgainSelected);
-
-                bottom.add(this.dontshowagain, "alignx right");
+                initDoNotShowAgainCheckbox(bottom);
             } else {
                 bottom.add(Box.createHorizontalGlue());
             }
@@ -583,6 +578,15 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         // ((Window) getDialog().getParent()).setAlwaysOnTop(true);
         // ((Window) getDialog().getParent()).setAlwaysOnTop(false);
         // }
+    }
+
+    protected void initDoNotShowAgainCheckbox(final MigPanel bottom) {
+        this.dontshowagain = new JCheckBox(this.getDontShowAgainLabelText());
+        this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
+        this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
+        this.dontshowagain.setSelected(this.doNotShowAgainSelected);
+
+        bottom.add(this.dontshowagain, "alignx right");
     }
 
     public void actionPerformed(final ActionEvent e) {
