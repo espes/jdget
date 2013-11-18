@@ -95,64 +95,66 @@ public class CrossSystem {
         WINDOWS
     }
 
+    private static final boolean __HEADLESS = java.awt.GraphicsEnvironment.isHeadless();
+
     private static String[]       BROWSER_COMMANDLINE = null;
 
     private static DesktopSupport DESKTOP_SUPPORT     = null;
 
     private static String[]       FILE_COMMANDLINE    = null;
-
-    private static String         JAVAINT             = null;
+     private static String         JAVAINT             = null;
+   
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_BACKSPACE_CTRL = KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_BACKSPACE_CTRL = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_COPY         = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_COPY         = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_CUT          = KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_CUT          = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_DELETE       = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
-
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_DOWN         = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
+    private static final KeyStroke KEY_STROKE_DELETE       = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_ESCAPE       = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+    private static final KeyStroke KEY_STROKE_DOWN         = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_FORCE_DELETE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, ActionEvent.SHIFT_MASK);
+    private static final KeyStroke KEY_STROKE_ESCAPE       = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_PASTE        = KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_FORCE_DELETE = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, ActionEvent.SHIFT_MASK);
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_SEARCH       = KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_PASTE        = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_SELECT_ALL   = KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_SEARCH       = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_UP           = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
+    private static final KeyStroke KEY_STROKE_SELECT_ALL   = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+
+    /**
+     * 
+     */
+    private static final KeyStroke KEY_STROKE_UP           = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
 
     /**
      * Cache to store the Mime Class in
