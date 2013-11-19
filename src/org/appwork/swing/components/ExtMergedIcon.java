@@ -4,6 +4,9 @@ import java.awt.Component;
 import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
 import java.util.Comparator;
 import java.util.TreeSet;
 
@@ -30,6 +33,8 @@ public class ExtMergedIcon implements Icon {
         }
 
     }
+    private int cropedWidth=-1;
+    private int cropedHeight=-1;
 
     public ExtMergedIcon() {
 
@@ -44,6 +49,18 @@ public class ExtMergedIcon implements Icon {
         addEntry(new Entry(icon, x, y, z, c));
     }
 
+    /**
+     * @param abstractIcon
+     */
+    public ExtMergedIcon(Icon icon) {
+        this(icon, 0, 0, 0, null);
+    }
+    public ExtMergedIcon crop(int width, int height) {
+        this.cropedWidth=width;
+        this.cropedHeight=height;
+        
+        return this;
+    }
     private TreeSet<Entry> entries = new TreeSet<Entry>(new Comparator<Entry>() {
 
                                        @Override
@@ -77,7 +94,7 @@ public class ExtMergedIcon implements Icon {
     public void paintIcon(final Component c, final Graphics g, final int x, final int y) {
 
         final Graphics2D g2 = (Graphics2D) g;
-
+ 
         if (internalIcon == null && !caching) {
             cache();
 
@@ -85,34 +102,58 @@ public class ExtMergedIcon implements Icon {
 
         if (internalIcon != null) {
             g2.drawImage(internalIcon.getImage(), x, y, null);
-//            internalIcon.paintIcon(c, g2, x, y);
+            // internalIcon.paintIcon(c, g2, x, y);
             return;
         }
-
+        Shape oldClip = g2.getClip();
+//        Rectangle rec = new Rectangle( );
+        g2.setClip(x, y, getIconWidth(),getIconHeight());
         for (final Entry e : entries) {
             final Composite com = g2.getComposite();
             try {
-                if(e.composite!=null) {
+                if (e.composite != null) {
                     g2.setComposite(e.composite);
                 }
                 e.icon.paintIcon(c, g2, x + e.x, y + e.y);
             } finally {
-               if(com!=null) {
-                g2.setComposite(com);
-            }
+                if (com != null) {
+                    g2.setComposite(com);
+                }
             }
 
         }
+        g2.setClip(oldClip);
     }
 
     @Override
     public int getIconWidth() {
+        if(cropedWidth>0)return cropedWidth;
         return width;
     }
 
     @Override
     public int getIconHeight() {
+        if(cropedHeight>0)return cropedHeight;
         return height;
+    }
+    public ExtMergedIcon add(Icon icon) {
+        synchronized (entries) {
+
+            return this.add(icon,0, 0, entries.size(), null);
+        }
+    }
+    /**
+     * @param abstractIcon
+     * @param i
+     * @param j
+     * @return
+     */
+    public ExtMergedIcon add(Icon icon, int x, int y) {
+        synchronized (entries) {
+
+            return this.add(icon, x, y, entries.size(), null);
+        }
+
     }
 
 }

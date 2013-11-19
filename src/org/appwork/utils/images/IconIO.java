@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.appwork.utils.ImageProvider.ImageProvider;
@@ -364,6 +365,30 @@ public class IconIO {
         // e.printStackTrace();
         // }
         return image;
+    }
+
+    public static BufferedImage convertIconToBufferedImage(final Icon icon) {
+
+        if (icon == null) { return null; }
+        if (icon instanceof ImageIcon) {
+            Image ret = ((ImageIcon) icon).getImage();
+            if (ret instanceof BufferedImage) { return (BufferedImage) ret; }
+        }
+        final int w = icon.getIconWidth();
+        final int h = icon.getIconHeight();
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice gd = ge.getDefaultScreenDevice();
+        final GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.TRANSLUCENT);
+
+        final Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        // g.setColor(Color.RED);
+        // g.fillRect(0, 0, w, h);
+        icon.paintIcon(null, g, 0, 0);
+        g.dispose();
+        return image;
+
     }
 
     /**

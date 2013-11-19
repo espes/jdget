@@ -38,7 +38,7 @@ import java.util.WeakHashMap;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Box;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -207,7 +207,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected int                                          flagMask;
 
-    private ImageIcon                                      icon;
+    private Icon                                      icon;
 
     protected JLabel                                       iconLabel;
 
@@ -247,7 +247,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected JComponent                                   focusButton;
 
-    public AbstractDialog(final int flag, final String title, final ImageIcon icon, final String okOption, final String cancelOption) {
+    public AbstractDialog(final int flag, final String title, final Icon icon, final String okOption, final String cancelOption) {
         super();
 
         this.title = title;
@@ -864,7 +864,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         return this.flagMask;
     }
 
-    public ImageIcon getIcon() {
+    public Icon getIcon() {
         return this.icon;
     }
 
@@ -894,7 +894,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         try {
             bos = new ByteArrayOutputStream();
             b64os = new Base64OutputStream(bos);
-            ImageIO.write(IconIO.toBufferedImage(this.getIcon().getImage()), "png", b64os);
+            ImageIO.write(IconIO.convertIconToBufferedImage(this.getIcon()), "png", b64os);
             b64os.flush(true);
             final String ret = "png;base64," + bos.toString("UTF-8");
             return ret;
@@ -1384,7 +1384,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     }
 
-    public void setIcon(final ImageIcon icon) {
+    public void setIcon(final Icon icon) {
 
         this.icon = icon;
         if (this.iconLabel != null) {

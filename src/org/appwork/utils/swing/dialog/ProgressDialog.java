@@ -12,7 +12,7 @@ package org.appwork.utils.swing.dialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -74,11 +74,11 @@ public class ProgressDialog extends AbstractDialog<Integer> {
      * @param s
      * @param s2
      */
-    public ProgressDialog(final ProgressGetter progressGetter, final int flags, final String title, final String message, final ImageIcon icon) {
+    public ProgressDialog(final ProgressGetter progressGetter, final int flags, final String title, final String message, final Icon icon) {
         this(progressGetter, flags, title, message, icon, null, null);
     }
 
-    public ProgressDialog(final ProgressGetter progressGetter, final int flags, final String title, final String message, final ImageIcon icon, final String ok, final String cancel) {
+    public ProgressDialog(final ProgressGetter progressGetter, final int flags, final String title, final String message, final Icon icon, final String ok, final String cancel) {
         super(flags | UIOManager.BUTTONS_HIDE_OK, title, icon, ok, cancel);
         this.message = message;
         if (progressGetter == null && this instanceof ProgressGetter) {
