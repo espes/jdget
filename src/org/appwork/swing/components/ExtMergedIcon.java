@@ -35,8 +35,9 @@ public class ExtMergedIcon implements Icon {
 
     }
 
-    public void add(final Icon icon, final int x, final int y, final int z, final Composite c) {
+    public ExtMergedIcon add(final Icon icon, final int x, final int y, final int z, final Composite c) {
         addEntry(new Entry(icon, x, y, z, c));
+        return this;
     }
 
     public ExtMergedIcon(final Icon icon, final int x, final int y, final int z, final Composite c) {
