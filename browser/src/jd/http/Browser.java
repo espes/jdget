@@ -679,7 +679,7 @@ public class Browser {
         // request.setFollowRedirects(doRedirects);
         this.forwardCookies(request);
         if (sendref) {
-            request.getHeaders().put("Referer", this.currentURL.toString());
+            request.getHeaders().put("Referer", this.currentURL);
         }
         if (this.headers != null) {
             this.mergeHeaders(request);
@@ -722,7 +722,7 @@ public class Browser {
         request.setReadTimeout(this.getReadTimeout());
         this.forwardCookies(request);
         if (sendref) {
-            request.getHeaders().put("Referer", this.currentURL.toString());
+            request.getHeaders().put("Referer", this.currentURL);
         }
 
         if (this.headers != null) {
@@ -755,7 +755,7 @@ public class Browser {
         request.setReadTimeout(this.getReadTimeout());
         this.forwardCookies(request);
         if (sendref) {
-            request.getHeaders().put("Referer", this.currentURL.toString());
+            request.getHeaders().put("Referer", this.currentURL);
         }
         if (post != null) {
             request.addAll(post);
@@ -819,7 +819,7 @@ public class Browser {
         request.setReadTimeout(this.getReadTimeout());
         this.forwardCookies(request);
         if (sendref) {
-            request.getHeaders().put("Referer", this.currentURL.toString());
+            request.getHeaders().put("Referer", this.currentURL);
         }
         if (post != null) {
             request.addAll(post);
