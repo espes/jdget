@@ -925,10 +925,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this._fireTableStructureChanged(tmp, true);
     }
 
-    protected void restoreSelection() {
-
-    }
-
     /**
      * @param startRow
      * @param ret
@@ -1095,11 +1091,12 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     public int[] setSelectedRows(final int[] rows) {
         final ExtTable<E> ltable = ExtTableModel.this.getTable();
-        if (ltable == null || rows == null || rows.length == 0) { return new int[] { -1, -1 }; }
         return new EDTHelper<int[]>() {
             @Override
             public int[] edtRun() {
-                ExtTableModel.this.clearSelection();
+                if (ExtTableModel.this.hasSelectedObjects()) {
+                    ExtTableModel.this.clearSelection();
+                }
                 if (rows == null || rows.length == 0 || ExtTableModel.this.getTableData().size() == 0) { return new int[] { -1, -1 }; }
                 final int[] selectedRows = rows.clone();
                 Arrays.sort(selectedRows);
