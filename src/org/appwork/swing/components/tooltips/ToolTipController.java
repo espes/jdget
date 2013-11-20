@@ -423,6 +423,9 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
                         }
                     }
                 }
+                if(gc==null) {
+                    return;
+                }
                 final Rectangle screenBounds = gc.getBounds();
                 final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
                 Point ttPosition = new Point(mousePosition.x, mousePosition.y);

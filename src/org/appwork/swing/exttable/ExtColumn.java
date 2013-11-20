@@ -75,7 +75,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     private TableColumn              tableColumn;
 
     private String                   sortOrderIdentifier;
-    private final ToolTip            tooltip;
+    protected final ToolTip            tooltip;
     private boolean                  editableProgrammaticly = false;
 
     public static final String       SORT_DESC              = "DESC";
