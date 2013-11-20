@@ -750,6 +750,29 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     /**
+     * @param e
+     */
+    public void fillReturnMask(final DialogClosedException e) {
+        if (this.returnBitMask < 0) {
+            this.returnBitMask = 0;
+        }
+        if (e.isCausedByClosed()) {
+            this.returnBitMask |= Dialog.RETURN_CLOSED;
+        }
+        if (e.isCausedbyESC()) {
+            this.returnBitMask |= Dialog.RETURN_CANCEL;
+        }
+        if (e.isCausedByInterrupt()) {
+            this.returnBitMask |= Dialog.RETURN_INTERRUPT;
+        }
+
+        if (e.isCausedByTimeout()) {
+            this.returnBitMask |= Dialog.RETURN_INTERRUPT;
+        }
+
+    }
+
+    /**
      * Fakes an init of the dialog. we need this if we want to work with the
      * model only.
      */
@@ -759,8 +782,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             @Override
             protected void runInEDT() {
                 Log.L.info("Force Dummy Init");
-                initialized = true;
-                dummyInit = true;
+                AbstractDialog.this.initialized = true;
+                AbstractDialog.this.dummyInit = true;
             }
         }.waitForEDT();
 
@@ -778,7 +801,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     public CloseReason getCloseReason() {
         final int rm = this.getReturnmask();
         if (rm == 0) { throw new IllegalStateException("Dialog has not been closed yet"); }
-
         if (BinaryLogic.containsSome(rm, Dialog.RETURN_TIMEOUT)) { return CloseReason.TIMEOUT; }
         if (BinaryLogic.containsSome(rm, Dialog.RETURN_INTERRUPT)) { return CloseReason.INTERRUPT; }
         if (BinaryLogic.containsSome(rm, Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
@@ -825,10 +847,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         return this.dialog;
     }
 
-    public DialogDimensor getDimensor() {
-        return this.dimensor;
-    }
-
     // /**
     // * should be overwritten and return a Dimension of the dialog should have
     // a
@@ -840,6 +858,10 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     //
     // return null;
     // }
+
+    public DialogDimensor getDimensor() {
+        return this.dimensor;
+    }
 
     /**
      * Create the key to save the don't showmagain state in database. should be
@@ -921,7 +943,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     public List<? extends Image> getIconList() {
         // TODO Auto-generated method stub
         return null;
-    }
+    };
 
     public DialogLocator getLocator() {
         if (this.locator == null) {
@@ -929,7 +951,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             return AbstractDialog.LOCATE_CENTER_OF_SCREEN;
         }
         return this.locator;
-    };
+    }
 
     /**
      * @return
@@ -1033,7 +1055,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     public String getTitle() {
         try {
             if (this.dialog == null) {
-                return title;
+                return this.title;
             } else {
                 return this.getDialog().getTitle();
             }
@@ -1049,7 +1071,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     protected FrameState getWindowStateOnVisible() {
 
-        return ZHANDLER.getWindowStateOnVisible(this);
+        return AbstractDialog.ZHANDLER.getWindowStateOnVisible(this);
     }
 
     /**
@@ -1143,7 +1165,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public boolean isDontShowAgainSelected() {
-        if (this.isHiddenByDontShowAgain() || (dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled())) { return true; }
+        if (this.isHiddenByDontShowAgain() || this.dontshowagain != null && this.dontshowagain.isSelected() && this.dontshowagain.isEnabled()) { return true; }
         return false;
 
     }
@@ -1179,9 +1201,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      * @return
      */
     protected boolean isVisible() {
-        if (dialog == null) {
-            return false;
-        }
+        if (this.dialog == null) { return false; }
         return this.getDialog().isVisible();
     }
 
@@ -1295,8 +1315,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             @Override
             protected void runInEDT() {
                 Log.L.info("Reset Dummy Info");
-                initialized = false;
-                dummyInit = false;
+                AbstractDialog.this.initialized = false;
+                AbstractDialog.this.dummyInit = false;
             }
         }.waitForEDT();
 
@@ -1438,7 +1458,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public void setPreferredSize(final Dimension dimension) {
 
-        if (dialog == null) {
+        if (this.dialog == null) {
             this.preferredSize = dimension;
         } else {
             this.getDialog().setPreferredSize(dimension);
@@ -1499,7 +1519,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public void setTitle(final String title2) {
 
-        if (dialog == null) {
+        if (this.dialog == null) {
             this.title = title2;
         } else {
             this.getDialog().setTitle(title2);
@@ -1603,29 +1623,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     public void windowOpened(final WindowEvent arg0) {
-    }
-
-    /**
-     * @param e
-     */
-    public void fillReturnMask(final DialogClosedException e) {
-        if (returnBitMask < 0) {
-            returnBitMask = 0;
-        }
-        if (e.isCausedByClosed()) {
-            this.returnBitMask |= Dialog.RETURN_CLOSED;
-        }
-        if (e.isCausedbyESC()) {
-            this.returnBitMask |= Dialog.RETURN_CANCEL;
-        }
-        if (e.isCausedByInterrupt()) {
-            this.returnBitMask |= Dialog.RETURN_INTERRUPT;
-        }
-
-        if (e.isCausedByTimeout()) {
-            this.returnBitMask |= Dialog.RETURN_INTERRUPT;
-        }
-
     }
 
 }

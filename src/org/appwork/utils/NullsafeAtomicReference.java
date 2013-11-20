@@ -23,19 +23,14 @@ import java.util.concurrent.atomic.AtomicReference;
 public class NullsafeAtomicReference<V> {
 
     private static final NullObject       NULL      = new NullObject();
-
-    private final AtomicReference<Object> reference = new AtomicReference<Object>();
+    private static final Object           EMPTY     = new Object();
+    private final AtomicReference<Object> reference = new AtomicReference<Object>(NullsafeAtomicReference.EMPTY);
 
     public NullsafeAtomicReference() {
-        this(null);
     }
 
     public NullsafeAtomicReference(final V initialValue) {
-        if (NullsafeAtomicReference.NULL.equals(initialValue)) {
-            this.reference.set(NullsafeAtomicReference.NULL);
-        } else {
-            this.reference.set(initialValue);
-        }
+        this.set(initialValue);
     }
 
     public final boolean compareAndSet(final V expect, final V update) {
@@ -51,24 +46,38 @@ public class NullsafeAtomicReference<V> {
     }
 
     public final V get() {
-        final Object ret = this.reference.get();
-        if (NullsafeAtomicReference.NULL.equals(ret)) { return null; }
-        return (V) ret;
+        final Object get = this.reference.get();
+        if (NullsafeAtomicReference.NULL.equals(get) || NullsafeAtomicReference.EMPTY == get) { return null; }
+        return (V) get;
+    }
+
+    public V getAndClear() {
+        final Object get = this.reference.getAndSet(NullsafeAtomicReference.EMPTY);
+        if (NullsafeAtomicReference.NULL.equals(get) || NullsafeAtomicReference.EMPTY == get) { return null; }
+        return (V) get;
     }
 
     public final V getAndSet(final V newValue) {
-        while (true) {
-            final V x = this.get();
-            if (this.compareAndSet(x, newValue)) { return x; }
+        Object set = newValue;
+        if (NullsafeAtomicReference.NULL.equals(set)) {
+            set = NullsafeAtomicReference.NULL;
         }
+        final Object get = this.reference.getAndSet(set);
+        if (NullsafeAtomicReference.NULL.equals(get) || NullsafeAtomicReference.EMPTY == get) { return null; }
+        return (V) get;
+    }
+
+    public boolean isValueSet() {
+        return this.reference.get() != NullsafeAtomicReference.EMPTY;
     }
 
     public final void set(final V newValue) {
-        Object a = newValue;
-        if (NullsafeAtomicReference.NULL.equals(a)) {
-            a = NullsafeAtomicReference.NULL;
+        if (NullsafeAtomicReference.NULL.equals(newValue)) {
+            this.reference.set(NullsafeAtomicReference.NULL);
+        } else {
+            this.reference.set(newValue);
         }
-        this.reference.set(a);
+
     }
 
 }

@@ -27,7 +27,7 @@ import org.appwork.utils.Application;
  */
 public class LogToFileHandler extends java.util.logging.Handler {
 
-    private final File         file;
+    private volatile File      file;
     private BufferedWriter     writer;
     private OutputStreamWriter osw = null;
     private FileOutputStream   fos = null;
@@ -54,25 +54,33 @@ public class LogToFileHandler extends java.util.logging.Handler {
     @Override
     public void close() {
         try {
-            this.writer.close();
+            if (this.writer != null) {
+                this.writer.close();
+            }
         } catch (final Throwable e) {
         } finally {
             this.writer = null;
         }
         try {
-            this.osw.close();
+            if (this.osw != null) {
+                this.osw.close();
+            }
         } catch (final Throwable e) {
         } finally {
             this.osw = null;
         }
         try {
-            this.fos.close();
+            if (this.fos != null) {
+                this.fos.close();
+            }
         } catch (final Throwable e) {
         } finally {
             this.fos = null;
         }
-        if (this.file.length() == 0) {
-            this.file.delete();
+        final File lfile = this.file;
+        this.file = null;
+        if (lfile != null && lfile.exists() && lfile.length() == 0) {
+            lfile.delete();
         }
     }
 

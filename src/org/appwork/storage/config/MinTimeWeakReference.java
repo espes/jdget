@@ -116,6 +116,10 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
         this.cleanupMinTimeWeakReference = cleanupMinTimeWeakReference;
     }
 
+    public void clearReference() {
+        MinTimeWeakReference.this.hard = null;
+    }
+
     /**
      * @return
      */

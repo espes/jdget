@@ -15,7 +15,7 @@ public class LogModel extends ExtTableModel<LogFolder> {
 
     public LogModel(final java.util.List<LogFolder> folders) {
         super("LogModel");
-        this.tableData = folders;
+        this.setTableData(folders);
         Collections.sort(folders, new Comparator<LogFolder>() {
 
             @Override

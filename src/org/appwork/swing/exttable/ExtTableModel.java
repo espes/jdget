@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 import javax.swing.Icon;
@@ -78,33 +77,19 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     protected List<E>                                           tableData              = new ArrayList<E>();
 
-    protected ExtColumn<E>                                      sortColumn;
+    protected volatile ExtColumn<E>                             sortColumn;
 
     private final java.util.List<ExtComponentRowHighlighter<E>> extComponentRowHighlighters;
 
     private final ImageIcon                                     iconAsc;
     private final ImageIcon                                     iconDesc;
     private final PropertyChangeListener                        replaceDelayer;
-    private List<E>                                             delayedNewTableData    = null;
-    private final AtomicLong                                    tableDataVersion       = new AtomicLong(0);
+    private volatile boolean                                    replaceDelayerSet      = false;
+    private volatile List<E>                                    delayedNewTableData    = null;
     private boolean                                             debugTableModel        = false;
     private final AtomicBoolean                                 tableStructureChanging = new AtomicBoolean(false);
+    private final AtomicBoolean                                 tableSelectionClearing = new AtomicBoolean(false);
     private ExtTableModelEventSender                            eventSender;
-
-    public ExtTableModelEventSender getEventSender() {
-        if (eventSender == null) {
-            eventSender = new ExtTableModelEventSender();
-            addTableModelListener(new TableModelListener() {
-
-                @Override
-                public void tableChanged(final TableModelEvent e) {
-                    eventSender.fireEvent(new ExtTableModelEventWrapper(ExtTableModel.this, e));
-
-                }
-            });
-        }
-        return eventSender;
-    }
 
     /**
      * Create a new ExtTableModel.
@@ -180,115 +165,143 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
             @Override
             protected void runInEDT() {
+                if (ExtTableModel.this.tableStructureChanging.getAndSet(false)) { throw new IllegalStateException("_replaceTableData within _replaceTableData is forbidden!"); }
                 final ExtTable<E> ltable = ExtTableModel.this.getTable();
                 final boolean replaceNow = !checkEditing || ltable == null || !ltable.isEditing();
                 if (replaceNow) {
                     try {
-                        ExtTableModel.this.tableStructureChanging.set(true);
                         if (ltable != null) {
                             /* replace now */
                             /* clear delayed TableData and Selection */
-                            ExtTableModel.this.delayedNewTableData = null;
-                            ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
+                            if (ExtTableModel.this.replaceDelayerSet) {
+                                ExtTableModel.this.replaceDelayerSet = false;
+                                ExtTableModel.this.delayedNewTableData = null;
+                                ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
+                            }
                             /* replace TableData and set Selection */
-                            final LinkedHashSet<E> selection = new LinkedHashSet<E>(ExtTableModel.this.getSelectedObjects());
+                            List<E> selectedObjects = null;
                             final ListSelectionModel s = ltable.getSelectionModel();
                             final boolean adjusting = s.getValueIsAdjusting();
-                            int leadIndex = s.getLeadSelectionIndex();
-                            int anchorIndex = s.getAnchorSelectionIndex();
-                            final E leadObject = leadIndex >= 0 ? ExtTableModel.this.getObjectbyRow(leadIndex) : null;
-                            final E anchorObject = anchorIndex >= 0 ? ExtTableModel.this.getObjectbyRow(anchorIndex) : null;
-                            if (ExtTableModel.this.isDebugTableModel()) {
-                                System.out.println("before:leadIndex=" + leadIndex + "->" + leadObject + "|anchorIndex=" + anchorIndex + "->" + anchorObject);
-                            }
-                            ExtTableModel.this.setTableData(newtableData);
-                            ExtTableModel.this.fireTableStructureChanged();
-                            if (ExtTableModel.this.getRowCount() > 0) {
-                                if (selection != null) {
-                                    /*
-                                     * restore selection, first we remove all
-                                     * vanished objects, then set the remaining
-                                     * ones
-                                     */
-                                    selection.retainAll(newtableData);
-                                    ExtTableModel.this.setSelectedObjects(new ArrayList<E>(selection));
-
-                                    if (leadObject != null) {
-                                        /*
-                                         * check if our leadObject does still
-                                         * exist
-                                         */
-                                        leadIndex = ExtTableModel.this.getRowforObject(leadObject);
-                                    } else {
-                                        leadIndex = -1;
+                            int leadIndex = -1;
+                            int anchorIndex = -1;
+                            E leadObject = null;
+                            E anchorObject = null;
+                            final boolean hadSelectedObjects = ExtTableModel.this.hasSelectedObjects();
+                            try {
+                                if (newtableData.size() > 0) {
+                                    selectedObjects = ExtTableModel.this.getSelectedObjects();
+                                    leadIndex = s.getLeadSelectionIndex();
+                                    anchorIndex = s.getAnchorSelectionIndex();
+                                    leadObject = adjusting && leadIndex >= 0 ? ExtTableModel.this.getObjectbyRow(leadIndex) : null;
+                                    anchorObject = adjusting && anchorIndex >= 0 ? ExtTableModel.this.getObjectbyRow(anchorIndex) : null;
+                                    if (adjusting && ExtTableModel.this.isDebugTableModel()) {
+                                        System.out.println("before:leadIndex=" + leadIndex + "->" + leadObject + "|anchorIndex=" + anchorIndex + "->" + anchorObject);
                                     }
-                                    if (anchorObject != null) {
+                                }
+                                ExtTableModel.this.tableStructureChanging.set(true);
+                                ExtTableModel.this.setTableData(newtableData);
+                                try {
+                                    ExtTableModel.this.tableSelectionClearing.set(true);
+                                    ExtTableModel.this.fireTableStructureChanged();
+                                } finally {
+                                    ExtTableModel.this.tableSelectionClearing.set(false);
+                                }
+                                if (ExtTableModel.this.postSetTableData(newtableData) && ExtTableModel.this.getRowCount() > 0) {
+                                    if (selectedObjects != null && selectedObjects.size() > 0) {
+                                        final LinkedHashSet<E> selection = new LinkedHashSet<E>(selectedObjects);
                                         /*
-                                         * check if our anchorObject does still
-                                         * exist
+                                         * restore selection, first we remove
+                                         * all vanished objects, then set the
+                                         * remaining ones
                                          */
-                                        anchorIndex = ExtTableModel.this.getRowforObject(anchorObject);
-                                    } else {
-                                        anchorIndex = -1;
-                                    }
-                                    if (ExtTableModel.this.isDebugTableModel()) {
-                                        System.out.println("after:leadIndex=" + leadIndex + "->" + leadObject + "|anchorIndex=" + anchorIndex + "->" + anchorObject);
-                                    }
-                                    if (leadIndex >= 0 && anchorIndex >= 0) {
-                                        /*
-                                         * sort begin/end so we can loop through
-                                         * the items
-                                         */
-                                        int begin = leadIndex;
-                                        int end = anchorIndex;
-                                        if (end < begin) {
-                                            begin = anchorIndex;
-                                            end = leadIndex;
-                                        }
-                                        /*
-                                         * check if we have holes in our
-                                         * Selection
-                                         */
-                                        boolean selectionHole = false;
-                                        for (int index = begin; index <= end; index++) {
-                                            if (s.isSelectedIndex(index) == false) {
-                                                selectionHole = true;
-                                                break;
-                                            }
-                                        }
-                                        /*
-                                         * only set adjusting if we have a
-                                         * lead/anchor
-                                         */
-                                        s.setValueIsAdjusting(adjusting);
-                                        if (selectionHole == false) {
-                                            if (ExtTableModel.this.isDebugTableModel()) {
-                                                System.out.println("No holes in selection: from " + begin + " to " + end);
-                                            }
-                                            s.setAnchorSelectionIndex(anchorIndex);
-                                            s.setLeadSelectionIndex(leadIndex);
-                                        } else {
-                                            if (leadIndex > anchorIndex) {
-                                                if (ExtTableModel.this.isDebugTableModel()) {
-                                                    System.out.println("Holes in selection from " + begin + " to " + end + "!Use leadIndex " + leadIndex);
-                                                }
-                                                s.setAnchorSelectionIndex(leadIndex);
-                                                s.setLeadSelectionIndex(leadIndex);
+                                        selection.retainAll(newtableData);
+                                        ExtTableModel.this.setSelectedObjects(selection);
+                                        if (selection.size() > 0 && adjusting) {
+                                            if (leadObject != null) {
+                                                /*
+                                                 * check if our leadObject does
+                                                 * still exist
+                                                 */
+                                                leadIndex = ExtTableModel.this.getRowforObject(leadObject);
                                             } else {
+                                                leadIndex = -1;
+                                            }
+                                            if (anchorObject != null) {
+                                                /*
+                                                 * check if our anchorObject
+                                                 * does still exist
+                                                 */
+                                                anchorIndex = ExtTableModel.this.getRowforObject(anchorObject);
+                                            } else {
+                                                anchorIndex = -1;
+                                            }
+                                            if (ExtTableModel.this.isDebugTableModel()) {
+                                                System.out.println("after:leadIndex=" + leadIndex + "->" + leadObject + "|anchorIndex=" + anchorIndex + "->" + anchorObject);
+                                            }
+                                            if (leadIndex >= 0 && anchorIndex >= 0) {
+                                                s.setValueIsAdjusting(true);
+                                                /*
+                                                 * sort begin/end so we can loop
+                                                 * through the items
+                                                 */
+                                                int begin = leadIndex;
+                                                int end = anchorIndex;
+                                                if (end < begin) {
+                                                    begin = anchorIndex;
+                                                    end = leadIndex;
+                                                }
+                                                /*
+                                                 * check if we have holes in our
+                                                 * Selection
+                                                 */
+                                                boolean selectionHole = false;
+                                                for (int index = begin; index <= end; index++) {
+                                                    if (s.isSelectedIndex(index) == false) {
+                                                        selectionHole = true;
+                                                        break;
+                                                    }
+                                                }
+                                                /*
+                                                 * only set adjusting if we have
+                                                 * a lead/anchor
+                                                 */
                                                 if (ExtTableModel.this.isDebugTableModel()) {
-                                                    System.out.println("Holes in selection from " + begin + " to " + end + "!Use anchorIndex " + anchorIndex);
+                                                    if (selectionHole == false) {
+                                                        System.out.println("No holes in selection: from " + begin + " to " + end);
+                                                    } else {
+                                                        System.out.println("Holes in selection: from " + begin + " to " + end);
+                                                    }
                                                 }
                                                 s.setAnchorSelectionIndex(anchorIndex);
-                                                s.setLeadSelectionIndex(anchorIndex);
+                                                s.setLeadSelectionIndex(leadIndex);
                                             }
                                         }
-
                                     }
+                                }
+                            } finally {
+                                if (hadSelectedObjects && ExtTableModel.this.hasSelectedObjects() == false) {
+                                    /*
+                                     * we create empty selection event(toggle of
+                                     * valueadjusting) because
+                                     * tableSelectionClearing was used during
+                                     * fireTableStructureChanged to avoid
+                                     * onSelectionChanged
+                                     */
+                                    s.setValueIsAdjusting(true);
+                                    s.setAnchorSelectionIndex(1);
+                                    s.setValueIsAdjusting(false);
                                 }
                             }
                         } else {
+                            ExtTableModel.this.tableStructureChanging.set(true);
                             ExtTableModel.this.setTableData(newtableData);
-                            ExtTableModel.this.fireTableStructureChanged();
+                            try {
+                                ExtTableModel.this.tableSelectionClearing.set(true);
+                                ExtTableModel.this.fireTableStructureChanged();
+                            } finally {
+                                ExtTableModel.this.tableSelectionClearing.set(false);
+                            }
+                            ExtTableModel.this.postSetTableData(newtableData);
                         }
                     } finally {
                         ExtTableModel.this.tableStructureChanging.set(false);
@@ -298,8 +311,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                     /* set delayed TableData and Selection */
                     if (ltable != null) {
                         ExtTableModel.this.delayedNewTableData = newtableData;
-                        ltable.removePropertyChangeListener(ExtTableModel.this.replaceDelayer);
-                        ltable.addPropertyChangeListener(ExtTableModel.this.replaceDelayer);
+                        if (ExtTableModel.this.replaceDelayerSet == false) {
+                            ExtTableModel.this.replaceDelayerSet = true;
+                            ltable.addPropertyChangeListener(ExtTableModel.this.replaceDelayer);
+                        }
                     }
                 }
             }
@@ -507,6 +522,21 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         return new ArrayList<E>(this.getTableData());
     }
 
+    public ExtTableModelEventSender getEventSender() {
+        if (this.eventSender == null) {
+            this.eventSender = new ExtTableModelEventSender();
+            this.addTableModelListener(new TableModelListener() {
+
+                @Override
+                public void tableChanged(final TableModelEvent e) {
+                    ExtTableModel.this.eventSender.fireEvent(new ExtTableModelEventWrapper(ExtTableModel.this, e));
+
+                }
+            });
+        }
+        return this.eventSender;
+    }
+
     /**
      * Returns the Columninstance
      * 
@@ -601,26 +631,34 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     public List<E> getSelectedObjects(final int maxItems) {
         final ExtTable<E> ltable = this.getTable();
-        if (ltable == null) { return new ArrayList<E>(0); }
-        final int[] rows = new EDTHelper<int[]>() {
-
-            @Override
-            public int[] edtRun() {
-                return ltable.getSelectedRows();
+        final ListSelectionModel selectionModel = this.getTable().getSelectionModel();
+        if (ltable == null || selectionModel == null || this.tableSelectionClearing.get()) { return new ArrayList<E>(0); }
+        final java.util.List<E> ret = new ArrayList<E>();
+        final List<E> ltableData = this.getTableData();
+        final int iMin = selectionModel.getMinSelectionIndex();
+        final int iMax = selectionModel.getMaxSelectionIndex();
+        if (iMin == -1 || iMax == -1) { return ret; }
+        if (iMin >= ltableData.size() || iMax >= ltableData.size()) { throw new IllegalStateException("SelectionModel and TableData missmatch!"); }
+        if (maxItems < 0) {
+            for (int i = iMin; i <= iMax; i++) {
+                if (selectionModel.isSelectedIndex(i)) {
+                    final E elem = ltableData.get(i);
+                    if (elem != null) {
+                        ret.add(elem);
+                    }
+                }
             }
-        }.getReturnValue();
-        final List<E> ret = new ArrayList<E>(rows.length);
-        final List<E> data = this.getTableData();
-        for (final int row : rows) {
-            if (maxItems >= 0 && ret.size() > maxItems) {
-                break;
-            }
-            if (row >= data.size() || row < 0) {
-                continue;
-            }
-            final E elem = data.get(row);
-            if (elem != null) {
-                ret.add(elem);
+        } else {
+            for (int i = iMin; i <= iMax; i++) {
+                if (selectionModel.isSelectedIndex(i)) {
+                    final E elem = ltableData.get(i);
+                    if (elem != null) {
+                        ret.add(elem);
+                        if (ret.size() > maxItems) {
+                            break;
+                        }
+                    }
+                }
             }
         }
         return ret;
@@ -671,10 +709,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         return this.tableData;
     }
 
-    public long getTableDataVersion() {
-        return this.tableDataVersion.get();
-    }
-
     /**
      * returns a copy of current objects in tablemodel
      * 
@@ -695,11 +729,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     public boolean hasSelectedObjects() {
         final ExtTable<E> ltable = this.getTable();
-        if (ltable == null) { return false; }
+        if (ltable == null || this.isTableSelectionClearing()) { return false; }
         final ListSelectionModel selectionModel = ltable.getSelectionModel();
         final int iMin = selectionModel.getMinSelectionIndex();
         final int iMax = selectionModel.getMaxSelectionIndex();
-
+        if (iMin == -1 || iMax == -1) { return false; }
         for (int i = iMin; i <= iMax; i++) {
             if (selectionModel.isSelectedIndex(i)) { return true; }
         }
@@ -787,6 +821,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         return true;
     }
 
+    public boolean isTableSelectionClearing() {
+        return this.tableSelectionClearing.get();
+    }
+
     public boolean isTableStructureChanging() {
         return this.tableStructureChanging.get();
     }
@@ -835,6 +873,18 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     }
 
+    /*
+     * this will be called after fireTableStructureChanged. you can customize
+     * everything after this
+     * 
+     * true = restore selection
+     * 
+     * false = do not restore selection
+     */
+    protected boolean postSetTableData(final List<E> newtableData) {
+        return true;
+    }
+
     /**
      * Restores the sort order according to {@link #getSortColumn()} and
      * {@link #getSortOrderIdentifier() == ExtColumn.SORT_ASC}
@@ -851,11 +901,11 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         }
         try {
             boolean sameTable = false;
-            if (data == this.tableData) {
+            if (data == this.getTableData()) {
                 sameTable = true;
             }
             final List<E> ret = this.sort(data, this.sortColumn);
-            if (this.isDebugTableModel() && this.tableData == ret && sameTable) {
+            if (this.isDebugTableModel() && this.getTableData() == ret && sameTable) {
                 Log.exception(new WTFException("WARNING: sorting on live backend!"));
             }
             if (ret == null) { return data; }
@@ -873,6 +923,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         final java.util.List<E> tmp = new ArrayList<E>(this.getTableData());
         tmp.removeAll(selectedObjects);
         this._fireTableStructureChanged(tmp, true);
+    }
+
+    protected void restoreSelection() {
+
     }
 
     /**
@@ -956,11 +1010,12 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public void setSelectedObject(final E latest) {
         final ExtTable<E> ltable = ExtTableModel.this.getTable();
-        if (ltable == null) { return; }
         new EDTHelper<Object>() {
             @Override
             public Object edtRun() {
-                ExtTableModel.this.clearSelection();
+                if (ExtTableModel.this.hasSelectedObjects()) {
+                    ExtTableModel.this.clearSelection();
+                }
                 if (latest == null) { return null; }
                 final int row = ExtTableModel.this.getRowforObject(latest);
                 if (row >= 0) {
@@ -976,14 +1031,15 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * 
      * @param selections
      */
-    public void setSelectedObjects(final List<E> selections) {
+    public int[] setSelectedObjects(final Collection<E> selections) {
         final ExtTable<E> ltable = ExtTableModel.this.getTable();
-        if (ltable == null || selections == null || selections.size() == 0) { return; }
-        new EDTHelper<Object>() {
+        return new EDTHelper<int[]>() {
             @Override
-            public Object edtRun() {
-                ExtTableModel.this.clearSelection();
-                if (selections == null || selections.size() == 0 || ExtTableModel.this.getTableData().size() == 0) { return null; }
+            public int[] edtRun() {
+                if (ExtTableModel.this.hasSelectedObjects()) {
+                    ExtTableModel.this.clearSelection();
+                }
+                if (selections == null || selections.size() == 0 || ExtTableModel.this.getTableData().size() == 0) { return new int[] { -1, -1 }; }
                 // Transform to rowindex list
                 final int[] selectedRows = new int[selections.size()];
                 int selectedRowsIndex = 0;
@@ -993,6 +1049,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                         selectedRows[selectedRowsIndex++] = rowIndex;
                     }
                 }
+                if (selectedRowsIndex == 0) { return new int[] { -1, -1 }; }
                 Arrays.sort(selectedRows);
                 final ListSelectionModel s = ltable.getSelectionModel();
                 final boolean isValueAdjusting = s.getValueIsAdjusting();
@@ -1031,9 +1088,61 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                     }
                 }
                 s.setValueIsAdjusting(isValueAdjusting);
-                return null;
+                return new int[] { selectedRows[0], selectedRows[selectedRows.length - 1] };
             }
-        }.start();
+        }.getReturnValue();
+    }
+
+    public int[] setSelectedRows(final int[] rows) {
+        final ExtTable<E> ltable = ExtTableModel.this.getTable();
+        if (ltable == null || rows == null || rows.length == 0) { return new int[] { -1, -1 }; }
+        return new EDTHelper<int[]>() {
+            @Override
+            public int[] edtRun() {
+                ExtTableModel.this.clearSelection();
+                if (rows == null || rows.length == 0 || ExtTableModel.this.getTableData().size() == 0) { return new int[] { -1, -1 }; }
+                final int[] selectedRows = rows.clone();
+                Arrays.sort(selectedRows);
+                final ListSelectionModel s = ltable.getSelectionModel();
+                final boolean isValueAdjusting = s.getValueIsAdjusting();
+                s.setValueIsAdjusting(true);
+                int index0 = -1;
+                int index1 = -1;
+                int rowIndex = 0;
+                for (rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
+                    final int row = selectedRows[rowIndex];
+                    if (index0 < 0) {
+                        index0 = row;
+                    } else {
+                        if (index1 < 0) {
+                            if (row == index0 + 1) {
+                                index1 = row;
+                            } else {
+                                ltable.addRowSelectionInterval(index0, index0);
+                                index0 = row;
+                            }
+                        } else {
+                            if (row == index1 + 1) {
+                                index1 = row;
+                            } else {
+                                ltable.addRowSelectionInterval(index0, index1);
+                                index0 = row;
+                                index1 = -1;
+                            }
+                        }
+                    }
+                }
+                if (index0 >= 0) {
+                    if (index1 < 0) {
+                        ltable.addRowSelectionInterval(index0, index0);
+                    } else {
+                        ltable.addRowSelectionInterval(index0, index1);
+                    }
+                }
+                s.setValueIsAdjusting(isValueAdjusting);
+                return new int[] { selectedRows[0], selectedRows[selectedRows.length - 1] };
+            }
+        }.getReturnValue();
     }
 
     public void setSortColumn(final ExtColumn<E> e) {
@@ -1051,7 +1160,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     protected void setTableData(final List<E> data) {
-        this.tableDataVersion.incrementAndGet();
         this.tableData = data;
     }
 

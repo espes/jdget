@@ -8,9 +8,9 @@ import org.appwork.swing.exttable.ExtTable;
 
 public class MinimumSelectionObserver implements ListSelectionListener {
 
-    protected final ExtTable<?>    table;
-    protected final Action action;
-    protected final int            minSelections;
+    protected final ExtTable<?> table;
+    protected final Action      action;
+    protected final int         minSelections;
 
     /**
      * @param table
@@ -34,6 +34,7 @@ public class MinimumSelectionObserver implements ListSelectionListener {
      */
     @Override
     public void valueChanged(final ListSelectionEvent e) {
+        if (e.getValueIsAdjusting()) { return; }
         this.action.setEnabled(this.table.getSelectedRowCount() >= this.minSelections);
 
     }
