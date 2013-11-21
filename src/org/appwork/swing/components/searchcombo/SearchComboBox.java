@@ -69,7 +69,9 @@ public abstract class SearchComboBox<T> extends JComboBox {
     public void setMaximumRowCount(final int count) {
         super.setMaximumRowCount(count);
     }
-
+    public T getSelectedItem() {
+        return (T) super.getSelectedItem();
+    }
     public void setActualMaximumRowCount(final int count) {
         actualMaximumRowCount = count;
     }
