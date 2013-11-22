@@ -1000,7 +1000,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         try {
 
             final Dimension ret = new Dimension(Math.min(Toolkit.getDefaultToolkit().getScreenSize().width, w), Math.min(Toolkit.getDefaultToolkit().getScreenSize().height, h));
-
+         
             return ret;
         } catch (final Throwable e) {
             return pref;
