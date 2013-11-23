@@ -15,11 +15,12 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
+
+import javax.swing.Icon;
 
 /**
  * @author thomas
@@ -27,7 +28,7 @@ import java.awt.geom.Ellipse2D;
  */
 public class ImagePainter implements IconPainter {
 
-    private final Image          image;
+    private final Icon           image;
     private final AlphaComposite composite;
 
     private Color                foreground;
@@ -38,7 +39,7 @@ public class ImagePainter implements IconPainter {
     /**
      * @param image
      */
-    public ImagePainter(final Image image) {
+    public ImagePainter(final Icon image) {
         this(image, 1.0f);
     }
 
@@ -46,17 +47,17 @@ public class ImagePainter implements IconPainter {
      * @param image2
      * @param instance
      */
-    public ImagePainter(final Image image2, final AlphaComposite instance) {
+    public ImagePainter(final Icon image2, final AlphaComposite instance) {
         image = image2;
         composite = instance;
-        preferredSize = new Dimension(image.getWidth(null), image.getHeight(null));
+        preferredSize = new Dimension(image.getIconWidth(), image.getIconHeight());
     }
 
     /**
      * @param image2
      * @param f
      */
-    public ImagePainter(final Image image2, final float alpha) {
+    public ImagePainter(final Icon image2, final float alpha) {
         this(image2, AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
     }
 
@@ -72,7 +73,7 @@ public class ImagePainter implements IconPainter {
         return foreground;
     }
 
-    public Image getImage() {
+    public Icon getImage() {
         return image;
     }
 
@@ -95,7 +96,7 @@ public class ImagePainter implements IconPainter {
 
         if (getBackground() != null) {
             if (a == null) {
-                final Shape circle = new Ellipse2D.Float(-(diameter - 2)/2, -(diameter - 2)/2, diameter - 2, diameter - 2);
+                final Shape circle = new Ellipse2D.Float(-(diameter - 2) / 2, -(diameter - 2) / 2, diameter - 2, diameter - 2);
                 a = new Area(circle);
                 a.intersect(new Area(shape));
             }
@@ -110,11 +111,11 @@ public class ImagePainter implements IconPainter {
         final Dimension dim = bar.getSize();
         // System.out.println((bar.getWidth() - image.getWidth(null)) /
         // 2+" - "+((bar.getHeight() - image.getHeight(null)) / 2));
-        g2.drawImage(image, -image.getWidth(null)/2,-image.getHeight(null)/2, image.getWidth(null), image.getHeight(null), null);
+        image.paintIcon(bar, g2, -image.getIconWidth() / 2, -image.getIconHeight() / 2);
         g2.setClip(null);
         if (getForeground() != null) {
             if (a == null) {
-                final Shape circle = new Ellipse2D.Float(-(diameter - 2)/2, -(diameter - 2)/2, diameter - 2, diameter - 2);
+                final Shape circle = new Ellipse2D.Float(-(diameter - 2) / 2, -(diameter - 2) / 2, diameter - 2, diameter - 2);
                 a = new Area(circle);
                 a.intersect(new Area(shape));
             }

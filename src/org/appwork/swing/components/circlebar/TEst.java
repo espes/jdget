@@ -97,16 +97,16 @@ public class TEst {
                         cbar.setOpaque(false);
                         final CircledProgressBar iconBar = new CircledProgressBar(model);
                         iconBar.setPreferredSize(new Dimension(48, 32));
-                        final ImagePainter painter = new ImagePainter(AWUTheme.I().getIcon("close", 32).getImage(), 1.0f);
+                        final ImagePainter painter = new ImagePainter(AWUTheme.I().getIcon("close", 32), 1.0f);
                         iconBar.setValueClipPainter(painter);
                         painter.setBackground(Color.GREEN);
-                        iconBar.setNonvalueClipPainter(new ImagePainter(AWUTheme.I().getIcon("close", 32).getImage(), 0.3f));
+                        iconBar.setNonvalueClipPainter(new ImagePainter(AWUTheme.I().getIcon("close", 32), 0.3f));
                     
 
                         final CircledProgressBar test = new CircledProgressBar();
-                        final ImagePainter valuePainter = new ImagePainter(AWUTheme.I().getIcon("dev", 32).getImage(), 1.0f);
+                        final ImagePainter valuePainter = new ImagePainter(AWUTheme.I().getIcon("dev", 32), 1.0f);
                         // valuePainter.setForeground(Color.BLACK);
-                        final ImagePainter nonvaluePainter = new ImagePainter(AWUTheme.I().getIcon("dev", 32).getImage(), 0.3f);
+                        final ImagePainter nonvaluePainter = new ImagePainter(AWUTheme.I().getIcon("dev", 32), 0.3f);
                         test.setValueClipPainter(valuePainter);
                         test.setNonvalueClipPainter(nonvaluePainter);
                         test.setMaximum(360);
