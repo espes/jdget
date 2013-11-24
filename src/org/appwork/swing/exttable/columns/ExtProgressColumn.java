@@ -210,7 +210,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         return 100;
     }
 
-    protected double getPercentString(final long current, final long total) {
+    public static double getPercentString(final long current, final long total) {
         if (total <= 0) { return 0.00d; }
         return current * 10000 / total / 100.0d;
     }
