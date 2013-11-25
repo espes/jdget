@@ -153,6 +153,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         try {
             AbstractDialog.SESSION_DONTSHOW_AGAIN.clear();
             JSonStorage.getPlainStorage("Dialogs").clear();
+  
         } catch (final Exception e) {
             Log.exception(e);
         }

@@ -33,15 +33,15 @@ public class JsonKeyValueStorage extends Storage {
     }
 
     public JsonKeyValueStorage(final File file, final boolean plain, final byte[] key) throws StorageException {
-        this.map = new HashMap<String, Object>();
+        map = new HashMap<String, Object>();
         this.plain = plain;
         this.file = file;
-        this.name = file.getName();
+        name = file.getName();
         this.key = key;
         final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
         }, new HashMap<String, Object>());
 
-        this.map.putAll(load);
+        map.putAll(load);
     }
 
     /**
@@ -51,10 +51,10 @@ public class JsonKeyValueStorage extends Storage {
      * @param key2
      */
     public JsonKeyValueStorage(final File file, final URL resource, final boolean plain, final byte[] key) {
-        this.map = new HashMap<String, Object>();
+        map = new HashMap<String, Object>();
         this.plain = plain;
         this.file = file;
-        this.name = file.getName();
+        name = file.getName();
         this.key = key;
 
         if (resource != null) {
@@ -62,7 +62,7 @@ public class JsonKeyValueStorage extends Storage {
             try {
                 final HashMap<String, Object> load = JSonStorage.restoreFromString(IO.readURL(resource), plain, key, new TypeRef<HashMap<String, Object>>() {
                 }, new HashMap<String, Object>());
-                this.map.putAll(load);
+                map.putAll(load);
             } catch (final IOException e) {
                 throw new WTFException(e);
             }
@@ -72,7 +72,7 @@ public class JsonKeyValueStorage extends Storage {
             final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
             }, new HashMap<String, Object>());
 
-            this.map.putAll(load);
+            map.putAll(load);
         }
     }
 
@@ -85,31 +85,33 @@ public class JsonKeyValueStorage extends Storage {
     }
 
     public JsonKeyValueStorage(final String name, final boolean plain, final byte[] key) throws StorageException {
-        this.map = new HashMap<String, Object>();
+        map = new HashMap<String, Object>();
         this.name = name;
         this.plain = plain;
-        this.file = Application.getResource("cfg/" + name + (plain ? ".json" : ".ejs"));
-        Log.L.finer("Read Config: " + this.file.getAbsolutePath());
+        file = Application.getResource("cfg/" + name + (plain ? ".json" : ".ejs"));
+        Log.L.finer("Read Config: " + file.getAbsolutePath());
 
         this.key = key;
 
-        final HashMap<String, Object> load = JSonStorage.restoreFrom(this.file, plain, key, new TypeRef<HashMap<String, Object>>() {
+        final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
         }, new HashMap<String, Object>());
         // Log.L.finer(JSonStorage.toString(load));
-        this.map.putAll(load);
+        map.putAll(load);
     }
 
     @Override
     public void clear() throws StorageException {
         Entry<String, Object> next;
-        for (final Iterator<Entry<String, Object>> it = this.map.entrySet().iterator(); it.hasNext();) {
+        for (final Iterator<Entry<String, Object>> it = map.entrySet().iterator(); it.hasNext();) {
             next = it.next();
             it.remove();
-            if (this.hasEventSender()) {
-                this.getEventSender().fireEvent(new StorageKeyRemovedEvent<Object>(this, next.getKey(), next.getValue()));
+            if (hasEventSender()) {
+                getEventSender().fireEvent(new StorageKeyRemovedEvent<Object>(this, next.getKey(), next.getValue()));
             }
+            changed=true;
         }
-        this.map.clear();
+        
+        map.clear();
     }
 
     /*
@@ -119,14 +121,14 @@ public class JsonKeyValueStorage extends Storage {
      */
     @Override
     public void close() {
-        this.closed = true;
+        closed = true;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <E> E get(final String key, final E def) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
-        Object ret = contains ? this.map.get(key) : null;
+        final boolean contains = map.containsKey(key);
+        Object ret = contains ? map.get(key) : null;
 
         if (ret != null && def != null && ret.getClass() != def.getClass()) {
             /* ret class different from def class, so we have to convert */
@@ -168,7 +170,7 @@ public class JsonKeyValueStorage extends Storage {
             }
         }
         // put entry if we have no entry
-        if (!contains && this.autoPutValues) {
+        if (!contains && autoPutValues) {
             ret = def;
             if (def instanceof Boolean) {
                 this.put(key, (Boolean) def);
@@ -195,9 +197,9 @@ public class JsonKeyValueStorage extends Storage {
             try {
                 ret = Enum.valueOf(((Enum<?>) def).getDeclaringClass(), (String) ret);
             } catch (final Throwable e) {
-                this.map.remove(key);
+                map.remove(key);
                 Log.exception(e);
-                if (this.autoPutValues) {
+                if (autoPutValues) {
                     this.put(key, (Enum<?>) def);
                 }
                 ret = def;
@@ -207,7 +209,7 @@ public class JsonKeyValueStorage extends Storage {
     }
 
     public File getFile() {
-        return this.file;
+        return file;
     }
 
     /*
@@ -217,23 +219,23 @@ public class JsonKeyValueStorage extends Storage {
      */
     @Override
     public String getID() {
-        return this.file.getAbsolutePath();
+        return file.getAbsolutePath();
     }
 
     /* WARNING: you should know what you are doing! */
     public Map<String, Object> getInternalStorageMap() {
-        return this.map;
+        return map;
     }
 
     /**
      * @return the key
      */
     public byte[] getKey() {
-        return this.key;
+        return key;
     }
 
     public String getName() {
-        return this.name;
+        return name;
     }
 
     /*
@@ -244,178 +246,178 @@ public class JsonKeyValueStorage extends Storage {
     @Override
     public boolean hasProperty(final String key) {
         // TODO Auto-generated method stub
-        return this.map.containsKey(key);
+        return map.containsKey(key);
     }
 
     /**
      * @return the autoPutValues
      */
     public boolean isAutoPutValues() {
-        return this.autoPutValues;
+        return autoPutValues;
     }
 
     public boolean isPlain() {
-        return this.plain;
+        return plain;
     }
 
     public void put(final String key, final boolean value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final boolean old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Boolean>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<Boolean>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Boolean>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<Boolean>(this, key, value));
         }
     }
 
     @Override
     public void put(final String key, final Boolean value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final Boolean old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Boolean>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<Boolean>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Boolean>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<Boolean>(this, key, value));
         }
     }
 
     @Override
     public void put(final String key, final Byte value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final Byte old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Byte>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<Byte>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Byte>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<Byte>(this, key, value));
         }
     }
 
     @Override
     public void put(final String key, final Double value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final Double old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Double>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<Double>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Double>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<Double>(this, key, value));
         }
     }
 
     @Override
     public void put(final String key, final Enum<?> value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final Enum<?> old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Enum<?>>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<Enum<?>>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Enum<?>>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<Enum<?>>(this, key, value));
         }
     }
 
     @Override
     public void put(final String key, final Float value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final Float old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Float>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<Float>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Float>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<Float>(this, key, value));
         }
     }
 
     public void put(final String key, final int value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final Integer old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Integer>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<Integer>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Integer>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<Integer>(this, key, value));
         }
     }
 
     @Override
     public void put(final String key, final Integer value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final Integer old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Integer>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<Integer>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Integer>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<Integer>(this, key, value));
         }
     }
 
     public void put(final String key, final long value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final Long old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Long>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<Long>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Long>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<Long>(this, key, value));
         }
     }
 
     @Override
     public void put(final String key, final Long value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final Long old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<Long>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<Long>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<Long>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<Long>(this, key, value));
         }
     }
 
     @Override
     public void put(final String key, final String value) throws StorageException {
-        final boolean contains = this.map.containsKey(key);
+        final boolean contains = map.containsKey(key);
         final String old = contains ? this.get(key, value) : null;
-        this.map.put(key, value);
-        this.changed = true;
-        if (!this.hasEventSender()) { return; }
+        map.put(key, value);
+        changed = true;
+        if (!hasEventSender()) { return; }
         if (contains) {
-            this.getEventSender().fireEvent(new StorageValueChangeEvent<String>(this, key, old, value));
+            getEventSender().fireEvent(new StorageValueChangeEvent<String>(this, key, old, value));
         } else {
-            this.getEventSender().fireEvent(new StorageKeyAddedEvent<String>(this, key, value));
+            getEventSender().fireEvent(new StorageKeyAddedEvent<String>(this, key, value));
         }
     }
 
     @Override
     public Object remove(final String key) {
         Object ret;
-        if ((ret = this.map.remove(key)) != null) {
-            this.changed = true;
-            if (this.hasEventSender()) {
-                this.getEventSender().fireEvent(new StorageKeyRemovedEvent<Object>(this, key, ret));
+        if ((ret = map.remove(key)) != null) {
+            changed = true;
+            if (hasEventSender()) {
+                getEventSender().fireEvent(new StorageKeyRemovedEvent<Object>(this, key, ret));
             }
         }
         return ret;
@@ -423,14 +425,14 @@ public class JsonKeyValueStorage extends Storage {
 
     @Override
     public void save() throws StorageException {
-        if (this.closed) { throw new StorageException("StorageChest already closed!"); }
-        if (this.changed == false) { return; }
+        if (closed) { throw new StorageException("StorageChest already closed!"); }
+        if (changed == false) { return; }
         /*
          * writer are not threadsafe,
          * http://wiki.fasterxml.com/JacksonBestPracticeThreadSafety
          */
-        final String json = JSonStorage.getMapper().objectToString(this.map);
-        JSonStorage.saveTo(this.file, this.plain, this.key, json);
+        final String json = JSonStorage.getMapper().objectToString(map);
+        JSonStorage.saveTo(file, plain, key, json);
     }
 
     /**
@@ -448,16 +450,16 @@ public class JsonKeyValueStorage extends Storage {
      */
     @Override
     public int size() {
-        return this.map.size();
+        return map.size();
     }
 
     @Override
     public String toString() {
         try {
             /* this is not ThreadSafe!! */
-            return JSonStorage.getMapper().objectToString(this.map);
+            return JSonStorage.getMapper().objectToString(map);
         } catch (final Throwable e) {
-            return this.map.toString();
+            return map.toString();
         }
 
     }
