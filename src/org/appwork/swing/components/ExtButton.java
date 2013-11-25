@@ -7,6 +7,7 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -20,6 +21,7 @@ import org.appwork.swing.components.tooltips.TooltipFactory;
 import org.appwork.swing.components.tooltips.TooltipTextDelegateFactory;
 import org.appwork.utils.KeyUtils;
 import org.appwork.utils.StringUtils;
+import org.appwork.utils.ImageProvider.ImageProvider;
 
 public class ExtButton extends JButton implements ToolTipHandler {
 
@@ -228,7 +230,17 @@ public void setEnabled(final boolean b) {
             }
         }
     }
-
+    private Icon disabledIcon=null;
+    public Icon getDisabledIcon() {
+        if (disabledIcon == null) {
+           
+            disabledIcon =  ImageProvider.getDisabledIcon(getIcon());
+            if (disabledIcon != null) {
+                firePropertyChange(DISABLED_ICON_CHANGED_PROPERTY, null, disabledIcon);
+            }
+        }
+        return disabledIcon;
+    }
     /**
      * 
      */

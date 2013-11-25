@@ -218,7 +218,6 @@ public class IconIO {
             g2.translate(x, y); 
             g2.scale(faktor, faktor);         
             source.paintIcon(c, g, 0, 0);
-
             g2.setTransform(old);
            
         }

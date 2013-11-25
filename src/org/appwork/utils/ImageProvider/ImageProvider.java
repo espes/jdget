@@ -33,9 +33,9 @@ import java.util.logging.Level;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
+import javax.swing.GrayFilter;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.UIManager;
 
 import org.appwork.storage.config.MinTimeWeakReference;
 import org.appwork.storage.config.MinTimeWeakReferenceCleanup;
@@ -223,12 +223,15 @@ public class ImageProvider {
         synchronized (ImageProvider.LOCK) {
             final MinTimeWeakReference<Icon> cache = ImageProvider.DISABLED_ICON_CACHE.get(icon);
             Icon ret = cache == null ? null : cache.get();
-            if (ret != null) { return ret; }
+            if (ret != null) {
+                //
+                return ret; }
             if (!(icon instanceof ImageIcon)) {
                 // getDisabledIcon only works for imageicons
                 icon = ImageProvider.toImageIcon(icon);
             }
-            ret = UIManager.getLookAndFeel().getDisabledIcon(null, icon);
+            ret = new ImageIcon(GrayFilter.createDisabledImage(((ImageIcon) icon).getImage()));
+
             ImageProvider.DISABLED_ICON_CACHE.put(icon, new MinTimeWeakReference<Icon>(ret, ImageProvider.MIN_LIFETIME, "disabled icon"));
             return ret;
         }
@@ -579,7 +582,7 @@ public class ImageProvider {
             final GraphicsDevice gd = ge.getDefaultScreenDevice();
             final GraphicsConfiguration gc = gd.getDefaultConfiguration();
             final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.TRANSLUCENT);
-          
+
             final Graphics2D g = image.createGraphics();
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             // g.setColor(Color.RED);
