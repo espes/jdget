@@ -24,7 +24,6 @@ import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 
-import jd.http.Browser;
 import jd.http.Request;
 import jd.http.URLConnectionAdapter;
 
@@ -39,12 +38,12 @@ import org.appwork.utils.net.httpconnection.HTTPConnection.RequestMethod;
  */
 public class PostFormDataRequest extends Request {
 
-    private String                    boundary;
+    private String                         boundary;
     private final java.util.List<FormData> formDatas;
-    private String                    encodeType = "multipart/form-data";
+    private String                         encodeType = "multipart/form-data";
 
     public PostFormDataRequest(final String url) throws MalformedURLException {
-        super(Browser.correctURL(url));
+        super(url);
         this.generateBoundary();
         this.formDatas = new ArrayList<FormData>();
     }
@@ -95,8 +94,7 @@ public class PostFormDataRequest extends Request {
     }
 
     /**
-     * send the postData of the Request. in case httpConnection is null, it
-     * outputs the data to a NullOutputStream
+     * send the postData of the Request. in case httpConnection is null, it outputs the data to a NullOutputStream
      */
     @Override
     public long postRequest() throws IOException {

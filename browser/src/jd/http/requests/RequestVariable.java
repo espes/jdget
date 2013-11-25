@@ -24,39 +24,20 @@ import java.util.Map.Entry;
 public class RequestVariable {
 
     /** The key */
-    private String key;
+    final private String key;
 
     /** The value */
-    private String value;
+    final private String value;
 
     /**
-     * @return the key
+     * constructor
+     * 
+     * @param keyValueEntry
+     *            {@link java.util.Map.Entry} containing key and value to use
      */
-    public String getKey() {
-        return key;
-    }
-
-    /**
-     * @param key
-     *            the new key
-     */
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    /**
-     * @return the value
-     */
-    public String getValue() {
-        return value;
-    }
-
-    /**
-     * @param value
-     *            the new value
-     */
-    public void setValue(String value) {
-        this.value = value;
+    public RequestVariable(final Entry<String, String> keyValueEntry) {
+        this.key = keyValueEntry.getKey();
+        this.value = keyValueEntry.getValue();
     }
 
     /**
@@ -67,19 +48,22 @@ public class RequestVariable {
      * @param value
      *            the value
      */
-    public RequestVariable(String key, String value) {
+    public RequestVariable(final String key, final String value) {
         this.key = key;
         this.value = value;
     }
 
     /**
-     * constructor
-     * 
-     * @param keyValueEntry
-     *            {@link java.util.Map.Entry} containing key and value to use
+     * @return the key
      */
-    public RequestVariable(Entry<String, String> keyValueEntry) {
-        this.key = keyValueEntry.getKey();
-        this.value = keyValueEntry.getValue();
+    public String getKey() {
+        return this.key;
+    }
+
+    /**
+     * @return the value
+     */
+    public String getValue() {
+        return this.value;
     }
 }

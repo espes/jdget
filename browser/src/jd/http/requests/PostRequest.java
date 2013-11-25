@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
-import jd.http.Browser;
 import jd.http.Request;
 import jd.http.URLConnectionAdapter;
 import jd.parser.html.Form;
@@ -51,24 +50,22 @@ public class PostRequest extends Request {
         return ret;
     }
 
-    private final java.util.List<RequestVariable> postVariables;
-    private String                           postString  = null;
-    private String                           contentType = null;
-    private byte[]                           postBytes   = null;
-    private SEND                             sendWHAT    = null;
+    private final java.util.List<RequestVariable> postVariables = new ArrayList<RequestVariable>();
+    private String                                postString    = null;
+    private String                                contentType   = null;
+    private byte[]                                postBytes     = null;
+    private SEND                                  sendWHAT      = null;
 
     public PostRequest(final Form form) throws MalformedURLException {
         super(form.getAction(null));
-        this.postVariables = new ArrayList<RequestVariable>();
+    }
+
+    public PostRequest(final Request cloneRequest) {
+        super(cloneRequest);
     }
 
     public PostRequest(final String url) throws MalformedURLException {
-        super(Browser.correctURL(url));
-        this.postVariables = new ArrayList<RequestVariable>();
-    }
-
-    public void addAll(final java.util.List<RequestVariable> post) {
-        this.postVariables.addAll(post);
+        super(url);
     }
 
     public void addAll(final HashMap<String, String> post) {
@@ -77,8 +74,23 @@ public class PostRequest extends Request {
         }
     }
 
+    public void addAll(final java.util.List<RequestVariable> post) {
+        this.postVariables.addAll(post);
+    }
+
     public void addVariable(final String key, final String value) {
         this.postVariables.add(new RequestVariable(key, value));
+    }
+
+    @Override
+    public PostRequest cloneRequest() {
+        final PostRequest ret = new PostRequest(this);
+        ret.addAll(this.postVariables);
+        ret.sendWHAT = this.sendWHAT;
+        ret.postString = this.postString;
+        ret.contentType = this.contentType;
+        ret.postBytes = this.postBytes;
+        return ret;
     }
 
     public String getPostDataString() {
@@ -150,8 +162,7 @@ public class PostRequest extends Request {
     }
 
     /**
-     * send the postData of the Request. in case httpConnection is null, it
-     * outputs the data to a NullOutputStream
+     * send the postData of the Request. in case httpConnection is null, it outputs the data to a NullOutputStream
      */
     @Override
     public long postRequest() throws IOException {

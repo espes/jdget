@@ -43,6 +43,15 @@ public class RequestHeader {
         this.putAll(headers);
     }
 
+    public RequestHeader(final RequestHeader requestHeader) {
+        this();
+        if (requestHeader != null) {
+            this.keys.addAll(requestHeader.keys);
+            this.values.addAll(requestHeader.values);
+            this.dominant = requestHeader.dominant;
+        }
+    }
+
     public void clear() {
         this.keys.clear();
         this.values.clear();
@@ -62,18 +71,18 @@ public class RequestHeader {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj) { return true; }
         if (obj == null) { return false; }
-        if (getClass() != obj.getClass()) { return false; }
-        RequestHeader other = (RequestHeader) obj;
-        if (dominant != other.dominant) { return false; }
-        if (keys == null) {
+        if (this.getClass() != obj.getClass()) { return false; }
+        final RequestHeader other = (RequestHeader) obj;
+        if (this.dominant != other.dominant) { return false; }
+        if (this.keys == null) {
             if (other.keys != null) { return false; }
-        } else if (!keys.equals(other.keys)) { return false; }
-        if (values == null) {
+        } else if (!this.keys.equals(other.keys)) { return false; }
+        if (this.values == null) {
             if (other.values != null) { return false; }
-        } else if (!values.equals(other.values)) { return false; }
+        } else if (!this.values.equals(other.values)) { return false; }
         return true;
     }
 
@@ -94,9 +103,9 @@ public class RequestHeader {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + (dominant ? 1231 : 1237);
-        result = prime * result + (keys == null ? 0 : keys.hashCode());
-        result = prime * result + (values == null ? 0 : values.hashCode());
+        result = prime * result + (this.dominant ? 1231 : 1237);
+        result = prime * result + (this.keys == null ? 0 : this.keys.hashCode());
+        result = prime * result + (this.values == null ? 0 : this.values.hashCode());
         return result;
     }
 

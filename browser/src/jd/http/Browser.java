@@ -43,6 +43,7 @@ import jd.parser.html.Form;
 import jd.parser.html.InputField;
 
 import org.appwork.exceptions.WTFException;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.logging2.LogSource;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
 
@@ -408,36 +409,35 @@ public class Browser {
         return Browser.LOGGER;
     }
 
-    private String                   acceptLanguage      = "de, en-gb;q=0.9, en;q=0.8";
+    private String                   acceptLanguage   = "de, en-gb;q=0.9, en;q=0.8";
 
     /*
      * -1 means use default Timeouts
      * 
      * 0 means infinite (DO NOT USE if not needed)
      */
-    private int                      connectTimeout      = -1;
+    private int                      connectTimeout   = -1;
 
-    private HashMap<String, Cookies> cookies             = new HashMap<String, Cookies>();
+    private HashMap<String, Cookies> cookies          = new HashMap<String, Cookies>();
 
-    private boolean                  cookiesExclusive    = true;
+    private boolean                  cookiesExclusive = true;
 
-    private String                   currentURL          = null;
+    private String                   currentURL       = null;
 
-    private String                   customCharset       = null;
+    private String                   customCharset    = null;
 
-    private boolean                  debug               = false;
-    private boolean                  doRedirects         = false;
+    private boolean                  debug            = false;
+    private boolean                  doRedirects      = false;
     private RequestHeader            headers;
-    private int                      limit               = 2 * 1024 * 1024;
-    private Logger                   logger              = null;
+    private int                      limit            = 2 * 1024 * 1024;
+    private Logger                   logger           = null;
     private HTTPProxy                proxy;
-    private int                      readTimeout         = -1;
-    private int                      redirectLoopCounter = 0;
+    private int                      readTimeout      = -1;
     private Request                  request;
     private HashMap<String, Integer> requestIntervalLimitMap;
     private HashMap<String, Long>    requestTimeMap;
 
-    private boolean                  verbose             = false;
+    private boolean                  verbose          = false;
 
     public Browser() {
         final Thread currentThread = Thread.currentThread();
@@ -508,7 +508,7 @@ public class Browser {
         br.getHeaders().putAll(this.getHeaders());
         br.limit = this.limit;
         br.readTimeout = this.readTimeout;
-        br.request = this.request;
+        br.request = this.getRequest();
         br.cookies = this.cookies;
         br.cookiesExclusive = this.cookiesExclusive;
         br.debug = this.debug;
@@ -564,9 +564,10 @@ public class Browser {
     public Request createFormRequest(final Form form) throws Exception {
         String base = null;
         String action = null;
-        if (this.request != null) {
+        final Request lRequest = this.getRequest();
+        if (lRequest != null) {
             /* take current url as base url */
-            base = this.request.getUrl().toString();
+            base = lRequest.getUrl();
         }
         try {
             final String sourceBase = this.getRegex("<base.*?href=\"(.+?)\"").getMatch(0);
@@ -623,35 +624,7 @@ public class Browser {
 
     }
 
-    /**
-     * Creates a new GET request.
-     * 
-     * @param string
-     *            a string including an URL
-     * 
-     * @return the created GET request
-     * 
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
-     */
-    public Request createGetRequest(final String string) throws IOException {
-        return this.createGetRequest(string, null);
-    }
-
-    /**
-     * Creates a new GET request.
-     * 
-     * @param string
-     *            a string including an URL
-     * @param oldRequest
-     *            the old request for forwarding cookies to the new request. Can be null, to ignore old cookies.
-     * 
-     * @return the created GET request
-     * 
-     * @throws IOException
-     *             Signals that an I/O exception has occurred.
-     */
-    public Request createGetRequest(String string, final Request oldRequest) throws IOException {
+    public Request createGetRequest(String string) throws IOException {
         string = this.getURL(string);
         boolean sendref = true;
         if (this.currentURL == null) {
@@ -661,14 +634,7 @@ public class Browser {
 
         final GetRequest request = new GetRequest(string);
         request.setCustomCharset(this.customCharset);
-        if (this.selectProxy() != null) {
-            request.setProxy(this.selectProxy());
-        }
-
-        // if old request is set, use it's cookies for the new request
-        if (oldRequest != null && oldRequest.hasCookies()) {
-            request.setCookies(oldRequest.getCookies());
-        }
+        request.setProxy(this.selectProxy());
 
         // doAuth(request);
         /* set Timeouts */
@@ -698,7 +664,7 @@ public class Browser {
     /* this is buggy as we must set correct referer! */
     @Deprecated
     public Request createGetRequestRedirectedRequest(final Request oldRequest) throws IOException {
-        return this.createGetRequest(oldRequest.getLocation(), oldRequest);
+        return this.createRedirectFollowingRequest(oldRequest);
     }
 
     public Request createPostFormDataRequest(String url) throws IOException {
@@ -711,9 +677,7 @@ public class Browser {
 
         final PostFormDataRequest request = new PostFormDataRequest(url);
         request.setCustomCharset(this.customCharset);
-        if (this.selectProxy() != null) {
-            request.setProxy(this.selectProxy());
-        }
+        request.setProxy(this.selectProxy());
 
         request.getHeaders().put("Accept-Language", this.acceptLanguage);
 
@@ -744,9 +708,7 @@ public class Browser {
 
         final PostRequest request = new PostRequest(url);
         request.setCustomCharset(this.customCharset);
-        if (this.selectProxy() != null) {
-            request.setProxy(this.selectProxy());
-        }
+        request.setProxy(this.selectProxy());
         // doAuth(request);
         request.getHeaders().put("Accept-Language", this.acceptLanguage);
         // request.setFollowRedirects(doRedirects);
@@ -792,42 +754,25 @@ public class Browser {
         return this.createPostRequest(url, Request.parseQuery(post));
     }
 
-    @Deprecated
-    /* this is buggy as we must set correct referer! */
-    public Request createPostRequestfromRedirectedRequest(final Request oldrequest, final String postdata) throws IOException {
-        final String url = this.getURL(oldrequest.getLocation());
-        boolean sendref = true;
-        if (this.currentURL == null) {
-            sendref = false;
-            this.currentURL = url;
+    public Request createRedirectFollowingRequest(final Request request) throws BrowserException {
+        if (request == null) { throw new IllegalArgumentException("Request is null"); }
+        String location = request.getLocation();
+        if (StringUtils.isEmpty(location)) { throw new IllegalStateException("Request does not contain a redirect"); }
+        location = this.getURL(location);
+        final int responseCode = request.getHttpConnection().getResponseCode();
+        Request newRequest = null;
+        if (responseCode == 302 || responseCode == 303) {
+            /* use get as next requestType */
+            newRequest = new GetRequest(request);
+        } else if (responseCode == 307 || responseCode == 308) {
+            /* keep original requestType */
+            newRequest = request.cloneRequest();
+        } else {
+            throw new IllegalStateException("ResponseCode " + responseCode + " is unsupported!");
         }
-        final HashMap<String, String> post = Request.parseQuery(postdata);
-
-        final PostRequest request = new PostRequest(url);
-        request.setCustomCharset(this.customCharset);
-        if (this.selectProxy() != null) {
-            request.setProxy(this.selectProxy());
-        }
-        if (oldrequest.hasCookies()) {
-            request.setCookies(oldrequest.getCookies());
-        }
-        // doAuth(request);
-        request.getHeaders().put("Accept-Language", this.acceptLanguage);
-        // request.setFollowRedirects(doRedirects);
-        /* set Timeouts */
-        request.setConnectTimeout(this.getConnectTimeout());
-        request.setReadTimeout(this.getReadTimeout());
-        this.forwardCookies(request);
-        if (sendref) {
-            request.getHeaders().put("Referer", this.currentURL);
-        }
-        if (post != null) {
-            request.addAll(post);
-        }
-        if (this.headers != null) {
-            this.mergeHeaders(request);
-        }
-        return request;
+        /* TODO: check referer header */
+        newRequest.setURL(location);
+        return newRequest;
     }
 
     public Request createRequest(final Form form) throws Exception {
@@ -854,37 +799,38 @@ public class Browser {
      */
     public void downloadConnection(final File file, URLConnectionAdapter con) throws IOException {
         if (con == null) {
-            con = this.request.getHttpConnection();
+            con = this.getRequest().getHttpConnection();
         }
         Browser.download(file, con);
     }
 
     public String followConnection() throws IOException {
         final Logger llogger = this.getLogger();
-        if (this.request.getHtmlCode() != null) {
+        final Request lRequest = this.getRequest();
+        if (lRequest.getHtmlCode() != null) {
             if (llogger != null) {
                 llogger.warning("Request has already been read");
             }
             return null;
         }
         try {
-            this.checkContentLengthLimit(this.request);
+            this.checkContentLengthLimit(lRequest);
             /* we update allowedResponseCodes here */
-            this.request.getHttpConnection().setAllowedResponseCodes(this.allowedResponseCodes);
-            this.request.read(this.isKeepResponseContentBytes());
+            lRequest.getHttpConnection().setAllowedResponseCodes(this.allowedResponseCodes);
+            lRequest.read(this.isKeepResponseContentBytes());
         } catch (final BrowserException e) {
             throw e;
         } catch (final IOException e) {
-            throw new BrowserException(e.getMessage(), this.request.getHttpConnection(), e);
+            throw new BrowserException(e.getMessage(), lRequest.getHttpConnection(), e);
         } finally {
-            this.request.disconnect();
+            lRequest.disconnect();
         }
         if (this.isVerbose()) {
             if (llogger != null) {
-                llogger.finest("\r\n" + this.request + "\r\n");
+                llogger.finest("\r\n" + lRequest + "\r\n");
             }
         }
-        return this.request.getHtmlCode();
+        return lRequest.getHtmlCode();
     }
 
     /**
@@ -933,8 +879,9 @@ public class Browser {
     }
 
     public String getBaseURL() {
-        if (this.request == null) { return null; }
-        final String url = this.request.getUrl();
+        final Request lRequest = this.getRequest();
+        if (lRequest == null) { return null; }
+        final String url = lRequest.getUrl();
         final String base = new Regex(url, "(https?://.+)/").getMatch(0);
         if (base != null) { return base + "/"; }
         throw new WTFException("no baseURL for " + url);
@@ -1055,12 +1002,14 @@ public class Browser {
     }
 
     public String getHost() {
-        return this.request == null ? null : Browser.getHost(this.request.getUrl(), false);
+        final Request lRequest = this.getRequest();
+        return lRequest == null ? null : Browser.getHost(lRequest.getUrl(), false);
     }
 
     public URLConnectionAdapter getHttpConnection() {
-        if (this.request == null) { return null; }
-        return this.request.getHttpConnection();
+        final Request lRequest = this.getRequest();
+        if (lRequest == null) { return null; }
+        return lRequest.getHttpConnection();
     }
 
     public int getLoadLimit() {
@@ -1105,8 +1054,9 @@ public class Browser {
      * @return
      */
     public String getRedirectLocation() {
-        if (this.request == null) { return null; }
-        return this.request.getLocation();
+        final Request lRequest = this.getRequest();
+        if (lRequest == null) { return null; }
+        return lRequest.getLocation();
     }
 
     public Regex getRegex(final Pattern compile) {
@@ -1139,7 +1089,8 @@ public class Browser {
     }
 
     public String getURL() {
-        return this.request == null ? null : this.request.getUrl();
+        final Request lRequest = this.getRequest();
+        return lRequest == null ? null : lRequest.getUrl();
     }
 
     /**
@@ -1156,7 +1107,8 @@ public class Browser {
             /* this checks if string contains a full/correct URL */
             new URL(string);
         } catch (final Exception e) {
-            if (this.request == null || this.request.getHttpConnection() == null) { return string; }
+            final Request lRequest = this.getRequest();
+            if (lRequest == null || lRequest.getHttpConnection() == null) { return string; }
             final String base = this.getBaseURL();
             if (string.startsWith("/") || string.startsWith("\\") || string.startsWith("?")) {
                 try {
@@ -1220,7 +1172,7 @@ public class Browser {
 
         Request requ;
         if (con == null) {
-            requ = this.request;
+            requ = this.getRequest();
         } else {
             requ = new Request(con) {
                 {
@@ -1322,38 +1274,26 @@ public class Browser {
     /**
      * Opens a connection based on the request object
      */
-    public URLConnectionAdapter openRequestConnection(final Request request) throws IOException {
-        this.connect(request);
-        this.updateCookies(request);
-        this.request = request;
-        if (this.doRedirects && request.getLocation() != null) {
-            if (request.getLocation().toLowerCase().startsWith("ftp://")) { throw new BrowserException("Cannot redirect to FTP"); }
-            final String org = request.getUrl();
-            final String red = request.getLocation();
-            if (org.equalsIgnoreCase(red) && this.redirectLoopCounter >= 20) {
-                final Logger llogger = this.getLogger();
-                if (llogger != null) {
-                    llogger.severe("20 Redirects!!!");
-                }
-            } else if (!org.equalsIgnoreCase(red) || this.redirectLoopCounter < 20) {
-                if (org.equalsIgnoreCase(red)) {
-                    this.redirectLoopCounter++;
-                } else {
-                    this.redirectLoopCounter = 0;
-                }
-                /* prevent buggy redirect loops */
-                /* source==dest */
+    public URLConnectionAdapter openRequestConnection(Request request) throws IOException {
+        int redirectLoopPrevention = 0;
+        while (true) {
+            this.connect(request);
+            this.updateCookies(request);
+            final String redirect = request.getLocation();
+            if (this.doRedirects && redirect != null) {
                 try {
                     /* close old connection, because we follow redirect */
                     request.httpConnection.disconnect();
                 } catch (final Throwable e) {
                 }
-                this.openGetConnection(null);
+                if (redirectLoopPrevention++ > 20) { throw new BrowserException("Too many redirects!"); }
+                request = this.createRedirectFollowingRequest(request);
+            } else {
+                this.currentURL = request.getUrl();
+                break;
             }
-        } else {
-            this.currentURL = request.getUrl();
         }
-        return this.request.getHttpConnection();
+        return request.getHttpConnection();
     }
 
     /**
@@ -1541,8 +1481,9 @@ public class Browser {
 
     @Override
     public String toString() {
-        if (this.request == null) { return "Browser. no request yet"; }
-        return this.request.getHTMLSource();
+        final Request lRequest = this.getRequest();
+        if (lRequest == null) { return "Browser. no request yet"; }
+        return lRequest.getHTMLSource();
     }
 
     public void updateCookies(final Request request) {

@@ -19,7 +19,6 @@ package jd.http.requests;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
-import jd.http.Browser;
 import jd.http.Request;
 
 import org.appwork.utils.net.httpconnection.HTTPConnection.RequestMethod;
@@ -29,6 +28,10 @@ import org.appwork.utils.net.httpconnection.HTTPConnection.RequestMethod;
  * representation of the specified resource. Requests using GET should only retrieve data and should have no other effect.
  */
 public class GetRequest extends Request {
+
+    public GetRequest(final Request cloneRequest) {
+        super(cloneRequest);
+    }
 
     /**
      * constructor
@@ -40,7 +43,12 @@ public class GetRequest extends Request {
      *             in case URL was malformed
      */
     public GetRequest(final String url) throws MalformedURLException {
-        super(Browser.correctURL(url));
+        super(url);
+    }
+
+    @Override
+    public GetRequest cloneRequest() {
+        return new GetRequest(this);
     }
 
     /** {@inheritDoc} */

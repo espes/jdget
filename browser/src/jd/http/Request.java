@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import jd.nutils.encoding.Encoding;
 import jd.parser.Regex;
 
+import org.appwork.exceptions.WTFException;
 import org.appwork.utils.Application;
 import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.httpconnection.HTTPProxy;
@@ -152,16 +153,15 @@ public abstract class Request {
     protected int                  connectTimeout = 30000;
     protected int                  readTimeout    = 60000;
     protected Cookies              cookies        = null;
-
     protected RequestHeader        headers;
 
     protected String               htmlCode;
-    protected URLConnectionAdapter httpConnection;
 
-    private long                   readTime       = -1;
+    protected URLConnectionAdapter httpConnection;
+    protected long                 readTime       = -1;
+
     protected boolean              requested      = false;
     protected int                  readLimit      = 1 * 1024 * 1024;
-
     protected HTTPProxy            proxy;
 
     protected String               orgURL;
@@ -171,11 +171,28 @@ public abstract class Request {
     protected byte[]               byteArray      = null;
 
     protected boolean              contentDecoded = true;
+
     protected boolean              keepByteArray  = false;
 
+    protected Request(final Request cloneRequest) {
+        this.orgURL = cloneRequest.getUrl();
+        this.setCustomCharset(cloneRequest.getCustomCharset());
+        this.setReadTimeout(cloneRequest.getReadTimeout());
+        this.setConnectTimeout(cloneRequest.getConnectTimeout());
+        if (cloneRequest.hasCookies()) {
+            this.setCookies(new Cookies(cloneRequest.getCookies()));
+        }
+        this.setReadLimit(cloneRequest.getReadLimit());
+        this.setProxy(cloneRequest.getProxy());
+        this.setContentDecoded(cloneRequest.isContentDecodedSet());
+        if (cloneRequest.getHeaders() != null) {
+            this.setHeaders(new RequestHeader(cloneRequest.getHeaders()));
+        }
+    }
+
     public Request(final String url) throws MalformedURLException {
-        this.orgURL = Browser.correctURL(url);
-        this.initDefaultHeader();
+        this.setURL(Browser.correctURL(url));
+        this.setHeaders(this.getDefaultRequestHeader());
         final String basicAuth = Browser.getBasicAuthfromURL(url);
         if (basicAuth != null) {
             this.getHeaders().put("Authorization", "Basic " + basicAuth);
@@ -185,6 +202,10 @@ public abstract class Request {
     public Request(final URLConnectionAdapter con) {
         this.httpConnection = con;
         this.collectCookiesFromConnection();
+    }
+
+    public Request cloneRequest() {
+        throw new WTFException("Not Implemented");
     }
 
     private void collectCookiesFromConnection() {
@@ -267,6 +288,30 @@ public abstract class Request {
         return Request.getCookieString(this.cookies);
     }
 
+    public String getCustomCharset() {
+        return this.customCharset;
+    }
+
+    protected RequestHeader getDefaultRequestHeader() {
+        final RequestHeader headers = new RequestHeader();
+        headers.put("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.10) Gecko/2009042523 Ubuntu/9.04 (jaunty) Firefox/3.0.10");
+        headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        headers.put("Accept-Language", "de, en-gb;q=0.9, en;q=0.8");
+
+        if (Application.getJavaVersion() >= Application.JAVA16) {
+            /* deflate only java >=1.6 */
+            headers.put("Accept-Encoding", "gzip,deflate");
+        } else {
+            headers.put("Accept-Encoding", "gzip");
+        }
+        headers.put("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.3");
+
+        headers.put("Cache-Control", "no-cache");
+        headers.put("Pragma", "no-cache");
+        headers.put("Connection", "close");
+        return headers;
+    }
+
     public RequestHeader getHeaders() {
         return this.headers;
     }
@@ -277,6 +322,7 @@ public abstract class Request {
         if (this.httpConnection != null) {
             ct = this.httpConnection.getContentType();
         }
+        final boolean keepBytes = this.isKeepByteArray();
         /* check for image content type */
         if (ct != null && Pattern.compile("images?/\\w*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(ct).matches()) { throw new IllegalStateException("Content-Type: " + ct); }
         if (this.htmlCode == null && this.byteArray != null) {
@@ -295,7 +341,7 @@ public abstract class Request {
                             /* try to use wanted charset */
                             useCS = useCS.toUpperCase(Locale.ENGLISH);
                             this.htmlCode = new String(this.byteArray, useCS);
-                            if (!this.keepByteArray) {
+                            if (!keepBytes) {
                                 this.byteArray = null;
                             }
                             this.httpConnection.setCharset(useCS);
@@ -304,7 +350,7 @@ public abstract class Request {
                     } catch (final Exception e) {
                     }
                     this.htmlCode = new String(this.byteArray, "ISO-8859-1");
-                    if (!this.keepByteArray) {
+                    if (!keepBytes) {
                         this.byteArray = null;
                     }
                     this.httpConnection.setCharset("ISO-8859-1");
@@ -313,7 +359,7 @@ public abstract class Request {
                     System.out.println("could neither charset: " + useCS + " nor default charset");
                     /* fallback to default charset in error case */
                     this.htmlCode = new String(this.byteArray);
-                    if (!this.keepByteArray) {
+                    if (!keepBytes) {
                         this.byteArray = null;
                     }
                     return this.htmlCode;
@@ -445,27 +491,12 @@ public abstract class Request {
         return this.cookies != null && !this.cookies.isEmpty();
     }
 
-    protected void initDefaultHeader() {
-        this.headers = new RequestHeader();
-        this.headers.put("User-Agent", "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.10) Gecko/2009042523 Ubuntu/9.04 (jaunty) Firefox/3.0.10");
-        this.headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-        this.headers.put("Accept-Language", "de, en-gb;q=0.9, en;q=0.8");
-
-        if (Application.getJavaVersion() >= Application.JAVA16) {
-            /* deflate only java >=1.6 */
-            this.headers.put("Accept-Encoding", "gzip,deflate");
-        } else {
-            this.headers.put("Accept-Encoding", "gzip");
-        }
-        this.headers.put("Accept-Charset", "ISO-8859-1,utf-8;q=0.7,*;q=0.3");
-
-        this.headers.put("Cache-Control", "no-cache");
-        this.headers.put("Pragma", "no-cache");
-        this.headers.put("Connection", "close");
+    public boolean isContentDecoded() {
+        return this.httpConnection == null ? this.isContentDecodedSet() : this.httpConnection.isContentDecoded();
     }
 
-    public boolean isContentDecoded() {
-        return this.httpConnection == null ? this.contentDecoded : this.httpConnection.isContentDecoded();
+    public boolean isContentDecodedSet() {
+        return this.contentDecoded;
     }
 
     public boolean isKeepByteArray() {
@@ -477,16 +508,17 @@ public abstract class Request {
     }
 
     private void openConnection() throws IOException {
-        this.httpConnection = HTTPConnectionFactory.createHTTPConnection(new URL(this.orgURL), this.proxy);
+        this.httpConnection = HTTPConnectionFactory.createHTTPConnection(new URL(this.getUrl()), this.getProxy());
         this.httpConnection.setRequest(this);
-        this.httpConnection.setReadTimeout(this.readTimeout);
-        this.httpConnection.setConnectTimeout(this.connectTimeout);
-        this.httpConnection.setContentDecoded(this.contentDecoded);
+        this.httpConnection.setReadTimeout(this.getReadTimeout());
+        this.httpConnection.setConnectTimeout(this.getConnectTimeout());
+        this.httpConnection.setContentDecoded(this.isContentDecodedSet());
 
-        if (this.headers != null) {
-            final int headersSize = this.headers.size();
+        final RequestHeader headers = this.getHeaders();
+        if (headers != null) {
+            final int headersSize = headers.size();
             for (int i = 0; i < headersSize; i++) {
-                this.httpConnection.setRequestProperty(this.headers.getKey(i), this.headers.getValue(i));
+                this.httpConnection.setRequestProperty(headers.getKey(i), headers.getValue(i));
             }
         }
         this.preRequest();
@@ -510,8 +542,8 @@ public abstract class Request {
     public Request read(final boolean keepByteArray) throws IOException {
         this.keepByteArray = keepByteArray;
         final long tima = System.currentTimeMillis();
-        this.httpConnection.setCharset(this.customCharset);
-        this.byteArray = Request.read(this.httpConnection, this.getReadLimit());
+        this.httpConnection.setCharset(this.getCustomCharset());
+        this.byteArray = Request.read(this.getHttpConnection(), this.getReadLimit());
         this.readTime = System.currentTimeMillis() - tima;
         return this;
     }
@@ -559,6 +591,10 @@ public abstract class Request {
         if (con != null) {
             con.setReadTimeout(readTimeout);
         }
+    }
+
+    public void setURL(final String url) {
+        this.orgURL = url;
     }
 
     @Override
