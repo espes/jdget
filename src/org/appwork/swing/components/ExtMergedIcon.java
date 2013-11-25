@@ -4,9 +4,7 @@ import java.awt.Component;
 import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.geom.Rectangle2D;
 import java.util.Comparator;
 import java.util.TreeSet;
 
@@ -44,7 +42,14 @@ public class ExtMergedIcon implements Icon {
         addEntry(new Entry(icon, x, y, z, c));
         return this;
     }
-
+    /**
+     * @param abstractIcon
+     * @param i
+     * @param j
+     */
+    public ExtMergedIcon(final Icon icon, final int x, final int y) {
+        addEntry(new Entry(icon, x, y, 0 , null));
+    }
     public ExtMergedIcon(final Icon icon, final int x, final int y, final int z, final Composite c) {
         addEntry(new Entry(icon, x, y, z, c));
     }
@@ -52,12 +57,14 @@ public class ExtMergedIcon implements Icon {
     /**
      * @param abstractIcon
      */
-    public ExtMergedIcon(Icon icon) {
+    public ExtMergedIcon(final Icon icon) {
         this(icon, 0, 0, 0, null);
     }
-    public ExtMergedIcon crop(int width, int height) {
-        this.cropedWidth=width;
-        this.cropedHeight=height;
+
+
+    public ExtMergedIcon crop(final int width, final int height) {
+        cropedWidth=width;
+        cropedHeight=height;
         
         return this;
     }
@@ -105,7 +112,7 @@ public class ExtMergedIcon implements Icon {
             // internalIcon.paintIcon(c, g2, x, y);
             return;
         }
-        Shape oldClip = g2.getClip();
+        final Shape oldClip = g2.getClip();
 //        Rectangle rec = new Rectangle( );
         g2.setClip(x, y, getIconWidth(),getIconHeight());
         for (final Entry e : entries) {
@@ -127,16 +134,20 @@ public class ExtMergedIcon implements Icon {
 
     @Override
     public int getIconWidth() {
-        if(cropedWidth>0)return cropedWidth;
+        if(cropedWidth>0) {
+            return cropedWidth;
+        }
         return width;
     }
 
     @Override
     public int getIconHeight() {
-        if(cropedHeight>0)return cropedHeight;
+        if(cropedHeight>0) {
+            return cropedHeight;
+        }
         return height;
     }
-    public ExtMergedIcon add(Icon icon) {
+    public ExtMergedIcon add(final Icon icon) {
         synchronized (entries) {
 
             return this.add(icon,0, 0, entries.size(), null);
@@ -148,12 +159,20 @@ public class ExtMergedIcon implements Icon {
      * @param j
      * @return
      */
-    public ExtMergedIcon add(Icon icon, int x, int y) {
+    public ExtMergedIcon add(final Icon icon, final int x, final int y) {
         synchronized (entries) {
 
             return this.add(icon, x, y, entries.size(), null);
         }
 
+    }
+
+    /**
+     * @return
+     */
+    public Icon crop() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

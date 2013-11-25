@@ -2,6 +2,7 @@ package org.appwork.swing.components.tooltips;
 
 import java.awt.Color;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
@@ -16,7 +17,7 @@ public class IconLabelToolTip extends ExtTooltip {
 
     private String    name;
 
-    private ImageIcon icon;
+    private Icon icon;
 
     protected JLabel    label;
 
@@ -24,43 +25,43 @@ public class IconLabelToolTip extends ExtTooltip {
      * @param host
      * @param hosterIcon
      */
-    public IconLabelToolTip(final String name, final ImageIcon icon) {
+    public IconLabelToolTip(final String name, final Icon icon2) {
         this.name = name;
-        this.icon = icon;
-        this.label.setText(name);
-        this.label.setIcon(icon);
+        icon = icon2;
+        label.setText(name);
+        label.setIcon(icon2);
     }
 
     @Override
     public TooltipPanel createContent() {
         final TooltipPanel ret = new TooltipPanel("ins 0", "[grow,fill]", "[]");
-        this.label = new JLabel();
-        SwingUtils.setOpaque(this.label, false);
-        this.label.setForeground(new Color(this.getConfig().getForegroundColor()));
-        ret.add(this.label);
+        label = new JLabel();
+        SwingUtils.setOpaque(label, false);
+        label.setForeground(new Color(getConfig().getForegroundColor()));
+        ret.add(label);
         return ret;
     }
 
-    public ImageIcon getIcon() {
-        return this.icon;
+    public Icon getIcon() {
+        return icon;
     }
 
     @Override
     public String getName() {
-        return this.name;
+        return name;
     }
 
     public void setIcon(final ImageIcon icon) {
         this.icon = icon;
 
-        this.label.setIcon(icon);
+        label.setIcon(icon);
         this.repaint();
     }
 
     @Override
     public void setName(final String name) {
         this.name = name;
-        this.label.setText(name);
+        label.setText(name);
         this.repaint();
     }
 

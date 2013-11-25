@@ -12,7 +12,7 @@ package org.appwork.utils.os.mime;
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 
 import org.appwork.resources.AWUTheme;
 
@@ -29,11 +29,11 @@ public class MimeDefault implements Mime {
      * @param iconKey
      * @return
      */
-    protected ImageIcon getCacheIcon(final String iconKey) {
+    protected Icon getCacheIcon(final String iconKey) {
         return AWUTheme.I().getCached(iconKey);
     }
 
-    public ImageIcon getFileIcon(final String extension, final int width, final int height) throws IOException {
+    public Icon getFileIcon(final String extension, final int width, final int height) throws IOException {
         return AWUTheme.I().getIcon("fileIcon", width);
     }
 
@@ -76,7 +76,7 @@ public class MimeDefault implements Mime {
      * @param iconKey
      * @param icon
      */
-    protected void saveIconCache(final String iconKey, final ImageIcon icon) {
+    protected void saveIconCache(final String iconKey, final Icon icon) {
         AWUTheme.I().cache(icon, iconKey);
     }
 

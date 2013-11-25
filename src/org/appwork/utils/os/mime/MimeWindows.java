@@ -9,26 +9,29 @@
  */
 package org.appwork.utils.os.mime;
 
+import java.awt.Image;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.filechooser.FileSystemView;
 
 import org.appwork.utils.Application;
 import org.appwork.utils.ImageProvider.ImageProvider;
+import org.appwork.utils.images.IconIO;
 
 import sun.awt.shell.ShellFolder;
 
 public class MimeWindows extends MimeDefault {
 
     @Override
-    public ImageIcon getFileIcon(final String extension, final int width, final int height) throws IOException {
+    public Icon getFileIcon(final String extension, final int width, final int height) throws IOException {
         final String iconKey = super.getIconKey(extension, width, height);
-        ImageIcon ret = super.getCacheIcon(iconKey);
+        Icon ret = super.getCacheIcon(iconKey);
         if (ret == null) {
             final File path = Application.getResource("tmp/images/" + extension + ".png");
             if (path.getParentFile().isDirectory()) {
@@ -48,9 +51,10 @@ public class MimeWindows extends MimeDefault {
                     try {
                         file = File.createTempFile("icon", "." + extension);
                         final ShellFolder shellFolder = ShellFolder.getShellFolder(file);
-                        ret = new ImageIcon(shellFolder.getIcon(true));
+                        final Image image = shellFolder.getIcon(true);
+                        ret=new ImageIcon(image);
                         fos = new FileOutputStream(path);
-                        ImageIO.write((RenderedImage) ret.getImage(), "png", fos);
+                        ImageIO.write((RenderedImage) image, "png", fos);
                     } catch (final Throwable e) {
                         ret = ImageProvider.toImageIcon(FileSystemView.getFileSystemView().getSystemIcon(file));
                     } finally {
@@ -70,7 +74,7 @@ public class MimeWindows extends MimeDefault {
                 return null;
             }
         }
-        ret = ImageProvider.scaleImageIcon(ret, width, height);
+        ret = IconIO.getScaledInstance(ret, width, height);
         super.saveIconCache(iconKey, ret);
         return ret;
     }
