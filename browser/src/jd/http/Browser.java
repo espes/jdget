@@ -764,7 +764,7 @@ public class Browser {
         if (responseCode == 302 || responseCode == 303) {
             /* use get as next requestType */
             newRequest = new GetRequest(request);
-        } else if (responseCode == 307 || responseCode == 308) {
+        } else if (responseCode == 307 || responseCode == 308 || responseCode == 301) {
             /* keep original requestType */
             newRequest = request.cloneRequest();
         } else {

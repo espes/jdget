@@ -132,7 +132,9 @@ public class Form {
             }
         }
         String ret = this.action;
-        final boolean isHTTPs = baseURL != null && baseURL.startsWith("https");
+        final boolean baseIsHTTPs = baseURL != null && baseURL.startsWith("https");
+        final boolean actionIsHTTPs = ret != null && ret.startsWith("https://");
+        final boolean actionIsHTTP = ret != null && ret.startsWith("http://");
         if (this.action == null || this.action.matches("[\\s]*")) {
             if (baseurl == null) { return null; }
             ret = baseurl.toString();
@@ -174,8 +176,11 @@ public class Form {
                 }
             }
         }
-        if (isHTTPs) {
-            ret = ret.replaceFirst("http://", "https://");
+        if (baseIsHTTPs) {
+            if (actionIsHTTPs || actionIsHTTP == false) {
+                /* only keep https when action does use https or not specified, but do NOT change formAction(http) to https */
+                ret = ret.replaceFirst("http://", "https://");
+            }
         }
         return ret;
     }
