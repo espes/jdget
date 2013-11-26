@@ -108,9 +108,9 @@ public class JsonKeyValueStorage extends Storage {
             if (hasEventSender()) {
                 getEventSender().fireEvent(new StorageKeyRemovedEvent<Object>(this, next.getKey(), next.getValue()));
             }
-            changed=true;
+            changed = true;
         }
-        
+
         map.clear();
     }
 
@@ -196,6 +196,7 @@ public class JsonKeyValueStorage extends Storage {
         if (def instanceof Enum<?> && ret instanceof String) {
             try {
                 ret = Enum.valueOf(((Enum<?>) def).getDeclaringClass(), (String) ret);
+                map.put(key, ret);
             } catch (final Throwable e) {
                 map.remove(key);
                 Log.exception(e);
