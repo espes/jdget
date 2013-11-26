@@ -761,10 +761,17 @@ public class Browser {
         location = this.getURL(location);
         final int responseCode = request.getHttpConnection().getResponseCode();
         Request newRequest = null;
-        if (responseCode == 302 || responseCode == 303) {
+        if (responseCode == 301) {
+            if (request instanceof GetRequest) {
+                /* use get as next requestType */
+                newRequest = new GetRequest(request);
+            } else {
+                throw new IllegalStateException("ResponseCode 301 does not support postData redirect!");
+            }
+        } else if (responseCode == 302 || responseCode == 303) {
             /* use get as next requestType */
             newRequest = new GetRequest(request);
-        } else if (responseCode == 307 || responseCode == 308 || responseCode == 301) {
+        } else if (responseCode == 307 || responseCode == 308) {
             /* keep original requestType */
             newRequest = request.cloneRequest();
         } else {
