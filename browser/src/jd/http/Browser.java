@@ -761,20 +761,24 @@ public class Browser {
         location = this.getURL(location);
         final int responseCode = request.getHttpConnection().getResponseCode();
         Request newRequest = null;
-        if (responseCode == 301) {
-            if (request instanceof GetRequest) {
-                /* use get as next requestType */
-                newRequest = new GetRequest(request);
-            } else {
-                throw new IllegalStateException("ResponseCode 301 does not support postData redirect!");
-            }
-        } else if (responseCode == 302 || responseCode == 303) {
-            /* use get as next requestType */
+        switch (responseCode) {
+        case 200:
+        case 201:
             newRequest = new GetRequest(request);
-        } else if (responseCode == 307 || responseCode == 308) {
-            /* keep original requestType */
+            break;
+        case 301:
+            if (!(request instanceof GetRequest)) { throw new IllegalStateException("ResponseCode 301 does not support postData redirect!"); }
+            newRequest = new GetRequest(request);
+            break;
+        case 302:
+        case 303:
+            newRequest = new GetRequest(request);
+            break;
+        case 307:
+        case 308:
             newRequest = request.cloneRequest();
-        } else {
+            break;
+        default:
             throw new IllegalStateException("ResponseCode " + responseCode + " is unsupported!");
         }
         /* TODO: check referer header */
