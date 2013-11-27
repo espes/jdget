@@ -333,6 +333,14 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
                         f = new File(path);
 
                     } else {
+                      switch( getFileSelectionMode()){
+                      case DIRECTORIES_ONLY:
+                      case FILES_AND_DIRECTORIES:
+                         f= fc.getCurrentDirectory();
+                         if(f!=null){
+                             return new File[] { f };
+                         }
+                      }
                         return null;
                     }
                 }
@@ -354,14 +362,16 @@ public class ExtFileChooserDialog extends AbstractDialog<File[]> {
      * @see org.appwork.utils.swing.dialog.AbstractDialog#setDisposed(boolean)
      */
     @Override
-    protected void setDisposed(boolean b) {
+    protected void setDisposed(final boolean b) {
         if (b) {
             try {
-                File[] files = createReturnValue();
+                final File[] files = createReturnValue();
 
                 if (files.length > 0) {
                     File file = files[0];
-                    if (file.isFile()) file = file.getParentFile();
+                    if (file.isFile()) {
+                        file = file.getParentFile();
+                    }
 
                     getIDConfig().setLastSelection(file.getAbsolutePath());
 

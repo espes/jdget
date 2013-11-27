@@ -261,7 +261,11 @@ public class Files {
 
         handler.onFile(f);
         if (f.isDirectory()) {
-            for (final File sf : f.listFiles()) {
+            final File[] files = f.listFiles();
+            if (files == null) {
+                return;
+            }
+            for (final File sf : files) {
                 Files.internalWalkThroughStructure(handler, sf);
             }
         }
@@ -270,7 +274,11 @@ public class Files {
     public static <T extends Exception> void internalWalkThroughStructureReverse(final Handler<T> handler, final File f) throws T {
         if (!f.exists()) { return; }
         if (f.isDirectory()) {
-            for (final File sf : f.listFiles()) {
+            final File[] files = f.listFiles();
+            if (files == null) {
+                return;
+            }
+            for (final File sf : files) {
                 Files.walkThroughStructureReverse(handler, sf);
             }
         }

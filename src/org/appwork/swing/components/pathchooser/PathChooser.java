@@ -84,7 +84,13 @@ public class PathChooser extends MigPanel {
         this.id = id;
         setOpaque(false);
         txt = new ExtTextField() {
-
+/* (non-Javadoc)
+ * @see org.appwork.swing.components.ExtTextField#onChanged()
+ */
+@Override
+public void onChanged() {
+    PathChooser.this.onChanged(txt);
+}
             /**
              * 
              */
