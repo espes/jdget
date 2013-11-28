@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -259,8 +260,11 @@ public class HTMLParser {
         /**
          * 
          */
-        private static final long         serialVersionUID = -8661894478609472993L;
-        protected final ArrayList<String> results          = new ArrayList<String>();
+        private static final long         serialVersionUID           = -8661894478609472993L;
+        protected final ArrayList<String> results                    = new ArrayList<String>();
+        protected AtomicInteger           HttpLinksDeepWalkerCounter = new AtomicInteger(0);
+        protected AtomicInteger           HttpLinksFinderCounter     = new AtomicInteger(0);
+        protected AtomicInteger           HttpLinksWalkerCounter     = new AtomicInteger(0);
 
         @Override
         public boolean add(String e) {
@@ -286,6 +290,14 @@ public class HTMLParser {
             return false;
         }
 
+        public int getDeepWalkerCounter() {
+            return this.HttpLinksDeepWalkerCounter.get();
+        }
+
+        public int getFinderCounter() {
+            return this.HttpLinksFinderCounter.get();
+        }
+
         public int getLastResultIndex() {
             return this.results.size();
         }
@@ -296,6 +308,10 @@ public class HTMLParser {
 
         public List<String> getResultsSublist(final int index) {
             return this.results.subList(index, this.results.size());
+        }
+
+        public int getWalkerCounter() {
+            return this.HttpLinksWalkerCounter.get();
         }
     }
 
@@ -363,6 +379,7 @@ public class HTMLParser {
         if (results == null) {
             results = new HtmlParserResultSet();
         }
+        results.HttpLinksDeepWalkerCounter.incrementAndGet();
         if (data == null || (data = data.trim()).length() < 13) { return results; }
         if ((data.startsWith(HTMLParser.directHTTP) || data.startsWith(HTMLParser.httpviajd) || data.startsWith(HTMLParser.httpsviajd)) && results.contains(data)) {
             /* we don't have to further check urls with those prefixes */
@@ -425,6 +442,7 @@ public class HTMLParser {
         if (results == null) {
             results = new HtmlParserResultSet();
         }
+        results.HttpLinksFinderCounter.incrementAndGet();
         if (data == null || (data = data.trim()).length() == 0) { return results; }
         if (!data.matches(HTMLParser.tagsPattern)) {
             final int c = new Regex(data, HTMLParser.pat1).count();
@@ -434,10 +452,18 @@ public class HTMLParser {
                     /* no href inside */
                     return results;
                 }
-            } else if (c == 1 && data.length() < 256 && (protocol = HTMLParser.getProtocol(data.toString())) != null) {
-                if (protocol.startsWith("file://")) {
-                    results.add(data.replaceAll(HTMLParser.spacePattern, "%20").getStringCopy());
-                    return results;
+            } else if (c == 1 && data.length() < 256) {
+                if ((protocol = HTMLParser.getProtocol(data.toString())) != null) {
+                    if (protocol.startsWith("file://")) {
+                        results.add(data.replaceAll(HTMLParser.spacePattern, "%20").getStringCopy());
+                        return results;
+                    } else {
+                        final HtmlParserCharSequence link = data.replaceAll(HTMLParser.removeTagsPattern, "");
+                        if (!link.matches(HTMLParser.space2Pattern)) {
+                            results.add(HTMLParser.correctURL(link).getStringCopy());
+                            return results;
+                        }
+                    }
                 } else {
                     final HtmlParserCharSequence link = data.replaceFirst(HTMLParser.hdotsPattern, "http://").replaceFirst(HTMLParser.missingHTTPPattern, "http://www.").replaceAll(HTMLParser.removeTagsPattern, "");
                     if (!link.matches(HTMLParser.space2Pattern)) {
@@ -538,6 +564,7 @@ public class HTMLParser {
         if (results == null) {
             results = new HtmlParserResultSet();
         }
+        results.HttpLinksWalkerCounter.incrementAndGet();
         if (data == null || (data = data.trim()).length() < 13) { return results; }
         /* filtering tags, recursion command me ;) */
         while (true) {
@@ -593,7 +620,7 @@ public class HTMLParser {
             //
             return results;
         }
-        if (!data.contains("://") && !data.contains("%3A%2F%2")) {
+        if (!data.contains("://") && !data.contains("%3A%2F%2") && !data.contains("www.")) {
             /* data must contain at least the protocol separator */
             if (!data.matches(HTMLParser.checkPatternHREFUNESCAPESRC)) {
                 /* maybe easy encrypted website or a href */
@@ -784,6 +811,8 @@ public class HTMLParser {
         HTMLParser._getHttpLinksWalker(new HtmlParserCharSequence(data), url, results, null);
         /* we don't want baseurl to be included in result set */
         results.remove(url);
+        // System.out.println("Walker:" + results.getWalkerCounter() + "|DeepWalker:" + results.getDeepWalkerCounter() + "|Finder:" +
+        // results.getFinderCounter() + "|Found:" + results.size());
         if (results.isEmpty()) { return null; }
         return results;
     }
