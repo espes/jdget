@@ -129,16 +129,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorForeground = this.editorField.getForeground();
         this.rendererFont = this.rendererField.getFont();
         this.editorFont = this.editorField.getFont();
-        this.editor = new MigPanel("ins 0", "[]5[grow,fill]", "[grow,fill]") {
+        this.editor = createEditorPanel();
 
-            @Override
-            public void requestFocus() {
-                editorField.requestFocus();
-            }
-
-        };
-
-        this.renderer = new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
+        this.renderer = createRendererPanel();
 
         this.layoutEditor(this.editor, this.editorIconLabel, this.editorField);
         this.layoutRenderer(this.renderer, this.rendererIcon, this.rendererField);
@@ -164,6 +157,21 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
         });
 
+    }
+
+    protected RendererMigPanel createRendererPanel() {
+        return new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
+    }
+
+    protected MigPanel createEditorPanel() {
+        return new MigPanel("ins 0", "[]5[grow,fill]", "[grow,fill]") {
+
+            @Override
+            public void requestFocus() {
+                editorField.requestFocus();
+            }
+
+        };
     }
 
     public void actionPerformed(final ActionEvent e) {
