@@ -59,17 +59,26 @@ public class Files {
      * @throws IOException
      */
     public static void deleteRecursiv(final File file) throws IOException {
+        deleteRecursiv(file, true);
+    }
+
+    /**
+     * @param file
+     * @param b
+     * @throws IOException 
+     */
+    public static void deleteRecursiv(final File file, final boolean breakOnError) throws IOException {
         if (!file.exists()) { throw new FileNotFoundException(file.getAbsolutePath()); }
         if (file.isDirectory()) {
             final File[] files = file.listFiles();
             if (files != null) {
                 for (final File f : files) {
-                    Files.deleteRecursiv(f);
+                    Files.deleteRecursiv(f, breakOnError);
                 }
             }
         }
         final boolean fd = file.delete();
-        if (file.exists() && !fd) { throw new IOException("Could not delete " + file); }
+        if (file.exists() && !fd && breakOnError) { throw new IOException("Could not delete " + file); }
 
     }
 
@@ -262,9 +271,7 @@ public class Files {
         handler.onFile(f);
         if (f.isDirectory()) {
             final File[] files = f.listFiles();
-            if (files == null) {
-                return;
-            }
+            if (files == null) { return; }
             for (final File sf : files) {
                 Files.internalWalkThroughStructure(handler, sf);
             }
@@ -275,9 +282,7 @@ public class Files {
         if (!f.exists()) { return; }
         if (f.isDirectory()) {
             final File[] files = f.listFiles();
-            if (files == null) {
-                return;
-            }
+            if (files == null) { return; }
             for (final File sf : files) {
                 Files.walkThroughStructureReverse(handler, sf);
             }
