@@ -767,8 +767,13 @@ public class Browser {
             newRequest = new GetRequest(request);
             break;
         case 301:
-            if (!(request instanceof GetRequest)) { throw new IllegalStateException("ResponseCode 301 does not support postData redirect!"); }
-            newRequest = new GetRequest(request);
+            if (!(request instanceof GetRequest)) {
+                /* it seems getRequest is expected although rfc says that post can be kept */
+                newRequest = new GetRequest(request);
+                // throw new IllegalStateException("ResponseCode 301 does not support postData redirect!");
+            } else {
+                newRequest = new GetRequest(request);
+            }
             break;
         case 302:
         case 303:
