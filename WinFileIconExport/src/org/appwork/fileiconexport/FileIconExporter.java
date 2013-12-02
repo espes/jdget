@@ -115,9 +115,9 @@ public class FileIconExporter {
     }
 
     private FileIconExporter() {
-        this.iconsExt = Application.getResource("tmp/FileIconExporter.exe");
-        this.iconsDir = Application.getResource("tmp/fileicons/");
-        this.iconsCache = Application.getResource("tmp/fileicons/cache/");
+        this.iconsExt = Application.getTempResource("FileIconExporter.exe");
+        this.iconsDir = Application.getTempResource("fileicons/");
+        this.iconsCache = Application.getTempResource("fileicons/cache/");
         this.iconsCache.mkdirs();
         this.iconsDir.mkdirs();
         if (!this.iconsExt.exists()) {

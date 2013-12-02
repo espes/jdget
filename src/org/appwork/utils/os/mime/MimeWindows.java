@@ -33,7 +33,7 @@ public class MimeWindows extends MimeDefault {
         final String iconKey = super.getIconKey(extension, width, height);
         Icon ret = super.getCacheIcon(iconKey);
         if (ret == null) {
-            final File path = Application.getResource("tmp/images/" + extension + ".png");
+            final File path = Application.getTempResource("images/" + extension + ".png");
             if (path.getParentFile().isDirectory()) {
                 // woraround a bug we had until 24.06.2013.. created folders
                 // instead of files

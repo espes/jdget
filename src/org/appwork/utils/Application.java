@@ -546,4 +546,22 @@ public class Application {
         Application.APP_FOLDER = newAppFolder;
     }
 
+    /**
+     * @return
+     */
+    public static File getTemp() {
+      final File ret = getResource("tmp");
+      ret.mkdirs();
+        return ret;
+    }
+
+    /**
+     * @param cache
+     * @return
+     */
+    public static File getTempResource(final String cache) {
+      
+        return new File(getTemp(),cache);
+    }
+
 }

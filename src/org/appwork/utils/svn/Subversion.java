@@ -795,7 +795,7 @@ public class Subversion implements ISVNEventHandler {
 
     public SVNCommitInfo write(final String path, final String commitmessage, final ByteArrayInputStream is) throws SVNException, IOException {
 
-        final File file = new File(Application.getResource("tmp/svnwrite_" + System.currentTimeMillis()), path);
+        final File file = new File(Application.getTempResource("svnwrite_" + System.currentTimeMillis()), path);
         downloadFile(svnurl + (svnurl.toString().endsWith("/") ? "" : "/") + path, file, SVNRevision.HEAD);
 
         final SVNDeltaGenerator generator = new SVNDeltaGenerator();

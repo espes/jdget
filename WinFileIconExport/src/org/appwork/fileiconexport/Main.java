@@ -179,7 +179,7 @@ public class Main {
                         //
                         // }
 
-                        final File saveTo = Application.getResource("tmp/icons/" + NameID + "_" + iconID + "_" + (i + 1) + ".png");
+                        final File saveTo = Application.getTempResource("icons/" + NameID + "_" + iconID + "_" + (i + 1) + ".png");
 
                         saveTo.delete();
                         saveTo.getParentFile().mkdirs();

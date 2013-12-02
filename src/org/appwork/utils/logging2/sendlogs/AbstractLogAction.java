@@ -183,13 +183,13 @@ public abstract class AbstractLogAction extends BasicAction {
      */
     protected void createPackage(final List<LogFolder> selection) throws Exception {
         for (final LogFolder lf : selection) {
-            final File zip = Application.getResource("tmp/logs/logPackage.zip");
+            final File zip = Application.getTempResource("logs/logPackage.zip");
             zip.delete();
             zip.getParentFile().mkdirs();
             ZipIOWriter writer = null;
 
             final String name = lf.getFolder().getName() + "-" + this.format(lf.getCreated()) + " to " + this.format(lf.getLastModified());
-            final File folder = Application.getResource("tmp/logs/" + name);
+            final File folder = Application.getTempResource("logs/" + name);
             try {
                 if (lf.isNeedsFlush()) {
 

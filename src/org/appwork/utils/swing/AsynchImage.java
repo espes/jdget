@@ -219,7 +219,7 @@ public class AsynchImage extends JLabel {
      */
     public void setIcon(final String thumbURL, final String extension) {
         /* cacheFile for resized image */
-        this.cache = Application.getResource("tmp/asynchimage/" + Hash.getMD5(thumbURL) + "_" + this.prefX + "x" + this.prefY + "." + extension);
+        this.cache = Application.getTempResource("asynchimage/" + Hash.getMD5(thumbURL) + "_" + this.prefX + "x" + this.prefY + "." + extension);
         // if cache is older than 7 days. delete
         boolean refresh = true;
         try {
