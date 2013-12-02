@@ -156,12 +156,12 @@ public abstract class AbstractMyJDClient {
      * @throws MyJDownloaderException
      * @throws APIException
      */
-    public synchronized <T> T callAction(final String deviceID, final String action, final Class<T> returnType, final Object... args) throws MyJDownloaderException, APIException {
+    public  <T> T callAction(final String deviceID, final String action, final Class<T> returnType, final Object... args) throws MyJDownloaderException, APIException {
         return (T) callActionInternal(deviceID, action, returnType, args);
 
     }
 
-    protected synchronized Object callActionInternal(final String deviceID, final String action, final Type returnType, final Object... args) throws MyJDownloaderException, APIException {
+    protected  Object callActionInternal(final String deviceID, final String action, final Type returnType, final Object... args) throws MyJDownloaderException, APIException {
         SessionInfo session = null;
         try {
             session = getSessionInfo();
@@ -208,7 +208,7 @@ public abstract class AbstractMyJDClient {
      * @return
      * @throws MyJDownloaderException
      */
-    protected synchronized <T> T callServer(String query, final String postData, SessionInfo session, final Class<T> class1) throws MyJDownloaderException {
+    protected  <T> T callServer(String query, final String postData, SessionInfo session, final Class<T> class1) throws MyJDownloaderException {
         try {
             byte[] key = null;
             if (session != null) key = session.getServerEncryptionToken();
@@ -236,7 +236,7 @@ public abstract class AbstractMyJDClient {
         }
     }
 
-    public synchronized void cancelRegistrationEmail(final String email, final String key) throws MyJDownloaderException {
+    public  void cancelRegistrationEmail(final String email, final String key) throws MyJDownloaderException {
         try {
             uncryptedPost("/my/cancelregistrationemail?email=" + urlencode(email) + "&key=" + urlencode(key));
         } catch (final APIException e) {
@@ -305,7 +305,7 @@ public abstract class AbstractMyJDClient {
         }
     }
 
-    private synchronized String cryptedPost(final String url, final String objectToJSon, final byte[] keyAndIV) throws MyJDownloaderException, APIException {
+    private  String cryptedPost(final String url, final String objectToJSon, final byte[] keyAndIV) throws MyJDownloaderException, APIException {
         return post(url, objectToJSon, keyAndIV);
 
     }
@@ -328,7 +328,7 @@ public abstract class AbstractMyJDClient {
      * 
      * @throws MyJDownloaderException
      */
-    public void disconnect() throws MyJDownloaderException {
+    public synchronized void disconnect() throws MyJDownloaderException {
         try {
             final SessionInfo session = getSessionInfo();
             final String query = "/my/disconnect?sessiontoken=" + urlencode(session.getSessionToken());
@@ -347,7 +347,7 @@ public abstract class AbstractMyJDClient {
         return cipher.doFinal(data);
     }
 
-    public synchronized String feedback(final String message) throws MyJDownloaderException {
+    public  String feedback(final String message) throws MyJDownloaderException {
         final SessionInfo session = getSessionInfo();
         final JSonRequest re = new JSonRequest();
         re.setRid(inc());
@@ -367,7 +367,7 @@ public abstract class AbstractMyJDClient {
      * @param string
      * @throws MyJDownloaderException
      */
-    public synchronized void finishPasswordReset(final String email, final String key, final String newPassword) throws MyJDownloaderException {
+    public  void finishPasswordReset(final String email, final String key, final String newPassword) throws MyJDownloaderException {
 
         try {
             final byte[] k = AbstractMyJDClient.hexToByteArray(key);
@@ -410,7 +410,7 @@ public abstract class AbstractMyJDClient {
      * @param password
      * @throws MyJDownloaderException
      */
-    public synchronized void finishRegistration(final String key, final String email, final String password) throws MyJDownloaderException {
+    public  void finishRegistration(final String key, final String email, final String password) throws MyJDownloaderException {
 
         try {
             final byte[] k = AbstractMyJDClient.hexToByteArray(key);
@@ -451,7 +451,7 @@ public abstract class AbstractMyJDClient {
      * @return
      * @throws MyJDownloaderException
      */
-    public synchronized CaptchaChallenge getChallenge() throws MyJDownloaderException {
+    public  CaptchaChallenge getChallenge() throws MyJDownloaderException {
         try {
             return this.jsonToObject(uncryptedPost("/captcha/getCaptcha", (Object[]) null), CaptchaChallenge.class);
         } catch (final APIException e) {
@@ -660,7 +660,7 @@ public abstract class AbstractMyJDClient {
      * 
      * @throws MyJDownloaderException
      */
-    public synchronized void requestPasswordResetEmail(final CaptchaChallenge challenge, final String email) throws MyJDownloaderException {
+    public  void requestPasswordResetEmail(final CaptchaChallenge challenge, final String email) throws MyJDownloaderException {
         try {
             uncryptedPost("/my/requestpasswordresetemail?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()));
         } catch (final APIException e) {
@@ -679,7 +679,7 @@ public abstract class AbstractMyJDClient {
      * @throws APIException
      * @throws MyJDownloaderException
      */
-    public synchronized void requestRegistrationEmail(final CaptchaChallenge challenge, final String email, final String referer) throws MyJDownloaderException {
+    public  void requestRegistrationEmail(final CaptchaChallenge challenge, final String email, final String referer) throws MyJDownloaderException {
         try {
             uncryptedPost("/my/requestregistrationemail?email=" + urlencode(email) + "&captchaResponse=" + urlencode(challenge.getCaptchaResponse()) + "&captchaChallenge=" + urlencode(challenge.getCaptchaChallenge()) + "&referer=" + urlencode(referer == null ? appKey : referer));
         } catch (final APIException e) {
@@ -704,7 +704,7 @@ public abstract class AbstractMyJDClient {
         return AbstractMyJDClient.byteArrayToHex(AbstractMyJDClient.hmac(key, data.getBytes("UTF-8")));
     }
 
-    private synchronized String uncryptedPost(final String path, final Object... params) throws MyJDownloaderException, APIException {
+    private  String uncryptedPost(final String path, final Object... params) throws MyJDownloaderException, APIException {
         final JSonRequest re = new JSonRequest();
         re.setRid(inc());
         re.setParams(params);
