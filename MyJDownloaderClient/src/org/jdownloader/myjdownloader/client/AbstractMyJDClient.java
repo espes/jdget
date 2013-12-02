@@ -141,7 +141,7 @@ public abstract class AbstractMyJDClient {
     public DeviceData bindDevice(final DeviceData device) throws MyJDownloaderException {
         final SessionInfo session = getSessionInfo();
         final String query = "/my/binddevice?sessiontoken=" + urlencode(session.getSessionToken()) + "&deviceID=" + urlencode(device.getId()) + "&type=" + urlencode(device.getType()) + "&name=" + urlencode(device.getName());
-        final DeviceConnectResponse ret = this.callServer(query, null, session.getServerEncryptionToken(), DeviceConnectResponse.class);
+        final DeviceConnectResponse ret = this.callServer(query, null, session, DeviceConnectResponse.class);
         device.setId(ret.getDeviceid());
         return device;
     }
@@ -162,8 +162,9 @@ public abstract class AbstractMyJDClient {
     }
 
     protected synchronized Object callActionInternal(final String deviceID, final String action, final Type returnType, final Object... args) throws MyJDownloaderException, APIException {
+        SessionInfo session = null;
         try {
-            final SessionInfo session = getSessionInfo();
+            session = getSessionInfo();
             final String query = "/t_" + session.getSessionToken() + "_" + urlencode(deviceID) + action;
             final String[] params = new String[args != null ? args.length : 0];
             if (args != null) {
@@ -187,7 +188,7 @@ public abstract class AbstractMyJDClient {
             return this.jsonToObject(objectToJSon(data.getData()) + "", returnType);
 
         } catch (final ExceptionResponse e) {
-            handleInvalidResponseCodes(e);
+            handleInvalidResponseCodes(e, session);
             throw e;
         } catch (final MyJDownloaderException e) {
             throw e;
@@ -207,21 +208,23 @@ public abstract class AbstractMyJDClient {
      * @return
      * @throws MyJDownloaderException
      */
-    protected synchronized <T> T callServer(String query, final String postData, final byte[] key, final Class<T> class1) throws MyJDownloaderException {
+    protected synchronized <T> T callServer(String query, final String postData, SessionInfo session, final Class<T> class1) throws MyJDownloaderException {
         try {
+            byte[] key = null;
+            if (session != null) key = session.getServerEncryptionToken();
             query += query.contains("?") ? "&" : "?";
             final long i = inc();
             query += "rid=" + i;
             final String retString = cryptedPost(query + "&signature=" + sign(key, query), postData, key);
             final Object ret = this.jsonToObject(retString, class1);
-//            System.out.println(this.objectToJSon(ret));
+            // System.out.println(this.objectToJSon(ret));
             if (ret instanceof RequestIDValidator) {
                 if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException("RID Mismatch"); }
             }
             return (T) ret;
         } catch (final ExceptionResponse e) {
             try {
-                handleInvalidResponseCodes(e);
+                handleInvalidResponseCodes(e, session);
             } catch (final APIException e1) {
                 // actually not possible.
                 throw new RuntimeException(e);
@@ -242,8 +245,8 @@ public abstract class AbstractMyJDClient {
     }
 
     /**
-     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with #getSessionInfo
-     * #setSessionInfo and #reconnect to restore a session
+     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with
+     * #getSessionInfo #setSessionInfo and #reconnect to restore a session
      * 
      * @param email
      * @param password
@@ -303,12 +306,7 @@ public abstract class AbstractMyJDClient {
     }
 
     private synchronized String cryptedPost(final String url, final String objectToJSon, final byte[] keyAndIV) throws MyJDownloaderException, APIException {
-        try {
-            return post(url, objectToJSon, keyAndIV);
-        } catch (final ExceptionResponse e) {
-            handleInvalidResponseCodes(e);
-            throw e;
-        }
+        return post(url, objectToJSon, keyAndIV);
 
     }
 
@@ -334,7 +332,7 @@ public abstract class AbstractMyJDClient {
         try {
             final SessionInfo session = getSessionInfo();
             final String query = "/my/disconnect?sessiontoken=" + urlencode(session.getSessionToken());
-            this.callServer(query, null, session.getServerEncryptionToken(), RequestIDOnly.class);
+            this.callServer(query, null, session, RequestIDOnly.class);
         } finally {
             currentSessionInfo = null;
         }
@@ -356,7 +354,7 @@ public abstract class AbstractMyJDClient {
         re.setParams(new Object[] { message });
         final String url = "/my/feedback?sessiontoken=" + urlencode(session.getSessionToken());
         re.setUrl(url);
-        final FeedbackResponse ret = this.callServer(url, objectToJSon(re), session.getServerEncryptionToken(), FeedbackResponse.class);
+        final FeedbackResponse ret = this.callServer(url, objectToJSon(re), session, FeedbackResponse.class);
         return ret.getFeedbackID();
     }
 
@@ -376,7 +374,9 @@ public abstract class AbstractMyJDClient {
             if (k.length != 32) { throw new IllegalArgumentException("Bad Key. Expected: 64 hexchars"); }
             final byte[] newLoginSecret = createSecret(email, newPassword, "server");
             final String encryptedNewSecret = AbstractMyJDClient.byteArrayToHex(encrypt(newLoginSecret, k));
-            this.callServer("/my/finishpasswordreset?email=" + urlencode(email) + "&encryptedLoginSecret=" + encryptedNewSecret, null, k, RequestIDOnly.class);
+            SessionInfo session = new SessionInfo();
+            session.setServerEncryptionToken(k);
+            this.callServer("/my/finishpasswordreset?email=" + urlencode(email) + "&encryptedLoginSecret=" + encryptedNewSecret, null, session, RequestIDOnly.class);
             connect(email, newPassword);
         } catch (final InvalidKeyException e) {
             throw new RuntimeException(e);
@@ -417,8 +417,9 @@ public abstract class AbstractMyJDClient {
             if (k.length != 32) { throw new IllegalArgumentException("Bad Key. Expected: 64 hexchars"); }
             final byte[] loginSecret = createSecret(email, password, "server");
             final String pw = AbstractMyJDClient.byteArrayToHex(encrypt(loginSecret, k));
-            this.callServer("/my/finishregistration?email=" + urlencode(email) + "&loginsecret=" + urlencode(pw), null, k, RequestIDOnly.class);
-
+            SessionInfo session = new SessionInfo();
+            session.setServerEncryptionToken(k);
+            this.callServer("/my/finishregistration?email=" + urlencode(email) + "&loginsecret=" + urlencode(pw), null, session, RequestIDOnly.class);
         } catch (final InvalidKeyException e) {
             throw new RuntimeException(e);
 
@@ -488,7 +489,7 @@ public abstract class AbstractMyJDClient {
         return ret;
     }
 
-    protected void handleInvalidResponseCodes(final ExceptionResponse e) throws MyJDownloaderException, APIException {
+    protected void handleInvalidResponseCodes(final ExceptionResponse e, final SessionInfo session) throws MyJDownloaderException, APIException {
         if (e != null && e.getContent() != null && e.getContent().trim().length() != 0) {
             ErrorResponse error = null;
             try {
@@ -508,7 +509,7 @@ public abstract class AbstractMyJDClient {
                     case OFFLINE:
                         throw new DeviceIsOfflineException();
                     case TOKEN_INVALID:
-                        throw new TokenException();
+                        throw new TokenException(session);
                     case UNKNOWN:
                         throw new RuntimeException("Not Implemented: unkown");
                     case CHALLENGE_FAILED:
@@ -541,7 +542,7 @@ public abstract class AbstractMyJDClient {
         case 401:
             throw new EmailNotValidatedException();
         case 407:
-            throw new TokenException();
+            throw new TokenException(session);
         default:
             throw new UnexpectedIOException(e);
         }
@@ -556,7 +557,7 @@ public abstract class AbstractMyJDClient {
     public void keepalive() throws MyJDownloaderException {
         final SessionInfo session = getSessionInfo();
         final String query = "/my/keepalive?sessiontoken=" + urlencode(session.getSessionToken());
-        this.callServer(query, null, session.getServerEncryptionToken(), RequestIDOnly.class);
+        this.callServer(query, null, session, RequestIDOnly.class);
     }
 
     @SuppressWarnings("unchecked")
@@ -589,14 +590,14 @@ public abstract class AbstractMyJDClient {
     public DeviceList listDevices() throws MyJDownloaderException {
         final SessionInfo session = getSessionInfo();
         final String query = "/my/listdevices?sessiontoken=" + urlencode(session.getSessionToken());
-        final DeviceList ret = this.callServer(query, null, session.getServerEncryptionToken(), DeviceList.class);
+        final DeviceList ret = this.callServer(query, null, session, DeviceList.class);
         return ret;
     }
 
     public NotificationRequestMessage.TYPE[] listrequesteddevicesnotifications() throws MyJDownloaderException {
         final SessionInfo session = getSessionInfo();
         final String query = "/notify/list?sessiontoken=" + urlencode(session.getSessionToken());
-        final NotificationRequestTypesResponse ret = this.callServer(query, null, session.getServerEncryptionToken(), NotificationRequestTypesResponse.class);
+        final NotificationRequestTypesResponse ret = this.callServer(query, null, session, NotificationRequestTypesResponse.class);
         return ret.getTypes();
     }
 
@@ -611,12 +612,12 @@ public abstract class AbstractMyJDClient {
         re.setRid(inc());
         re.setParams(new Object[] { message });
         re.setUrl(query);
-        return this.callServer(query, objectToJSon(re), session.getServerEncryptionToken(), SuccessfulResponse.class).isSuccessful();
+        return this.callServer(query, objectToJSon(re), session, SuccessfulResponse.class).isSuccessful();
     }
 
     /**
-     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins. We use a regain
-     * token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
+     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins.
+     * We use a regain token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
      * 
      * @throws MyJDownloaderException
      */
@@ -624,7 +625,7 @@ public abstract class AbstractMyJDClient {
         try {
             final SessionInfo session = getSessionInfo();
             final String query = "/my/reconnect?sessiontoken=" + urlencode(session.getSessionToken()) + "&regaintoken=" + urlencode(session.getRegainToken());
-            final ConnectResponse ret = this.callServer(query, null, session.getServerEncryptionToken(), ConnectResponse.class);
+            final ConnectResponse ret = this.callServer(query, null, session, ConnectResponse.class);
 
             final byte[] serverEncryptionToken = updateEncryptionToken(session.getServerEncryptionToken(), AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
             final byte[] deviceEncryptionToken = updateEncryptionToken(session.getDeviceSecret(), AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
@@ -650,7 +651,7 @@ public abstract class AbstractMyJDClient {
         }
         re.setUrl(query);
         final String object = objectToJSon(re);
-        this.callServer(query, object, session.getServerEncryptionToken(), RequestIDOnly.class);
+        this.callServer(query, object, session, RequestIDOnly.class);
     }
 
     /**
@@ -708,18 +709,13 @@ public abstract class AbstractMyJDClient {
         re.setRid(inc());
         re.setParams(params);
         re.setUrl(path);
-        try {
-            return post(path, objectToJSon(re), null);
-        } catch (final ExceptionResponse e) {
-            handleInvalidResponseCodes(e);
-            throw e;
-        }
+        return post(path, objectToJSon(re), null);
     }
 
     public void unregisterNotification(final String receiverID, final DeviceData device) throws MyJDownloaderException {
         final SessionInfo session = getSessionInfo();
         final String query = "/notify/unregister?sessiontoken=" + urlencode(session.getSessionToken()) + "&receiverid=" + urlencode(receiverID) + "&deviceid=" + urlencode(device.getId());
-        this.callServer(query, null, session.getServerEncryptionToken(), RequestIDOnly.class);
+        this.callServer(query, null, session, RequestIDOnly.class);
     }
 
     public byte[] updateEncryptionToken(final byte[] oldSecret, final byte[] update) throws NoSuchAlgorithmException {
