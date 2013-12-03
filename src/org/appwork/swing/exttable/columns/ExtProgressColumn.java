@@ -150,20 +150,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     /**
      * 
      */
-    protected void repaint() {
 
-        final Rectangle visibleRect = getModel().getTable().getVisibleRect();
-
-        final Rectangle first = getModel().getTable().getCellRect(0, getIndex(), true);
-
-        final int w = getWidth() - Math.max(0, visibleRect.x - first.x);
-        if (w > 0) {
-            getModel().getTable().repaint(Math.max(first.x, visibleRect.x), visibleRect.y, w, visibleRect.height);
-
-        }
-
-
-    }
 
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {

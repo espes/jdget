@@ -525,7 +525,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public ExtTableModelEventSender getEventSender() {
         if (this.eventSender == null) {
             this.eventSender = new ExtTableModelEventSender();
-            this.addTableModelListener(new TableModelListener() {
+            addTableModelListener(new TableModelListener() {
 
                 @Override
                 public void tableChanged(final TableModelEvent e) {
@@ -631,9 +631,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
 
     public List<E> getSelectedObjects(final int maxItems) {
         final ExtTable<E> ltable = this.getTable();
-        final ListSelectionModel selectionModel = this.getTable().getSelectionModel();
-        if (ltable == null || selectionModel == null || this.tableSelectionClearing.get()) { return new ArrayList<E>(0); }
         final java.util.List<E> ret = new ArrayList<E>();
+        if (ltable == null) {
+            return ret;
+        }
+        final ListSelectionModel selectionModel = ltable.getSelectionModel();
+        if (ltable == null || selectionModel == null || this.tableSelectionClearing.get()) { return new ArrayList<E>(0); }
+
         final List<E> ltableData = this.getTableData();
         final int iMin = selectionModel.getMinSelectionIndex();
         final int iMax = selectionModel.getMaxSelectionIndex();
@@ -1029,6 +1033,9 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public int[] setSelectedObjects(final Collection<E> selections) {
         final ExtTable<E> ltable = ExtTableModel.this.getTable();
+        if(ltable==null) {
+            return new int[] { -1, -1 };
+        }
         return new EDTHelper<int[]>() {
             @Override
             public int[] edtRun() {

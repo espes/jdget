@@ -75,7 +75,7 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
     private TableColumn              tableColumn;
 
     private String                   sortOrderIdentifier;
-    protected final ToolTip            tooltip;
+    protected final ToolTip          tooltip;
     private boolean                  editableProgrammaticly = false;
 
     public static final String       SORT_DESC              = "DESC";
@@ -98,6 +98,27 @@ public abstract class ExtColumn<E> extends AbstractCellEditor implements TableCe
         // sort function
         this.rowSorter = new ExtDefaultRowSorter<E>();
         this.tooltip = new ToolTip();
+    }
+
+    protected void repaint() {
+        final ExtTableModel<E> model = getModel();
+        if (model == null) {
+            return;
+        }
+        final ExtTable<E> table = model.getTable();
+        if (table == null) {
+            return;
+        }
+        final Rectangle visibleRect = table.getVisibleRect();
+
+        final Rectangle first = table.getCellRect(0, getIndex(), true);
+
+        final int w = getWidth() - Math.max(0, visibleRect.x - first.x);
+        if (w > 0) {
+            table.repaint(Math.max(first.x, visibleRect.x), visibleRect.y, w, visibleRect.height);
+
+        }
+
     }
 
     /**
