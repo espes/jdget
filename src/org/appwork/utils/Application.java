@@ -231,7 +231,6 @@ public class Application {
      * @return
      */
     public static URL getRessourceURL(final String relative) {
-
         return Application.getRessourceURL(relative, true);
     }
 
@@ -364,6 +363,25 @@ public class Application {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * @return
+     */
+    public static File getTemp() {
+        final File ret = Application.getResource("tmp");
+        if (!ret.exists()) {
+            ret.mkdirs();
+        }
+        return ret;
+    }
+
+    /**
+     * @param cache
+     * @return
+     */
+    public static File getTempResource(final String cache) {
+        return new File(Application.getTemp(), cache);
     }
 
     public static boolean is64BitJvm() {
@@ -544,24 +562,6 @@ public class Application {
     public synchronized static void setApplication(final String newAppFolder) {
         Application.ROOT = null;
         Application.APP_FOLDER = newAppFolder;
-    }
-
-    /**
-     * @return
-     */
-    public static File getTemp() {
-      final File ret = getResource("tmp");
-      ret.mkdirs();
-        return ret;
-    }
-
-    /**
-     * @param cache
-     * @return
-     */
-    public static File getTempResource(final String cache) {
-      
-        return new File(getTemp(),cache);
     }
 
 }

@@ -39,6 +39,70 @@ import org.appwork.utils.logging.Log;
 
 public class IconIO {
 
+    public static class ScaledIcon implements Icon {
+
+        private final Icon          source;
+        private final int           width;
+        private final int           height;
+        private final Interpolation interpolation;
+        private final double        faktor;
+
+        /**
+         * @param icon
+         * @param w
+         * @param h
+         * @param hint
+         */
+        public ScaledIcon(final Icon icon, final int width, final int height, final Interpolation interpolation) {
+            this.source = icon;
+            this.faktor = 1d / Math.max((double) icon.getIconWidth() / width, (double) icon.getIconHeight() / height);
+            this.width = Math.max((int) (icon.getIconWidth() * this.faktor), 1);
+            this.height = Math.max((int) (icon.getIconHeight() * this.faktor), 1);
+            this.interpolation = interpolation;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see javax.swing.Icon#getIconHeight()
+         */
+        @Override
+        public int getIconHeight() {
+            // TODO Auto-generated method stub
+            return this.height;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see javax.swing.Icon#getIconWidth()
+         */
+        @Override
+        public int getIconWidth() {
+            // TODO Auto-generated method stub
+            return this.width;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see javax.swing.Icon#paintIcon(java.awt.Component,
+         * java.awt.Graphics, int, int)
+         */
+        @Override
+        public void paintIcon(final Component c, final Graphics g, final int x, final int y) {
+            final Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, this.interpolation.getHint());
+            final AffineTransform old = g2.getTransform();
+
+            g2.translate(x, y);
+            g2.scale(this.faktor, this.faktor);
+            this.source.paintIcon(c, g, 0, 0);
+            g2.setTransform(old);
+
+        }
+    }
+
     static {
         ImageIO.setUseCache(false);
     }
@@ -89,6 +153,30 @@ public class IconIO {
         final ImageProducer ip = new FilteredImageSource(image.getSource(), filter);
         final Image img = Toolkit.getDefaultToolkit().createImage(ip);
         return IconIO.toBufferedImage(img);
+    }
+
+    public static BufferedImage convertIconToBufferedImage(final Icon icon) {
+
+        if (icon == null) { return null; }
+        if (icon instanceof ImageIcon) {
+            final Image ret = ((ImageIcon) icon).getImage();
+            if (ret instanceof BufferedImage) { return (BufferedImage) ret; }
+        }
+        final int w = icon.getIconWidth();
+        final int h = icon.getIconHeight();
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice gd = ge.getDefaultScreenDevice();
+        final GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.TRANSLUCENT);
+
+        final Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        // g.setColor(Color.RED);
+        // g.fillRect(0, 0, w, h);
+        icon.paintIcon(null, g, 0, 0);
+        g.dispose();
+        return image;
+
     }
 
     public static BufferedImage createEmptyImage(final int w, final int h) {
@@ -165,84 +253,9 @@ public class IconIO {
         }
     }
 
-    /**
-     * @param image
-     * @param i
-     * @param j
-     * @return
-     */
-    public static BufferedImage getScaledInstance(final Image img, final int width, final int height) {
-        // TODO Auto-generated method stub
-        return IconIO.getScaledInstance(img, width, height, Interpolation.BICUBIC, true);
-    }
-
     public static Icon getScaledInstance(final Icon icon, final int width, final int height) {
         // TODO Auto-generated method stub
         return IconIO.getScaledInstance(icon, width, height, Interpolation.BICUBIC);
-    }
-
-    public static class ScaledIcon implements Icon {
-
-        private Icon          source;
-        private int           width;
-        private int           height;
-        private Interpolation interpolation;
-        private double        faktor;
-
-        /**
-         * @param icon
-         * @param w
-         * @param h
-         * @param hint
-         */
-        public ScaledIcon(final Icon icon, final int width, final int height, final Interpolation interpolation) {
-            source = icon;
-            faktor = 1d/Math.max((double) icon.getIconWidth() / width, (double) icon.getIconHeight() / height);
-            this.width = Math.max((int) (icon.getIconWidth() * faktor), 1);
-            this.height = Math.max((int) (icon.getIconHeight() * faktor), 1);
-            this.interpolation = interpolation;
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see javax.swing.Icon#paintIcon(java.awt.Component,
-         * java.awt.Graphics, int, int)
-         */
-        @Override
-        public void paintIcon(final Component c, final Graphics g, final int x, final int y) {
-            final Graphics2D g2 = (Graphics2D) g;
-            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, interpolation.getHint());
-            final AffineTransform old = g2.getTransform();
-
-            g2.translate(x, y); 
-            g2.scale(faktor, faktor);         
-            source.paintIcon(c, g, 0, 0);
-            g2.setTransform(old);
-           
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see javax.swing.Icon#getIconWidth()
-         */
-        @Override
-        public int getIconWidth() {
-            // TODO Auto-generated method stub
-            return width;
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see javax.swing.Icon#getIconHeight()
-         */
-        @Override
-        public int getIconHeight() {
-            // TODO Auto-generated method stub
-            return height;
-        }
     }
 
     /**
@@ -257,6 +270,17 @@ public class IconIO {
 
         return new ScaledIcon(icon, width, height, bicubic);
 
+    }
+
+    /**
+     * @param image
+     * @param i
+     * @param j
+     * @return
+     */
+    public static BufferedImage getScaledInstance(final Image img, final int width, final int height) {
+        // TODO Auto-generated method stub
+        return IconIO.getScaledInstance(img, width, height, Interpolation.BICUBIC, true);
     }
 
     /**
@@ -337,6 +361,32 @@ public class IconIO {
         } while (w != width || h != height);
 
         return (BufferedImage) ret;
+    }
+
+    /**
+     * @param icon
+     * @param f
+     * @return
+     */
+    public static Image getTransparent(final Image src, final float f) {
+        final int w = src.getWidth(null);
+        final int h = src.getHeight(null);
+        final BufferedImage image = new BufferedImage(w, h, Transparency.TRANSLUCENT);
+        final Graphics2D g = image.createGraphics();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, f));
+        g.drawImage(src, 0, 0, null);
+        g.dispose();
+        return image;
+    }
+
+    /**
+     * @param image
+     * @param f
+     * @return
+     */
+    public static ImageIcon getTransparentIcon(final Image src, final float f) {
+
+        return new ImageIcon(IconIO.getTransparent(src, f));
     }
 
     /**
@@ -452,87 +502,6 @@ public class IconIO {
         return image;
     }
 
-    public static BufferedImage convertIconToBufferedImage(final Icon icon) {
-
-        if (icon == null) { return null; }
-        if (icon instanceof ImageIcon) {
-            final Image ret = ((ImageIcon) icon).getImage();
-            if (ret instanceof BufferedImage) { return (BufferedImage) ret; }
-        }
-        final int w = icon.getIconWidth();
-        final int h = icon.getIconHeight();
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        final GraphicsDevice gd = ge.getDefaultScreenDevice();
-        final GraphicsConfiguration gc = gd.getDefaultConfiguration();
-        final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.TRANSLUCENT);
-
-        final Graphics2D g = image.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        // g.setColor(Color.RED);
-        // g.fillRect(0, 0, w, h);
-        icon.paintIcon(null, g, 0, 0);
-        g.dispose();
-        return image;
-
-    }
-
-    /**
-     * Converts any image to a BufferedImage
-     * 
-     * @param image
-     * @return
-     */
-    public static BufferedImage toBufferedImage(final Image src) {
-        final int w = src.getWidth(null);
-        final int h = src.getHeight(null);
-        final BufferedImage image = new BufferedImage(w, h, Transparency.TRANSLUCENT);
-        final Graphics2D g = image.createGraphics();
-        g.drawImage(src, 0, 0, null);
-        g.dispose();
-        return image;
-    }
-
-    /**
-     * @param icon
-     * @param f
-     * @return
-     */
-    public static Image getTransparent(final Image src, final float f) {
-        final int w = src.getWidth(null);
-        final int h = src.getHeight(null);
-        final BufferedImage image = new BufferedImage(w, h, Transparency.TRANSLUCENT);
-        final Graphics2D g = image.createGraphics();
-        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, f));
-        g.drawImage(src, 0, 0, null);
-        g.dispose();
-        return image;
-    }
-
-    /**
-     * @param image
-     * @param f
-     * @return
-     */
-    public static ImageIcon getTransparentIcon(final Image src, final float f) {
-
-        return new ImageIcon(getTransparent(src, f));
-    }
-
-    /**
-     * @param ico
-     * @return
-     */
-    public static ImageIcon toImageIcon(final Icon icon) {
-        if (icon == null) { return null; }
-        if (icon instanceof ImageIcon) {
-            return (ImageIcon) icon;
-        } else {
-
-            return new ImageIcon(toBufferedImage(icon));
-
-        }
-    }
-
     /**
      * @param fileIcon
      * @return
@@ -553,6 +522,36 @@ public class IconIO {
         g.dispose();
 
         return image;
+    }
+
+    /**
+     * Converts any image to a BufferedImage
+     * 
+     * @param image
+     * @return
+     */
+    public static BufferedImage toBufferedImage(final Image src) {
+        final int w = src.getWidth(null);
+        final int h = src.getHeight(null);
+        final BufferedImage image = new BufferedImage(w, h, Transparency.TRANSLUCENT);
+        final Graphics2D g = image.createGraphics();
+        g.drawImage(src, 0, 0, null);
+        g.dispose();
+        return image;
+    }
+
+    /**
+     * @param ico
+     * @return
+     */
+    public static ImageIcon toImageIcon(final Icon icon) {
+        if (icon == null) { return null; }
+        if (icon instanceof ImageIcon) {
+            return (ImageIcon) icon;
+        } else {
+            return new ImageIcon(IconIO.toBufferedImage(icon));
+
+        }
     }
 
 }
