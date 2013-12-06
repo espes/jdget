@@ -32,34 +32,11 @@ public class BasicRemoteAPIException extends Exception {
 
     private HttpResponseInterface response;
 
+    private final String          type;
 
-    public HttpRequestInterface getRequest() {
-        return request;
-    }
+    private final ResponseCode    code;
 
-    public HttpResponseInterface getResponse() {
-        return response;
-    }
-
-    /**
-     * @param request
-     */
-    public void setRequest(final HttpRequestInterface request) {
-        this.request = request;
-
-    }
-
-    /**
-     * @param response
-     */
-    public void setResponse(final HttpResponseInterface response) {
-        this.response = response;
-
-    }
-
-    private final String       type;
-    private final ResponseCode code;
-    private final Object       data;
+    private final Object          data;
 
     /**
      * @param name
@@ -76,22 +53,30 @@ public class BasicRemoteAPIException extends Exception {
      * @param data
      */
     public BasicRemoteAPIException(final Throwable cause, final String name, final ResponseCode code, final Object data) {
-        super(name + "(" + code + ")",cause);
+        super(name + "(" + code + ")", cause);
         this.data = data;
-        type = name;
+        this.type = name;
         this.code = code;
     }
 
     public ResponseCode getCode() {
-        return code;
+        return this.code;
     }
 
     public Object getData() {
-        return data;
+        return this.data;
+    }
+
+    public HttpRequestInterface getRequest() {
+        return this.request;
+    }
+
+    public HttpResponseInterface getResponse() {
+        return this.response;
     }
 
     public String getType() {
-        return type;
+        return this.type;
     }
 
     /**
@@ -100,14 +85,32 @@ public class BasicRemoteAPIException extends Exception {
      */
     public boolean handle(final HttpResponse response) throws IOException {
         byte[] bytes;
-        final String str = JSonStorage.serializeToJson(new DeviceErrorResponse(getType(), data));
+        final String str = JSonStorage.serializeToJson(new DeviceErrorResponse(this.getType(), this.data));
         bytes = str.getBytes("UTF-8");
-        response.setResponseCode(getCode());
+        response.setResponseCode(this.getCode());
+        /* needed for ajax/crossdomain */
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text; charset=UTF-8"));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
         response.getOutputStream(true).write(bytes);
         response.getOutputStream(true).flush();
         return true;
+
+    }
+
+    /**
+     * @param request
+     */
+    public void setRequest(final HttpRequestInterface request) {
+        this.request = request;
+
+    }
+
+    /**
+     * @param response
+     */
+    public void setResponse(final HttpResponseInterface response) {
+        this.response = response;
 
     }
 
