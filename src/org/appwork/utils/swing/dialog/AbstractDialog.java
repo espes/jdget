@@ -218,7 +218,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected JButton                                      okButton;
 
-    private final String                                   okOption;
+    protected final String                                   okOption;
 
     private Point                                          orgLocationOnScreen;
 
@@ -336,7 +336,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 }
             };
             // create panel for the dialog's buttons
-            this.okButton = new JButton(this.okOption);
+            this.okButton = createOkButton();
             this.cancelButton = new JButton(this.cancelOption);
             this.cancelButton.addFocusListener(this.defaultButtonFocusListener);
             this.okButton.addFocusListener(this.defaultButtonFocusListener);
@@ -579,6 +579,10 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         // ((Window) getDialog().getParent()).setAlwaysOnTop(true);
         // ((Window) getDialog().getParent()).setAlwaysOnTop(false);
         // }
+    }
+
+    protected JButton createOkButton() {
+        return new JButton(this.okOption);
     }
 
     protected void initDoNotShowAgainCheckbox(final MigPanel bottom) {
