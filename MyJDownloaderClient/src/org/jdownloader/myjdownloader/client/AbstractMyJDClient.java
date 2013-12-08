@@ -21,6 +21,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
 import org.jdownloader.myjdownloader.client.exceptions.APIException;
 import org.jdownloader.myjdownloader.client.exceptions.AuthException;
 import org.jdownloader.myjdownloader.client.exceptions.ChallengeFailedException;
@@ -178,14 +179,20 @@ public abstract class AbstractMyJDClient {
             payload.setParams(params);
             final String json = objectToJSon(payload);
             final String dec = cryptedPost(query, base64Encode(encrypt(json.getBytes("UTF-8"), session.getDeviceEncryptionToken())), session.getDeviceEncryptionToken());
-            final ObjectData data = this.jsonToObject(dec, ObjectData.class);
-            if (data == null) {
-                // invalid response
-                throw new MyJDownloaderException("Invalid Response: " + dec);
-            }
-            // ugly!!! but this will be changed when we have a proper remoteAPI response format
+            // this is a workaround.. do not consider this as final solution!
+            if (dec.startsWith("{\r\n  \"data\" :")) {
+                final ObjectData data = this.jsonToObject(dec, ObjectData.class);
+                if (data == null) {
+                    // invalid response
+                    throw new MyJDownloaderException("Invalid Response: " + dec);
+                }
+                // ugly!!! but this will be changed when we have a proper remoteAPI response format
 
-            return this.jsonToObject(objectToJSon(data.getData()) + "", returnType);
+                return this.jsonToObject(objectToJSon(data.getData()) + "", returnType);
+            } else {
+                Object ret = jsonToObject(dec, returnType);
+               return ret; 
+            }
 
         } catch (final ExceptionResponse e) {
             handleInvalidResponseCodes(e, session);
@@ -584,6 +591,13 @@ public abstract class AbstractMyJDClient {
             }
 
         });
+    }
+
+    public <T> T link(final Class<T> class1, String deviceID) {
+        ApiNamespace ann = class1.getAnnotation(ApiNamespace.class);
+        if (ann == null) throw new NullPointerException("ApiNameSpace missing in " + class1.getName());
+
+        return link(class1, ann.value(), deviceID);
     }
 
     public DeviceList listDevices() throws MyJDownloaderException {
