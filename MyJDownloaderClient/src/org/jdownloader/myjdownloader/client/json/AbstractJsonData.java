@@ -35,7 +35,7 @@ public abstract class AbstractJsonData implements JsonFactoryInterface {
     /**
      * @return
      */
-    public static Collection<GetterSetter> getGettersSetteres( Class<?> clazz) {
+    public static Collection<GetterSetter> getGettersSetteres(Class<?> clazz) {
         Collection<GetterSetter> ret = GETTER_SETTER_CACHE.get(clazz);
         if (ret != null) { return ret; }
         final Class<?> org = clazz;
@@ -89,6 +89,12 @@ public abstract class AbstractJsonData implements JsonFactoryInterface {
 
     }
 
+    public boolean equals(final Object pass, final Object pass2) {
+        if (pass == pass2) { return true; }
+        if (pass == null && pass2 != null) { return false; }
+        return pass.equals(pass2);
+    }
+
     @Override
     public String toJsonString() {
         final HashMap<String, Object> map = new HashMap<String, Object>();
@@ -99,10 +105,11 @@ public abstract class AbstractJsonData implements JsonFactoryInterface {
             for (final GetterSetter gs : getGettersSetteres(getClass())) {
 
                 obj = gs.get(this);
-                if (obj == gs.get(empty)) {
+
+                if (equals(obj, gs.get(empty))) {
                     continue;
                 }
-                map.put(gs.getKey(), obj);
+                map.put(Character.toLowerCase(gs.getKey().charAt(0)) + gs.getKey().substring(1), obj);
 
             }
         } catch (final Exception e) {

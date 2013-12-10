@@ -192,7 +192,7 @@ public abstract class AbstractMyJDClient {
 
             final String dec = toString(data);
             // this is a workaround.. do not consider this as final solution!
-            if (dec.startsWith("{\r\n  \"data\" :")) {
+            if (dec.indexOf("\"data\" :")>0) {
                 final ObjectData dataObject = this.jsonToObject(dec, ObjectData.class);
                 if (data == null) {
                     // invalid response
