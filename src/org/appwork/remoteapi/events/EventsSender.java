@@ -9,11 +9,12 @@
  */
 package org.appwork.remoteapi.events;
 
+import java.util.List;
 
 /**
  * @author daniel
  * 
  */
 public interface EventsSender {
-    public void publishEvent(final EventObject event, final long[] subscriptionids);
+    public List<Long> publishEvent(final EventObject event, final List<Long> subscriptionids);
 }

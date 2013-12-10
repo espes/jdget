@@ -9,7 +9,7 @@
  */
 package org.appwork.remoteapi.events;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.appwork.remoteapi.RemoteAPIInterface;
 import org.appwork.remoteapi.RemoteAPIRequest;
@@ -41,7 +41,7 @@ public interface EventsAPIInterface extends RemoteAPIInterface {
     public void listen(RemoteAPIRequest request, RemoteAPIResponse response, long subscriptionid);
 
     @ResponseWrapper(RawJSonWrapper.class)
-    public ArrayList<PublisherResponse> listpublisher();
+    public List<PublisherResponse> listpublisher();
 
     @ResponseWrapper(RawJSonWrapper.class)
     public SubscriptionResponse removesubscription(long subscriptionid, String[] subscriptions, String[] exclusions);

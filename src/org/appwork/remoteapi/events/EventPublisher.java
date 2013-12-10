@@ -21,6 +21,8 @@ public interface EventPublisher {
 
     public abstract void register(EventsSender eventsAPI);
 
+    public abstract void terminatedSubscription(EventsSender eventsSender, long subscriptionid);
+
     public abstract void unregister(EventsSender eventsAPI);
 
 }
