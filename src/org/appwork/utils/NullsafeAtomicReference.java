@@ -34,15 +34,16 @@ public class NullsafeAtomicReference<V> {
     }
 
     public final boolean compareAndSet(final V expect, final V update) {
-        Object a = expect;
-        Object b = update;
-        if (NullsafeAtomicReference.NULL.equals(a)) {
-            a = NullsafeAtomicReference.NULL;
+        Object nullSafeUpdate = update;
+        if (NullsafeAtomicReference.NULL.equals(nullSafeUpdate)) {
+            nullSafeUpdate = NullsafeAtomicReference.NULL;
         }
-        if (NullsafeAtomicReference.NULL.equals(b)) {
-            b = NullsafeAtomicReference.NULL;
+        if (NullsafeAtomicReference.NULL.equals(expect)) {
+            return this.reference.compareAndSet(NullsafeAtomicReference.NULL, nullSafeUpdate) || this.reference.compareAndSet(NullsafeAtomicReference.EMPTY, nullSafeUpdate);
+        } else {
+            return this.reference.compareAndSet(expect, nullSafeUpdate);
         }
-        return this.reference.compareAndSet(a, b);
+
     }
 
     public final V get() {
