@@ -560,13 +560,15 @@ public class RemoteAPI implements HttpRequestHandler {
     public void writeResponse(Object responseData, final Method method, final RemoteAPIRequest request, final RemoteAPIResponse response) throws BasicRemoteAPIException {
         try {
             String text = null;
-            responseData = handleVoidMethods(responseData, method);
-            if (method.getAnnotation(ResponseWrapper.class) != null) {
+            if (method != null) {
+                responseData = handleVoidMethods(responseData, method);
+            }
+            if (method != null && method.getAnnotation(ResponseWrapper.class) != null) {
                 text = ((AbstractResponseWrapper<Object>) method.getAnnotation(ResponseWrapper.class).value().newInstance()).toString(responseData);
             } else {
                 text = this.toString(request, response, responseData);
             }
-            text = jQueryWrap(request, text);
+
             sendText(request, response, text);
         } catch (final Throwable e) {
             e.printStackTrace();

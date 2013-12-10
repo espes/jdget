@@ -16,14 +16,12 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
-import org.appwork.remoteapi.RemoteAPI;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
 import org.appwork.remoteapi.events.json.EventObjectStorable;
 import org.appwork.remoteapi.events.json.PublisherResponse;
 import org.appwork.remoteapi.events.json.SubscriptionResponse;
 import org.appwork.remoteapi.events.json.SubscriptionStatusResponse;
-import org.appwork.storage.JSonStorage;
 
 /**
  * @author daniel
@@ -129,9 +127,8 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
         } catch (final InterruptedException e) {
         }
         try {
-            final byte[] bytes = JSonStorage.serializeToJson(eventStorables).getBytes("UTF-8");
-            response.setResponseCode(ResponseCode.SUCCESS_OK);
-            response.sendBytes( RemoteAPI.gzip(request), false, bytes);
+            response.getRemoteAPI().writeResponse(eventStorables, null, request, response);
+
         } catch (final Throwable e) {
             subscriber.pushBack(events);
             throw new RuntimeException(e);
