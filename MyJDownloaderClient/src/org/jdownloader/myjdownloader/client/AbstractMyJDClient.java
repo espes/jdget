@@ -1,5 +1,6 @@
 package org.jdownloader.myjdownloader.client;
 
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -38,10 +39,17 @@ import org.jdownloader.myjdownloader.client.exceptions.TokenException;
 import org.jdownloader.myjdownloader.client.exceptions.TooManyRequestsException;
 import org.jdownloader.myjdownloader.client.exceptions.UnconnectedException;
 import org.jdownloader.myjdownloader.client.exceptions.UnexpectedIOException;
+import org.jdownloader.myjdownloader.client.exceptions.device.ApiFileNotFoundException;
+import org.jdownloader.myjdownloader.client.exceptions.device.InternalServerErrorException;
+import org.jdownloader.myjdownloader.client.exceptions.device.SessionException;
+import org.jdownloader.myjdownloader.client.exceptions.device.UnknownCommandException;
+import org.jdownloader.myjdownloader.client.exceptions.device.UnknownInterfaceException;
+import org.jdownloader.myjdownloader.client.exceptions.device.WrongParametersException;
 import org.jdownloader.myjdownloader.client.json.CaptchaChallenge;
 import org.jdownloader.myjdownloader.client.json.ConnectResponse;
 import org.jdownloader.myjdownloader.client.json.DeviceConnectResponse;
 import org.jdownloader.myjdownloader.client.json.DeviceData;
+import org.jdownloader.myjdownloader.client.json.DeviceErrorType;
 import org.jdownloader.myjdownloader.client.json.DeviceList;
 import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.FeedbackResponse;
@@ -192,7 +200,7 @@ public abstract class AbstractMyJDClient {
 
             final String dec = toString(data);
             // this is a workaround.. do not consider this as final solution!
-            if (dec.indexOf("\"data\" :")>0) {
+            if (dec.indexOf("\"data\" :") > 0) {
                 final ObjectData dataObject = this.jsonToObject(dec, ObjectData.class);
                 if (data == null) {
                     // invalid response
@@ -546,7 +554,30 @@ public abstract class AbstractMyJDClient {
                 error = this.jsonToObject(e.getContent(), ErrorResponse.class);
                 switch (error.getSrc()) {
                 case DEVICE:
-                    throw new APIException(error.getType(), error.getData());
+                    if (error.getType() != null) {
+                        final DeviceErrorType type = DeviceErrorType.valueOf(error.getType());
+                        // SES
+                        switch (type) {
+                        case INTERNAL_SERVER_ERROR:
+                            throw new InternalServerErrorException(error.getData());
+                        case API_COMMAND_NOT_FOUND:
+                            throw new UnknownCommandException(error.getData());
+                        case API_INTERFACE_NOT_FOUND:
+                            throw new UnknownInterfaceException(error.getData());
+                        case AUTH_FAILED:
+                            throw new AuthException();
+                        case BAD_PARAMETERS:
+                            throw new WrongParametersException(error.getData());
+                        case FILE_NOT_FOUND:
+                            throw new ApiFileNotFoundException(error.getData());
+                        case SESSION:
+                            throw new SessionException(error.getData());
+
+                        default:
+                            throw new APIException(error.getType(), error.getData());
+                        }
+                    }
+
                 case MYJD:
                     final ServerErrorType type = ServerErrorType.valueOf(error.getType());
                     switch (type) {
@@ -602,8 +633,8 @@ public abstract class AbstractMyJDClient {
         return counter.incrementAndGet();
     }
 
-    protected  <T> T jsonToObject(final String dec, final Type clazz){
-       return (T) MyJDJsonMapper.HANDLER.jsonToObject(dec,clazz);
+    protected <T> T jsonToObject(final String dec, final Type clazz) {
+        return (T) MyJDJsonMapper.HANDLER.jsonToObject(dec, clazz);
     }
 
     public void keepalive() throws MyJDownloaderException {
@@ -631,6 +662,13 @@ public abstract class AbstractMyJDClient {
                     return AbstractMyJDClient.this.callActionInternal(deviceID, action, returnType, args);
 
                 } catch (final Throwable e) {
+                    Class<?>[] exceptions = method.getExceptionTypes();
+                    if (exceptions != null) {
+                        for (Class<?> c : exceptions) {
+                            if (c.isAssignableFrom(e.getClass())) { throw e; }
+
+                        }
+                    }
                     throw new RuntimeException(e);
                 }
 
@@ -660,7 +698,7 @@ public abstract class AbstractMyJDClient {
         return ret.getTypes();
     }
 
-    protected  String objectToJSon(final Object payload){
+    protected String objectToJSon(final Object payload) {
         return MyJDJsonMapper.HANDLER.objectToJSon(payload);
     }
 

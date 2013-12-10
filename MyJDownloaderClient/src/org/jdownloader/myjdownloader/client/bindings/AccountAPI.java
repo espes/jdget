@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.jdownloader.myjdownloader.client.exceptions.device.InternalServerErrorException;
+
 @ApiNamespace(AccountAPI.ACCOUNTS)
 public interface AccountAPI {
     public static final String ACCOUNTS = "accounts";
@@ -24,7 +26,7 @@ public interface AccountAPI {
 
     public boolean setEnabledState(boolean enabled, long[] ids);
 
-    byte[] premiumHosterIcon(String premiumHoster);
+    byte[] premiumHosterIcon(String premiumHoster) throws  InternalServerErrorException;
 
     HashMap<String, String> listPremiumHosterUrls();
 
