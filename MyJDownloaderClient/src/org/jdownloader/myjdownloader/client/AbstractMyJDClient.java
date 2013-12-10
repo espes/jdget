@@ -1,8 +1,5 @@
 package org.jdownloader.myjdownloader.client;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -23,7 +20,6 @@ import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.imageio.ImageIO;
 
 import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
 import org.jdownloader.myjdownloader.client.exceptions.APIException;
@@ -50,6 +46,7 @@ import org.jdownloader.myjdownloader.client.json.DeviceList;
 import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.FeedbackResponse;
 import org.jdownloader.myjdownloader.client.json.JSonRequest;
+import org.jdownloader.myjdownloader.client.json.MyJDJsonMapper;
 import org.jdownloader.myjdownloader.client.json.NotificationRequestMessage;
 import org.jdownloader.myjdownloader.client.json.NotificationRequestTypesResponse;
 import org.jdownloader.myjdownloader.client.json.ObjectData;
@@ -201,13 +198,13 @@ public abstract class AbstractMyJDClient {
                     // invalid response
                     throw new MyJDownloaderException("Invalid Response: " + dec);
                 }
-            
-                    if (dataObject.getRid() != i) { throw new BadResponseException("RID Mismatch"); }
-                
+
+                if (dataObject.getRid() != i) { throw new BadResponseException("RID Mismatch"); }
+
                 // ugly!!! but this will be changed when we have a proper remoteAPI response format
 
                 ret = this.jsonToObject(objectToJSon(dataObject.getData()) + "", returnType);
-             
+
                 return ret;
             } else {
                 ret = jsonToObject(dec, returnType);
@@ -229,14 +226,7 @@ public abstract class AbstractMyJDClient {
     }
 
     protected <T> T convertData(final byte[] data, final Type returnType) throws MyJDownloaderException {
-        if (returnType == BufferedImage.class) {
-            try {
-                return (T) ImageIO.read(new ByteArrayInputStream(data));
-            } catch (final IOException e) {
-                throw MyJDownloaderException.get(e);
-
-            }
-        }
+        if (returnType == byte[].class) { return (T) data; }
         return null;
     }
 
@@ -612,7 +602,9 @@ public abstract class AbstractMyJDClient {
         return counter.incrementAndGet();
     }
 
-    protected abstract <T> T jsonToObject(String dec, Type clazz);
+    protected  <T> T jsonToObject(final String dec, final Type clazz){
+       return (T) MyJDJsonMapper.HANDLER.jsonToObject(dec,clazz);
+    }
 
     public void keepalive() throws MyJDownloaderException {
         final SessionInfo session = getSessionInfo();
@@ -668,7 +660,9 @@ public abstract class AbstractMyJDClient {
         return ret.getTypes();
     }
 
-    protected abstract String objectToJSon(Object payload);
+    protected  String objectToJSon(final Object payload){
+        return MyJDJsonMapper.HANDLER.objectToJSon(payload);
+    }
 
     abstract protected byte[] post(String query, String object, byte[] keyAndIV) throws ExceptionResponse;
 

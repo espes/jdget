@@ -1,6 +1,5 @@
 package org.jdownloader.myjdownloader.client.bindings;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +10,7 @@ public interface AccountAPI {
 
     public boolean addAccount(String premiumHoster, String username, String password);
 
-    public ArrayList<AccountStorable> queryAccounts(org.jdownloader.myjdownloader.client.json.JsonMap query);
+    public ArrayList<AccountStorable> queryAccounts(AccountQuery query);
 
     public ArrayList<String> listPremiumHoster();
 
@@ -25,7 +24,7 @@ public interface AccountAPI {
 
     public boolean setEnabledState(boolean enabled, long[] ids);
 
-    BufferedImage premiumHosterIcon(String premiumHoster);
+    byte[] premiumHosterIcon(String premiumHoster);
 
     HashMap<String, String> listPremiumHosterUrls();
 
