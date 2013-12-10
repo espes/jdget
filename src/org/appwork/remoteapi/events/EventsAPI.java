@@ -127,7 +127,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
         } catch (final InterruptedException e) {
         }
         try {
-            response.getRemoteAPI().writeResponse(eventStorables, null, request, response);
+            response.getRemoteAPI().writeStringResponse(eventStorables, null, false, request, response);
 
         } catch (final Throwable e) {
             subscriber.pushBack(events);

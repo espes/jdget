@@ -226,7 +226,7 @@ public class RemoteAPI implements HttpRequestHandler {
                  */
                 return;
             }
-            writeResponse(responseData, method, request, response);
+            writeStringResponse(responseData, method, true, request, response);
         } catch (final BasicRemoteAPIException e) {
             // set request and response if it has not set yet
             if (e.getRequest() == null) {
@@ -508,14 +508,15 @@ public class RemoteAPI implements HttpRequestHandler {
      * @param request
      * @param response
      * @param text
+     * @param chunked TODO
      * @throws UnsupportedEncodingException
      * @throws IOException
      */
-    public void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, String text) throws UnsupportedEncodingException, IOException {
+    public void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, String text, final boolean chunked) throws UnsupportedEncodingException, IOException {
         text = jQueryWrap(request, text);
         final byte[] bytes = text.getBytes("UTF-8");
         response.setResponseCode(ResponseCode.SUCCESS_OK);
-        response.sendBytes(RemoteAPI.gzip(request), true, bytes);
+        response.sendBytes(RemoteAPI.gzip(request), chunked, bytes);
     }
 
     /**
@@ -557,7 +558,7 @@ public class RemoteAPI implements HttpRequestHandler {
         }
     }
 
-    public void writeResponse(Object responseData, final Method method, final RemoteAPIRequest request, final RemoteAPIResponse response) throws BasicRemoteAPIException {
+    public void writeStringResponse(Object responseData, final Method method, final boolean chunkedTransfer, final RemoteAPIRequest request, final RemoteAPIResponse response) throws BasicRemoteAPIException {
         try {
             String text = null;
             if (method != null) {
@@ -569,7 +570,7 @@ public class RemoteAPI implements HttpRequestHandler {
                 text = this.toString(request, response, responseData);
             }
 
-            sendText(request, response, text);
+            sendText(request, response, text, chunkedTransfer);
         } catch (final Throwable e) {
             e.printStackTrace();
             final InternalApiException internal = new InternalApiException(e);

@@ -9,6 +9,9 @@
  */
 package org.appwork.storage;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.appwork.storage.simplejson.JSonFactory;
 import org.appwork.storage.simplejson.ParserException;
 import org.appwork.storage.simplejson.mapper.JSonMapper;
@@ -22,11 +25,27 @@ public class SimpleMapper implements JSONMapper {
     private final JSonMapper mapper;
 
     public SimpleMapper() {
-        this.mapper = new JSonMapper();
+        mapper = new JSonMapper();
     }
 
     public JSonMapper getMapper() {
-        return this.mapper;
+        return mapper;
+    }
+
+    private List<JsonSerializer> serializer = new ArrayList<JsonSerializer>();
+
+    /**
+     * @param jsonSerializer
+     */
+    public void addSerializer(final JsonSerializer jsonSerializer) {
+        final ArrayList<JsonSerializer> newList = new ArrayList<JsonSerializer>();
+        synchronized (serializer) {
+            newList.addAll(serializer);
+
+        }
+        newList.add(jsonSerializer);
+        serializer = newList;
+
     }
 
     /*
@@ -37,7 +56,11 @@ public class SimpleMapper implements JSONMapper {
     @Override
     public String objectToString(final Object o) throws JSonMapperException {
         try {
-            return this.mapper.create(o).toString();
+            for (final JsonSerializer s : serializer) {
+                final String ret = s.toJSonString(o);
+                if (ret != null) { return ret; }
+            }
+            return mapper.create(o).toString();
         } catch (final MapperException e) {
             throw new JSonMapperException(e);
         }
@@ -54,7 +77,7 @@ public class SimpleMapper implements JSONMapper {
     public <T> T stringToObject(final String jsonString, final Class<T> clazz) throws JSonMapperException {
 
         try {
-            return (T) this.mapper.jsonToObject(new JSonFactory(jsonString).parse(), clazz);
+            return (T) mapper.jsonToObject(new JSonFactory(jsonString).parse(), clazz);
         } catch (final ParserException e) {
             throw new JSonMapperException(e);
         } catch (final MapperException e) {
@@ -73,7 +96,7 @@ public class SimpleMapper implements JSONMapper {
     public <T> T stringToObject(final String jsonString, final TypeRef<T> type) throws JSonMapperException {
         try {
 
-            return this.mapper.jsonToObject(new JSonFactory(jsonString).parse(), type);
+            return mapper.jsonToObject(new JSonFactory(jsonString).parse(), type);
         } catch (final ParserException e) {
             throw new JSonMapperException(e);
 

@@ -22,7 +22,6 @@ import org.appwork.utils.reflection.Clazz;
 
 public class ReflectionUtils {
     // TODO: make weak
-    private static final HashMap<Class<?>, Collection<GetterSetter>> GETTER_SETTER_CACHE = new HashMap<Class<?>, Collection<GetterSetter>>();
 
     /**
      * @param <T>
@@ -133,6 +132,7 @@ public class ReflectionUtils {
         }
         return (List<Class<? extends T>>) ret;
     }
+    private static final HashMap<Class<?>, Collection<GetterSetter>> GETTER_SETTER_CACHE = new HashMap<Class<?>, Collection<GetterSetter>>();
 
     /**
      * @return

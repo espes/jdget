@@ -11,9 +11,12 @@ package org.appwork.storage.jackson;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.appwork.storage.JSONMapper;
 import org.appwork.storage.JSonMapperException;
+import org.appwork.storage.JsonSerializer;
 import org.appwork.storage.TypeRef;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
@@ -32,18 +35,27 @@ public class JacksonMapper implements JSONMapper {
 
     public JacksonMapper() {
 
-        this.mapper = new ObjectMapper(new ExtJsonFactory());
+        mapper = new ObjectMapper(new ExtJsonFactory());
 
-        this.mapper.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.storage.JSONMapper#stringToObject(java.lang.String,
-     * java.lang.Class)
+    private List<JsonSerializer> serializer = new ArrayList<JsonSerializer>();
+
+    /**
+     * @param jsonSerializer
      */
+    public void addSerializer(final JsonSerializer jsonSerializer) {
+        final ArrayList<JsonSerializer> newList = new ArrayList<JsonSerializer>();
+        synchronized (serializer) {
+            newList.addAll(serializer);
+
+        }
+        newList.add(jsonSerializer);
+        serializer = newList;
+
+    }
 
     /*
      * (non-Javadoc)
@@ -53,7 +65,11 @@ public class JacksonMapper implements JSONMapper {
     @Override
     public String objectToString(final Object o) throws JSonMapperException {
         try {
-            return this.mapper.writeValueAsString(o);
+            for (final JsonSerializer s : serializer) {
+                final String ret = s.toJSonString(o);
+                if (ret != null) { return ret; }
+            }
+            return mapper.writeValueAsString(o);
         } catch (final JsonGenerationException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {
@@ -66,7 +82,7 @@ public class JacksonMapper implements JSONMapper {
     @Override
     public <T> T stringToObject(final String jsonString, final Class<T> clazz) throws JSonMapperException {
         try {
-            return this.mapper.readValue(jsonString, clazz);
+            return mapper.readValue(jsonString, clazz);
         } catch (final JsonParseException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {
@@ -96,7 +112,7 @@ public class JacksonMapper implements JSONMapper {
             // this (T) is required because of java bug
             // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6302954
             // (compiles in eclipse, but not with javac)
-            return (T) this.mapper.readValue(jsonString, tr);
+            return (T) mapper.readValue(jsonString, tr);
         } catch (final JsonParseException e) {
             throw new JSonMapperException(e);
         } catch (final JsonMappingException e) {
