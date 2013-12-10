@@ -369,7 +369,7 @@ public class RemoteAPI implements HttpRequestHandler {
      */
     protected void validateRequest(final HttpRequest request) throws BasicRemoteAPIException {
         // TODO Auto-generated method stub
-System.out.println(1);
+        System.out.println(1);
     }
 
     /**
@@ -401,24 +401,6 @@ System.out.println(1);
      */
     protected boolean isAllowed(final RemoteAPIRequest request, final RemoteAPIResponse response) {
         return true;
-    }
-
-    /**
-     * @param request
-     * @param text
-     * @return
-     */
-    protected String jQueryWrap(final RemoteAPIRequest request, String text) {
-        if (request.getJqueryCallback() != null) {
-            /* wrap response into a valid jquery callback response format */
-            final StringBuilder sb = new StringBuilder();
-            sb.append(request.getJqueryCallback());
-            sb.append("(");
-            sb.append(text);
-            sb.append(");");
-            text = sb.toString();
-        }
-        return text;
     }
 
     /**
@@ -506,12 +488,31 @@ System.out.println(1);
 
     /**
      * @param request
+     * @param text
+     * @return
+     */
+    protected String jQueryWrap(final RemoteAPIRequest request, String text) {
+        if (request.getJqueryCallback() != null) {
+            /* wrap response into a valid jquery callback response format */
+            final StringBuilder sb = new StringBuilder();
+            sb.append(request.getJqueryCallback());
+            sb.append("(");
+            sb.append(text);
+            sb.append(");");
+            text = sb.toString();
+        }
+        return text;
+    }
+
+    /**
+     * @param request
      * @param response
      * @param text
      * @throws UnsupportedEncodingException
      * @throws IOException
      */
-    public void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, final String text) throws UnsupportedEncodingException, IOException {
+    public void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, String text) throws UnsupportedEncodingException, IOException {
+        text = jQueryWrap(request, text);
         final byte[] bytes = text.getBytes("UTF-8");
         response.setResponseCode(ResponseCode.SUCCESS_OK);
         response.sendBytes(RemoteAPI.gzip(request), true, bytes);
