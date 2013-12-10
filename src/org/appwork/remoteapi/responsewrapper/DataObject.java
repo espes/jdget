@@ -17,6 +17,15 @@ import org.appwork.storage.Storable;
  */
 public class DataObject implements Storable {
     private Object data;
+    private long   rid = -1; ;
+
+    public long getRid() {
+        return rid;
+    }
+
+    public void setRid(final long rid) {
+        this.rid = rid;
+    }
 
     public DataObject(/* Storable */) {
 
@@ -25,9 +34,18 @@ public class DataObject implements Storable {
     /**
      * @param responseObject
      */
-  
+
     public DataObject(final Object data) {
         this.data = data;
+    }
+
+    /**
+     * @param responseData
+     * @param requestID
+     */
+    public DataObject(final Object responseData, final long requestID) {
+        data = responseData;
+        rid = requestID;
     }
 
     public Object getData() {

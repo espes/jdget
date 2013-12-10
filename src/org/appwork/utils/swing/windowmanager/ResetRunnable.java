@@ -80,7 +80,7 @@ public class ResetRunnable implements ActionListener, PropertySetListener {
     @Override
     public void onPropertySet(final Component caller, final String propertyName, final Object oldValue, final Object newValue) {
         if (propertyName == null || propertyName.equals(windowsWindowManager.getBlocker())) { return; }
-        System.out.println("Property Update: " + propertyName + " - " + newValue);
+        //System.out.println("Property Update: " + propertyName + " - " + newValue);
         if (ExtJFrame.PROPERTY_FOCUSABLE_WINDOW_STATE.equals(propertyName)) {
             oldFocusableWindowState = (Boolean) newValue;
         } else if (ExtJFrame.PROPERTY_FOCUSABLE.equals(propertyName)) {
@@ -99,7 +99,7 @@ public class ResetRunnable implements ActionListener, PropertySetListener {
      */
     @Override
     public void actionPerformed(final ActionEvent actionevent) {
-        System.out.println("Reset After Timeout");
+        //System.out.println("Reset After Timeout");
         if (w instanceof PropertyStateEventProviderInterface) {
             ((PropertyStateEventProviderInterface) w).getPropertySetEventSender().removeListener(ResetRunnable.this);
         }

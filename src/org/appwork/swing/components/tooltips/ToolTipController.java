@@ -477,6 +477,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
                 }
                 tt.onShow();
                 activePopup.show();
+               
             }
             // parentWindow =
             // SwingUtilities.windowForComponent(this.activeToolTipPanel);

@@ -40,7 +40,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
     private final InterfaceHandler<?> iface;
 
     private final String[]            parameters;
-    private final HttpRequest         request;
+    protected final HttpRequest         request;
 
     private Method                    method;
 
@@ -50,40 +50,35 @@ public class RemoteAPIRequest implements HttpRequestInterface {
 
     private final String              methodName;
 
-    private final String              signature;
 
-    private final Long                requestID;
 
-    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request, final String jqueryCallback, final String signature, final Long requestID) {
+
+
+    public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request, final String jqueryCallback) {
         this.iface = iface;
         this.parameters = parameters;
         this.request = request;
         this.methodName = methodName;
-        this.signature = signature;
-        if (requestID == null) {
-            this.requestID = -1l;
-        } else {
-            this.requestID = requestID;
-        }
+  
         this.jqueryCallback = jqueryCallback;
-        this.method = this.iface.getMethod(methodName, this.parameters.length);
+        method = this.iface.getMethod(methodName, this.parameters.length);
         try {
-            this.parameterCount = iface.getParameterCount(this.method);
+            parameterCount = iface.getParameterCount(method);
         } catch (final Throwable e) {
-            this.method = null;
+            method = null;
         }
     }
 
     public HttpRequest getHttpRequest() {
-        return this.request;
+        return request;
     }
 
     public InterfaceHandler<?> getIface() {
-        return this.iface;
+        return iface;
     }
 
     public InputStream getInputStream() throws IOException {
-        if (this.request instanceof PostRequest) { return ((PostRequest) this.request).getInputStream(); }
+        if (request instanceof PostRequest) { return ((PostRequest) request).getInputStream(); }
         return null;
     }
 
@@ -91,7 +86,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
      * @return the jqueryCallback
      */
     public String getJqueryCallback() {
-        return this.jqueryCallback;
+        return jqueryCallback;
     }
 
     /**
@@ -99,22 +94,22 @@ public class RemoteAPIRequest implements HttpRequestInterface {
      */
     public Method getMethod() {
 
-        return this.method;
+        return method;
     }
 
     /**
      * @return the methodName
      */
     public String getMethodName() {
-        return this.methodName;
+        return methodName;
     }
 
     public int getParameterCount() {
-        return this.parameterCount;
+        return parameterCount;
     }
 
     public String[] getParameters() {
-        return this.parameters;
+        return parameters;
     }
 
     /*
@@ -125,49 +120,60 @@ public class RemoteAPIRequest implements HttpRequestInterface {
      */
     @Override
     public LinkedList<String[]> getPostParameter() throws IOException {
-        return this.request.getPostParameter();
+        return request.getPostParameter();
     }
 
     /**
      * @return
      */
     public List<String> getRemoteAdress() {
-        return this.request.getRemoteAddress();
+        return request.getRemoteAddress();
     }
 
     public String getRequestedPath() {
-        return this.request.getRequestedPath();
+        return request.getRequestedPath();
     }
 
     public String getRequestedURL() {
-        return this.request.getRequestedURL();
+        return request.getRequestedURL();
     }
 
     /**
      * @return the requestedURLParameters
      */
     public LinkedList<String[]> getRequestedURLParameters() {
-        return this.request.getRequestedURLParameters();
+        return request.getRequestedURLParameters();
     }
 
     public HeaderCollection getRequestHeaders() {
-        return this.request.getRequestHeaders();
+        return request.getRequestHeaders();
     }
 
-    public Long getRequestID() {
-        return this.requestID;
-    }
+
 
     public REQUESTTYPE getRequestType() {
-        if (this.request instanceof OptionsRequest) { return REQUESTTYPE.OPTIONS; }
-        if (this.request instanceof HeadRequest) { return REQUESTTYPE.HEAD; }
-        if (this.request instanceof PostRequest) { return REQUESTTYPE.POST; }
-        if (this.request instanceof GetRequest) { return REQUESTTYPE.GET; }
+        if (request instanceof OptionsRequest) { return REQUESTTYPE.OPTIONS; }
+        if (request instanceof HeadRequest) { return REQUESTTYPE.HEAD; }
+        if (request instanceof PostRequest) { return REQUESTTYPE.POST; }
+        if (request instanceof GetRequest) { return REQUESTTYPE.GET; }
         return REQUESTTYPE.UNKNOWN;
     }
 
+    /**
+     * @return
+     */
     public String getSignature() {
-        return this.signature;
+        // TODO Auto-generated method stub
+        return null;
     }
+
+    /**
+     * @return
+     */
+    public long getRequestID() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
 
 }

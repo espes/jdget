@@ -129,7 +129,7 @@ public class WindowResetListener implements PropertySetListener, HierarchyListen
     }
 
     public void windowOpened(final WindowEvent windowevent) {
-        System.out.println("Reset After Window Opened");
+        //System.out.println("Reset After Window Opened");
         removeListeners();
 
         switch (getState()) {
@@ -172,7 +172,7 @@ public class WindowResetListener implements PropertySetListener, HierarchyListen
     @Override
     public void onPropertySet(final Component caller, final String propertyName, final Object oldValue, final Object newValue) {
         if (propertyName == null || propertyName.equals(windowsWindowManager.getBlocker())) { return; }
-        System.out.println("Property Update: " + propertyName + " - " + newValue);
+        //System.out.println("Property Update: " + propertyName + " - " + newValue);
         if (ExtJFrame.PROPERTY_FOCUSABLE_WINDOW_STATE.equals(propertyName)) {
             oldFocusableWindowState = (Boolean) newValue;
         } else if (ExtJFrame.PROPERTY_FOCUSABLE.equals(propertyName)) {

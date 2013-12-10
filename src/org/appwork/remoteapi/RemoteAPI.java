@@ -36,7 +36,6 @@ import org.appwork.remoteapi.responsewrapper.DataObject;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.utils.Regex;
-import org.appwork.utils.ReusableByteArrayOutputStream;
 import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
@@ -51,6 +50,9 @@ import org.appwork.utils.reflection.Clazz;
  * 
  */
 public class RemoteAPI implements HttpRequestHandler {
+    protected RemoteAPIResponse createRemoteAPIResponseObject(final HttpResponse response) {
+        return new RemoteAPIResponse(response, this);
+    }
 
     @SuppressWarnings("unchecked")
     public static <T> T cast(Object v, final Class<T> type) {
@@ -173,49 +175,6 @@ public class RemoteAPI implements HttpRequestHandler {
         return false;
     }
 
-    public static void sendBytes(final RemoteAPIResponse response, final boolean gzip, final boolean chunked, final byte[] bytes) throws IOException {
-        /* we dont want this api response to get cached */
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CACHE_CONTROL, "no-store, no-cache"));
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
-        if (gzip == false) {
-            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
-            response.getOutputStream(true).write(bytes);
-        } else {
-            response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_CONTENT_ENCODING, "gzip"));
-            if (chunked == false) {
-                final ReusableByteArrayOutputStream os = new ReusableByteArrayOutputStream(1024);
-                final GZIPOutputStream out = new GZIPOutputStream(os);
-                out.write(bytes);
-                out.finish();
-                response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, os.size() + ""));
-                response.getOutputStream(true).write(os.getInternalBuffer(), 0, os.size());
-            } else {
-                response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING, HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
-                ChunkedOutputStream cos = null;
-                GZIPOutputStream out = null;
-                try {
-                    cos = new ChunkedOutputStream(response.getOutputStream(true));
-                    out = new GZIPOutputStream(cos);
-                    out.write(bytes);
-                } finally {
-                    try {
-                        out.finish();
-                    } catch (final Throwable e) {
-                    }
-                    try {
-                        out.flush();
-                    } catch (final Throwable e) {
-                    }
-                    try {
-                        cos.sendEOF();
-                    } catch (final Throwable e) {
-                    }
-                }
-            }
-        }
-
-    }
-
     /* hashmap that holds all registered interfaces and their pathes */
     private HashMap<String, InterfaceHandler<RemoteAPIInterface>> interfaces = new HashMap<String, InterfaceHandler<RemoteAPIInterface>>();
 
@@ -314,7 +273,7 @@ public class RemoteAPI implements HttpRequestHandler {
         }
     }
 
-    public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) {
+    public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) throws BasicRemoteAPIException {
         final String[] intf = new Regex(request.getRequestedPath(), "/((.+)/)?(.+)$").getRow(0);
         if (intf == null || intf.length != 3) { return null; }
         /* intf=unimportant,namespace,method */
@@ -335,6 +294,7 @@ public class RemoteAPI implements HttpRequestHandler {
         }
         interfaceHandler = interfaces.get(intf[1]);
         if (interfaceHandler == null) { return null; }
+        validateRequest(request);
         final java.util.List<String> parameters = new ArrayList<String>();
         String jqueryCallback = null;
         String signature = null;
@@ -368,12 +328,12 @@ public class RemoteAPI implements HttpRequestHandler {
                     /* add POST parameters to methodParameters */
                     for (final String[] param : ret) {
                         if (param[1] != null) {
+                            /* key=value(parameter) */
                             if ("callback".equalsIgnoreCase(param[0])) {
                                 /* filter jquery callback */
                                 jqueryCallback = param[1];
                                 continue;
                             }
-                            /* key=value(parameter) */
                             parameters.add(param[1]);
                         } else {
                             /* key(parameter) */
@@ -388,7 +348,36 @@ public class RemoteAPI implements HttpRequestHandler {
         if (jqueryCallback != null) {
             // System.out.println("found jquery callback: " + jqueryCallback);
         }
-        return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback, signature, requestID);
+        RemoteAPIRequest ret;
+        try {
+            ret = createRemoteAPIRequestObject(request, intf, interfaceHandler, parameters, jqueryCallback);
+        } catch (final IOException e) {
+            throw new BasicRemoteAPIException(e);
+        }
+
+        validateRequest(ret);
+
+        return ret;
+    }
+
+    protected RemoteAPIRequest createRemoteAPIRequestObject(final HttpRequest request, final String[] intf, final InterfaceHandler<?> interfaceHandler, final java.util.List<String> parameters, final String jqueryCallback) throws IOException {
+        return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback);
+    }
+
+    /**
+     * @param request
+     */
+    protected void validateRequest(final HttpRequest request) throws BasicRemoteAPIException {
+        // TODO Auto-generated method stub
+System.out.println(1);
+    }
+
+    /**
+     * @param ret
+     */
+    protected void validateRequest(final RemoteAPIRequest ret) throws BasicRemoteAPIException {
+        // TODO Auto-generated method stub
+
     }
 
     /**
@@ -440,14 +429,14 @@ public class RemoteAPI implements HttpRequestHandler {
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException {
         final RemoteAPIRequest apiRequest = getInterfaceHandler(request);
         if (apiRequest == null) { return onUnknownRequest(request, response); }
-        _handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response, this));
+        _handleRemoteAPICall(apiRequest, createRemoteAPIResponseObject(response));
         return true;
     }
 
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException {
         final RemoteAPIRequest apiRequest = getInterfaceHandler(request);
         if (apiRequest == null) { return onUnknownRequest(request, response); }
-        _handleRemoteAPICall(apiRequest, new RemoteAPIResponse(response, this));
+        _handleRemoteAPICall(apiRequest, createRemoteAPIResponseObject(response));
         return true;
     }
 
@@ -490,7 +479,8 @@ public class RemoteAPI implements HttpRequestHandler {
                         // "->" + namespace);
                         // try {
 
-//                        System.out.println("Register:   " + c.getName() + "->" + namespace);
+                        // System.out.println("Register:   " + c.getName() +
+                        // "->" + namespace);
                         try {
                             InterfaceHandler<RemoteAPIInterface> handler = linterfaces.get(namespace);
                             if (handler == null) {
@@ -524,7 +514,7 @@ public class RemoteAPI implements HttpRequestHandler {
     public void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, final String text) throws UnsupportedEncodingException, IOException {
         final byte[] bytes = text.getBytes("UTF-8");
         response.setResponseCode(ResponseCode.SUCCESS_OK);
-        RemoteAPI.sendBytes(response, RemoteAPI.gzip(request), true, bytes);
+        response.sendBytes(RemoteAPI.gzip(request), true, bytes);
     }
 
     /**

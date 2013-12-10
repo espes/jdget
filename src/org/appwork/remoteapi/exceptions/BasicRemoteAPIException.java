@@ -55,28 +55,35 @@ public class BasicRemoteAPIException extends Exception {
     public BasicRemoteAPIException(final Throwable cause, final String name, final ResponseCode code, final Object data) {
         super(name + "(" + code + ")", cause);
         this.data = data;
-        this.type = name;
+        type = name;
         this.code = code;
     }
 
+    /**
+     * @param e
+     */
+    public BasicRemoteAPIException(final IOException e) {
+        this(e, "UNKNOWN", ResponseCode.SERVERERROR_INTERNAL, null);
+    }
+
     public ResponseCode getCode() {
-        return this.code;
+        return code;
     }
 
     public Object getData() {
-        return this.data;
+        return data;
     }
 
     public HttpRequestInterface getRequest() {
-        return this.request;
+        return request;
     }
 
     public HttpResponseInterface getResponse() {
-        return this.response;
+        return response;
     }
 
     public String getType() {
-        return this.type;
+        return type;
     }
 
     /**
@@ -85,9 +92,9 @@ public class BasicRemoteAPIException extends Exception {
      */
     public boolean handle(final HttpResponse response) throws IOException {
         byte[] bytes;
-        final String str = JSonStorage.serializeToJson(new DeviceErrorResponse(this.getType(), this.data));
+        final String str = JSonStorage.serializeToJson(new DeviceErrorResponse(getType(), data));
         bytes = str.getBytes("UTF-8");
-        response.setResponseCode(this.getCode());
+        response.setResponseCode(getCode());
         /* needed for ajax/crossdomain */
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text; charset=UTF-8"));

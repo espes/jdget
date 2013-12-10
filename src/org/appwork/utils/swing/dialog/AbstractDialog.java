@@ -319,7 +319,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                 @Override
                 public void focusGained(final FocusEvent e) {
-                    System.out.println(" -->" + e);
+                  
                     final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
                     if (root != null && e.getComponent() instanceof JButton) {
                         root.setDefaultButton((JButton) e.getComponent());
@@ -328,7 +328,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                 @Override
                 public void focusLost(final FocusEvent e) {
-                    System.out.println(" -->" + e);
+             
                     final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
                     if (root != null) {
                         root.setDefaultButton(null);
@@ -503,7 +503,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 @Override
                 public void componentShown(final ComponentEvent e) {
                     AbstractDialog.this.orgLocationOnScreen = AbstractDialog.this.getDialog().getLocationOnScreen();
-                    System.out.println(AbstractDialog.this.orgLocationOnScreen);
+                    
                 }
             });
             dialog = this.getDialog();
@@ -511,12 +511,12 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             dialog.addWindowFocusListener(this);
             windowStack = AbstractDialog.getWindowStackByRoot(this.getDesiredRootFrame());
             windowStack.add(dialog);
-            System.out.println("Window Stack Before " + windowStack.size());
+            //System.out.println("Window Stack Before " + windowStack.size());
             for (final Window w : windowStack) {
                 if (w == null) {
-                    System.out.println("Window null");
+                    //System.out.println("Window null");
                 } else {
-                    System.out.println(w.getName() + " - " + w);
+                    //System.out.println(w.getName() + " - " + w);
                 }
             }
             this.setVisible(true);
@@ -531,7 +531,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             // this code causes a dialog which gets disposed without setting
             // return mask to appear again.
-            // System.out.println("Unlocked " +
+            // //System.out.println("Unlocked " +
             // this.getDialog().isDisplayable());
             //
             // if (this.returnBitMask == 0) {
@@ -550,12 +550,12 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                     final int i = windowStack.lastIndexOf(dialog);
                     if (i >= 0) {
                         windowStack.remove(i);
-                        System.out.println("Window Stack After " + windowStack.size());
+                        //System.out.println("Window Stack After " + windowStack.size());
                         for (final Window w : windowStack) {
                             if (w == null) {
-                                System.out.println("Window null");
+                                //System.out.println("Window null");
                             } else {
-                                System.out.println(w.getName() + " - " + w);
+                                //System.out.println(w.getName() + " - " + w);
                             }
                         }
                     }
@@ -677,12 +677,12 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 final int i = windowStack.lastIndexOf(AbstractDialog.this.getDialog());
                 if (i >= 0) {
                     windowStack.remove(i);
-                    System.out.println("Window Stack After " + windowStack.size());
+                    //System.out.println("Window Stack After " + windowStack.size());
                     for (final Window w : windowStack) {
                         if (w == null) {
-                            System.out.println("Window null");
+                            //System.out.println("Window null");
                         } else {
-                            System.out.println(w.getName() + " - " + w);
+                            //System.out.println(w.getName() + " - " + w);
                         }
                     }
 
@@ -1092,7 +1092,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     protected void initFocus(final JComponent focus) {
         if (focus == null) { return; }
-        System.out.println("Focus rquest!");
+
         final Component focusOwner = AbstractDialog.this.getDialog().getFocusOwner();
         if (focusOwner != null) {
             // dialog component has already focus...
