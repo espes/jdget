@@ -3,7 +3,7 @@ package org.jdownloader.myjdownloader.client.bindings.events;
 import java.util.ArrayList;
 
 import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
-import org.jdownloader.myjdownloader.client.bindings.events.json.EventObjectStorable;
+import org.jdownloader.myjdownloader.client.bindings.events.json.MyJDEvent;
 import org.jdownloader.myjdownloader.client.bindings.events.json.PublisherResponse;
 import org.jdownloader.myjdownloader.client.bindings.events.json.SubscriptionResponse;
 import org.jdownloader.myjdownloader.client.bindings.events.json.SubscriptionStatusResponse;
@@ -25,7 +25,7 @@ public interface EventsAPIInterface {
 
     public SubscriptionStatusResponse getsubscriptionstatus(long subscriptionid);
 
-    public EventObjectStorable[] listen(long subscriptionid);
+    public MyJDEvent[] listen(long subscriptionid);
 
     public ArrayList<PublisherResponse> listpublisher();
 

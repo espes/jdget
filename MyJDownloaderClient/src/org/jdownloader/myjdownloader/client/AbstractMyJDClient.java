@@ -1,5 +1,8 @@
 package org.jdownloader.myjdownloader.client;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -20,6 +23,7 @@ import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.imageio.ImageIO;
 
 import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
 import org.jdownloader.myjdownloader.client.exceptions.APIException;
@@ -175,23 +179,42 @@ public abstract class AbstractMyJDClient {
             }
             final JSonRequest payload = new JSonRequest();
             payload.setUrl(action);
-            payload.setRid(inc());
+            long i;
+            payload.setRid(i = inc());
             payload.setParams(params);
             final String json = objectToJSon(payload);
-            final String dec = cryptedPost(query, base64Encode(encrypt(json.getBytes("UTF-8"), session.getDeviceEncryptionToken())), session.getDeviceEncryptionToken());
+            final byte[] data = cryptedPost(query, base64Encode(encrypt(json.getBytes("UTF-8"), session.getDeviceEncryptionToken())), session.getDeviceEncryptionToken());
+
+            Object ret = convertData(data, returnType);
+            if (ret != null) {
+                if (ret instanceof RequestIDValidator) {
+                    if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException("RID Mismatch"); }
+                }
+                return ret;
+            }
+
+            final String dec = toString(data);
             // this is a workaround.. do not consider this as final solution!
             if (dec.startsWith("{\r\n  \"data\" :")) {
-                final ObjectData data = this.jsonToObject(dec, ObjectData.class);
+                final ObjectData dataObject = this.jsonToObject(dec, ObjectData.class);
                 if (data == null) {
                     // invalid response
                     throw new MyJDownloaderException("Invalid Response: " + dec);
                 }
+            
+                    if (dataObject.getRid() != i) { throw new BadResponseException("RID Mismatch"); }
+                
                 // ugly!!! but this will be changed when we have a proper remoteAPI response format
 
-                return this.jsonToObject(objectToJSon(data.getData()) + "", returnType);
+                ret = this.jsonToObject(objectToJSon(dataObject.getData()) + "", returnType);
+             
+                return ret;
             } else {
-                Object ret = jsonToObject(dec, returnType);
-               return ret; 
+                ret = jsonToObject(dec, returnType);
+                if (ret instanceof RequestIDValidator) {
+                    if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException("RID Mismatch"); }
+                }
+                return ret;
             }
 
         } catch (final ExceptionResponse e) {
@@ -205,6 +228,18 @@ public abstract class AbstractMyJDClient {
         }
     }
 
+    protected <T> T convertData(final byte[] data, final Type returnType) throws MyJDownloaderException {
+        if (returnType == BufferedImage.class) {
+            try {
+                return (T) ImageIO.read(new ByteArrayInputStream(data));
+            } catch (final IOException e) {
+                throw MyJDownloaderException.get(e);
+
+            }
+        }
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     /**
      * to a call to the MyJdownloader Server.
@@ -215,15 +250,25 @@ public abstract class AbstractMyJDClient {
      * @return
      * @throws MyJDownloaderException
      */
-    protected <T> T callServer(String query, final String postData, SessionInfo session, final Class<T> class1) throws MyJDownloaderException {
+    protected <T> T callServer(String query, final String postData, final SessionInfo session, final Class<T> class1) throws MyJDownloaderException {
         try {
             byte[] key = null;
-            if (session != null) key = session.getServerEncryptionToken();
+            if (session != null) {
+                key = session.getServerEncryptionToken();
+            }
             query += query.contains("?") ? "&" : "?";
             final long i = inc();
             query += "rid=" + i;
-            final String retString = cryptedPost(query + "&signature=" + sign(key, query), postData, key);
-            final Object ret = this.jsonToObject(retString, class1);
+            final byte[] data = cryptedPost(query + "&signature=" + sign(key, query), postData, key);
+            Object ret = convertData(data, class1);
+            if (ret != null) {
+                if (ret instanceof RequestIDValidator) {
+                    if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException("RID Mismatch"); }
+                }
+                return (T) ret;
+            }
+
+            ret = this.jsonToObject(toString(data), class1);
             // System.out.println(this.objectToJSon(ret));
             if (ret instanceof RequestIDValidator) {
                 if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException("RID Mismatch"); }
@@ -271,7 +316,7 @@ public abstract class AbstractMyJDClient {
             final String signature = sign(loginSecret, query.toString());
             query.append("&signature=").append(urlencode(signature));
 
-            final String retString = cryptedPost(query.toString(), "", loginSecret);
+            final String retString = toString(cryptedPost(query.toString(), "", loginSecret));
             final ConnectResponse ret = this.jsonToObject(retString, ConnectResponse.class);
             if (ret.getRid() != rid) { throw new BadResponseException("RID Mismatch"); }
 
@@ -311,7 +356,7 @@ public abstract class AbstractMyJDClient {
         }
     }
 
-    private String cryptedPost(final String url, final String objectToJSon, final byte[] keyAndIV) throws MyJDownloaderException, APIException {
+    private byte[] cryptedPost(final String url, final String objectToJSon, final byte[] keyAndIV) throws MyJDownloaderException, APIException {
         return post(url, objectToJSon, keyAndIV);
 
     }
@@ -380,7 +425,7 @@ public abstract class AbstractMyJDClient {
             if (k.length != 32) { throw new IllegalArgumentException("Bad Key. Expected: 64 hexchars"); }
             final byte[] newLoginSecret = createSecret(email, newPassword, "server");
             final String encryptedNewSecret = AbstractMyJDClient.byteArrayToHex(encrypt(newLoginSecret, k));
-            SessionInfo session = new SessionInfo();
+            final SessionInfo session = new SessionInfo();
             session.setServerEncryptionToken(k);
             this.callServer("/my/finishpasswordreset?email=" + urlencode(email) + "&encryptedLoginSecret=" + encryptedNewSecret, null, session, RequestIDOnly.class);
             connect(email, newPassword);
@@ -423,7 +468,7 @@ public abstract class AbstractMyJDClient {
             if (k.length != 32) { throw new IllegalArgumentException("Bad Key. Expected: 64 hexchars"); }
             final byte[] loginSecret = createSecret(email, password, "server");
             final String pw = AbstractMyJDClient.byteArrayToHex(encrypt(loginSecret, k));
-            SessionInfo session = new SessionInfo();
+            final SessionInfo session = new SessionInfo();
             session.setServerEncryptionToken(k);
             this.callServer("/my/finishregistration?email=" + urlencode(email) + "&loginsecret=" + urlencode(pw), null, session, RequestIDOnly.class);
         } catch (final InvalidKeyException e) {
@@ -459,9 +504,18 @@ public abstract class AbstractMyJDClient {
      */
     public CaptchaChallenge getChallenge() throws MyJDownloaderException {
         try {
-            return this.jsonToObject(uncryptedPost("/captcha/getCaptcha", (Object[]) null), CaptchaChallenge.class);
+            return jsonToObject(toString(uncryptedPost("/captcha/getCaptcha", (Object[]) null)), CaptchaChallenge.class);
         } catch (final APIException e) {
             throw new RuntimeException(e);
+
+        }
+    }
+
+    protected String toString(final byte[] data) throws MyJDownloaderException {
+        try {
+            return new String(data, "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            throw MyJDownloaderException.get(e);
 
         }
     }
@@ -593,9 +647,9 @@ public abstract class AbstractMyJDClient {
         });
     }
 
-    public <T> T link(final Class<T> class1, String deviceID) {
-        ApiNamespace ann = class1.getAnnotation(ApiNamespace.class);
-        if (ann == null) throw new NullPointerException("ApiNameSpace missing in " + class1.getName());
+    public <T> T link(final Class<T> class1, final String deviceID) {
+        final ApiNamespace ann = class1.getAnnotation(ApiNamespace.class);
+        if (ann == null) { throw new NullPointerException("ApiNameSpace missing in " + class1.getName()); }
 
         return link(class1, ann.value(), deviceID);
     }
@@ -616,7 +670,7 @@ public abstract class AbstractMyJDClient {
 
     protected abstract String objectToJSon(Object payload);
 
-    abstract protected String post(String query, String object, byte[] keyAndIV) throws ExceptionResponse;
+    abstract protected byte[] post(String query, String object, byte[] keyAndIV) throws ExceptionResponse;
 
     public boolean pushNotification(final NotificationRequestMessage message) throws MyJDownloaderException {
         final SessionInfo session = getSessionInfo();
@@ -717,7 +771,7 @@ public abstract class AbstractMyJDClient {
         return AbstractMyJDClient.byteArrayToHex(AbstractMyJDClient.hmac(key, data.getBytes("UTF-8")));
     }
 
-    private String uncryptedPost(final String path, final Object... params) throws MyJDownloaderException, APIException {
+    private byte[] uncryptedPost(final String path, final Object... params) throws MyJDownloaderException, APIException {
         final JSonRequest re = new JSonRequest();
         re.setRid(inc());
         re.setParams(params);

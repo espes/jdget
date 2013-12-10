@@ -14,7 +14,7 @@ package org.jdownloader.myjdownloader.client.bindings.events.json;
  * @author daniel
  * 
  */
-public class EventObjectStorable {
+public class MyJDEvent {
 
     private Object eventData;
 
@@ -45,7 +45,7 @@ public class EventObjectStorable {
     private String eventid;
     private String publisher;
 
-    public EventObjectStorable(/* Storable */) {
+    public MyJDEvent(/* Storable */) {
 
     }
 

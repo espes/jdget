@@ -1,6 +1,5 @@
 package org.jdownloader.myjdownloader.client.exceptions;
 
-import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderException;
 
 public class ExceptionResponse extends MyJDownloaderException {
 
@@ -15,13 +14,13 @@ public class ExceptionResponse extends MyJDownloaderException {
         return responseCode;
     }
 
-    public ExceptionResponse(String errorString, int responseCode) {
-        super();
+    public ExceptionResponse(final String errorString, final int responseCode) {
+        super(errorString);
         this.responseCode = responseCode;
-        this.content = errorString;
+        content = errorString;
     }
 
-    public ExceptionResponse(Exception e) {
+    public ExceptionResponse(final Exception e) {
         super(e);
     }
 }
