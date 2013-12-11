@@ -36,6 +36,7 @@ import org.appwork.remoteapi.responsewrapper.DataObject;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.TypeRef;
 import org.appwork.utils.Regex;
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
@@ -274,7 +275,16 @@ public class RemoteAPI implements HttpRequestHandler {
     }
 
     public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) throws BasicRemoteAPIException {
-        final String[] intf = new Regex(request.getRequestedPath(), "/((.+)/)?(.+)$").getRow(0);
+
+        String path = request.getRequestedPath();
+
+        if (request.getRequestHeaders().get("Origin")!=null&&StringUtils.equals(request.getRequestHeaders().get("Origin").getValue(), "http://my.jdownloader.org")) {
+            if (StringUtils.equals("/accounts/queryAccounts", path)) {
+                path = ("/accountsV2/queryAccounts");
+
+            }
+        }
+        final String[] intf = new Regex(path, "/((.+)/)?(.+)$").getRow(0);
         if (intf == null || intf.length != 3) { return null; }
         /* intf=unimportant,namespace,method */
         if (intf[2] != null && intf[2].endsWith("/")) {
@@ -508,7 +518,8 @@ public class RemoteAPI implements HttpRequestHandler {
      * @param request
      * @param response
      * @param text
-     * @param chunked TODO
+     * @param chunked
+     *            TODO
      * @throws UnsupportedEncodingException
      * @throws IOException
      */
