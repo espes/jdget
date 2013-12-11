@@ -184,6 +184,7 @@ public class HttpConnection implements Runnable {
         request.setRequestedPath(requestedPath);
         request.setRequestedURL(requestedURL);
         request.setRequestHeaders(requestHeaders);
+    
         return request;
     }
 

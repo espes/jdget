@@ -14,12 +14,12 @@ package org.appwork.remoteapi.exceptions;
  * @author Thomas
  * 
  */
-public class FileNotFoundException extends RemoteAPIException {
+public class APIFileNotFoundException extends RemoteAPIException {
 
     /**
      * @param errorForbidden
      */
-    public FileNotFoundException() {
+    public APIFileNotFoundException() {
         super(RemoteAPIError.FILE_NOT_FOUND);
     }
 }
