@@ -514,6 +514,7 @@ public class RemoteAPI implements HttpRequestHandler {
      */
     public void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, String text, final boolean chunked) throws UnsupportedEncodingException, IOException {
         text = jQueryWrap(request, text);
+        System.out.println(text);
         final byte[] bytes = text.getBytes("UTF-8");
         response.setResponseCode(ResponseCode.SUCCESS_OK);
         response.sendBytes(RemoteAPI.gzip(request), chunked, bytes);
