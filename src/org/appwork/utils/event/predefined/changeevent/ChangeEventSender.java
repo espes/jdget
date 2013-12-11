@@ -27,7 +27,5 @@ public class ChangeEventSender extends Eventsender<ChangeListener, ChangeEvent> 
     @Override
     protected void fireEvent(final ChangeListener listener, final ChangeEvent event) {
         listener.onChangeEvent(event);
-
     }
-
 }
