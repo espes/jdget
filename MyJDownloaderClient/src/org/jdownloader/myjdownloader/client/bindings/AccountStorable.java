@@ -7,56 +7,67 @@ public class AccountStorable extends AbstractJsonData {
     private long    UUID;
     private boolean enabled;
 
+    private boolean valid;
+
+    private String  hostname;
+
+    private String  username;
+
+    private long    validUntil  = -1l;
+
+    private long    trafficLeft = -1l;
+    private long    trafficMax  = -1l;
+
+    @SuppressWarnings("unused")
+    protected AccountStorable(/* Storable */) {
+    }
+
+    public String getHostname() {
+        return this.hostname;
+    }
+
+    public long getTrafficLeft() {
+        return this.trafficLeft;
+    }
+
+    public long getTrafficMax() {
+        return this.trafficMax;
+    }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    public long getUUID() {
+        return this.UUID;
+    }
+
+    public long getValidUntil() {
+        return this.validUntil;
+    }
+
     public boolean isEnabled() {
-        return enabled;
+        return this.enabled;
+    }
+
+    public boolean isValid() {
+        return this.valid;
     }
 
     public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
-    public boolean isValid() {
-        return valid;
-    }
-
-    public void setValid(final boolean valid) {
-        this.valid = valid;
-    }
-
-    private boolean valid;
-    private String  hostname;
-    private String  username;
-    private long    validUntil  = 1;
-    private long    trafficLeft = 1;
-
-    public long getTrafficLeft() {
-        return trafficLeft;
+    public void setHostname(final String hostname) {
+        this.hostname = hostname;
     }
 
     public void setTrafficLeft(final long trafficLeft) {
         this.trafficLeft = trafficLeft;
     }
 
-    public long getTrafficMax() {
-        return trafficMax;
-    }
-
     public void setTrafficMax(final long trafficMax) {
         this.trafficMax = trafficMax;
-    }
-
-    private long trafficMax = 1;
-
-    public long getValidUntil() {
-        return validUntil;
-    }
-
-    public void setValidUntil(final long validUntil) {
-        this.validUntil = validUntil;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public void setUsername(final String username) {
@@ -64,23 +75,15 @@ public class AccountStorable extends AbstractJsonData {
     }
 
     public void setUUID(final long uUID) {
-        UUID = uUID;
+        this.UUID = uUID;
     }
 
-    public void setHostname(final String hostname) {
-        this.hostname = hostname;
+    public void setValid(final boolean valid) {
+        this.valid = valid;
     }
 
-    public long getUUID() {
-        return UUID;
-    }
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    @SuppressWarnings("unused")
-    protected AccountStorable(/* Storable */) {
+    public void setValidUntil(final long validUntil) {
+        this.validUntil = validUntil;
     }
 
 }
