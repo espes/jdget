@@ -281,7 +281,7 @@ public class RemoteAPI implements HttpRequestHandler {
         if (request.getRequestHeaders().get("Origin")!=null&&StringUtils.equals(request.getRequestHeaders().get("Origin").getValue(), "http://my.jdownloader.org")) {
             if (StringUtils.equals("/accounts/queryAccounts", path)) {
                 path = ("/accountsV2/queryAccounts");
-
+//
             }
         }
         final String[] intf = new Regex(path, "/((.+)/)?(.+)$").getRow(0);
