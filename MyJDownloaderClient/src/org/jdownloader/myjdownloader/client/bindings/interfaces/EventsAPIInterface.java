@@ -1,4 +1,4 @@
-package org.jdownloader.myjdownloader.client.bindings.events;
+package org.jdownloader.myjdownloader.client.bindings.interfaces;
 
 import java.util.ArrayList;
 

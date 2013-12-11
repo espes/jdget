@@ -3,6 +3,7 @@ package org.jdownloader.myjdownloader.client.bindings.events;
 import org.jdownloader.myjdownloader.client.AbstractMyJDClient;
 import org.jdownloader.myjdownloader.client.bindings.events.json.MyJDEvent;
 import org.jdownloader.myjdownloader.client.bindings.events.json.SubscriptionResponse;
+import org.jdownloader.myjdownloader.client.bindings.interfaces.EventsAPIInterface;
 
 public class EventDistributor implements Runnable {
 
