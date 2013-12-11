@@ -1,6 +1,5 @@
 package org.jdownloader.myjdownloader.client;
 
-
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -64,6 +63,8 @@ import org.jdownloader.myjdownloader.client.json.ServerErrorType;
 import org.jdownloader.myjdownloader.client.json.SuccessfulResponse;
 
 public abstract class AbstractMyJDClient {
+    private static final int API_VERSION = 1;
+
     /**
      * Transforms a byte array into a hex encoded String representation
      * 
@@ -184,6 +185,7 @@ public abstract class AbstractMyJDClient {
             }
             final JSonRequest payload = new JSonRequest();
             payload.setUrl(action);
+            payload.setApiVer(API_VERSION);
             long i;
             payload.setRid(i = inc());
             payload.setParams(params);
@@ -399,6 +401,7 @@ public abstract class AbstractMyJDClient {
     public String feedback(final String message) throws MyJDownloaderException {
         final SessionInfo session = getSessionInfo();
         final JSonRequest re = new JSonRequest();
+        re.setApiVer(API_VERSION);
         re.setRid(inc());
         re.setParams(new Object[] { message });
         final String url = "/my/feedback?sessiontoken=" + urlencode(session.getSessionToken());
@@ -662,9 +665,9 @@ public abstract class AbstractMyJDClient {
                     return AbstractMyJDClient.this.callActionInternal(deviceID, action, returnType, args);
 
                 } catch (final Throwable e) {
-                    Class<?>[] exceptions = method.getExceptionTypes();
+                    final Class<?>[] exceptions = method.getExceptionTypes();
                     if (exceptions != null) {
-                        for (Class<?> c : exceptions) {
+                        for (final Class<?> c : exceptions) {
                             if (c.isAssignableFrom(e.getClass())) { throw e; }
 
                         }
@@ -708,6 +711,7 @@ public abstract class AbstractMyJDClient {
         final SessionInfo session = getSessionInfo();
         final String query = "/notify/push?sessiontoken=" + urlencode(session.getSessionToken());
         final JSonRequest re = new JSonRequest();
+        re.setApiVer(API_VERSION);
         re.setRid(inc());
         re.setParams(new Object[] { message });
         re.setUrl(query);
@@ -742,6 +746,7 @@ public abstract class AbstractMyJDClient {
         final SessionInfo session = getSessionInfo();
         final String query = "/notify/register?sessiontoken=" + urlencode(session.getSessionToken()) + "&receiverid=" + urlencode(receiverID) + "&deviceid=" + urlencode(device.getId());
         final JSonRequest re = new JSonRequest();
+        re.setApiVer(API_VERSION);
         re.setRid(inc());
         if (types == null || types.length == 0) {
             re.setParams(new Object[] { new NotificationRequestMessage.TYPE[] {} });
@@ -805,6 +810,7 @@ public abstract class AbstractMyJDClient {
 
     private byte[] uncryptedPost(final String path, final Object... params) throws MyJDownloaderException, APIException {
         final JSonRequest re = new JSonRequest();
+        re.setApiVer(API_VERSION);
         re.setRid(inc());
         re.setParams(params);
         re.setUrl(path);

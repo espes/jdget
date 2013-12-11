@@ -15,11 +15,20 @@ package org.jdownloader.myjdownloader.client.json;
  * @author daniel
  * 
  */
-public class JSonRequest {
+public class JSonRequest extends AbstractJsonData{
 
     private String   url;
     private long     rid;
     private Object[] params;
+    private int apiVer=-1;
+
+    public int getApiVer() {
+        return apiVer;
+    }
+
+    public void setApiVer(final int apiVer) {
+        this.apiVer = apiVer;
+    }
 
     public JSonRequest(/* Storable */) {
     }
@@ -41,7 +50,7 @@ public class JSonRequest {
     }
 
     public void setRid(final long timestamp) {
-        this.rid = timestamp;
+        rid = timestamp;
     }
 
     public void setUrl(final String url) {
