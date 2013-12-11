@@ -10,6 +10,7 @@ package org.jdownloader.myjdownloader.client.json;
  * for details
  */
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -100,7 +101,9 @@ public abstract class AbstractJsonData implements JsonFactoryInterface {
         final HashMap<String, Object> map = new HashMap<String, Object>();
         Object obj = null;
         try {
-            final AbstractJsonData empty = getClass().newInstance();
+            final Constructor<? extends AbstractJsonData> c = getClass().getDeclaredConstructor(new Class[] {});
+            c.setAccessible(true);
+            final AbstractJsonData empty = c.newInstance();
 
             for (final GetterSetter gs : getGettersSetteres(getClass())) {
 
