@@ -19,10 +19,15 @@ import org.appwork.storage.JSonMapperException;
 import org.appwork.storage.JsonSerializer;
 import org.appwork.storage.TypeRef;
 import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.module.SimpleModule;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
@@ -33,28 +38,36 @@ public class JacksonMapper implements JSONMapper {
 
     private final ObjectMapper mapper;
 
+
     public JacksonMapper() {
 
         mapper = new ObjectMapper(new ExtJsonFactory());
 
         mapper.getDeserializationConfig().set(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    
 
     }
 
     private List<JsonSerializer> serializer = new ArrayList<JsonSerializer>();
 
     /**
+     * @param <T>
+     * @param class1
      * @param jsonSerializer
      */
-    public void addSerializer(final JsonSerializer jsonSerializer) {
-        final ArrayList<JsonSerializer> newList = new ArrayList<JsonSerializer>();
-        synchronized (serializer) {
-            newList.addAll(serializer);
+    public <T> void addSerializer(final Class<T> clazz, final JsonSerializer<T> jsonSerializer) {
+        final SimpleModule mod = new SimpleModule("MyModule", new Version(1, 0, 0, null));
+        mod.addSerializer(clazz, new org.codehaus.jackson.map.JsonSerializer<T>() {
 
+            @Override
+            public void serialize(final T arg0, final JsonGenerator jgen, final SerializerProvider arg2) throws IOException, JsonProcessingException {
+                jgen.writeRaw(jsonSerializer.toJSonString(arg0));
+            }
         }
-        newList.add(jsonSerializer);
-        serializer = newList;
 
+        );
+      
+        mapper.registerModule(mod);
     }
 
     /*
@@ -65,10 +78,7 @@ public class JacksonMapper implements JSONMapper {
     @Override
     public String objectToString(final Object o) throws JSonMapperException {
         try {
-            for (final JsonSerializer s : serializer) {
-                final String ret = s.toJSonString(o);
-                if (ret != null) { return ret; }
-            }
+
             return mapper.writeValueAsString(o);
         } catch (final JsonGenerationException e) {
             throw new JSonMapperException(e);

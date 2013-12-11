@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.appwork.storage.simplejson.JSonFactory;
+import org.appwork.storage.simplejson.JSonNode;
 import org.appwork.storage.simplejson.ParserException;
 import org.appwork.storage.simplejson.mapper.JSonMapper;
 import org.appwork.storage.simplejson.mapper.MapperException;
@@ -25,25 +26,62 @@ public class SimpleMapper implements JSONMapper {
     private final JSonMapper mapper;
 
     public SimpleMapper() {
-        mapper = new JSonMapper();
+        mapper = new JSonMapper() {
+            /*
+             * (non-Javadoc)
+             * 
+             * @see
+             * org.appwork.storage.simplejson.mapper.JSonMapper#create(java.
+             * lang.Object)
+             */
+            @Override
+            public JSonNode create(final Object obj) throws MapperException {
+                for (final JsonSerializerEntry se : serializer) {
+                    if (se.clazz.isAssignableFrom(obj.getClass())) { return new JSonNode() {
+                     
+                        @Override
+                        public String toString() {                     
+                            return se.serializer.toJSonString(obj);
+                        }
+                    }; }
+                }
+                return super.create(obj);
+            }
+        };
     }
 
     public JSonMapper getMapper() {
         return mapper;
     }
 
-    private List<JsonSerializer> serializer = new ArrayList<JsonSerializer>();
+    class JsonSerializerEntry {
+        /**
+         * @param <T>
+         * @param clazz2
+         * @param jsonSerializer
+         */
+        public <T> JsonSerializerEntry(final Class<T> clazz2, final JsonSerializer<T> jsonSerializer) {
+            clazz = clazz2;
+            serializer = jsonSerializer;
+        }
+
+        JsonSerializer serializer;
+        Class<?>       clazz;
+    }
+
+    private List<JsonSerializerEntry> serializer = new ArrayList<JsonSerializerEntry>();
 
     /**
      * @param jsonSerializer
      */
-    public void addSerializer(final JsonSerializer jsonSerializer) {
-        final ArrayList<JsonSerializer> newList = new ArrayList<JsonSerializer>();
+    public <T> void addSerializer(final Class<T> clazz, final JsonSerializer<T> jsonSerializer) {
+
+        final ArrayList<JsonSerializerEntry> newList = new ArrayList<JsonSerializerEntry>();
         synchronized (serializer) {
             newList.addAll(serializer);
 
         }
-        newList.add(jsonSerializer);
+        newList.add(new JsonSerializerEntry(clazz, jsonSerializer));
         serializer = newList;
 
     }
@@ -56,10 +94,7 @@ public class SimpleMapper implements JSONMapper {
     @Override
     public String objectToString(final Object o) throws JSonMapperException {
         try {
-            for (final JsonSerializer s : serializer) {
-                final String ret = s.toJSonString(o);
-                if (ret != null) { return ret; }
-            }
+        
             return mapper.create(o).toString();
         } catch (final MapperException e) {
             throw new JSonMapperException(e);

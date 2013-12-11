@@ -14,7 +14,7 @@ package org.appwork.storage;
  * 
  */
 public interface JSONMapper {
-    public  void addSerializer(final JsonSerializer jsonSerializer);
+    public  <T> void addSerializer(Class<T> clazz,final JsonSerializer<T> jsonSerializer);
     public String objectToString(Object o) throws JSonMapperException;
 
     public <T> T stringToObject(String jsonString, Class<T> clazz) throws JSonMapperException;

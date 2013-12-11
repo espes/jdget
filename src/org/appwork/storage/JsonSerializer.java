@@ -11,14 +11,20 @@ package org.appwork.storage;
 
 /**
  * @author Thomas
- *
+ * 
  */
-public interface JsonSerializer {
+public interface JsonSerializer<T> {
 
     /**
      * @param list
      * @return
      */
-    String toJSonString(Object list);
+    String toJSonString(T list);
+
+    /**
+     * @param arg0
+     * @return
+     */
+    boolean canSerialize(Object arg0);
 
 }
