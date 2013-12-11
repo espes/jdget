@@ -9,7 +9,7 @@
  */
 package org.appwork.utils.swing.dialog;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
@@ -33,7 +33,7 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
 
     private JTextPane textField;
 
-    public ConfirmDialog(final int flag, final String title, final String message, final ImageIcon icon, final String okOption, final String cancelOption) {
+    public ConfirmDialog(final int flag, final String title, final String message, final Icon icon, final String okOption, final String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
         Log.L.fine("Dialog    [" + okOption + "][" + cancelOption + "]\r\nflag:  " + Integer.toBinaryString(flag) + "\r\ntitle: " + title + "\r\nmsg:   \r\n" + message);
 
@@ -119,7 +119,7 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
             p.add(textField);
 
         }
- 
+
     }
 
     @Override
