@@ -8,7 +8,7 @@ import org.jdownloader.myjdownloader.client.exceptions.device.InternalServerErro
 
 @ApiNamespace(AccountAPI.ACCOUNTS)
 public interface AccountAPI {
-    public static final String ACCOUNTS = "accounts";
+    public static final String ACCOUNTS = "accountsv2";
 
     public boolean addAccount(String premiumHoster, String username, String password);
 
