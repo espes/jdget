@@ -33,6 +33,21 @@ public abstract class AbstractJsonData implements JsonFactoryInterface {
         return !(ip == null || ip.trim().length() == 0);
     }
 
+    public static String createKey(final String key) {
+        final StringBuilder sb = new StringBuilder();
+        final char[] ca = key.toCharArray();
+        boolean starter = true;
+        for (int i = 0; i < ca.length; i++) {
+            if (starter && Character.isUpperCase(ca[i])) {
+                sb.append(Character.toLowerCase(ca[i]));
+            } else {
+                starter = false;
+                sb.append(ca[i]);
+            }
+        }
+        return sb.toString();
+    }
+
     /**
      * @return
      */
@@ -49,20 +64,22 @@ public abstract class AbstractJsonData implements JsonFactoryInterface {
                     String key = null;
                     boolean getter = false;
                     if (m.getName().startsWith("is") && isBoolean(m.getReturnType()) && m.getParameterTypes().length == 0) {
-                        key = m.getName().substring(2);
+                        key = (m.getName().substring(2));
                         getter = true;
 
                     } else if (m.getName().startsWith("get") && m.getParameterTypes().length == 0) {
-                        key = m.getName().substring(3);
+                        key = (m.getName().substring(3));
                         getter = true;
 
                     } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
-                        key = m.getName().substring(3);
+                        key = (m.getName().substring(3));
                         getter = false;
 
                     }
-
+              
                     if (isNotEmpty(key)) {
+                        final String unmodifiedKey = key;
+                        key = createKey(key);
                         GetterSetter v = map.get(key);
                         if (v == null) {
                             v = new GetterSetter(key);
@@ -75,7 +92,7 @@ public abstract class AbstractJsonData implements JsonFactoryInterface {
                         }
                         Field field;
                         try {
-                            field = clazz.getField(key.substring(0, 1).toLowerCase(Locale.ENGLISH) + key.substring(1));
+                            field = clazz.getField(unmodifiedKey.substring(0, 1).toLowerCase(Locale.ENGLISH) + unmodifiedKey.substring(1));
                             v.setField(field);
                         } catch (final NoSuchFieldException e) {
                         }
