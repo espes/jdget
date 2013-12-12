@@ -44,11 +44,11 @@ public class ClassCache {
 
         Class<? extends Object> cls = clazz;
 
-        HashSet<String> ignores = new HashSet<String>();
+        final HashSet<String> ignores = new HashSet<String>();
         do {
-            Ignores ig = cls.getAnnotation(Ignores.class);
+            final Ignores ig = cls.getAnnotation(Ignores.class);
             if (ig != null) {
-                for (String i : ig.value()) {
+                for (final String i : ig.value()) {
                     ignores.add(i);
                 }
             }
@@ -82,7 +82,7 @@ public class ClassCache {
                 try {
                     c.setAccessible(true);
                     cc.constructor = c;
-                } catch (java.lang.SecurityException e) {
+                } catch (final java.lang.SecurityException e) {
                     Log.exception(Level.WARNING, e);
                 }
                 break;
@@ -90,8 +90,8 @@ public class ClassCache {
         }
         if (cc.constructor == null) {
             //
-        int lastIndex = clazz.getName().lastIndexOf(".");
-            String pkg = lastIndex>0?clazz.getName().substring(0,lastIndex):"";
+        final int lastIndex = clazz.getName().lastIndexOf(".");
+            final String pkg = lastIndex>0?clazz.getName().substring(0,lastIndex):"";
             if (pkg.startsWith("java") || pkg.startsWith("sun.")) {
 
                 Log.L.warning("No Null Constructor in " + clazz + " found. De-Json-serial will fail");
@@ -111,9 +111,9 @@ public class ClassCache {
      * @param substring
      * @return
      */
-    private static String createKey(String key) {
-        StringBuilder sb = new StringBuilder();
-        char[] ca = key.toCharArray();
+    public static String createKey(final String key) {
+        final StringBuilder sb = new StringBuilder();
+        final char[] ca = key.toCharArray();
         boolean starter = true;
         for (int i = 0; i < ca.length; i++) {
             if (starter && Character.isUpperCase(ca[i])) {
@@ -154,18 +154,18 @@ public class ClassCache {
      */
     protected ClassCache(final Class<? extends Object> clazz) {
         this.clazz = clazz;
-        this.getter = new ArrayList<Getter>();
-        this.setter = new ArrayList<Setter>();
-        this.getterMap = new HashMap<String, Getter>();
-        this.setterMap = new HashMap<String, Setter>();
+        getter = new ArrayList<Getter>();
+        setter = new ArrayList<Setter>();
+        getterMap = new HashMap<String, Getter>();
+        setterMap = new HashMap<String, Setter>();
     }
 
     public java.util.List<Getter> getGetter() {
-        return this.getter;
+        return getter;
     }
 
     public Getter getGetter(final String key) {
-        return this.getterMap.get(key);
+        return getterMap.get(key);
     }
 
     /**
@@ -177,22 +177,22 @@ public class ClassCache {
      */
     public Object getInstance() throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        return this.constructor.newInstance(ClassCache.EMPTY_OBJECT);
+        return constructor.newInstance(ClassCache.EMPTY_OBJECT);
     }
 
     public java.util.List<Setter> getSetter() {
-        return this.setter;
+        return setter;
     }
 
     public Setter getSetter(final String key) {
-        return this.setterMap.get(key);
+        return setterMap.get(key);
     }
 
     /**
      * @param class1
      * @param stackTraceElementClassCache
      */
-    public static void put(Class<?> class1, ClassCache stackTraceElementClassCache) {
+    public static void put(final Class<?> class1, final ClassCache stackTraceElementClassCache) {
         CACHE.put(class1, stackTraceElementClassCache);
 
     }

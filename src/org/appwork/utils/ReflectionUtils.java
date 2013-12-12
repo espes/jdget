@@ -18,6 +18,7 @@ import java.util.jar.JarInputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.appwork.storage.simplejson.mapper.ClassCache;
 import org.appwork.utils.reflection.Clazz;
 
 public class ReflectionUtils {
@@ -132,6 +133,7 @@ public class ReflectionUtils {
         }
         return (List<Class<? extends T>>) ret;
     }
+
     private static final HashMap<Class<?>, Collection<GetterSetter>> GETTER_SETTER_CACHE = new HashMap<Class<?>, Collection<GetterSetter>>();
 
     /**
@@ -139,35 +141,33 @@ public class ReflectionUtils {
      */
     public static Collection<GetterSetter> getGettersSetteres(Class<?> clazz) {
         Collection<GetterSetter> ret = GETTER_SETTER_CACHE.get(clazz);
-        if (ret != null) {
-            return ret;
-        }
+        if (ret != null) { return ret; }
         final Class<?> org = clazz;
         synchronized (GETTER_SETTER_CACHE) {
             ret = GETTER_SETTER_CACHE.get(clazz);
-            if (ret != null) {
-                return ret;
-            }
+            if (ret != null) { return ret; }
             final HashMap<String, GetterSetter> map = new HashMap<String, GetterSetter>();
             while (clazz != null) {
                 for (final Method m : clazz.getDeclaredMethods()) {
                     String key = null;
                     boolean getter = false;
                     if (m.getName().startsWith("is") && Clazz.isBoolean(m.getReturnType()) && m.getParameterTypes().length == 0) {
-                        key = m.getName().substring(2);
+                        key = (m.getName().substring(2));
                         getter = true;
 
                     } else if (m.getName().startsWith("get") && m.getParameterTypes().length == 0) {
-                        key = m.getName().substring(3);
+                        key = (m.getName().substring(3));
                         getter = true;
 
                     } else if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
-                        key = m.getName().substring(3);
+                        key = (m.getName().substring(3));
                         getter = false;
 
                     }
-
+             
                     if (StringUtils.isNotEmpty(key)) {
+                        final String unmodifiedKey = key;
+                        key = ClassCache.createKey(key);
                         GetterSetter v = map.get(key);
                         if (v == null) {
                             v = new GetterSetter(key);
@@ -180,7 +180,7 @@ public class ReflectionUtils {
                         }
                         Field field;
                         try {
-                            field = clazz.getField(key.substring(0, 1).toLowerCase(Locale.ENGLISH) + key.substring(1));
+                            field = clazz.getField(unmodifiedKey.substring(0, 1).toLowerCase(Locale.ENGLISH) + unmodifiedKey.substring(1));
                             v.setField(field);
                         } catch (final NoSuchFieldException e) {
                         }
