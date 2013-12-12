@@ -61,6 +61,7 @@ public class ConfirmDialog extends AbstractDialog<Integer> implements ConfirmDia
     @Override
     protected Integer createReturnValue() {
         // TODO Auto-generated method stub
+
         return getReturnmask();
     }
 
