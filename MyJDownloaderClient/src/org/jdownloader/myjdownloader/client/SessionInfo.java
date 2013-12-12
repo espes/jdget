@@ -1,11 +1,20 @@
 package org.jdownloader.myjdownloader.client;
 
+import java.util.Arrays;
+
 public class SessionInfo {
+
+    private static final int NULLHASHCODE = "EMPTYSESIONTOKEN".hashCode();
+
+    private static boolean equals(final String a, final String b) {
+        return a == b || a != null && a.equals(b);
+    }
 
     private byte[] deviceSecret;
     private byte[] deviceEncryptionToken;
     private byte[] serverEncryptionToken;
     private String sessionToken;
+
     private String regainToken;
 
     public SessionInfo(/* STorable */) {
@@ -21,54 +30,60 @@ public class SessionInfo {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        } else if (o == null) {
-            return false;
-        } else if (this.getClass() != o.getClass()) { return false; }
-        return ((SessionInfo) o).getSessionToken().equals(this.getSessionToken());
-    }
-
-    @Override
-    public int hashCode() {
-        return this.sessionToken.hashCode();
+    public boolean equals(final Object o) {
+        boolean equals = this == o;
+        equals = equals || o != null;
+        equals = equals && this.getClass() == o.getClass();
+        final SessionInfo other = (SessionInfo) o;
+        equals = equals && Arrays.equals(this.getDeviceSecret(), other.getDeviceSecret());
+        equals = equals && Arrays.equals(this.getDeviceEncryptionToken(), other.getDeviceEncryptionToken());
+        equals = equals && Arrays.equals(this.getServerEncryptionToken(), other.getServerEncryptionToken());
+        equals = equals && SessionInfo.equals(this.getSessionToken(), other.getSessionToken());
+        equals = equals && SessionInfo.equals(this.getRegainToken(), other.getRegainToken());
+        return equals;
     }
 
     public byte[] getDeviceEncryptionToken() {
         return this.deviceEncryptionToken;
     }
 
-    public void setDeviceEncryptionToken(final byte[] deviceEncryptionToken) {
-        this.deviceEncryptionToken = deviceEncryptionToken;
-    }
-
     public byte[] getDeviceSecret() {
         return this.deviceSecret;
-    }
-
-    public void setDeviceSecret(final byte[] deviceSecret) {
-        this.deviceSecret = deviceSecret;
     }
 
     public String getRegainToken() {
         return this.regainToken;
     }
 
-    public void setRegainToken(final String regainToken) {
-        this.regainToken = regainToken;
-    }
-
     public byte[] getServerEncryptionToken() {
         return this.serverEncryptionToken;
     }
 
-    public void setServerEncryptionToken(final byte[] serverEncryptionToken) {
-        this.serverEncryptionToken = serverEncryptionToken;
-    }
-
     public String getSessionToken() {
         return this.sessionToken;
+    }
+
+    @Override
+    public int hashCode() {
+        final String lsessionToken = this.sessionToken;
+        if (lsessionToken != null) { return lsessionToken.hashCode(); }
+        return SessionInfo.NULLHASHCODE;
+    }
+
+    public void setDeviceEncryptionToken(final byte[] deviceEncryptionToken) {
+        this.deviceEncryptionToken = deviceEncryptionToken;
+    }
+
+    public void setDeviceSecret(final byte[] deviceSecret) {
+        this.deviceSecret = deviceSecret;
+    }
+
+    public void setRegainToken(final String regainToken) {
+        this.regainToken = regainToken;
+    }
+
+    public void setServerEncryptionToken(final byte[] serverEncryptionToken) {
+        this.serverEncryptionToken = serverEncryptionToken;
     }
 
     public void setSessionToken(final String sessionToken) {
