@@ -20,7 +20,7 @@ public class ApiCommandNotAvailable extends BasicRemoteAPIException {
      */
     private static final long serialVersionUID = -6375479697981911029L;
 
-    public ApiCommandNotAvailable() {
+    public ApiCommandNotAvailable(final String string) {
         super(RemoteAPIError.API_COMMAND_NOT_FOUND.name(),RemoteAPIError.API_COMMAND_NOT_FOUND.getCode());
  
     }

@@ -189,7 +189,9 @@ public class RemoteAPI implements HttpRequestHandler {
 
         final Method method = request.getMethod();
         try {
-            if (method == null) { throw new ApiCommandNotAvailable(); }
+            if (method == null) { 
+                //
+                throw new ApiCommandNotAvailable(request.getRequestedURL()); }
 
             authenticate(method, request, response);
 
