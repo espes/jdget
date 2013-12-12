@@ -4,8 +4,8 @@ import org.jdownloader.myjdownloader.client.json.AbstractJsonData;
 
 public class LinkQuery extends AbstractJsonData {
     private long[]  packageUUIDs;
-    private int     startAt;
-    private int     maxResults;
+    private int     startAt=0;
+    private int     maxResults=-1;
     private boolean host = false;
 
     public boolean isHost() {
