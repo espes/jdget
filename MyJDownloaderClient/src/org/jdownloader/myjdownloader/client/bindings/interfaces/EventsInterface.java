@@ -15,7 +15,7 @@ import org.jdownloader.myjdownloader.client.bindings.events.json.SubscriptionSta
  * 
  */
 @ApiNamespace("events")
-public interface EventsAPIInterface {
+public interface EventsInterface extends Linkable{
 
     public SubscriptionResponse addsubscription(long subscriptionid, String[] subscriptions, String[] exclusions);
 

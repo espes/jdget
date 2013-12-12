@@ -22,6 +22,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
+import org.jdownloader.myjdownloader.client.bindings.interfaces.Linkable;
 import org.jdownloader.myjdownloader.client.exceptions.APIException;
 import org.jdownloader.myjdownloader.client.exceptions.AuthException;
 import org.jdownloader.myjdownloader.client.exceptions.ChallengeFailedException;
@@ -653,7 +654,7 @@ public abstract class AbstractMyJDClient {
      * @param namespace
      * @return
      */
-    public <T> T link(final Class<T> class1, final String namespace, final String deviceID) {
+    public <T extends Linkable> T link(final Class<T> class1, final String namespace, final String deviceID) {
 
         return (T) Proxy.newProxyInstance(class1.getClassLoader(), new Class<?>[] { class1 }, new InvocationHandler() {
 
@@ -680,7 +681,7 @@ public abstract class AbstractMyJDClient {
         });
     }
 
-    public <T> T link(final Class<T> class1, final String deviceID) {
+    public <T extends Linkable> T link(final Class<T> class1, final String deviceID) {
         final ApiNamespace ann = class1.getAnnotation(ApiNamespace.class);
         if (ann == null) { throw new NullPointerException("ApiNameSpace missing in " + class1.getName()); }
 

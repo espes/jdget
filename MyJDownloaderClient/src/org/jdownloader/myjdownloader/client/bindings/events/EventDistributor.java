@@ -3,12 +3,12 @@ package org.jdownloader.myjdownloader.client.bindings.events;
 import org.jdownloader.myjdownloader.client.AbstractMyJDClient;
 import org.jdownloader.myjdownloader.client.bindings.events.json.MyJDEvent;
 import org.jdownloader.myjdownloader.client.bindings.events.json.SubscriptionResponse;
-import org.jdownloader.myjdownloader.client.bindings.interfaces.EventsAPIInterface;
+import org.jdownloader.myjdownloader.client.bindings.interfaces.EventsInterface;
 
 public class EventDistributor implements Runnable {
 
     private AbstractMyJDClient           api;
-    private EventsAPIInterface           link;
+    private EventsInterface           link;
     private String[]                     events;
     private String[]                     blacklist;
     private SubscriptionResponse         subscription;
@@ -16,7 +16,7 @@ public class EventDistributor implements Runnable {
 
     public EventDistributor(final AbstractMyJDClient api, final String deviceID) {
         this.api = api;
-        link = api.link(EventsAPIInterface.class, deviceID);
+        link = api.link(EventsInterface.class, deviceID);
         eventSender = new EventsDistributorEventSender();
     }
 

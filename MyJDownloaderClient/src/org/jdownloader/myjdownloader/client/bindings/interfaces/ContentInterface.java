@@ -5,7 +5,7 @@ import org.jdownloader.myjdownloader.client.exceptions.device.ApiFileNotFoundExc
 import org.jdownloader.myjdownloader.client.exceptions.device.InternalServerErrorException;
 
 @ApiNamespace("contentV2")
-public interface ContentAPIV2 {
+public interface ContentInterface extends Linkable {
 
     public byte[] getFavIcon(String hostername) throws ApiFileNotFoundException, InternalServerErrorException;
 

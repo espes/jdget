@@ -7,8 +7,8 @@ import org.jdownloader.myjdownloader.client.bindings.AccountQuery;
 import org.jdownloader.myjdownloader.client.bindings.AccountStorable;
 import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
 
-@ApiNamespace(AccountAPIV2.NAMESPACE)
-public interface AccountAPIV2 {
+@ApiNamespace(AccountInterface.NAMESPACE)
+public interface AccountInterface extends Linkable{
     public static final String NAMESPACE = "accountsV2";
 
     public boolean addAccount(String premiumHoster, String username, String password);
