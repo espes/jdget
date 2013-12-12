@@ -61,7 +61,8 @@ public class JacksonMapper implements JSONMapper {
 
             @Override
             public void serialize(final T arg0, final JsonGenerator jgen, final SerializerProvider arg2) throws IOException, JsonProcessingException {
-                jgen.writeRaw(jsonSerializer.toJSonString(arg0));
+//                jgen.writeRaw();
+                jgen.writeRawValue(jsonSerializer.toJSonString(arg0));
             }
         }
 
