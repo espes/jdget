@@ -1,5 +1,7 @@
 package org.jdownloader.myjdownloader.client.bindings.events.json;
 
+import org.jdownloader.myjdownloader.client.json.AbstractJsonData;
+
 /**
  * Copyright (c) 2009 - 2013 AppWork UG(haftungsbeschränkt) <e-mail@appwork.org>
  * 
@@ -14,7 +16,7 @@ package org.jdownloader.myjdownloader.client.bindings.events.json;
  * @author daniel
  * 
  */
-public class MyJDEvent {
+public class MyJDEvent extends AbstractJsonData{
 
     private Object eventData;
 
@@ -22,7 +24,7 @@ public class MyJDEvent {
         return eventData;
     }
 
-    public void setEventData(Object eventData) {
+    public void setEventData(final Object eventData) {
         this.eventData = eventData;
     }
 
@@ -30,7 +32,7 @@ public class MyJDEvent {
         return eventid;
     }
 
-    public void setEventid(String eventid) {
+    public void setEventid(final String eventid) {
         this.eventid = eventid;
     }
 
@@ -38,7 +40,7 @@ public class MyJDEvent {
         return publisher;
     }
 
-    public void setPublisher(String publisher) {
+    public void setPublisher(final String publisher) {
         this.publisher = publisher;
     }
 
