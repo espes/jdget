@@ -1,8 +1,8 @@
 package org.jdownloader.myjdownloader.client.bindings.interfaces;
 
-import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
+import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
 
-@ApiNamespace("downloadcontroller")
+@ClientApiNameSpace("downloadcontroller")
 public interface DownloadControllerInterface extends Linkable{
 
     void forceDownload(long[] linkIds, long[] packageIds);

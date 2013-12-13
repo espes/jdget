@@ -2,13 +2,13 @@ package org.jdownloader.myjdownloader.client.bindings.interfaces;
 
 import java.util.List;
 
-import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
+import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
 import org.jdownloader.myjdownloader.client.bindings.DownloadLinkStorable;
 import org.jdownloader.myjdownloader.client.bindings.FilePackageStorable;
 import org.jdownloader.myjdownloader.client.bindings.LinkQuery;
 import org.jdownloader.myjdownloader.client.bindings.PackageQuery;
 
-@ApiNamespace("downloadsV2")
+@ClientApiNameSpace("downloadsV2")
 public interface DownloadsListInterface extends Linkable{
 
     void setEnabled(boolean enabled, long[] linkIds, long[] packageIds);

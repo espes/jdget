@@ -5,9 +5,9 @@ import java.util.HashMap;
 
 import org.jdownloader.myjdownloader.client.bindings.AccountQuery;
 import org.jdownloader.myjdownloader.client.bindings.AccountStorable;
-import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
+import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
 
-@ApiNamespace(AccountInterface.NAMESPACE)
+@ClientApiNameSpace(AccountInterface.NAMESPACE)
 public interface AccountInterface extends Linkable{
     public static final String NAMESPACE = "accountsV2";
 
@@ -19,11 +19,11 @@ public interface AccountInterface extends Linkable{
 
     public AccountStorable getAccountInfo(long id);
 
-    public boolean removeAccounts(long[] ids);
+    public void removeAccounts(long[] ids);
 
-    public boolean enableAccounts(long[] ids);
+    public void enableAccounts(long[] ids);
 
-    public boolean disableAccounts(long[] ids);
+    public void disableAccounts(long[] ids);
 
     HashMap<String, String> listPremiumHosterUrls();
 

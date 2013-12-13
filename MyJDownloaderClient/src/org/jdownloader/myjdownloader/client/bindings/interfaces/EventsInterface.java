@@ -2,11 +2,13 @@ package org.jdownloader.myjdownloader.client.bindings.interfaces;
 
 import java.util.ArrayList;
 
-import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
+import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
 import org.jdownloader.myjdownloader.client.bindings.events.json.MyJDEvent;
 import org.jdownloader.myjdownloader.client.bindings.events.json.PublisherResponse;
 import org.jdownloader.myjdownloader.client.bindings.events.json.SubscriptionResponse;
 import org.jdownloader.myjdownloader.client.bindings.events.json.SubscriptionStatusResponse;
+import org.jdownloader.myjdownloader.client.exceptions.device.ApiFileNotFoundException;
+import org.jdownloader.myjdownloader.client.exceptions.device.InternalServerErrorException;
 
 /**
  * See org.appwork.remoteapi.events.EventsAPIInterface
@@ -14,8 +16,8 @@ import org.jdownloader.myjdownloader.client.bindings.events.json.SubscriptionSta
  * @author $Author: unknown$
  * 
  */
-@ApiNamespace("events")
-public interface EventsInterface extends Linkable{
+@ClientApiNameSpace("events")
+public interface EventsInterface extends Linkable {
 
     public SubscriptionResponse addsubscription(long subscriptionid, String[] subscriptions, String[] exclusions);
 
@@ -25,7 +27,7 @@ public interface EventsInterface extends Linkable{
 
     public SubscriptionStatusResponse getsubscriptionstatus(long subscriptionid);
 
-    public MyJDEvent[] listen(long subscriptionid);
+    public MyJDEvent[] listen(long subscriptionid) throws ApiFileNotFoundException, InternalServerErrorException;
 
     public ArrayList<PublisherResponse> listpublisher();
 

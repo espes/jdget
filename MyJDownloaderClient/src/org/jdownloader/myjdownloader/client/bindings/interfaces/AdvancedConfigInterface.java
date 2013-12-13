@@ -3,9 +3,9 @@ package org.jdownloader.myjdownloader.client.bindings.interfaces;
 import java.util.ArrayList;
 
 import org.jdownloader.myjdownloader.client.bindings.AdvancedConfigEntryDataStorable;
-import org.jdownloader.myjdownloader.client.bindings.ApiNamespace;
+import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
 
-@ApiNamespace(AdvancedConfigInterface.NAMESPACE)
+@ClientApiNameSpace(AdvancedConfigInterface.NAMESPACE)
 public interface AdvancedConfigInterface extends Linkable{
 
     public static final String NAMESPACE = "config";

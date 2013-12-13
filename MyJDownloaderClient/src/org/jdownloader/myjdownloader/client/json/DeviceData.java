@@ -1,6 +1,5 @@
 package org.jdownloader.myjdownloader.client.json;
 
-
 public class DeviceData {
     private String id;
 
@@ -11,22 +10,54 @@ public class DeviceData {
 
     }
 
+    @Override
+    public boolean equals(final Object obj) {
+
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof DeviceData)) {
+            return false;
+        }
+        if (!equalsString(id, ((DeviceData) obj).id)) {
+            return false;
+        }
+        if (!equalsString(type, ((DeviceData) obj).type)) {
+            return false;
+        }
+        if (!equalsString(name, ((DeviceData) obj).name)) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean equalsString(final String pass, final String pass2) {
+        if (pass == pass2) { return true; }
+        if (pass == null && pass2 != null) { return false; }
+        return pass.equals(pass2);
+    }
+
+    @Override
+    public int hashCode() {
+        return id == null ? 0 : id.hashCode();
+    }
+
     public DeviceData(final String deviceid, final String deviceType, final String deviceName) {
-        this.id = deviceid;
-        this.type = deviceType;
-        this.name = deviceName;
+        id = deviceid;
+        type = deviceType;
+        name = deviceName;
     }
 
     public String getId() {
-        return this.id;
+        return id;
     }
 
     public String getName() {
-        return this.name;
+        return name;
     }
 
     public String getType() {
-        return this.type;
+        return type;
     }
 
     public void setId(final String id) {
@@ -43,7 +74,7 @@ public class DeviceData {
 
     @Override
     public String toString() {
-        return this.name + " (" + this.id + ")";
+        return name + " (" + id + ")";
     }
 
 }
