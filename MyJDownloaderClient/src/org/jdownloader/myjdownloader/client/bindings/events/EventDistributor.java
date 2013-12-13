@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
-import org.jdownloader.myjdownloader.client.AbstractMyJDClient;
+import org.jdownloader.myjdownloader.client.AbstractMyJDClientForBasicJVM;
 import org.jdownloader.myjdownloader.client.bindings.events.json.MyJDEvent;
 import org.jdownloader.myjdownloader.client.bindings.events.json.SubscriptionResponse;
 import org.jdownloader.myjdownloader.client.bindings.interfaces.EventsInterface;
@@ -25,7 +25,7 @@ public class EventDistributor implements Runnable, EventsDistributorListener {
     private long                                 polltimeout;
     private long                                 keepalive;
 
-    public EventDistributor(final AbstractMyJDClient api, final String deviceID) {
+    public EventDistributor(final AbstractMyJDClientForBasicJVM api, final String deviceID) {
 
         link = api.link(EventsInterface.class, deviceID);
 

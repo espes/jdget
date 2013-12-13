@@ -1,15 +1,14 @@
 package org.jdownloader.myjdownloader.client.json;
 
-import java.lang.reflect.Type;
 
 /**
  * @author Thomas
  * 
  */
-public interface JSonHandler {
+public interface JSonHandler<ClassType> {
 
   
-    public <T> T jsonToObject(String dec, Type clazz);
+    public <T> T jsonToObject(String dec, ClassType clazz);
 
     String objectToJSon(Object payload);
 }
