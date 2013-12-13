@@ -18,13 +18,14 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
 import org.appwork.remoteapi.events.json.EventObjectStorable;
 import org.appwork.remoteapi.events.json.PublisherResponse;
 import org.appwork.remoteapi.events.json.SubscriptionResponse;
 import org.appwork.remoteapi.events.json.SubscriptionStatusResponse;
+import org.appwork.remoteapi.exceptions.APIFileNotFoundException;
+import org.appwork.remoteapi.exceptions.InternalApiException;
 
 /**
  * @author daniel
@@ -39,7 +40,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
 
     @Override
     public SubscriptionResponse addsubscription(final long subscriptionid, final String[] subscriptions, final String[] exclusions) {
-        final Subscriber subscriber = this.subscribers.get(subscriptionid);
+        final Subscriber subscriber = subscribers.get(subscriptionid);
         if (subscriber == null) {
             return new SubscriptionResponse();
         } else {
@@ -63,7 +64,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
 
     @Override
     public SubscriptionResponse changesubscriptiontimeouts(final long subscriptionid, final long polltimeout, final long maxkeepalive) {
-        final Subscriber subscriber = this.subscribers.get(subscriptionid);
+        final Subscriber subscriber = subscribers.get(subscriptionid);
         if (subscriber == null) {
             return new SubscriptionResponse();
         } else {
@@ -78,7 +79,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
 
     @Override
     public SubscriptionResponse getsubscription(final long subscriptionid) {
-        final Subscriber subscriber = this.subscribers.get(subscriptionid);
+        final Subscriber subscriber = subscribers.get(subscriptionid);
         if (subscriber == null) {
             return new SubscriptionResponse();
         } else {
@@ -97,7 +98,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
      */
     @Override
     public SubscriptionStatusResponse getsubscriptionstatus(final long subscriptionid) {
-        final Subscriber subscriber = this.subscribers.get(subscriptionid);
+        final Subscriber subscriber = subscribers.get(subscriptionid);
         if (subscriber == null) {
             return new SubscriptionStatusResponse();
         } else {
@@ -109,21 +110,22 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
     }
 
     public List<EventPublisher> list() {
-        return Collections.unmodifiableList(this.publishers);
+        return Collections.unmodifiableList(publishers);
     }
 
     @Override
-    public void listen(final RemoteAPIRequest request, final RemoteAPIResponse response, final long subscriptionid) {
-        final Subscriber subscriber = this.subscribers.get(subscriptionid);
+    public void listen(final RemoteAPIRequest request, final RemoteAPIResponse response, final long subscriptionid) throws APIFileNotFoundException,InternalApiException {
+        final Subscriber subscriber = subscribers.get(subscriptionid);
         if (subscriber == null) {
-            response.setResponseCode(ResponseCode.ERROR_NOT_FOUND);
-            return;
+            throw new APIFileNotFoundException();
+         
+         
         }
         final ArrayList<EventObject> events = new ArrayList<EventObject>();
         final ArrayList<EventObjectStorable> eventStorables = new ArrayList<EventObjectStorable>();
         try {
             EventObject event;
-            while ((event = subscriber.poll(events.size() == 0 ? subscriber.getPollTimeout() : 0)) != null && this.subscribers.get(subscriptionid) == subscriber) {
+            while ((event = subscriber.poll(events.size() == 0 ? subscriber.getPollTimeout() : 0)) != null && subscribers.get(subscriptionid) == subscriber) {
                 events.add(event);
                 eventStorables.add(new EventObjectStorable(event));
             }
@@ -133,14 +135,15 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
             response.getRemoteAPI().writeStringResponse(eventStorables, null, false, request, response);
         } catch (final Throwable e) {
             subscriber.pushBack(events);
-            throw new RuntimeException(e);
+            throw new InternalApiException(e);
+            
         }
     }
 
     @Override
     public List<PublisherResponse> listpublisher() {
         final ArrayList<PublisherResponse> ret = new ArrayList<PublisherResponse>();
-        for (final EventPublisher publisher : this.publishers) {
+        for (final EventPublisher publisher : publishers) {
             ret.add(new PublisherResponse(publisher));
         }
         return ret;
@@ -152,14 +155,14 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
         if (subscriptionids != null && subscriptionids.size() > 0) {
             /* publish to given subscriptionids */
             for (final long subscriptionid : subscriptionids) {
-                final Subscriber subscriber = this.subscribers.get(subscriptionid);
+                final Subscriber subscriber = subscribers.get(subscriptionid);
                 if (subscriber != null) {
                     publishTo.add(subscriber);
                 }
             }
         } else {
             /* publish to all subscribers */
-            publishTo = new ArrayList<Subscriber>(this.subscribers.values());
+            publishTo = new ArrayList<Subscriber>(subscribers.values());
         }
         for (final Subscriber subscriber : publishTo) {
             if (subscriber.isSubscribed(event)) {
@@ -174,18 +177,18 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
     public synchronized boolean register(final EventPublisher publisher) {
         if (publisher == null) { throw new NullPointerException(); }
         if (publisher.getPublisherName() == null) { throw new IllegalArgumentException("no Publishername given"); }
-        for (final EventPublisher existingPublisher : this.publishers) {
+        for (final EventPublisher existingPublisher : publishers) {
             if (existingPublisher == publisher) { return false; }
             if (publisher.getPublisherName().equalsIgnoreCase(existingPublisher.getPublisherName())) { throw new IllegalArgumentException("publisher with same name already registered"); }
         }
-        this.publishers.add(publisher);
+        publishers.add(publisher);
         publisher.register(this);
         return true;
     }
 
     @Override
     public SubscriptionResponse removesubscription(final long subscriptionid, final String[] subscriptions, final String[] exclusions) {
-        final Subscriber subscriber = this.subscribers.get(subscriptionid);
+        final Subscriber subscriber = subscribers.get(subscriptionid);
         if (subscriber == null) {
             return new SubscriptionResponse();
         } else {
@@ -210,7 +213,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
 
     @Override
     public SubscriptionResponse setsubscription(final long subscriptionid, final String[] subscriptions, final String[] exclusions) {
-        final Subscriber subscriber = this.subscribers.get(subscriptionid);
+        final Subscriber subscriber = subscribers.get(subscriptionid);
         if (subscriber == null) {
             return new SubscriptionResponse();
         } else {
@@ -236,8 +239,8 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
     @Override
     public SubscriptionResponse subscribe(final String[] subscriptions, final String[] exclusions) {
         final Subscriber subscriber = new Subscriber(subscriptions, exclusions);
-        this.subscribers.put(subscriber.getSubscriptionID(), subscriber);
-        this.subscribersCleanupThread();
+        subscribers.put(subscriber.getSubscriptionID(), subscriber);
+        subscribersCleanupThread();
         final SubscriptionResponse ret = new SubscriptionResponse(subscriber);
         ret.setSubscribed(true);
         return ret;
@@ -250,20 +253,20 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
      * current implementation has a minimum delay of 1 minute
      */
     protected void subscribersCleanupThread() {
-        synchronized (this.subscribersCleanupLock) {
-            if (this.cleanupThread == null || this.cleanupThread.isAlive() == false) {
-                this.cleanupThread = null;
+        synchronized (subscribersCleanupLock) {
+            if (cleanupThread == null || cleanupThread.isAlive() == false) {
+                cleanupThread = null;
             } else {
                 return;
             }
-            this.cleanupThread = new Thread("EventsAPI:subscribersCleanupThread") {
+            cleanupThread = new Thread("EventsAPI:subscribersCleanupThread") {
                 @Override
                 public void run() {
                     try {
-                        while (Thread.currentThread() == EventsAPI.this.cleanupThread) {
+                        while (Thread.currentThread() == cleanupThread) {
                             try {
                                 Thread.sleep(60 * 1000);
-                                final Iterator<Entry<Long, Subscriber>> it = EventsAPI.this.subscribers.entrySet().iterator();
+                                final Iterator<Entry<Long, Subscriber>> it = subscribers.entrySet().iterator();
                                 while (it.hasNext()) {
                                     final Entry<Long, Subscriber> next = it.next();
                                     final Subscriber subscriber = next.getValue();
@@ -271,7 +274,7 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
                                         it.remove();
                                         final long subscriptionid = subscriber.getSubscriptionID();
                                         try {
-                                            for (final EventPublisher publisher : EventsAPI.this.publishers) {
+                                            for (final EventPublisher publisher : publishers) {
                                                 publisher.terminatedSubscription(EventsAPI.this, subscriptionid);
                                             }
                                         } catch (final Throwable e) {
@@ -279,9 +282,9 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
                                         }
                                     }
                                 }
-                                synchronized (EventsAPI.this.subscribersCleanupLock) {
-                                    if (EventsAPI.this.subscribers.size() == 0) {
-                                        EventsAPI.this.cleanupThread = null;
+                                synchronized (subscribersCleanupLock) {
+                                    if (subscribers.size() == 0) {
+                                        cleanupThread = null;
                                         break;
                                     }
                                 }
@@ -289,33 +292,33 @@ public class EventsAPI implements EventsAPIInterface, EventsSender {
                             }
                         }
                     } finally {
-                        synchronized (EventsAPI.this.subscribersCleanupLock) {
-                            if (Thread.currentThread() == EventsAPI.this.cleanupThread) {
-                                EventsAPI.this.cleanupThread = null;
+                        synchronized (subscribersCleanupLock) {
+                            if (Thread.currentThread() == cleanupThread) {
+                                cleanupThread = null;
                             }
                         }
                     }
                 };
             };
-            this.cleanupThread.setDaemon(true);
-            this.cleanupThread.start();
+            cleanupThread.setDaemon(true);
+            cleanupThread.start();
         }
     }
 
     public synchronized boolean unregister(final EventPublisher publisher) {
         if (publisher == null) { throw new NullPointerException(); }
-        final boolean removed = this.publishers.remove(publisher);
+        final boolean removed = publishers.remove(publisher);
         publisher.unregister(this);
         return removed;
     }
 
     @Override
     public SubscriptionResponse unsubscribe(final long subscriptionid) {
-        final Subscriber subscriber = this.subscribers.remove(subscriptionid);
+        final Subscriber subscriber = subscribers.remove(subscriptionid);
         if (subscriber != null) {
             subscriber.notifyListener();
             try {
-                for (final EventPublisher publisher : this.publishers) {
+                for (final EventPublisher publisher : publishers) {
                     publisher.terminatedSubscription(this, subscriptionid);
                 }
             } catch (final Throwable e) {

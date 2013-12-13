@@ -32,8 +32,6 @@ import org.appwork.utils.net.httpconnection.HTTPProxy;
 
 public class BasicHTTP {
 
-    private static final Object CALL_LOCK = new Object();
-
     public static void main(final String[] args) throws MalformedURLException, IOException, InterruptedException {
 
         final BasicHTTP client = new BasicHTTP();
@@ -94,7 +92,7 @@ public class BasicHTTP {
                 this.download(url, progress, 0, fos, file.length());
             } catch (final BasicHTTPException e) {
                 throw e;
-            }catch(final InterruptedException e){
+            } catch (final InterruptedException e) {
                 throw e;
             } catch (final Exception e) {
                 // we cannot say if read or write
@@ -121,7 +119,7 @@ public class BasicHTTP {
             // }
         } catch (final BasicHTTPException e) {
             throw e;
-        }catch(final InterruptedException e){
+        } catch (final InterruptedException e) {
             throw e;
         } catch (final Exception e) {
             if (baos.size() > 0) {
@@ -150,115 +148,121 @@ public class BasicHTTP {
      * @throws InterruptedException
      */
     public void download(final URL url, final DownloadProgress progress, final long maxSize, final OutputStream baos, final long resumePosition) throws BasicHTTPException, InterruptedException {
-        InputStream input = null;
-        int ioExceptionWhere = 0;
-        try {
 
-            connection = HTTPConnectionFactory.createHTTPConnection(url, proxy);
-            this.setAllowedResponseCodes(connection);
-            connection.setConnectTimeout(getConnectTimeout());
-            connection.setReadTimeout(getReadTimeout());
-            connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
-            connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
-            for (final Entry<String, String> next : requestHeader.entrySet()) {
-                connection.setRequestProperty(next.getKey(), next.getValue());
-            }
- 
-            if (resumePosition > 0) {
-                connection.setRequestProperty("Range", "bytes=" + resumePosition + "-");
-            }
-            connection.setRequestProperty("Connection", "Close");
+        synchronized (lock) {
+            InputStream input = null;
+            int ioExceptionWhere = 0;
+            try {
 
-            connection.connect();
-            final boolean ranged = connection.getRequestProperty("Range") != null;
-            if (ranged && connection.getResponseCode() == 200) { 
-                //
-                throw new BadRangeResponse(connection); }
-            if (connection.getResponseCode() == 302) {
-                final String red = connection.getHeaderField("Location");
-                if (red != null) {
-                    try {
-                        connection.disconnect();
-                    } catch (final Throwable e) {
-                    }
-                    this.download(new URL(red), progress, maxSize, baos, resumePosition);
-                    return;
+                connection = HTTPConnectionFactory.createHTTPConnection(url, proxy);
+                this.setAllowedResponseCodes(connection);
+                connection.setConnectTimeout(getConnectTimeout());
+                connection.setReadTimeout(getReadTimeout());
+                connection.setRequestProperty("Accept-Language", TranslationFactory.getDesiredLanguage());
+                connection.setRequestProperty("User-Agent", "AppWork " + Application.getApplication());
+                for (final Entry<String, String> next : requestHeader.entrySet()) {
+                    connection.setRequestProperty(next.getKey(), next.getValue());
                 }
-                throw new IOException("302 without locationHeader!");
-            }
-            checkResponseCode();
-            input = connection.getInputStream();
 
-            if (connection.getCompleteContentLength() >= 0) {
-                /* contentLength is known */
-                if (maxSize > 0 && connection.getCompleteContentLength() > maxSize) { throw new IOException("Max size exeeded!"); }
+                if (resumePosition > 0) {
+                    connection.setRequestProperty("Range", "bytes=" + resumePosition + "-");
+                }
+                connection.setRequestProperty("Connection", "Close");
+
+                connection.connect();
+                final boolean ranged = connection.getRequestProperty("Range") != null;
+                if (ranged && connection.getResponseCode() == 200) {
+                    //
+                    throw new BadRangeResponse(connection);
+                }
+                if (connection.getResponseCode() == 302) {
+                    final String red = connection.getHeaderField("Location");
+                    if (red != null) {
+                        try {
+                            connection.disconnect();
+                        } catch (final Throwable e) {
+                        }
+                        this.download(new URL(red), progress, maxSize, baos, resumePosition);
+                        return;
+                    }
+                    throw new IOException("302 without locationHeader!");
+                }
+                checkResponseCode();
+                input = connection.getInputStream();
+
+                if (connection.getCompleteContentLength() >= 0) {
+                    /* contentLength is known */
+                    if (maxSize > 0 && connection.getCompleteContentLength() > maxSize) { throw new IOException("Max size exeeded!"); }
+                    if (progress != null) {
+                        progress.setTotal(connection.getCompleteContentLength());
+                    }
+                } else {
+                    /* no contentLength is known */
+                }
+                final byte[] b = new byte[512 * 1024];
+                int len = 0;
+                long loaded = Math.max(0, resumePosition);
                 if (progress != null) {
-                    progress.setTotal(connection.getCompleteContentLength());
+                    progress.setLoaded(loaded);
                 }
-            } else {
-                /* no contentLength is known */
-            }
-            final byte[] b = new byte[512 * 1024];
-            int len = 0;
-            long loaded = Math.max(0, resumePosition);
-            if (progress != null) {
-                progress.setLoaded(loaded);
-            }
-            while (true) {
-                ioExceptionWhere = 1;
-                if ((len = input.read(b)) == -1) {
-                    break;
-                }
-                if (Thread.interrupted()) {
-
-                throw new InterruptedException();
-
-                }
-                if (len > 0) {
-                    if (progress != null) {
-                        ioExceptionWhere = 0;
-                        progress.onBytesLoaded(b, len);
+                while (true) {
+                    ioExceptionWhere = 1;
+                    if ((len = input.read(b)) == -1) {
+                        break;
                     }
-                    ioExceptionWhere = 2;
-                    baos.write(b, 0, len);
+                    if (Thread.interrupted()) {
 
-                    loaded += len;
-                    if (maxSize > 0 && loaded > maxSize) { throw new IOException("Max size exeeded!"); }
-                    if (progress != null) {
-                        progress.increaseLoaded(len);
+                    throw new InterruptedException();
+
+                    }
+                    if (len > 0) {
+                        if (progress != null) {
+                            ioExceptionWhere = 0;
+                            progress.onBytesLoaded(b, len);
+                        }
+                        ioExceptionWhere = 2;
+                        baos.write(b, 0, len);
+
+                        loaded += len;
+                        if (maxSize > 0 && loaded > maxSize) { throw new IOException("Max size exeeded!"); }
+                        if (progress != null) {
+                            progress.increaseLoaded(len);
+                        }
                     }
                 }
-            }
-            ioExceptionWhere = 0;
-            if (connection.getCompleteContentLength() >= 0) {
-                if (loaded != connection.getCompleteContentLength()) { throw new IOException("Incomplete download! " + loaded + " from " + connection.getCompleteContentLength()); }
-            }
-        } catch (final BasicHTTPException e) {
-            throw e;
-        }catch(final InterruptedException e){
-            throw e;
-        } catch (final Exception e) {
-            if (ioExceptionWhere == 1) { throw new BasicHTTPException(connection, new ReadIOException(e)); }
-            if (ioExceptionWhere == 2) { throw new BasicHTTPException(connection, new WriteIOException(e)); }
-            throw new BasicHTTPException(connection, e);
-        } finally {
-            try {
-                input.close();
+                ioExceptionWhere = 0;
+                if (connection.getCompleteContentLength() >= 0) {
+                    if (loaded != connection.getCompleteContentLength()) { throw new IOException("Incomplete download! " + loaded + " from " + connection.getCompleteContentLength()); }
+                }
+            } catch (final BasicHTTPException e) {
+                throw e;
+            } catch (final InterruptedException e) {
+                throw e;
             } catch (final Exception e) {
-            }
-            try {
-                if (logger != null) {
-                    logger.info(connection.toString());
+                if (ioExceptionWhere == 1) { throw new BasicHTTPException(connection, new ReadIOException(e)); }
+                if (ioExceptionWhere == 2) { throw new BasicHTTPException(connection, new WriteIOException(e)); }
+                throw new BasicHTTPException(connection, e);
+            } finally {
+                try {
+                    input.close();
+                } catch (final Exception e) {
                 }
-            } catch (final Throwable e) {
-                e.printStackTrace();
-            }
-            try {
-                connection.disconnect();
-            } catch (final Throwable e) {
+                try {
+                    if (logger != null) {
+                        logger.info(connection.toString());
+                    }
+                } catch (final Throwable e) {
+                    e.printStackTrace();
+                }
+                try {
+                    connection.disconnect();
+                } catch (final Throwable e) {
+                }
             }
         }
     }
+
+    private Object lock = new Object();
 
     public HashSet<Integer> getAllowedResponseCodes() {
         return allowedResponseCodes;
@@ -277,7 +281,7 @@ public class BasicHTTP {
     }
 
     public String getPage(final URL url) throws IOException, InterruptedException {
-        synchronized (BasicHTTP.CALL_LOCK) {
+        synchronized (lock) {
             BufferedReader in = null;
             InputStreamReader isr = null;
             try {
@@ -364,7 +368,7 @@ public class BasicHTTP {
     }
 
     public String getResponseHeader(final String string) {
-        synchronized (BasicHTTP.CALL_LOCK) {
+        synchronized (lock) {
             if (connection == null) { return null; }
             return connection.getHeaderField(string);
 
@@ -377,7 +381,7 @@ public class BasicHTTP {
 
     public HTTPConnection openGetConnection(final URL url, final int readTimeout) throws BasicHTTPException, InterruptedException {
         boolean close = true;
-        synchronized (BasicHTTP.CALL_LOCK) {
+        synchronized (lock) {
             try {
                 connection = HTTPConnectionFactory.createHTTPConnection(url, proxy);
                 this.setAllowedResponseCodes(connection);
@@ -402,7 +406,7 @@ public class BasicHTTP {
                             Thread.sleep(200);
                         }
                     }
-                }catch(final InterruptedException e){
+                } catch (final InterruptedException e) {
                     throw e;
                 } catch (final Exception e) {
                     throw new BasicHTTPException(connection, new ReadIOException(e));
@@ -431,7 +435,7 @@ public class BasicHTTP {
 
     public HTTPConnection openPostConnection(final URL url, final UploadProgress progress, final InputStream is, final HashMap<String, String> header) throws BasicHTTPException, InterruptedException {
         boolean close = true;
-        synchronized (BasicHTTP.CALL_LOCK) {
+        synchronized (lock) {
             OutputStream outputStream = null;
             final byte[] buffer = new byte[64000];
             try {
@@ -528,7 +532,7 @@ public class BasicHTTP {
      */
     public void postPage(final URL url, final byte[] byteData, final OutputStream baos, final DownloadProgress uploadProgress, final DownloadProgress downloadProgress) throws InterruptedException, BasicHTTPException {
 
-        synchronized (BasicHTTP.CALL_LOCK) {
+        synchronized (lock) {
 
             final OutputStreamWriter writer = null;
             final BufferedReader reader = null;

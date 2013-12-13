@@ -149,7 +149,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isString(Type type) {
+    public static boolean isString(final Type type) {
 
         return type == String.class;
     }
@@ -158,7 +158,7 @@ public class Clazz {
      * @param type
      * @return
      */
-    public static boolean isEnum(Type type) {
+    public static boolean isEnum(final Type type) {
 
         return type instanceof Class && ((Class<?>) type).isEnum();
     }
@@ -167,9 +167,20 @@ public class Clazz {
      * @param genericReturnType
      * @return
      */
-    public static boolean isByteArray(Type genericReturnType) {
+    public static boolean isByteArray(final Type genericReturnType) {
         // TODO Auto-generated method stub
         return genericReturnType == byte[].class;
+    }
+
+    /**
+     * is a instanceof b
+     * @param c
+     * @param class1
+     * @return
+     */
+    public static boolean isInstanceof(final Class<?> a, final Class<?> b) {
+        final boolean ret = b.isAssignableFrom(a);
+        return ret;
     }
 
 }
