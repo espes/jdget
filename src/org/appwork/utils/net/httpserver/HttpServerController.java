@@ -27,17 +27,17 @@ public class HttpServerController {
 
     public synchronized HttpHandlerInfo registerRequestHandler(final int port, final boolean localhost, final HttpRequestHandler handler) throws IOException {
         HttpServer server = null;
-        for (final HttpServer s : this.servers) {
+        for (final HttpServer s : servers) {
             if (s.getPort() == port) {
                 server = s;
                 break;
             }
         }
         if (server == null) {
-            server = new HttpServer(port);
+            server = createServer(port);
             server.setLocalhostOnly(localhost);
             server.start();
-            this.servers.add(server);
+            servers.add(server);
         }
         if (localhost == false && server.isLocalhostOnly()) {
             server.shutdown();
@@ -53,11 +53,15 @@ public class HttpServerController {
         };
     }
 
+    protected HttpServer createServer(final int port) {
+        return new HttpServer(port);
+    }
+
     public synchronized void unregisterRequestHandler(final HttpHandlerInfo handlerInfo) {
-        if (this.servers.contains(handlerInfo.getHttpServer())) {
+        if (servers.contains(handlerInfo.getHttpServer())) {
             handlerInfo.getHttpServer().unregisterRequestHandler(handlerInfo.getHttpHandler());
             if (handlerInfo.getHttpServer().getHandler().isEmpty()) {
-                this.servers.remove(handlerInfo.getHttpServer());
+                servers.remove(handlerInfo.getHttpServer());
                 handlerInfo.getHttpServer().shutdown();
             }
         }

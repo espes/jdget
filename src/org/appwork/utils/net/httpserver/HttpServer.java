@@ -155,7 +155,7 @@ public class HttpServer implements Runnable {
 
                     try {
 
-                        this.threadPool.execute(new HttpConnection(this, clientSocket));
+                        this.threadPool.execute(createConnectionInstance(clientSocket));
                     } catch (final IOException e) {
                         e.printStackTrace();
                         try {
@@ -187,6 +187,10 @@ public class HttpServer implements Runnable {
             } catch (final Throwable e) {
             }
         }
+    }
+
+    protected HttpConnection createConnectionInstance(final Socket clientSocket) throws IOException {
+        return new HttpConnection(this, clientSocket);
     }
 
     /**
