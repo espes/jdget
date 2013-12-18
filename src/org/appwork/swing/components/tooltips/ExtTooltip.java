@@ -247,11 +247,21 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
     }
 
     /**
+     * @param ttPosition
      * 
      */
     public void onShow() {
-        // TODO Auto-generated method stub
 
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.JComponent#setMaximumSize(java.awt.Dimension)
+     */
+    @Override
+    public void setMaximumSize(final Dimension maximumSize) {
+        panel.setMaximumSize(maximumSize);
     }
 
     @Override
@@ -304,7 +314,7 @@ public abstract class ExtTooltip extends JToolTip implements AncestorListener {
      * @param ttPosition
      * @return
      */
-    public Point getDesiredLocation(JComponent activeComponent, Point ttPosition) {
+    public Point getDesiredLocation(final JComponent activeComponent, final Point ttPosition) {
         // TODO Auto-generated method stub
         return ttPosition;
     }

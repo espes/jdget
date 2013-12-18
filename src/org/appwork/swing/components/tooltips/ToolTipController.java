@@ -423,9 +423,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
                         }
                     }
                 }
-                if(gc==null) {
-                    return;
-                }
+                if (gc == null) { return; }
                 final Rectangle screenBounds = gc.getBounds();
                 final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
                 Point ttPosition = new Point(mousePosition.x, mousePosition.y);
@@ -461,9 +459,19 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
                     throw new RuntimeException(exception);
                 }
 
+                screenBounds.x += screenInsets.left;
+                screenBounds.y += screenInsets.top;
+                screenBounds.width -= screenInsets.left + screenInsets.right;
+                screenBounds.height -= screenInsets.top + screenInsets.bottom;
+
+                final int maxWidth = screenBounds.x + screenBounds.width - ttPosition.x;
+                final int maxHeight = ttPosition.y + tt.getPreferredSize().height - screenBounds.y;
+                // final Point loc = getLocationOnScreen();
+                tt.setMaximumSize(new Dimension(maxWidth, maxHeight));
                 ToolTipController.this.activeToolTipPanel = tt;
                 tt.addMouseListener(ToolTipController.this);
                 ttPosition = activeToolTipPanel.getDesiredLocation(activeComponent, ttPosition);
+
                 activePopup = popupFactory.getPopup(activeComponent, activeToolTipPanel, ttPosition.x, ttPosition.y);
 
                 final Window ownerWindow = SwingUtilities.getWindowAncestor(activeComponent);
@@ -477,7 +485,7 @@ public class ToolTipController implements MouseListener, MouseMotionListener, Wi
                 }
                 tt.onShow();
                 activePopup.show();
-               
+
             }
             // parentWindow =
             // SwingUtilities.windowForComponent(this.activeToolTipPanel);
