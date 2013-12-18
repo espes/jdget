@@ -58,6 +58,7 @@ public class IO {
                 } else {
                     inChannel.transferTo(0, inChannel.size(), outChannel);
                 }
+                outChannel.force(true);
             } catch (final IOException e) {
                 throw e;
             } finally {
@@ -410,6 +411,8 @@ public class IO {
             try {
                 output = new BufferedWriter(new OutputStreamWriter(fos = new FileOutputStream(file, append), "UTF-8"));
                 output.write(string);
+                output.flush();
+                fos.getChannel().force(true);
                 deleteFile = false;
             } finally {
                 try {
@@ -461,6 +464,8 @@ public class IO {
             try {
                 out = new FileOutputStream(file);
                 out.write(data);
+                out.flush();
+                out.getChannel().force(true);
                 deleteFile = false;
             } finally {
                 try {
