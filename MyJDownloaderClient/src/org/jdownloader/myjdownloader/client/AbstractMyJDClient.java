@@ -1,7 +1,5 @@
 package org.jdownloader.myjdownloader.client;
 
-
-
 import org.jdownloader.myjdownloader.client.exceptions.APIException;
 import org.jdownloader.myjdownloader.client.exceptions.AuthException;
 import org.jdownloader.myjdownloader.client.exceptions.ChallengeFailedException;
@@ -147,6 +145,7 @@ public abstract class AbstractMyJDClient<Type> {
             payload.setRid(i = getUniqueRID());
             payload.setParams(params);
             final String json = objectToJSon(payload);
+            log("Request:\r\n" + query + "\r\n" + json);
             final byte[] data = cryptedPost(query, base64Encode(encrypt(json.getBytes("UTF-8"), session.getDeviceEncryptionToken())), session.getDeviceEncryptionToken());
 
             Object ret = convertData(data, returnType);
@@ -158,6 +157,7 @@ public abstract class AbstractMyJDClient<Type> {
             }
 
             final String dec = toString(data);
+            log("Response\r\n" + dec);
             // this is a workaround.. do not consider this as final solution!
             if (dec.indexOf("\"data\" :") > 0) {
                 final ObjectData dataObject = this.jsonToObject(dec, (Type) ObjectData.class);
@@ -192,6 +192,10 @@ public abstract class AbstractMyJDClient<Type> {
         }
     }
 
+    protected void log(final String json) {
+
+    }
+
     protected <T> T convertData(final byte[] data, final Type returnType) throws MyJDownloaderException {
         if (returnType == byte[].class) { return (T) data; }
         return null;
@@ -216,6 +220,7 @@ public abstract class AbstractMyJDClient<Type> {
             query += query.contains("?") ? "&" : "?";
             final long i = getUniqueRID();
             query += "rid=" + i;
+            log("Request:\r\n" + query + "\r\n" + postData);
             final byte[] data = cryptedPost(query + "&signature=" + sign(key, query), postData, key);
             Object ret = convertData(data, (Type) class1);
             if (ret != null) {
@@ -224,8 +229,9 @@ public abstract class AbstractMyJDClient<Type> {
                 }
                 return (T) ret;
             }
-
-            ret = this.jsonToObject(toString(data), (Type) class1);
+            final String dec = toString(data);
+            ret = this.jsonToObject(dec, (Type) class1);
+            log("Response\r\n" + dec);
             // System.out.println(this.objectToJSon(ret));
             if (ret instanceof RequestIDValidator) {
                 if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException("RID Mismatch"); }

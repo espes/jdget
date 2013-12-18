@@ -1,5 +1,7 @@
 package org.jdownloader.myjdownloader.client.bindings;
 
+import java.util.HashSet;
+
 import org.jdownloader.myjdownloader.client.json.AbstractJsonData;
 
 public class AccountQuery extends AbstractJsonData {
@@ -33,7 +35,20 @@ public class AccountQuery extends AbstractJsonData {
     private boolean userName    = false;
     private boolean validUntil  = false;
     private boolean trafficLeft = false;
+    private boolean error = false;
     private boolean trafficMax  = false;
+    /**
+     * only return these ids. if null all ids will be returned
+     */
+    private HashSet<Long> UUIDList  = null;
+
+    public HashSet<Long> getUUIDList() {
+        return UUIDList;
+    }
+
+    public void setUUIDList(final HashSet<Long> ids) {
+        this.UUIDList = ids;
+    }
 
     public boolean isUserName() {
         return userName;
@@ -105,6 +120,14 @@ public class AccountQuery extends AbstractJsonData {
 
     public int getMaxResults() {
         return maxResults;
+    }
+
+    public boolean isError() {
+        return error;
+    }
+
+    public void setError(final boolean error) {
+        this.error = error;
     }
 
 }

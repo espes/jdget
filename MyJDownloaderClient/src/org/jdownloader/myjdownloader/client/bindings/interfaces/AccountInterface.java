@@ -17,7 +17,6 @@ public interface AccountInterface extends Linkable{
 
     public ArrayList<String> listPremiumHoster();
 
-    public AccountStorable getAccountInfo(long id);
 
     public void removeAccounts(long[] ids);
 

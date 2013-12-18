@@ -12,46 +12,64 @@ public class AccountStorable extends AbstractJsonData {
     private String  hostname;
 
     private String  username;
+    private String  errorType;
 
-    private long    validUntil  = -1l;
+    public String getErrorType() {
+        return errorType;
+    }
 
-    private long    trafficLeft = -1l;
-    private long    trafficMax  = -1l;
+    public void setErrorType(final String errorType) {
+        this.errorType = errorType;
+    }
+
+    public String getErrorString() {
+        return errorString;
+    }
+
+    public void setErrorString(final String errorString) {
+        this.errorString = errorString;
+    }
+
+    private String errorString;
+    private long   validUntil  = -1l;
+
+    private long   trafficLeft = -1l;
+    private long   trafficMax  = -1l;
 
     @SuppressWarnings("unused")
     protected AccountStorable(/* Storable */) {
     }
 
     public String getHostname() {
-        return this.hostname;
+        return hostname;
     }
 
     public long getTrafficLeft() {
-        return this.trafficLeft;
+        return trafficLeft;
     }
 
     public long getTrafficMax() {
-        return this.trafficMax;
+        return trafficMax;
     }
 
     public String getUsername() {
-        return this.username;
+        return username;
     }
 
     public long getUUID() {
-        return this.UUID;
+        return UUID;
     }
 
     public long getValidUntil() {
-        return this.validUntil;
+        return validUntil;
     }
 
     public boolean isEnabled() {
-        return this.enabled;
+        return enabled;
     }
 
     public boolean isValid() {
-        return this.valid;
+        return valid;
     }
 
     public void setEnabled(final boolean enabled) {
@@ -75,7 +93,7 @@ public class AccountStorable extends AbstractJsonData {
     }
 
     public void setUUID(final long uUID) {
-        this.UUID = uUID;
+        UUID = uUID;
     }
 
     public void setValid(final boolean valid) {
