@@ -24,6 +24,7 @@ import org.appwork.utils.StringUtils;
 public class DesktopSupportLinux implements DesktopSupport {
 
     public static enum WINDOW_MANAGER {
+        XFCE,
         GNOME,
         UNITY,
         KDE,
@@ -65,6 +66,11 @@ public class DesktopSupportLinux implements DesktopSupport {
             this.windowManager = WINDOW_MANAGER.KDE;
             this.customFile = new String[] { "kde-open", "%s" };
             this.customBrowse = new String[] { "kde-open", "%s" };
+        } else if ("XFCE".equals(XDG_CURRENT_DESKTOP)) {
+            System.out.println("XFCE detected");
+            this.windowManager = WINDOW_MANAGER.XFCE;
+            this.customFile = new String[] { "xdg-open", "%s" };
+            this.customBrowse = new String[] { "xdg-open", "%s" };
         } else {
             System.out.println("sun.Desktop: " + sunDesktop);
             System.out.println("XDG_CURRENT_DESKTOP: " + XDG_CURRENT_DESKTOP);
@@ -81,6 +87,10 @@ public class DesktopSupportLinux implements DesktopSupport {
     public void browseURL(final URL url) throws IOException, URISyntaxException {
         if (this.openCustom(this.customBrowse, url.toExternalForm())) { return; }
         this.fallBack.browseURL(url);
+    }
+
+    public WINDOW_MANAGER getWindowManager() {
+        return this.windowManager;
     }
 
     @Override
@@ -109,6 +119,14 @@ public class DesktopSupportLinux implements DesktopSupport {
     @Override
     public boolean isOpenFileSupported() {
         if (this.customFile != null && this.customFile.length >= 2 || this.fallBack.isOpenFileSupported()) { return true; }
+        return false;
+    }
+
+    public boolean isXFCEDesktop() {
+        switch (this.windowManager) {
+        case XFCE:
+            return true;
+        }
         return false;
     }
 
