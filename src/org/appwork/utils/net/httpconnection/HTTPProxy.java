@@ -22,38 +22,35 @@ public class HTTPProxy {
         HTTP
     }
 
-    /**
-     * 
-     */
-    private static final int      KEY_READ = 0x20019;
+    // private static final int KEY_READ = 0x20019;
 
-    public static final HTTPProxy NONE     = new HTTPProxy(TYPE.NONE) {
+    public static final HTTPProxy NONE = new HTTPProxy(TYPE.NONE) {
 
-                                               @Override
-                                               public void setConnectMethodPrefered(final boolean value) {
-                                               }
+                                           @Override
+                                           public void setConnectMethodPrefered(final boolean value) {
+                                           }
 
-                                               @Override
-                                               public void setLocalIP(final InetAddress localIP) {
-                                               }
+                                           @Override
+                                           public void setLocalIP(final InetAddress localIP) {
+                                           }
 
-                                               @Override
-                                               public void setPass(final String pass) {
-                                               }
+                                           @Override
+                                           public void setPass(final String pass) {
+                                           }
 
-                                               @Override
-                                               public void setPort(final int port) {
-                                               }
+                                           @Override
+                                           public void setPort(final int port) {
+                                           }
 
-                                               @Override
-                                               public void setType(final TYPE type) {
-                                               }
+                                           @Override
+                                           public void setType(final TYPE type) {
+                                           }
 
-                                               @Override
-                                               public void setUser(final String user) {
-                                               }
+                                           @Override
+                                           public void setUser(final String user) {
+                                           }
 
-                                           };
+                                       };
 
     public static List<HTTPProxy> getFromSystemProperties() {
         final java.util.List<HTTPProxy> ret = new ArrayList<HTTPProxy>();
@@ -216,41 +213,6 @@ public class HTTPProxy {
 
                 if (!StringUtils.isEmpty(autoProxy)) {
                     Log.L.info("AutoProxy.pac Script found: " + autoProxy);
-                    // new Thread("AutoProxy Loader") {
-                    // public void run() {
-                    // Log.L.info("AutoProxy.pac Script found: " + autoProxy);
-                    // String script;
-                    // try {
-                    // script = IO.readInputStreamToString(new
-                    // URL(autoProxy).openStream());
-                    //
-                    // Log.L.info("Content of autoproxy: " + script);
-                    // } catch (UnsupportedEncodingException e) {
-                    // // TODO Auto-generated catch block
-                    // e.printStackTrace();
-                    // } catch (MalformedURLException e) {
-                    // // TODO Auto-generated catch block
-                    // e.printStackTrace();
-                    // } catch (IOException e) {
-                    // // TODO Auto-generated catch block
-                    // e.printStackTrace();
-                    // }
-                    // }
-                    // }.start();
-
-                    // BrowserProxyInfo b = new BrowserProxyInfo();
-                    // b.setType(ProxyType.AUTO);
-                    // b.setAutoConfigURL(autoProxy);
-                    // AbstractAutoProxyHandler handler = new
-                    // SunAutoProxyHandler();
-                    // handler.init(b);
-                    //
-                    // URL url = new URL("http://grooveshark.com/blkdsabldsa");
-                    // ProxyInfo[] ps = handler.getProxyInfo(url);
-                    // for (ProxyInfo p : ps) {
-                    // System.out.println(p.toString());
-                    // }
-
                 }
             } catch (final Exception e) {
 
@@ -306,9 +268,9 @@ public class HTTPProxy {
 
     public static HTTPProxy parseHTTPProxy(final String s) {
         if (StringUtils.isEmpty(s)) { return null; }
-        final String type = new Regex(s, "(https?|socks5|socks4|direct)://").getMatch(0);
-        final String auth = new Regex(s, "://(.*?)@").getMatch(0);
-        final String host = new Regex(s, "://(.*?@)?(.*?)(/|$)").getMatch(1);
+        final String type = new Regex(s, "(https?|socks(5|4)|direct)://").getMatch(0);
+        final String auth = new Regex(s, "://(.+)@").getMatch(0);
+        final String host = new Regex(s, "://(.+@)?(.*?)(/|$)").getMatch(1);
         HTTPProxy ret = null;
         if ("http".equalsIgnoreCase(type) || "https".equalsIgnoreCase(type)) {
             ret = new HTTPProxy(TYPE.HTTP);
@@ -339,7 +301,7 @@ public class HTTPProxy {
             if (!StringUtils.isEmpty(hostname)) {
                 ret.host = hostname;
             }
-            if (!StringUtils.isEmpty(port) && ret != null) {
+            if (!StringUtils.isEmpty(port)) {
                 ret.port = Integer.parseInt(port);
             }
             final String username = new Regex(auth, "(.*?)(:|$)").getMatch(0);
@@ -414,7 +376,6 @@ public class HTTPProxy {
     public boolean equals(final Object obj) {
         if (this == obj) { return true; }
         if (obj == null || !(obj instanceof HTTPProxy)) { return false; }
-
         final HTTPProxy p = (HTTPProxy) obj;
         if (this.type != p.type) { return false; }
         switch (this.type) {
