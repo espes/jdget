@@ -195,6 +195,13 @@ public class Browser {
         return ret + tmp + (end != null ? end : "");
     }
 
+    public static String getBasicAuthfromURL(final String url) {
+        if (url == null) { return null; }
+        final String basicauth = new Regex(url, "(ftp|https?)://(.+)@.*?($|/)").getMatch(1);
+        if (basicauth != null && basicauth.contains(":")) { return Encoding.Base64Encode(basicauth); }
+        return null;
+    }
+
     public static int getGlobalReadTimeout() {
         return Browser.TIMEOUT_READ;
     }
@@ -203,17 +210,25 @@ public class Browser {
         return Browser.getHost(url, false);
     }
 
+    /*
+     * this method extracts domain/ip from given url. optional keeps existing subdomains
+     */
     public static String getHost(final String url, final boolean includeSubDomains) {
         if (url == null) { return null; }
+        final String trimURL = url.trim();
         /* direct ip */
-        String ret = new Regex(url, "(^[a-z0-9]+://|^)(\\d+\\.\\d+\\.\\d+\\.\\d+)(/|$|:)").getMatch(1);
+        String ret = new Regex(trimURL, "(^[a-z0-9]+://|.*?@)(\\d+\\.\\d+\\.\\d+\\.\\d+)(/|$|:\\d+$|:\\d+/)").getMatch(1);
         if (ret != null) { return ret; }
         /* normal url */
-        if (includeSubDomains) {
-            ret = new Regex(url, "^[a-z0-9]+://(.*?@)?(.*?)(/|$|:)").getMatch(1);
-        }
-        if (ret == null) {
-            ret = new Regex(url, ".*?([^.:/]+\\.[^.:/]+)(/|$|:)").getMatch(0);
+        ret = new Regex(trimURL, "(^[a-z0-9]+://|.*?@)(([^@:./]+\\.?)+)(/|$|:\\d+$|:\\d+/)").getMatch(1);
+        if (ret != null && includeSubDomains == false) {
+            /* cut off all subdomains */
+            int indexPoint = ret.lastIndexOf(".");
+            indexPoint = ret.lastIndexOf(".", indexPoint - 1);
+            if (indexPoint >= 0) {
+                /* we enter this branch only if a subdomain exists */
+                ret = ret.substring(indexPoint + 1);
+            }
         }
         if (ret != null) { return ret.toLowerCase(Locale.ENGLISH); }
         return url;
@@ -391,13 +406,6 @@ public class Browser {
                 file.delete();
             }
         }
-    }
-
-    public static String getBasicAuthfromURL(final String url) {
-        if (url == null) { return null; }
-        final String basicauth = new Regex(url, "http.*?/([^/]{1}.*?)@").getMatch(0);
-        if (basicauth != null && basicauth.contains(":")) { return Encoding.Base64Encode(basicauth); }
-        return null;
     }
 
     public static int getGlobalConnectTimeout() {
