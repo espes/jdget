@@ -473,7 +473,9 @@ public class Dialog {
      */
     public <T> T showDialog(final AbstractDialog<T> dialog) throws DialogClosedException, DialogCanceledException {
         final DialogHandler lhandler = handler;
-        if (lhandler != null) { return lhandler.showDialog(dialog); }
+        if (lhandler != null) { 
+            //
+            return lhandler.showDialog(dialog); }
         return this.showDialogRaw(dialog);
     }
 
