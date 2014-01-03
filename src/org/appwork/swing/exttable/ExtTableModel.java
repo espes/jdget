@@ -375,16 +375,18 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         this._fireTableStructureChanged(newdata, true);
     }
 
-    public synchronized void addExtComponentRowHighlighter(final ExtComponentRowHighlighter<E> h) {
-        this.extComponentRowHighlighters.add(h);
-        Collections.sort(this.extComponentRowHighlighters, new Comparator<ExtComponentRowHighlighter<E>>() {
+    public void addExtComponentRowHighlighter(final ExtComponentRowHighlighter<E> h) {
+        synchronized (this.extComponentRowHighlighters) {
+            this.extComponentRowHighlighters.add(h);
+            Collections.sort(this.extComponentRowHighlighters, new Comparator<ExtComponentRowHighlighter<E>>() {
 
-            @Override
-            public int compare(final ExtComponentRowHighlighter<E> o1, final ExtComponentRowHighlighter<E> o2) {
-                // TODO Auto-generated method stub
-                return new Integer(o1.getPriority()).compareTo(new Integer(o2.getPriority()));
-            }
-        });
+                @Override
+                public int compare(final ExtComponentRowHighlighter<E> o1, final ExtComponentRowHighlighter<E> o2) {
+                    // TODO Auto-generated method stub
+                    return new Integer(o1.getPriority()).compareTo(new Integer(o2.getPriority()));
+                }
+            });
+        }
     }
 
     /**
@@ -525,7 +527,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public ExtTableModelEventSender getEventSender() {
         if (this.eventSender == null) {
             this.eventSender = new ExtTableModelEventSender();
-            addTableModelListener(new TableModelListener() {
+            this.addTableModelListener(new TableModelListener() {
 
                 @Override
                 public void tableChanged(final TableModelEvent e) {
@@ -632,9 +634,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     public List<E> getSelectedObjects(final int maxItems) {
         final ExtTable<E> ltable = this.getTable();
         final java.util.List<E> ret = new ArrayList<E>();
-        if (ltable == null) {
-            return ret;
-        }
+        if (ltable == null) { return ret; }
         final ListSelectionModel selectionModel = ltable.getSelectionModel();
         if (ltable == null || selectionModel == null || this.tableSelectionClearing.get()) { return new ArrayList<E>(0); }
 
@@ -1033,9 +1033,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public int[] setSelectedObjects(final Collection<E> selections) {
         final ExtTable<E> ltable = ExtTableModel.this.getTable();
-        if(ltable==null) {
-            return new int[] { -1, -1 };
-        }
+        if (ltable == null) { return new int[] { -1, -1 }; }
         return new EDTHelper<int[]>() {
             @Override
             public int[] edtRun() {
