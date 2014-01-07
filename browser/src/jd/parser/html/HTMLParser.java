@@ -657,8 +657,18 @@ public class HTMLParser {
              * http://www...&bla
              * 
              * we cut of the invalid urlParameter &bla
+             * 
+             * check if we really have &x=y format following
              */
-            input = input.subSequence(0, indexofa);
+            final HtmlParserCharSequence check = input.subSequence(indexofa);
+            final int indexChecka = check.indexOf("=");
+            if (indexChecka > 0) {
+                final HtmlParserCharSequence check2 = check.subSequence(1, indexChecka);
+                if (check2.matches(Pattern.compile("[a-zA-Z0-9]+"))) {
+                    /* we have found &x=y pattern, so it is okay to cut it off */
+                    input = input.subSequence(0, indexofa);
+                }
+            }
         }
         /* ' must be %27 encoded */
         input = input.replaceAll(HTMLParser.specialReplacePattern, "%27");
