@@ -26,6 +26,10 @@ public class IO {
     private static IOErrorHandler ERROR_HANDLER = null;
 
     public static void copyFile(final File in, final File out) throws IOException {
+        IO.copyFile(in, out, null);
+    }
+
+    public static void copyFile(final File in, final File out, final Boolean sync) throws IOException {
         try {
             FileInputStream fis = null;
             FileOutputStream fos = null;
@@ -58,7 +62,9 @@ public class IO {
                 } else {
                     inChannel.transferTo(0, inChannel.size(), outChannel);
                 }
-                outChannel.force(true);
+                if (sync != null) {
+                    outChannel.force(sync.booleanValue());
+                }
             } catch (final IOException e) {
                 throw e;
             } finally {
@@ -98,6 +104,10 @@ public class IO {
         }
     }
 
+    public static void copyFolderRecursive(final File src, final File dest, final boolean overwriteFiles) throws IOException {
+        IO.copyFolderRecursive(src, dest, overwriteFiles, null);
+    }
+
     /**
      * @param overwriteFiles
      *            TODO
@@ -105,7 +115,7 @@ public class IO {
      * @param dist2
      * @throws IOException
      */
-    public static void copyFolderRecursive(final File src, final File dest, final boolean overwriteFiles) throws IOException {
+    public static void copyFolderRecursive(final File src, final File dest, final boolean overwriteFiles, final Boolean sync) throws IOException {
         Files.walkThroughStructure(new AbstractHandler<IOException>() {
 
             @Override
@@ -123,7 +133,7 @@ public class IO {
                         }
                     }
 
-                    IO.copyFile(f, dst);
+                    IO.copyFile(f, dst, sync);
                 }
 
             }
