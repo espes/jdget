@@ -642,7 +642,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         final int iMin = selectionModel.getMinSelectionIndex();
         final int iMax = selectionModel.getMaxSelectionIndex();
         if (iMin == -1 || iMax == -1) { return ret; }
-        if (iMin >= ltableData.size() || iMax >= ltableData.size()) { throw new IllegalStateException("SelectionModel and TableData missmatch!"); }
+        if (iMin >= ltableData.size() || iMax >= ltableData.size()) { throw new IllegalStateException("SelectionModel and TableData missmatch! IMin:" + iMin + "|IMax:" + iMax + "|TableSize:" + ltableData.size()); }
         if (maxItems < 0) {
             for (int i = iMin; i <= iMax; i++) {
                 if (selectionModel.isSelectedIndex(i)) {
