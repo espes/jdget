@@ -19,6 +19,9 @@ package jd.nutils.encoding;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.HashSet;
+
+import jd.parser.Regex;
 
 import org.appwork.utils.logging.Log;
 
@@ -191,7 +194,84 @@ public class Encoding {
         final String test = "new encoding &#39";
         System.out.println(test);
     }
-
+    public static String unescape(String s) {
+        if (s == null) {
+            return null;
+        }
+        if (true) {
+            // convert any html based unicode as a pre correction
+            String test = s;
+            final String regex = "(&#x([0-9a-f]{4});)";
+            final String[] rmHtml = new Regex(s, regex).getColumn(0);
+            if (rmHtml != null && rmHtml.length != 0) {
+                // lets prevent wasteful cycles
+                final HashSet<String> dupe = new HashSet<String>();
+                for (final String htmlrm : rmHtml) {
+                    if (dupe.add(htmlrm) == true) {
+                        final String[] rm = new Regex(htmlrm, regex).getRow(0);
+                        if (rm[1] != null) {
+                            test = test.replaceAll(rm[0], "\\\\u" + rm[1]);
+                        }
+                    }
+                }
+                s = test;
+            }
+        }
+        char ch;
+        char ch2;
+        final StringBuilder sb = new StringBuilder();
+        int ii;
+        int i;
+        for (i = 0; i < s.length(); i++) {
+            ch = s.charAt(i);
+            // prevents StringIndexOutOfBoundsException with ending char equals case trigger
+            if (s.length() != i + 1) {
+                switch (ch) {
+                case '%':
+                case '\\':
+                    ch2 = ch;
+                    ch = s.charAt(++i);
+                    StringBuilder sb2 = null;
+                    switch (ch) {
+                    case 'u':
+                        /* unicode */
+                        sb2 = new StringBuilder();
+                        i++;
+                        ii = i + 4;
+                        for (; i < ii; i++) {
+                            ch = s.charAt(i);
+                            if (sb2.length() > 0 || ch != '0') {
+                                sb2.append(ch);
+                            }
+                        }
+                        i--;
+                        sb.append((char) Long.parseLong(sb2.toString(), 16));
+                        continue;
+                    case 'x':
+                        /* normal hex coding */
+                        sb2 = new StringBuilder();
+                        i++;
+                        ii = i + 2;
+                        for (; i < ii; i++) {
+                            ch = s.charAt(i);
+                            sb2.append(ch);
+                        }
+                        i--;
+                        sb.append((char) Long.parseLong(sb2.toString(), 16));
+                        continue;
+                    default:
+                        if (ch2 == '%') {
+                            sb.append(ch2);
+                        }
+                        sb.append(ch);
+                        continue;
+                    }
+                }
+            }
+            sb.append(ch);
+        }
+        return sb.toString();
+    }
     public static String urlDecode(String urlcoded, final boolean isUrl) {
         if (urlcoded == null) { return null; }
         if (isUrl) {
