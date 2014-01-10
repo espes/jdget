@@ -261,7 +261,7 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
             final ComboBoxModel<ModelType> dm = updateModel(dataModel, value);
             for (int i = 0; i < dm.getSize(); i++) {
                 final ModelType o = dm.getElementAt(i);
-                final JComponent bt = getPopupElement(o, selected == o);
+                final JComponent bt = getPopupElement(o, selected.equals(o));
                 if (bt instanceof AbstractButton) {
                     ((AbstractButton) bt).addActionListener(new ActionListener() {
 

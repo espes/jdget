@@ -79,7 +79,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     private HashMap<Method, KeyHandler<?>>                           methodMap;
     private HashMap<String, KeyHandler<?>>                           keyHandlerMap;
 
-    protected final JsonKeyValueStorage                              primitiveStorage;
+    protected JsonKeyValueStorage                                    primitiveStorage;
+
     private boolean                                                  crypted;
 
     private byte[]                                                   key                    = JSonStorage.KEY;
@@ -101,6 +102,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     private int                                                      delayedSaveInterval    = 10000;
     private String                                                   storage;
+    private boolean                                                  objectCacheEnabled;
 
     private static HashMap<String, WeakReference<StorageHandler<?>>> STORAGEMAP             = new HashMap<String, WeakReference<StorageHandler<?>>>();
 
@@ -127,14 +129,13 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     /**
      * @param name
+     * @param storage2
      * @param configInterface
      */
     public StorageHandler(final File name, final Class<T> configInterface) {
 
-        if (!StorageHandler.DUPE_SET.add(configInterface.getName() + "." + name.getAbsolutePath())) {
-            //
-            throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice");
-        }
+        dupeCheck(name, configInterface);
+
         final InitHook initHook = configInterface.getAnnotation(InitHook.class);
         if (initHook != null) {
             try {
@@ -165,21 +166,24 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         if (crypted != null) {
             this.crypted = true;
             if (crypted.key() != null) {
-                this.primitiveStorage = new JsonKeyValueStorage(new File(this.path.getAbsolutePath() + ".ejs"), false, crypted.key());
+
+                this.primitiveStorage = createPrimitiveStorage(new File(this.path.getAbsolutePath() + ".ejs"), false, crypted.key());
 
                 this.key = crypted.key();
                 if (this.key.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + configInterface + " is invalid"); }
 
             } else {
 
-                this.primitiveStorage = new JsonKeyValueStorage(new File(this.path.getAbsolutePath() + ".ejs"), false, this.key = JSonStorage.KEY);
+                this.primitiveStorage = createPrimitiveStorage(new File(this.path.getAbsolutePath() + ".ejs"), false, this.key = JSonStorage.KEY);
 
             }
         } else {
             this.crypted = false;
-            this.primitiveStorage = new JsonKeyValueStorage(new File(this.path.getAbsolutePath() + ".json"), true);
-        }
 
+            this.primitiveStorage = createPrimitiveStorage(new File(this.path.getAbsolutePath() + ".json"), true, null);
+
+        }
+        validateKeys(crypted);
         try {
             this.parseInterface();
         } catch (final InterfaceParseException e) {
@@ -208,6 +212,32 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 return "Save " + StorageHandler.this.path + "[" + configInterface.getName() + "]";
             }
         });
+
+    }
+
+    protected void validateKeys(final CryptedStorage crypted) {
+
+    }
+
+    protected void dupeCheck(final File name, final Class<T> configInterface) {
+        if (!StorageHandler.DUPE_SET.add(configInterface.getName() + "." + name.getAbsolutePath())) {
+            //
+            throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice");
+        }
+    }
+
+    /**
+     * @param file
+     * @param b
+     * @param key2
+     * @return
+     */
+    protected JsonKeyValueStorage createPrimitiveStorage(final File file, final boolean plain, final byte[] key) {
+        if (plain) {
+            return new JsonKeyValueStorage(file, true);
+        } else {
+            return new JsonKeyValueStorage(file, false, key);
+        }
 
     }
 
@@ -1080,6 +1110,18 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     public void write() {
         this.primitiveStorage.save();
+    }
+
+    /**
+     * @return
+     */
+    public boolean isObjectCacheEnabled() {
+
+        return objectCacheEnabled;
+    }
+
+    public void setObjectCacheEnabled(final boolean objectCacheEnabled) {
+        this.objectCacheEnabled = objectCacheEnabled;
     }
 
     /**

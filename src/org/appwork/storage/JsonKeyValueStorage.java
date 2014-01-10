@@ -23,6 +23,7 @@ public class JsonKeyValueStorage extends Storage {
     private boolean                       autoPutValues = true;
     private boolean                       closed        = false;
     private boolean                       changed       = false;
+    private boolean                       enumCacheEnabled;
 
     public JsonKeyValueStorage(final File file) throws StorageException {
         this(file, false);
@@ -196,7 +197,9 @@ public class JsonKeyValueStorage extends Storage {
         if (def instanceof Enum<?> && ret instanceof String) {
             try {
                 ret = Enum.valueOf(((Enum<?>) def).getDeclaringClass(), (String) ret);
-                map.put(key, ret);
+                if (isEnumCacheEnabled()) {
+                    map.put(key, ret);
+                }
             } catch (final Throwable e) {
                 map.remove(key);
                 Log.exception(e);
@@ -207,6 +210,18 @@ public class JsonKeyValueStorage extends Storage {
             }
         }
         return (E) ret;
+    }
+
+    /**
+     * @return
+     */
+    private boolean isEnumCacheEnabled() {
+
+        return enumCacheEnabled;
+    }
+
+    public void setEnumCacheEnabled(final boolean enumCacheEnabled) {
+        this.enumCacheEnabled = enumCacheEnabled;
     }
 
     public File getFile() {
@@ -320,7 +335,12 @@ public class JsonKeyValueStorage extends Storage {
     public void put(final String key, final Enum<?> value) throws StorageException {
         final boolean contains = map.containsKey(key);
         final Enum<?> old = contains ? this.get(key, value) : null;
-        map.put(key, value);
+        if (isEnumCacheEnabled()) {
+
+            map.put(key, value);
+        } else {
+            map.put(key, value.name());
+        }
         changed = true;
         if (!hasEventSender()) { return; }
         if (contains) {

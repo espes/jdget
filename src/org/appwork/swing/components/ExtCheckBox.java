@@ -77,7 +77,7 @@ public class ExtCheckBox extends JCheckBox implements  ToolTipHandler {
         return dependencies;
     }
 
-    public void setDependencies(final JComponent[] dependencies) {
+    public void setDependencies(final JComponent... dependencies) {
         this.dependencies = dependencies;
 
         updateDependencies();

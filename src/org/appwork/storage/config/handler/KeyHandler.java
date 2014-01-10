@@ -278,6 +278,7 @@ public abstract class KeyHandler<RawClass> {
     public RawClass getValue() {
         final RawClass value = this.getValueStorage();
         if (this.customValueGetter != null) { return this.customValueGetter.getValue(value); }
+
         return value;
     }
 
@@ -466,7 +467,8 @@ public abstract class KeyHandler<RawClass> {
             } else if (oldValue != null && newValue == null) {
                 /* new is null, but old is not */
                 changed = true;
-            } else if (!Clazz.isPrimitive(this.getRawClass()) && this.getRawClass() != String.class) {
+           
+            } else if (!Clazz.isPrimitive(this.getRawClass())&&!Clazz.isEnum(this.getRawClass()) && this.getRawClass() != String.class) {
                 /* no primitive, we cannot detect changes 100% */
                 changed = true;
             } else if (!newValue.equals(oldValue)) {
