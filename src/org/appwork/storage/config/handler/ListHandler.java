@@ -68,7 +68,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
             if (ret == null) {
                 ret = ListHandler.NULL;
             }
-            if (this.getAnnotation(DisableObjectCache.class) == null&&getStorageHandler().isObjectCacheEnabled()) {
+            if (this.getAnnotation(DisableObjectCache.class) == null && getStorageHandler().isObjectCacheEnabled()) {
                 this.cache = new MinTimeWeakReference<Object>(ret, ListHandler.MIN_LIFETIME, "Storage " + getKey());
             }
         }
@@ -94,7 +94,10 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
 
     @Override
     protected void putValue(final T object) {
-        this.cache = new MinTimeWeakReference<Object>(object, ListHandler.MIN_LIFETIME, "Storage " + getKey());
+        if (this.getAnnotation(DisableObjectCache.class) == null && getStorageHandler().isObjectCacheEnabled()) {
+
+            this.cache = new MinTimeWeakReference<Object>(object, ListHandler.MIN_LIFETIME, "Storage " + getKey());
+        }
         this.write(object);
     }
 
