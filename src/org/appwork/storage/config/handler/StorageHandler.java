@@ -102,7 +102,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
     private int                                                      delayedSaveInterval    = 10000;
     private String                                                   storage;
-    private boolean                                                  objectCacheEnabled;
+    private boolean                                                  objectCacheEnabled=true;
 
     private static HashMap<String, WeakReference<StorageHandler<?>>> STORAGEMAP             = new HashMap<String, WeakReference<StorageHandler<?>>>();
 
