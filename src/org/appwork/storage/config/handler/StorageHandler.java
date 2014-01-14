@@ -193,6 +193,11 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         }
         Log.L.finer("Load Storage: " + this.path);
         this.updateSaveDelayer();
+        initShutdownHook(configInterface);
+
+    }
+
+    protected void initShutdownHook(final Class<T> configInterface) {
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
 
             @Override
@@ -212,7 +217,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                 return "Save " + StorageHandler.this.path + "[" + configInterface.getName() + "]";
             }
         });
-
     }
 
     protected void validateKeys(final CryptedStorage crypted) {
