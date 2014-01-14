@@ -393,13 +393,14 @@ public class HTMLParser {
         }
         reversedata = null;
         /* find base64'ed */
-        String urlDecoded = Encoding.urlDecode(data.getStringAvoidCopy(), true);
-        String base64Data = Encoding.Base64Decode(urlDecoded);
-        if (base64Data.equals(urlDecoded)) {
+        final HtmlParserCharSequence urlDecoded = HTMLParser.decodeURLParamEncodedURL(data);
+        String urlDecodedString = urlDecoded.getStringAvoidCopy();
+        String base64Data = Encoding.Base64Decode(urlDecodedString);
+        if (urlDecodedString.equals(base64Data)) {
             /* no base64 content found */
             base64Data = null;
         }
-        urlDecoded = null;
+        urlDecodedString = null;
         if (base64Data != null && !data.equals(base64Data)) {
             HTMLParser._getHttpLinksFinder(new HtmlParserCharSequence(base64Data), url, results);
         }
@@ -433,7 +434,7 @@ public class HTMLParser {
         }
         if (HTMLParser.deepWalkCheck(results, indexBefore)) {
             /* no changes in results size, and data contains urlcoded http://, so lets urldecode it */
-            HTMLParser._getHttpLinksFinder(new HtmlParserCharSequence(Encoding.urlDecode(data.getStringAvoidCopy(), true)), url, results);
+            HTMLParser._getHttpLinksFinder(urlDecoded, url, results);
         }
         return results;
     }
@@ -664,7 +665,7 @@ public class HTMLParser {
             final int indexChecka = check.indexOf("=");
             if (indexChecka > 0) {
                 final HtmlParserCharSequence check2 = check.subSequence(1, indexChecka);
-                if (check2.matches(Pattern.compile("[a-zA-Z0-9]+"))) {
+                if (check2.matches(Pattern.compile("[a-zA-Z0-9%]+"))) {
                     /* we have found &x=y pattern, so it is okay to cut it off */
                     input = input.subSequence(0, indexofa);
                 }
@@ -678,6 +679,21 @@ public class HTMLParser {
 
     private static HtmlParserCharSequence correctURL(final String input) {
         return HTMLParser.correctURL(new HtmlParserCharSequence(input));
+    }
+
+    public static HtmlParserCharSequence decodeURLParamEncodedURL(HtmlParserCharSequence content) {
+        if (content == null) { return null; }
+        if (content.contains("%3A%2F%2")) {
+            String inputString = content.getStringAvoidCopy();
+            inputString = inputString.replaceAll("%2F", "/");
+            inputString = inputString.replaceAll("%3A", ":");
+            inputString = inputString.replaceAll("%3F", "?");
+            inputString = inputString.replaceAll("%3D", "=");
+            inputString = inputString.replaceAll("%26", "&");
+            inputString = inputString.replaceAll("%23", "#");
+            content = new HtmlParserCharSequence(inputString);
+        }
+        return content;
     }
 
     private static boolean deepWalkCheck(final HtmlParserResultSet results, final int indexBefore) {
