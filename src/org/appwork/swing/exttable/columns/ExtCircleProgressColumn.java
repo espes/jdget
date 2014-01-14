@@ -16,21 +16,6 @@ import org.appwork.swing.exttable.ExtDefaultRowSorter;
 import org.appwork.swing.exttable.ExtTableModel;
 
 abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
-    private static final long    serialVersionUID = -2473320164484034664L;
-    protected CircledProgressBar determinatedRenderer;
-    protected CompoundBorder     defaultBorder;
-    private CircledProgressBar   indeterminatedRenderer;
-    protected CircledProgressBar   renderer;
-    private HashMap<E, Long>     map;
-    private int                  columnIndex      = -1;
-
-    /**
-     * 
-     */
-    public ExtCircleProgressColumn(final String title) {
-        this(title, null);
-    }
-
     public class IndeterminatedCircledProgressBar extends CircledProgressBar {
 
         /**
@@ -41,8 +26,8 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
          * 
          */
 
-        private long timer        = 0;
-        private long cleanupTimer = 0;
+        private long              timer            = 0;
+        private long              cleanupTimer     = 0;
 
         @Override
         public boolean isDisplayable() {
@@ -91,6 +76,22 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
 
     }
 
+    private static final long    serialVersionUID = -2473320164484034664L;
+    protected CircledProgressBar determinatedRenderer;
+    protected CompoundBorder     defaultBorder;
+    private CircledProgressBar   indeterminatedRenderer;
+    protected CircledProgressBar renderer;
+    private HashMap<E, Long>     map;
+
+    private int                  columnIndex      = -1;
+
+    /**
+     * 
+     */
+    public ExtCircleProgressColumn(final String title) {
+        this(title, null);
+    }
+
     public ExtCircleProgressColumn(final String name, final ExtTableModel<E> extModel) {
         super(name, extModel);
         this.determinatedRenderer = new CircledProgressBar() {
@@ -126,7 +127,7 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
         // });
         this.renderer = this.determinatedRenderer;
         this.defaultBorder = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1), this.determinatedRenderer.getBorder());
-        setRowSorter(new ExtDefaultRowSorter<E>() {
+        this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
             public int compare(final E o1, final E o2) {
@@ -134,7 +135,7 @@ abstract public class ExtCircleProgressColumn<E> extends ExtColumn<E> {
                 final double v2 = (double) ExtCircleProgressColumn.this.getValue(o2) / ExtCircleProgressColumn.this.getMax(o2);
 
                 if (v1 == v2) { return 0; }
-                if (getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
+                if (this.getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
                     return v1 > v2 ? -1 : 1;
                 } else {
                     return v2 > v1 ? -1 : 1;

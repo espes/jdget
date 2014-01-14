@@ -83,7 +83,7 @@ public class CrossSystem {
         }
 
         public OSFamily getFamily() {
-            return family;
+            return this.family;
         }
     }
 
@@ -95,80 +95,80 @@ public class CrossSystem {
         WINDOWS
     }
 
-    private static final boolean __HEADLESS = java.awt.GraphicsEnvironment.isHeadless();
+    private static final boolean   __HEADLESS                = java.awt.GraphicsEnvironment.isHeadless();
 
-    private static String[]       BROWSER_COMMANDLINE = null;
+    private static String[]        BROWSER_COMMANDLINE       = null;
 
-    private static DesktopSupport DESKTOP_SUPPORT     = null;
+    private static DesktopSupport  DESKTOP_SUPPORT           = null;
 
-    private static String[]       FILE_COMMANDLINE    = null;
-     private static String         JAVAINT             = null;
-   
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_BACKSPACE_CTRL = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_COPY         = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_CUT          = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-    /**
-     * 
-     */
-    private static final KeyStroke KEY_STROKE_DELETE       = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+    private static String[]        FILE_COMMANDLINE          = null;
+    private static String          JAVAINT                   = null;
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_DOWN         = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
+    private static final KeyStroke KEY_STROKE_BACKSPACE_CTRL = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final KeyStroke KEY_STROKE_COPY           = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final KeyStroke KEY_STROKE_CUT            = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    /**
+     * 
+     */
+    private static final KeyStroke KEY_STROKE_DELETE         = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_ESCAPE       = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+    private static final KeyStroke KEY_STROKE_DOWN           = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_FORCE_DELETE = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, ActionEvent.SHIFT_MASK);
+    private static final KeyStroke KEY_STROKE_ESCAPE         = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_PASTE        = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_FORCE_DELETE   = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, ActionEvent.SHIFT_MASK);
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_SEARCH       = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_PASTE          = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_SELECT_ALL   = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke KEY_STROKE_SEARCH         = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
     /**
      * 
      */
-    private static final KeyStroke KEY_STROKE_UP           = __HEADLESS?null:KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
+    private static final KeyStroke KEY_STROKE_SELECT_ALL     = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+
+    /**
+     * 
+     */
+    private static final KeyStroke KEY_STROKE_UP             = CrossSystem.__HEADLESS ? null : KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
 
     /**
      * Cache to store the Mime Class in
      */
-    private static final Mime     MIME;
+    private static final Mime      MIME;
 
-    public static OperatingSystem OS;
+    public static OperatingSystem  OS;
 
     /**
      * Cache to store the OS string in
      */
-    private final static String   OS_STRING;
+    private final static String    OS_STRING;
 
-    private static Boolean        OS64BIT             = null;
+    private static Boolean         OS64BIT                   = null;
 
     static {
         /* Init OS_ID */
@@ -272,8 +272,8 @@ public class CrossSystem {
      * @return
      */
     public static KeyStroke getDeleteShortcut() {
-        if (CrossSystem.isMac()) { return KEY_STROKE_BACKSPACE_CTRL; }
-        return KEY_STROKE_DELETE;
+        if (CrossSystem.isMac()) { return CrossSystem.KEY_STROKE_BACKSPACE_CTRL; }
+        return CrossSystem.KEY_STROKE_DELETE;
     }
 
     public static String[] getEditor(final String extension) throws DialogCanceledException, DialogClosedException, StorageException {
@@ -519,7 +519,6 @@ public class CrossSystem {
         if ((CrossSystem.isWindows() || CrossSystem.isOS2()) && path.matches(".:/.*")) { return true; }
         if ((CrossSystem.isWindows() || CrossSystem.isOS2()) && path.matches(".:\\\\.*")) { return true; }
         if (!CrossSystem.isWindows() && !CrossSystem.isOS2() && path.startsWith("/")) { return true; }
-
         return false;
     }
 
@@ -528,7 +527,7 @@ public class CrossSystem {
      * @return
      */
     public static boolean isClearSelectionTrigger(final KeyStroke ks) {
-        return ks == KEY_STROKE_ESCAPE;
+        return ks == CrossSystem.KEY_STROKE_ESCAPE;
     }
 
     /**
@@ -540,17 +539,14 @@ public class CrossSystem {
      */
 
     public static boolean isContextMenuTrigger(final MouseEvent e) {
-        if(CrossSystem.isMac()){
-            if( e.getButton()==MouseEvent.BUTTON1&&e.isControlDown()) {
-                return true;
-            }
-            
-        }
-
-            return e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3;
-
+        if (CrossSystem.isMac()) {
+            if (e.getButton() == MouseEvent.BUTTON1 && e.isControlDown()) { return true; }
 
         }
+
+        return e.isPopupTrigger() || e.getButton() == MouseEvent.BUTTON3;
+
+    }
 
     /**
      * @param ks
@@ -558,7 +554,7 @@ public class CrossSystem {
      */
     public static boolean isCopySelectionTrigger(final KeyStroke ks) {
 
-        return ks == KEY_STROKE_COPY;
+        return ks == CrossSystem.KEY_STROKE_COPY;
     }
 
     /**
@@ -567,7 +563,7 @@ public class CrossSystem {
      */
     public static boolean isCutSelectionTrigger(final KeyStroke ks) {
         // TODO Auto-generated method stub
-        return ks == KEY_STROKE_CUT;
+        return ks == CrossSystem.KEY_STROKE_CUT;
     }
 
     /**
@@ -575,11 +571,11 @@ public class CrossSystem {
      * @return
      */
     public static boolean isDeleteFinalSelectionTrigger(final KeyStroke ks) {
-        if (isMac()) {
+        if (CrossSystem.isMac()) {
 
             if (ks == KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() | ActionEvent.SHIFT_MASK)) { return true; }
         }
-        return ks == KEY_STROKE_FORCE_DELETE;
+        return ks == CrossSystem.KEY_STROKE_FORCE_DELETE;
     }
 
     /**
@@ -587,22 +583,25 @@ public class CrossSystem {
      * @return
      */
     public static boolean isDeleteSelectionTrigger(final KeyEvent e) {
-        return isDeleteSelectionTrigger(KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers()));
+        return CrossSystem.isDeleteSelectionTrigger(KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers()));
     }
+
     /**
      * @param ks
      * @return
      */
     public static boolean isDeleteSelectionTrigger(final KeyStroke ks) {
-        if (isMac()) {
+        if (CrossSystem.isMac()) {
 
-            if (ks == KEY_STROKE_BACKSPACE_CTRL) { return true; }
+            if (ks == CrossSystem.KEY_STROKE_BACKSPACE_CTRL) { return true; }
         }
-        return ks == KEY_STROKE_DELETE;
+        return ks == CrossSystem.KEY_STROKE_DELETE;
     }
+
     public static boolean isLinux() {
         return CrossSystem.OS.getFamily() == OSFamily.LINUX;
     }
+
     /**
      * Returns true if the OS is a MAC System
      * 
@@ -612,14 +611,16 @@ public class CrossSystem {
     public static boolean isMac() {
         return CrossSystem.OS.getFamily() == OSFamily.MAC;
     }
+
     /**
      * returns true in case of "open an URL in a browser" is supported
      * 
      * @return
      */
     public static boolean isOpenBrowserSupported() {
-        return CrossSystem.DESKTOP_SUPPORT.isBrowseURLSupported() || (CrossSystem.getBrowserCommandLine() != null && CrossSystem.getBrowserCommandLine().length > 0);
+        return CrossSystem.DESKTOP_SUPPORT.isBrowseURLSupported() || CrossSystem.getBrowserCommandLine() != null && CrossSystem.getBrowserCommandLine().length > 0;
     }
+
     /**
      * returns true in case of "open a File" is supported
      * 
@@ -628,32 +629,36 @@ public class CrossSystem {
     public static boolean isOpenFileSupported() {
         return CrossSystem.DESKTOP_SUPPORT.isOpenFileSupported();
     }
+
     public static boolean isOS2() {
         return CrossSystem.OS.getFamily() == OSFamily.OS2;
     }
+
     /**
      * @param ks
      * @return
      */
     public static boolean isPasteSelectionTrigger(final KeyStroke ks) {
         // TODO Auto-generated method stub
-        return ks == KEY_STROKE_PASTE;
+        return ks == CrossSystem.KEY_STROKE_PASTE;
     }
+
     /**
      * @param ks
      * @return
      */
     public static boolean isSearchTrigger(final KeyStroke ks) {
         // TODO Auto-generated method stub
-        return ks == KEY_STROKE_SEARCH;
+        return ks == CrossSystem.KEY_STROKE_SEARCH;
     }
+
     /**
      * @param ks
      * @return
      */
     public static boolean isSelectionAllTrigger(final KeyStroke ks) {
         // TODO Auto-generated method stub
-        return ks == KEY_STROKE_SELECT_ALL;
+        return ks == CrossSystem.KEY_STROKE_SELECT_ALL;
     }
 
     /**
@@ -662,10 +667,8 @@ public class CrossSystem {
      */
     public static boolean isSelectionDownTrigger(final KeyStroke ks) {
         // TODO Auto-generated method stub
-        return ks == KEY_STROKE_DOWN;
+        return ks == CrossSystem.KEY_STROKE_DOWN;
     }
-
-
 
     /**
      * @param ks
@@ -673,7 +676,7 @@ public class CrossSystem {
      */
     public static boolean isSelectionUpTrigger(final KeyStroke ks) {
         // TODO Auto-generated method stub
-        return ks == KEY_STROKE_UP;
+        return ks == CrossSystem.KEY_STROKE_UP;
     }
 
     /**
@@ -840,7 +843,7 @@ public class CrossSystem {
 
             ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
                 {
-                    setHookPriority(Integer.MIN_VALUE);
+                    this.setHookPriority(Integer.MIN_VALUE);
                 }
 
                 @Override
