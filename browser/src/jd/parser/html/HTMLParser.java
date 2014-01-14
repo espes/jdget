@@ -649,25 +649,31 @@ public class HTMLParser {
     private static HtmlParserCharSequence correctURL(HtmlParserCharSequence input) {
         final int indexofa = input.indexOf("&");
         if (indexofa > 0 && input.indexOf("?") == -1) {
-            /* this can happen when we found a link as urlparameter */
-            /**
-             * eg test.com/?u=http%3A%2F%2Fwww...&bla=
-             * 
-             * then we get
-             * 
-             * http://www...&bla
-             * 
-             * we cut of the invalid urlParameter &bla
-             * 
-             * check if we really have &x=y format following
-             */
-            final HtmlParserCharSequence check = input.subSequence(indexofa);
-            final int indexChecka = check.indexOf("=");
-            if (indexChecka > 0) {
-                final HtmlParserCharSequence check2 = check.subSequence(1, indexChecka);
-                if (check2.matches(Pattern.compile("[a-zA-Z0-9%]+"))) {
-                    /* we have found &x=y pattern, so it is okay to cut it off */
-                    input = input.subSequence(0, indexofa);
+            final int indexofb = input.indexOf("#");
+            if (indexofb < 0 || indexofb > indexofa) {
+                /**
+                 * this can happen when we found a link as urlparameter
+                 * 
+                 * eg test.com/?u=http%3A%2F%2Fwww...&bla=
+                 * 
+                 * then we get
+                 * 
+                 * http://www...&bla
+                 * 
+                 * we cut of the invalid urlParameter &bla
+                 * 
+                 * check if we really have &x=y format following
+                 * 
+                 * also pay attention about anchor
+                 */
+                final HtmlParserCharSequence check = input.subSequence(indexofa);
+                final int indexChecka = check.indexOf("=");
+                if (indexChecka > 0) {
+                    final HtmlParserCharSequence check2 = check.subSequence(1, indexChecka);
+                    if (check2.matches(Pattern.compile("[a-zA-Z0-9%]+"))) {
+                        /* we have found &x=y pattern, so it is okay to cut it off */
+                        input = input.subSequence(0, indexofa);
+                    }
                 }
             }
         }
