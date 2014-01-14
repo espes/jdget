@@ -140,9 +140,10 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
         iconUp = createDropUpIcon();
         return this.rendererPanel = new RendererPanel() {
             public Icon getIcon() {
-                if (popup == null || !popup.isVisible()) { 
+                if (popup == null || !popup.isVisible()) {
                     //
-                    return iconDown; }
+                    return iconDown;
+                }
                 return super.getIcon();
             }
         };
@@ -150,7 +151,7 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
 
     public ExtComboColumn(final String name, final ExtTableModel<E> table, final ComboBoxModel<ModelType> model) {
         super(name, table);
-     
+
         this.dataModel = model;
 
     }
@@ -259,22 +260,7 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
         try {
             final ModelType selected = getSelectedItem(value);
             final ComboBoxModel<ModelType> dm = updateModel(dataModel, value);
-            for (int i = 0; i < dm.getSize(); i++) {
-                final ModelType o = dm.getElementAt(i);
-                final JComponent bt = getPopupElement(o, selected.equals(o));
-                if (bt instanceof AbstractButton) {
-                    ((AbstractButton) bt).addActionListener(new ActionListener() {
-
-                        @Override
-                        public void actionPerformed(final ActionEvent e) {
-                            setValue(o, value);
-                            popup.setVisible(false);
-
-                        }
-                    });
-                }
-                popup.add(bt);
-            }
+            fillPopup(popup, value, selected, dm);
 
             final Rectangle bounds = getModel().getTable().getCellRect(row, getIndex(), true);
             final Dimension pref = popup.getPreferredSize();
@@ -285,6 +271,26 @@ public abstract class ExtComboColumn<E, ModelType> extends ExtTextColumn<E> impl
             e1.printStackTrace();
         }
         return false;
+    }
+
+    protected void fillPopup(final JPopupMenu popup, final E value, final ModelType selected, final ComboBoxModel<ModelType> dm) {
+
+        for (int i = 0; i < dm.getSize(); i++) {
+            final ModelType o = dm.getElementAt(i);
+            final JComponent bt = getPopupElement(o, selected.equals(o));
+            if (bt instanceof AbstractButton) {
+                ((AbstractButton) bt).addActionListener(new ActionListener() {
+
+                    @Override
+                    public void actionPerformed(final ActionEvent e) {
+                        setValue(o, value);
+                        popup.setVisible(false);
+
+                    }
+                });
+            }
+            popup.add(bt);
+        }
     }
 
     /**

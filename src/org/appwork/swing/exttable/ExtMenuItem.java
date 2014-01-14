@@ -8,12 +8,12 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenuItem;
 
 /**
  * This is an extended JCheckBoxMenuItem
  */
-public class ExtCheckBoxMenuItem extends JCheckBoxMenuItem {
+public class ExtMenuItem extends JMenuItem {
 
     /**
      * 
@@ -26,7 +26,7 @@ public class ExtCheckBoxMenuItem extends JCheckBoxMenuItem {
      * 
      * @param action
      */
-    public ExtCheckBoxMenuItem(final AbstractAction action) {
+    public ExtMenuItem(final AbstractAction action) {
         super(action);
     }
 
@@ -35,7 +35,7 @@ public class ExtCheckBoxMenuItem extends JCheckBoxMenuItem {
      * 
      * @param name
      */
-    public ExtCheckBoxMenuItem(final String name) {
+    public ExtMenuItem(final String name) {
         super(name);
     }
     /**
@@ -44,8 +44,8 @@ public class ExtCheckBoxMenuItem extends JCheckBoxMenuItem {
     private boolean hideOnClick = true;
 
     /**
-     * @return the {@link ExtCheckBoxMenuItem#hideOnClick}
-     * @see ExtCheckBoxMenuItem#hideOnClick
+     * @return the {@link ExtMenuItem#hideOnClick}
+     * @see ExtMenuItem#hideOnClick
      */
     public boolean isHideOnClick() {
         return hideOnClick;
@@ -75,8 +75,8 @@ public class ExtCheckBoxMenuItem extends JCheckBoxMenuItem {
 
     /**
      * @param hideOnClick
-     *            the {@link ExtCheckBoxMenuItem#hideOnClick} to set
-     * @see ExtCheckBoxMenuItem#hideOnClick
+     *            the {@link ExtMenuItem#hideOnClick} to set
+     * @see ExtMenuItem#hideOnClick
      */
     public void setHideOnClick(final boolean hideOnClick) {
         this.hideOnClick = hideOnClick;
