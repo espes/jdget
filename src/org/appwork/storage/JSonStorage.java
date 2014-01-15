@@ -468,7 +468,6 @@ public class JSonStorage {
      */
     public static String serializeToJson(final Object list) throws StorageException {
         try {
-        
             return JSonStorage.JSON_MAPPER.objectToString(list);
         } catch (final Exception e) {
             throw new StorageException(e);
@@ -519,8 +518,6 @@ public class JSonStorage {
     public static String toString(final Object list) {
         try {
 
-         
-
             return JSonStorage.JSON_MAPPER.objectToString(list);
         } catch (final Throwable e) {
             e.printStackTrace();
@@ -536,6 +533,5 @@ public class JSonStorage {
             }
         }
     }
-
 
 }

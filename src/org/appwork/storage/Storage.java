@@ -1,10 +1,7 @@
 package org.appwork.storage;
 
-import org.appwork.utils.event.DefaultEventSender;
 
 public abstract class Storage {
-
-    private DefaultEventSender<StorageEvent<?>> eventSender;
 
     public Storage() {
     }
@@ -20,23 +17,7 @@ public abstract class Storage {
 
     abstract public <E> E get(String key, E def) throws StorageException;
 
-    /**
-     * @return the eventSender
-     */
-    public DefaultEventSender<StorageEvent<?>> getEventSender() {
-        if (this.eventSender != null) { return this.eventSender; }
-        synchronized (this) {
-            if (this.eventSender != null) { return this.eventSender; }
-            this.eventSender = new DefaultEventSender<StorageEvent<?>>();
-        }
-        return this.eventSender;
-    }
-
     abstract public String getID();
-
-    public boolean hasEventSender() {
-        return this.eventSender != null;
-    }
 
     /**
      * @param key
