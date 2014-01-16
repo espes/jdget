@@ -554,7 +554,6 @@ public class RemoteAPI implements HttpRequestHandler {
      */
     protected void validateRequest(final HttpRequest request) throws BasicRemoteAPIException {
         // TODO Auto-generated method stub
-        System.out.println(1);
     }
 
     /**

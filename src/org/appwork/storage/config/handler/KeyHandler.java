@@ -144,13 +144,12 @@ public abstract class KeyHandler<RawClass> {
      * @param object
      */
     protected void fireEvent(final Types type, final KeyHandler<?> keyHandler, final Object parameter) {
-      if(storageHandler!=null) {
-        this.storageHandler.fireEvent(type, keyHandler, parameter);
-    }
-        if (this.eventSender != null) {
-            this.eventSender.fireEvent(new ConfigEvent(type, this, parameter));
+        if (this.storageHandler != null) {
+            this.storageHandler.fireEvent(type, keyHandler, parameter);
         }
-
+        if (this.hasEventListener()) {
+            this.getEventSender().fireEvent(new ConfigEvent(type, this, parameter));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -248,14 +247,22 @@ public abstract class KeyHandler<RawClass> {
      * @return
      */
     public Type getRawType() {
-        if (getter != null) { return getter.getRawType(); }
-        return setter.getRawType();
+        if (this.getter != null) { return this.getter.getRawType(); }
+        return this.setter.getRawType();
 
+    }
+
+    public MethodHandler getSetter() {
+        return this.setter;
+    }
+
+    public StorageHandler<?> getStorageHandler() {
+        return this.storageHandler;
     }
 
     public String getTypeString() {
         Type ret = null;
-        if (getter != null) {
+        if (this.getter != null) {
             ret = this.getter.getMethod().getGenericReturnType();
         } else {
             ret = this.setter.getMethod().getGenericParameterTypes()[0];
@@ -265,14 +272,6 @@ public abstract class KeyHandler<RawClass> {
         } else {
             return ret.toString();
         }
-    }
-
-    public MethodHandler getSetter() {
-        return this.setter;
-    }
-
-    public StorageHandler<?> getStorageHandler() {
-        return this.storageHandler;
     }
 
     public RawClass getValue() {
@@ -294,18 +293,18 @@ public abstract class KeyHandler<RawClass> {
         // default value
 
         if (this.backwardsCompatibilityLookupKeys != null) {
-            for (final String key : backwardsCompatibilityLookupKeys) {
-                if (primitiveStorage.hasProperty(key)) {
+            for (final String key : this.backwardsCompatibilityLookupKeys) {
+                if (this.primitiveStorage.hasProperty(key)) {
 
-                    final boolean apv = primitiveStorage.isAutoPutValues();
+                    final boolean apv = this.primitiveStorage.isAutoPutValues();
                     try {
                         if (!apv) {
-                            primitiveStorage.setAutoPutValues(true);
+                            this.primitiveStorage.setAutoPutValues(true);
                         }
-                        return this.primitiveStorage.get(this.getKey(), primitiveStorage.get(key, defaultValue));
+                        return this.primitiveStorage.get(this.getKey(), this.primitiveStorage.get(key, this.defaultValue));
                     } finally {
                         if (!apv) {
-                            primitiveStorage.setAutoPutValues(apv);
+                            this.primitiveStorage.setAutoPutValues(apv);
                         }
                     }
 
@@ -313,6 +312,10 @@ public abstract class KeyHandler<RawClass> {
             }
         }
         return this.primitiveStorage.get(this.getKey(), this.getDefaultValue());
+    }
+
+    public synchronized boolean hasEventListener() {
+        return this.eventSender != null && this.eventSender.hasListener();
     }
 
     /**
@@ -378,9 +381,9 @@ public abstract class KeyHandler<RawClass> {
             }, null));
         }
 
-        final LookUpKeys lookups = getAnnotation(LookUpKeys.class);
+        final LookUpKeys lookups = this.getAnnotation(LookUpKeys.class);
         if (lookups != null) {
-            backwardsCompatibilityLookupKeys = lookups.value();
+            this.backwardsCompatibilityLookupKeys = lookups.value();
         }
 
     }
@@ -467,8 +470,8 @@ public abstract class KeyHandler<RawClass> {
             } else if (oldValue != null && newValue == null) {
                 /* new is null, but old is not */
                 changed = true;
-           
-            } else if (!Clazz.isPrimitive(this.getRawClass())&&!Clazz.isEnum(this.getRawClass()) && this.getRawClass() != String.class) {
+
+            } else if (!Clazz.isPrimitive(this.getRawClass()) && !Clazz.isEnum(this.getRawClass()) && this.getRawClass() != String.class) {
                 /* no primitive, we cannot detect changes 100% */
                 changed = true;
             } else if (!newValue.equals(oldValue)) {

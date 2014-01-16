@@ -100,7 +100,7 @@ public class JsonKeyValueStorage extends Storage {
     @Override
     public void clear() throws StorageException {
         this.map.clear();
-        this.setMark.incrementAndGet();
+        this.requestSave();
     }
 
     @Override
@@ -218,7 +218,7 @@ public class JsonKeyValueStorage extends Storage {
             /* not possible to save null values in concurrenthashmap */
             ret = this.map.remove(key);
         }
-        this.setMark.incrementAndGet();
+        this.requestSave();
         return ret;
     }
 
@@ -317,10 +317,14 @@ public class JsonKeyValueStorage extends Storage {
         if (key == null) { throw new WTFException("key ==null is forbidden!"); }
         if (this.map.containsKey(key)) {
             final Object ret = this.map.remove(key);
-            this.setMark.incrementAndGet();
+            this.requestSave();
             return ret;
         }
         return null;
+    }
+
+    public void requestSave() {
+        this.setMark.incrementAndGet();
     }
 
     @Override
