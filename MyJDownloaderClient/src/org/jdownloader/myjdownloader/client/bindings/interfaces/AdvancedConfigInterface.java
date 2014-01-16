@@ -4,11 +4,14 @@ import java.util.ArrayList;
 
 import org.jdownloader.myjdownloader.client.bindings.AdvancedConfigEntryDataStorable;
 import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
+import org.jdownloader.myjdownloader.client.bindings.EnumOptionStorable;
 
 @ClientApiNameSpace(AdvancedConfigInterface.NAMESPACE)
-public interface AdvancedConfigInterface extends Linkable{
+public interface AdvancedConfigInterface extends Linkable {
 
     public static final String NAMESPACE = "config";
+
+    public ArrayList<EnumOptionStorable> listEnum(String type);
 
     public ArrayList<AdvancedConfigEntryDataStorable> list();
 
