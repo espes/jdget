@@ -43,7 +43,6 @@ public class PackageQuery extends AbstractJsonData {
 
     public void setBytesTotal(boolean size) {
         this.bytesTotal = size;
-        
     }
 
     public boolean isChildCount() {

@@ -1,6 +1,6 @@
 package org.jdownloader.myjdownloader.client.bindings;
 
-public interface AccountStorableInterface extends Storable {
+public interface AccountStorableInterface  {
 
 	public abstract String getErrorType();
 
