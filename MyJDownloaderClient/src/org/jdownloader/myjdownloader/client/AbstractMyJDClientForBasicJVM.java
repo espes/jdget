@@ -34,6 +34,7 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
         return RID_COUNTER.incrementAndGet();
     }
 
+    
     public <T> T callAction(final String deviceID, final String action, final Class<T> returnType, final Object... args) throws MyJDownloaderException, APIException {
         return (T) super.callAction(deviceID, action, returnType, args);
     }

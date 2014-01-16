@@ -1,7 +1,4 @@
 package org.jdownloader.myjdownloader.client.eventsender;
-
-
-
 /**
  * Abstract Eventclass. All Events should be derived from this class to asuire
  * compatibility to the EventSystem.
@@ -23,7 +20,6 @@ public abstract class DefaultEvent {
      */
     public DefaultEvent(final Object caller) {
         this.caller = caller;
-
     }
 
     /**
@@ -33,5 +29,4 @@ public abstract class DefaultEvent {
     public Object getCaller() {
         return caller;
     }
-
 }

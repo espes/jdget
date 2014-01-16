@@ -1,5 +1,7 @@
 package org.jdownloader.myjdownloader.client.bindings.interfaces;
 
-public interface Linkable {
+import com.google.gwt.user.client.rpc.RemoteService;
+
+public interface Linkable extends RemoteService {
 
 }

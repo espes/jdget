@@ -2,7 +2,7 @@ package org.jdownloader.myjdownloader.client.bindings;
 
 import org.jdownloader.myjdownloader.client.json.AbstractJsonData;
 
-public class AccountStorable extends AbstractJsonData {
+public class AccountStorable extends AbstractJsonData implements AccountStorableInterface {
 
     private long    UUID;
     private boolean enabled;
@@ -14,19 +14,35 @@ public class AccountStorable extends AbstractJsonData {
     private String  username;
     private String  errorType;
 
-    public String getErrorType() {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#getErrorType()
+	 */
+    @Override
+	public String getErrorType() {
         return errorType;
     }
 
-    public void setErrorType(final String errorType) {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#setErrorType(java.lang.String)
+	 */
+    @Override
+	public void setErrorType(final String errorType) {
         this.errorType = errorType;
     }
 
-    public String getErrorString() {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#getErrorString()
+	 */
+    @Override
+	public String getErrorString() {
         return errorString;
     }
 
-    public void setErrorString(final String errorString) {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#setErrorString(java.lang.String)
+	 */
+    @Override
+	public void setErrorString(final String errorString) {
         this.errorString = errorString;
     }
 
@@ -40,67 +56,131 @@ public class AccountStorable extends AbstractJsonData {
     protected AccountStorable(/* Storable */) {
     }
 
-    public String getHostname() {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#getHostname()
+	 */
+    @Override
+	public String getHostname() {
         return hostname;
     }
 
-    public long getTrafficLeft() {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#getTrafficLeft()
+	 */
+    @Override
+	public long getTrafficLeft() {
         return trafficLeft;
     }
 
-    public long getTrafficMax() {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#getTrafficMax()
+	 */
+    @Override
+	public long getTrafficMax() {
         return trafficMax;
     }
 
-    public String getUsername() {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#getUsername()
+	 */
+    @Override
+	public String getUsername() {
         return username;
     }
 
-    public long getUUID() {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#getUUID()
+	 */
+    @Override
+	public long getUUID() {
         return UUID;
     }
 
-    public long getValidUntil() {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#getValidUntil()
+	 */
+    @Override
+	public long getValidUntil() {
         return validUntil;
     }
 
-    public boolean isEnabled() {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#isEnabled()
+	 */
+    @Override
+	public boolean isEnabled() {
         return enabled;
     }
 
-    public boolean isValid() {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#isValid()
+	 */
+    @Override
+	public boolean isValid() {
         return valid;
     }
 
-    public void setEnabled(final boolean enabled) {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#setEnabled(boolean)
+	 */
+    @Override
+	public void setEnabled(final boolean enabled) {
         this.enabled = enabled;
     }
 
-    public void setHostname(final String hostname) {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#setHostname(java.lang.String)
+	 */
+    @Override
+	public void setHostname(final String hostname) {
         this.hostname = hostname;
     }
 
-    public void setTrafficLeft(final long trafficLeft) {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#setTrafficLeft(long)
+	 */
+    @Override
+	public void setTrafficLeft(final long trafficLeft) {
         this.trafficLeft = trafficLeft;
     }
 
-    public void setTrafficMax(final long trafficMax) {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#setTrafficMax(long)
+	 */
+    @Override
+	public void setTrafficMax(final long trafficMax) {
         this.trafficMax = trafficMax;
     }
 
-    public void setUsername(final String username) {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#setUsername(java.lang.String)
+	 */
+    @Override
+	public void setUsername(final String username) {
         this.username = username;
     }
 
-    public void setUUID(final long uUID) {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#setUUID(long)
+	 */
+    @Override
+	public void setUUID(final long uUID) {
         UUID = uUID;
     }
 
-    public void setValid(final boolean valid) {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#setValid(boolean)
+	 */
+    @Override
+	public void setValid(final boolean valid) {
         this.valid = valid;
     }
 
-    public void setValidUntil(final long validUntil) {
+    /* (non-Javadoc)
+	 * @see org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface#setValidUntil(long)
+	 */
+    @Override
+	public void setValidUntil(final long validUntil) {
         this.validUntil = validUntil;
     }
 
