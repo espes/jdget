@@ -3,7 +3,7 @@ package org.jdownloader.myjdownloader.client.bindings.interfaces;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.jdownloader.myjdownloader.client.bindings.AccountQueryInterface;
+import org.jdownloader.myjdownloader.client.bindings.AccountQuery;
 import org.jdownloader.myjdownloader.client.bindings.AccountStorable;
 import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
 
@@ -13,7 +13,7 @@ public interface AccountInterface extends Linkable {
 
     public boolean addAccount(String premiumHoster, String username, String password);
 
-    public ArrayList<AccountStorable> listAccounts(AccountQueryInterface query);
+    public ArrayList<AccountStorable> listAccounts(AccountQuery query);
 
     public ArrayList<String> listPremiumHoster();
 
