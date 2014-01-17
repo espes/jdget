@@ -83,7 +83,7 @@ public class CrossSystem {
         }
 
         public OSFamily getFamily() {
-            return this.family;
+            return family;
         }
     }
 
@@ -843,7 +843,7 @@ public class CrossSystem {
 
             ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
                 {
-                    this.setHookPriority(Integer.MIN_VALUE);
+                    setHookPriority(Integer.MIN_VALUE);
                 }
 
                 @Override
@@ -913,4 +913,17 @@ public class CrossSystem {
         return new String[] { name, extension };
     }
 
+    /**
+     * @return e.g. 10006004 for 10.6.4
+     */
+    public static long getMacOSVersion() {
+        final String str = System.getProperty("os.version");
+        long l = 0;
+        long faktor = 1000000;
+        for (final String s : str.split("\\.")) {
+            l += Integer.parseInt(s) + faktor;
+            faktor /= 1000;
+        }
+        return l;
+    }
 }

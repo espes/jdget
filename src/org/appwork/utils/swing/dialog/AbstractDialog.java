@@ -87,7 +87,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                                                                                       @Override
                                                                                       public Window findDialogOwner(final AbstractDialog<?> dialogModel, final WindowStack windowStack) {
                                                                                           final Window ret = windowStack.size() == 0 ? null : windowStack.get(windowStack.size() - 1);
-                                                                                       
+
                                                                                           return ret;
                                                                                       }
 
@@ -153,7 +153,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         try {
             AbstractDialog.SESSION_DONTSHOW_AGAIN.clear();
             JSonStorage.getPlainStorage("Dialogs").clear();
-  
+
         } catch (final Exception e) {
             Log.exception(e);
         }
@@ -208,7 +208,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected int                                          flagMask;
 
-    private Icon                                      icon;
+    private Icon                                           icon;
 
     protected JLabel                                       iconLabel;
 
@@ -218,7 +218,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected JButton                                      okButton;
 
-    protected final String                                   okOption;
+    protected final String                                 okOption;
 
     private Point                                          orgLocationOnScreen;
 
@@ -319,7 +319,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                 @Override
                 public void focusGained(final FocusEvent e) {
-                  
+
                     final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
                     if (root != null && e.getComponent() instanceof JButton) {
                         root.setDefaultButton((JButton) e.getComponent());
@@ -328,7 +328,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
                 @Override
                 public void focusLost(final FocusEvent e) {
-             
+
                     final JRootPane root = SwingUtilities.getRootPane(e.getComponent());
                     if (root != null) {
                         root.setDefaultButton(null);
@@ -434,6 +434,33 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             // this.setSize(this.getDesiredSize());
             // }
 
+            // some dialogs may have autowrapping textfields. these textfields
+            // need a few resizing rounds to find it's final dimension
+            getDialog().getContentPane().addComponentListener(new ComponentListener() {
+
+                @Override
+                public void componentShown(final ComponentEvent e) {
+                }
+
+                @Override
+                public void componentResized(final ComponentEvent e) {
+                    final Dimension size = getDialog().getSize();
+                    getDialog().pack();
+                    final Dimension after = getDialog().getSize();
+                    if (after.equals(size)) {
+                        // done. remove listener
+                        getDialog().getContentPane().removeComponentListener(this);
+                    }
+                }
+
+                @Override
+                public void componentMoved(final ComponentEvent e) {
+                }
+
+                @Override
+                public void componentHidden(final ComponentEvent e) {
+                }
+            });
             this.pack();
             if (this.dimensor != null) {
                 final Dimension ret = this.dimensor.getDimension(AbstractDialog.this);
@@ -444,6 +471,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             }// register an escape listener to cancel the dialog
             this.focusButton = focus;
             this.registerEscape();
+
             this.packed();
 
             Point loc = null;
@@ -503,7 +531,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 @Override
                 public void componentShown(final ComponentEvent e) {
                     AbstractDialog.this.orgLocationOnScreen = AbstractDialog.this.getDialog().getLocationOnScreen();
-                    
+
                 }
             });
             dialog = this.getDialog();
@@ -511,12 +539,12 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             dialog.addWindowFocusListener(this);
             windowStack = AbstractDialog.getWindowStackByRoot(this.getDesiredRootFrame());
             windowStack.add(dialog);
-            //System.out.println("Window Stack Before " + windowStack.size());
+            // System.out.println("Window Stack Before " + windowStack.size());
             for (final Window w : windowStack) {
                 if (w == null) {
-                    //System.out.println("Window null");
+                    // System.out.println("Window null");
                 } else {
-                    //System.out.println(w.getName() + " - " + w);
+                    // System.out.println(w.getName() + " - " + w);
                 }
             }
             this.setVisible(true);
@@ -550,12 +578,13 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                     final int i = windowStack.lastIndexOf(dialog);
                     if (i >= 0) {
                         windowStack.remove(i);
-                        //System.out.println("Window Stack After " + windowStack.size());
+                        // System.out.println("Window Stack After " +
+                        // windowStack.size());
                         for (final Window w : windowStack) {
                             if (w == null) {
-                                //System.out.println("Window null");
+                                // System.out.println("Window null");
                             } else {
-                                //System.out.println(w.getName() + " - " + w);
+                                // System.out.println(w.getName() + " - " + w);
                             }
                         }
                     }
@@ -677,12 +706,13 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 final int i = windowStack.lastIndexOf(AbstractDialog.this.getDialog());
                 if (i >= 0) {
                     windowStack.remove(i);
-                    //System.out.println("Window Stack After " + windowStack.size());
+                    // System.out.println("Window Stack After " +
+                    // windowStack.size());
                     for (final Window w : windowStack) {
                         if (w == null) {
-                            //System.out.println("Window null");
+                            // System.out.println("Window null");
                         } else {
-                            //System.out.println(w.getName() + " - " + w);
+                            // System.out.println(w.getName() + " - " + w);
                         }
                     }
 
@@ -811,7 +841,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         if (BinaryLogic.containsSome(rm, Dialog.RETURN_CLOSED)) { return CloseReason.CLOSE; }
         if (BinaryLogic.containsSome(rm, Dialog.RETURN_CANCEL)) { return CloseReason.CANCEL; }
         if (BinaryLogic.containsSome(rm, Dialog.RETURN_OK)) { return CloseReason.OK; }
-   
 
         throw new WTFException();
 
@@ -1005,7 +1034,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         try {
 
             final Dimension ret = new Dimension(Math.min(Toolkit.getDefaultToolkit().getScreenSize().width, w), Math.min(Toolkit.getDefaultToolkit().getScreenSize().height, h));
-         
+
             return ret;
         } catch (final Throwable e) {
             return pref;

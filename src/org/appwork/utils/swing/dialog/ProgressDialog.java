@@ -24,7 +24,6 @@ import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import javax.swing.text.JTextComponent;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -58,12 +57,13 @@ public class ProgressDialog extends AbstractDialog<Integer> {
     private final ProgressGetter getter;
     private final String         message;
 
-
     private Timer                updater;
     private long                 waitForTermination = 20000;
     protected Throwable          throwable          = null;
 
     private JLabel               lbl;
+
+    protected JTextPane          textField;
 
     /**
      * @param progressGetter
@@ -151,8 +151,8 @@ public class ProgressDialog extends AbstractDialog<Integer> {
         textField.setFocusable(false);
         textField.putClientProperty("Synthetica.opaque", Boolean.FALSE);
         textField.setCaretPosition(0);
-return textField;
-      
+        return textField;
+
     }
 
     /**
@@ -170,20 +170,20 @@ return textField;
     public JComponent layoutDialogContent() {
         getDialog().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         final JPanel p = new JPanel(new MigLayout("ins 0,wrap 2", "[][]", "[][]"));
- 
-         final JTextComponent textField = getTextfield();
-       
-         textField.setText(message);
+
+        textField = getTextfield();
+
+        textField.setText(message);
         if (BinaryLogic.containsAll(flagMask, Dialog.STYLE_LARGE)) {
 
             p.add(new JScrollPane(textField), "pushx,growx,spanx");
 
         } else {
-//avoids that the textcomponent's height is calculated too big
-            p.add(textField,"growx,pushx,spanx,wmin 350");
+            // avoids that the textcomponent's height is calculated too big
+            p.add(textField, "growx,pushx,spanx,wmin 350");
 
         }
- 
+
         final JProgressBar bar;
         p.add(bar = new JProgressBar(0, 100), "growx,pushx" + (isLabelEnabled() ? "" : ",spanx"));
         bar.setStringPainted(true);
@@ -200,26 +200,9 @@ return textField;
 
             public void actionPerformed(final ActionEvent e) {
                 if (getter != null) {
-                    final int prg = getter.getProgress();
-                    final String text = getter.getString();
-
-                    if (prg < 0) {
-                        bar.setIndeterminate(true);
-
-                    } else {
-                        bar.setIndeterminate(false);
-                        bar.setValue(prg);
-
-                    }
-                    if (text == null) {
-                        bar.setStringPainted(false);
-                    } else {
-                        bar.setStringPainted(true);
-                        bar.setString(text);
-                    }
-                  if(lbl!=null) {
-                    lbl.setText(getter.getLabelString());
-                }
+                    final int prg = updateProgress(bar, getter);
+                    updateText(bar, getter);
+                    updateLabel();
                     if (prg >= 100) {
                         updater.stop();
                         ProgressDialog.this.dispose();
@@ -272,6 +255,36 @@ return textField;
 
     public void setWaitForTermination(final long waitForTermination) {
         this.waitForTermination = waitForTermination;
+    }
+
+    protected void updateText(final JProgressBar bar, final ProgressGetter getter) {
+        final String text = getter.getString();
+        if (text == null) {
+            bar.setStringPainted(false);
+        } else {
+            bar.setStringPainted(true);
+            bar.setString(text);
+        }
+    }
+
+    protected int updateProgress(final JProgressBar bar, final ProgressGetter getter) {
+        final int prg = getter.getProgress();
+
+        if (prg < 0) {
+            bar.setIndeterminate(true);
+
+        } else {
+            bar.setIndeterminate(false);
+            bar.setValue(prg);
+
+        }
+        return prg;
+    }
+
+    protected void updateLabel() {
+        if (lbl != null) {
+            lbl.setText(getter.getLabelString());
+        }
     }
 
 }
