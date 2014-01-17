@@ -40,7 +40,7 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
     @SuppressWarnings("unchecked")
     @Override
     protected Class<? extends Annotation>[] getAllowedAnnotations() {
-        return (Class<? extends Annotation>[]) new Class<?>[] {LookUpKeys.class,SpinnerValidator.class};
+        return (Class<? extends Annotation>[]) new Class<?>[] { LookUpKeys.class, SpinnerValidator.class };
     }
 
     @Override
@@ -51,7 +51,7 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
 
     @Override
     protected void initDefaults() throws Throwable {
-        setDefaultValue(Integer.valueOf(0));
+        this.setDefaultValue(Integer.valueOf(0));
     }
 
     /*
@@ -61,12 +61,10 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
      */
     @Override
     protected void initHandler() {
-
-        validator = this.getAnnotation(SpinnerValidator.class);
-        if (validator != null) {
-            min = (int) validator.min();
-            max = (int) validator.max();
-
+        this.validator = this.getAnnotation(SpinnerValidator.class);
+        if (this.validator != null) {
+            this.min = (int) this.validator.min();
+            this.max = (int) this.validator.max();
         }
     }
 
@@ -77,8 +75,7 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
      */
     @Override
     protected void putValue(final Integer object) {
-        storageHandler.putPrimitive(getKey(), object);
-
+        this.storageHandler.getPrimitiveStorage().put(this.getKey(), object);
     }
 
     /*
@@ -89,9 +86,9 @@ public class IntegerKeyHandler extends KeyHandler<Integer> {
      */
     @Override
     protected void validateValue(final Integer object) throws Throwable {
-        if (validator != null) {
+        if (this.validator != null) {
             final int v = object.intValue();
-            if (v < min || v > max) { throw new ValidationException(); }
+            if (v < this.min || v > this.max) { throw new ValidationException(); }
         }
 
     }

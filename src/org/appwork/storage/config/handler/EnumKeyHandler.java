@@ -38,6 +38,7 @@ public class EnumKeyHandler extends KeyHandler<Enum> {
         return DefaultEnumValue.class;
     }
 
+    @Override
     @SuppressWarnings("rawtypes")
     public Enum getDefaultValue() {
         return this.defaultValue;
@@ -79,7 +80,7 @@ public class EnumKeyHandler extends KeyHandler<Enum> {
      */
     @Override
     protected void putValue(final Enum object) {
-        this.primitiveStorage.put(this.getKey(), object);
+        this.storageHandler.getPrimitiveStorage().put(this.getKey(), object);
     }
 
     /*

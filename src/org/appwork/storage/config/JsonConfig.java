@@ -90,6 +90,7 @@ public class JsonConfig {
                 }
                 return ret;
             } catch (final RuntimeException e) {
+                e.printStackTrace();
                 Dialog.getInstance().showExceptionDialog(e.getClass().getSimpleName(), e.getMessage(), e);
                 throw e;
             } finally {

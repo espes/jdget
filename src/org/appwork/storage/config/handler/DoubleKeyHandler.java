@@ -56,7 +56,7 @@ public class DoubleKeyHandler extends KeyHandler<Double> {
      */
     @Override
     protected void putValue(final Double object) {
-        this.storageHandler.putPrimitive(this.getKey(), object);
+        this.storageHandler.getPrimitiveStorage().put(this.getKey(), object);
     }
 
     /*

@@ -37,14 +37,7 @@ public class JsonKeyValueStorage extends Storage {
     }
 
     public JsonKeyValueStorage(final File file, final boolean plain, final byte[] key) throws StorageException {
-        this.map = new ConcurrentHashMap<String, Object>(8, 0.9f, 1);
-        this.plain = plain;
-        this.file = file;
-        this.name = file.getName();
-        this.key = key;
-        final HashMap<String, Object> load = JSonStorage.restoreFrom(file, plain, key, new TypeRef<HashMap<String, Object>>() {
-        }, new HashMap<String, Object>());
-        this.putAll(load);
+        this(file, null, plain, key);
     }
 
     /**
@@ -179,6 +172,14 @@ public class JsonKeyValueStorage extends Storage {
         return (E) ret;
     }
 
+    /**
+     * @return the key
+     */
+    @Override
+    public byte[] getCryptKey() {
+        return this.key;
+    }
+
     public File getFile() {
         return this.file;
     }
@@ -191,13 +192,6 @@ public class JsonKeyValueStorage extends Storage {
     @Override
     public String getID() {
         return this.file.getAbsolutePath();
-    }
-
-    /**
-     * @return the key
-     */
-    public byte[] getKey() {
-        return this.key;
     }
 
     public String getName() {
@@ -225,6 +219,7 @@ public class JsonKeyValueStorage extends Storage {
     /**
      * @return the autoPutValues
      */
+    @Override
     public boolean isAutoPutValues() {
         return this.autoPutValues;
     }
@@ -341,6 +336,7 @@ public class JsonKeyValueStorage extends Storage {
      * @param autoPutValues
      *            the autoPutValues to set
      */
+    @Override
     public void setAutoPutValues(final boolean autoPutValues) {
         this.autoPutValues = autoPutValues;
     }

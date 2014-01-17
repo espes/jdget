@@ -83,7 +83,7 @@ public class CrossSystem {
         }
 
         public OSFamily getFamily() {
-            return family;
+            return this.family;
         }
     }
 
@@ -346,6 +346,23 @@ public class CrossSystem {
             CrossSystem.JAVAINT = javaBinary;
         }
         return CrossSystem.JAVAINT;
+    }
+
+    /**
+     * @return e.g. 10006004 for 10.6.4
+     */
+    public static long getMacOSVersion() {
+        if (CrossSystem.isMac()) {
+            final String str = System.getProperty("os.version");
+            long l = 0;
+            long faktor = 1000000;
+            for (final String s : str.split("\\.")) {
+                l += Integer.parseInt(s) + faktor;
+                faktor /= 1000;
+            }
+            return l;
+        }
+        return -1l;
     }
 
     /**
@@ -843,7 +860,7 @@ public class CrossSystem {
 
             ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
                 {
-                    setHookPriority(Integer.MIN_VALUE);
+                    this.setHookPriority(Integer.MIN_VALUE);
                 }
 
                 @Override
@@ -911,19 +928,5 @@ public class CrossSystem {
         final String extension = new Regex(filename, "\\.+([^\\.]*$)").getMatch(0);
         final String name = new Regex(filename, "(.*?)(\\.+[^\\.]*$|$)").getMatch(0);
         return new String[] { name, extension };
-    }
-
-    /**
-     * @return e.g. 10006004 for 10.6.4
-     */
-    public static long getMacOSVersion() {
-        final String str = System.getProperty("os.version");
-        long l = 0;
-        long faktor = 1000000;
-        for (final String s : str.split("\\.")) {
-            l += Integer.parseInt(s) + faktor;
-            faktor /= 1000;
-        }
-        return l;
     }
 }

@@ -25,7 +25,6 @@ public class StringKeyHandler extends KeyHandler<String> {
      */
     public StringKeyHandler(final StorageHandler<?> storageHandler, final String key) {
         super(storageHandler, key);
-        // TODO Auto-generated constructor stub
     }
 
     /*
@@ -57,13 +56,12 @@ public class StringKeyHandler extends KeyHandler<String> {
      */
     @Override
     protected void putValue(final String object) {
-        this.primitiveStorage.put(this.getKey(), object);
+        this.storageHandler.getPrimitiveStorage().put(this.getKey(), object);
     }
 
     @Override
     public String toString() {
         return this.getValue();
-
     }
 
     /*

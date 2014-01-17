@@ -11,18 +11,16 @@ package org.appwork.storage.config.handler;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.Map.Entry;
 
 import org.appwork.exceptions.WTFException;
 import org.appwork.scheduler.DelayedRunnable;
@@ -32,6 +30,7 @@ import org.appwork.shutdown.ShutdownRequest;
 import org.appwork.storage.InvalidTypeException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.JsonKeyValueStorage;
+import org.appwork.storage.Storage;
 import org.appwork.storage.StorageException;
 import org.appwork.storage.config.ConfigInterface;
 import org.appwork.storage.config.InterfaceParseException;
@@ -60,144 +59,15 @@ import org.appwork.utils.swing.dialog.Dialog;
  * 
  */
 public class StorageHandler<T extends ConfigInterface> implements InvocationHandler {
-    public final static ScheduledThreadPoolExecutor                  TIMINGQUEUE            = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
 
-                                                                                                @Override
-                                                                                                public Thread newThread(final Runnable r) {
-                                                                                                    final Thread ret = new Thread(r);
-                                                                                                    ret.setName("StorageHandler");
-                                                                                                    return ret;
+    protected static final DelayedRunnable SAVEDELAYER = new DelayedRunnable(5000, 30000) {
 
-                                                                                                }
-                                                                                            });
+                                                           @Override
+                                                           public void delayedrun() {
+                                                               StorageHandler.saveAll();
+                                                           }
+                                                       };
     static {
-        StorageHandler.TIMINGQUEUE.setMaximumPoolSize(1);
-        StorageHandler.TIMINGQUEUE.setKeepAliveTime(30000, TimeUnit.MILLISECONDS);
-        StorageHandler.TIMINGQUEUE.allowCoreThreadTimeOut(true);
-    }
-    private final Class<T>                                           configInterface;
-    private HashMap<Method, KeyHandler<?>>                           methodMap;
-    private HashMap<String, KeyHandler<?>>                           keyHandlerMap;
-
-    protected JsonKeyValueStorage                                    primitiveStorage;
-
-    private boolean                                                  crypted;
-
-    private byte[]                                                   key                    = JSonStorage.KEY;
-    private File                                                     path;
-    private ConfigEventSender<Object>                                eventSender;
-    private String                                                   relativCPPath;
-    protected boolean                                                save                   = true;
-    private DelayedRunnable                                          delayedSaver;
-    private long                                                     delayedSaveMaxInterval = 5 * 60 * 1000;
-
-    // set externaly to start profiling
-    public static HashMap<String, Long>                              PROFILER_MAP           = null;
-
-    public static HashMap<String, Long>                              PROFILER_CALLNUM_MAP   = null;
-
-    private static final HashSet<String>                             DUPE_SET               = new HashSet<String>();
-
-    private WriteStrategy                                            writeStrategy          = null;
-
-    private int                                                      delayedSaveInterval    = 10000;
-    private String                                                   storage;
-    private boolean                                                  objectCacheEnabled=true;
-
-    private static HashMap<String, WeakReference<StorageHandler<?>>> STORAGEMAP             = new HashMap<String, WeakReference<StorageHandler<?>>>();
-
-    /**
-     * @param interfaceName
-     * @param storage
-     * @return
-     */
-    public static StorageHandler<?> getStorageHandler(final String interfaceName, final String storage) {
-        StorageHandler<?> ret = null;
-        synchronized (StorageHandler.STORAGEMAP) {
-
-            final WeakReference<StorageHandler<?>> wret = StorageHandler.STORAGEMAP.get(interfaceName + "." + storage);
-            if (wret != null) {
-                if ((ret = wret.get()) != null) {
-                    return ret;
-                } else {
-                    StorageHandler.STORAGEMAP.remove(interfaceName + "." + storage);
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @param name
-     * @param storage2
-     * @param configInterface
-     */
-    public StorageHandler(final File name, final Class<T> configInterface) {
-
-        dupeCheck(name, configInterface);
-
-        final InitHook initHook = configInterface.getAnnotation(InitHook.class);
-        if (initHook != null) {
-            try {
-                initHook.value().newInstance().doHook(name, configInterface);
-            } catch (final Exception e) {
-                throw new WTFException(e);
-            }
-        }
-        this.configInterface = configInterface;
-        this.eventSender = new ConfigEventSender<Object>();
-
-        this.path = name;
-        final File expected = Application.getResource("cfg/" + configInterface.getName());
-
-        if (!this.path.equals(expected)) {
-            this.storage = Files.getRelativePath(expected.getParentFile().getParentFile(), this.path);
-            if (StringUtils.isEmpty(this.storage)) {
-                this.storage = this.path.getAbsolutePath();
-            }
-        }
-        synchronized (StorageHandler.STORAGEMAP) {
-            StorageHandler.STORAGEMAP.put(configInterface.getName() + "." + this.storage, new WeakReference<StorageHandler<?>>(this));
-        }
-        if (name.getName().endsWith(".json") || name.getName().endsWith(".ejs")) {
-            Log.L.warning(name + " should not have an extension!!");
-        }
-        final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
-        if (crypted != null) {
-            this.crypted = true;
-            if (crypted.key() != null) {
-
-                this.primitiveStorage = createPrimitiveStorage(new File(this.path.getAbsolutePath() + ".ejs"), false, crypted.key());
-
-                this.key = crypted.key();
-                if (this.key.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + configInterface + " is invalid"); }
-
-            } else {
-
-                this.primitiveStorage = createPrimitiveStorage(new File(this.path.getAbsolutePath() + ".ejs"), false, this.key = JSonStorage.KEY);
-
-            }
-        } else {
-            this.crypted = false;
-
-            this.primitiveStorage = createPrimitiveStorage(new File(this.path.getAbsolutePath() + ".json"), true, null);
-
-        }
-        validateKeys(crypted);
-        try {
-            this.parseInterface();
-        } catch (final InterfaceParseException e) {
-            throw e;
-        } catch (final Throwable e) {
-            throw new InterfaceParseException(e);
-        }
-        Log.L.finer("Load Storage: " + this.path);
-        this.updateSaveDelayer();
-        initShutdownHook(configInterface);
-
-    }
-
-    protected void initShutdownHook(final Class<T> configInterface) {
         ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
 
             @Override
@@ -207,42 +77,190 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
 
             @Override
             public void onShutdown(final ShutdownRequest shutdownRequest) {
-                if (StorageHandler.this.save) {
-                    StorageHandler.this.primitiveStorage.save();
-                }
+                StorageHandler.saveAll();
             }
 
             @Override
             public String toString() {
-                return "Save " + StorageHandler.this.path + "[" + configInterface.getName() + "]";
+                return "ShutdownEvent: SaveAllStorageHandler";
             }
         });
     }
 
-    protected void validateKeys(final CryptedStorage crypted) {
-
-    }
-
-    protected void dupeCheck(final File name, final Class<T> configInterface) {
-        if (!StorageHandler.DUPE_SET.add(configInterface.getName() + "." + name.getAbsolutePath())) {
-            //
-            throw new IllegalStateException("You cannot init the configinterface " + configInterface + " twice");
+    public static JsonKeyValueStorage createPrimitiveStorage(final File filePath, final String classPath, final Class<? extends ConfigInterface> configInterface, final Runnable saveCallback) {
+        final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
+        JsonKeyValueStorage ret = null;
+        if (crypted != null) {
+            byte[] key = JSonStorage.KEY;
+            if (crypted.key() != null) {
+                key = crypted.key();
+            }
+            URL urlClassPath = null;
+            if (classPath != null) {
+                urlClassPath = Application.class.getClassLoader().getResource(classPath + ".ejs");
+            }
+            ret = new JsonKeyValueStorage(new File(filePath.getAbsolutePath() + ".ejs"), urlClassPath, false, key) {
+                @Override
+                public void requestSave() {
+                    super.requestSave();
+                    if (saveCallback != null) {
+                        saveCallback.run();
+                    }
+                }
+            };
+        } else {
+            URL urlClassPath = null;
+            if (classPath != null) {
+                urlClassPath = Application.class.getClassLoader().getResource(classPath + ".json");
+            }
+            ret = new JsonKeyValueStorage(new File(filePath.getAbsolutePath() + ".json"), urlClassPath, true, null) {
+                @Override
+                public void requestSave() {
+                    super.requestSave();
+                    if (saveCallback != null) {
+                        saveCallback.run();
+                    }
+                }
+            };
         }
+        return ret;
     }
 
     /**
-     * @param file
-     * @param b
-     * @param key2
+     * @param interfaceName
+     * @param storage
      * @return
      */
-    protected JsonKeyValueStorage createPrimitiveStorage(final File file, final boolean plain, final byte[] key) {
-        if (plain) {
-            return new JsonKeyValueStorage(file, true);
-        } else {
-            return new JsonKeyValueStorage(file, false, key);
+    public static StorageHandler<?> getStorageHandler(final String interfaceName, final String storage) {
+        synchronized (StorageHandler.STORAGEMAP) {
+            final String ID = interfaceName + "." + storage;
+            final Iterator<Entry<StorageHandler<?>, String>> it = StorageHandler.STORAGEMAP.entrySet().iterator();
+            StorageHandler<?> ret = null;
+            while (it.hasNext()) {
+                final Entry<StorageHandler<?>, String> next = it.next();
+                if (ID.equals(next.getValue()) && (ret = next.getKey()) != null) { return ret; }
+            }
         }
+        return null;
+    }
 
+    public static void saveAll() {
+        synchronized (StorageHandler.STORAGEMAP) {
+            for (final StorageHandler<?> storageHandler : StorageHandler.STORAGEMAP.keySet()) {
+                try {
+                    storageHandler.getPrimitiveStorage().save();
+                } catch (final Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private final Class<T>                                  configInterface;
+    protected final HashMap<Method, KeyHandler<?>>          methodMap            = new HashMap<Method, KeyHandler<?>>();
+
+    protected final HashMap<String, KeyHandler<?>>          keyHandlerMap        = new HashMap<String, KeyHandler<?>>();
+    protected final Storage                                 primitiveStorage;
+    private final File                                      path;
+
+    private volatile ConfigEventSender<Object>              eventSender          = null;
+
+    private String                                          relativCPPath;
+
+    // set externaly to start profiling
+    public static HashMap<String, Long>                     PROFILER_MAP         = null;
+
+    public static HashMap<String, Long>                     PROFILER_CALLNUM_MAP = null;
+
+    private volatile WriteStrategy                          writeStrategy        = null;
+    private boolean                                         objectCacheEnabled   = true;
+
+    private final String                                    storageID;
+
+    private static final HashMap<StorageHandler<?>, String> STORAGEMAP           = new HashMap<StorageHandler<?>, String>();
+
+    /**
+     * @param name
+     * @param storage2
+     * @param configInterface
+     */
+    public StorageHandler(final File filePath, final Class<T> configInterface) {
+        final InitHook initHook = configInterface.getAnnotation(InitHook.class);
+        if (initHook != null) {
+            try {
+                initHook.value().newInstance().doHook(filePath, configInterface);
+            } catch (final Exception e) {
+                throw new WTFException(e);
+            }
+        }
+        this.configInterface = configInterface;
+        this.path = filePath;
+        if (filePath.getName().endsWith(".json") || filePath.getName().endsWith(".ejs")) {
+            Log.L.warning(filePath + " should not have an extension!!");
+        }
+        final File expected = Application.getResource("cfg/" + configInterface.getName());
+        String storageID = null;
+        if (!this.path.equals(expected)) {
+            storageID = Files.getRelativePath(expected.getParentFile().getParentFile(), this.path);
+            if (StringUtils.isEmpty(storageID)) {
+                storageID = this.path.getAbsolutePath();
+            }
+        }
+        this.storageID = storageID;
+        this.primitiveStorage = StorageHandler.createPrimitiveStorage(this.path, null, configInterface, StorageHandler.SAVEDELAYER);
+        final CryptedStorage cryptedStorage = configInterface.getAnnotation(CryptedStorage.class);
+        if (cryptedStorage != null) {
+            this.validateKeys(cryptedStorage);
+        }
+        try {
+            Log.L.finer("Init StorageHandler for Interface:" + configInterface.getName() + "|Path:" + this.path);
+            this.parseInterface();
+        } catch (final InterfaceParseException e) {
+            throw e;
+        } catch (final Throwable e) {
+            throw new InterfaceParseException(e);
+        }
+        this.addStorageHandler(this, configInterface.getName(), storageID);
+    }
+
+    public StorageHandler(final Storage storage, final Class<T> configInterface) {
+        final InitHook initHook = configInterface.getAnnotation(InitHook.class);
+        String storagePath = storage.getID();
+        if (storagePath.endsWith(".json")) {
+            storagePath = storagePath.replaceFirst("\\.json$", "");
+        } else if (storagePath.endsWith(".ejs")) {
+            storagePath = storagePath.replaceFirst("\\.ejs$", "");
+        }
+        this.primitiveStorage = storage;
+        this.path = new File(storagePath);
+        if (initHook != null) {
+            try {
+                initHook.value().newInstance().doHook(this.path, configInterface);
+            } catch (final Exception e) {
+                throw new WTFException(e);
+            }
+        }
+        this.configInterface = configInterface;
+        final File expected = Application.getResource("cfg/" + configInterface.getName());
+        String storageID = null;
+        if (!this.path.equals(expected)) {
+            storageID = Files.getRelativePath(expected.getParentFile().getParentFile(), this.path);
+            if (StringUtils.isEmpty(storageID)) {
+                storageID = this.path.getAbsolutePath();
+            }
+        }
+        this.storageID = storageID;
+        final CryptedStorage cryptedStorage = configInterface.getAnnotation(CryptedStorage.class);
+        if (cryptedStorage != null) {
+            this.validateKeys(cryptedStorage);
+        }
+        try {
+            Log.L.finer("Init StorageHandler for Interface:" + configInterface.getName() + "|Path:" + this.path);
+            this.parseInterface();
+        } catch (final Throwable e) {
+            throw new InterfaceParseException(e);
+        }
+        this.addStorageHandler(this, configInterface.getName(), storageID);
     }
 
     /**
@@ -251,7 +269,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @throws URISyntaxException
      */
     public StorageHandler(final String classPath, final Class<T> configInterface) throws URISyntaxException {
-
         final InitHook initHook = configInterface.getAnnotation(InitHook.class);
         if (initHook != null) {
             try {
@@ -261,73 +278,41 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
         }
         this.configInterface = configInterface;
-        this.eventSender = new ConfigEventSender<Object>();
-
         this.relativCPPath = classPath;
-        this.path = Application.getResource(classPath);
-        final File expected = Application.getResource("cfg/" + configInterface.getName());
-        if (!this.path.equals(expected)) {
-            this.storage = Files.getRelativePath(expected.getParentFile().getParentFile(), this.path);
-            if (StringUtils.isEmpty(this.storage)) {
-                this.storage = this.path.getAbsolutePath();
-            }
-        }
-        synchronized (StorageHandler.STORAGEMAP) {
-            StorageHandler.STORAGEMAP.put(configInterface.getName() + "." + this.storage, new WeakReference<StorageHandler<?>>(this));
-        }
-
-        if (this.path.getName().endsWith(".json") || this.path.getName().endsWith(".ejs")) {
+        if (classPath.endsWith(".json") || classPath.endsWith(".ejs")) {
             Log.L.warning(classPath + " should not have an extension!!");
         }
-        final CryptedStorage crypted = configInterface.getAnnotation(CryptedStorage.class);
-        if (crypted != null) {
-            this.crypted = true;
-            if (crypted.key() != null) {
-                this.path = new File(Application.class.getClassLoader().getResource(classPath + ".ejs").toURI());
-                this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath + ".ejs"), Application.class.getClassLoader().getResource(classPath + ".ejs"), false, crypted.key());
-
-                this.key = crypted.key();
-                if (this.key.length != JSonStorage.KEY.length) { throw new InterfaceParseException("Crypt key for " + configInterface + " is invalid"); }
-
-            } else {
-                this.path = new File(Application.class.getClassLoader().getResource(classPath + ".ejs").toURI());
-                this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath + ".ejs"), Application.class.getClassLoader().getResource(classPath + ".ejs"), false, this.key = JSonStorage.KEY);
-
+        this.path = Application.getResource(classPath);
+        final File expected = Application.getResource("cfg/" + configInterface.getName());
+        String storageID = null;
+        if (!this.path.equals(expected)) {
+            storageID = Files.getRelativePath(expected.getParentFile().getParentFile(), this.path);
+            if (StringUtils.isEmpty(storageID)) {
+                storageID = this.path.getAbsolutePath();
             }
-        } else {
-            this.crypted = false;
-            this.primitiveStorage = new JsonKeyValueStorage(Application.getResource(classPath + ".json"), Application.class.getClassLoader().getResource(classPath + ".json"), true, null);
         }
-
+        this.storageID = storageID;
+        this.primitiveStorage = StorageHandler.createPrimitiveStorage(Application.getResource(classPath), classPath, configInterface, StorageHandler.SAVEDELAYER);
+        final CryptedStorage cryptedStorage = configInterface.getAnnotation(CryptedStorage.class);
+        if (cryptedStorage != null) {
+            this.validateKeys(cryptedStorage);
+        }
         try {
+            Log.L.finer("Init StorageHandler for Interface:" + configInterface.getName() + "|Path:" + this.path);
             this.parseInterface();
         } catch (final Throwable e) {
             throw new InterfaceParseException(e);
         }
-        Log.L.finer("Load Storage: " + this.path);
+        this.addStorageHandler(this, configInterface.getName(), storageID);
+    }
 
-        this.updateSaveDelayer();
-
-        ShutdownController.getInstance().addShutdownEvent(new ShutdownEvent() {
-
-            @Override
-            public int getHookPriority() {
-                return 0;
-            }
-
-            @Override
-            public void onShutdown(final ShutdownRequest shutdownRequest) {
-                if (StorageHandler.this.save) {
-                    StorageHandler.this.primitiveStorage.save();
-                }
-            }
-
-            @Override
-            public String toString() {
-                return "Save " + StorageHandler.this.path + "[" + configInterface.getName() + "]";
-            }
-        });
-
+    protected void addStorageHandler(final StorageHandler<? extends ConfigInterface> storageHandler, final String interfaceName, final String storage) {
+        synchronized (StorageHandler.STORAGEMAP) {
+            final StorageHandler<?> existing = StorageHandler.getStorageHandler(interfaceName, storage);
+            if (existing != null && existing != storageHandler) { throw new IllegalStateException("You cannot init the configinterface " + this.configInterface + " twice"); }
+            final String ID = interfaceName + "." + storage;
+            StorageHandler.STORAGEMAP.put(storageHandler, ID);
+        }
     }
 
     /**
@@ -335,7 +320,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @param genericReturnType
      * @return
      */
-    private KeyHandler<?> createKeyHandler(final String key, final Type type) {
+    protected KeyHandler<?> createKeyHandler(final String key, final Type type) {
         if (Clazz.isBoolean(type)) {
             return new BooleanKeyHandler(this, key);
         } else if (Clazz.isByte(type)) {
@@ -498,24 +483,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     /**
-     * 
-     */
-    private void delayedSave() {
-        if (this.getDelayedSaveInterval() < 0) { return; }
-        final DelayedRunnable del = this.delayedSaver;
-        if (del != null) {
-            del.resetAndStart();
-        }
-    }
-
-    public void disableSaveAtEnd() {
-        this.save = false;
-    }
-
-    /**
      * @param e
      */
-    private void error(final Throwable e) {
+    protected void error(final Throwable e) {
         new Thread("ERROR THROWER") {
             @Override
             public void run() {
@@ -528,42 +498,20 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     protected void fireEvent(final ConfigEvent.Types type, final KeyHandler<?> keyHandler, final Object parameter) {
-        this.eventSender.fireEvent(new ConfigEvent(type, keyHandler, parameter));
+        if (this.hasEventListener()) {
+            this.getEventSender().fireEvent(new ConfigEvent(type, keyHandler, parameter));
+        }
     }
 
     public Class<T> getConfigInterface() {
         return this.configInterface;
     }
 
-    /**
-     * @return
-     */
-    protected byte[] getCryptKey() {
-        return this.key;
-    }
-
-    /**
-     * @return
-     */
-    private int getDelayedSaveInterval() {
-        // TODO Auto-generated method stub
-        return this.delayedSaveInterval;
-    }
-
-    /**
-     * @return
-     */
-    public long getDelayedSaveMaxInterval() {
-        // TODO Auto-generated method stub
-        return this.delayedSaveMaxInterval;
-    }
-
-    public ConfigEventSender<Object> getEventSender() {
+    public synchronized ConfigEventSender<Object> getEventSender() {
+        if (this.eventSender == null) {
+            this.eventSender = new ConfigEventSender<Object>();
+        }
         return this.eventSender;
-    }
-
-    public byte[] getKey() {
-        return this.key;
     }
 
     /**
@@ -591,11 +539,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return (E) ret;
     }
 
-    // /**
-    // * @return
-    // */
     public HashMap<Method, KeyHandler<?>> getMap() {
-        // TODO Auto-generated method stub
         return this.methodMap;
     }
 
@@ -638,9 +582,7 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             }
         } else {
             if (Clazz.isBoolean(keyHandler.getRawClass())) {
-
                 return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
-
             } else if (Clazz.isLong(keyHandler.getRawClass())) {
                 return this.getPrimitive(keyHandler.getKey(), keyHandler.getDefaultValue());
             } else if (Clazz.isInteger(keyHandler.getRawClass())) {
@@ -671,16 +613,19 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      * @return
      */
     public <E> E getPrimitive(final String key, final E def) {
-
         return this.primitiveStorage.get(key, def);
     }
 
-    public JsonKeyValueStorage getPrimitiveStorage() {
+    public Storage getPrimitiveStorage() {
         return this.primitiveStorage;
     }
 
     public String getRelativCPPath() {
         return this.relativCPPath;
+    }
+
+    public String getStorageID() {
+        return this.storageID;
     }
 
     /**
@@ -691,12 +636,15 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
      */
 
     public Object getValue(final String key) {
-
         return this.getKeyHandler(key).getValue();
     }
 
     public WriteStrategy getWriteStrategy() {
         return this.writeStrategy;
+    }
+
+    public synchronized boolean hasEventListener() {
+        return this.eventSender != null && this.eventSender.hasListener();
     }
 
     @SuppressWarnings("unchecked")
@@ -713,15 +661,12 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
             final KeyHandler<?> handler = this.methodMap.get(m);
             if (handler != null) {
                 if (handler.isGetter(m)) {
-
                     return handler.getValue();
-
                 } else {
                     ((KeyHandler<Object>) handler).setValue(parameter[0]);
                     if (this.writeStrategy != null) {
                         this.writeStrategy.write(this, handler);
                     }
-
                     return null;
                 }
             } else if (m.getName().equals("toString")) {
@@ -759,22 +704,22 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         }
     }
 
-    public boolean isCrypted() {
-        return this.crypted;
+    /**
+     * @return
+     */
+    public boolean isObjectCacheEnabled() {
+        return this.objectCacheEnabled;
     }
 
     /**
      * @throws Throwable
      * 
      */
-    private void parseInterface() throws Throwable {
-        this.methodMap = new HashMap<Method, KeyHandler<?>>();
-        this.keyHandlerMap = new HashMap<String, KeyHandler<?>>();
+    protected void parseInterface() throws Throwable {
         final HashMap<String, Method> keyGetterMap = new HashMap<String, Method>();
         final HashMap<String, Method> keySetterMap = new HashMap<String, Method>();
         String key;
         final HashMap<String, KeyHandler<?>> parseMap = new HashMap<String, KeyHandler<?>>();
-
         Class<?> clazz = this.configInterface;
         while (clazz != null && clazz != ConfigInterface.class) {
             for (final Method m : clazz.getDeclaredMethods()) {
@@ -951,118 +896,8 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         }
     }
 
-    /**
-     * @param key
-     * @param object
-     */
-    protected void putPrimitive(final String key, final Boolean value) {
-
-        this.primitiveStorage.put(key, value);
-        this.delayedSave();
-
-    }
-
-    /**
-     * @param key2
-     * @param object
-     */
-    protected void putPrimitive(final String key2, final Byte object) {
-        this.primitiveStorage.put(key2, object);
-        this.delayedSave();
-    }
-
-    /**
-     * @param key2
-     * @param object
-     */
-    protected void putPrimitive(final String key2, final Double object) {
-        this.primitiveStorage.put(key2, object);
-        this.delayedSave();
-    }
-
-    /**
-     * @param key2
-     * @param object
-     */
-    protected void putPrimitive(final String key2, final Enum<?> object) {
-        this.primitiveStorage.put(key2, object);
-        this.delayedSave();
-
-    }
-
-    /**
-     * @param key2
-     * @param object
-     */
-    protected void putPrimitive(final String key2, final Float object) {
-        this.primitiveStorage.put(key2, object);
-        this.delayedSave();
-
-    }
-
-    /**
-     * @param key2
-     * @param object
-     */
-    protected void putPrimitive(final String key2, final Integer object) {
-        this.primitiveStorage.put(key2, object);
-        this.delayedSave();
-
-    }
-
-    /**
-     * @param key2
-     * @param object
-     */
-    protected void putPrimitive(final String key2, final Long object) {
-        this.primitiveStorage.put(key2, object);
-        this.delayedSave();
-    }
-
-    /**
-     * @param key2
-     * @param object
-     */
-    protected void putPrimitive(final String key2, final String object) {
-        this.primitiveStorage.put(key2, object);
-        this.delayedSave();
-
-    }
-
-    /**
-     * The Keyvalue storage in this handler can write itself to disk based on an
-     * interval.
-     * 
-     * <br>
-     * we write to disk {@link #getDelayedSaveInterval()} MS after the last
-     * change, but at least {@link #getDelayedSaveMaxInterval()} after a change
-     * 
-     * @param delayedSaveMaxInterval
-     */
-    public void setDelayedSaveMaxInterval(final long delayedSaveMaxInterval) {
-        this.delayedSaveMaxInterval = delayedSaveMaxInterval;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
-     * java.lang.reflect.Method, java.lang.Object[])
-     */
-
-    /**
-     * The Keyvalue storage in this handler can write itself to disk based on an
-     * interval.
-     * 
-     * <br>
-     * we write to disk {@link #getDelayedSaveInterval()} MS after the last
-     * change, but at least {@link #getDelayedSaveMaxInterval()} after a change
-     * 
-     * @param delayedSaveMaxInterval
-     */
-    public void setDelayedSaveMinInterval(final int delayedSaveInterval) {
-        this.delayedSaveInterval = delayedSaveInterval;
-        this.updateSaveDelayer();
+    public void setObjectCacheEnabled(final boolean objectCacheEnabled) {
+        this.objectCacheEnabled = objectCacheEnabled;
     }
 
     public void setWriteStrategy(final WriteStrategy writeStrategy) {
@@ -1073,59 +908,21 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     public String toString() {
         final HashMap<String, Object> ret = new HashMap<String, Object>();
         for (final KeyHandler<?> h : this.methodMap.values()) {
-
             try {
                 ret.put(h.getGetter().getKey(), this.invoke(null, h.getGetter().getMethod(), new Object[] {}));
             } catch (final Throwable e) {
                 e.printStackTrace();
                 ret.put(h.getKey(), e.getMessage());
             }
-
         }
         return JSonStorage.toString(ret);
     }
 
-    /**
-     * 
-     */
-    protected void updateSaveDelayer() {
-        synchronized (this) {
-            final int interval = this.getDelayedSaveInterval();
-            final long maxInterval = this.getDelayedSaveMaxInterval();
-            if (interval < 0) {
-                final DelayedRunnable ldelayedSaver = this.delayedSaver;
-                this.delayedSaver = null;
-                ldelayedSaver.stop();
-            } else {
-                this.delayedSaver = new DelayedRunnable(StorageHandler.TIMINGQUEUE, interval, maxInterval) {
-                    @Override
-                    public void delayedrun() {
-                        StorageHandler.this.write();
-                    }
-
-                    @Override
-                    public String getID() {
-                        return "StorageHandler_" + StorageHandler.this.getConfigInterface().getName();
-                    }
-                };
-            }
-        }
+    protected void validateKeys(final CryptedStorage crypted) {
     }
 
     public void write() {
-        this.primitiveStorage.save();
-    }
-
-    /**
-     * @return
-     */
-    public boolean isObjectCacheEnabled() {
-
-        return objectCacheEnabled;
-    }
-
-    public void setObjectCacheEnabled(final boolean objectCacheEnabled) {
-        this.objectCacheEnabled = objectCacheEnabled;
+        this.getPrimitiveStorage().save();
     }
 
     /**

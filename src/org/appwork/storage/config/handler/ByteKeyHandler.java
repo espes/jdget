@@ -38,14 +38,16 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
     @SuppressWarnings("unchecked")
     @Override
     protected Class<? extends Annotation>[] getAllowedAnnotations() {
-//        final java.util.List<Class<? extends Annotation>> list = new ArrayList<Class<? extends Annotation>>();
-//
-//        list.add(SpinnerValidator.class);
+        // final java.util.List<Class<? extends Annotation>> list = new
+        // ArrayList<Class<? extends Annotation>>();
+        //
+        // list.add(SpinnerValidator.class);
 
-//        return (Class<? extends Annotation>[]) list.toArray(new Class<?>[] {});
-//        
-        
-        return (Class<? extends Annotation>[]) new Class<?>[] {LookUpKeys.class,SpinnerValidator.class};
+        // return (Class<? extends Annotation>[]) list.toArray(new Class<?>[]
+        // {});
+        //
+
+        return (Class<? extends Annotation>[]) new Class<?>[] { LookUpKeys.class, SpinnerValidator.class };
     }
 
     @Override
@@ -55,7 +57,7 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
 
     @Override
     protected void initDefaults() throws Throwable {
-        setDefaultValue((byte) 0);
+        this.setDefaultValue((byte) 0);
     }
 
     /*
@@ -65,10 +67,10 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
      */
     @Override
     protected void initHandler() {
-        validator = this.getAnnotation(SpinnerValidator.class);
-        if (validator != null) {
-            min = (byte) validator.min();
-            max = (byte) validator.max();
+        this.validator = this.getAnnotation(SpinnerValidator.class);
+        if (this.validator != null) {
+            this.min = (byte) this.validator.min();
+            this.max = (byte) this.validator.max();
         }
     }
 
@@ -79,7 +81,7 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
      */
     @Override
     protected void putValue(final Byte object) {
-        storageHandler.putPrimitive(getKey(), object);
+        this.storageHandler.getPrimitiveStorage().put(this.getKey(), object);
     }
 
     /*
@@ -90,9 +92,9 @@ public class ByteKeyHandler extends KeyHandler<Byte> {
      */
     @Override
     protected void validateValue(final Byte object) throws Throwable {
-        if (validator != null) {
+        if (this.validator != null) {
             final byte v = object.byteValue();
-            if (v < min || v > max) { throw new ValidationException(); }
+            if (v < this.min || v > this.max) { throw new ValidationException(); }
         }
     }
 

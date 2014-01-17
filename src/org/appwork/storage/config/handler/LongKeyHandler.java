@@ -39,7 +39,7 @@ public class LongKeyHandler extends KeyHandler<Long> {
     @SuppressWarnings("unchecked")
     @Override
     protected Class<? extends Annotation>[] getAllowedAnnotations() {
-        return (Class<? extends Annotation>[]) new Class<?>[] {LookUpKeys.class,SpinnerValidator.class};
+        return (Class<? extends Annotation>[]) new Class<?>[] { LookUpKeys.class, SpinnerValidator.class };
     }
 
     @Override
@@ -50,7 +50,7 @@ public class LongKeyHandler extends KeyHandler<Long> {
 
     @Override
     protected void initDefaults() throws Throwable {
-        setDefaultValue(Long.valueOf(0));
+        this.setDefaultValue(Long.valueOf(0));
     }
 
     /*
@@ -61,10 +61,10 @@ public class LongKeyHandler extends KeyHandler<Long> {
     @Override
     protected void initHandler() {
 
-        validator = this.getAnnotation(SpinnerValidator.class);
-        if (validator != null) {
-            min = validator.min();
-            max = validator.max();
+        this.validator = this.getAnnotation(SpinnerValidator.class);
+        if (this.validator != null) {
+            this.min = this.validator.min();
+            this.max = this.validator.max();
 
         }
     }
@@ -76,8 +76,7 @@ public class LongKeyHandler extends KeyHandler<Long> {
      */
     @Override
     protected void putValue(final Long object) {
-
-        storageHandler.putPrimitive(getKey(), object);
+        this.storageHandler.getPrimitiveStorage().put(this.getKey(), object);
     }
 
     /*
@@ -88,9 +87,9 @@ public class LongKeyHandler extends KeyHandler<Long> {
      */
     @Override
     protected void validateValue(final Long object) throws Throwable {
-        if (validator != null) {
+        if (this.validator != null) {
             final long v = object.longValue();
-            if (v < min || v > max) { throw new ValidationException(); }
+            if (v < this.min || v > this.max) { throw new ValidationException(); }
         }
     }
 

@@ -60,9 +60,7 @@ public class FloatKeyHandler extends KeyHandler<Float> {
      */
     @Override
     protected void putValue(final Float object) {
-
-        this.storageHandler.putPrimitive(this.setter.getKey(), object);
-
+        this.storageHandler.getPrimitiveStorage().put(this.getKey(), object);
     }
 
     /*

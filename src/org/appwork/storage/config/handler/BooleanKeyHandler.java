@@ -63,7 +63,7 @@ public class BooleanKeyHandler extends KeyHandler<Boolean> {
      */
     @Override
     protected void putValue(final Boolean object) {
-        this.storageHandler.putPrimitive(this.getKey(), object);
+        this.storageHandler.getPrimitiveStorage().put(this.getKey(), object);
     }
 
     public boolean toggle() {

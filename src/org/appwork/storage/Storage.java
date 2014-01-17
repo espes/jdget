@@ -1,6 +1,5 @@
 package org.appwork.storage;
 
-
 public abstract class Storage {
 
     public Storage() {
@@ -17,6 +16,8 @@ public abstract class Storage {
 
     abstract public <E> E get(String key, E def) throws StorageException;
 
+    public abstract byte[] getCryptKey();
+
     abstract public String getID();
 
     /**
@@ -24,6 +25,8 @@ public abstract class Storage {
      * @return
      */
     abstract public boolean hasProperty(String key);
+
+    abstract public boolean isAutoPutValues();
 
     abstract public void put(String key, Boolean value) throws StorageException;
 
@@ -51,6 +54,8 @@ public abstract class Storage {
     public abstract Object remove(String key);
 
     abstract public void save() throws StorageException;
+
+    abstract public void setAutoPutValues(boolean b);
 
     abstract public int size();
 
