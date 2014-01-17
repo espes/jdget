@@ -4,30 +4,28 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.jdownloader.myjdownloader.client.bindings.AccountQueryInterface;
-import org.jdownloader.myjdownloader.client.bindings.AccountStorableInterface;
+import org.jdownloader.myjdownloader.client.bindings.AccountStorable;
 import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
 
 @ClientApiNameSpace(AccountInterface.NAMESPACE)
 public interface AccountInterface extends Linkable {
-	public static final String NAMESPACE = "accountsV2";
-	
-	public boolean addAccount(String premiumHoster, String username,
-			String password);
+    public static final String NAMESPACE = "accountsV2";
 
-	public ArrayList<AccountStorableInterface> listAccounts(AccountQueryInterface query);
+    public boolean addAccount(String premiumHoster, String username, String password);
 
-	public ArrayList<String> listPremiumHoster();
+    public ArrayList<AccountStorable> listAccounts(AccountQueryInterface query);
 
-	public void removeAccounts(long[] ids);
+    public ArrayList<String> listPremiumHoster();
 
-	public void enableAccounts(long[] ids);
+    public void removeAccounts(long[] ids);
 
-	public void disableAccounts(long[] ids);
+    public void enableAccounts(long[] ids);
 
-	HashMap<String, String> listPremiumHosterUrls();
+    public void disableAccounts(long[] ids);
 
-	boolean setUserNameAndPassword(long accountId, String username,
-			String password);
+    HashMap<String, String> listPremiumHosterUrls();
 
-	String getPremiumHosterUrl(String hoster);
+    boolean setUserNameAndPassword(long accountId, String username, String password);
+
+    String getPremiumHosterUrl(String hoster);
 }
