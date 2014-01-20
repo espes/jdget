@@ -60,7 +60,12 @@ public class IO {
                         position += inChannel.transferTo(position, maxCount, outChannel);
                     }
                 } else {
-                    inChannel.transferTo(0, inChannel.size(), outChannel);
+                    final int maxCount = 64 * 1024 * 1024 - 32 * 1024;
+                    final long size = inChannel.size();
+                    long position = 0;
+                    while (position < size) {
+                        position += inChannel.transferTo(position, maxCount, outChannel);
+                    }
                 }
                 if (sync != null) {
                     outChannel.force(sync.booleanValue());
