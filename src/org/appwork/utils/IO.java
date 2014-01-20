@@ -60,6 +60,7 @@ public class IO {
                         position += inChannel.transferTo(position, maxCount, outChannel);
                     }
                 } else {
+                    /* we also loop here to make sure all data got transfered! */
                     final int maxCount = 64 * 1024 * 1024 - 32 * 1024;
                     final long size = inChannel.size();
                     long position = 0;
