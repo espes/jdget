@@ -281,11 +281,18 @@ public abstract class AbstractMyJDClient<Type> {
             final SessionInfo newSessionInfo = new SessionInfo(deviceSecret, serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
             this.currentSessionInfo = newSessionInfo;
 
+        } catch (final ExceptionResponse e) {
+            try {
+                this.handleInvalidResponseCodes(e, null);
+            } catch (final APIException e1) {
+                // actually not possible.
+                throw new RuntimeException(e);
+
+            }
+            throw e;
         } catch (final Exception e) {
             throw MyJDownloaderException.get(e);
-
         }
-
     }
 
     protected <T> T convertData(final byte[] data, final Type returnType) throws MyJDownloaderException {
