@@ -20,8 +20,15 @@ public class BadParameterException extends RemoteAPIException {
      */
     private static final long serialVersionUID = -1276528269606559293L;
 
-    public BadParameterException(final Throwable cause, String msg) {
+    public BadParameterException(final Throwable cause, final String msg) {
         super(cause, RemoteAPIError.BAD_PARAMETERS, msg);
+    }
+
+    /**
+     * @param string
+     */
+    public BadParameterException(final String msg) {
+        this(null, msg);
     }
 
 }

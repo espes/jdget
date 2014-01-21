@@ -148,7 +148,9 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         synchronized (StorageHandler.STORAGEMAP) {
             for (final StorageHandler<?> storageHandler : StorageHandler.STORAGEMAP.keySet()) {
                 try {
-                    storageHandler.getPrimitiveStorage().save();
+                    if (storageHandler.isSaveInShutdownHookEnabled()) {
+                        storageHandler.getPrimitiveStorage().save();
+                    }
                 } catch (final Throwable e) {
                     e.printStackTrace();
                 }
@@ -919,6 +921,16 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     protected void validateKeys(final CryptedStorage crypted) {
+    }
+
+    boolean saveInShutdownHookEnabled = true;
+
+    public boolean isSaveInShutdownHookEnabled() {
+        return saveInShutdownHookEnabled;
+    }
+
+    public void setSaveInShutdownHookEnabled(final boolean saveInShutdownHookEnabled) {
+        this.saveInShutdownHookEnabled = saveInShutdownHookEnabled;
     }
 
     public void write() {
