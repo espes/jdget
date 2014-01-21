@@ -169,7 +169,9 @@ public abstract class AbstractMyJDClient<Type> {
                 if (dataObject.getRid() != i) { throw new BadResponseException("RID Mismatch"); }
 
                 // ugly!!! but this will be changed when we have a proper remoteAPI response format
-
+                if (returnType == void.class || returnType == Void.class) {
+                    return null;
+                }
                 ret = this.jsonToObject(this.objectToJSon(dataObject.getData()) + "", returnType);
 
                 return ret;
