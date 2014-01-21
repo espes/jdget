@@ -570,7 +570,7 @@ public abstract class AbstractMyJDClient<Type> {
     public synchronized void reconnect() throws MyJDownloaderException {
         try {
             final SessionInfo session = this.getSessionInfo();
-            final String query = "/my/reconnect?sessiontoken=" + this.urlencode(session.getSessionToken()) + "&regaintoken=" + this.urlencode(session.getRegainToken());
+            final String query = "/my/reconnect?appkey=" + this.urlencode(this.appKey) + "&sessiontoken=" + this.urlencode(session.getSessionToken()) + "&regaintoken=" + this.urlencode(session.getRegainToken());
             final ConnectResponse ret = this.callServer(query, null, session, ConnectResponse.class);
 
             final byte[] serverEncryptionToken = this.updateEncryptionToken(session.getServerEncryptionToken(), AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
