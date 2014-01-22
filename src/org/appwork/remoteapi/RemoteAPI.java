@@ -84,7 +84,10 @@ public class RemoteAPI implements HttpRequestHandler {
         if ((type == String.class || type instanceof Class && ((Class<?>) type).isEnum()) && !string.startsWith("\"")) {
             /* workaround if strings are not escaped, same for enums */
             if ("null".equals(string)) { return null; }
-            string = "\"" + string.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+
+            // string = "\"" + string.replace("\\", "\\\\").replace("\"",
+            // "\\\"") + "\"";
+            string = JSonStorage.serializeToJson(string);
         }
         @SuppressWarnings({ "unchecked", "rawtypes" })
         final Object v = JSonStorage.restoreFromString(string, new TypeRef(type) {
