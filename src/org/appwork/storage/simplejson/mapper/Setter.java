@@ -70,7 +70,7 @@ public class Setter {
             parameter = Enum.valueOf((Class<Enum>) this.type, parameter + "");
         }
 
-        if (this.convertFromClass != null && parameter.getClass().isAssignableFrom(this.convertFromClass)) {
+        if (this.convertFromClass != null && parameter != null && parameter.getClass().isAssignableFrom(this.convertFromClass)) {
             if (this.convertFromClass == String.class) {
 
                 if (this.type == Byte.class || this.type == byte.class) {
