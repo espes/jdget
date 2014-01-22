@@ -40,4 +40,6 @@ public interface LinkgrabberInterface extends Linkable {
     LinkVariantStorable[] getVariants(long linkid);
 
     void setVariant(long linkid, String variantID);
+    
+    void addVariantCopy(long linkid,long destinationAfterLinkID, long destinationPackageID, String variantID);
 }
