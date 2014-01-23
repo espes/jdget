@@ -3,10 +3,10 @@ package org.jdownloader.myjdownloader.client.bindings.interfaces;
 import java.util.List;
 
 import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
-import org.jdownloader.myjdownloader.client.bindings.DownloadLinkStorable;
-import org.jdownloader.myjdownloader.client.bindings.FilePackageStorable;
-import org.jdownloader.myjdownloader.client.bindings.LinkQuery;
-import org.jdownloader.myjdownloader.client.bindings.PackageQuery;
+import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadLinkStorable;
+import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadPackageStorable;
+import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadLinkQuery;
+import org.jdownloader.myjdownloader.client.bindings.downloadlist.DownloadPackageQuery;
 
 @ClientApiNameSpace("downloadsV2")
 public interface DownloadsListInterface extends Linkable{
@@ -15,7 +15,7 @@ public interface DownloadsListInterface extends Linkable{
 
     int packageCount();
 
-    List<FilePackageStorable> queryPackages(PackageQuery queryParams);
+    List<DownloadPackageStorable> queryPackages(DownloadPackageQuery queryParams);
 
     void removeLinks(final long[] linkIds, final long[] packageIds);
 
@@ -56,6 +56,6 @@ public interface DownloadsListInterface extends Linkable{
      * 
      * @return
      */
-    List<DownloadLinkStorable> queryLinks(LinkQuery queryParams);
+    List<DownloadLinkStorable> queryLinks(DownloadLinkQuery queryParams);
 
 }

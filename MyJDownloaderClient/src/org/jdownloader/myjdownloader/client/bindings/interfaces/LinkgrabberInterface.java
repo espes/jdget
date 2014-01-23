@@ -2,11 +2,11 @@ package org.jdownloader.myjdownloader.client.bindings.interfaces;
 
 import org.jdownloader.myjdownloader.client.bindings.AddLinksQuery;
 import org.jdownloader.myjdownloader.client.bindings.ClientApiNameSpace;
-import org.jdownloader.myjdownloader.client.bindings.CrawledLinkQuery;
-import org.jdownloader.myjdownloader.client.bindings.CrawledLinkStorable;
-import org.jdownloader.myjdownloader.client.bindings.CrawledPackageQuery;
-import org.jdownloader.myjdownloader.client.bindings.CrawledPackageStorable;
 import org.jdownloader.myjdownloader.client.bindings.LinkVariantStorable;
+import org.jdownloader.myjdownloader.client.bindings.linkgrabber.CrawledLinkQuery;
+import org.jdownloader.myjdownloader.client.bindings.linkgrabber.CrawledLinkStorable;
+import org.jdownloader.myjdownloader.client.bindings.linkgrabber.CrawledPackageQuery;
+import org.jdownloader.myjdownloader.client.bindings.linkgrabber.CrawledPackageStorable;
 
 @ClientApiNameSpace("linkgrabberv2")
 public interface LinkgrabberInterface extends Linkable {
