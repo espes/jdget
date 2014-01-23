@@ -7,6 +7,10 @@ public abstract class AbstractQuery extends AbstractJsonData{
     private boolean bytesTotal = false;
     private boolean comment = false;
     private boolean enabled = false;
+    public void setEnabled(final boolean enabled) {
+        this.enabled = enabled;
+    }
+
     private int maxResults = -1;
     private int startAt = 0;
     private long[] packageUUIDs;
