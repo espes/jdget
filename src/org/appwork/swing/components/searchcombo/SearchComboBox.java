@@ -60,28 +60,6 @@ import org.appwork.utils.swing.SwingUtils;
  * @param <T>
  */
 public abstract class SearchComboBox<T> extends JComboBox {
-    private int actualMaximumRowCount = 8;
-
-    /**
-     * @deprecated Use {@link #setActualMaximumRowCount(int)} instead
-     */
-    @Deprecated
-    public void setMaximumRowCount(final int count) {
-        super.setMaximumRowCount(count);
-    }
-    public T getSelectedItem() {
-        return (T) super.getSelectedItem();
-    }
-    public void setActualMaximumRowCount(final int count) {
-        actualMaximumRowCount = count;
-    }
-    public boolean hasFocus() {
-       return super.hasFocus()||getTextField().hasFocus();
-    }
-    public int getActualMaximumRowCount() {
-        return actualMaximumRowCount;
-    }
-
     class Editor implements ComboBoxEditor, FocusListener, DocumentListener {
         private final JTextField       tf;
         private final MigPanel         panel;
@@ -106,9 +84,9 @@ public abstract class SearchComboBox<T> extends JComboBox {
                 @Override
                 public void focusLost(final FocusEvent e) {
                     // TODO Auto-generated method stub
-                    hidePopup();
-                    //to replaint the focus hilight
-                    repaint();
+                    SearchComboBox.this.hidePopup();
+                    // to replaint the focus hilight
+                    SearchComboBox.this.repaint();
 
                 }
             });
@@ -158,7 +136,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         private void auto() {
             if (!SearchComboBox.this.isAutoCompletionEnabled()) { return; }
             if (this.valueSetter.get() > 0) { return; }
-     
+
             // scheduler executes at least 50 ms after this submit.
             // this.sheduler.run();
             SwingUtilities.invokeLater(new Runnable() {
@@ -183,41 +161,42 @@ public abstract class SearchComboBox<T> extends JComboBox {
                 /* every string will begin with "" so we return here */
                 return false;
             }
-            final String finalRaw=rawtxt;
+            final String finalRaw = rawtxt;
             if (this.searchComboBox.isSearchCaseSensitive() == false) {
                 rawtxt = rawtxt.toLowerCase(Locale.ENGLISH);
             }
             final String txt = rawtxt;
-        
+
             final T lValue = this.value;
             if (lValue != null && SearchComboBox.this.getTextForValue(lValue).equals(txt)) { return true; }
             String text = null;
             final java.util.List<T> found = new ArrayList<T>();
-            for (int i = 0; i < getModel().getSize(); i++) {
-                text = SearchComboBox.this.getTextForValue((T) getModel().getElementAt(i));
-                if (text != null && (text.startsWith(txt) || (this.searchComboBox.isSearchCaseSensitive() == false && text.toLowerCase(Locale.ENGLISH).startsWith(txt)))) {
-                    found.add((T) getModel().getElementAt(i));
+            for (int i = 0; i < SearchComboBox.this.getModel().getSize(); i++) {
+                text = SearchComboBox.this.getTextForValue((T) SearchComboBox.this.getModel().getElementAt(i));
+                if (text != null && (text.startsWith(txt) || this.searchComboBox.isSearchCaseSensitive() == false && text.toLowerCase(Locale.ENGLISH).startsWith(txt))) {
+                    found.add((T) SearchComboBox.this.getModel().getElementAt(i));
                 }
             }
 
-        sortFound(found);
+            SearchComboBox.this.sortFound(found);
             new EDTRunner() {
 
                 @Override
                 protected void runInEDT() {
                     final int pos = Editor.this.tf.getCaretPosition();
                     if (found.size() == 0) {
-                        hidePopup();
-                        if (getSelectedIndex() != -1) {
-                            setSelectedIndex(-1);
+                        SearchComboBox.this.hidePopup();
+                        if (SearchComboBox.this.getSelectedIndex() != -1) {
+                            SearchComboBox.this.setSelectedIndex(-1);
                             Editor.this.safeSet(finalRaw);
+                            Editor.this.tf.setCaretPosition(pos);
                         }
                         // javax.swing.plaf.synth.SynthComboPopup
                     } else {
-                        Editor.this.tf.setForeground(getForeground());
+                        Editor.this.tf.setForeground(SearchComboBox.this.getForeground());
 
                         // Editor.this.setItem(found.get(0));
-                        setSelectedItem(found.get(0));
+                        SearchComboBox.this.setSelectedItem(found.get(0));
                         Editor.this.setItem(found.get(0));
                         Editor.this.tf.setCaretPosition(pos);
                         Editor.this.tf.select(txt.length(), Editor.this.tf.getText().length());
@@ -225,20 +204,20 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
                         if (found.size() > 1 && showPopup) {
                             // limit popup rows
-                            SearchComboBox.this.setMaximumRowCount(Math.min(getActualMaximumRowCount(), found.size()));
-                            setPopupVisible(true);
+                            SearchComboBox.this.setMaximumRowCount(Math.min(SearchComboBox.this.getActualMaximumRowCount(), found.size()));
+                            SearchComboBox.this.setPopupVisible(true);
 
                             // Scroll popup list, so that found[0] is the first
                             // entry. This is a bit "dirty", so we put it in a
                             // try catch...just to avoid EDT Exceptions
                             try {
-                                final Object popup = getUI().getAccessibleChild(SearchComboBox.this, 0);
+                                final Object popup = SearchComboBox.this.getUI().getAccessibleChild(SearchComboBox.this, 0);
                                 if (popup instanceof Container) {
                                     final Component scrollPane = ((Container) popup).getComponent(0);
                                     if (popup instanceof ComboPopup) {
                                         final JList jlist = ((ComboPopup) popup).getList();
                                         if (scrollPane instanceof JScrollPane) {
-                                            final Rectangle cellBounds = jlist.getCellBounds(getSelectedIndex(), getSelectedIndex() + found.size() - 1);
+                                            final Rectangle cellBounds = jlist.getCellBounds(SearchComboBox.this.getSelectedIndex(), SearchComboBox.this.getSelectedIndex() + found.size() - 1);
                                             if (cellBounds != null) {
                                                 jlist.scrollRectToVisible(cellBounds);
                                             }
@@ -250,7 +229,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
                                 Log.exception(e);
                             }
                         } else {
-                            hidePopup();
+                            SearchComboBox.this.hidePopup();
                         }
 
                     }
@@ -414,13 +393,6 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     }
 
-    public boolean            autoCompletionEnabled = true;
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID      = 6475635443708682554L;
-
     public static void main(final String[] args) {
         final BasicGui gui = new BasicGui(SearchComboBox.class.getSimpleName()) {
 
@@ -461,14 +433,14 @@ public abstract class SearchComboBox<T> extends JComboBox {
                     }
 
                     final MigPanel contentPane = new MigPanel("ins 10,wrap 1", "[grow,fill]", "[]");
-                    getFrame().setContentPane(contentPane);
+                    this.getFrame().setContentPane(contentPane);
 
                     box1.setList(list);
                     box1.setBorder(BorderFactory.createEtchedBorder());
 
-                    getFrame().getContentPane().add(box1);
+                    this.getFrame().getContentPane().add(box1);
                     final JToggleButton toggle = new JToggleButton("Toggle Allow unknown");
-                    getFrame().getContentPane().add(toggle);
+                    this.getFrame().getContentPane().add(toggle);
                     toggle.addActionListener(new ActionListener() {
 
                         @Override
@@ -478,7 +450,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
                     });
 
                     final JToggleButton toggle2 = new JToggleButton("Toggle HelpText");
-                    getFrame().getContentPane().add(toggle2);
+                    this.getFrame().getContentPane().add(toggle2);
                     toggle2.addActionListener(new ActionListener() {
 
                         @Override
@@ -502,23 +474,21 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     }
 
+    private int               actualMaximumRowCount  = 8;
+    public boolean            autoCompletionEnabled  = true;
     /**
-     * @param found
+     * 
      */
-    protected void sortFound(final List<T> found) {
-        // TODO Auto-generated method stub
-        
-    }
+    private static final long serialVersionUID       = 6475635443708682554L;
+    private final ColorState  helpColorSet           = new ColorState(Color.LIGHT_GRAY);
 
-    private final ColorState helpColorSet           = new ColorState(Color.LIGHT_GRAY);
+    private final ColorState  badColorSet            = new ColorState(Color.RED);
 
-    private final ColorState badColorSet            = new ColorState(Color.RED);
-
-    private final ColorState normalColorSet         = new ColorState(Color.BLACK);
+    private final ColorState  normalColorSet         = new ColorState(Color.BLACK);
 
     {
 
-        this.normalColorSet.setForeground(getForeground());
+        this.normalColorSet.setForeground(this.getForeground());
         final Color disabled = (Color) UIManager.get("TextField.disabledForeground");
         if (disabled != null) {
             this.helpColorSet.setForeground(disabled);
@@ -526,13 +496,13 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     }
 
-    private String           helptext;
+    private String            helptext;
 
-    private boolean          unkownTextInputAllowed = false;
+    private boolean           unkownTextInputAllowed = false;
 
-    protected ImageIcon      badgeIcon;
+    protected ImageIcon       badgeIcon;
 
-    private ColorState       currentColorSet;
+    private ColorState        currentColorSet;
 
     /**
      * @param plugins
@@ -543,7 +513,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     public SearchComboBox(final List<T> plugins) {
         super((ComboBoxModel) null);
-        addFocusListener(new FocusListener() {
+        this.addFocusListener(new FocusListener() {
 
             @Override
             public void focusGained(final FocusEvent e) {
@@ -561,13 +531,13 @@ public abstract class SearchComboBox<T> extends JComboBox {
             this.setList(plugins);
         }
 
-        setEditor(new Editor(this));
+        this.setEditor(new Editor(this));
 
-        setEditable(true);
+        this.setEditable(true);
 
         // we extends the existing renderer. this avoids LAF incompatibilities
-        final ListCellRenderer org = getRenderer();
-        addPopupMenuListener(new PopupMenuListener() {
+        final ListCellRenderer org = this.getRenderer();
+        this.addPopupMenuListener(new PopupMenuListener() {
 
             @Override
             public void popupMenuCanceled(final PopupMenuEvent e) {
@@ -583,7 +553,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
             @Override
             public void popupMenuWillBecomeVisible(final PopupMenuEvent e) {
                 /* limit max row to 8 */
-                SearchComboBox.this.setMaximumRowCount(getActualMaximumRowCount());
+                SearchComboBox.this.setMaximumRowCount(SearchComboBox.this.getActualMaximumRowCount());
             }
         });
         this.setRenderer(new ListCellRenderer() {
@@ -646,6 +616,10 @@ public abstract class SearchComboBox<T> extends JComboBox {
         };
     }
 
+    public int getActualMaximumRowCount() {
+        return this.actualMaximumRowCount;
+    }
+
     /**
      * @return
      */
@@ -660,6 +634,11 @@ public abstract class SearchComboBox<T> extends JComboBox {
      */
     abstract protected Icon getIconForValue(T value);
 
+    @Override
+    public T getSelectedItem() {
+        return (T) super.getSelectedItem();
+    }
+
     public String getText() {
 
         String ret = this.getTextField().getText();
@@ -671,8 +650,8 @@ public abstract class SearchComboBox<T> extends JComboBox {
 
     @SuppressWarnings("unchecked")
     public JTextField getTextField() {
-        if ((Editor) getEditor() == null) { return null; }
-        return ((Editor) getEditor()).getTf();
+        if ((Editor) this.getEditor() == null) { return null; }
+        return ((Editor) this.getEditor()).getTf();
     }
 
     /**
@@ -680,6 +659,11 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * @return
      */
     abstract protected String getTextForValue(T value);
+
+    @Override
+    public boolean hasFocus() {
+        return super.hasFocus() || this.getTextField().hasFocus();
+    }
 
     public boolean isAutoCompletionEnabled() {
         return this.autoCompletionEnabled;
@@ -709,6 +693,10 @@ public abstract class SearchComboBox<T> extends JComboBox {
      */
     public void onChanged() {
 
+    }
+
+    public void setActualMaximumRowCount(final int count) {
+        this.actualMaximumRowCount = count;
     }
 
     public void setAutoCompletionEnabled(final boolean autoCompletionEnabled) {
@@ -760,7 +748,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         Object prototype = null;
         if (this.usePrototype() && listModel.size() > 0) {
             prototype = listModel.get(0);
-            setPrototypeDisplayValue(prototype);
+            this.setPrototypeDisplayValue(prototype);
         }
         super.setModel(new DefaultComboBoxModel(listModel.toArray(new Object[] {})));
         try {
@@ -770,7 +758,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
                  * jcombobox
                  * -from-becoming-unresponsive-when-using-a-custom-listcell
                  */
-                final Accessible a = getUI().getAccessibleChild(this, 0);
+                final Accessible a = this.getUI().getAccessibleChild(this, 0);
                 if (a instanceof javax.swing.plaf.basic.ComboPopup) {
                     final JList popupList = ((javax.swing.plaf.basic.ComboPopup) a).getList();
                     // route the comboBox' prototype to the list
@@ -781,7 +769,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
         } catch (final Throwable e) {
         }
         try {
-            final BasicComboBoxUI udi = (BasicComboBoxUI) getUI();
+            final BasicComboBoxUI udi = (BasicComboBoxUI) this.getUI();
             JComponent arrowButton = null;
             try {
                 final Field field = BasicComboBoxUI.class.getDeclaredField("arrowButton");
@@ -822,6 +810,15 @@ public abstract class SearchComboBox<T> extends JComboBox {
     }
 
     /**
+     * @deprecated Use {@link #setActualMaximumRowCount(int)} instead
+     */
+    @Override
+    @Deprecated
+    public void setMaximumRowCount(final int count) {
+        super.setMaximumRowCount(count);
+    }
+
+    /**
      * Do not use this method. For Type Safty, please use
      * {@link #setList(java.util.List)} instead
      * 
@@ -858,7 +855,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * @param defaultDownloadFolder
      */
     public void setText(final String text) {
-        
+
         this.getTextField().setText(text);
         this.updateHelpText();
 
@@ -881,6 +878,14 @@ public abstract class SearchComboBox<T> extends JComboBox {
      */
     public void setUnkownTextInputAllowed(final boolean allowUnknownValuesEnabled) {
         this.unkownTextInputAllowed = allowUnknownValuesEnabled;
+    }
+
+    /**
+     * @param found
+     */
+    protected void sortFound(final List<T> found) {
+        // TODO Auto-generated method stub
+
     }
 
     /**
@@ -920,7 +925,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
      * 
      */
     private void updateHelpText() {
-        if (getEditor() == null || this.helptext == null) { return; }
+        if (this.getEditor() == null || this.helptext == null) { return; }
         final String txt = this.getTextField().getText();
         final boolean hasHelpText = txt.equals(this.helptext);
         if (StringUtils.isEmpty(txt) || hasHelpText) {
