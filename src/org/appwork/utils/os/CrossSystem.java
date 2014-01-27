@@ -229,7 +229,7 @@ public class CrossSystem {
             return null;
         }
         /* remove invalid chars */
-        pathPart = pathPart.replaceAll("([\\\\|<|>|\\||\"|:|\\*|\\?|/|\\x00])+", "_");
+        pathPart = pathPart.replaceAll("([\\\\|<|>|\\||\r|\n|\"|:|\\*|\\?|/|\\x00])+", "_");
         /*
          * remove ending points, not allowed under windows and others os maybe
          * too
