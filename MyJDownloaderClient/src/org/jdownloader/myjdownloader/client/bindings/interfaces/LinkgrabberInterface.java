@@ -17,7 +17,7 @@ public interface LinkgrabberInterface extends Linkable {
 
     void moveToDownloadlist(long[] linkIds, long[] packageIds);
 
-    void removeLinks(long[] packageIds, long[] linkIds);
+    void removeLinks(long[] linkIds,long[] packageIds);
 
     void setEnabled(boolean enabled, long[] linkIds, long[] packageIds);
 
