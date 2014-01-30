@@ -16,11 +16,13 @@ import org.appwork.utils.swing.dialog.OKCancelCloseUserIODefinition;
  * 
  */
 public interface InputDialogInterface extends OKCancelCloseUserIODefinition {
+    @Out
     public String getMessage();
 
     /**
      * @return the text that has been entered 
      */
+    @In
     public String getText();
 
 }

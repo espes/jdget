@@ -14,7 +14,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -37,11 +37,11 @@ import org.appwork.utils.swing.EDTHelper;
 
 public class InputDialog extends AbstractDialog<String> implements KeyListener, MouseListener, InputDialogInterface {
 
-    protected String               defaultMessage;
-    protected String               message;
+    protected String                 defaultMessage;
+    protected String                 message;
 
     protected TextComponentInterface input;
-    private JTextPane              bigInput;
+    private JTextPane                bigInput;
     protected JTextPane              textField;
 
     @Override
@@ -50,7 +50,7 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
         return UIOManager.I().show(InputDialogInterface.class, this);
     }
 
-    public InputDialog(final int flag, final String title, final String message, final String defaultMessage, final ImageIcon icon, final String okOption, final String cancelOption) {
+    public InputDialog(final int flag, final String title, final String message, final String defaultMessage, final Icon icon, final String okOption, final String cancelOption) {
         super(flag, title, icon, okOption, cancelOption);
         Log.L.fine("Dialog    [" + okOption + "][" + cancelOption + "]\r\nflag:  " + Integer.toBinaryString(flag) + "\r\ntitle: " + title + "\r\nmsg:   \r\n" + message + "\r\ndef:   \r\n" + defaultMessage);
 
@@ -245,7 +245,6 @@ public class InputDialog extends AbstractDialog<String> implements KeyListener, 
             bigInput.selectAll();
             bigInput.requestFocusInWindow();
         }
-    
 
     }
 

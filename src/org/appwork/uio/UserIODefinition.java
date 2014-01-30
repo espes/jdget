@@ -5,17 +5,14 @@ import org.appwork.utils.swing.dialog.DialogClosedException;
 
 public interface UserIODefinition {
 
-    public static enum CloseReason {
-        OK,
-        CANCEL,
-        CLOSE,
-        TIMEOUT,
-        INTERRUPT
-    }
-
     @In
     public CloseReason getCloseReason();
 
+    @Out
+    public String getTitle();
+
+    @In
+    public void setCloseReason(CloseReason closeReason);
     /**
      * @throws DialogCanceledException
      * @throws DialogClosedException
@@ -28,5 +25,7 @@ public interface UserIODefinition {
 
     @Out
     public int getFlags();
+    @Out
+    public int getTimeout();
 
 }

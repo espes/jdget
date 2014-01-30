@@ -56,6 +56,7 @@ import org.appwork.exceptions.WTFException;
 import org.appwork.resources.AWUTheme;
 import org.appwork.storage.JSonStorage;
 import org.appwork.swing.MigPanel;
+import org.appwork.uio.CloseReason;
 import org.appwork.uio.UIOManager;
 import org.appwork.uio.UserIODefinition;
 import org.appwork.utils.Application;
@@ -844,6 +845,11 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
         throw new WTFException();
 
+    }
+
+    public void setCloseReason(final CloseReason closeReason) {
+        // we need this method to stay compatible the dialog interfaces,
+        throw new WTFException("Not implemented");
     }
 
     /**
