@@ -169,9 +169,7 @@ public abstract class AbstractMyJDClient<Type> {
                 if (dataObject.getRid() != i) { throw new BadResponseException("RID Mismatch"); }
 
                 // ugly!!! but this will be changed when we have a proper remoteAPI response format
-                if (returnType == void.class || returnType == Void.class) {
-                    return null;
-                }
+                if (returnType == void.class || returnType == Void.class) { return null; }
                 ret = this.jsonToObject(this.objectToJSon(dataObject.getData()) + "", returnType);
 
                 return ret;
@@ -236,7 +234,6 @@ public abstract class AbstractMyJDClient<Type> {
             } catch (final APIException e1) {
                 // actually not possible.
                 throw new RuntimeException(e);
-
             }
             throw e;
         } catch (final Exception e) {
@@ -260,7 +257,7 @@ public abstract class AbstractMyJDClient<Type> {
      * @param password
      * @throws MyJDownloaderException
      */
-    public synchronized void connect(final String email, final String password) throws MyJDownloaderException {
+    public synchronized SessionInfo connect(final String email, final String password) throws MyJDownloaderException {
         try {
 
             // localSecret = createSecret(username, password, "jd");
@@ -280,9 +277,9 @@ public abstract class AbstractMyJDClient<Type> {
             final byte[] deviceEncryptionToken = this.updateEncryptionToken(deviceSecret, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
             final String sessionToken = ret.getSessiontoken();
             final String regainToken = ret.getRegaintoken();
-            final SessionInfo newSessionInfo = new SessionInfo(deviceSecret, serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
+            final SessionInfo newSessionInfo = this.createSessionInfo(deviceSecret, serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
             this.currentSessionInfo = newSessionInfo;
-
+            return newSessionInfo;
         } catch (final ExceptionResponse e) {
             try {
                 this.handleInvalidResponseCodes(e, null);
@@ -304,6 +301,10 @@ public abstract class AbstractMyJDClient<Type> {
 
     protected abstract byte[] createSecret(final String username, final String password, final String domain) throws MyJDownloaderException;
 
+    protected SessionInfo createSessionInfo(final byte[] deviceSecret, final byte[] serverEncryptionToken, final byte[] deviceEncryptionToken, final String sessionToken, final String regainToken) {
+        return new SessionInfo(deviceSecret, serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
+    }
+
     private byte[] cryptedPost(final String url, final String objectToJSon, final byte[] keyAndIV) throws MyJDownloaderException, APIException {
         return this.post(url, objectToJSon, keyAndIV);
 
@@ -321,12 +322,18 @@ public abstract class AbstractMyJDClient<Type> {
      * @throws MyJDownloaderException
      */
     public synchronized void disconnect() throws MyJDownloaderException {
+        this.disconnect(true);
+    }
+
+    public synchronized void disconnect(final boolean removeSession) throws MyJDownloaderException {
         try {
             final SessionInfo session = this.getSessionInfo();
             final String query = "/my/disconnect?sessiontoken=" + this.urlencode(session.getSessionToken());
             this.callServer(query, null, session, RequestIDOnly.class);
         } finally {
-            this.currentSessionInfo = null;
+            if (removeSession) {
+                this.currentSessionInfo = null;
+            }
         }
     }
 
@@ -354,7 +361,6 @@ public abstract class AbstractMyJDClient<Type> {
      * @throws MyJDownloaderException
      */
     public void finishPasswordReset(final String email, final String key, final String newPassword) throws MyJDownloaderException {
-
         final byte[] k = AbstractMyJDClient.hexToByteArray(key);
         if (k.length != 32) { throw new IllegalArgumentException("Bad Key. Expected: 64 hexchars"); }
         final byte[] newLoginSecret = this.createSecret(email, newPassword, "server");
@@ -433,7 +439,7 @@ public abstract class AbstractMyJDClient<Type> {
      * 
      * @return
      */
-    public SessionInfo getSessionInfo() throws MyJDownloaderException {
+    public SessionInfo getSessionInfo() throws UnconnectedException {
         final SessionInfo ret = this.currentSessionInfo;
         if (ret == null) { throw new UnconnectedException(); }
         return ret;
@@ -576,7 +582,7 @@ public abstract class AbstractMyJDClient<Type> {
      * 
      * @throws MyJDownloaderException
      */
-    public synchronized void reconnect() throws MyJDownloaderException {
+    public synchronized SessionInfo reconnect() throws MyJDownloaderException {
         try {
             final SessionInfo session = this.getSessionInfo();
             final String query = "/my/reconnect?appkey=" + this.urlencode(this.appKey) + "&sessiontoken=" + this.urlencode(session.getSessionToken()) + "&regaintoken=" + this.urlencode(session.getRegainToken());
@@ -586,11 +592,11 @@ public abstract class AbstractMyJDClient<Type> {
             final byte[] deviceEncryptionToken = this.updateEncryptionToken(session.getDeviceSecret(), AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
             final String sessionToken = ret.getSessiontoken();
             final String regainToken = ret.getRegaintoken();
-            final SessionInfo newSessionInfo = new SessionInfo(session.getDeviceSecret(), serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
+            final SessionInfo newSessionInfo = this.createSessionInfo(session.getDeviceSecret(), serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
             this.currentSessionInfo = newSessionInfo;
+            return newSessionInfo;
         } catch (final Exception e) {
             throw MyJDownloaderException.get(e);
-
         }
     }
 
