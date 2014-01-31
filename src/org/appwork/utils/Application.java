@@ -429,8 +429,10 @@ public class Application {
      * 
      * @return
      */
-    public static boolean isJared(final Class<?> rootOfClazz) {
-
+    public static boolean isJared(Class<?> rootOfClazz) {
+        if (rootOfClazz == null) {
+            rootOfClazz = Application.class;
+        }
         final String name = rootOfClazz.getName().replaceAll("\\.", "/") + ".class";
         final ClassLoader cll = Application.class.getClassLoader();
         if (cll == null) {
