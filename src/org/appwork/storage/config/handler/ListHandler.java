@@ -113,12 +113,7 @@ public abstract class ListHandler<T> extends KeyHandler<T> {
     }
 
     protected void putCachedValue(Object value) {
-        try {
-            initHandler();
-        } catch (final Throwable e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+      
         if (this.useObjectCache && getStorageHandler().isObjectCacheEnabled()) {
             if (value == null) {
                 value = ListHandler.NULL;
