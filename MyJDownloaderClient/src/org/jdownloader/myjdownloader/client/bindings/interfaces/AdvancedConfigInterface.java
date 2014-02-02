@@ -15,7 +15,10 @@ public interface AdvancedConfigInterface extends Linkable {
 
     public ArrayList<AdvancedConfigEntryDataStorable> list();
 
+    @Deprecated
     public ArrayList<AdvancedConfigEntryDataStorable> list(String pattern, boolean returnDescription, boolean returnValues, boolean returnDefaultValues);
+
+    public ArrayList<AdvancedConfigEntryDataStorable> list(String pattern, boolean returnDescription, boolean returnValues, boolean returnDefaultValues, boolean returnEnumInfo);
 
     public Object get(String interfaceName, String storage, String key);
 

@@ -3,12 +3,39 @@ package org.jdownloader.myjdownloader.client.bindings;
 import org.jdownloader.myjdownloader.client.json.AbstractJsonData;
 
 public class AdvancedConfigEntryDataStorable extends AbstractJsonData {
-    private String docs          = null;
-    private String storage       = null;
-    private Object value         = null;
-    private Object defaultValue  = null;
-    private String type          = null;
-    private String interfaceName = null;
+    private String   docs          = null;
+    private String   storage       = null;
+    private Object   value         = null;
+    private Object   defaultValue  = null;
+    private String   type          = null;
+    private String   interfaceName = null;
+    private String   enumLabel     = null;
+    private String[] enumOptions   = null;
+    private String[] enumLabels    = null;
+
+    public String[] getEnumOptions() {
+        return enumOptions;
+    }
+
+    public void setEnumOptions(String[] enumOptions) {
+        this.enumOptions = enumOptions;
+    }
+
+    public String[] getEnumLabels() {
+        return enumLabels;
+    }
+
+    public void setEnumLabels(String[] enumLabels) {
+        this.enumLabels = enumLabels;
+    }
+
+    public String getEnumLabel() {
+        return enumLabel;
+    }
+
+    public void setEnumLabel(String enumLabel) {
+        this.enumLabel = enumLabel;
+    }
 
     public String getDocs() {
         return docs;
