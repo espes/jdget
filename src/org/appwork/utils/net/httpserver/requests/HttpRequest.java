@@ -24,16 +24,16 @@ import org.appwork.utils.net.httpserver.HttpConnection;
 public abstract class HttpRequest implements HttpRequestInterface {
 
     public static String getParameterbyKey(final HttpRequestInterface request, final String key) throws IOException {
-        LinkedList<String[]> params = request.getRequestedURLParameters();
+        List<KeyValuePair> params = request.getRequestedURLParameters();
         if (params != null) {
-            for (final String[] param : params) {
-                if (key.equalsIgnoreCase(param[0]) && param.length == 2) { return param[1]; }
+            for (final KeyValuePair param : params) {
+                if (key.equalsIgnoreCase(param.key)) { return param.value; }
             }
         }
         params = request.getPostParameter();
         if (params != null) {
-            for (final String[] param : params) {
-                if (key.equalsIgnoreCase(param[0]) && param.length == 2) { return param[1]; }
+            for (final KeyValuePair param : params) {
+                if (key.equalsIgnoreCase(param.key)) { return param.value; }
             }
         }
         return null;
@@ -45,7 +45,7 @@ public abstract class HttpRequest implements HttpRequestInterface {
 
     protected String               requestedPath          = null;
 
-    protected LinkedList<String[]> requestedURLParameters = null;
+    protected List<KeyValuePair> requestedURLParameters = null;
 
     private List<String>           remoteAddress          = new ArrayList<String>();
 
@@ -74,7 +74,7 @@ public abstract class HttpRequest implements HttpRequestInterface {
     /**
      * @return the requestedURLParameters
      */
-    public LinkedList<String[]> getRequestedURLParameters() {
+    public List<KeyValuePair> getRequestedURLParameters() {
         return this.requestedURLParameters;
     }
 
@@ -109,7 +109,7 @@ public abstract class HttpRequest implements HttpRequestInterface {
      * @param requestedURLParameters
      *            the requestedURLParameters to set
      */
-    public void setRequestedURLParameters(final LinkedList<String[]> requestedURLParameters) {
+    public void setRequestedURLParameters(final List<KeyValuePair> requestedURLParameters) {
         this.requestedURLParameters = requestedURLParameters;
     }
 

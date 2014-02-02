@@ -12,6 +12,7 @@ package org.appwork.utils.net.httpserver.requests;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.storage.JSonStorage;
@@ -39,7 +40,7 @@ public class PostRequest extends HttpRequest {
     protected InputStream          inputStream         = null;
 
     protected boolean              postParameterParsed = false;
-    protected LinkedList<String[]> postParameters      = null;
+    protected List<KeyValuePair> postParameters      = null;
 
     /**
      * @param connection
@@ -137,7 +138,7 @@ public class PostRequest extends HttpRequest {
      * @return
      * @throws IOException
      */
-    public synchronized LinkedList<String[]> getPostParameter() throws IOException {
+    public synchronized List<KeyValuePair> getPostParameter() throws IOException {
         if (this.postParameterParsed) { return this.postParameters; }
         final String type = this.getRequestHeaders().getValue(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE);
         CONTENT_TYPE content_type = null;
@@ -170,17 +171,17 @@ public class PostRequest extends HttpRequest {
             }
         }
         if (jsonRequest != null && jsonRequest.getParams() != null) {
-            this.postParameters = new LinkedList<String[]>();
+            this.postParameters = new LinkedList<KeyValuePair>();
             for (final Object parameter : jsonRequest.getParams()) {
                 if (parameter instanceof JSonObject) {
                     /*
                      * JSonObject has customized .toString which converts Map to
                      * Json!
                      */
-                    this.postParameters.add(new String[] { parameter.toString(), null });
+                    this.postParameters.add(new KeyValuePair( null,parameter.toString() ));
                 } else {
                     final String jsonParameter = JSonStorage.serializeToJson(parameter);
-                    this.postParameters.add(new String[] { jsonParameter, null });
+                    this.postParameters.add(new KeyValuePair(null, jsonParameter ));
                 }
             }
         }
@@ -205,12 +206,12 @@ public class PostRequest extends HttpRequest {
                 sb.append("\r\n");
             }
             sb.append("\r\n");
-            final LinkedList<String[]> postParams = this.getPostParameter();
+            final List<KeyValuePair> postParams = this.getPostParameter();
             if (postParams != null) {
-                for (final String[] s : postParams) {
-                    sb.append(s[0]);
+                for (final KeyValuePair s : postParams) {
+                    sb.append(s.key);
                     sb.append(": ");
-                    sb.append(s[1]);
+                    sb.append(s.value);
                     sb.append("\r\n");
                 }
             }

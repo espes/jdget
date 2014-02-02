@@ -15,7 +15,6 @@ package org.appwork.utils.net.httpserver.session;
  */
 public interface HttpSession {
 
-    public HttpSessionController<? extends HttpSession> _getSessionController();
 
     public String getSessionID();
 

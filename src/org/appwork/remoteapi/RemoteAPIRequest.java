@@ -20,6 +20,7 @@ import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HeadRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequestInterface;
+import org.appwork.utils.net.httpserver.requests.KeyValuePair;
 import org.appwork.utils.net.httpserver.requests.OptionsRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 
@@ -119,7 +120,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
      * getPostParameter()
      */
     @Override
-    public LinkedList<String[]> getPostParameter() throws IOException {
+    public List<KeyValuePair> getPostParameter() throws IOException {
         return request.getPostParameter();
     }
 
@@ -141,7 +142,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
     /**
      * @return the requestedURLParameters
      */
-    public LinkedList<String[]> getRequestedURLParameters() {
+    public List<KeyValuePair> getRequestedURLParameters() {
         return request.getRequestedURLParameters();
     }
 

@@ -18,7 +18,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 import org.appwork.net.protocol.http.HTTPConstants;
@@ -41,6 +41,7 @@ import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
+import org.appwork.utils.net.httpserver.requests.KeyValuePair;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
 import org.appwork.utils.reflection.Clazz;
@@ -309,48 +310,38 @@ public class RemoteAPI implements HttpRequestHandler {
         this.validateRequest(request);
         final java.util.List<String> parameters = new ArrayList<String>();
         String jqueryCallback = null;
-        String signature = null;
-        Long requestID = null;
+
         /* convert GET parameters to methodParameters */
-        for (final String[] param : request.getRequestedURLParameters()) {
-            if (param[1] != null) {
+        for (final KeyValuePair param : request.getRequestedURLParameters()) {
+            if (param.key != null) {
                 /* key=value(parameter) */
-                if ("callback".equalsIgnoreCase(param[0])) {
+                if ("callback".equalsIgnoreCase(param.key)) {
                     /* filter jquery callback */
-                    jqueryCallback = param[1];
-                    continue;
-                } else if ("signature".equalsIgnoreCase(param[0])) {
-                    /* filter url signature */
-                    signature = param[1];
-                    continue;
-                } else if ("rid".equalsIgnoreCase(param[0])) {
-                    requestID = Long.parseLong(param[1]);
+                    jqueryCallback = param.value;
                     continue;
                 }
-                parameters.add(param[1]);
-            } else {
-                /* key(parameter) */
-                parameters.add(param[0]);
+             
             }
+            parameters.add(param.value);
+
         }
         if (request instanceof PostRequest) {
             try {
-                final LinkedList<String[]> ret = ((PostRequest) request).getPostParameter();
+                final List<KeyValuePair> ret = ((PostRequest) request).getPostParameter();
                 if (ret != null) {
                     /* add POST parameters to methodParameters */
-                    for (final String[] param : ret) {
-                        if (param[1] != null) {
+                    for (final KeyValuePair param : ret) {
+                        if (param.key != null) {
                             /* key=value(parameter) */
-                            if ("callback".equalsIgnoreCase(param[0])) {
+                            if ("callback".equalsIgnoreCase(param.key)) {
                                 /* filter jquery callback */
-                                jqueryCallback = param[1];
+                                jqueryCallback = param.value;
                                 continue;
                             }
-                            parameters.add(param[1]);
-                        } else {
-                            /* key(parameter) */
-                            parameters.add(param[0]);
                         }
+                        /* key(parameter) */
+                        parameters.add(param.value);
+
                     }
                 }
             } catch (final Throwable e) {

@@ -35,7 +35,7 @@ public class GetRequest extends HttpRequest {
      * getPostParameter()
      */
     @Override
-    public LinkedList<String[]> getPostParameter() throws IOException {
+    public LinkedList<KeyValuePair> getPostParameter() throws IOException {
         return null;
     }
 

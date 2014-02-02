@@ -11,7 +11,7 @@ package org.appwork.utils.net.httpserver.session;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.List;
 
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.SessionRemoteAPIRequest;
@@ -20,6 +20,7 @@ import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.handler.HttpSessionRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
+import org.appwork.utils.net.httpserver.requests.KeyValuePair;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
 
@@ -44,13 +45,13 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
         return false;
     }
 
-    private String extractSessionID(final LinkedList<String[]> params) {
-        final Iterator<String[]> it = params.iterator();
+    private String extractSessionID(final List<KeyValuePair> params) {
+        final Iterator<KeyValuePair> it = params.iterator();
         while (it.hasNext()) {
-            final String[] next = it.next();
-            if ("token".equalsIgnoreCase(next[0])) {
+            final KeyValuePair next = it.next();
+            if ("token".equalsIgnoreCase(next.key)) {
                 it.remove();
-                return next[1];
+                return next.value;
             }
         }
         return null;
@@ -114,7 +115,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
         final T session = this.getSession(request, this.extractSessionID(request.getRequestedURLParameters()));
         for (final HttpSessionRequestHandler<T> handler : handlers) {
             if (handler.onPostSessionRequest(session, request, response)) { return true; }
-        }        
+        }
         return false;
     }
 

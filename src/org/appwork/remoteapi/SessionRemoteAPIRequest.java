@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.appwork.utils.net.HeaderCollection;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
+import org.appwork.utils.net.httpserver.requests.KeyValuePair;
 import org.appwork.utils.net.httpserver.session.HttpSession;
 
 /**
@@ -33,7 +34,7 @@ public class SessionRemoteAPIRequest<T extends HttpSession> extends RemoteAPIReq
      * @param session
      * @return
      */
-    protected SessionRemoteAPIRequest(final HttpRequest request, final RemoteAPIRequest apiRequest, final T session) {
+    public SessionRemoteAPIRequest(final HttpRequest request, final RemoteAPIRequest apiRequest, final T session) {
         super(apiRequest.getIface(), apiRequest.getMethodName(), apiRequest.getParameters(), request, apiRequest.getJqueryCallback());
         this.apiRequest = apiRequest;
         this.session = session;
@@ -89,7 +90,7 @@ public class SessionRemoteAPIRequest<T extends HttpSession> extends RemoteAPIReq
     }
 
     @Override
-    public LinkedList<String[]> getPostParameter() throws IOException {
+    public List<KeyValuePair> getPostParameter() throws IOException {
 
         return apiRequest.getPostParameter();
     }
@@ -113,7 +114,7 @@ public class SessionRemoteAPIRequest<T extends HttpSession> extends RemoteAPIReq
     }
 
     @Override
-    public LinkedList<String[]> getRequestedURLParameters() {
+    public List<KeyValuePair> getRequestedURLParameters() {
 
         return apiRequest.getRequestedURLParameters();
     }

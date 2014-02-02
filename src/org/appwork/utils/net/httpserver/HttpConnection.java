@@ -31,6 +31,7 @@ import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
 import org.appwork.utils.net.httpserver.requests.HeadRequest;
 import org.appwork.utils.net.httpserver.requests.HttpRequest;
+import org.appwork.utils.net.httpserver.requests.KeyValuePair;
 import org.appwork.utils.net.httpserver.requests.OptionsRequest;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
@@ -41,8 +42,8 @@ import org.appwork.utils.net.httpserver.responses.HttpResponse;
  */
 public class HttpConnection implements Runnable {
 
-    public static LinkedList<String[]> parseParameterList(final String requestedParameters) throws IOException {
-        final LinkedList<String[]> requestedURLParameters = new LinkedList<String[]>();
+    public static List<KeyValuePair> parseParameterList(final String requestedParameters) throws IOException {
+        final List<KeyValuePair> requestedURLParameters = new LinkedList<KeyValuePair>();
         if (!StringUtils.isEmpty(requestedParameters)) {
             /* build requestedParamters */
             final String[] parameters = requestedParameters.split("&(?!#)");
@@ -51,7 +52,7 @@ public class HttpConnection implements Runnable {
                 final String params[] = parameter.split("=", 2);
                 if (params.length == 1) {
                     /* no value */
-                    requestedURLParameters.add(new String[] { URLDecoder.decode(params[0], "UTF-8"), null });
+                    requestedURLParameters.add(new KeyValuePair(null, URLDecoder.decode(params[0], "UTF-8")));
                 } else {
                     /* key = value */
                     if ("_".equals(params[0])) {
@@ -60,7 +61,7 @@ public class HttpConnection implements Runnable {
                         // + params[1]);
                         continue;
                     }
-                    requestedURLParameters.add(new String[] { URLDecoder.decode(params[0], "UTF-8"), URLDecoder.decode(params[1], "UTF-8") });
+                    requestedURLParameters.add(new KeyValuePair(URLDecoder.decode(params[0], "UTF-8"), URLDecoder.decode(params[1], "UTF-8")));
                 }
             }
         }
@@ -123,7 +124,7 @@ public class HttpConnection implements Runnable {
         final String requestedURL = new Regex(requestLine, " (/.*?) ").getMatch(0);
         final String requestedPath = new Regex(requestedURL, "(/.*?)($|\\?)").getMatch(0);
         final String requestedParameters = new Regex(requestedURL, "\\?(.+)").getMatch(0);
-        final LinkedList<String[]> requestedURLParameters = HttpConnection.parseParameterList(requestedParameters);
+        final List< KeyValuePair> requestedURLParameters = HttpConnection.parseParameterList(requestedParameters);
         /* read request Headers */
         ByteBuffer headers = HTTPConnectionUtils.readheader(this.is, false);
         byte[] bytesHeaders = new byte[headers.limit()];
@@ -184,7 +185,7 @@ public class HttpConnection implements Runnable {
         request.setRequestedPath(requestedPath);
         request.setRequestedURL(requestedURL);
         request.setRequestHeaders(requestHeaders);
-    
+
         return request;
     }
 
