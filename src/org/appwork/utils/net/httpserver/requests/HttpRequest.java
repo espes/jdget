@@ -11,7 +11,6 @@ package org.appwork.utils.net.httpserver.requests;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.appwork.utils.net.HeaderCollection;
@@ -30,10 +29,12 @@ public abstract class HttpRequest implements HttpRequestInterface {
                 if (key.equalsIgnoreCase(param.key)) { return param.value; }
             }
         }
-        params = request.getPostParameter();
-        if (params != null) {
-            for (final KeyValuePair param : params) {
-                if (key.equalsIgnoreCase(param.key)) { return param.value; }
+        if (request instanceof PostRequest) {
+            params = ((PostRequest) request).getPostParameter();
+            if (params != null) {
+                for (final KeyValuePair param : params) {
+                    if (key.equalsIgnoreCase(param.key)) { return param.value; }
+                }
             }
         }
         return null;
@@ -45,41 +46,41 @@ public abstract class HttpRequest implements HttpRequestInterface {
 
     protected String               requestedPath          = null;
 
-    protected List<KeyValuePair> requestedURLParameters = null;
+    protected List<KeyValuePair>   requestedURLParameters = null;
 
     private List<String>           remoteAddress          = new ArrayList<String>();
 
-    protected final HttpConnection   connection;
+    protected final HttpConnection connection;
 
     public HttpConnection getConnection() {
         return connection;
     }
 
-    public HttpRequest(HttpConnection connection) {
+    public HttpRequest(final HttpConnection connection) {
         this.connection = connection;
     }
 
     public List<String> getRemoteAddress() {
-        return this.remoteAddress;
+        return remoteAddress;
     }
 
     public String getRequestedPath() {
-        return this.requestedPath;
+        return requestedPath;
     }
 
     public String getRequestedURL() {
-        return this.requestedURL;
+        return requestedURL;
     }
 
     /**
      * @return the requestedURLParameters
      */
     public List<KeyValuePair> getRequestedURLParameters() {
-        return this.requestedURLParameters;
+        return requestedURLParameters;
     }
 
     public HeaderCollection getRequestHeaders() {
-        return this.requestHeaders;
+        return requestHeaders;
     }
 
     /**
@@ -116,4 +117,5 @@ public abstract class HttpRequest implements HttpRequestInterface {
     public void setRequestHeaders(final HeaderCollection requestHeaders) {
         this.requestHeaders = requestHeaders;
     }
+
 }

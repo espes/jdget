@@ -12,7 +12,6 @@ package org.appwork.remoteapi;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.appwork.utils.net.HeaderCollection;
@@ -89,11 +88,11 @@ public class SessionRemoteAPIRequest<T extends HttpSession> extends RemoteAPIReq
         return apiRequest.getParameters();
     }
 
-    @Override
-    public List<KeyValuePair> getPostParameter() throws IOException {
-
-        return apiRequest.getPostParameter();
-    }
+//    @Override
+//    public List<KeyValuePair> getPostParameter() throws IOException {
+//
+//        return apiRequest.getPostParameter();
+//    }
 
     @Override
     public List<String> getRemoteAdress() {

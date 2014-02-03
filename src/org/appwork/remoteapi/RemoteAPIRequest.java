@@ -12,7 +12,6 @@ package org.appwork.remoteapi;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.appwork.utils.net.HeaderCollection;
@@ -113,16 +112,16 @@ public class RemoteAPIRequest implements HttpRequestInterface {
         return parameters;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
-     * getPostParameter()
-     */
-    @Override
-    public List<KeyValuePair> getPostParameter() throws IOException {
-        return request.getPostParameter();
-    }
+//    /*
+//     * (non-Javadoc)
+//     * 
+//     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
+//     * getPostParameter()
+//     */
+//    @Override
+//    public List<KeyValuePair> getPostParameter() throws IOException {
+//        return request.getPostParameter();
+//    }
 
     /**
      * @return

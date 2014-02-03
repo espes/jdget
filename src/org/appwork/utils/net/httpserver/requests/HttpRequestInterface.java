@@ -9,8 +9,6 @@
  */
 package org.appwork.utils.net.httpserver.requests;
 
-import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.appwork.utils.net.HeaderCollection;
@@ -20,7 +18,7 @@ import org.appwork.utils.net.HeaderCollection;
  * 
  */
 public interface HttpRequestInterface {
-    public List<KeyValuePair> getPostParameter() throws IOException;
+//    public List<KeyValuePair> getPostParameter() throws IOException;
 
     public String getRequestedPath();
 

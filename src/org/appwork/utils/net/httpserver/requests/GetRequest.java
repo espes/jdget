@@ -9,9 +9,6 @@
  */
 package org.appwork.utils.net.httpserver.requests;
 
-import java.io.IOException;
-import java.util.LinkedList;
-
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.HttpConnection;
 
@@ -24,20 +21,20 @@ public class GetRequest extends HttpRequest {
     /**
      * @param connection
      */
-    public GetRequest(HttpConnection connection) {
+    public GetRequest(final HttpConnection connection) {
         super(connection);        
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
-     * getPostParameter()
-     */
-    @Override
-    public LinkedList<KeyValuePair> getPostParameter() throws IOException {
-        return null;
-    }
+//    /*
+//     * (non-Javadoc)
+//     * 
+//     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
+//     * getPostParameter()
+//     */
+//    @Override
+//    public LinkedList<KeyValuePair> getPostParameter() throws IOException {
+//        return null;
+//    }
 
     @Override
     public String toString() {
@@ -45,9 +42,9 @@ public class GetRequest extends HttpRequest {
 
         sb.append("\r\n----------------Request-------------------------\r\n");
 
-        sb.append("GET ").append(this.getRequestedURL()).append(" HTTP/1.1\r\n");
+        sb.append("GET ").append(getRequestedURL()).append(" HTTP/1.1\r\n");
 
-        for (final HTTPHeader key : this.getRequestHeaders()) {
+        for (final HTTPHeader key : getRequestHeaders()) {
 
             sb.append(key.getKey());
             sb.append(": ");
