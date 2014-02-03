@@ -577,6 +577,7 @@ public abstract class SearchComboBox<T> extends JComboBox {
             }
         });
         this.setColorState(this.normalColorSet);
+
     }
 
     /**

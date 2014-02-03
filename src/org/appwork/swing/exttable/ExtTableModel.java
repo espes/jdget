@@ -992,7 +992,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      * @param visible
      */
     public void setColumnVisible(final int modelColumnIndex, final boolean visible) {
-
         this.setColumnVisible(this.getExtColumnByModelIndex(modelColumnIndex), visible);
 
     }

@@ -179,13 +179,13 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     protected synchronized void connectInputStream() throws IOException {
         if (this.httpMethod == RequestMethod.POST) {
-            final long done = ((CountingOutputStream) this.outputStream).transferedBytes();
+            final long done = ((CountingOutputStream) this.getOutputStream()).transferedBytes();
             if (done != this.postTodoLength) { throw new IOException("Content-Length " + this.postTodoLength + " does not match send " + done + " bytes"); }
         }
         if (this.inputStreamConnected) { return; }
         if (this.httpMethod == RequestMethod.POST) {
             /* flush outputstream in case some buffers are not flushed yet */
-            this.outputStream.flush();
+            this.getOutputStream().flush();
         }
         this.inputStreamConnected = true;
         /* first read http header */
@@ -393,7 +393,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     public OutputStream getOutputStream() throws IOException {
         this.connect();
-        if (this.outputClosed) { throw new IOException("OutputStream no longer available"); }
+        if (this.outputStream == null || this.outputClosed) { throw new IOException("OutputStream no longer available"); }
         return this.outputStream;
     }
 

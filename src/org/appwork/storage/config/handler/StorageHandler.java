@@ -159,27 +159,29 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     private final Class<T>                                  configInterface;
-    protected final HashMap<Method, KeyHandler<?>>          methodMap            = new HashMap<Method, KeyHandler<?>>();
+    protected final HashMap<Method, KeyHandler<?>>          methodMap                 = new HashMap<Method, KeyHandler<?>>();
 
-    protected final HashMap<String, KeyHandler<?>>          keyHandlerMap        = new HashMap<String, KeyHandler<?>>();
+    protected final HashMap<String, KeyHandler<?>>          keyHandlerMap             = new HashMap<String, KeyHandler<?>>();
     protected final Storage                                 primitiveStorage;
     private final File                                      path;
 
-    private volatile ConfigEventSender<Object>              eventSender          = null;
+    private volatile ConfigEventSender<Object>              eventSender               = null;
 
     private String                                          relativCPPath;
 
     // set externaly to start profiling
-    public static HashMap<String, Long>                     PROFILER_MAP         = null;
+    public static HashMap<String, Long>                     PROFILER_MAP              = null;
 
-    public static HashMap<String, Long>                     PROFILER_CALLNUM_MAP = null;
+    public static HashMap<String, Long>                     PROFILER_CALLNUM_MAP      = null;
 
-    private volatile WriteStrategy                          writeStrategy        = null;
-    private boolean                                         objectCacheEnabled   = true;
+    private volatile WriteStrategy                          writeStrategy             = null;
+    private boolean                                         objectCacheEnabled        = true;
 
     private final String                                    storageID;
 
-    private static final HashMap<StorageHandler<?>, String> STORAGEMAP           = new HashMap<StorageHandler<?>, String>();
+    private static final HashMap<StorageHandler<?>, String> STORAGEMAP                = new HashMap<StorageHandler<?>, String>();
+
+    boolean                                                 saveInShutdownHookEnabled = true;
 
     /**
      * @param name
@@ -713,6 +715,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         return this.objectCacheEnabled;
     }
 
+    public boolean isSaveInShutdownHookEnabled() {
+        return this.saveInShutdownHookEnabled;
+    }
+
     /**
      * @throws Throwable
      * 
@@ -785,7 +791,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                     if (keyGetterMap.containsKey(key)) {
                         this.error(new InterfaceParseException("Key " + key + " Dupe found! " + keyGetterMap.get(key) + "<-->" + m));
                         continue;
-
                     }
                     keyGetterMap.put(key, m);
                     if (m.getParameterTypes().length > 0) {
@@ -801,7 +806,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
                         keyGetterMap.remove(key);
                         continue;
                     }
-
                     KeyHandler<?> kh = parseMap.get(key);
                     if (kh == null) {
                         kh = this.createKeyHandler(key, m.getGenericReturnType());
@@ -902,6 +906,10 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
         this.objectCacheEnabled = objectCacheEnabled;
     }
 
+    public void setSaveInShutdownHookEnabled(final boolean saveInShutdownHookEnabled) {
+        this.saveInShutdownHookEnabled = saveInShutdownHookEnabled;
+    }
+
     public void setWriteStrategy(final WriteStrategy writeStrategy) {
         this.writeStrategy = writeStrategy;
     }
@@ -921,16 +929,6 @@ public class StorageHandler<T extends ConfigInterface> implements InvocationHand
     }
 
     protected void validateKeys(final CryptedStorage crypted) {
-    }
-
-    boolean saveInShutdownHookEnabled = true;
-
-    public boolean isSaveInShutdownHookEnabled() {
-        return saveInShutdownHookEnabled;
-    }
-
-    public void setSaveInShutdownHookEnabled(final boolean saveInShutdownHookEnabled) {
-        this.saveInShutdownHookEnabled = saveInShutdownHookEnabled;
     }
 
     public void write() {
