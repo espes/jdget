@@ -11,7 +11,9 @@ package org.appwork.storage.config.handler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
 
 import org.appwork.storage.JSonStorage;
 import org.appwork.storage.Storage;
@@ -239,6 +241,123 @@ public abstract class KeyHandler<RawClass> {
 
     public StorageHandler<?> getStorageHandler() {
         return this.storageHandler;
+    }
+
+    public static enum AbstractTypeDefinition {
+        BOOLEAN,
+        INT,
+        LONG,
+        STRING,
+        OBJECT,
+        OBJECT_LIST,
+        STRING_LIST,
+        ENUM,
+        BYTE,
+        CHAR,
+        DOUBLE,
+        FLOAT,
+        SHORT,
+        BOOLEAN_LIST,
+        BYTE_LIST,
+        SHORT_LIST,
+        LONG_LIST,
+        INT_LIST,
+        FLOAT_LIST,
+        ENUM_LIST,
+        DOUBLE_LIST,
+        CHAR_LIST,
+        UNKNOWN,
+        HEX_COLOR,
+        HEX_COLOR_LIST;
+    }
+
+    public AbstractTypeDefinition getAbstractType() {
+        Type ret = null;
+        if (this.getter != null) {
+            ret = this.getter.getMethod().getGenericReturnType();
+        } else {
+            ret = this.setter.getMethod().getGenericParameterTypes()[0];
+        }
+
+        if (ret instanceof Class) {
+            final Class<?> clazz = (Class<?>) ret;
+
+            if (Clazz.isBoolean(ret)) { return AbstractTypeDefinition.BOOLEAN; }
+            if (Clazz.isByte(ret)) { return AbstractTypeDefinition.BYTE; }
+            if (Clazz.isCharacter(ret)) { return AbstractTypeDefinition.CHAR; }
+            if (Clazz.isDouble(ret)) { return AbstractTypeDefinition.DOUBLE; }
+            if (Clazz.isEnum(ret)) { return AbstractTypeDefinition.ENUM; }
+            if (Clazz.isFloat(ret)) { return AbstractTypeDefinition.FLOAT; }
+            if (Clazz.isInteger(ret)) { return AbstractTypeDefinition.INT; }
+            if (Clazz.isLong(ret)) { return AbstractTypeDefinition.LONG; }
+            if (Clazz.isShort(ret)) { return AbstractTypeDefinition.SHORT; }
+            if (Clazz.isString(ret)) {
+
+                if (getAnnotation(HexColorString.class) != null) { return AbstractTypeDefinition.HEX_COLOR; }
+                return AbstractTypeDefinition.STRING;
+            }
+
+            if (clazz.isArray()) {
+
+                final Class aType = ((Class) ret).getComponentType();
+
+                if (Clazz.isBoolean(aType)) { return AbstractTypeDefinition.BOOLEAN_LIST; }
+                if (Clazz.isByte(aType)) { return AbstractTypeDefinition.BYTE_LIST; }
+                if (Clazz.isCharacter(aType)) { return AbstractTypeDefinition.CHAR_LIST; }
+                if (Clazz.isDouble(aType)) { return AbstractTypeDefinition.DOUBLE_LIST; }
+                if (Clazz.isEnum(aType)) { return AbstractTypeDefinition.ENUM_LIST; }
+                if (Clazz.isFloat(aType)) { return AbstractTypeDefinition.FLOAT_LIST; }
+                if (Clazz.isInteger(aType)) { return AbstractTypeDefinition.INT_LIST; }
+                if (Clazz.isLong(aType)) { return AbstractTypeDefinition.LONG_LIST; }
+                if (Clazz.isShort(aType)) { return AbstractTypeDefinition.SHORT_LIST; }
+                if (Clazz.isString(aType)) {
+                    if (getAnnotation(HexColorString.class) != null) { return AbstractTypeDefinition.HEX_COLOR_LIST; }
+                    return AbstractTypeDefinition.STRING_LIST;
+                }
+
+                return AbstractTypeDefinition.OBJECT_LIST;
+
+            }
+
+            // if(ret instanceof List){
+            // return AbstractType.OBJECT_LIST;
+            // }
+        } else {
+
+            if (ret instanceof ParameterizedType) {
+                final Type raw = ((ParameterizedType) ret).getRawType();
+                final Type[] acutal = ((ParameterizedType) ret).getActualTypeArguments();
+                if (raw instanceof Class) {
+                    final Class<?> rawClazz = (Class<?>) raw;
+                    if (List.class.isAssignableFrom(rawClazz)) {
+                        if (Clazz.isBoolean(acutal[0])) { return AbstractTypeDefinition.BOOLEAN_LIST; }
+
+                        if (Clazz.isByte(acutal[0])) { return AbstractTypeDefinition.BYTE_LIST; }
+                        if (Clazz.isCharacter(acutal[0])) { return AbstractTypeDefinition.CHAR_LIST; }
+                        if (Clazz.isDouble(acutal[0])) { return AbstractTypeDefinition.DOUBLE_LIST; }
+                        if (Clazz.isEnum(acutal[0])) { return AbstractTypeDefinition.ENUM_LIST; }
+                        if (Clazz.isFloat(acutal[0])) { return AbstractTypeDefinition.FLOAT_LIST; }
+                        if (Clazz.isInteger(acutal[0])) { return AbstractTypeDefinition.INT_LIST; }
+                        if (Clazz.isLong(acutal[0])) { return AbstractTypeDefinition.LONG_LIST; }
+                        if (Clazz.isShort(acutal[0])) { return AbstractTypeDefinition.SHORT_LIST; }
+                        if (Clazz.isString(acutal[0])) {
+                            if (getAnnotation(HexColorString.class) != null) { return AbstractTypeDefinition.HEX_COLOR_LIST; }
+
+                            return AbstractTypeDefinition.STRING_LIST;
+                        }
+                        return AbstractTypeDefinition.OBJECT_LIST;
+
+                    }
+                } else {
+                    return AbstractTypeDefinition.UNKNOWN;
+                }
+
+            } else {
+                return AbstractTypeDefinition.UNKNOWN;
+            }
+        }
+
+        return AbstractTypeDefinition.OBJECT;
     }
 
     public String getTypeString() {
