@@ -291,6 +291,10 @@ public abstract class LogSourceProvider {
         return LogSource.getPreviousThreadLogSource();
     }
 
+    public boolean isInstantFlushDefault() {
+        return this.instantFlushDefault;
+    }
+
     public void removeConsoleHandler() {
         synchronized (this.logSinks) {
             if (this.consoleHandler == null) { return; }

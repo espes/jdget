@@ -93,7 +93,6 @@ public class Application {
             Log.exception(t);
             throw new IOException("Error, could not add URL to system classloader");
         }
-
     }
 
     public static String getApplication() {
@@ -495,13 +494,6 @@ public class Application {
             return true;
         }
         return false;
-    }
-
-    public static void main(final String[] args) {
-        System.out.println("Java Version: " + Application.getJavaVersion());
-        System.out.println("Java is 64bit: " + Application.is64BitJvm());
-        System.out.println("OS is: " + CrossSystem.getOSString());
-        System.out.println("OS is 64Bit: " + CrossSystem.is64BitOperatingSystem());
     }
 
     /**

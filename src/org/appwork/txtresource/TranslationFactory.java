@@ -25,6 +25,40 @@ public class TranslationFactory {
     private static final HashMap<String, TranslateInterface> CACHE    = new HashMap<String, TranslateInterface>();
     private static String                                    language = System.getProperty("user.language").toLowerCase();
 
+    /**
+     * @param string
+     * @param ret
+     */
+    private static void collectByPath(final File path, final HashSet<String> ret) {
+        final java.util.List<File> files = Files.getFiles(new FileFilter() {
+
+            @Override
+            public boolean accept(final File pathname) {
+                return pathname.getName().endsWith(".lng");
+            }
+        }, path);
+        String name;
+
+        if (files != null) {
+            for (final File file : files) {
+                try {
+                    name = file.getName();
+                    final int index = name.indexOf(".");
+                    if (index < 0 || index >= name.length() - 4) {
+                        continue;
+                    }
+                    name = name.substring(index + 1, name.length() - 4);
+
+                    if (ret.add(name)) {
+                        Log.L.info(name + " found in " + file);
+                    }
+                } catch (final Throwable e) {
+                    // Invalid LanguageFile nameing
+                }
+            }
+        }
+    }
+
     public static <T extends TranslateInterface> T create(final Class<T> class1) {
         return TranslationFactory.create(class1, TranslationFactory.getDesiredLanguage());
     }
@@ -55,6 +89,59 @@ public class TranslationFactory {
 
     }
 
+    /**
+     * @param ret2
+     * @param string
+     * @return
+     */
+    private static void findInClassPath(final String path, final HashSet<String> ret) {
+
+        // Search in jar:
+        try {
+
+            Enumeration<URL> resources;
+
+            resources = Thread.currentThread().getContextClassLoader().getResources(path);
+            String name, p, jarPath, internPath;
+            while (resources.hasMoreElements()) {
+
+                final URL url = resources.nextElement();
+                if (url.getProtocol().equalsIgnoreCase("jar")) {
+                    p = url.getPath();
+                    int index = p.lastIndexOf('!');
+                    jarPath = p.substring(0, index);
+                    internPath = p.substring(index + 2);
+
+                    final JarInputStream jarFile = new JarInputStream(new FileInputStream(new File(new URL(jarPath).toURI())));
+                    JarEntry e;
+
+                    String jarName;
+                    while ((e = jarFile.getNextJarEntry()) != null) {
+                        jarName = e.getName();
+                        if (jarName.startsWith(internPath) && jarName.endsWith(".lng")) {
+                            name = new File(jarName).getName();
+                            index = name.indexOf(".");
+                            if (index < 0 || index >= name.length() - 4) {
+                                continue;
+                            }
+                            name = name.substring(index + 1, name.length() - 4);
+
+                            if (ret.add(name)) {
+                                Log.L.finer(name + " found in " + new File(jarName));
+                            }
+                        }
+                    }
+                } else {
+                    TranslationFactory.collectByPath(new File(url.toURI()), ret);
+
+                }
+
+            }
+        } catch (final Exception e) {
+            Log.exception(e);
+        }
+
+    }
 
     /**
      * 
@@ -89,11 +176,11 @@ public class TranslationFactory {
 
         final HashSet<String> ret = new HashSet<String>();
 
-        collectByPath(Application.getResource("translations"), ret);
-        findInClassPath("translations", ret);
-        for (Class<? extends TranslateInterface> clazz : classes) {
-            collectByPath(Application.getResource(clazz.getPackage().getName().replace(".", "/")), ret);
-            findInClassPath(clazz.getPackage().getName().replace(".", "/"), ret);
+        TranslationFactory.collectByPath(Application.getResource("translations"), ret);
+        TranslationFactory.findInClassPath("translations", ret);
+        for (final Class<? extends TranslateInterface> clazz : classes) {
+            TranslationFactory.collectByPath(Application.getResource(clazz.getPackage().getName().replace(".", "/")), ret);
+            TranslationFactory.findInClassPath(clazz.getPackage().getName().replace(".", "/"), ret);
             final Defaults defs = clazz.getAnnotation(Defaults.class);
             if (defs != null) {
                 for (final String s : defs.lngs()) {
@@ -107,90 +194,6 @@ public class TranslationFactory {
         }
 
         return new ArrayList<String>(ret);
-    }
-
-    /**
-     * @param string
-     * @param ret
-     */
-    private static void collectByPath(File path, HashSet<String> ret) {
-        java.util.List<File> files = Files.getFiles(new FileFilter() {
-
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".lng");
-            }
-        }, path);
-        String name;
-
-        if (files != null) {
-            for (final File file : files) {
-                try {
-                    name = file.getName();
-                    int index = name.indexOf(".");
-                    if (index < 0 || index >= name.length() - 4) continue;
-                    name = name.substring(index + 1, name.length() - 4);
-
-                    if (ret.add(name)) {
-                        Log.L.info(name + " found in " + file);
-                    }
-                } catch (Throwable e) {
-                    // Invalid LanguageFile nameing
-                }
-            }
-        }
-    }
-
-    /**
-     * @param ret2
-     * @param string
-     * @return
-     */
-    private static void findInClassPath(String path, HashSet<String> ret) {
-
-        // Search in jar:
-        try {
-
-            Enumeration<URL> resources;
-
-            resources = Thread.currentThread().getContextClassLoader().getResources(path);
-            String name, p, jarPath, internPath;
-            while (resources.hasMoreElements()) {
-
-                final URL url = resources.nextElement();
-                if (url.getProtocol().equalsIgnoreCase("jar")) {
-                    p = url.getPath();
-                    int index = p.lastIndexOf('!');
-                    jarPath = p.substring(0, index);
-                    internPath = p.substring(index + 2);
-
-                    final JarInputStream jarFile = new JarInputStream(new FileInputStream(new File(new URL(jarPath).toURI())));
-                    JarEntry e;
-
-                    String jarName;
-                    while ((e = jarFile.getNextJarEntry()) != null) {
-                        jarName = e.getName();
-                        if (jarName.startsWith(internPath) && jarName.endsWith(".lng")) {
-                            name = new File(jarName).getName();
-                            index = name.indexOf(".");
-                            if (index < 0 || index >= name.length() - 4) continue;
-                            name = name.substring(index + 1, name.length() - 4);
-
-                            if (ret.add(name)) {
-                                Log.L.finer(name + " found in " + new File(jarName));
-                            }
-                        }
-                    }
-                } else {
-                    collectByPath(new File(url.toURI()), ret);
-
-                }
-
-            }
-        } catch (final Exception e) {
-            Log.exception(e);
-        }
-
     }
 
     /**
@@ -241,6 +244,10 @@ public class TranslationFactory {
      * @return
      */
     public static Locale stringToLocale(final String lng) {
+        try {
+            if (Application.getJavaVersion() >= Application.JAVA17) { return Locale.forLanguageTag(lng); }
+        } catch (final Throwable e) {
+        }
         final String[] split = lng.split("[\\-\\_]");
         switch (split.length) {
         case 1:
