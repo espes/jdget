@@ -18,11 +18,11 @@ import org.appwork.remoteapi.RemoteAPI;
 import org.appwork.remoteapi.RemoteAPIRequest;
 import org.appwork.remoteapi.RemoteAPIResponse;
 import org.appwork.remoteapi.SessionRemoteAPIRequest;
+import org.appwork.remoteapi.exceptions.ApiInterfaceNotAvailable;
 import org.appwork.remoteapi.exceptions.AuthException;
 import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
 import org.appwork.remoteapi.exceptions.InternalApiException;
 import org.appwork.remoteapi.exceptions.SessionException;
-import org.appwork.remoteapi.responsewrapper.DataObject;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
 import org.appwork.utils.net.httpserver.requests.GetRequest;
@@ -31,8 +31,6 @@ import org.appwork.utils.net.httpserver.requests.KeyValuePair;
 import org.appwork.utils.net.httpserver.requests.PostRequest;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
 import org.appwork.utils.reflection.Clazz;
-
-import sun.security.action.GetLongAction;
 
 /**
  * @author daniel
@@ -59,9 +57,9 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
     }
 
     private String extractSessionID(final HttpRequest request) {
-        ArrayList<KeyValuePair> params = new ArrayList<KeyValuePair>();
+        final ArrayList<KeyValuePair> params = new ArrayList<KeyValuePair>();
         String token = null;
-        for (KeyValuePair next : request.getRequestedURLParameters()) {
+        for (final KeyValuePair next : request.getRequestedURLParameters()) {
 
             if ("token".equalsIgnoreCase(next.key)) {
 
@@ -131,13 +129,16 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
      * @return
      * @throws BasicRemoteAPIException
      */
-    private boolean onRequest(HttpRequest request, HttpResponse response) throws BasicRemoteAPIException {
+    private boolean onRequest(final HttpRequest request, final HttpResponse response) throws BasicRemoteAPIException {
         try {
             
-            String token = this.extractSessionID(request);
+            final String token = this.extractSessionID(request);
             RemoteAPIRequest apiRequest = getInterfaceHandler(request);
-            if (apiRequest == null || apiRequest.getMethod() == null) { return onUnknownRequest(request, response); }
-            Class<?> declaringClass = apiRequest.getMethod().getDeclaringClass();
+            if (apiRequest == null ) {throw new  ApiInterfaceNotAvailable();}
+            if(apiRequest.getMethod()==null){
+                throw new  ApiInterfaceNotAvailable();
+            }
+            final Class<?> declaringClass = apiRequest.getMethod().getDeclaringClass();
             if (declaringClass != LoginAPIInterface.class && apiRequest.getIface().isSessionRequired()) {
                 // session required
                 final T session = this.getSession(request, token);
@@ -147,7 +148,7 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
 
             _handleRemoteAPICall(apiRequest, createRemoteAPIResponseObject(response));
             return true;
-        } catch (Throwable e) {
+        } catch (final Throwable e) {
             BasicRemoteAPIException apiException;
             if (!(e instanceof BasicRemoteAPIException)) {
                 apiException = new InternalApiException(e);
@@ -157,7 +158,7 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
 
             try {
                 return apiException.handle(response);
-            } catch (IOException e1) {
+            } catch (final IOException e1) {
                 throw new BasicRemoteAPIException(e1);
             }
         }
