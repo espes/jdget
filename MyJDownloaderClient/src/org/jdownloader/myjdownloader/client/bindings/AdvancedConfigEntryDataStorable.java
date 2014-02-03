@@ -3,37 +3,75 @@ package org.jdownloader.myjdownloader.client.bindings;
 import org.jdownloader.myjdownloader.client.json.AbstractJsonData;
 
 public class AdvancedConfigEntryDataStorable extends AbstractJsonData {
-    private String   docs          = null;
-    private String   storage       = null;
-    private Object   value         = null;
-    private Object   defaultValue  = null;
-    private String   type          = null;
-    private String   interfaceName = null;
-    private String   enumLabel     = null;
-    private String[] enumOptions   = null;
-    private String[] enumLabels    = null;
+    private String     docs          = null;
+    private String     storage       = null;
+    private Object     value         = null;
+    private Object     defaultValue  = null;
+    @Deprecated
+    /**
+     * @deprecated use #abstractType instead
+     */
+    private String     type          = null;
+    private String     interfaceName = null;
+    private String     enumLabel     = null;
+    private String[][] enumOptions   = null;
 
-    public String[] getEnumOptions() {
+    public String[][] getEnumOptions() {
         return enumOptions;
     }
 
-    public void setEnumOptions(String[] enumOptions) {
+    public void setEnumOptions(final String[][] enumOptions) {
         this.enumOptions = enumOptions;
     }
-
-    public String[] getEnumLabels() {
-        return enumLabels;
+/**
+ * @see org.appwork.storage.config.handler.KeyHandler.AbstractType<RawClass>
+ * @author $Author: unknown$
+ *
+ */
+    public static enum AbstractType {
+        BOOLEAN,
+        INT,
+        LONG,
+        STRING,
+        OBJECT,
+        OBJECT_LIST,
+        STRING_LIST,
+        ENUM,
+        BYTE,
+        CHAR,
+        DOUBLE,
+        FLOAT,
+        SHORT,
+        BOOLEAN_LIST,
+        BYTE_LIST,
+        SHORT_LIST,
+        LONG_LIST,
+        INT_LIST,
+        FLOAT_LIST,
+        ENUM_LIST,
+        DOUBLE_LIST,
+        CHAR_LIST,
+        UNKNOWN,
+        HEX_COLOR,
+        HEX_COLOR_LIST,
+        ACTION;
     }
 
-    public void setEnumLabels(String[] enumLabels) {
-        this.enumLabels = enumLabels;
+    private AbstractType abstractType = null;
+
+    public AbstractType getAbstractType() {
+        return abstractType;
+    }
+
+    public void setAbstractType(final AbstractType abstractType) {
+        this.abstractType = abstractType;
     }
 
     public String getEnumLabel() {
         return enumLabel;
     }
 
-    public void setEnumLabel(String enumLabel) {
+    public void setEnumLabel(final String enumLabel) {
         this.enumLabel = enumLabel;
     }
 
@@ -41,7 +79,7 @@ public class AdvancedConfigEntryDataStorable extends AbstractJsonData {
         return docs;
     }
 
-    public void setDocs(String docs) {
+    public void setDocs(final String docs) {
         this.docs = docs;
     }
 
@@ -49,7 +87,7 @@ public class AdvancedConfigEntryDataStorable extends AbstractJsonData {
         return storage;
     }
 
-    public void setStorage(String storage) {
+    public void setStorage(final String storage) {
         this.storage = storage;
     }
 
@@ -57,7 +95,7 @@ public class AdvancedConfigEntryDataStorable extends AbstractJsonData {
         return value;
     }
 
-    public void setValue(Object value) {
+    public void setValue(final Object value) {
         this.value = value;
     }
 
@@ -65,15 +103,21 @@ public class AdvancedConfigEntryDataStorable extends AbstractJsonData {
         return defaultValue;
     }
 
-    public void setDefaultValue(Object defaultValue) {
+    public void setDefaultValue(final Object defaultValue) {
         this.defaultValue = defaultValue;
     }
 
+    @Deprecated
+    /**
+     * @Deprecated use #getAbstractType instead
+     * @return
+     */
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
+    @Deprecated
+    public void setType(final String type) {
         this.type = type;
     }
 
@@ -81,7 +125,7 @@ public class AdvancedConfigEntryDataStorable extends AbstractJsonData {
         return interfaceName;
     }
 
-    public void setInterfaceName(String interfaceName) {
+    public void setInterfaceName(final String interfaceName) {
         this.interfaceName = interfaceName;
     }
 
@@ -89,7 +133,7 @@ public class AdvancedConfigEntryDataStorable extends AbstractJsonData {
         return key;
     }
 
-    public void setKey(String key) {
+    public void setKey(final String key) {
         this.key = key;
     }
 
