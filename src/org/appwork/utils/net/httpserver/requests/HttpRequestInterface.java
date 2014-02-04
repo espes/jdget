@@ -19,7 +19,6 @@ import org.appwork.utils.net.HeaderCollection;
  * 
  */
 public interface HttpRequestInterface {
-//    public List<KeyValuePair> getPostParameter() throws IOException;
 
     public String getRequestedPath();
     public String getParameterbyKey(String key) throws IOException;
