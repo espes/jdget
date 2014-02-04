@@ -9,7 +9,6 @@
  */
 package org.appwork.utils.net.httpserver.requests;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,23 +21,7 @@ import org.appwork.utils.net.httpserver.HttpConnection;
  */
 public abstract class HttpRequest implements HttpRequestInterface {
 
-    public static String getParameterbyKey(final HttpRequestInterface request, final String key) throws IOException {
-        List<KeyValuePair> params = request.getRequestedURLParameters();
-        if (params != null) {
-            for (final KeyValuePair param : params) {
-                if (key.equalsIgnoreCase(param.key)) { return param.value; }
-            }
-        }
-        if (request instanceof PostRequest) {
-            params = ((PostRequest) request).getPostParameter();
-            if (params != null) {
-                for (final KeyValuePair param : params) {
-                    if (key.equalsIgnoreCase(param.key)) { return param.value; }
-                }
-            }
-        }
-        return null;
-    }
+
 
     protected String               requestedURL           = null;
 

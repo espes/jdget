@@ -175,5 +175,31 @@ public class RemoteAPIRequest implements HttpRequestInterface {
         return 0;
     }
 
+    /* (non-Javadoc)
+     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#getParameterbyKey(java.lang.String)
+     */
+    @Override
+    public String getParameterbyKey(final String key) throws IOException {
+        
+            List<KeyValuePair> params = request.getRequestedURLParameters();
+            if (params != null) {
+                for (final KeyValuePair param : params) {
+                    if (key.equalsIgnoreCase(param.key)) { return param.value; }
+                }
+            }
+            if (request instanceof PostRequest) {
+                params = ((PostRequest) request).getPostParameter();
+                if (params != null) {
+                    for (final KeyValuePair param : params) {
+                        if (key.equalsIgnoreCase(param.key)) { return param.value; }
+                    }
+                }
+            }
+            
+            return null;
+        
+      
+    }
+
 
 }

@@ -9,6 +9,7 @@
  */
 package org.appwork.utils.net.httpserver.requests;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.appwork.utils.net.HeaderCollection;
@@ -21,7 +22,7 @@ public interface HttpRequestInterface {
 //    public List<KeyValuePair> getPostParameter() throws IOException;
 
     public String getRequestedPath();
-
+    public String getParameterbyKey(String key) throws IOException;
     public String getRequestedURL();
 
     /**

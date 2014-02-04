@@ -9,6 +9,9 @@
  */
 package org.appwork.utils.net.httpserver.requests;
 
+import java.io.IOException;
+import java.util.List;
+
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.httpserver.HttpConnection;
 
@@ -22,19 +25,39 @@ public class GetRequest extends HttpRequest {
      * @param connection
      */
     public GetRequest(final HttpConnection connection) {
-        super(connection);        
+        super(connection);
     }
 
-//    /*
-//     * (non-Javadoc)
-//     * 
-//     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
-//     * getPostParameter()
-//     */
-//    @Override
-//    public LinkedList<KeyValuePair> getPostParameter() throws IOException {
-//        return null;
-//    }
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
+     * getParameterbyKey(java.lang.String)
+     */
+    @Override
+    public String getParameterbyKey(final String key) throws IOException {
+
+        final List<KeyValuePair> params = getRequestedURLParameters();
+        if (params != null) {
+            for (final KeyValuePair param : params) {
+                if (key.equalsIgnoreCase(param.key)) { return param.value; }
+            }
+        }
+
+        return null;
+
+    }
+
+    // /*
+    // * (non-Javadoc)
+    // *
+    // * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
+    // * getPostParameter()
+    // */
+    // @Override
+    // public LinkedList<KeyValuePair> getPostParameter() throws IOException {
+    // return null;
+    // }
 
     @Override
     public String toString() {

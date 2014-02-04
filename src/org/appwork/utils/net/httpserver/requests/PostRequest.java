@@ -37,9 +37,9 @@ public class PostRequest extends HttpRequest {
 
     }
 
-    protected InputStream          inputStream         = null;
+    protected InputStream        inputStream         = null;
 
-    protected boolean              postParameterParsed = false;
+    protected boolean            postParameterParsed = false;
     protected List<KeyValuePair> postParameters      = null;
 
     /**
@@ -47,6 +47,33 @@ public class PostRequest extends HttpRequest {
      */
     public PostRequest(final HttpConnection connection) {
         super(connection);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
+     * getParameterbyKey(java.lang.String)
+     */
+    @Override
+    public String getParameterbyKey(final String key) throws IOException {
+
+        List<KeyValuePair> params = getRequestedURLParameters();
+        if (params != null) {
+            for (final KeyValuePair param : params) {
+                if (key.equalsIgnoreCase(param.key)) { return param.value; }
+            }
+        }
+
+        params = getPostParameter();
+        if (params != null) {
+            for (final KeyValuePair param : params) {
+                if (key.equalsIgnoreCase(param.key)) { return param.value; }
+            }
+        }
+
+        return null;
+
     }
 
     /**
@@ -178,23 +205,25 @@ public class PostRequest extends HttpRequest {
                      * JSonObject has customized .toString which converts Map to
                      * Json!
                      */
-                    postParameters.add(new KeyValuePair( null,parameter.toString() ));
+                    postParameters.add(new KeyValuePair(null, parameter.toString()));
                 } else {
                     final String jsonParameter = JSonStorage.serializeToJson(parameter);
-                    postParameters.add(new KeyValuePair(null, jsonParameter ));
+                    postParameters.add(new KeyValuePair(null, jsonParameter));
                 }
             }
         }
         postParameterParsed = true;
         return postParameters;
     }
+
     /**
      * @param params
      */
     public void setPostParameter(final List<KeyValuePair> params) {
-        postParameterParsed=true;
-      postParameters=params;  
+        postParameterParsed = true;
+        postParameters = params;
     }
+
     @Override
     public String toString() {
         try {

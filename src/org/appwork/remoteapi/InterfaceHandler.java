@@ -38,7 +38,6 @@ import org.appwork.storage.JSonStorage;
 import org.appwork.storage.config.annotations.AllowStorage;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.HTTPHeader;
-import org.appwork.utils.net.httpserver.requests.HttpRequest;
 
 /**
  * @author thomas
@@ -167,7 +166,7 @@ public class InterfaceHandler<T> {
 
     public void help(final RemoteAPIRequest request, final RemoteAPIResponse response) throws InstantiationException, IllegalAccessException, UnsupportedEncodingException, IOException {
 
-        if ("true".equals(HttpRequest.getParameterbyKey(request.getHttpRequest(), "json"))) {
+        if ("true".equals(request.getParameterbyKey("json"))) {
             this.helpJSON(request, response);
             return;
         }
