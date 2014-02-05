@@ -2,7 +2,9 @@ package org.appwork.utils.net.httpconnection;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.URLDecoder;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 import org.appwork.utils.Regex;
@@ -165,5 +167,23 @@ public class HTTPConnectionUtils {
         }
         bigbuffer.flip();
         return bigbuffer;
+    }
+
+    public static InetAddress[] resolvHostIP(final String host) throws IOException {
+        InetAddress hosts[] = null;
+        for (int resolvTry = 0; resolvTry < 2; resolvTry++) {
+            try {
+                /* resolv all possible ip's */
+                hosts = InetAddress.getAllByName(host);
+                return hosts;
+            } catch (final UnknownHostException e) {
+                try {
+                    Thread.sleep(500);
+                } catch (final InterruptedException e1) {
+                    throw new UnknownHostException("Could not resolv " + host);
+                }
+            }
+        }
+        throw new UnknownHostException("Could not resolv " + host);
     }
 }

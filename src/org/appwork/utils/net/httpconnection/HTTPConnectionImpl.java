@@ -9,9 +9,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +21,7 @@ import java.util.zip.GZIPInputStream;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 
+import org.appwork.utils.Application;
 import org.appwork.utils.Regex;
 import org.appwork.utils.net.Base64InputStream;
 import org.appwork.utils.net.ChunkedInputStream;
@@ -32,17 +33,26 @@ public class HTTPConnectionImpl implements HTTPConnection {
     /**
      * 
      */
-    public static final String            UNKNOWN_HTTP_RESPONSE      = "unknown HTTP response";
+    public static final String UNKNOWN_HTTP_RESPONSE = "unknown HTTP response";
+
+    public static void main(final String[] args) throws IOException {
+        if (Application.getJavaVersion() >= Application.JAVA17) {
+            System.setProperty("sun.net.spi.nameservice.nameservers", "8.8.8.8,8.8.4.4");
+            System.setProperty("sun.net.spi.nameservice.provider.1", "dns,sun");
+        }
+        System.out.println(Arrays.toString(HTTPConnectionUtils.resolvHostIP("content1.steampowered.com")));
+    }
+
     protected HTTPHeaderMap<String>       requestProperties          = null;
+
     protected long[]                      ranges;
 
     protected String                      customcharset              = null;
-
     protected Socket                      httpSocket                 = null;
     protected URL                         httpURL                    = null;
     protected HTTPProxy                   proxy                      = null;
-    protected String                      httpPath                   = null;
 
+    protected String                      httpPath                   = null;
     protected RequestMethod               httpMethod                 = RequestMethod.GET;
     protected HTTPHeaderMap<List<String>> headers                    = null;
     protected int                         httpResponseCode           = -1;
@@ -54,14 +64,15 @@ public class HTTPConnectionImpl implements HTTPConnection {
     protected InputStream                 inputStream                = null;
     protected InputStream                 convertedInputStream       = null;
     protected boolean                     inputStreamConnected       = false;
-    protected String                      httpHeader                 = null;
 
+    protected String                      httpHeader                 = null;
     protected boolean                     outputClosed               = false;
     private boolean                       contentDecoded             = true;
     protected long                        postTodoLength             = -1;
     private int[]                         allowedResponseCodes       = new int[0];
     private InetSocketAddress             proxyInetSocketAddress     = null;
     protected InetSocketAddress           connectedInetSocketAddress = null;
+
     private SSLException                  sslException               = null;
 
     public HTTPConnectionImpl(final URL url) {
@@ -584,21 +595,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     public InetAddress[] resolvHostIP(final String host) throws IOException {
-        InetAddress hosts[] = null;
-        for (int resolvTry = 0; resolvTry < 2; resolvTry++) {
-            try {
-                /* resolv all possible ip's */
-                hosts = InetAddress.getAllByName(host);
-                return hosts;
-            } catch (final UnknownHostException e) {
-                try {
-                    Thread.sleep(500);
-                } catch (final InterruptedException e1) {
-                    throw new UnknownHostException("Could not resolv " + host);
-                }
-            }
-        }
-        throw new UnknownHostException("Could not resolv " + host);
+        return HTTPConnectionUtils.resolvHostIP(host);
     }
 
     protected void sendRequest() throws UnsupportedEncodingException, IOException {

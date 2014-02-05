@@ -36,14 +36,12 @@ public class GetRequest extends HttpRequest {
      */
     @Override
     public String getParameterbyKey(final String key) throws IOException {
-
-        final List<KeyValuePair> params = getRequestedURLParameters();
+        final List<KeyValuePair> params = this.getRequestedURLParameters();
         if (params != null) {
             for (final KeyValuePair param : params) {
                 if (key.equalsIgnoreCase(param.key)) { return param.value; }
             }
         }
-
         return null;
 
     }
@@ -65,9 +63,9 @@ public class GetRequest extends HttpRequest {
 
         sb.append("\r\n----------------Request-------------------------\r\n");
 
-        sb.append("GET ").append(getRequestedURL()).append(" HTTP/1.1\r\n");
+        sb.append("GET ").append(this.getRequestedURL()).append(" HTTP/1.1\r\n");
 
-        for (final HTTPHeader key : getRequestHeaders()) {
+        for (final HTTPHeader key : this.getRequestHeaders()) {
 
             sb.append(key.getKey());
             sb.append(": ");
