@@ -29,76 +29,28 @@ import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderException;
 public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<Type> {
     private static AtomicLong RID_COUNTER = new AtomicLong(System.currentTimeMillis());
 
-    @Override
-    protected long getUniqueRID() {
-        return RID_COUNTER.incrementAndGet();
+    public AbstractMyJDClientForBasicJVM(final String appKey) {
+        super(appKey);
+
     }
 
-    
     public <T> T callAction(final String deviceID, final String action, final Class<T> returnType, final Object... args) throws MyJDownloaderException, APIException {
         return (T) super.callAction(deviceID, action, returnType, args);
     }
 
     @Override
-    protected byte[] updateEncryptionToken(final byte[] oldSecret, final byte[] update) throws MyJDownloaderException {
-
+    protected byte[] createSecret(final String username, final String password, final String domain) throws MyJDownloaderException {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA-256");
-
-            md.update(oldSecret);
-            md.update(update);
-            return md.digest();
+            return md.digest((username.toLowerCase(Locale.ENGLISH) + password + domain.toLowerCase(Locale.ENGLISH)).getBytes("UTF-8"));
         } catch (final NoSuchAlgorithmException e) {
             throw MyJDownloaderException.get(e);
 
+        } catch (final UnsupportedEncodingException e) {
+            throw MyJDownloaderException.get(e);
+
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    /**
-     * Link an API INterface  and call methods directly
-     * @param class1
-     * @param namespace
-     * @return
-     */
-    public <T extends Linkable> T link(final Class<T> class1, final String namespace, final String deviceID) {
-
-        return (T) Proxy.newProxyInstance(class1.getClassLoader(), new Class<?>[] { class1 }, new InvocationHandler() {
-
-            @Override
-            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                try {
-                    final String action = "/" + namespace + "/" + method.getName();
-                    final Type returnType = method.getGenericReturnType();
-                    return callAction(deviceID, action, returnType, args);
-
-                } catch (final Throwable e) {
-                    final Class<?>[] exceptions = method.getExceptionTypes();
-                    if (exceptions != null) {
-                        for (final Class<?> c : exceptions) {
-                            if (c.isAssignableFrom(e.getClass())) { throw e; }
-
-                        }
-                    }
-                    throw new RuntimeException(e);
-                }
-
-            }
-
-        });
-    }
-
-    public <T extends Linkable> T link(final Class<T> class1, final String deviceID) {
-        final ClientApiNameSpace ann = class1.getAnnotation(ClientApiNameSpace.class);
-        if (ann == null) { throw new NullPointerException("ApiNameSpace missing in " + class1.getName()); }
-
-        return link(class1, ann.value(), deviceID);
-    }
-
-    public AbstractMyJDClientForBasicJVM(final String appKey) {
-        super(appKey);
-
     }
 
     @Override
@@ -135,21 +87,6 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
     }
 
     @Override
-    protected byte[] createSecret(final String username, final String password, final String domain) throws MyJDownloaderException {
-        MessageDigest md;
-        try {
-            md = MessageDigest.getInstance("SHA-256");
-            return md.digest((username.toLowerCase(Locale.ENGLISH) + password + domain.toLowerCase(Locale.ENGLISH)).getBytes("UTF-8"));
-        } catch (final NoSuchAlgorithmException e) {
-            throw MyJDownloaderException.get(e);
-
-        } catch (final UnsupportedEncodingException e) {
-            throw MyJDownloaderException.get(e);
-
-        }
-    }
-
-    @Override
     protected byte[] encrypt(final byte[] data, final byte[] keyAndIV) throws MyJDownloaderException {
         try {
             final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -180,6 +117,11 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
         }
     }
 
+    @Override
+    protected long getUniqueRID() {
+        return AbstractMyJDClientForBasicJVM.RID_COUNTER.incrementAndGet();
+    }
+
     /**
      * Calculates a HmacSHA256 of content with the key
      * 
@@ -203,6 +145,61 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
             throw MyJDownloaderException.get(e);
 
         } catch (final InvalidKeyException e) {
+            throw MyJDownloaderException.get(e);
+
+        }
+    }
+
+    public <T extends Linkable> T link(final Class<T> class1, final String deviceID) {
+        final ClientApiNameSpace ann = class1.getAnnotation(ClientApiNameSpace.class);
+        if (ann == null) { throw new NullPointerException("ApiNameSpace missing in " + class1.getName()); }
+
+        return this.link(class1, ann.value(), deviceID);
+    }
+
+    @SuppressWarnings("unchecked")
+    /**
+     * Link an API INterface  and call methods directly
+     * @param class1
+     * @param namespace
+     * @return
+     */
+    public <T extends Linkable> T link(final Class<T> class1, final String namespace, final String deviceID) {
+
+        return (T) Proxy.newProxyInstance(class1.getClassLoader(), new Class<?>[] { class1 }, new InvocationHandler() {
+
+            @Override
+            public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+                try {
+                    final String action = "/" + namespace + "/" + method.getName();
+                    final Type returnType = method.getGenericReturnType();
+                    return AbstractMyJDClientForBasicJVM.this.callAction(deviceID, action, returnType, args);
+
+                } catch (final Throwable e) {
+                    final Class<?>[] exceptions = method.getExceptionTypes();
+                    if (exceptions != null) {
+                        for (final Class<?> c : exceptions) {
+                            if (c.isAssignableFrom(e.getClass())) { throw e; }
+
+                        }
+                    }
+                    throw new RuntimeException(e);
+                }
+
+            }
+
+        });
+    }
+
+    @Override
+    protected byte[] updateEncryptionToken(final byte[] oldSecret, final byte[] update) throws MyJDownloaderException {
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+            md.update(oldSecret);
+            md.update(update);
+            return md.digest();
+        } catch (final NoSuchAlgorithmException e) {
             throw MyJDownloaderException.get(e);
 
         }

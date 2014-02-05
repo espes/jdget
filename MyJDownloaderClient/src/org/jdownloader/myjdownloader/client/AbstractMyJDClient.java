@@ -202,21 +202,42 @@ public abstract class AbstractMyJDClient<Type> {
      * @return
      * @throws MyJDownloaderException
      */
-    protected <T> T callServer(String query, final String postData, final SessionInfo session, final Class<T> class1) throws MyJDownloaderException {
+    protected <T> T callServer(String query, final JSonRequest jsonRequest, final SessionInfo session, final Class<T> class1) throws MyJDownloaderException {
         try {
             byte[] key = null;
             if (session != null) {
                 key = session.getServerEncryptionToken();
             }
             query += query.contains("?") ? "&" : "?";
-            final long i = this.getUniqueRID();
-            query += "rid=" + i;
-            this.log("Request:\r\n" + query + "\r\n" + postData);
-            final byte[] data = this.cryptedPost(query + "&signature=" + this.sign(key, query), postData, key);
+            final long rid;
+            if (jsonRequest != null) {
+                jsonRequest.setApiVer(AbstractMyJDClient.API_VERSION);
+                if (jsonRequest.getRid() < 0) {
+                    jsonRequest.setRid(this.getUniqueRID());
+                }
+                rid = jsonRequest.getRid();
+            } else {
+                rid = this.getUniqueRID();
+            }
+            query += "rid=" + rid;
+            final byte[] data;
+            if (jsonRequest == null) {
+                data = this.cryptedPost(query + "&signature=" + this.sign(key, query), null, key);
+            } else {
+                final String json = this.objectToJSon(jsonRequest);
+                this.log("Request:\r\n" + query + "\r\n" + json);
+                String postData;
+                if (key != null) {
+                    postData = this.base64Encode(this.encrypt(json.getBytes("UTF-8"), key));
+                } else {
+                    postData = json;
+                }
+                data = this.cryptedPost(query + "&signature=" + this.sign(key, query), postData, key);
+            }
             Object ret = this.convertData(data, (Type) class1);
             if (ret != null) {
                 if (ret instanceof RequestIDValidator) {
-                    if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException("RID Mismatch"); }
+                    if (((RequestIDValidator) ret).getRid() != rid) { throw new BadResponseException("RID Mismatch"); }
                 }
                 return (T) ret;
             }
@@ -225,7 +246,7 @@ public abstract class AbstractMyJDClient<Type> {
             this.log("Response\r\n" + dec);
             // System.out.println(this.objectToJSon(ret));
             if (ret instanceof RequestIDValidator) {
-                if (((RequestIDValidator) ret).getRid() != i) { throw new BadResponseException("RID Mismatch"); }
+                if (((RequestIDValidator) ret).getRid() != rid) { throw new BadResponseException("RID Mismatch"); }
             }
             return (T) ret;
         } catch (final ExceptionResponse e) {
@@ -259,7 +280,6 @@ public abstract class AbstractMyJDClient<Type> {
      */
     public synchronized SessionInfo connect(final String email, final String password) throws MyJDownloaderException {
         try {
-
             // localSecret = createSecret(username, password, "jd");
             final byte[] loginSecret = this.createSecret(email, password, "server");
             final byte[] deviceSecret = this.createSecret(email, password, "device");
@@ -273,10 +293,12 @@ public abstract class AbstractMyJDClient<Type> {
             final ConnectResponse ret = this.jsonToObject(retString, (Type) ConnectResponse.class);
             if (ret.getRid() != rid) { throw new BadResponseException("RID Mismatch"); }
 
-            final byte[] serverEncryptionToken = this.updateEncryptionToken(loginSecret, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
-            final byte[] deviceEncryptionToken = this.updateEncryptionToken(deviceSecret, AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
             final String sessionToken = ret.getSessiontoken();
             final String regainToken = ret.getRegaintoken();
+
+            final byte[] serverEncryptionToken = this.updateEncryptionToken(loginSecret, AbstractMyJDClient.hexToByteArray(sessionToken));
+            final byte[] deviceEncryptionToken = this.updateEncryptionToken(deviceSecret, AbstractMyJDClient.hexToByteArray(sessionToken));
+
             final SessionInfo newSessionInfo = this.createSessionInfo(deviceSecret, serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
             this.currentSessionInfo = newSessionInfo;
             return newSessionInfo;
@@ -299,7 +321,7 @@ public abstract class AbstractMyJDClient<Type> {
         return null;
     }
 
-    protected abstract byte[] createSecret(final String username, final String password, final String domain) throws MyJDownloaderException;
+    protected abstract byte[] createSecret(final String x, final String y, final String z) throws MyJDownloaderException;
 
     protected SessionInfo createSessionInfo(final byte[] deviceSecret, final byte[] serverEncryptionToken, final byte[] deviceEncryptionToken, final String sessionToken, final String regainToken) {
         return new SessionInfo(deviceSecret, serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
@@ -347,7 +369,7 @@ public abstract class AbstractMyJDClient<Type> {
         re.setParams(new Object[] { message });
         final String url = "/my/feedback?sessiontoken=" + this.urlencode(session.getSessionToken());
         re.setUrl(url);
-        final FeedbackResponse ret = this.callServer(url, this.objectToJSon(re), session, FeedbackResponse.class);
+        final FeedbackResponse ret = this.callServer(url, re, session, FeedbackResponse.class);
         return ret.getFeedbackID();
     }
 
@@ -573,7 +595,7 @@ public abstract class AbstractMyJDClient<Type> {
         re.setRid(this.getUniqueRID());
         re.setParams(new Object[] { message });
         re.setUrl(query);
-        return this.callServer(query, this.objectToJSon(re), session, SuccessfulResponse.class).isSuccessful();
+        return this.callServer(query, re, session, SuccessfulResponse.class).isSuccessful();
     }
 
     /**
@@ -587,11 +609,10 @@ public abstract class AbstractMyJDClient<Type> {
             final SessionInfo session = this.getSessionInfo();
             final String query = "/my/reconnect?appkey=" + this.urlencode(this.appKey) + "&sessiontoken=" + this.urlencode(session.getSessionToken()) + "&regaintoken=" + this.urlencode(session.getRegainToken());
             final ConnectResponse ret = this.callServer(query, null, session, ConnectResponse.class);
-
-            final byte[] serverEncryptionToken = this.updateEncryptionToken(session.getServerEncryptionToken(), AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
-            final byte[] deviceEncryptionToken = this.updateEncryptionToken(session.getDeviceSecret(), AbstractMyJDClient.hexToByteArray(ret.getSessiontoken()));
             final String sessionToken = ret.getSessiontoken();
             final String regainToken = ret.getRegaintoken();
+            final byte[] serverEncryptionToken = this.updateEncryptionToken(session.getServerEncryptionToken(), AbstractMyJDClient.hexToByteArray(sessionToken));
+            final byte[] deviceEncryptionToken = this.updateEncryptionToken(session.getDeviceSecret(), AbstractMyJDClient.hexToByteArray(sessionToken));
             final SessionInfo newSessionInfo = this.createSessionInfo(session.getDeviceSecret(), serverEncryptionToken, deviceEncryptionToken, sessionToken, regainToken);
             this.currentSessionInfo = newSessionInfo;
             return newSessionInfo;
@@ -612,8 +633,7 @@ public abstract class AbstractMyJDClient<Type> {
             re.setParams(new Object[] { types });
         }
         re.setUrl(query);
-        final String object = this.objectToJSon(re);
-        this.callServer(query, object, session, RequestIDOnly.class);
+        this.callServer(query, re, session, RequestIDOnly.class);
     }
 
     /**
@@ -674,7 +694,6 @@ public abstract class AbstractMyJDClient<Type> {
             return AbstractMyJDClient.byteArrayToHex(this.hmac(key, data.getBytes("UTF-8")));
         } catch (final Exception e) {
             throw MyJDownloaderException.get(e);
-
         }
     }
 
