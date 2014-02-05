@@ -11,7 +11,6 @@ import java.net.Socket;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,6 @@ import java.util.zip.GZIPInputStream;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 
-import org.appwork.utils.Application;
 import org.appwork.utils.Regex;
 import org.appwork.utils.net.Base64InputStream;
 import org.appwork.utils.net.ChunkedInputStream;
@@ -33,15 +31,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
     /**
      * 
      */
-    public static final String UNKNOWN_HTTP_RESPONSE = "unknown HTTP response";
-
-    public static void main(final String[] args) throws IOException {
-        if (Application.getJavaVersion() >= Application.JAVA17) {
-            System.setProperty("sun.net.spi.nameservice.nameservers", "8.8.8.8,8.8.4.4");
-            System.setProperty("sun.net.spi.nameservice.provider.1", "dns,sun");
-        }
-        System.out.println(Arrays.toString(HTTPConnectionUtils.resolvHostIP("content1.steampowered.com")));
-    }
+    public static final String            UNKNOWN_HTTP_RESPONSE      = "unknown HTTP response";
 
     protected HTTPHeaderMap<String>       requestProperties          = null;
 
