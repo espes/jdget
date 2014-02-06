@@ -18,6 +18,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
@@ -68,15 +69,23 @@ public class HttpConnection implements Runnable {
         return requestedURLParameters;
     }
 
-    protected final HttpServer server;
-    protected Socket           clientSocket        = null;
-    protected boolean          responseHeadersSent = false;
+    protected final HttpServer   server;
+    protected Socket             clientSocket        = null;
+    protected boolean            responseHeadersSent = false;
 
-    protected HttpResponse     response            = null;
-    protected InputStream      is                  = null;
+    protected HttpResponse       response            = null;
+    protected InputStream        is                  = null;
 
-    protected OutputStream     os                  = null;
-    protected HttpRequest      request;
+    protected OutputStream       os                  = null;
+    protected HttpRequest        request;
+
+    private static final Pattern METHOD              = Pattern.compile("(GET|POST|HEAD|OPTIONS)");
+
+    private static final Pattern REQUESTLINE         = Pattern.compile(" (/.*?) ");
+
+    private static final Pattern REQUESTURL          = Pattern.compile("(/.*?)($|\\?)");
+
+    private static final Pattern REQUESTPARAM        = Pattern.compile("\\?(.+)");
 
     public HttpConnection(final HttpServer server, final InputStream is, final OutputStream os) {
         this.server = server;
@@ -120,11 +129,11 @@ public class HttpConnection implements Runnable {
         byte[] bytesRequestLine = new byte[header.limit()];
         header.get(bytesRequestLine);
         String requestLine = this.preProcessRequestLine(new String(bytesRequestLine, "ISO-8859-1").trim());
-        String method = new Regex(requestLine, "(GET|POST|HEAD|OPTIONS)").getMatch(0);
-        final String requestedURL = new Regex(requestLine, " (/.*?) ").getMatch(0);
-        final String requestedPath = new Regex(requestedURL, "(/.*?)($|\\?)").getMatch(0);
-        final String requestedParameters = new Regex(requestedURL, "\\?(.+)").getMatch(0);
-        final List< KeyValuePair> requestedURLParameters = HttpConnection.parseParameterList(requestedParameters);
+        String method = new Regex(requestLine, HttpConnection.METHOD).getMatch(0);
+        final String requestedURL = new Regex(requestLine, HttpConnection.REQUESTLINE).getMatch(0);
+        final String requestedPath = new Regex(requestedURL, HttpConnection.REQUESTURL).getMatch(0);
+        final String requestedParameters = new Regex(requestedURL, HttpConnection.REQUESTPARAM).getMatch(0);
+        final List<KeyValuePair> requestedURLParameters = HttpConnection.parseParameterList(requestedParameters);
         /* read request Headers */
         ByteBuffer headers = HTTPConnectionUtils.readheader(this.is, false);
         byte[] bytesHeaders = new byte[headers.limit()];
