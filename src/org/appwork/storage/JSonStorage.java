@@ -401,7 +401,7 @@ public class JSonStorage {
                     if (!file.delete()) { throw new StorageException("Could not overwrite file: " + file.getAbsolutePath()); }
                 }
                 if (!tmp.renameTo(file)) { throw new StorageException("Could not rename file: " + tmp + " to " + file); }
-            } catch (final IOException e) {
+            } catch (final Exception e) {
                 throw new StorageException("Can not write to " + tmp.getAbsolutePath(), e);
             } finally {
                 JSonStorage.unLock(file);
