@@ -1,47 +1,102 @@
 package org.jdownloader.myjdownloader.client;
 
-import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
+import org.jdownloader.myjdownloader.client.exceptions.ExceptionResponse;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderException;
-import org.jdownloader.myjdownloader.client.json.CryptedStorageItem;
+import org.jdownloader.myjdownloader.client.exceptions.UnexpectedIOException;
+import org.jdownloader.myjdownloader.client.exceptions.storage.StorageAlreadyExistsException;
+import org.jdownloader.myjdownloader.client.exceptions.storage.StorageInvalidIDException;
+import org.jdownloader.myjdownloader.client.exceptions.storage.StorageInvalidKeyException;
+import org.jdownloader.myjdownloader.client.exceptions.storage.StorageKeyNotFoundException;
+import org.jdownloader.myjdownloader.client.exceptions.storage.StorageLimitReachedException;
+import org.jdownloader.myjdownloader.client.exceptions.storage.StorageNotFoundException;
+import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.JSonRequest;
-import org.jdownloader.myjdownloader.client.json.StorageItem;
-import org.jdownloader.myjdownloader.client.json.StoragePutResponse;
+import org.jdownloader.myjdownloader.client.json.RequestIDOnly;
+import org.jdownloader.myjdownloader.client.json.ServerErrorType;
+import org.jdownloader.myjdownloader.client.json.storage.StorageGetValueResponse;
+import org.jdownloader.myjdownloader.client.json.storage.StorageListResponse;
 
-public class StorageMyJDClient {
+public class StorageMyJDClient<GenericType> {
 
-    private final AbstractMyJDClient<?> api;
+    private final AbstractMyJDClient<GenericType> api;
 
-    public StorageMyJDClient(final AbstractMyJDClient<?> abstractMyJDClient) {
+    public StorageMyJDClient(final AbstractMyJDClient<GenericType> abstractMyJDClient) {
         this.api = abstractMyJDClient;
     }
 
-    private CryptedStorageItem encrypt(final StorageItem storageItem, final SessionInfo sessionInfo) throws MyJDownloaderException {
-        final CryptedStorageItem cryptedStorageItem = new CryptedStorageItem();
-        cryptedStorageItem.setTimestamp(storageItem.getTimestamp());
-        cryptedStorageItem.setSessionToken(sessionInfo.getSessionToken());
+    protected <T> T callServer(final String query, final JSonRequest jsonRequest, final SessionInfo session, final Class<T> class1) throws MyJDownloaderException {
         try {
-            if (storageItem.getName() != null) {
-                final byte[] encryptKey = this.api.updateEncryptionToken(this.api.getSessionInfo().getDeviceEncryptionToken(), (storageItem.getTimestamp() + "").getBytes("UTF-8"));
-                cryptedStorageItem.setCryptedName(AbstractMyJDClient.byteArrayToHex(this.api.encrypt(storageItem.getName().getBytes("UTF-8"), encryptKey)));
+            return this.api.callServer(query, jsonRequest, session, class1);
+        } catch (final UnexpectedIOException e) {
+            if (e.getCause() instanceof ExceptionResponse) {
+                ErrorResponse error = null;
+                try {
+                    final ExceptionResponse cause = (ExceptionResponse) e.getCause();
+                    error = this.api.jsonToObject(cause.getContent(), (GenericType) ErrorResponse.class);
+                } catch (final Throwable e2) {
+                }
+                if (error != null) {
+                    switch (error.getSrc()) {
+                    case MYJD:
+                        final ServerErrorType type = ServerErrorType.valueOf(error.getType());
+                        switch (type) {
+                        case STORAGE_ALREADY_EXISTS:
+                            throw new StorageAlreadyExistsException();
+                        case STORAGE_INVALID_KEY:
+                            throw new StorageInvalidKeyException();
+                        case STORAGE_INVALID_STORAGEID:
+                            throw new StorageInvalidIDException();
+                        case STORAGE_NOT_FOUND:
+                            throw new StorageNotFoundException();
+                        case STORAGE_KEY_NOT_FOUND:
+                            throw new StorageKeyNotFoundException();
+                        case STORAGE_LIMIT_REACHED:
+                            throw new StorageLimitReachedException();
+                        }
+                    }
+                }
             }
-            if (storageItem.getContent() != null) {
-                cryptedStorageItem.setCryptedContent(AbstractMyJDClient.byteArrayToHex(this.api.encrypt(storageItem.getContent().getBytes("UTF-8"), sessionInfo.getDeviceEncryptionToken())));
-            }
-        } catch (final UnsupportedEncodingException e) {
-            throw MyJDownloaderException.get(e);
+            throw e;
         }
-        return cryptedStorageItem;
     }
 
-    public long put(final StorageItem storageItem) throws MyJDownloaderException {
+    public void create(final String storageID) throws MyJDownloaderException, StorageAlreadyExistsException, StorageInvalidIDException {
         final SessionInfo sessionInfo = this.api.getSessionInfo();
-        final JSonRequest re = new JSonRequest();
-
-        re.setRid(this.api.getUniqueRID());
-        re.setParams(new Object[] { this.encrypt(storageItem, sessionInfo) });
-        final String url = "/storage/put?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
-        re.setUrl(url);
-        return this.api.callServer(url, re, sessionInfo, StoragePutResponse.class).getItemID();
+        final String url = "/storage/createstorage?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken()) + "&storageid=" + this.api.urlencode(storageID);
+        this.callServer(url, null, sessionInfo, RequestIDOnly.class);
     }
+
+    public void drop(final String storageID) throws MyJDownloaderException, StorageNotFoundException, StorageInvalidIDException {
+        final SessionInfo sessionInfo = this.api.getSessionInfo();
+        final String url = "/storage/dropstorage?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken()) + "&storageid=" + this.api.urlencode(storageID);
+        this.callServer(url, null, sessionInfo, RequestIDOnly.class);
+    }
+
+    public String getValue(final String storageID, final String key) throws MyJDownloaderException {
+        final SessionInfo sessionInfo = this.api.getSessionInfo();
+        final String url = "/storage/getvalue?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken()) + "&storageid=" + this.api.urlencode(storageID) + "&key=" + this.api.urlencode(key);
+        return this.callServer(url, null, sessionInfo, StorageGetValueResponse.class).getValue();
+    }
+
+    public Map<String, Long> list() throws MyJDownloaderException {
+        final SessionInfo sessionInfo = this.api.getSessionInfo();
+        final String url = "/storage/liststorages?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
+        return this.callServer(url, null, sessionInfo, StorageListResponse.class).getList();
+    }
+
+    public Map<String, Long> listKeys(final String storageID) throws MyJDownloaderException {
+        final SessionInfo sessionInfo = this.api.getSessionInfo();
+        final String url = "/storage/listkeys?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken()) + "&storageid=" + this.api.urlencode(storageID);
+        return this.callServer(url, null, sessionInfo, StorageListResponse.class).getList();
+    }
+
+    public void putValue(final String storageID, final String key, final String value) throws MyJDownloaderException {
+        final SessionInfo sessionInfo = this.api.getSessionInfo();
+        final String url = "/storage/putvalue?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken()) + "&storageid=" + this.api.urlencode(storageID) + "&key=" + this.api.urlencode(key) + "&value=" + this.api.urlencode(value);
+        this.callServer(url, null, sessionInfo, RequestIDOnly.class);
+
+    }
+
 }

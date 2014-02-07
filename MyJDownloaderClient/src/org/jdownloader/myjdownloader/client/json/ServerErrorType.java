@@ -13,7 +13,14 @@ public enum ServerErrorType {
     EMAIL_INVALID,
     CHALLENGE_FAILED,
     EMAIL_FORBIDDEN,
-    FAILED;
+    FAILED,
+    /* storage errors */
+    STORAGE_NOT_FOUND,
+    STORAGE_LIMIT_REACHED,
+    STORAGE_ALREADY_EXISTS,
+    STORAGE_INVALID_KEY,
+    STORAGE_KEY_NOT_FOUND,
+    STORAGE_INVALID_STORAGEID;
 
     private int code;
 

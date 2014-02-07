@@ -40,7 +40,7 @@ import org.jdownloader.myjdownloader.client.json.RequestIDValidator;
 import org.jdownloader.myjdownloader.client.json.ServerErrorType;
 import org.jdownloader.myjdownloader.client.json.SuccessfulResponse;
 
-public abstract class AbstractMyJDClient<Type> {
+public abstract class AbstractMyJDClient<GenericType> {
     private static final int API_VERSION = 1;
 
     /**
@@ -127,7 +127,7 @@ public abstract class AbstractMyJDClient<Type> {
      * @throws MyJDownloaderException
      * @throws APIException
      */
-    protected Object callAction(final String deviceID, final String action, final Type returnType, final Object... args) throws MyJDownloaderException, APIException {
+    protected Object callAction(final String deviceID, final String action, final GenericType returnType, final Object... args) throws MyJDownloaderException, APIException {
         SessionInfo session = null;
         try {
             session = this.getSessionInfo();
@@ -160,7 +160,7 @@ public abstract class AbstractMyJDClient<Type> {
             this.log("Response\r\n" + dec);
             // this is a workaround.. do not consider this as final solution!
             if (dec.indexOf("\"data\" :") > 0) {
-                final ObjectData dataObject = this.jsonToObject(dec, (Type) ObjectData.class);
+                final ObjectData dataObject = this.jsonToObject(dec, (GenericType) ObjectData.class);
                 if (data == null) {
                     // invalid response
                     throw new MyJDownloaderException("Invalid Response: " + dec);
@@ -234,7 +234,7 @@ public abstract class AbstractMyJDClient<Type> {
                 }
                 data = this.cryptedPost(query + "&signature=" + this.sign(key, query), postData, key);
             }
-            Object ret = this.convertData(data, (Type) class1);
+            Object ret = this.convertData(data, (GenericType) class1);
             if (ret != null) {
                 if (ret instanceof RequestIDValidator) {
                     if (((RequestIDValidator) ret).getRid() != rid) { throw new BadResponseException("RID Mismatch"); }
@@ -242,7 +242,7 @@ public abstract class AbstractMyJDClient<Type> {
                 return (T) ret;
             }
             final String dec = this.toString(data);
-            ret = this.jsonToObject(dec, (Type) class1);
+            ret = this.jsonToObject(dec, (GenericType) class1);
             this.log("Response\r\n" + dec);
             // System.out.println(this.objectToJSon(ret));
             if (ret instanceof RequestIDValidator) {
@@ -290,7 +290,7 @@ public abstract class AbstractMyJDClient<Type> {
             query.append("&signature=").append(this.urlencode(signature));
 
             final String retString = this.toString(this.cryptedPost(query.toString(), "", loginSecret));
-            final ConnectResponse ret = this.jsonToObject(retString, (Type) ConnectResponse.class);
+            final ConnectResponse ret = this.jsonToObject(retString, (GenericType) ConnectResponse.class);
             if (ret.getRid() != rid) { throw new BadResponseException("RID Mismatch"); }
 
             final String sessionToken = ret.getSessiontoken();
@@ -316,7 +316,7 @@ public abstract class AbstractMyJDClient<Type> {
         }
     }
 
-    protected <T> T convertData(final byte[] data, final Type returnType) throws MyJDownloaderException {
+    protected <T> T convertData(final byte[] data, final GenericType returnType) throws MyJDownloaderException {
         if (returnType == byte[].class) { return (T) data; }
         return null;
     }
@@ -432,7 +432,7 @@ public abstract class AbstractMyJDClient<Type> {
      */
     public CaptchaChallenge getChallenge() throws MyJDownloaderException {
         try {
-            return this.jsonToObject(this.toString(this.uncryptedPost("/captcha/getCaptcha", (Object[]) null)), (Type) CaptchaChallenge.class);
+            return this.jsonToObject(this.toString(this.uncryptedPost("/captcha/getCaptcha", (Object[]) null)), (GenericType) CaptchaChallenge.class);
         } catch (final APIException e) {
             throw new RuntimeException(e);
 
@@ -473,7 +473,7 @@ public abstract class AbstractMyJDClient<Type> {
         if (e != null && e.getContent() != null && e.getContent().trim().length() != 0) {
             ErrorResponse error = null;
             try {
-                error = this.jsonToObject(e.getContent(), (Type) ErrorResponse.class);
+                error = this.jsonToObject(e.getContent(), (GenericType) ErrorResponse.class);
                 switch (error.getSrc()) {
                 case DEVICE:
                     if (error.getType() != null) {
@@ -494,7 +494,6 @@ public abstract class AbstractMyJDClient<Type> {
                             throw new ApiFileNotFoundException(error.getData());
                         case SESSION:
                             throw new SessionException(error.getData());
-
                         default:
                             throw new APIException(error.getType(), error.getData());
                         }
@@ -528,7 +527,6 @@ public abstract class AbstractMyJDClient<Type> {
                     case MAINTENANCE:
                         throw new MaintenanceException();
                     }
-                    break;
                 }
             } catch (final MyJDownloaderException e1) {
                 e1.setSource(error.getSrc());
@@ -553,7 +551,7 @@ public abstract class AbstractMyJDClient<Type> {
 
     protected abstract byte[] hmac(byte[] key, byte[] bytes) throws MyJDownloaderException;
 
-    protected <T> T jsonToObject(final String dec, final Type clazz) {
+    protected <T> T jsonToObject(final String dec, final GenericType clazz) {
         return (T) MyJDJsonMapper.HANDLER.jsonToObject(dec, clazz);
     }
 
