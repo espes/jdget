@@ -187,7 +187,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected JButton                                      cancelButton;
 
-    private final String                                   cancelOption;
+    private final String                                   cancelButtonText;
 
     private boolean                                        countdownPausable      = true;
 
@@ -219,7 +219,15 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected JButton                                      okButton;
 
-    protected final String                                 okOption;
+    protected final String                                 okButtonText;
+
+    public String getCancelButtonText() {
+        return cancelButtonText;
+    }
+
+    public String getOKButtonText() {
+        return okButtonText;
+    }
 
     private Point                                          orgLocationOnScreen;
 
@@ -256,8 +264,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         this.flagMask = flag;
 
         this.icon = BinaryLogic.containsAll(flag, Dialog.STYLE_HIDE_ICON) ? null : icon;
-        this.okOption = okOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_OK() : okOption;
-        this.cancelOption = cancelOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
+        this.okButtonText = okOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_OK() : okOption;
+        this.cancelButtonText = cancelOption == null ? _AWU.T.ABSTRACTDIALOG_BUTTON_CANCEL() : cancelOption;
     }
 
     /**
@@ -338,7 +346,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             };
             // create panel for the dialog's buttons
             this.okButton = createOkButton();
-            this.cancelButton = new JButton(this.cancelOption);
+            this.cancelButton = new JButton(this.cancelButtonText);
             this.cancelButton.addFocusListener(this.defaultButtonFocusListener);
             this.okButton.addFocusListener(this.defaultButtonFocusListener);
             this.defaultButtons = this.getDefaultButtonPanel();
@@ -612,7 +620,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     }
 
     protected JButton createOkButton() {
-        return new JButton(this.okOption);
+        return new JButton(this.okButtonText);
     }
 
     protected void initDoNotShowAgainCheckbox(final MigPanel bottom) {
