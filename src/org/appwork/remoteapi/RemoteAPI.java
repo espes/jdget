@@ -350,6 +350,8 @@ public class RemoteAPI implements HttpRequestHandler {
                     }
                 }
             } catch (final Throwable e) {
+                if (e instanceof BasicRemoteAPIException) { throw (BasicRemoteAPIException) e; }
+                if (e.getCause() instanceof BasicRemoteAPIException) { throw (BasicRemoteAPIException) e.getCause(); }
                 throw new RuntimeException(e);
             }
         }

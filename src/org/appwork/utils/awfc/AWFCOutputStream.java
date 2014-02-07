@@ -29,7 +29,7 @@ public class AWFCOutputStream extends OutputStream {
     private AWFCEntryOptions     currentEntry                = null;
     private CountingOutputStream currentCountingOutputStream = null;
     private final MessageDigest  md;
-    private boolean              headerWritten               = false;
+    protected boolean            headerWritten               = false;
     private final AWFCUtils      utils;
     private boolean              closing                     = false;
 
@@ -189,7 +189,7 @@ public class AWFCOutputStream extends OutputStream {
         }
     }
 
-    private synchronized void writeAWFCHeader() throws IOException {
+    protected synchronized void writeAWFCHeader() throws IOException {
         this.headerWritten = true;
         /* write AWFC Version 1 */
         this.write(1);
