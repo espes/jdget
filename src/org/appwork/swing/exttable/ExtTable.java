@@ -1389,37 +1389,38 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                 }
             }
         } else if (e.getID() == MouseEvent.MOUSE_CLICKED) {
-
             if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getModel().getObjectbyRow(row);
-                final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
                 this.renameClickDelayer.stop();
-
                 boolean ret = false;
-                if (col != null) {
-                    ret = col.onDoubleClick(e, obj);
-                }
-                if (obj != null && ret == false) {
-                    ret = this.onDoubleClick(e, obj);
-                    this.eventSender.fireEvent(new ExtTableEvent<E>(this, ExtTableEvent.Types.DOUBLECLICK, obj));
+                if (obj != null) {
+                    final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
+                    if (col != null) {
+                        ret = col.onDoubleClick(e, obj);
+                    }
+                    if (ret == false) {
+                        ret = this.onDoubleClick(e, obj);
+                        this.eventSender.fireEvent(new ExtTableEvent<E>(this, ExtTableEvent.Types.DOUBLECLICK, obj));
+                    }
                 }
                 if (ret == true) { return; }
             } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 1) {
                 final int row = this.rowAtPoint(e.getPoint());
                 final E obj = this.getModel().getObjectbyRow(row);
-                final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
                 boolean ret = false;
-                if (col != null) {
-
-                    ret = col.onSingleClick(e, obj);
-                }
-                if (obj != null && ret == false) {
-                    ret = this.onSingleClick(e, obj);
-                }
-                if (ret == true) { return; }
-                if (this.clickDelayerRunable != null) {
-                    this.renameClickDelayer.resetAndStart();
+                if (obj != null) {
+                    final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
+                    if (col != null) {
+                        ret = col.onSingleClick(e, obj);
+                    }
+                    if (ret == false) {
+                        ret = this.onSingleClick(e, obj);
+                    }
+                    if (ret == true) { return; }
+                    if (this.clickDelayerRunable != null) {
+                        this.renameClickDelayer.resetAndStart();
+                    }
                 }
             }
         } else if (e.getID() == MouseEvent.MOUSE_PRESSED) {
@@ -1433,7 +1434,7 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
                     final E obj = this.getModel().getObjectbyRow(row);
                     final ExtColumn<E> col = this.getExtColumnAtPoint(e.getPoint());
 
-                    if (col != null) {
+                    if (obj != null && col != null) {
 
                         this.clickDelayerRunable = new Runnable() {
 
