@@ -37,7 +37,7 @@ public class SimpleMapper implements JSONMapper {
             @Override
             public JSonNode create(final Object obj) throws MapperException {
                 for (final JsonSerializerEntry se : serializer) {
-                    if (se.clazz.isAssignableFrom(obj.getClass())) { return new JSonNode() {
+                    if (obj!=null&&se.clazz.isAssignableFrom(obj.getClass())) { return new JSonNode() {
                      
                         @Override
                         public String toString() {                     
