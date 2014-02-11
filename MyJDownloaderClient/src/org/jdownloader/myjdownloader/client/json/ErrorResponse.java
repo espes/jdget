@@ -7,34 +7,23 @@ public class ErrorResponse {
     }
 
     private Source src;
-    private String   type;
-
-    private Object data;
+    private String type;
 
     public ErrorResponse(/* Storable */) {
 
     }
 
-    public ErrorResponse(final Source string, final String error, final Object data) {
-        src = string;
-        type = error;
-        this.data = data;
-    }
-
-    public Object getData() {
-        return data;
+    public ErrorResponse(final Source string, final String error) {
+        this.src = string;
+        this.type = error;
     }
 
     public Source getSrc() {
-        return src;
+        return this.src;
     }
 
     public String getType() {
-        return type;
-    }
-
-    public void setData(final Object data) {
-        this.data = data;
+        return this.type;
     }
 
     public void setSrc(final Source src) {

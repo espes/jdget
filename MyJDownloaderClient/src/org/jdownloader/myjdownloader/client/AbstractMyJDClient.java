@@ -481,21 +481,21 @@ public abstract class AbstractMyJDClient<GenericType> {
                         // SES
                         switch (type) {
                         case INTERNAL_SERVER_ERROR:
-                            throw new InternalServerErrorException(error.getData());
+                            throw new InternalServerErrorException(null);
                         case API_COMMAND_NOT_FOUND:
-                            throw new UnknownCommandException(error.getData());
+                            throw new UnknownCommandException(null);
                         case API_INTERFACE_NOT_FOUND:
-                            throw new UnknownInterfaceException(error.getData());
+                            throw new UnknownInterfaceException(null);
                         case AUTH_FAILED:
                             throw new AuthException();
                         case BAD_PARAMETERS:
-                            throw new WrongParametersException(error.getData());
+                            throw new WrongParametersException(null);
                         case FILE_NOT_FOUND:
-                            throw new ApiFileNotFoundException(error.getData());
+                            throw new ApiFileNotFoundException(null);
                         case SESSION:
-                            throw new SessionException(error.getData());
+                            throw new SessionException(null);
                         default:
-                            throw new APIException(error.getType(), error.getData());
+                            throw new APIException(error.getType(), null);
                         }
                     }
 
