@@ -9,9 +9,9 @@
  */
 package org.appwork.utils.net;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Locale;
 
 /**
@@ -19,7 +19,7 @@ import java.util.Locale;
  * 
  */
 public class HeaderCollection implements Iterable<HTTPHeader> {
-    private LinkedList<HTTPHeader>          headers;
+    private ArrayList<HTTPHeader>          headers;
     private static HashMap<String, Boolean> DUPES_ALLOWED = new HashMap<String, Boolean>();
     static {
         HeaderCollection.DUPES_ALLOWED.put("Set-Cookies".toLowerCase(Locale.ENGLISH), true);
@@ -59,12 +59,12 @@ public class HeaderCollection implements Iterable<HTTPHeader> {
 
     public HeaderCollection clone() {
         HeaderCollection ret = new HeaderCollection();
-        ret.headers = new LinkedList<HTTPHeader>(this.headers);
+        ret.headers = new ArrayList<HTTPHeader>(this.headers);
         return ret;
     }
 
     public HeaderCollection() {
-        this.headers = new LinkedList<HTTPHeader>();
+        this.headers = new ArrayList<HTTPHeader>();
     }
 
     public String toString() {
@@ -72,7 +72,7 @@ public class HeaderCollection implements Iterable<HTTPHeader> {
     }
 
     public void clear() {
-        headers = new LinkedList<HTTPHeader>();
+        headers = new ArrayList<HTTPHeader>();
     }
 
     public HTTPHeader get(final String key) {

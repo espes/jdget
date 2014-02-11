@@ -14,8 +14,8 @@ import org.appwork.utils.logging.Log;
 
 public class HTTPConnectionUtils {
 
-    private static byte R = (byte) 13;
-    private static byte N = (byte) 10;
+    public static byte R = (byte) 13;
+    public static byte N = (byte) 10;
 
     public static String getFileNameFromDispositionHeader(String header) {
         // http://greenbytes.de/tech/tc2231/

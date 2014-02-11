@@ -579,7 +579,6 @@ public class RemoteAPI implements HttpRequestHandler {
 
             this.sendText(request, response, text, chunkedTransfer);
         } catch (final Throwable e) {
-            e.printStackTrace();
             final InternalApiException internal = new InternalApiException(e);
             internal.setRequest(request);
             internal.setResponse(response);

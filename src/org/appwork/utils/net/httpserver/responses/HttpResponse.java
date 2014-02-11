@@ -33,7 +33,7 @@ public class HttpResponse implements HttpResponseInterface {
     public static final byte[]            HTTP11        = "HTTP/1.1 ".getBytes();
     public static final byte[]            _0            = "0".getBytes();
     private ResponseCode                  responseCode  = ResponseCode.SUCCESS_NO_CONTENT;
-    private final HttpConnection          connection;
+    protected final HttpConnection        connection;
     protected OutputStream                outputStream  = null;
     protected boolean                     asyncResponse = false;
     private static final SimpleDateFormat date;
