@@ -572,7 +572,7 @@ public class HTMLParser {
             if (tagRegex == null) {
                 tagRegex = HTMLParser.inTagsPattern;
             }
-            final String nexttag = new Regex(data, tagRegex).setMemoryOptimized(false).getMatch(0);
+            final String nexttag = new Regex(data, tagRegex).getMatch(0);
             if (nexttag == null || nexttag.length() == 0) {
                 /* no further tag found, lets continue */
                 break;
@@ -633,12 +633,12 @@ public class HTMLParser {
         if (HTMLParser.deepWalkCheck(results, indexBefore)) {
             HTMLParser._getHttpLinksDeepWalker(data, url, results);
             /* cut of ?xy= parts if needed */
-            String newdata = new Regex(data, HTMLParser.paramsCut1).setMemoryOptimized(false).getMatch(0);
+            String newdata = new Regex(data, HTMLParser.paramsCut1).getMatch(0);
             if (newdata != null && !data.equals(newdata)) {
                 HTMLParser._getHttpLinksDeepWalker(new HtmlParserCharSequence(newdata), url, results);
             }
             /* use of ?xy parts if available */
-            newdata = new Regex(data, HTMLParser.paramsCut2).setMemoryOptimized(false).getMatch(0);
+            newdata = new Regex(data, HTMLParser.paramsCut2).getMatch(0);
             if (newdata != null && !data.equals(newdata)) {
                 HTMLParser._getHttpLinksDeepWalker(new HtmlParserCharSequence(newdata), url, results);
             }
