@@ -31,10 +31,10 @@ import org.appwork.utils.net.httpserver.HttpConnection;
  */
 public class PostRequest extends HttpRequest {
 
-    private static enum CONTENT_TYPE {
+    public static enum CONTENT_TYPE {
         X_WWW_FORM_URLENCODED,
-        JSON
-
+        JSON,
+        UNKNOWN
     }
 
     protected InputStream        inputStream         = null;
@@ -173,7 +173,6 @@ public class PostRequest extends HttpRequest {
             content_type = CONTENT_TYPE.JSON;
         }
         JSonRequest jsonRequest = null;
-        // content_type=CONTENT_TYPE.AESJSON;
         if (content_type != null) {
             String charSet = new Regex(type, "charset=(.*?)($| )").getMatch(0);
             if (charSet == null) {

@@ -582,7 +582,6 @@ public class RemoteAPI implements HttpRequestHandler {
             final InternalApiException internal = new InternalApiException(e);
             internal.setRequest(request);
             internal.setResponse(response);
-
             throw internal;
         }
     }

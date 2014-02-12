@@ -72,6 +72,14 @@ public class HTTPConstants {
          */
         ERROR_NOT_FOUND(404, "Not Found"),
 
+        LENGTH_REQUIRED(411, "Length Required"),
+
+        REQUEST_ENTITY_TOO_LARGE(413, "Request Entity Too Large"),
+
+        REQUEST_URL_TOO_LONG(414, "Request-URL Too Long"),
+
+        REQUEST_HEADER_FIELDS_TOO_LARGE(431, "Request Header Fields Too Large"),
+
         ERROR_RANGE_NOT_SUPPORTED(416, "Range requests not supported"),
 
         TOO_MANY_REQUESTS(429, "Too Many Requests"),

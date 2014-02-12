@@ -107,19 +107,19 @@ public class HttpConnection implements Runnable {
         this.clientSocket.setSoTimeout(60 * 1000);
     }
 
-    protected GetRequest buildGetRequest() {
+    protected GetRequest buildGetRequest() throws IOException {
         return new GetRequest(this);
     }
 
-    protected HeadRequest buildHeadRequest() {
+    protected HeadRequest buildHeadRequest() throws IOException {
         return new HeadRequest(this);
     }
 
-    protected OptionsRequest buildOptionsRequest() {
+    protected OptionsRequest buildOptionsRequest() throws IOException {
         return new OptionsRequest(this);
     }
 
-    protected PostRequest buildPostRequest() {
+    protected PostRequest buildPostRequest() throws IOException {
         return new PostRequest(this);
     }
 
@@ -168,7 +168,7 @@ public class HttpConnection implements Runnable {
     /**
      * @return
      */
-    protected HttpResponse buildResponse() {
+    protected HttpResponse buildResponse() throws IOException {
         return new HttpResponse(this);
     }
 
@@ -193,6 +193,10 @@ public class HttpConnection implements Runnable {
             this.clientSocket.close();
         } catch (final Throwable nothing) {
         }
+    }
+
+    protected boolean deferRequest(final HttpRequest request) throws Exception {
+        return false;
     }
 
     public List<HttpRequestHandler> getHandler() {
@@ -269,7 +273,7 @@ public class HttpConnection implements Runnable {
         response.setResponseCode(ResponseCode.SERVERERROR_NOT_IMPLEMENTED);
     }
 
-    protected HttpConnectionType parseConnectionType(final String requestLine) {
+    protected HttpConnectionType parseConnectionType(final String requestLine) throws IOException {
         final String method = new Regex(requestLine, HttpConnection.METHOD).getMatch(0);
         return HttpConnectionType.valueOf(method);
     }
@@ -333,40 +337,47 @@ public class HttpConnection implements Runnable {
         return HTTPConnectionUtils.readheader(this.getInputStream(), true);
     }
 
-    protected void requestReceived(final HttpRequest request) {
-    }
-
     @Override
     public void run() {
         boolean closeConnection = true;
         try {
-            this.request = this.buildRequest();
-            this.response = this.buildResponse();
-            this.requestReceived(this.request);
-            boolean handled = false;
-            for (final HttpRequestHandler handler : this.getHandler()) {
-                if (this.request instanceof GetRequest) {
-                    if (handler.onGetRequest((GetRequest) this.request, this.response)) {
-                        handled = true;
-                        break;
+            if (this.request == null) {
+                this.request = this.buildRequest();
+            }
+            if (this.response == null) {
+                this.response = this.buildResponse();
+            }
+            if (this.deferRequest(this.request)) {
+                closeConnection = false;
+            } else {
+                boolean handled = false;
+                if (this.request instanceof PostRequest) {
+                    for (final HttpRequestHandler handler : this.getHandler()) {
+                        if (handler.onPostRequest((PostRequest) this.request, this.response)) {
+                            handled = true;
+                            break;
+                        }
                     }
-                } else if (this.request instanceof PostRequest) {
-                    if (handler.onPostRequest((PostRequest) this.request, this.response)) {
-                        handled = true;
-                        break;
+                } else if (this.request instanceof GetRequest) {
+                    for (final HttpRequestHandler handler : this.getHandler()) {
+                        if (handler.onGetRequest((GetRequest) this.request, this.response)) {
+                            handled = true;
+                            break;
+                        }
                     }
                 }
+                if (!handled) {
+                    /* generate error handler */
+                    this.onUnhandled(this.request, this.response);
+                }
+                /* send response headers if they have not been sent yet send yet */
+                this.response.getOutputStream(true);
             }
-            if (!handled) {
-                /* generate error handler */
-                this.onUnhandled(this.request, this.response);
-            }
-            /* send response headers if they have not been sent yet send yet */
-            this.response.getOutputStream(true);
         } catch (final Throwable e) {
             try {
                 closeConnection = this.onException(e, this.request, this.response);
             } catch (final Throwable nothing) {
+                nothing.printStackTrace();
             }
         } finally {
             if (closeConnection) {
