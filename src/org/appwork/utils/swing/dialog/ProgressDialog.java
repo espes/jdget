@@ -36,7 +36,7 @@ import org.appwork.utils.swing.EDTHelper;
  * @author thomas
  * 
  */
-public class ProgressDialog extends AbstractDialog<Integer> {
+public class ProgressDialog extends AbstractDialog<Integer> implements ProgressInterface {
     public interface ProgressGetter {
 
         public int getProgress();
@@ -286,5 +286,25 @@ public class ProgressDialog extends AbstractDialog<Integer> {
             lbl.setText(getter.getLabelString());
         }
     }
+
+    /* (non-Javadoc)
+     * @see org.appwork.utils.swing.dialog.ProgressInterface#getMessage()
+     */
+    @Override
+    public String getMessage() {
+        // TODO Auto-generated method stub
+        return message;
+    }
+
+    /* (non-Javadoc)
+     * @see org.appwork.utils.swing.dialog.ProgressInterface#getValue()
+     */
+    @Override
+    public int getProgress() {
+        // TODO Auto-generated method stub
+        return getter.getProgress();
+    }
+
+ 
 
 }
