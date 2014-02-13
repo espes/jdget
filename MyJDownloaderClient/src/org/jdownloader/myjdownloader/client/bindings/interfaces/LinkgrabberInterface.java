@@ -17,7 +17,7 @@ public interface LinkgrabberInterface extends Linkable {
 
     void moveToDownloadlist(long[] linkIds, long[] packageIds);
 
-    void removeLinks(long[] linkIds,long[] packageIds);
+    void removeLinks(long[] linkIds, long[] packageIds);
 
     void setEnabled(boolean enabled, long[] linkIds, long[] packageIds);
 
@@ -37,9 +37,11 @@ public interface LinkgrabberInterface extends Linkable {
 
     void addLinks(AddLinksQuery query);
 
+    void addContainer(String type, String content);
+
     LinkVariantStorable[] getVariants(long linkid);
 
     void setVariant(long linkid, String variantID);
-    
-    void addVariantCopy(long linkid,long destinationAfterLinkID, long destinationPackageID, String variantID);
+
+    void addVariantCopy(long linkid, long destinationAfterLinkID, long destinationPackageID, String variantID);
 }
