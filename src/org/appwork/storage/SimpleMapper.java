@@ -23,7 +23,7 @@ import org.appwork.storage.simplejson.mapper.MapperException;
  * 
  */
 public class SimpleMapper implements JSONMapper {
-    private final JSonMapper mapper;
+    protected final JSonMapper mapper;
 
     public SimpleMapper() {
         mapper = new JSonMapper() {
