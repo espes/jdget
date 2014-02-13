@@ -16,6 +16,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Locale;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
@@ -100,7 +101,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
                 this.httpPort = this.httpURL.getDefaultPort();
             }
             final Socket establishedConnection = this.establishConnection();
-            if (this.httpURL.getProtocol().startsWith("https")) {
+            if (this.httpURL.getProtocol().toLowerCase(Locale.ENGLISH).startsWith("https")) {
                 /* we need to lay ssl over normal socks5 connection */
                 SSLSocket sslSocket = null;
                 try {
@@ -216,6 +217,10 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
      */
     @Override
     protected void shutDownOutput() throws IOException {
+        if (this.httpURL.getProtocol().toLowerCase(Locale.ENGLISH).startsWith("https")) {
+            /* we cannot close Output on SSL socket */
+            return;
+        }
         if (this.isConnected() && !this.sockssocket.isOutputShutdown()) {
             this.sockssocket.shutdownOutput();
         }

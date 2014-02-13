@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.util.Locale;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
@@ -149,7 +150,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                 if (httpPort == -1) {
                     httpPort = httpURL.getDefaultPort();
                 }
-                if (httpURL.getProtocol().startsWith("https")) {
+                if (httpURL.getProtocol().toLowerCase(Locale.ENGLISH).startsWith("https")) {
                     SSLSocket sslSocket = null;
                     try {
                         final SSLSocketFactory socketFactory = TrustALLSSLFactory.getSSLFactoryTrustALL();

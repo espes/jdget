@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
@@ -95,7 +96,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         /* try all different ip's until one is valid and connectable */
         IOException ee = null;
         for (final InetAddress host : hosts) {
-            if (this.httpURL.getProtocol().startsWith("https")) {
+            if (this.httpURL.getProtocol().toLowerCase(Locale.ENGLISH).startsWith("https")) {
                 /* https */
                 this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
                 if (this.sslException != null && this.sslException.getMessage().contains("bad_record_mac")) {
@@ -675,6 +676,10 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     protected void shutDownOutput() throws IOException {
+        if (this.httpURL.getProtocol().toLowerCase(Locale.ENGLISH).startsWith("https")) {
+            /* we cannot close Output on SSL socket */
+            return;
+        }
         if (this.isConnected() && !this.httpSocket.isOutputShutdown()) {
             this.httpSocket.shutdownOutput();
         }
