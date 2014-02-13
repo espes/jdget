@@ -210,7 +210,7 @@ public class HttpConnection implements Runnable {
      * @throws IOException
      */
     public InputStream getInputStream() throws IOException {
-        return this.is;
+        return this.getRawInputStream();
     }
 
     /**
@@ -227,7 +227,13 @@ public class HttpConnection implements Runnable {
         return this.getRawOutputStream();
     }
 
-    protected OutputStream getRawOutputStream() {
+    protected InputStream getRawInputStream() throws IOException {
+        if (this.is == null) { throw new IllegalStateException("no RawInputStream available!"); }
+        return this.is;
+    }
+
+    protected OutputStream getRawOutputStream() throws IOException {
+        if (this.os == null) { throw new IllegalStateException("no RawOutputStream available!"); }
         return this.os;
     }
 
