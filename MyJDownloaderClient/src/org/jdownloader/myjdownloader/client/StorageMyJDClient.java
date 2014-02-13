@@ -64,20 +64,29 @@ public class StorageMyJDClient<GenericType> {
 
     public void create(final String storageID) throws MyJDownloaderException, StorageAlreadyExistsException, StorageInvalidIDException {
         final SessionInfo sessionInfo = this.api.getSessionInfo();
-        final String url = "/storage/createstorage?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken()) + "&storageid=" + this.api.urlencode(storageID);
-        this.callServer(url, null, sessionInfo, RequestIDOnly.class);
+        final String url = "/storage/createstorage?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
+        final JSonRequest re = new JSonRequest();
+        re.setParams(new Object[] { storageID });
+        re.setUrl(url);
+        this.callServer(url, re, sessionInfo, RequestIDOnly.class);
     }
 
     public void drop(final String storageID) throws MyJDownloaderException, StorageNotFoundException, StorageInvalidIDException {
         final SessionInfo sessionInfo = this.api.getSessionInfo();
-        final String url = "/storage/dropstorage?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken()) + "&storageid=" + this.api.urlencode(storageID);
-        this.callServer(url, null, sessionInfo, RequestIDOnly.class);
+        final String url = "/storage/dropstorage?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
+        final JSonRequest request = new JSonRequest();
+        request.setParams(new Object[] { storageID });
+        request.setUrl(url);
+        this.callServer(url, request, sessionInfo, RequestIDOnly.class);
     }
 
     public String getValue(final String storageID, final String key) throws MyJDownloaderException {
         final SessionInfo sessionInfo = this.api.getSessionInfo();
-        final String url = "/storage/getvalue?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken()) + "&storageid=" + this.api.urlencode(storageID) + "&key=" + this.api.urlencode(key);
-        return this.callServer(url, null, sessionInfo, StorageGetValueResponse.class).getValue();
+        final String url = "/storage/getvalue?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
+        final JSonRequest request = new JSonRequest();
+        request.setParams(new Object[] { storageID, key });
+        request.setUrl(url);
+        return this.callServer(url, request, sessionInfo, StorageGetValueResponse.class).getValue();
     }
 
     public Map<String, Long> list() throws MyJDownloaderException {
@@ -88,14 +97,20 @@ public class StorageMyJDClient<GenericType> {
 
     public Map<String, Long> listKeys(final String storageID) throws MyJDownloaderException {
         final SessionInfo sessionInfo = this.api.getSessionInfo();
-        final String url = "/storage/listkeys?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken()) + "&storageid=" + this.api.urlencode(storageID);
-        return this.callServer(url, null, sessionInfo, StorageListResponse.class).getList();
+        final String url = "/storage/listkeys?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
+        final JSonRequest request = new JSonRequest();
+        request.setParams(new Object[] { storageID });
+        request.setUrl(url);
+        return this.callServer(url, request, sessionInfo, StorageListResponse.class).getList();
     }
 
     public void putValue(final String storageID, final String key, final String value) throws MyJDownloaderException {
         final SessionInfo sessionInfo = this.api.getSessionInfo();
-        final String url = "/storage/putvalue?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken()) + "&storageid=" + this.api.urlencode(storageID) + "&key=" + this.api.urlencode(key) + "&value=" + this.api.urlencode(value);
-        this.callServer(url, null, sessionInfo, RequestIDOnly.class);
+        final String url = "/storage/putvalue?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
+        final JSonRequest request = new JSonRequest();
+        request.setParams(new Object[] { storageID, key, value });
+        request.setUrl(url);
+        this.callServer(url, request, sessionInfo, RequestIDOnly.class);
 
     }
 

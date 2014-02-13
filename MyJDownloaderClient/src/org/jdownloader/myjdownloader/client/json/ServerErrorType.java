@@ -9,6 +9,7 @@ public enum ServerErrorType {
     TOKEN_INVALID(403),
     OFFLINE(504),
     UNKNOWN(500),
+    BAD_REQUEST(400),
     AUTH_FAILED(403),
     EMAIL_INVALID,
     CHALLENGE_FAILED,
