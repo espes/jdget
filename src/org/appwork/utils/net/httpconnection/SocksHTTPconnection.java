@@ -152,17 +152,20 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
 
     @Override
     public void disconnect() {
-        super.disconnect();
-        try {
-            this.sockssocket.close();
-        } catch (final Throwable e) {
-        }
+        this.disconnect(false);
     }
 
     @Override
     public void disconnect(final boolean freeConnection) {
         try {
-            super.disconnect(freeConnection);
+            try {
+                super.disconnect(freeConnection);
+            } finally {
+                try {
+                    this.sockssocket.close();
+                } catch (final Throwable e) {
+                }
+            }
         } finally {
             if (freeConnection) {
                 this.sockssocket = null;
@@ -204,6 +207,19 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
     }
 
     abstract protected AUTH sayHello() throws IOException;
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.appwork.utils.net.httpconnection.HTTPConnectionImpl#shutDownOutput()
+     */
+    @Override
+    protected void shutDownOutput() throws IOException {
+        if (this.isConnected() && !this.sockssocket.isOutputShutdown()) {
+            this.sockssocket.shutdownOutput();
+        }
+    }
 
     abstract protected void validateProxy() throws IOException;
 }

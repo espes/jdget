@@ -180,6 +180,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     protected synchronized void connectInputStream() throws IOException {
         if (this.httpMethod == RequestMethod.POST) {
+            this.shutDownOutput();
             final long done = ((CountingOutputStream) this.getOutputStream()).transferedBytes();
             if (done != this.postTodoLength) { throw new IOException("Content-Length " + this.postTodoLength + " does not match send " + done + " bytes"); }
         }
@@ -272,7 +273,11 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     public void disconnect(final boolean freeConnection) {
         try {
-            this.httpSocket.close();
+            try {
+                this.shutDownOutput();
+            } finally {
+                this.httpSocket.close();
+            }
         } catch (final Throwable e) {
         } finally {
             if (freeConnection) {
@@ -667,6 +672,12 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     public void setRequestProperty(final String key, final String value) {
         this.requestProperties.put(key, value);
+    }
+
+    protected void shutDownOutput() throws IOException {
+        if (this.isConnected() && !this.httpSocket.isOutputShutdown()) {
+            this.httpSocket.shutdownOutput();
+        }
     }
 
     @Override
