@@ -678,6 +678,9 @@ public class HTTPConnectionImpl implements HTTPConnection {
 
     protected void shutDownOutput() throws IOException {
         try {
+            if(true) {
+                return;
+            }
             if (httpURL.getProtocol().toLowerCase(Locale.ENGLISH).startsWith("https")) {
                 /* we cannot close Output on SSL socket */
                 return;
