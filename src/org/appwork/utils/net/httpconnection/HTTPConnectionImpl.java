@@ -280,6 +280,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 httpSocket.close();
             }
         } catch (final Throwable e) {
+            e.printStackTrace();
         } finally {
             if (freeConnection) {
                 httpSocket = null;
@@ -676,18 +677,22 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     protected void shutDownOutput() throws IOException {
-        if (httpURL.getProtocol().toLowerCase(Locale.ENGLISH).startsWith("https")) {
-            /* we cannot close Output on SSL socket */
-            return;
-        }
-        System.out.println("isConnected " + isConnected());
-        System.out.println("isOutputShutdown " + (httpSocket != null));
-        if (httpSocket != null) {
-            System.out.println("isOutputShutdown " + (!httpSocket.isOutputShutdown()));
-        }
-        if (isConnected() && !httpSocket.isOutputShutdown()) {
-            System.out.println("Shutdown");
-            httpSocket.shutdownOutput();
+        try {
+            if (httpURL.getProtocol().toLowerCase(Locale.ENGLISH).startsWith("https")) {
+                /* we cannot close Output on SSL socket */
+                return;
+            }
+            System.out.println("isConnected " + isConnected());
+            System.out.println("isOutputShutdown " + (httpSocket != null));
+            if (httpSocket != null) {
+                System.out.println("isOutputShutdown " + (!httpSocket.isOutputShutdown()));
+            }
+            if (isConnected() && !httpSocket.isOutputShutdown()) {
+                System.out.println("Shutdown");
+                httpSocket.shutdownOutput();
+            }
+        } catch (final Throwable e) {
+            e.printStackTrace();
         }
     }
 
