@@ -16,7 +16,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
-import java.util.Locale;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
@@ -101,7 +100,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
                 this.httpPort = this.httpURL.getDefaultPort();
             }
             final Socket establishedConnection = this.establishConnection();
-            if (this.httpURL.getProtocol().toLowerCase(Locale.ENGLISH).startsWith("https")) {
+            if (this.httpURL.getProtocol().startsWith("https")) {
                 /* we need to lay ssl over normal socks5 connection */
                 SSLSocket sslSocket = null;
                 try {
@@ -153,20 +152,17 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
 
     @Override
     public void disconnect() {
-        this.disconnect(false);
+        super.disconnect();
+        try {
+            this.sockssocket.close();
+        } catch (final Throwable e) {
+        }
     }
 
     @Override
     public void disconnect(final boolean freeConnection) {
         try {
-            try {
-                super.disconnect(freeConnection);
-            } finally {
-                try {
-                    this.sockssocket.close();
-                } catch (final Throwable e) {
-                }
-            }
+            super.disconnect(freeConnection);
         } finally {
             if (freeConnection) {
                 this.sockssocket = null;
@@ -208,23 +204,6 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
     }
 
     abstract protected AUTH sayHello() throws IOException;
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.appwork.utils.net.httpconnection.HTTPConnectionImpl#shutDownOutput()
-     */
-    @Override
-    protected void shutDownOutput() throws IOException {
-        if (this.httpURL.getProtocol().toLowerCase(Locale.ENGLISH).startsWith("https")) {
-            /* we cannot close Output on SSL socket */
-            return;
-        }
-        if (this.isConnected() && !this.sockssocket.isOutputShutdown()) {
-            this.sockssocket.shutdownOutput();
-        }
-    }
 
     abstract protected void validateProxy() throws IOException;
 }
