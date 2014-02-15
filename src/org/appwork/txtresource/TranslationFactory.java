@@ -245,7 +245,7 @@ public class TranslationFactory {
      */
     public static Locale stringToLocale(final String lng) {
         try {
-            if (Application.getJavaVersion() >= Application.JAVA17) { return Locale.forLanguageTag(lng); }
+            if (Application.getJavaVersion() >= Application.JAVA17) { return Locale.forLanguageTag(lng.replace("_", "-")); }
         } catch (final Throwable e) {
         }
         final String[] split = lng.split("[\\-\\_]");
