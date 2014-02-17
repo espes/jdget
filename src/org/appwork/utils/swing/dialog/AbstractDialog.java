@@ -67,6 +67,7 @@ import org.appwork.utils.images.IconIO;
 import org.appwork.utils.locale._AWU;
 import org.appwork.utils.logging.Log;
 import org.appwork.utils.net.Base64OutputStream;
+import org.appwork.utils.os.CrossSystem;
 import org.appwork.utils.swing.EDTRunner;
 import org.appwork.utils.swing.dialog.dimensor.DialogDimensor;
 import org.appwork.utils.swing.dialog.locator.CenterOfScreenDialogLocator;
@@ -437,6 +438,32 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             // some dialogs may have autowrapping textfields. these textfields
             // need a few resizing rounds to find it's final dimension
+            if (CrossSystem.isWindows()) {
+                AbstractDialog.this.getDialog().getContentPane().addComponentListener(new ComponentListener() {
+
+                    @Override
+                    public void componentHidden(final ComponentEvent e) {
+                    }
+
+                    @Override
+                    public void componentMoved(final ComponentEvent e) {
+                    }
+
+                    @Override
+                    public void componentResized(final ComponentEvent e) {
+                        final Dimension size = AbstractDialog.this.getDialog().getSize();
+                        AbstractDialog.this.getDialog().pack();
+                        final Dimension after = AbstractDialog.this.getDialog().getSize();
+                        if (after.equals(size)) {
+                            AbstractDialog.this.getDialog().getContentPane().removeComponentListener(this);
+                        }
+                    }
+
+                    @Override
+                    public void componentShown(final ComponentEvent e) {
+                    }
+                });
+            }
             this.pack();
             if (this.dimensor != null) {
                 final Dimension ret = this.dimensor.getDimension(AbstractDialog.this);
@@ -507,31 +534,32 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 @Override
                 public void componentShown(final ComponentEvent e) {
                     AbstractDialog.this.orgLocationOnScreen = AbstractDialog.this.getDialog().getLocationOnScreen();
-                    AbstractDialog.this.getDialog().getContentPane().addComponentListener(new ComponentListener() {
+                    if (!CrossSystem.isWindows()) {
+                        AbstractDialog.this.getDialog().getContentPane().addComponentListener(new ComponentListener() {
 
-                        @Override
-                        public void componentHidden(final ComponentEvent e) {
-                        }
-
-                        @Override
-                        public void componentMoved(final ComponentEvent e) {
-                        }
-
-                        @Override
-                        public void componentResized(final ComponentEvent e) {
-                            final Dimension size = AbstractDialog.this.getDialog().getSize();
-                            AbstractDialog.this.getDialog().pack();
-                            final Dimension after = AbstractDialog.this.getDialog().getSize();
-                            if (after.equals(size)) {
-                                AbstractDialog.this.getDialog().getContentPane().removeComponentListener(this);
+                            @Override
+                            public void componentHidden(final ComponentEvent e) {
                             }
-                        }
 
-                        @Override
-                        public void componentShown(final ComponentEvent e) {
-                        }
-                    });
+                            @Override
+                            public void componentMoved(final ComponentEvent e) {
+                            }
 
+                            @Override
+                            public void componentResized(final ComponentEvent e) {
+                                final Dimension size = AbstractDialog.this.getDialog().getSize();
+                                AbstractDialog.this.getDialog().pack();
+                                final Dimension after = AbstractDialog.this.getDialog().getSize();
+                                if (after.equals(size)) {
+                                    AbstractDialog.this.getDialog().getContentPane().removeComponentListener(this);
+                                }
+                            }
+
+                            @Override
+                            public void componentShown(final ComponentEvent e) {
+                            }
+                        });
+                    }
                 }
             });
             dialog = this.getDialog();
