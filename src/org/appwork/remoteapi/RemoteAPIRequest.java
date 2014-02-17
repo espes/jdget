@@ -40,7 +40,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
     private final InterfaceHandler<?> iface;
 
     private final String[]            parameters;
-    protected final HttpRequest         request;
+    protected final HttpRequest       request;
 
     private Method                    method;
 
@@ -50,35 +50,33 @@ public class RemoteAPIRequest implements HttpRequestInterface {
 
     private final String              methodName;
 
-
-
-
-
     public RemoteAPIRequest(final InterfaceHandler<?> iface, final String methodName, final String[] parameters, final HttpRequest request, final String jqueryCallback) {
         this.iface = iface;
         this.parameters = parameters;
         this.request = request;
         this.methodName = methodName;
-  
+
         this.jqueryCallback = jqueryCallback;
-        method = this.iface.getMethod(methodName, this.parameters.length);
+        this.method = this.iface.getMethod(methodName, this.parameters.length);
         try {
-            parameterCount = iface.getParameterCount(method);
+            if (this.method != null) {
+                this.parameterCount = iface.getParameterCount(this.method);
+            }
         } catch (final Throwable e) {
-            method = null;
+            this.method = null;
         }
     }
 
     public HttpRequest getHttpRequest() {
-        return request;
+        return this.request;
     }
 
     public InterfaceHandler<?> getIface() {
-        return iface;
+        return this.iface;
     }
 
     public InputStream getInputStream() throws IOException {
-        if (request instanceof PostRequest) { return ((PostRequest) request).getInputStream(); }
+        if (this.request instanceof PostRequest) { return ((PostRequest) this.request).getInputStream(); }
         return null;
     }
 
@@ -86,7 +84,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
      * @return the jqueryCallback
      */
     public String getJqueryCallback() {
-        return jqueryCallback;
+        return this.jqueryCallback;
     }
 
     /**
@@ -94,77 +92,87 @@ public class RemoteAPIRequest implements HttpRequestInterface {
      */
     public Method getMethod() {
 
-        return method;
+        return this.method;
     }
 
     /**
      * @return the methodName
      */
     public String getMethodName() {
-        return methodName;
+        return this.methodName;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
+     * getParameterbyKey(java.lang.String)
+     */
+    @Override
+    public String getParameterbyKey(final String key) throws IOException {
+
+        List<KeyValuePair> params = this.request.getRequestedURLParameters();
+        if (params != null) {
+            for (final KeyValuePair param : params) {
+                if (key.equalsIgnoreCase(param.key)) { return param.value; }
+            }
+        }
+        if (this.request instanceof PostRequest) {
+            params = ((PostRequest) this.request).getPostParameter();
+            if (params != null) {
+                for (final KeyValuePair param : params) {
+                    if (key.equalsIgnoreCase(param.key)) { return param.value; }
+                }
+            }
+        }
+
+        return null;
+
     }
 
     public int getParameterCount() {
-        return parameterCount;
+        return this.parameterCount;
     }
+
+    // /*
+    // * (non-Javadoc)
+    // *
+    // * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
+    // * getPostParameter()
+    // */
+    // @Override
+    // public List<KeyValuePair> getPostParameter() throws IOException {
+    // return request.getPostParameter();
+    // }
 
     public String[] getParameters() {
-        return parameters;
+        return this.parameters;
     }
-
-//    /*
-//     * (non-Javadoc)
-//     * 
-//     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#
-//     * getPostParameter()
-//     */
-//    @Override
-//    public List<KeyValuePair> getPostParameter() throws IOException {
-//        return request.getPostParameter();
-//    }
 
     /**
      * @return
      */
     public List<String> getRemoteAdress() {
-        return request.getRemoteAddress();
+        return this.request.getRemoteAddress();
     }
 
     public String getRequestedPath() {
-        return request.getRequestedPath();
+        return this.request.getRequestedPath();
     }
 
     public String getRequestedURL() {
-        return request.getRequestedURL();
+        return this.request.getRequestedURL();
     }
 
     /**
      * @return the requestedURLParameters
      */
     public List<KeyValuePair> getRequestedURLParameters() {
-        return request.getRequestedURLParameters();
+        return this.request.getRequestedURLParameters();
     }
 
     public HeaderCollection getRequestHeaders() {
-        return request.getRequestHeaders();
-    }
-
-
-
-    public REQUESTTYPE getRequestType() {
-        if (request instanceof OptionsRequest) { return REQUESTTYPE.OPTIONS; }
-        if (request instanceof HeadRequest) { return REQUESTTYPE.HEAD; }
-        if (request instanceof PostRequest) { return REQUESTTYPE.POST; }
-        if (request instanceof GetRequest) { return REQUESTTYPE.GET; }
-        return REQUESTTYPE.UNKNOWN;
-    }
-
-    /**
-     * @return
-     */
-    public String getSignature() {
-        // TODO Auto-generated method stub
-        return null;
+        return this.request.getRequestHeaders();
     }
 
     /**
@@ -175,31 +183,20 @@ public class RemoteAPIRequest implements HttpRequestInterface {
         return 0;
     }
 
-    /* (non-Javadoc)
-     * @see org.appwork.utils.net.httpserver.requests.HttpRequestInterface#getParameterbyKey(java.lang.String)
-     */
-    @Override
-    public String getParameterbyKey(final String key) throws IOException {
-        
-            List<KeyValuePair> params = request.getRequestedURLParameters();
-            if (params != null) {
-                for (final KeyValuePair param : params) {
-                    if (key.equalsIgnoreCase(param.key)) { return param.value; }
-                }
-            }
-            if (request instanceof PostRequest) {
-                params = ((PostRequest) request).getPostParameter();
-                if (params != null) {
-                    for (final KeyValuePair param : params) {
-                        if (key.equalsIgnoreCase(param.key)) { return param.value; }
-                    }
-                }
-            }
-            
-            return null;
-        
-      
+    public REQUESTTYPE getRequestType() {
+        if (this.request instanceof OptionsRequest) { return REQUESTTYPE.OPTIONS; }
+        if (this.request instanceof HeadRequest) { return REQUESTTYPE.HEAD; }
+        if (this.request instanceof PostRequest) { return REQUESTTYPE.POST; }
+        if (this.request instanceof GetRequest) { return REQUESTTYPE.GET; }
+        return REQUESTTYPE.UNKNOWN;
     }
 
+    /**
+     * @return
+     */
+    public String getSignature() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }
