@@ -221,14 +221,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
     protected final String                                 okButtonText;
 
-    public String getCancelButtonText() {
-        return cancelButtonText;
-    }
-
-    public String getOKButtonText() {
-        return okButtonText;
-    }
-
     private Point                                          orgLocationOnScreen;
 
     protected JComponent                                   panel;
@@ -345,7 +337,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 }
             };
             // create panel for the dialog's buttons
-            this.okButton = createOkButton();
+            this.okButton = this.createOkButton();
             this.cancelButton = new JButton(this.cancelButtonText);
             this.cancelButton.addFocusListener(this.defaultButtonFocusListener);
             this.okButton.addFocusListener(this.defaultButtonFocusListener);
@@ -380,7 +372,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
             bottom.add(this.timerLbl);
             if (BinaryLogic.containsAll(this.flagMask, Dialog.STYLE_SHOW_DO_NOT_DISPLAY_AGAIN)) {
 
-                initDoNotShowAgainCheckbox(bottom);
+                this.initDoNotShowAgainCheckbox(bottom);
             } else {
                 bottom.add(Box.createHorizontalGlue());
             }
@@ -445,31 +437,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
             // some dialogs may have autowrapping textfields. these textfields
             // need a few resizing rounds to find it's final dimension
-            getDialog().getContentPane().addComponentListener(new ComponentListener() {
-
-                @Override
-                public void componentShown(final ComponentEvent e) {
-                }
-
-                @Override
-                public void componentResized(final ComponentEvent e) {
-                    final Dimension size = getDialog().getSize();
-                    getDialog().pack();
-                    final Dimension after = getDialog().getSize();
-                    if (after.equals(size)) {
-                        // done. remove listener
-                        getDialog().getContentPane().removeComponentListener(this);
-                    }
-                }
-
-                @Override
-                public void componentMoved(final ComponentEvent e) {
-                }
-
-                @Override
-                public void componentHidden(final ComponentEvent e) {
-                }
-            });
             this.pack();
             if (this.dimensor != null) {
                 final Dimension ret = this.dimensor.getDimension(AbstractDialog.this);
@@ -540,6 +507,30 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 @Override
                 public void componentShown(final ComponentEvent e) {
                     AbstractDialog.this.orgLocationOnScreen = AbstractDialog.this.getDialog().getLocationOnScreen();
+                    AbstractDialog.this.getDialog().getContentPane().addComponentListener(new ComponentListener() {
+
+                        @Override
+                        public void componentHidden(final ComponentEvent e) {
+                        }
+
+                        @Override
+                        public void componentMoved(final ComponentEvent e) {
+                        }
+
+                        @Override
+                        public void componentResized(final ComponentEvent e) {
+                            final Dimension size = AbstractDialog.this.getDialog().getSize();
+                            AbstractDialog.this.getDialog().pack();
+                            final Dimension after = AbstractDialog.this.getDialog().getSize();
+                            if (after.equals(size)) {
+                                AbstractDialog.this.getDialog().getContentPane().removeComponentListener(this);
+                            }
+                        }
+
+                        @Override
+                        public void componentShown(final ComponentEvent e) {
+                        }
+                    });
 
                 }
             });
@@ -619,19 +610,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         // }
     }
 
-    protected JButton createOkButton() {
-        return new JButton(this.okButtonText);
-    }
-
-    protected void initDoNotShowAgainCheckbox(final MigPanel bottom) {
-        this.dontshowagain = new JCheckBox(this.getDontShowAgainLabelText());
-        this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
-        this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
-        this.dontshowagain.setSelected(this.doNotShowAgainSelected);
-
-        bottom.add(this.dontshowagain, "alignx right");
-    }
-
     public void actionPerformed(final ActionEvent e) {
 
         if (e.getSource() == this.okButton) {
@@ -686,6 +664,10 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     protected MigPanel createBottomPanel() {
         // TODO Auto-generated method stub
         return new MigPanel("ins 0", "[]20[grow,fill][]", "[]");
+    }
+
+    protected JButton createOkButton() {
+        return new JButton(this.okButtonText);
     }
 
     protected abstract T createReturnValue();
@@ -841,6 +823,10 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         return this.getDialog().getBackground();
     }
 
+    public String getCancelButtonText() {
+        return this.cancelButtonText;
+    }
+
     @Override
     public CloseReason getCloseReason() {
         final int rm = this.getReturnmask();
@@ -853,11 +839,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
         throw new WTFException();
 
-    }
-
-    public void setCloseReason(final CloseReason closeReason) {
-        // we need this method to stay compatible the dialog interfaces,
-        throw new WTFException("Not implemented");
     }
 
     /**
@@ -895,18 +876,6 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         return this.dialog;
     }
 
-    // /**
-    // * should be overwritten and return a Dimension of the dialog should have
-    // a
-    // * special size
-    // *
-    // * @return
-    // */
-    // protected Dimension getDesiredSize() {
-    //
-    // return null;
-    // }
-
     public DialogDimensor getDimensor() {
         return this.dimensor;
     }
@@ -929,6 +898,18 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
 
         return _AWU.T.ABSTRACTDIALOG_STYLE_SHOW_DO_NOT_DISPLAY_AGAIN();
     }
+
+    // /**
+    // * should be overwritten and return a Dimension of the dialog should have
+    // a
+    // * special size
+    // *
+    // * @return
+    // */
+    // protected Dimension getDesiredSize() {
+    //
+    // return null;
+    // }
 
     public int getFlags() {
         return this.flagMask;
@@ -991,7 +972,7 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     public List<? extends Image> getIconList() {
         // TODO Auto-generated method stub
         return null;
-    };
+    }
 
     public DialogLocator getLocator() {
         if (this.locator == null) {
@@ -1010,6 +991,10 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
         // windowstack.
         return ModalityType.DOCUMENT_MODAL;
     }
+
+    public String getOKButtonText() {
+        return this.okButtonText;
+    };
 
     /**
      * @return
@@ -1128,6 +1113,15 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
      */
     public boolean hasBeenMoved() {
         return this.orgLocationOnScreen != null && !this.getDialog().getLocationOnScreen().equals(this.orgLocationOnScreen);
+    }
+
+    protected void initDoNotShowAgainCheckbox(final MigPanel bottom) {
+        this.dontshowagain = new JCheckBox(this.getDontShowAgainLabelText());
+        this.dontshowagain.setHorizontalAlignment(SwingConstants.TRAILING);
+        this.dontshowagain.setHorizontalTextPosition(SwingConstants.LEADING);
+        this.dontshowagain.setSelected(this.doNotShowAgainSelected);
+
+        bottom.add(this.dontshowagain, "alignx right");
     }
 
     /**
@@ -1387,6 +1381,11 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
     public void setCallerIsEDT(final boolean b) {
         this.callerIsEDT = b;
 
+    }
+
+    public void setCloseReason(final CloseReason closeReason) {
+        // we need this method to stay compatible the dialog interfaces,
+        throw new WTFException("Not implemented");
     }
 
     public void setCountdownPausable(final boolean b) {
