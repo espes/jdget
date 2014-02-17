@@ -90,8 +90,12 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
     protected byte[] encrypt(final byte[] data, final byte[] keyAndIV) throws MyJDownloaderException {
         try {
             final Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            final IvParameterSpec ivSpec = new IvParameterSpec(Arrays.copyOfRange(keyAndIV, 0, 16));
-            final SecretKeySpec skeySpec = new SecretKeySpec(Arrays.copyOfRange(keyAndIV, 16, 32), "AES");
+            final byte[] iv = new byte[16];
+            final byte[] key = new byte[16];
+            System.arraycopy(keyAndIV, 0, iv, 0, 16);
+            System.arraycopy(keyAndIV, 16, key, 0, 16);
+            final IvParameterSpec ivSpec = new IvParameterSpec(iv);
+            final SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, ivSpec);
 
             return cipher.doFinal(data);
