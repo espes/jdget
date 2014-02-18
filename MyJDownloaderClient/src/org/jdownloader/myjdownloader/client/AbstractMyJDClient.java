@@ -22,6 +22,7 @@ import org.jdownloader.myjdownloader.client.exceptions.device.SessionException;
 import org.jdownloader.myjdownloader.client.exceptions.device.UnknownCommandException;
 import org.jdownloader.myjdownloader.client.exceptions.device.UnknownInterfaceException;
 import org.jdownloader.myjdownloader.client.exceptions.device.WrongParametersException;
+import org.jdownloader.myjdownloader.client.json.AccessTokenResponse;
 import org.jdownloader.myjdownloader.client.json.CaptchaChallenge;
 import org.jdownloader.myjdownloader.client.json.ConnectResponse;
 import org.jdownloader.myjdownloader.client.json.DeviceConnectResponse;
@@ -632,6 +633,13 @@ public abstract class AbstractMyJDClient<GenericType> {
         }
         re.setUrl(query);
         this.callServer(query, re, session, RequestIDOnly.class);
+    }
+    
+    public AccessToken requestAccessToken(final String service) throws MyJDownloaderException {
+        final SessionInfo session = this.getSessionInfo();
+        final String query = "/my/requestaccesstoken?sessiontoken=" + this.urlencode(session.getSessionToken()) + "&service=" + this.urlencode(service);
+        final AccessTokenResponse tokenResponse = this.callServer(query, null, session, AccessTokenResponse.class);
+        return new AccessToken(tokenResponse.getAccessToken(), tokenResponse.getAccessSecret());
     }
     
     /**
