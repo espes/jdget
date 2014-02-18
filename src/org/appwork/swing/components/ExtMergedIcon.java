@@ -26,7 +26,7 @@ public class ExtMergedIcon implements Icon {
             this.icon = icon;
             this.x = x;
             this.y = y;
-            this.composite = c;
+            composite = c;
             this.z = z;
         }
 
@@ -66,16 +66,16 @@ public class ExtMergedIcon implements Icon {
      * @param j
      */
     public ExtMergedIcon(final Icon icon, final int x, final int y) {
-        this.addEntry(new Entry(icon, x, y, 0, null));
+        addEntry(new Entry(icon, x, y, 0, null));
     }
 
     public ExtMergedIcon(final Icon icon, final int x, final int y, final int z, final Composite c) {
-        this.addEntry(new Entry(icon, x, y, z, c));
+        addEntry(new Entry(icon, x, y, z, c));
     }
 
     public ExtMergedIcon add(final Icon icon) {
-        synchronized (this.entries) {
-            return this.add(icon, 0, 0, this.entries.size(), null);
+        synchronized (entries) {
+            return this.add(icon, 0, 0, entries.size(), null);
         }
     }
 
@@ -86,59 +86,59 @@ public class ExtMergedIcon implements Icon {
      * @return
      */
     public ExtMergedIcon add(final Icon icon, final int x, final int y) {
-        synchronized (this.entries) {
-            return this.add(icon, x, y, this.entries.size(), null);
+        synchronized (entries) {
+            return this.add(icon, x, y, entries.size(), null);
         }
 
     }
 
     public ExtMergedIcon add(final Icon icon, final int x, final int y, final int z, final Composite c) {
-        this.addEntry(new Entry(icon, x, y, z, c));
+        addEntry(new Entry(icon, x, y, z, c));
         return this;
     }
 
     private void addEntry(final Entry entry) {
-        if (this.internalIcon != null) { throw new IllegalStateException("internalIcon is set"); }
-        this.width = Math.max(this.width, entry.x + entry.icon.getIconWidth());
-        this.height = Math.max(this.height, entry.y + entry.icon.getIconHeight());
-        this.entries.add(entry);
+        if (internalIcon != null) { throw new IllegalStateException("internalIcon is set"); }
+        width = Math.max(width, entry.x + entry.icon.getIconWidth());
+        height = Math.max(height, entry.y + entry.icon.getIconHeight());
+        entries.add(entry);
     }
 
     public void cache() {
-        this.caching = true;
+        caching = true;
         try {
-            this.internalIcon = ImageProvider.toImageIcon(this);
-            this.entries.clear();
+            internalIcon = ImageProvider.toImageIcon(this);
+            entries.clear();
         } finally {
-            this.caching = false;
+            caching = false;
         }
     }
 
-    /**
-     * @return
-     */
-    public Icon crop() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+//    /**
+//     * @return
+//     */
+//    public Icon crop() {
+//        // TODO Auto-generated method stub
+//        return null;
+//    }
 
     public ExtMergedIcon crop(final int width, final int height) {
-        this.cropedWidth = width;
-        this.cropedHeight = height;
+        cropedWidth = width;
+        cropedHeight = height;
 
         return this;
     }
 
     @Override
     public int getIconHeight() {
-        if (this.cropedHeight > 0) { return this.cropedHeight; }
-        return this.height;
+        if (cropedHeight > 0) { return cropedHeight; }
+        return height;
     }
 
     @Override
     public int getIconWidth() {
-        if (this.cropedWidth > 0) { return this.cropedWidth; }
-        return this.width;
+        if (cropedWidth > 0) { return cropedWidth; }
+        return width;
     }
 
     @Override
@@ -146,20 +146,20 @@ public class ExtMergedIcon implements Icon {
 
         final Graphics2D g2 = (Graphics2D) g;
 
-        if (this.internalIcon == null && !this.caching) {
-            this.cache();
+        if (internalIcon == null && !caching) {
+            cache();
 
         }
 
-        if (this.internalIcon != null) {
-            g2.drawImage(this.internalIcon.getImage(), x, y, null);
+        if (internalIcon != null) {
+            g2.drawImage(internalIcon.getImage(), x, y, null);
             // internalIcon.paintIcon(c, g2, x, y);
             return;
         }
         final Shape oldClip = g2.getClip();
         // Rectangle rec = new Rectangle( );
-        g2.setClip(x, y, this.getIconWidth(), this.getIconHeight());
-        for (final Entry e : this.entries) {
+        g2.setClip(x, y, getIconWidth(), getIconHeight());
+        for (final Entry e : entries) {
             final Composite com = g2.getComposite();
             try {
                 if (e.composite != null) {
