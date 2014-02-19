@@ -18,18 +18,22 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Generi
     private static final long serialVersionUID = -3517910678740645735L;
     private BooleanKeyHandler keyHandler;
 
-    public ConfigToggleButtonModel(BooleanKeyHandler keyHandler) {
+    public ConfigToggleButtonModel(final BooleanKeyHandler keyHandler) {
 
         this.keyHandler = keyHandler;
         keyHandler.getEventSender().addListener(this, true);
 
     }
 
+    public BooleanKeyHandler getKeyHandler() {
+        return keyHandler;
+    }
+
     public boolean isSelected() {
         return keyHandler.getValue();
     }
 
-    public void setSelected(boolean b) {
+    public void setSelected(final boolean b) {
         keyHandler.setValue(b);
 
     }
@@ -38,7 +42,7 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Generi
         fireItemStateChanged(new ItemEvent(ConfigToggleButtonModel.this, ItemEvent.ITEM_STATE_CHANGED, ConfigToggleButtonModel.this, ConfigToggleButtonModel.this.isSelected() ? ItemEvent.SELECTED : ItemEvent.DESELECTED));
     }
 
-    public void onConfigValidatorError(KeyHandler<Boolean> keyHandler, Boolean invalidValue, ValidationException validateException) {
+    public void onConfigValidatorError(final KeyHandler<Boolean> keyHandler, final Boolean invalidValue, final ValidationException validateException) {
         new EDTRunner() {
 
             @Override
@@ -50,7 +54,7 @@ public class ConfigToggleButtonModel extends ToggleButtonModel implements Generi
 
     }
 
-    public void onConfigValueModified(KeyHandler<Boolean> keyHandler, Boolean newValue) {
+    public void onConfigValueModified(final KeyHandler<Boolean> keyHandler, final Boolean newValue) {
         new EDTRunner() {
 
             @Override

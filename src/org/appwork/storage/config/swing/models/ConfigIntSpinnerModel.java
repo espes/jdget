@@ -18,14 +18,14 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
     private static final long serialVersionUID = 1L;
     private IntegerKeyHandler keyHandler;
 
-    public ConfigIntSpinnerModel(IntegerKeyHandler keyHandler) {
+    public ConfigIntSpinnerModel(final IntegerKeyHandler keyHandler) {
         super();
         
         this.keyHandler = keyHandler;
         // keyHandler.getEventSender().removeListener(this);
         keyHandler.getEventSender().addListener(this, true);
 
-        SpinnerValidator spinn = keyHandler.getAnnotation(SpinnerValidator.class);
+        final SpinnerValidator spinn = keyHandler.getAnnotation(SpinnerValidator.class);
         if (spinn != null) {
             setMinimum(spinn.min());
             setMaximum(spinn.max());
@@ -33,21 +33,25 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
         }
     }
 
+    public IntegerKeyHandler getKeyHandler() {
+        return keyHandler;
+    }
+
     @Override
-    public void setMinimum(Comparable minimum) {
+    public void setMinimum(final Comparable minimum) {
         super.setMinimum(((Number) minimum).intValue());
 
     }
 
     @Override
-    public void setMaximum(Comparable maximum) {
+    public void setMaximum(final Comparable maximum) {
 
         super.setMaximum(((Number) maximum).intValue());
 
     }
 
     @Override
-    public void setStepSize(Number stepSize) {
+    public void setStepSize(final Number stepSize) {
 
         super.setStepSize(stepSize.intValue());
 
@@ -56,7 +60,7 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
     @Override
     public Number getNumber() {
 
-        return (Integer) keyHandler.getValue();
+        return keyHandler.getValue();
 
     }
 
@@ -78,7 +82,7 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
         return incrValue(-1);
     }
 
-    protected Number incrValue(int i) {
+    protected Number incrValue(final int i) {
 
         return ((Integer) getValue()).intValue() + getStepSize().intValue() * i;
 
@@ -91,16 +95,16 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
     }
 
     @Override
-    public void setValue(Object value) {
+    public void setValue(final Object value) {
         try {
             keyHandler.setValue(((Number) value).intValue());
-        } catch (ValidationException e) {
+        } catch (final ValidationException e) {
             java.awt.Toolkit.getDefaultToolkit().beep();
 
         }
     }
 
-    public void onConfigValidatorError(KeyHandler<Integer> keyHandler, Integer invalidValue, ValidationException validateException) {
+    public void onConfigValidatorError(final KeyHandler<Integer> keyHandler, final Integer invalidValue, final ValidationException validateException) {
         new EDTRunner() {
 
             @Override
@@ -110,7 +114,7 @@ public class ConfigIntSpinnerModel extends SpinnerNumberModel implements Generic
         };
     }
 
-    public void onConfigValueModified(KeyHandler<Integer> keyHandler, Integer newValue) {
+    public void onConfigValueModified(final KeyHandler<Integer> keyHandler, final Integer newValue) {
 
         new EDTRunner() {
             @Override
