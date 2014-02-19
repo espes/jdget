@@ -11,6 +11,7 @@ package org.appwork.remoteapi;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -81,6 +82,8 @@ public class InterfaceHandler<T> {
     private Method                                          signatureHandler = null;
     private final int                                       defaultAuthLevel;
     private boolean                                         sessionRequired  = false;
+    private SoftReference<byte[]>                           helpBytes        = new SoftReference<byte[]>(null);
+    private SoftReference<byte[]>                           helpBytesJson    = new SoftReference<byte[]>(null);
 
     /**
      * @param <T>
@@ -165,12 +168,57 @@ public class InterfaceHandler<T> {
     }
 
     public void help(final RemoteAPIRequest request, final RemoteAPIResponse response) throws InstantiationException, IllegalAccessException, UnsupportedEncodingException, IOException {
-
+        byte[] bytes = null;
         if ("true".equals(request.getParameterbyKey("json"))) {
-            this.helpJSON(request, response);
-            return;
+            bytes = this.helpBytesJson.get();
+            if (bytes == null) {
+                bytes = this.helpJSON(request, response).getBytes("UTF-8");
+                this.helpBytesJson = new SoftReference<byte[]>(bytes);
+            }
+        } else {
+            bytes = this.helpBytes.get();
+            if (bytes == null) {
+                bytes = this.helpText().getBytes("UTF-8");
+                this.helpBytes = new SoftReference<byte[]>(bytes);
+            }
         }
+        response.setResponseCode(ResponseCode.SUCCESS_OK);
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
+        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
+        response.getOutputStream(true).write(bytes);
+    }
 
+    private String helpJSON(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
+        final List<RemoteAPIMethodDefinition> methodDefinitions = new ArrayList<RemoteAPIMethodDefinition>();
+        Entry<String, TreeMap<Integer, Method>> next;
+        for (final Iterator<Entry<String, TreeMap<Integer, Method>>> it = this.methods.entrySet().iterator(); it.hasNext();) {
+            next = it.next();
+            for (final Method m : next.getValue().values()) {
+                final RemoteAPIMethodDefinition mDef = new RemoteAPIMethodDefinition();
+                mDef.setMethodName(m.getName());
+
+                final ApiDoc an = m.getAnnotation(ApiDoc.class);
+                if (an != null) {
+                    mDef.setDescription(an.value());
+                }
+
+                final List<String> parameters = new ArrayList<String>();
+
+                for (int i = 0; i < m.getGenericParameterTypes().length; i++) {
+                    if (m.getParameterTypes()[i] == RemoteAPIRequest.class || m.getParameterTypes()[i] == RemoteAPIResponse.class) {
+                        continue;
+                    }
+                    parameters.add(m.getParameterTypes()[i].getSimpleName());
+                }
+                mDef.setParameters(parameters);
+
+                methodDefinitions.add(mDef);
+            }
+        }
+        return JSonStorage.serializeToJson(methodDefinitions);
+    }
+
+    private String helpText() {
         final StringBuilder sb = new StringBuilder();
         for (final Class<T> interfaceClass : this.interfaceClasses) {
             sb.append(interfaceClass.getName());
@@ -233,54 +281,7 @@ public class InterfaceHandler<T> {
                 sb.append("\r\n");
             }
         }
-
-        response.setResponseCode(ResponseCode.SUCCESS_OK);
-        final String text = sb.toString();
-
-        final int length = text.getBytes("UTF-8").length;
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, length + ""));
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
-        response.getOutputStream(true).write(text.getBytes("UTF-8"));
-    }
-
-    private void helpJSON(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
-
-        final List<RemoteAPIMethodDefinition> methodDefinitions = new ArrayList<RemoteAPIMethodDefinition>();
-
-        Entry<String, TreeMap<Integer, Method>> next;
-        for (final Iterator<Entry<String, TreeMap<Integer, Method>>> it = this.methods.entrySet().iterator(); it.hasNext();) {
-            next = it.next();
-            for (final Method m : next.getValue().values()) {
-                final RemoteAPIMethodDefinition mDef = new RemoteAPIMethodDefinition();
-                mDef.setMethodName(m.getName());
-
-                final ApiDoc an = m.getAnnotation(ApiDoc.class);
-                if (an != null) {
-                    mDef.setDescription(an.value());
-                }
-
-                final List<String> parameters = new ArrayList<String>();
-
-                for (int i = 0; i < m.getGenericParameterTypes().length; i++) {
-                    if (m.getParameterTypes()[i] == RemoteAPIRequest.class || m.getParameterTypes()[i] == RemoteAPIResponse.class) {
-                        continue;
-                    }
-                    parameters.add(m.getParameterTypes()[i].getSimpleName());
-                }
-                mDef.setParameters(parameters);
-
-                methodDefinitions.add(mDef);
-            }
-        }
-
-        final String responseText = JSonStorage.serializeToJson(methodDefinitions);
-
-        response.setResponseCode(ResponseCode.SUCCESS_OK);
-
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, responseText.getBytes("UTF-8").length + ""));
-        response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text"));
-
-        response.getOutputStream(true).write(responseText.getBytes("UTF-8"));
+        return sb.toString();
     }
 
     /**
