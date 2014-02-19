@@ -1,17 +1,17 @@
 package org.jdownloader.myjdownloader;
 
 public class RequestLineParser {
-
+    
     public static RequestLineParser parse(final byte[] array) {
         try {
             for (int i = 0; i < array.length; i++) {
                 if (array[i] == ' ') {
                     /* /t_sessiontoken(40)_deviceid(32) */
-                    if (array[i + 2] != 't') { return null; }
-                    if (array[i + 3] != '_') { return null; }
-                    if (array[i + 44] != '_') { return null; }
+                    if (i + 2 >= array.length || array[i + 2] != 't') { return null; }
+                    if (i + 3 >= array.length || array[i + 3] != '_') { return null; }
+                    if (i + 44 >= array.length || array[i + 44] != '_') { return null; }
                     final String sessionToken = new String(array, i + 4, 40, "ISO-8859-1");
-                    if (array[i + 77] != '/') { return new RequestLineParser(null, sessionToken, null); }
+                    if (i + 77 >= array.length || array[i + 77] != '/') { return new RequestLineParser(null, sessionToken, null); }
                     final String deviceID = new String(array, i + 45, 32, "ISO-8859-1");
                     final int x = i + 45 + 32;
                     for (i = x; i < array.length; i++) {
@@ -28,27 +28,27 @@ public class RequestLineParser {
         }
         return null;
     }
-
+    
     private final String deviceID;
-
+    
     private final String sessionToken;
-
+    
     private final String requestURL;
-
+    
     private RequestLineParser(final String deviceID, final String sessionToken, final String requestURL) {
         this.deviceID = deviceID;
         this.sessionToken = sessionToken;
         this.requestURL = requestURL;
     }
-
+    
     public String getDeviceID() {
         return this.deviceID;
     }
-
+    
     public String getRequestURL() {
         return this.requestURL;
     }
-
+    
     public String getSessionToken() {
         return this.sessionToken;
     }
