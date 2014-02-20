@@ -132,32 +132,36 @@ public class HttpConnection implements Runnable {
      */
     protected HttpRequest buildRequest() throws IOException {
         /* read request Method and Path */
-        final String requestLine = this.parseRequestLine();
-        final HttpConnectionType connectionType = this.parseConnectionType(requestLine);
+        final String requestLine = parseRequestLine();
+        if(StringUtils.isEmpty(requestLine)) {
+            throw new IOException("Empty RequestLine");
+        }
+        // TOTO: requestLine may be "" in some cases (chrome pre connection...?)
+        final HttpConnectionType connectionType = parseConnectionType(requestLine);
         final String requestedURL = new Regex(requestLine, HttpConnection.REQUESTLINE).getMatch(0);
         final String requestedPath = new Regex(requestedURL, HttpConnection.REQUESTURL).getMatch(0);
-        final List<KeyValuePair> requestedURLParameters = this.parseRequestURLParams(requestedURL);
+        final List<KeyValuePair> requestedURLParameters = parseRequestURLParams(requestedURL);
         /* read request Headers */
-        final HeaderCollection requestHeaders = this.parseRequestHeaders();
+        final HeaderCollection requestHeaders = parseRequestHeaders();
         final HttpRequest request;
         switch (connectionType) {
         case POST:
-            request = this.buildPostRequest();
+            request = buildPostRequest();
             break;
         case GET:
-            request = this.buildGetRequest();
+            request = buildGetRequest();
             break;
         case OPTIONS:
-            request = this.buildOptionsRequest();
+            request = buildOptionsRequest();
             break;
         case HEAD:
-            request = this.buildHeadRequest();
+            request = buildHeadRequest();
             break;
         default:
             throw new IOException("Unsupported " + requestLine);
         }
         /* parse remoteClientAddresses */
-        request.setRemoteAddress(this.getRemoteAddress(requestHeaders));
+        request.setRemoteAddress(getRemoteAddress(requestHeaders));
         request.setRequestedURLParameters(requestedURLParameters);
         request.setRequestedPath(requestedPath);
         request.setRequestedURL(requestedURL);
@@ -173,7 +177,7 @@ public class HttpConnection implements Runnable {
     }
 
     public boolean closableStreams() {
-        return this.clientSocket == null;
+        return clientSocket == null;
     }
 
     public void close() {
@@ -184,13 +188,13 @@ public class HttpConnection implements Runnable {
      * connection pool
      */
     public void closeConnection() {
-        if (this.clientSocket == null) { return; }
+        if (clientSocket == null) { return; }
         try {
-            this.clientSocket.shutdownOutput();
+            clientSocket.shutdownOutput();
         } catch (final Throwable nothing) {
         }
         try {
-            this.clientSocket.close();
+            clientSocket.close();
         } catch (final Throwable nothing) {
         }
     }
@@ -200,8 +204,8 @@ public class HttpConnection implements Runnable {
     }
 
     public List<HttpRequestHandler> getHandler() {
-        synchronized (this.server.getHandler()) {
-            return this.server.getHandler();
+        synchronized (server.getHandler()) {
+            return server.getHandler();
         }
     }
 
@@ -210,7 +214,7 @@ public class HttpConnection implements Runnable {
      * @throws IOException
      */
     public InputStream getInputStream() throws IOException {
-        return this.getRawInputStream();
+        return getRawInputStream();
     }
 
     /**
@@ -222,25 +226,25 @@ public class HttpConnection implements Runnable {
      */
     public OutputStream getOutputStream(final boolean sendResponseHeaders) throws IOException {
         if (sendResponseHeaders) {
-            this.sendResponseHeaders();
+            sendResponseHeaders();
         }
-        return this.getRawOutputStream();
+        return getRawOutputStream();
     }
 
     protected InputStream getRawInputStream() throws IOException {
-        if (this.is == null) { throw new IllegalStateException("no RawInputStream available!"); }
-        return this.is;
+        if (is == null) { throw new IllegalStateException("no RawInputStream available!"); }
+        return is;
     }
 
     protected OutputStream getRawOutputStream() throws IOException {
-        if (this.os == null) { throw new IllegalStateException("no RawOutputStream available!"); }
-        return this.os;
+        if (os == null) { throw new IllegalStateException("no RawOutputStream available!"); }
+        return os;
     }
 
     protected List<String> getRemoteAddress(final HeaderCollection requestHeaders) {
         final java.util.List<String> remoteAddress = new ArrayList<String>();
-        if (this.clientSocket != null) {
-            remoteAddress.add(this.clientSocket.getInetAddress().getHostAddress());
+        if (clientSocket != null) {
+            remoteAddress.add(clientSocket.getInetAddress().getHostAddress());
         }
         final HTTPHeader forwardedFor = requestHeaders.get("X-Forwarded-For");
         if (forwardedFor != null && !StringUtils.isEmpty(forwardedFor.getValue())) {
@@ -253,19 +257,20 @@ public class HttpConnection implements Runnable {
     }
 
     public HttpRequest getRequest() {
-        return this.request;
+        return request;
     }
 
     public HttpResponse getResponse() {
-        return this.response;
+        return response;
     }
 
     public boolean isResponseHeadersSent() {
-        return this.responseHeadersSent;
+        return responseHeadersSent;
     }
 
     public boolean onException(final Throwable e, final HttpRequest request, final HttpResponse response) throws IOException {
         this.response = new HttpResponse(this);
+        e.printStackTrace();
         this.response.setResponseCode(ResponseCode.SERVERERROR_INTERNAL);
         final byte[] bytes = Exceptions.getStackTrace(e).getBytes("UTF-8");
         this.response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text; charset=UTF-8"));
@@ -280,12 +285,18 @@ public class HttpConnection implements Runnable {
     }
 
     protected HttpConnectionType parseConnectionType(final String requestLine) throws IOException {
+
         final String method = new Regex(requestLine, HttpConnection.METHOD).getMatch(0);
-        return HttpConnectionType.valueOf(method);
+        // TOTO: requestLine may be "" in some cases (chrome pre connection...?)
+        try {
+            return HttpConnectionType.valueOf(method);
+        } catch (final Exception e) {
+            return HttpConnectionType.UNKNOWN;
+        }
     }
 
     protected HeaderCollection parseRequestHeaders() throws IOException {
-        final ByteBuffer headers = this.readRequestHeaders();
+        final ByteBuffer headers = readRequestHeaders();
         final String[] headerStrings;
         if (headers.hasArray()) {
             headerStrings = new String(headers.array(), headers.arrayOffset(), headers.limit(), "ISO-8859-1").split("(\r\n)|(\n)");
@@ -317,13 +328,13 @@ public class HttpConnection implements Runnable {
     }
 
     protected String parseRequestLine() throws IOException {
-        final ByteBuffer header = this.readRequestLine();
+        final ByteBuffer header = readRequestLine();
         if (header.hasArray()) {
-            return this.preProcessRequestLine(new String(header.array(), header.arrayOffset(), header.limit(), "ISO-8859-1").trim());
+            return preProcessRequestLine(new String(header.array(), header.arrayOffset(), header.limit(), "ISO-8859-1").trim());
         } else {
             final byte[] bytesRequestLine = new byte[header.limit()];
             header.get(bytesRequestLine);
-            return this.preProcessRequestLine(new String(bytesRequestLine, "ISO-8859-1").trim());
+            return preProcessRequestLine(new String(bytesRequestLine, "ISO-8859-1").trim());
         }
     }
 
@@ -336,37 +347,37 @@ public class HttpConnection implements Runnable {
     }
 
     protected ByteBuffer readRequestHeaders() throws IOException {
-        return HTTPConnectionUtils.readheader(this.getInputStream(), false);
+        return HTTPConnectionUtils.readheader(getInputStream(), false);
     }
 
     protected ByteBuffer readRequestLine() throws IOException {
-        return HTTPConnectionUtils.readheader(this.getInputStream(), true);
+        return HTTPConnectionUtils.readheader(getInputStream(), true);
     }
 
     @Override
     public void run() {
         boolean closeConnection = true;
         try {
-            if (this.request == null) {
-                this.request = this.buildRequest();
+            if (request == null) {
+                request = buildRequest();
             }
-            if (this.response == null) {
-                this.response = this.buildResponse();
+            if (response == null) {
+                response = buildResponse();
             }
-            if (this.deferRequest(this.request)) {
+            if (deferRequest(request)) {
                 closeConnection = false;
             } else {
                 boolean handled = false;
-                if (this.request instanceof PostRequest) {
-                    for (final HttpRequestHandler handler : this.getHandler()) {
-                        if (handler.onPostRequest((PostRequest) this.request, this.response)) {
+                if (request instanceof PostRequest) {
+                    for (final HttpRequestHandler handler : getHandler()) {
+                        if (handler.onPostRequest((PostRequest) request, response)) {
                             handled = true;
                             break;
                         }
                     }
-                } else if (this.request instanceof GetRequest) {
-                    for (final HttpRequestHandler handler : this.getHandler()) {
-                        if (handler.onGetRequest((GetRequest) this.request, this.response)) {
+                } else if (request instanceof GetRequest) {
+                    for (final HttpRequestHandler handler : getHandler()) {
+                        if (handler.onGetRequest((GetRequest) request, response)) {
                             handled = true;
                             break;
                         }
@@ -374,21 +385,21 @@ public class HttpConnection implements Runnable {
                 }
                 if (!handled) {
                     /* generate error handler */
-                    this.onUnhandled(this.request, this.response);
+                    onUnhandled(request, response);
                 }
                 /* send response headers if they have not been sent yet send yet */
-                this.response.getOutputStream(true);
+                response.getOutputStream(true);
             }
         } catch (final Throwable e) {
             try {
-                closeConnection = this.onException(e, this.request, this.response);
+                closeConnection = onException(e, request, response);
             } catch (final Throwable nothing) {
                 nothing.printStackTrace();
             }
         } finally {
             if (closeConnection) {
-                this.closeConnection();
-                this.close();
+                closeConnection();
+                close();
             }
         }
     }
@@ -400,16 +411,16 @@ public class HttpConnection implements Runnable {
      */
     protected void sendResponseHeaders() throws IOException {
         try {
-            if (this.isResponseHeadersSent()) {
+            if (isResponseHeadersSent()) {
                 //
                 throw new IOException("Headers already send!");
             }
-            if (this.response != null) {
-                final OutputStream out = this.getRawOutputStream();
+            if (response != null) {
+                final OutputStream out = getRawOutputStream();
                 out.write(HttpResponse.HTTP11);
-                out.write(this.response.getResponseCode().getBytes());
+                out.write(response.getResponseCode().getBytes());
                 out.write(HttpResponse.NEWLINE);
-                for (final HTTPHeader h : this.response.getResponseHeaders()) {
+                for (final HTTPHeader h : response.getResponseHeaders()) {
                     out.write(h.getKey().getBytes("ISO-8859-1"));
                     out.write(HTTPHeader.DELIMINATOR);
                     out.write(h.getValue().getBytes("ISO-8859-1"));
@@ -419,7 +430,7 @@ public class HttpConnection implements Runnable {
                 out.flush();
             }
         } finally {
-            this.setResponseHeadersSent(true);
+            setResponseHeadersSent(true);
         }
     }
 
@@ -429,8 +440,8 @@ public class HttpConnection implements Runnable {
 
     @Override
     public String toString() {
-        if (this.clientSocket != null) {
-            return "HttpConnectionThread: " + this.clientSocket.toString();
+        if (clientSocket != null) {
+            return "HttpConnectionThread: " + clientSocket.toString();
         } else {
             return "HttpConnectionThread: IS and OS";
         }
