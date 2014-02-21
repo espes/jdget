@@ -283,7 +283,7 @@ public class RemoteAPI implements HttpRequestHandler {
         return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback);
     }
 
-    protected RemoteAPIResponse createRemoteAPIResponseObject(final HttpResponse response) {
+    protected RemoteAPIResponse createRemoteAPIResponseObject(final HttpResponse response) throws IOException {
         return new RemoteAPIResponse(response, this);
     }
 
@@ -419,14 +419,22 @@ public class RemoteAPI implements HttpRequestHandler {
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
-        this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(response));
+        try {
+            this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(response));
+        } catch (final IOException e) {
+            throw new BasicRemoteAPIException(e);
+        }
         return true;
     }
 
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException {
         final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
-        this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(response));
+        try {
+            this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(response));
+        } catch (final IOException e) {
+            throw new BasicRemoteAPIException(e);
+        }
         return true;
     }
 

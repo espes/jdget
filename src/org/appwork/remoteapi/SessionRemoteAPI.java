@@ -9,6 +9,8 @@
  */
 package org.appwork.remoteapi;
 
+import java.io.IOException;
+
 import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
 import org.appwork.remoteapi.exceptions.SessionException;
 import org.appwork.utils.net.httpserver.handler.HttpSessionRequestHandler;
@@ -28,6 +30,10 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
         super();
     }
 
+    protected SessionRemoteAPIRequest<T> createSessionRemoteAPIRequest(final T session, final HttpRequest request, final RemoteAPIRequest apiRequest) {
+        return new SessionRemoteAPIRequest<T>(request, apiRequest, session);
+    }
+
     /*
      * (non-Javadoc)
      * 
@@ -38,11 +44,15 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
      */
     @Override
     public boolean onGetSessionRequest(final T session, final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        RemoteAPIRequest apiRequest = getInterfaceHandler(request);
-        if (apiRequest == null) { return onUnknownRequest(request, response); }
-        apiRequest = createSessionRemoteAPIRequest(session, request, apiRequest);
+        RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
+        apiRequest = this.createSessionRemoteAPIRequest(session, request, apiRequest);
         if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) { throw new SessionException(); }
-        _handleRemoteAPICall(apiRequest, createRemoteAPIResponseObject(response));
+        try {
+            this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(response));
+        } catch (final IOException e) {
+            throw new BasicRemoteAPIException(e);
+        }
         return true;
     }
 
@@ -57,16 +67,16 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
      */
     @Override
     public boolean onPostSessionRequest(final T session, final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        RemoteAPIRequest apiRequest = getInterfaceHandler(request);
-        if (apiRequest == null) { return onUnknownRequest(request, response); }
-        apiRequest = createSessionRemoteAPIRequest(session, request, apiRequest);
+        RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+        if (apiRequest == null) { return this.onUnknownRequest(request, response); }
+        apiRequest = this.createSessionRemoteAPIRequest(session, request, apiRequest);
         if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) { throw new SessionException(); }
-        _handleRemoteAPICall(apiRequest, createRemoteAPIResponseObject(response));
+        try {
+            this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(response));
+        } catch (final IOException e) {
+            throw new BasicRemoteAPIException(e);
+        }
         return true;
-    }
-
-    protected SessionRemoteAPIRequest<T> createSessionRemoteAPIRequest(final T session, final HttpRequest request, final RemoteAPIRequest apiRequest) {
-        return new SessionRemoteAPIRequest<T>(request, apiRequest, session);
     }
 
 }

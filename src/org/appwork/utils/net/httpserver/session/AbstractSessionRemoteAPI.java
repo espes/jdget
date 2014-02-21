@@ -40,13 +40,13 @@ import org.appwork.utils.reflection.Clazz;
  */
 public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends RemoteAPI implements HttpRequestHandler, LoginAPIInterface {
 
-    protected SessionRemoteAPIRequest<T> createSessionRemoteAPIRequest(final T session, final HttpRequest request, final RemoteAPIRequest apiRequest) {
-        return new SessionRemoteAPIRequest<T>(request, apiRequest, session);
-    }
-
     public AbstractSessionRemoteAPI() throws ParseException {
         // this.handler = new ArrayList<HttpSessionRequestHandler<T>>();
-        register(this);
+        this.register(this);
+    }
+
+    protected SessionRemoteAPIRequest<T> createSessionRemoteAPIRequest(final T session, final HttpRequest request, final RemoteAPIRequest apiRequest) {
+        return new SessionRemoteAPIRequest<T>(request, apiRequest, session);
     }
 
     @SuppressWarnings("unchecked")
@@ -59,7 +59,7 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
     }
 
     private String extractSessionID(final HttpRequest request) throws IOException {
-         ArrayList<KeyValuePair> params = new ArrayList<KeyValuePair>();
+        ArrayList<KeyValuePair> params = new ArrayList<KeyValuePair>();
         String token = null;
         final List<KeyValuePair> get = request.getRequestedURLParameters();
         if (get != null) {
@@ -74,7 +74,7 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
             }
             request.setRequestedURLParameters(params);
         }
-        if(StringUtils.isEmpty(token)&&request instanceof PostRequest){
+        if (StringUtils.isEmpty(token) && request instanceof PostRequest) {
             final List<KeyValuePair> post = ((PostRequest) request).getPostParameter();
             params = new ArrayList<KeyValuePair>();
             for (final KeyValuePair next : post) {
@@ -102,6 +102,15 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
     protected abstract T getSession(org.appwork.utils.net.httpserver.requests.HttpRequest request, final String sessionID);
 
     @Override
+    protected Object handleVoidMethods(Object responseData, final Method method) {
+        if (Clazz.isVoid(method.getReturnType())) {
+            // void return
+            responseData = null;
+        }
+        return responseData;
+    }
+
+    @Override
     public String handshake(final RemoteAPIRequest request, final String user, final String password) throws AuthException {
         final T session = this.newSession(request, user, password);
         if (session == null) { throw new AuthException(); }
@@ -127,60 +136,7 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
      */
     @Override
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        return onRequest(request, response);
-
-    }
-
-    protected Object handleVoidMethods(Object responseData, final Method method) {
-        if (Clazz.isVoid(method.getReturnType())) {
-            // void return
-            responseData = null;
-        }
-        return responseData;
-    }
-
-    public String toString(final RemoteAPIRequest request, final RemoteAPIResponse response, final Object responseData) {
-
-        return JSonStorage.serializeToJson(responseData);
-    }
-
-    /**
-     * @param request
-     * @param response
-     * @return
-     * @throws BasicRemoteAPIException
-     */
-    private boolean onRequest(final HttpRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        try {
-
-            final String token = this.extractSessionID(request);
-            RemoteAPIRequest apiRequest = getInterfaceHandler(request);
-            if (apiRequest == null) { throw new ApiInterfaceNotAvailable(); }
-            if (apiRequest.getMethod() == null) { throw new ApiInterfaceNotAvailable(); }
-            final Class<?> declaringClass = apiRequest.getMethod().getDeclaringClass();
-            if (declaringClass != LoginAPIInterface.class && apiRequest.getIface().isSessionRequired()) {
-                // session required
-                final T session = this.getSession(request, token);
-                if (session == null || !session.isAlive()) { throw new SessionException(); }
-                apiRequest = createSessionRemoteAPIRequest(session, request, apiRequest);
-            }
-
-            _handleRemoteAPICall(apiRequest, createRemoteAPIResponseObject(response));
-            return true;
-        } catch (final Throwable e) {
-            BasicRemoteAPIException apiException;
-            if (!(e instanceof BasicRemoteAPIException)) {
-                apiException = new InternalApiException(e);
-            } else {
-                apiException = (BasicRemoteAPIException) e;
-            }
-
-            try {
-                return apiException.handle(response);
-            } catch (final IOException e1) {
-                throw new BasicRemoteAPIException(e1);
-            }
-        }
+        return this.onRequest(request, response);
 
     }
 
@@ -194,10 +150,55 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
      */
     @Override
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        return onRequest(request, response);
+        return this.onRequest(request, response);
+
+    }
+
+    /**
+     * @param request
+     * @param response
+     * @return
+     * @throws BasicRemoteAPIException
+     */
+    private boolean onRequest(final HttpRequest request, final HttpResponse response) throws BasicRemoteAPIException {
+        try {
+
+            final String token = this.extractSessionID(request);
+            RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+            if (apiRequest == null) { throw new ApiInterfaceNotAvailable(); }
+            if (apiRequest.getMethod() == null) { throw new ApiInterfaceNotAvailable(); }
+            final Class<?> declaringClass = apiRequest.getMethod().getDeclaringClass();
+            if (declaringClass != LoginAPIInterface.class && apiRequest.getIface().isSessionRequired()) {
+                // session required
+                final T session = this.getSession(request, token);
+                if (session == null || !session.isAlive()) { throw new SessionException(); }
+                apiRequest = this.createSessionRemoteAPIRequest(session, request, apiRequest);
+            }
+
+            this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(response));
+            return true;
+        } catch (final Throwable e) {
+            BasicRemoteAPIException apiException;
+            if (!(e instanceof BasicRemoteAPIException)) {
+                apiException = new InternalApiException(e);
+            } else {
+                apiException = (BasicRemoteAPIException) e;
+            }
+            try {
+                return apiException.handle(response);
+            } catch (final IOException e1) {
+                throw new BasicRemoteAPIException(e1);
+            }
+        }
 
     }
 
     protected abstract boolean removeSession(final T session);
+
+    @Override
+    public String toString(final RemoteAPIRequest request, final RemoteAPIResponse response, final Object responseData) {
+
+        return JSonStorage.serializeToJson(responseData);
+    }
 
 }
