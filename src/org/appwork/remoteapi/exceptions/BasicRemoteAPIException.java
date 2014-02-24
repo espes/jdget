@@ -15,6 +15,7 @@ import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.net.HTTPHeader;
+import org.appwork.utils.net.httpserver.HttpConnectionExceptionHandler;
 import org.appwork.utils.net.httpserver.requests.HttpRequestInterface;
 import org.appwork.utils.net.httpserver.responses.HttpResponse;
 import org.appwork.utils.net.httpserver.responses.HttpResponseInterface;
@@ -23,7 +24,7 @@ import org.appwork.utils.net.httpserver.responses.HttpResponseInterface;
  * @author Thomas
  * 
  */
-public class BasicRemoteAPIException extends Exception {
+public class BasicRemoteAPIException extends Exception implements HttpConnectionExceptionHandler {
     /**
      * 
      */
@@ -37,6 +38,13 @@ public class BasicRemoteAPIException extends Exception {
     private final ResponseCode    code;
 
     private final Object          data;
+
+    /**
+     * @param e
+     */
+    public BasicRemoteAPIException(final IOException e) {
+        this(e, "UNKNOWN", ResponseCode.SERVERERROR_INTERNAL, null);
+    }
 
     /**
      * @param name
@@ -55,35 +63,28 @@ public class BasicRemoteAPIException extends Exception {
     public BasicRemoteAPIException(final Throwable cause, final String name, final ResponseCode code, final Object data) {
         super(name + "(" + code + ")", cause);
         this.data = data;
-        type = name;
+        this.type = name;
         this.code = code;
     }
 
-    /**
-     * @param e
-     */
-    public BasicRemoteAPIException(final IOException e) {
-        this(e, "UNKNOWN", ResponseCode.SERVERERROR_INTERNAL, null);
-    }
-
     public ResponseCode getCode() {
-        return code;
+        return this.code;
     }
 
     public Object getData() {
-        return data;
+        return this.data;
     }
 
     public HttpRequestInterface getRequest() {
-        return request;
+        return this.request;
     }
 
     public HttpResponseInterface getResponse() {
-        return response;
+        return this.response;
     }
 
     public String getType() {
-        return type;
+        return this.type;
     }
 
     /**
@@ -92,9 +93,9 @@ public class BasicRemoteAPIException extends Exception {
      */
     public boolean handle(final HttpResponse response) throws IOException {
         byte[] bytes;
-        final String str = JSonStorage.serializeToJson(new DeviceErrorResponse(getType(), data));
+        final String str = JSonStorage.serializeToJson(new DeviceErrorResponse(this.getType(), this.data));
         bytes = str.getBytes("UTF-8");
-        response.setResponseCode(getCode());
+        response.setResponseCode(this.getCode());
         /* needed for ajax/crossdomain */
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_ACCESS_CONTROL_ALLOW_ORIGIN, "*"));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "text; charset=UTF-8"));
