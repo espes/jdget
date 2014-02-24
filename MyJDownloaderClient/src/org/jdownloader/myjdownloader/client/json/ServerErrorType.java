@@ -13,6 +13,7 @@ public enum ServerErrorType {
     AUTH_FAILED(403),
     EMAIL_INVALID,
     CHALLENGE_FAILED,
+    METHOD_FORBIDDEN,
     EMAIL_FORBIDDEN,
     FAILED,
     /* storage errors */
@@ -22,17 +23,17 @@ public enum ServerErrorType {
     STORAGE_INVALID_KEY,
     STORAGE_KEY_NOT_FOUND,
     STORAGE_INVALID_STORAGEID;
-
+    
     private int code;
-
+    
     private ServerErrorType() {
         this.code = 500;
     }
-
+    
     private ServerErrorType(final int code) {
         this.code = code;
     }
-
+    
     public int getCode() {
         return this.code;
     }

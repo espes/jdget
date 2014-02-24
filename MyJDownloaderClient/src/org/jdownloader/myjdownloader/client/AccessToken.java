@@ -16,4 +16,5 @@ public class AccessToken {
     public String getAccessToken() {
         return this.accessToken;
     }
+    
 }

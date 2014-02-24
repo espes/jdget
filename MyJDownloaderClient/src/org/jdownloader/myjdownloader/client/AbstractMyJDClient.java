@@ -118,6 +118,63 @@ public abstract class AbstractMyJDClient<GenericType> {
         return device;
     }
     
+    public Object callAccessTokenURL(final AccessToken accessToken, String url, final GenericType returnType) throws MyJDownloaderException, APIException {
+        try {
+            if (accessToken == null) { throw new IllegalArgumentException("accessToken is null!"); }
+            url += url.contains("?") ? "&" : "?";
+            final long RID = this.getUniqueRID();
+            url += "rid=" + RID;
+            url += "&accesstoken=" + accessToken.getAccessToken();
+            String query = url;
+            int index = -1;
+            int count = 0;
+            while (count < 3 && (index = query.indexOf("/")) != -1 && index + 1 <= query.length()) {
+                count++;
+                query = query.substring(index + 1);
+            }
+            query = "/" + query;
+            url += "&signature=" + this.sign(AbstractMyJDClient.hexToByteArray(accessToken.getAccessSecret()), query);
+            final byte[] data = this.post(url, null, null);
+            Object ret = this.convertData(data, returnType);
+            if (ret != null) {
+                if (ret instanceof RequestIDValidator) {
+                    if (((RequestIDValidator) ret).getRid() != RID) { throw new BadResponseException("RID Mismatch"); }
+                }
+                return ret;
+            }
+            final String dec = this.toString(data);
+            this.log("Response\r\n" + dec);
+            // this is a workaround.. do not consider this as final solution!
+            if (dec.indexOf("\"data\" :") > 0) {
+                final ObjectData dataObject = this.jsonToObject(dec, (GenericType) ObjectData.class);
+                if (data == null) {
+                    // invalid response
+                    throw new MyJDownloaderException("Invalid Response: " + dec);
+                }
+                
+                if (dataObject.getRid() != RID) { throw new BadResponseException("RID Mismatch"); }
+                
+                // ugly!!! but this will be changed when we have a proper remoteAPI response format
+                if (returnType == void.class || returnType == Void.class) { return null; }
+                ret = this.jsonToObject(this.objectToJSon(dataObject.getData()) + "", returnType);
+                return ret;
+            } else {
+                ret = this.jsonToObject(dec, returnType);
+                if (ret instanceof RequestIDValidator) {
+                    if (((RequestIDValidator) ret).getRid() != RID) { throw new BadResponseException("RID Mismatch"); }
+                }
+                return ret;
+            }
+        } catch (final ExceptionResponse e) {
+            throw e;
+        } catch (final MyJDownloaderException e) {
+            throw e;
+        } catch (final Exception e) {
+            e.printStackTrace();
+            throw APIException.get(e);
+        }
+    }
+    
     @SuppressWarnings("unchecked")
     /**
      * Calls a API function
@@ -584,7 +641,7 @@ public abstract class AbstractMyJDClient<GenericType> {
         return MyJDJsonMapper.HANDLER.objectToJSon(payload);
     }
     
-    abstract protected byte[] post(String query, String object, byte[] keyAndIV) throws ExceptionResponse;
+    abstract protected byte[] post(String queryORUrl, String object, byte[] keyAndIV) throws ExceptionResponse;
     
     public boolean pushNotification(final NotificationRequestMessage message) throws MyJDownloaderException {
         final SessionInfo session = this.getSessionInfo();
