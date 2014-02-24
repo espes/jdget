@@ -390,7 +390,7 @@ public class IO {
         file.getParentFile().mkdirs();
         if (bac.exists() && bac.delete() == false) { throw new IOException("could not remove " + bac); }
         try {
-            IO.writeToFile(bac, bytes);
+            IO.writeToFile(bac, bytes, Boolean.TRUE);
             if (file.exists() && file.delete() == false) { throw new IOException("could not remove " + file); }
             if (!bac.renameTo(file)) { throw new IOException("COuld not rename " + bac + " to " + file); }
         } finally {
@@ -468,6 +468,10 @@ public class IO {
     }
 
     public static void writeToFile(final File file, final byte[] data) throws IOException {
+        IO.writeToFile(file, data, Boolean.TRUE);
+    }
+
+    public static void writeToFile(final File file, final byte[] data, final Boolean sync) throws IOException {
         try {
             if (file == null) { throw new IllegalArgumentException("File is null."); }
             if (file.exists()) { throw new IllegalArgumentException("File already exists: " + file); }
@@ -481,7 +485,9 @@ public class IO {
                 out = new FileOutputStream(file);
                 out.write(data);
                 out.flush();
-                out.getChannel().force(true);
+                if (sync != null) {
+                    out.getChannel().force(sync.booleanValue());
+                }
                 deleteFile = false;
             } finally {
                 try {
