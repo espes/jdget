@@ -22,7 +22,6 @@ import org.appwork.remoteapi.SessionRemoteAPIRequest;
 import org.appwork.remoteapi.exceptions.ApiInterfaceNotAvailable;
 import org.appwork.remoteapi.exceptions.AuthException;
 import org.appwork.remoteapi.exceptions.BasicRemoteAPIException;
-import org.appwork.remoteapi.exceptions.InternalApiException;
 import org.appwork.remoteapi.exceptions.SessionException;
 import org.appwork.storage.JSonStorage;
 import org.appwork.utils.StringUtils;
@@ -177,20 +176,9 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
 
             this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(response));
             return true;
-        } catch (final Throwable e) {
-            BasicRemoteAPIException apiException;
-            if (!(e instanceof BasicRemoteAPIException)) {
-                apiException = new InternalApiException(e);
-            } else {
-                apiException = (BasicRemoteAPIException) e;
-            }
-            try {
-                return apiException.handle(response);
-            } catch (final IOException e1) {
-                throw new BasicRemoteAPIException(e1);
-            }
+        } catch (final IOException e) {
+            throw new BasicRemoteAPIException(e);
         }
-
     }
 
     protected abstract boolean removeSession(final T session);
