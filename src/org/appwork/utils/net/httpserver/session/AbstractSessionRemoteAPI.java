@@ -174,7 +174,7 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
                 apiRequest = this.createSessionRemoteAPIRequest(session, request, apiRequest);
             }
 
-            this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(response));
+            this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(apiRequest, response));
             return true;
         } catch (final IOException e) {
             throw new BasicRemoteAPIException(e);
