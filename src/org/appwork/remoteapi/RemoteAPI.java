@@ -530,7 +530,6 @@ public class RemoteAPI implements HttpRequestHandler {
      * @return
      */
     public String toString(final RemoteAPIRequest request, final RemoteAPIResponse response, final Object responseData) {
-
         return JSonStorage.serializeToJson(new DataObject(responseData));
     }
 

@@ -179,8 +179,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
      * @return
      */
     public long getRequestID() {
-        // TODO Auto-generated method stub
-        return 0;
+        return -1;
     }
 
     public REQUESTTYPE getRequestType() {
