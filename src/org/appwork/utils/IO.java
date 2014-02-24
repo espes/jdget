@@ -24,8 +24,17 @@ import org.appwork.utils.os.CrossSystem;
 
 public class IO {
     public static enum SYNC {
+        /**
+         * do not sync filesystem at all
+         */
         NONE,
+        /**
+         * sync written data to filesystem
+         */
         DATA,
+        /**
+         * sync written data and its meta-data (filesystem information)
+         */
         META_AND_DATA
     }
 
@@ -422,7 +431,6 @@ public class IO {
      * @param handler
      */
     public static void setErrorHandler(final IOErrorHandler handler) {
-
         IO.ERROR_HANDLER = handler;
     }
 
