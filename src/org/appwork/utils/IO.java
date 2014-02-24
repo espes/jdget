@@ -23,13 +23,19 @@ import org.appwork.utils.Files.AbstractHandler;
 import org.appwork.utils.os.CrossSystem;
 
 public class IO {
+    public static enum SYNC {
+        NONE,
+        DATA,
+        META_AND_DATA
+    }
+
     private static IOErrorHandler ERROR_HANDLER = null;
 
     public static void copyFile(final File in, final File out) throws IOException {
         IO.copyFile(in, out, null);
     }
 
-    public static void copyFile(final File in, final File out, final Boolean sync) throws IOException {
+    public static void copyFile(final File in, final File out, final SYNC sync) throws IOException {
         try {
             FileInputStream fis = null;
             FileOutputStream fos = null;
@@ -69,7 +75,18 @@ public class IO {
                     }
                 }
                 if (sync != null) {
-                    outChannel.force(sync.booleanValue());
+                    if (sync != null) {
+                        switch (sync) {
+                        case DATA:
+                            outChannel.force(false);
+                            break;
+                        case META_AND_DATA:
+                            outChannel.force(true);
+                            break;
+                        default:
+                            break;
+                        }
+                    }
                 }
             } catch (final IOException e) {
                 throw e;
@@ -111,7 +128,7 @@ public class IO {
     }
 
     public static void copyFolderRecursive(final File src, final File dest, final boolean overwriteFiles) throws IOException {
-        IO.copyFolderRecursive(src, dest, overwriteFiles, null);
+        IO.copyFolderRecursive(src, dest, overwriteFiles, SYNC.NONE);
     }
 
     /**
@@ -121,7 +138,7 @@ public class IO {
      * @param dist2
      * @throws IOException
      */
-    public static void copyFolderRecursive(final File src, final File dest, final boolean overwriteFiles, final Boolean sync) throws IOException {
+    public static void copyFolderRecursive(final File src, final File dest, final boolean overwriteFiles, final SYNC sync) throws IOException {
         Files.walkThroughStructure(new AbstractHandler<IOException>() {
 
             @Override
@@ -390,7 +407,7 @@ public class IO {
         file.getParentFile().mkdirs();
         if (bac.exists() && bac.delete() == false) { throw new IOException("could not remove " + bac); }
         try {
-            IO.writeToFile(bac, bytes, Boolean.TRUE);
+            IO.writeToFile(bac, bytes, SYNC.META_AND_DATA);
             if (file.exists() && file.delete() == false) { throw new IOException("could not remove " + file); }
             if (!bac.renameTo(file)) { throw new IOException("COuld not rename " + bac + " to " + file); }
         } finally {
@@ -410,10 +427,14 @@ public class IO {
     }
 
     public static void writeStringToFile(final File file, final String string) throws IOException {
-        IO.writeStringToFile(file, string, false);
+        IO.writeStringToFile(file, string, false, SYNC.META_AND_DATA);
     }
 
     public static void writeStringToFile(final File file, final String string, final boolean append) throws IOException {
+        IO.writeStringToFile(file, string, append, SYNC.META_AND_DATA);
+    }
+
+    public static void writeStringToFile(final File file, final String string, final boolean append, final SYNC sync) throws IOException {
         try {
             if (file == null) { throw new IllegalArgumentException("File is null."); }
             if (file.exists() && !append) { throw new IllegalArgumentException("File already exists: " + file); }
@@ -428,7 +449,18 @@ public class IO {
                 output = new BufferedWriter(new OutputStreamWriter(fos = new FileOutputStream(file, append), "UTF-8"));
                 output.write(string);
                 output.flush();
-                fos.getChannel().force(true);
+                if (sync != null) {
+                    switch (sync) {
+                    case DATA:
+                        fos.getChannel().force(false);
+                        break;
+                    case META_AND_DATA:
+                        fos.getChannel().force(true);
+                        break;
+                    default:
+                        break;
+                    }
+                }
                 deleteFile = false;
             } finally {
                 try {
@@ -468,10 +500,10 @@ public class IO {
     }
 
     public static void writeToFile(final File file, final byte[] data) throws IOException {
-        IO.writeToFile(file, data, Boolean.TRUE);
+        IO.writeToFile(file, data, SYNC.META_AND_DATA);
     }
 
-    public static void writeToFile(final File file, final byte[] data, final Boolean sync) throws IOException {
+    public static void writeToFile(final File file, final byte[] data, final SYNC sync) throws IOException {
         try {
             if (file == null) { throw new IllegalArgumentException("File is null."); }
             if (file.exists()) { throw new IllegalArgumentException("File already exists: " + file); }
@@ -486,7 +518,16 @@ public class IO {
                 out.write(data);
                 out.flush();
                 if (sync != null) {
-                    out.getChannel().force(sync.booleanValue());
+                    switch (sync) {
+                    case DATA:
+                        out.getChannel().force(false);
+                        break;
+                    case META_AND_DATA:
+                        out.getChannel().force(true);
+                        break;
+                    default:
+                        break;
+                    }
                 }
                 deleteFile = false;
             } finally {
