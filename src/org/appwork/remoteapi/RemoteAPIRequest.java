@@ -195,7 +195,6 @@ public class RemoteAPIRequest implements HttpRequestInterface {
      * @return
      */
     public String getSignature() {
-        // TODO Auto-generated method stub
         return null;
     }
 
