@@ -526,15 +526,13 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                 }
 
                 @Override
-                public void componentResized(final ComponentEvent e) {
-                    // TODO Auto-generated method stub
-
+                public void componentResized(final ComponentEvent e) {                    
                 }
 
                 @Override
                 public void componentShown(final ComponentEvent e) {
                     AbstractDialog.this.orgLocationOnScreen = AbstractDialog.this.getDialog().getLocationOnScreen();
-                    if (!CrossSystem.isWindows()) {
+                    if (CrossSystem.isLinux()) {
                         AbstractDialog.this.getDialog().getContentPane().addComponentListener(new ComponentListener() {
 
                             @Override
@@ -559,6 +557,8 @@ public abstract class AbstractDialog<T> implements ActionListener, WindowListene
                             public void componentShown(final ComponentEvent e) {
                             }
                         });
+                    }else if (CrossSystem.isMac()) { 
+                        AbstractDialog.this.getDialog().pack();                       
                     }
                 }
             });
