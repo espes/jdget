@@ -29,6 +29,8 @@ import org.jdownloader.myjdownloader.client.json.DeviceConnectResponse;
 import org.jdownloader.myjdownloader.client.json.DeviceData;
 import org.jdownloader.myjdownloader.client.json.DeviceErrorType;
 import org.jdownloader.myjdownloader.client.json.DeviceList;
+import org.jdownloader.myjdownloader.client.json.DirectConnectionInfo;
+import org.jdownloader.myjdownloader.client.json.DirectConnectionInfos;
 import org.jdownloader.myjdownloader.client.json.ErrorResponse;
 import org.jdownloader.myjdownloader.client.json.FeedbackResponse;
 import org.jdownloader.myjdownloader.client.json.JSonRequest;
@@ -81,6 +83,7 @@ public abstract class AbstractMyJDClient<GenericType> {
     private String       serverRoot         = "http://api.jdownloader.org";
     
     private SessionInfo  currentSessionInfo = null;
+    
     private final String appKey;
     
     /**
@@ -186,10 +189,14 @@ public abstract class AbstractMyJDClient<GenericType> {
      * @throws APIException
      */
     protected Object callAction(final String deviceID, final String action, final GenericType returnType, final Object... args) throws MyJDownloaderException, APIException {
+        return this.callAction(null, deviceID, action, returnType, args);
+    }
+    
+    protected Object callAction(final String host, final String deviceID, final String action, final GenericType returnType, final Object... args) throws MyJDownloaderException, APIException {
         SessionInfo session = null;
         try {
             session = this.getSessionInfo();
-            final String query = "/t_" + session.getSessionToken() + "_" + this.urlencode(deviceID) + action;
+            String query = "/t_" + session.getSessionToken() + "_" + this.urlencode(deviceID) + action;
             final String[] params = new String[args != null ? args.length : 0];
             if (args != null) {
                 for (int i = 0; i < args.length; i++) {
@@ -204,6 +211,9 @@ public abstract class AbstractMyJDClient<GenericType> {
             payload.setParams(params);
             final String json = this.objectToJSon(payload);
             this.log("Request:\r\n" + query + "\r\n" + json);
+            if (host != null) {
+                query = host + query;
+            }
             final byte[] data = this.cryptedPost(query, this.base64Encode(this.encrypt(json.getBytes("UTF-8"), session.getDeviceEncryptionToken())), session.getDeviceEncryptionToken());
             
             Object ret = this.convertData(data, returnType);
@@ -510,6 +520,10 @@ public abstract class AbstractMyJDClient<GenericType> {
         
     }
     
+    public DirectConnectionInfos getDirectConnectionInfos(final String deviceID) throws MyJDownloaderException, APIException {
+        return (DirectConnectionInfos) this.callAction(null, deviceID, "/device/getDirectConnectionInfos", (GenericType) DirectConnectionInfos.class, (Object[]) null);
+    }
+    
     public String getServerRoot() {
         return this.serverRoot;
     }
@@ -800,5 +814,13 @@ public abstract class AbstractMyJDClient<GenericType> {
      * @throws MyJDownloaderException
      */
     abstract public String urlencode(String text) throws MyJDownloaderException;
+    
+    public boolean verifyDirectConnectionInfo(final String deviceID, final DirectConnectionInfo directConnectionInfo) throws MyJDownloaderException, APIException {
+        if (directConnectionInfo == null) { throw new IllegalStateException("directConnectionInfo is null"); }
+        final String host = "http://" + directConnectionInfo.getIp() + ":" + directConnectionInfo.getPort();
+        final Boolean ret = (Boolean) this.callAction(host, deviceID, "/device/ping", (GenericType) Boolean.class, (Object[]) null);
+        if (Boolean.TRUE.equals(ret)) { return true; }
+        return false;
+    }
     
 }
