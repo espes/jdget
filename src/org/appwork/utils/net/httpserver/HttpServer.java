@@ -34,13 +34,13 @@ import org.appwork.utils.net.httpserver.handler.HttpRequestHandler;
  */
 public class HttpServer implements Runnable {
 
-    private final int                     port;
-    private ServerSocket                  controlSocket;
-    private Thread                        controlThread = null;
-    private boolean                       localhostOnly = false;
-    private boolean                       debug         = false;
+    private final int                          port;
+    private ServerSocket                       controlSocket;
+    private Thread                             controlThread = null;
+    private boolean                            localhostOnly = false;
+    private boolean                            debug         = false;
     private java.util.List<HttpRequestHandler> handler       = null;
-    private ThreadPoolExecutor            threadPool    = null;
+    private ThreadPoolExecutor                 threadPool    = null;
 
     public HttpServer(final int port) {
         this.port = port;
@@ -79,6 +79,10 @@ public class HttpServer implements Runnable {
 
         };
         this.threadPool.allowCoreThreadTimeOut(true);
+    }
+
+    protected HttpConnection createConnectionInstance(final Socket clientSocket) throws IOException {
+        return new HttpConnection(this, clientSocket);
     }
 
     public java.util.List<HttpRequestHandler> getHandler() {
@@ -152,10 +156,8 @@ public class HttpServer implements Runnable {
             while (true) {
                 try {
                     final Socket clientSocket = socket.accept();
-
                     try {
-
-                        this.threadPool.execute(createConnectionInstance(clientSocket));
+                        this.threadPool.execute(this.createConnectionInstance(clientSocket));
                     } catch (final IOException e) {
                         e.printStackTrace();
                         try {
@@ -187,10 +189,6 @@ public class HttpServer implements Runnable {
             } catch (final Throwable e) {
             }
         }
-    }
-
-    protected HttpConnection createConnectionInstance(final Socket clientSocket) throws IOException {
-        return new HttpConnection(this, clientSocket);
     }
 
     /**

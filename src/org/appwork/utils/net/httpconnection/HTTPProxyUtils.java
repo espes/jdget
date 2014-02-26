@@ -25,6 +25,10 @@ import java.util.List;
 public class HTTPProxyUtils {
 
     public static List<InetAddress> getLocalIPs() {
+        return HTTPProxyUtils.getLocalIPs(false);
+    }
+
+    public static List<InetAddress> getLocalIPs(final boolean allowLoopback) {
         final HashSet<InetAddress> ipsLocal = new HashSet<InetAddress>();
         try {
             final Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
@@ -35,12 +39,14 @@ public class HTTPProxyUtils {
                 InetAddress addr;
                 while (addrs.hasMoreElements()) {
                     addr = addrs.nextElement();
-                    if (addr == null) continue;
+                    if (addr == null) {
+                        continue;
+                    }
                     /* only show ipv4 addresses and non loopback */
                     if (!(addr instanceof Inet4Address)) {
                         continue;
                     }
-                    if (addr.isLoopbackAddress()) {
+                    if (allowLoopback == false && addr.isLoopbackAddress()) {
                         continue;
                     }
                     ipsLocal.add(addr);
@@ -52,12 +58,14 @@ public class HTTPProxyUtils {
                     addrs = cur.getInetAddresses();
                     while (addrs.hasMoreElements()) {
                         addr = addrs.nextElement();
-                        if (addr == null) continue;
+                        if (addr == null) {
+                            continue;
+                        }
                         /* only show ipv4 addresses and non loopback */
                         if (!(addr instanceof Inet4Address)) {
                             continue;
                         }
-                        if (addr.isLoopbackAddress()) {
+                        if (allowLoopback == false && addr.isLoopbackAddress()) {
                             continue;
                         }
                         ipsLocal.add(addr);
