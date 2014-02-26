@@ -28,7 +28,7 @@ import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderException;
 
 public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<Type> {
     private static AtomicLong                                                              RID_COUNTER   = new AtomicLong(System.currentTimeMillis());
-    private final HashMap<String, AbstractMyJDDeviceClient<AbstractMyJDClientForBasicJVM>> deviceClients = new HashMap<String, AbstractMyJDDeviceClient<AbstractMyJDClientForBasicJVM>>();
+    private final HashMap<String, AbstractMyJDDeviceClient> deviceClients = new HashMap<String, AbstractMyJDDeviceClient>();
     
     public AbstractMyJDClientForBasicJVM(final String appKey) {
         super(appKey);
@@ -38,7 +38,7 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
         return (T) super.callAction(deviceID, action, returnType, args);
     }
     
-    protected AbstractMyJDDeviceClient<AbstractMyJDClientForBasicJVM> createDeviceClient(final String deviceID) {
+    protected AbstractMyJDDeviceClient createDeviceClient(final String deviceID) {
         return new AbstractMyJDDeviceClient(deviceID, this);
     }
     
@@ -125,9 +125,9 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
         }
     }
     
-    public AbstractMyJDDeviceClient<AbstractMyJDClientForBasicJVM> getDeviceClient(final String deviceID) {
+    public AbstractMyJDDeviceClient getDeviceClient(final String deviceID) {
         synchronized (this.deviceClients) {
-            AbstractMyJDDeviceClient<AbstractMyJDClientForBasicJVM> client = this.deviceClients.get(deviceID);
+            AbstractMyJDDeviceClient client = this.deviceClients.get(deviceID);
             if (client == null) {
                 client = this.createDeviceClient(deviceID);
                 this.deviceClients.put(deviceID, client);
@@ -184,7 +184,7 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
      * @return
      */
     public <T extends Linkable> T link(final Class<T> class1, final String namespace, final String deviceID) {
-        AbstractMyJDDeviceClient<AbstractMyJDClientForBasicJVM> client = null;
+        AbstractMyJDDeviceClient client = null;
         synchronized (this.deviceClients) {
             client = this.deviceClients.get(deviceID);
             if (client == null) {
@@ -192,7 +192,7 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
                 this.deviceClients.put(deviceID, client);
             }
         }
-        final AbstractMyJDDeviceClient<AbstractMyJDClientForBasicJVM> finalClient = client;
+        final AbstractMyJDDeviceClient finalClient = client;
         return (T) Proxy.newProxyInstance(class1.getClassLoader(), new Class<?>[] { class1 }, new InvocationHandler() {
             
             @Override
@@ -200,7 +200,7 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
                 try {
                     final String action = "/" + namespace + "/" + method.getName();
                     final Type returnType = method.getGenericReturnType();
-                    return finalClient.callAction(action, (AbstractMyJDClientForBasicJVM) returnType, args);
+                    return finalClient.callAction(action, returnType, args);
                 } catch (final Throwable e) {
                     final Class<?>[] exceptions = method.getExceptionTypes();
                     if (exceptions != null) {
