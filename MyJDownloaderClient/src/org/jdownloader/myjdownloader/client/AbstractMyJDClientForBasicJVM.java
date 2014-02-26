@@ -27,7 +27,7 @@ import org.jdownloader.myjdownloader.client.exceptions.APIException;
 import org.jdownloader.myjdownloader.client.exceptions.MyJDownloaderException;
 
 public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<Type> {
-    private static AtomicLong                                                              RID_COUNTER   = new AtomicLong(System.currentTimeMillis());
+    private static AtomicLong                               RID_COUNTER   = new AtomicLong(System.currentTimeMillis());
     private final HashMap<String, AbstractMyJDDeviceClient> deviceClients = new HashMap<String, AbstractMyJDDeviceClient>();
     
     public AbstractMyJDClientForBasicJVM(final String appKey) {
@@ -184,15 +184,7 @@ public abstract class AbstractMyJDClientForBasicJVM extends AbstractMyJDClient<T
      * @return
      */
     public <T extends Linkable> T link(final Class<T> class1, final String namespace, final String deviceID) {
-        AbstractMyJDDeviceClient client = null;
-        synchronized (this.deviceClients) {
-            client = this.deviceClients.get(deviceID);
-            if (client == null) {
-                client = this.createDeviceClient(deviceID);
-                this.deviceClients.put(deviceID, client);
-            }
-        }
-        final AbstractMyJDDeviceClient finalClient = client;
+        final AbstractMyJDDeviceClient finalClient = this.getDeviceClient(deviceID);
         return (T) Proxy.newProxyInstance(class1.getClassLoader(), new Class<?>[] { class1 }, new InvocationHandler() {
             
             @Override
