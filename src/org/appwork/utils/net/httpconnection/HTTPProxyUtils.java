@@ -15,7 +15,7 @@ import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -29,12 +29,18 @@ public class HTTPProxyUtils {
     }
 
     public static List<InetAddress> getLocalIPs(final boolean allowLoopback) {
-        final HashSet<InetAddress> ipsLocal = new HashSet<InetAddress>();
+        final LinkedHashSet<InetAddress> ipsLocal = new LinkedHashSet<InetAddress>();
         try {
             final Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
             while (nets.hasMoreElements()) {
                 /* find all network interfaces and their addresses */
                 NetworkInterface cur = nets.nextElement();
+                if (!cur.isUp()) {
+                    continue;
+                }
+                if (cur.isLoopback() && allowLoopback == false) {
+                    continue;
+                }
                 Enumeration<InetAddress> addrs = cur.getInetAddresses();
                 InetAddress addr;
                 while (addrs.hasMoreElements()) {
@@ -46,15 +52,18 @@ public class HTTPProxyUtils {
                     if (!(addr instanceof Inet4Address)) {
                         continue;
                     }
-                    if (allowLoopback == false && addr.isLoopbackAddress()) {
-                        continue;
-                    }
                     ipsLocal.add(addr);
                 }
                 /* find all subinterfaces for each network interface, eg. eth0.1 */
                 final Enumeration<NetworkInterface> nets2 = cur.getSubInterfaces();
                 while (nets2.hasMoreElements()) {
                     cur = nets2.nextElement();
+                    if (!cur.isUp()) {
+                        continue;
+                    }
+                    if (cur.isLoopback() && allowLoopback == false) {
+                        continue;
+                    }
                     addrs = cur.getInetAddresses();
                     while (addrs.hasMoreElements()) {
                         addr = addrs.nextElement();
@@ -65,9 +74,6 @@ public class HTTPProxyUtils {
                         if (!(addr instanceof Inet4Address)) {
                             continue;
                         }
-                        if (allowLoopback == false && addr.isLoopbackAddress()) {
-                            continue;
-                        }
                         ipsLocal.add(addr);
                     }
                 }
@@ -76,5 +82,9 @@ public class HTTPProxyUtils {
             e.printStackTrace();
         }
         return Collections.unmodifiableList(new ArrayList<InetAddress>(ipsLocal));
+    }
+
+    public static void main(final String[] args) {
+        System.out.println(HTTPProxyUtils.getLocalIPs(true));
     }
 }
