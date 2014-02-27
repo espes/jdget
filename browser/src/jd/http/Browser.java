@@ -613,7 +613,9 @@ public class Browser {
                 final int size = form.getInputFields().size();
                 for (int i = 0; i < size; i++) {
                     final InputField entry = form.getInputFields().get(i);
-
+                    if (form.getPreferredSubmit() != null && entry.getType() != null && entry.getType().equalsIgnoreCase("submit") && form.getPreferredSubmit() != entry) {
+                        continue;
+                    }
                     if (entry.getValue() == null) {
                         // continue;
                     } else if (entry.getType() != null && entry.getType().equalsIgnoreCase("image")) {
