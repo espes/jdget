@@ -339,8 +339,8 @@ public abstract class AbstractMyJDClient<GenericType> {
     }
     
     /**
-     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with
-     * #getSessionInfo #setSessionInfo and #reconnect to restore a session
+     * Get a new Session. Do never store email and password in your application. throw away the password after connect and work with #getSessionInfo
+     * #setSessionInfo and #reconnect to restore a session
      * 
      * @param email
      * @param password
@@ -667,8 +667,8 @@ public abstract class AbstractMyJDClient<GenericType> {
     }
     
     /**
-     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins.
-     * We use a regain token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
+     * If the Session becomes invalid(for example due to an ip change), you need to reconnect. The user does NOT have to reenter his logins. We use a regain
+     * token to get a new session. Short: If you get a #TokenException, call reconnect to refresh your session.
      * 
      * @throws MyJDownloaderException
      */
@@ -713,7 +713,7 @@ public abstract class AbstractMyJDClient<GenericType> {
     
     /**
      * Call this method to request a password change. You will get an email containing a key. Use this key together with
-     *
+     * 
      * @throws MyJDownloaderException
      */
     public void requestPasswordResetEmail(final CaptchaChallenge challenge, final String email) throws MyJDownloaderException {
@@ -813,9 +813,10 @@ public abstract class AbstractMyJDClient<GenericType> {
     public boolean verifyDirectConnectionInfo(final String deviceID, final DirectConnectionInfo directConnectionInfo) throws MyJDownloaderException, APIException {
         if (directConnectionInfo == null) { throw new IllegalStateException("directConnectionInfo is null"); }
         final String host = "http://" + directConnectionInfo.getIp() + ":" + directConnectionInfo.getPort();
-        final Boolean ret = (Boolean) this.callAction(host, deviceID, "/device/ping", (GenericType) Boolean.class, (Object[]) null);
-        if (Boolean.TRUE.equals(ret)) {
-            return true;
+        try {
+            final Boolean ret = (Boolean) this.callAction(host, deviceID, "/device/ping", (GenericType) Boolean.class, (Object[]) null);
+            if (Boolean.TRUE.equals(ret)) { return true; }
+        } catch (final UnexpectedIOException e) {
         }
         return false;
     }
