@@ -10,6 +10,7 @@ import java.util.Map;
 public interface HTTPConnection {
 
     public static enum RequestMethod {
+        PUT,
         OPTIONS,
         GET,
         POST,

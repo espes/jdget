@@ -167,7 +167,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         this.con.setRequestMethod(this.httpMethod.name());
         this.con.setAllowUserInteraction(false);
         this.con.setInstanceFollowRedirects(false);
-        if (RequestMethod.POST.equals(this.httpMethod)) {
+        if (this.requiresOutputStream()) {
             this.con.setDoOutput(true);
         } else {
             this.outputClosed = true;
@@ -189,7 +189,7 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
         this.connected = true;
         this.wasConnected = true;
         this.requestTime = System.currentTimeMillis() - startTime;
-        if (this.httpMethod != RequestMethod.POST) {
+        if (this.requiresOutputStream() == false) {
             this.outputStream = new NullOutputStream();
             this.outputClosed = true;
             this.connectInputStream();
@@ -199,12 +199,12 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
     }
 
     protected synchronized void connectInputStream() throws IOException {
-        if (this.httpMethod == RequestMethod.POST) {
+        if (this.requiresOutputStream()) {
             final long done = ((CountingOutputStream) this.outputStream).transferedBytes();
             if (done != this.postTodoLength) { throw new IOException("Content-Length " + this.postTodoLength + " does not match send " + done + " bytes"); }
         }
         if (this.inputStreamConnected) { return; }
-        if (this.httpMethod == RequestMethod.POST) {
+        if (this.requiresOutputStream()) {
             /* flush outputstream in case some buffers are not flushed yet */
             this.outputStream.flush();
         }
@@ -517,6 +517,10 @@ public class NativeHTTPConnectionImpl implements HTTPConnection {
             if (c == code) { return true; }
         }
         return false;
+    }
+
+    protected boolean requiresOutputStream() {
+        return this.httpMethod == RequestMethod.POST || this.httpMethod == RequestMethod.PUT;
     }
 
     public InetAddress[] resolvHostIP(final String host) throws IOException {

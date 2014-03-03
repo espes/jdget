@@ -179,12 +179,12 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     protected synchronized void connectInputStream() throws IOException {
-        if (this.httpMethod == RequestMethod.POST) {
+        if (this.requiresOutputStream()) {
             final long done = ((CountingOutputStream) this.getOutputStream()).transferedBytes();
             if (done != this.postTodoLength) { throw new IOException("Content-Length " + this.postTodoLength + " does not match send " + done + " bytes"); }
         }
         if (this.inputStreamConnected) { return; }
-        if (this.httpMethod == RequestMethod.POST) {
+        if (this.requiresOutputStream()) {
             /* flush outputstream in case some buffers are not flushed yet */
             this.getOutputStream().flush();
         }
@@ -585,6 +585,10 @@ public class HTTPConnectionImpl implements HTTPConnection {
         oldRequestProperties.putAll(newRet);
     }
 
+    protected boolean requiresOutputStream() {
+        return this.httpMethod == RequestMethod.POST || this.httpMethod == RequestMethod.PUT;
+    }
+
     public InetAddress[] resolvHostIP(final String host) throws IOException {
         return HTTPConnectionUtils.resolvHostIP(host);
     }
@@ -621,7 +625,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         sb.append("\r\n");
         this.httpSocket.getOutputStream().write(sb.toString().getBytes("ISO-8859-1"));
         this.httpSocket.getOutputStream().flush();
-        if (this.httpMethod != RequestMethod.POST) {
+        if (this.requiresOutputStream() == false) {
             this.outputStream = this.httpSocket.getOutputStream();
             this.outputClosed = true;
             this.connectInputStream();
