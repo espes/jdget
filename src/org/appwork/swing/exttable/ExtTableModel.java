@@ -44,52 +44,53 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     /**
      * 
      */
-    public static final String                                  SORT_ORDER_ID_KEY      = "SORT_ORDER_ID";
+    public static final String                                     SORT_ORDER_ID_KEY      = "SORT_ORDER_ID";
     /**
      * 
      */
-    public static final String                                  SORTCOLUMN_KEY         = "SORTCOLUMN";
+    public static final String                                     SORTCOLUMN_KEY         = "SORTCOLUMN";
     /**
      * 
      */
-    private static final long                                   serialVersionUID       = 939549808899567618L;
+    private static final long                                      serialVersionUID       = 939549808899567618L;
     /**
      * complete table structure has changed
      */
-    protected static final int                                  UPDATE_STRUCTURE       = 1;
+    protected static final int                                     UPDATE_STRUCTURE       = 1;
     /**
      * Column instances
      */
-    protected java.util.List<ExtColumn<E>>                      columns                = new ArrayList<ExtColumn<E>>();
+    protected java.util.List<ExtColumn<E>>                         columns                = new ArrayList<ExtColumn<E>>();
 
     /**
      * Modelid to have an seperate key for database savong
      */
-    private final String                                        modelID;
+    private final String                                           modelID;
 
     /**
      * the table that uses this model
      */
-    private ExtTable<E>                                         table                  = null;
+    private ExtTable<E>                                            table                  = null;
 
     /**
      * a list of objects. Each object represents one table row
      */
-    protected List<E>                                           tableData              = new ArrayList<E>();
+    protected List<E>                                              tableData              = new ArrayList<E>();
 
-    protected volatile ExtColumn<E>                             sortColumn;
+    protected volatile ExtColumn<E>                                sortColumn;
 
-    private final java.util.List<ExtComponentRowHighlighter<E>> extComponentRowHighlighters;
+    private volatile java.util.List<ExtComponentRowHighlighter<E>> extComponentRowHighlighters;
+    private final Object                                           highlighterLock        = new Object();
 
-    private final ImageIcon                                     iconAsc;
-    private final ImageIcon                                     iconDesc;
-    private final PropertyChangeListener                        replaceDelayer;
-    private volatile boolean                                    replaceDelayerSet      = false;
-    private volatile List<E>                                    delayedNewTableData    = null;
-    private boolean                                             debugTableModel        = false;
-    private final AtomicBoolean                                 tableStructureChanging = new AtomicBoolean(false);
-    private final AtomicBoolean                                 tableSelectionClearing = new AtomicBoolean(false);
-    private ExtTableModelEventSender                            eventSender;
+    private final ImageIcon                                        iconAsc;
+    private final ImageIcon                                        iconDesc;
+    private final PropertyChangeListener                           replaceDelayer;
+    private volatile boolean                                       replaceDelayerSet      = false;
+    private volatile List<E>                                       delayedNewTableData    = null;
+    private boolean                                                debugTableModel        = false;
+    private final AtomicBoolean                                    tableStructureChanging = new AtomicBoolean(false);
+    private final AtomicBoolean                                    tableSelectionClearing = new AtomicBoolean(false);
+    private ExtTableModelEventSender                               eventSender;
 
     /**
      * Create a new ExtTableModel.
@@ -102,7 +103,6 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
      */
     public ExtTableModel(final String id) {
         super();
-
         this.extComponentRowHighlighters = new ArrayList<ExtComponentRowHighlighter<E>>();
         this.modelID = id;
         this.iconAsc = AWUTheme.I().getIcon("exttable/sortAsc", -1);
@@ -376,9 +376,10 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
     }
 
     public void addExtComponentRowHighlighter(final ExtComponentRowHighlighter<E> h) {
-        synchronized (this.extComponentRowHighlighters) {
-            this.extComponentRowHighlighters.add(h);
-            Collections.sort(this.extComponentRowHighlighters, new Comparator<ExtComponentRowHighlighter<E>>() {
+        synchronized (this.highlighterLock) {
+            final ArrayList<ExtComponentRowHighlighter<E>> newextComponentRowHighlighters = new ArrayList<ExtComponentRowHighlighter<E>>(this.extComponentRowHighlighters);
+            newextComponentRowHighlighters.add(h);
+            Collections.sort(newextComponentRowHighlighters, new Comparator<ExtComponentRowHighlighter<E>>() {
 
                 @Override
                 public int compare(final ExtComponentRowHighlighter<E> o1, final ExtComponentRowHighlighter<E> o2) {
@@ -386,6 +387,7 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
                     return new Integer(o1.getPriority()).compareTo(new Integer(o2.getPriority()));
                 }
             });
+            this.extComponentRowHighlighters = newextComponentRowHighlighters;
         }
     }
 
