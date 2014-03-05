@@ -137,11 +137,13 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         if (this.isDebugTableModel() && SwingUtilities.isEventDispatchThread()) {
             Log.exception(new WTFException("_fireTableStructureChanged inside EDT! "));
         }
+        final List<E> tableData;
         if (refreshSort) {
-            this._replaceTableData(this.refreshSort(newtableData), true);
+            tableData = this.refreshSort(newtableData);
         } else {
-            this._replaceTableData(newtableData, true);
+            tableData = this.refreshUnSort(newtableData);
         }
+        this._replaceTableData(tableData, true);
     }
 
     /**
@@ -905,21 +907,19 @@ public abstract class ExtTableModel<E> extends AbstractTableModel {
         if (this.isDebugTableModel() && SwingUtilities.isEventDispatchThread()) {
             Log.exception(new WTFException("refreshSort inside EDT! "));
         }
-        try {
-            boolean sameTable = false;
-            if (data == this.getTableData()) {
-                sameTable = true;
-            }
-            final List<E> ret = this.sort(data, this.sortColumn);
-            if (this.isDebugTableModel() && this.getTableData() == ret && sameTable) {
-                Log.exception(new WTFException("WARNING: sorting on live backend!"));
-            }
-            if (ret == null) { return data; }
-            return ret;
-        } catch (final NullPointerException e) {
-            Log.exception(e);
-            return data;
+        boolean sameTable = false;
+        if (data == this.getTableData()) {
+            sameTable = true;
         }
+        final List<E> ret = this.sort(data, this.sortColumn);
+        if (this.isDebugTableModel() && this.getTableData() == ret && sameTable) {
+            Log.exception(new WTFException("WARNING: sorting on live backend!"));
+        }
+        return ret;
+    }
+
+    public List<E> refreshUnSort(final List<E> data) {
+        return data;
     }
 
     /**
