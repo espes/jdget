@@ -7,6 +7,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
@@ -130,17 +131,17 @@ public class ExtTable<E> extends JTable implements ToolTipHandler, PropertyChang
     private Runnable                                       clickDelayerRunable;
     private String                                         columnSaveID         = ExtTable.DEFAULT_COLUMN_STORE;
 
-    private static final KeyStroke                         KEY_STROKE_CTRL_HOME = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke                         KEY_STROKE_CTRL_HOME = GraphicsEnvironment.isHeadless()?null:KeyStroke.getKeyStroke(KeyEvent.VK_HOME, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
     /**
     * 
     */
-    private static final KeyStroke                         KEY_STROKE_END       = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
+    private static final KeyStroke                         KEY_STROKE_END       = GraphicsEnvironment.isHeadless()?null:KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
 
     /**
     * 
     */
-    private static final KeyStroke                         KEY_STROKE_CTRL_END  = KeyStroke.getKeyStroke(KeyEvent.VK_END, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+    private static final KeyStroke                         KEY_STROKE_CTRL_END  = GraphicsEnvironment.isHeadless()?null:KeyStroke.getKeyStroke(KeyEvent.VK_END, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
 
     /**
      * Create an Extended Table instance
