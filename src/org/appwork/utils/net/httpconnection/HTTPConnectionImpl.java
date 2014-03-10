@@ -96,35 +96,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
         /* try all different ip's until one is valid and connectable */
         IOException ee = null;
         for (final InetAddress host : hosts) {
-            if (this.httpURL.getProtocol().startsWith("https")) {
-                /* https */
-                this.httpSocket = TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket();
-                if (this.sslException != null && this.sslException.getMessage().contains("bad_record_mac")) {
-                    /* workaround for SSLv3 only hosts */
-                    ((SSLSocket) this.httpSocket).setEnabledProtocols(new String[] { "SSLv3" });
-                }
-                /*
-                 * http://twelve-programmers.blogspot.de/2010/01/limitations-in-jsse
-                 * -tls-implementation.html
-                 */
-                /*
-                 * http://stackoverflow.com/questions/6851461/java-why-does-ssl-
-                 * handshake-give-could-not-generate-dh-keypair-exception
-                 */
-                // final List<String> limited = new LinkedList<String>();
-                // for (final String suite : ((SSLSocket)
-                // this.httpSocket).getEnabledCipherSuites()) {
-                // if (!suite.contains("_DHE_")) {
-                // limited.add(suite);
-                // }
-                // }
-                // ((SSLSocket)
-                // this.httpSocket).setEnabledCipherSuites(limited.toArray(new
-                // String[limited.size()]));
-            } else {
-                /* http */
-                this.httpSocket = new Socket(Proxy.NO_PROXY);
-            }
+            this.httpSocket = new Socket(Proxy.NO_PROXY);
             this.httpSocket.setSoTimeout(this.readTimeout);
             this.httpResponseCode = -1;
             int port = this.httpURL.getPort();
@@ -144,14 +116,30 @@ public class HTTPConnectionImpl implements HTTPConnection {
             } else if (this.proxy != null && this.proxy.isNone()) {
                 /* none is also allowed here */
             } else if (this.proxy != null) { throw new RuntimeException("Invalid Direct Proxy"); }
-
+            SSLSocket sslSocket = null;
             try {
                 /* try to connect to given host now */
                 this.httpSocket.connect(this.connectedInetSocketAddress = new InetSocketAddress(host, port), this.connectTimeout);
+                if (this.httpURL.getProtocol().startsWith("https")) {
+                    /* https */
+                    sslSocket = (SSLSocket) TrustALLSSLFactory.getSSLFactoryTrustALL().createSocket(this.httpSocket, this.httpURL.getHost(), port, true);
+                    if (this.sslException != null && this.sslException.getMessage().contains("bad_record_mac")) {
+                        /* workaround for SSLv3 only hosts */
+                        ((SSLSocket) this.httpSocket).setEnabledProtocols(new String[] { "SSLv3" });
+                    }
+                    sslSocket.startHandshake();
+                    this.httpSocket = sslSocket;
+                }
                 this.requestTime = System.currentTimeMillis() - startTime;
                 ee = null;
                 break;
             } catch (final IOException e) {
+                try {
+                    if (sslSocket != null) {
+                        sslSocket.close();
+                    }
+                } catch (final Throwable nothing) {
+                }
                 this.connectedInetSocketAddress = null;
                 try {
                     this.httpSocket.close();
