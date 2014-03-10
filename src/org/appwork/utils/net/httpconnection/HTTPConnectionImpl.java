@@ -7,6 +7,7 @@ import java.io.PushbackInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -122,7 +123,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
                 // String[limited.size()]));
             } else {
                 /* http */
-                this.httpSocket = new Socket();
+                this.httpSocket = new Socket(Proxy.NO_PROXY);
             }
             this.httpSocket.setSoTimeout(this.readTimeout);
             this.httpResponseCode = -1;

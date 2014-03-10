@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -28,8 +29,8 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
 
     public HTTPProxyHTTPConnectionImpl(final URL url, final HTTPProxy p) {
         super(url, p);
-        preferConnectMethod = p.isConnectMethodPrefered();
-        setRequestProperty("Proxy-Connection", "close");
+        this.preferConnectMethod = p.isConnectMethodPrefered();
+        this.setRequestProperty("Proxy-Connection", "close");
     }
 
     /*
@@ -38,71 +39,71 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
      */
     @Override
     public void connect() throws IOException {
-        if (isConnected()) { return;/* oder fehler */
+        if (this.isConnected()) { return;/* oder fehler */
         }
         try {
-            if (proxy == null || !proxy.getType().equals(HTTPProxy.TYPE.HTTP)) { throw new IOException("HTTPProxyHTTPConnection: invalid HTTP Proxy!"); }
-            if (proxy.getPass() != null && proxy.getPass().length() > 0 || proxy.getUser() != null && proxy.getUser().length() > 0) {
+            if (this.proxy == null || !this.proxy.getType().equals(HTTPProxy.TYPE.HTTP)) { throw new IOException("HTTPProxyHTTPConnection: invalid HTTP Proxy!"); }
+            if (this.proxy.getPass() != null && this.proxy.getPass().length() > 0 || this.proxy.getUser() != null && this.proxy.getUser().length() > 0) {
                 /* add proxy auth in case username/pw are set */
-                final String user = proxy.getUser() == null ? "" : proxy.getUser();
-                final String pass = proxy.getPass() == null ? "" : proxy.getPass();
-                requestProperties.put("Proxy-Authorization", "Basic " + new String(Base64.encodeToByte((user + ":" + pass).getBytes(), false)));
+                final String user = this.proxy.getUser() == null ? "" : this.proxy.getUser();
+                final String pass = this.proxy.getPass() == null ? "" : this.proxy.getPass();
+                this.requestProperties.put("Proxy-Authorization", "Basic " + new String(Base64.encodeToByte((user + ":" + pass).getBytes(), false)));
             }
-            final InetAddress hosts[] = resolvHostIP(proxy.getHost());
+            final InetAddress hosts[] = this.resolvHostIP(this.proxy.getHost());
             IOException ee = null;
             long startTime = System.currentTimeMillis();
             for (final InetAddress host : hosts) {
-                httpSocket = new Socket();
-                httpSocket.setSoTimeout(readTimeout);
+                this.httpSocket = new Socket(Proxy.NO_PROXY);
+                this.httpSocket.setSoTimeout(this.readTimeout);
                 try {
                     /* create and connect to socks5 proxy */
                     startTime = System.currentTimeMillis();
-                    httpSocket.connect(proxyInetSocketAddress = new InetSocketAddress(host, proxy.getPort()), connectTimeout);
+                    this.httpSocket.connect(this.proxyInetSocketAddress = new InetSocketAddress(host, this.proxy.getPort()), this.connectTimeout);
                     /* connection is okay */
                     ee = null;
                     break;
                 } catch (final IOException e) {
                     /* connection failed, try next available ip */
-                    proxyInetSocketAddress = null;
+                    this.proxyInetSocketAddress = null;
                     try {
-                        httpSocket.close();
+                        this.httpSocket.close();
                     } catch (final Throwable e2) {
                     }
                     ee = e;
                 }
             }
-            if (ee != null) { throw new ProxyConnectException(ee, proxy); }
-            requestTime = System.currentTimeMillis() - startTime;
-            if (httpURL.getProtocol().startsWith("https") || isConnectMethodPrefered()) {
+            if (ee != null) { throw new ProxyConnectException(ee, this.proxy); }
+            this.requestTime = System.currentTimeMillis() - startTime;
+            if (this.httpURL.getProtocol().startsWith("https") || this.isConnectMethodPrefered()) {
                 /* ssl via CONNECT method or because we prefer CONNECT */
                 /* build CONNECT request */
-                proxyRequest = new StringBuilder();
-                proxyRequest.append("CONNECT ");
-                proxyRequest.append(httpURL.getHost() + ":" + (httpURL.getPort() != -1 ? httpURL.getPort() : httpURL.getDefaultPort()));
-                proxyRequest.append(" HTTP/1.1\r\n");
-                if (requestProperties.get("User-Agent") != null) {
-                    proxyRequest.append("User-Agent: " + requestProperties.get("User-Agent") + "\r\n");
+                this.proxyRequest = new StringBuilder();
+                this.proxyRequest.append("CONNECT ");
+                this.proxyRequest.append(this.httpURL.getHost() + ":" + (this.httpURL.getPort() != -1 ? this.httpURL.getPort() : this.httpURL.getDefaultPort()));
+                this.proxyRequest.append(" HTTP/1.1\r\n");
+                if (this.requestProperties.get("User-Agent") != null) {
+                    this.proxyRequest.append("User-Agent: " + this.requestProperties.get("User-Agent") + "\r\n");
                 }
-                if (requestProperties.get("Host") != null) {
+                if (this.requestProperties.get("Host") != null) {
                     /* use existing host header */
-                    proxyRequest.append("Host: " + requestProperties.get("Host") + "\r\n");
+                    this.proxyRequest.append("Host: " + this.requestProperties.get("Host") + "\r\n");
                 } else {
                     /* add host from url as fallback */
-                    proxyRequest.append("Host: " + httpURL.getHost() + "\r\n");
+                    this.proxyRequest.append("Host: " + this.httpURL.getHost() + "\r\n");
                 }
-                if (requestProperties.get("Proxy-Authorization") != null) {
-                    proxyRequest.append("Proxy-Authorization: " + requestProperties.get("Proxy-Authorization") + "\r\n");
+                if (this.requestProperties.get("Proxy-Authorization") != null) {
+                    this.proxyRequest.append("Proxy-Authorization: " + this.requestProperties.get("Proxy-Authorization") + "\r\n");
                 }
-                proxyRequest.append("\r\n");
+                this.proxyRequest.append("\r\n");
                 /* send CONNECT to proxy */
-                httpSocket.getOutputStream().write(proxyRequest.toString().getBytes("UTF-8"));
-                httpSocket.getOutputStream().flush();
+                this.httpSocket.getOutputStream().write(this.proxyRequest.toString().getBytes("UTF-8"));
+                this.httpSocket.getOutputStream().flush();
                 /* parse CONNECT response */
-                ByteBuffer header = HTTPConnectionUtils.readheader(httpSocket.getInputStream(), true);
+                ByteBuffer header = HTTPConnectionUtils.readheader(this.httpSocket.getInputStream(), true);
                 byte[] bytes = new byte[header.limit()];
                 header.get(bytes);
                 final String proxyResponseStatus = new String(bytes, "ISO-8859-1").trim();
-                proxyRequest.append(proxyResponseStatus + "\r\n");
+                this.proxyRequest.append(proxyResponseStatus + "\r\n");
                 String proxyCode = null;
                 if (proxyResponseStatus.startsWith("HTTP")) {
                     /* parse response code */
@@ -111,15 +112,15 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                 if (!"200".equals(proxyCode)) {
                     /* something went wrong */
                     try {
-                        httpSocket.close();
+                        this.httpSocket.close();
                     } catch (final Throwable nothing) {
                     }
                     if ("407".equals(proxyCode)) {
                         /* auth invalid/missing */
-                        throw new ProxyAuthException(proxy);
+                        throw new ProxyAuthException(this.proxy);
                     }
 
-                    throw new ProxyConnectException(proxy);
+                    throw new ProxyConnectException(this.proxy);
                 }
                 /* read rest of CONNECT headers */
                 /*
@@ -134,7 +135,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                      * read line by line until we reach the single empty line as
                      * seperator
                      */
-                    header = HTTPConnectionUtils.readheader(httpSocket.getInputStream(), true);
+                    header = HTTPConnectionUtils.readheader(this.httpSocket.getInputStream(), true);
                     if (header.limit() <= 2) {
                         /* empty line, <=2, as it may contains \r and/or \n */
                         break;
@@ -142,19 +143,19 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                     bytes = new byte[header.limit()];
                     header.get(bytes);
                     final String temp = new String(bytes, "UTF-8").trim();
-                    proxyRequest.append(temp + "\r\n");
+                    this.proxyRequest.append(temp + "\r\n");
                 }
-                httpPort = httpURL.getPort();
-                httpHost = httpURL.getHost();
-                if (httpPort == -1) {
-                    httpPort = httpURL.getDefaultPort();
+                this.httpPort = this.httpURL.getPort();
+                this.httpHost = this.httpURL.getHost();
+                if (this.httpPort == -1) {
+                    this.httpPort = this.httpURL.getDefaultPort();
                 }
-                if (httpURL.getProtocol().startsWith("https")) {
+                if (this.httpURL.getProtocol().startsWith("https")) {
                     SSLSocket sslSocket = null;
                     try {
                         final SSLSocketFactory socketFactory = TrustALLSSLFactory.getSSLFactoryTrustALL();
-                        sslSocket = (SSLSocket) socketFactory.createSocket(httpSocket, httpHost, httpPort, true);
-                        if (sslException != null && sslException.getMessage().contains("bad_record_mac")) {
+                        sslSocket = (SSLSocket) socketFactory.createSocket(this.httpSocket, this.httpHost, this.httpPort, true);
+                        if (this.sslException != null && this.sslException.getMessage().contains("bad_record_mac")) {
                             /* workaround for SSLv3 only hosts */
                             sslSocket.setEnabledProtocols(new String[] { "SSLv3" });
                         }
@@ -165,17 +166,17 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                         } catch (final Throwable e3) {
                         }
                         try {
-                            httpSocket.close();
+                            this.httpSocket.close();
                         } catch (final Throwable e2) {
                         }
                         throw new IOException("HTTPProxyHTTPConnection: " + e, e);
                     }
-                    httpSocket = sslSocket;
+                    this.httpSocket = sslSocket;
                 }
                 /* httpPath needs to be like normal http request, eg /index.html */
-                httpPath = new org.appwork.utils.Regex(httpURL.toString(), "https?://.*?(/.+)").getMatch(0);
-                if (httpPath == null) {
-                    httpPath = "/";
+                this.httpPath = new org.appwork.utils.Regex(this.httpURL.toString(), "https?://.*?(/.+)").getMatch(0);
+                if (this.httpPath == null) {
+                    this.httpPath = "/";
                 }
             } else {
                 /* direct connect via proxy */
@@ -183,18 +184,18 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
                  * httpPath needs to include complete path here, eg
                  * http://google.de/
                  */
-                proxyRequest = new StringBuilder("DIRECT\r\n");
-                httpPath = httpURL.toString();
+                this.proxyRequest = new StringBuilder("DIRECT\r\n");
+                this.httpPath = this.httpURL.toString();
             }
             /* now send Request */
-            sendRequest();
+            this.sendRequest();
         } catch (final javax.net.ssl.SSLException e) {
-            if (sslException != null) {
-                throw new ProxyConnectException(e, proxy);
+            if (this.sslException != null) {
+                throw new ProxyConnectException(e, this.proxy);
             } else {
                 this.disconnect(true);
-                sslException = e;
-                connect();
+                this.sslException = e;
+                this.connect();
             }
         } catch (final IOException e) {
             try {
@@ -202,32 +203,32 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
             } catch (final Throwable e2) {
             }
             if (e instanceof HTTPProxyException) { throw e; }
-            throw new ProxyConnectException(e, proxy);
+            throw new ProxyConnectException(e, this.proxy);
         }
     }
 
     @Override
     public InputStream getInputStream() throws IOException {
-        connect();
-        connectInputStream();
-        if (getResponseCode() == 407) {
+        this.connect();
+        this.connectInputStream();
+        if (this.getResponseCode() == 407) {
             /* auth invalid/missing */
-            throw new ProxyAuthException(proxy);
+            throw new ProxyAuthException(this.proxy);
         }
-        if (getResponseCode() == 504) { throw new ConnectException(getResponseCode() + " " + getResponseMessage()); }
+        if (this.getResponseCode() == 504) { throw new ConnectException(this.getResponseCode() + " " + this.getResponseMessage()); }
         return super.getInputStream();
     }
 
     @Override
     protected String getRequestInfo() {
-        if (proxyRequest != null) {
+        if (this.proxyRequest != null) {
             final StringBuilder sb = new StringBuilder();
-            sb.append("-->HTTPProxy:").append(proxy.getHost() + ":" + proxy.getPort()).append("\r\n");
-            if (proxyInetSocketAddress != null && proxyInetSocketAddress.getAddress() != null) {
-                sb.append("-->HTTPProxyIP:").append(proxyInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
+            sb.append("-->HTTPProxy:").append(this.proxy.getHost() + ":" + this.proxy.getPort()).append("\r\n");
+            if (this.proxyInetSocketAddress != null && this.proxyInetSocketAddress.getAddress() != null) {
+                sb.append("-->HTTPProxyIP:").append(this.proxyInetSocketAddress.getAddress().getHostAddress()).append("\r\n");
             }
             sb.append("----------------CONNECTRequest(HTTP)------------\r\n");
-            sb.append(proxyRequest.toString());
+            sb.append(this.proxyRequest.toString());
             sb.append("------------------------------------------------\r\n");
             sb.append(super.getRequestInfo());
             return sb.toString();
@@ -236,7 +237,7 @@ public class HTTPProxyHTTPConnectionImpl extends HTTPConnectionImpl {
     }
 
     public boolean isConnectMethodPrefered() {
-        return preferConnectMethod;
+        return this.preferConnectMethod;
     }
 
     public void setPreferConnectMethod(final boolean preferConnectMethod) {

@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.net.URL;
 
@@ -58,7 +59,7 @@ public abstract class SocksHTTPconnection extends HTTPConnectionImpl {
             IOException ee = null;
             long startTime = System.currentTimeMillis();
             for (final InetAddress host : hosts) {
-                this.sockssocket = new Socket();
+                this.sockssocket = new Socket(Proxy.NO_PROXY);
                 this.sockssocket.setSoTimeout(this.connectTimeout);
                 try {
                     /* create and connect to socks5 proxy */
