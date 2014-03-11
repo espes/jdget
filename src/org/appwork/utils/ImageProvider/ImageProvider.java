@@ -116,10 +116,14 @@ public class ImageProvider {
         final int w = width;
         final int h = height;
 
-        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        final GraphicsDevice gd = ge.getDefaultScreenDevice();
-        final GraphicsConfiguration gc = gd.getDefaultConfiguration();
-        final BufferedImage image = gc.createCompatibleImage(w, h, Transparency.BITMASK);
+        // final GraphicsEnvironment ge =
+        // GraphicsEnvironment.getLocalGraphicsEnvironment();
+        // final GraphicsDevice gd = ge.getDefaultScreenDevice();
+        // final GraphicsConfiguration gc = gd.getDefaultConfiguration();
+        // final BufferedImage image = gc.createCompatibleImage(w, h,
+        // Transparency.BITMASK);
+
+        final BufferedImage image = new BufferedImage(w, h, Transparency.TRANSLUCENT);
 
         final Graphics2D g = image.createGraphics();
         int size = 1 + width / string.length();

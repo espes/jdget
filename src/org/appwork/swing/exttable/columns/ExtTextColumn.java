@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
@@ -30,7 +32,7 @@ import sun.swing.SwingUtilities2;
 public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionListener, FocusListener {
 
     private static final long serialVersionUID = 2114805529462086691L;
-    protected RenderLabel     rendererField;
+    protected JLabel          rendererField;
     protected JTextField      editorField;
     private final Border      defaultBorder    = BorderFactory.createEmptyBorder(0, 5, 0, 5);
     private Color             rendererForeground;
@@ -39,9 +41,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     private Font              editorFont;
     protected MigPanel        editor;
 
-    protected RenderLabel     rendererIcon;
+    protected JLabel          rendererIcon;
 
-    protected MigPanel        renderer;
+    protected JPanel        renderer;
     protected RenderLabel     editorIconLabel;
     protected boolean         noset            = false;
 
@@ -159,7 +161,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     }
 
-    protected RendererMigPanel createRendererPanel() {
+    protected JPanel createRendererPanel() {
         return new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
     }
 
@@ -308,7 +310,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
      * @param editorIconLabel2
      * @param editorField2
      */
-    protected void layoutEditor(final MigPanel editor, final RenderLabel editorIconLabel, final JTextField editorField) {
+    protected void layoutEditor(final JPanel editor, final JLabel editorIconLabel, final JTextField editorField) {
         editor.add(editorIconLabel, "hidemode 2");
         editor.add(editorField);
     }
@@ -318,7 +320,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
      * @param rendererIco
      * @param renderer2
      */
-    protected void layoutRenderer(final MigPanel renderer, final RenderLabel rendererIcon, final RenderLabel rendererField) {
+    protected void layoutRenderer(final JPanel renderer, final JLabel rendererIcon, final JLabel rendererField) {
         renderer.add(rendererIcon, "hidemode 2");
         renderer.add(rendererField);
 
@@ -342,15 +344,17 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         }
 
     }
-/* (non-Javadoc)
- * @see org.appwork.swing.exttable.ExtColumn#getDefaultForeground()
- */
-@Override
-protected Color getDefaultForeground() {   
 
-    return editorForeground;
-}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.swing.exttable.ExtColumn#getDefaultForeground()
+     */
+    @Override
+    protected Color getDefaultForeground() {
 
+        return editorForeground;
+    }
 
     protected void prepareColumn(final E value) {
     }

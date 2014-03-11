@@ -409,14 +409,19 @@ public class IO {
     /**
      * @param file
      * @param bytes
+     * @param none
      * @throws IOException
      */
     public static void secureWrite(final File file, final byte[] bytes) throws IOException {
+        secureWrite(file, bytes, SYNC.META_AND_DATA);
+    }
+
+    public static void secureWrite(final File file, final byte[] bytes, final SYNC sync) throws IOException {
         final File bac = new File(file.getAbsolutePath() + ".bac");
         file.getParentFile().mkdirs();
         if (bac.exists() && bac.delete() == false) { throw new IOException("could not remove " + bac); }
         try {
-            IO.writeToFile(bac, bytes, SYNC.META_AND_DATA);
+            IO.writeToFile(bac, bytes, sync);
             if (file.exists() && file.delete() == false) { throw new IOException("could not remove " + file); }
             if (!bac.renameTo(file)) { throw new IOException("COuld not rename " + bac + " to " + file); }
         } finally {
@@ -511,6 +516,18 @@ public class IO {
         IO.writeToFile(file, data, SYNC.META_AND_DATA);
     }
 
+    /**
+     * @param latestTimestampFile
+     * @param serializeToJson
+     * @param none
+     * @throws IOException 
+     * @throws UnsupportedEncodingException 
+     */
+    public static void secureWrite(final File file, final String utf8String, final SYNC sync) throws UnsupportedEncodingException, IOException {
+        secureWrite(file, utf8String.getBytes("UTF-8"), sync);
+
+    }
+
     public static void writeToFile(final File file, final byte[] data, final SYNC sync) throws IOException {
         try {
             if (file == null) { throw new IllegalArgumentException("File is null."); }
@@ -565,4 +582,5 @@ public class IO {
             throw e;
         }
     }
+
 }
