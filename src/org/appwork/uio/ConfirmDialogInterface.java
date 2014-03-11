@@ -24,5 +24,4 @@ public interface ConfirmDialogInterface extends OKCancelCloseUserIODefinition {
     
     @Out
     public String getCancelButtonText();
-
 }

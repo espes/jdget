@@ -168,7 +168,6 @@ public class Application {
 
         }
         throw new IllegalStateException("No JarName Found");
-
     }
 
     public static long getJavaVersion() {
