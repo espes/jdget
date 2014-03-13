@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.swing.JProgressBar;
 import javax.swing.border.CompoundBorder;
 
 import org.appwork.swing.exttable.ExtColumn;
@@ -17,12 +16,19 @@ import org.appwork.swing.exttable.renderercomponents.RendererProgressBar;
 
 abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     private static final long serialVersionUID = -2473320164484034664L;
-    protected JProgressBar    determinatedRenderer;
-    protected CompoundBorder  defaultBorder;
-    private JProgressBar      indeterminatedRenderer;
-    private JProgressBar      renderer;
-    private HashMap<E, Long>  map;
-    private int               columnIndex      = -1;
+
+    public static double getPercentString(final long current, final long total) {
+        if (total <= 0) { return 0.00d; }
+        return current * 10000 / total / 100.0d;
+    }
+
+    protected RendererProgressBar determinatedRenderer;
+    protected CompoundBorder      defaultBorder;
+    private RendererProgressBar   indeterminatedRenderer;
+    private RendererProgressBar   renderer;
+    private HashMap<E, Long>      map;
+
+    private int                   columnIndex = -1;
 
     /**
      * 
@@ -104,7 +110,6 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
             @Override
             public void setIndeterminate(final boolean newValue) {
-
                 if (newValue == this.indeterminate) { return; }
                 this.indeterminate = newValue;
                 super.setIndeterminate(newValue);
@@ -129,7 +134,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
         // });
         this.renderer = this.determinatedRenderer;
         this.defaultBorder = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 1, 2, 1), this.determinatedRenderer.getBorder());
-        setRowSorter(new ExtDefaultRowSorter<E>() {
+        this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
             public int compare(final E o1, final E o2) {
@@ -137,7 +142,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
                 final double v2 = (double) ExtProgressColumn.this.getValue(o2) / ExtProgressColumn.this.getMax(o2);
 
                 if (v1 == v2) { return 0; }
-                if (getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
+                if (this.getSortOrderIdentifier() != ExtColumn.SORT_ASC) {
                     return v1 > v2 ? -1 : 1;
                 } else {
                     return v2 > v1 ? -1 : 1;
@@ -150,7 +155,6 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
     /**
      * 
      */
-
 
     @Override
     public void configureEditorComponent(final E value, final boolean isSelected, final int row, final int column) {
@@ -177,6 +181,7 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
             // take care to set the maximum before the value!!
             this.renderer.setMaximum((int) m);
             this.renderer.setValue((int) v);
+            this.renderer.setMinimum(0);
             this.renderer.setString(this.getString(value, v, m));
         } else {
             this.renderer.setString(this.getString(value, -1, -1));
@@ -217,11 +222,6 @@ abstract public class ExtProgressColumn<E> extends ExtColumn<E> {
 
     protected long getMax(final E value) {
         return 100;
-    }
-
-    public static double getPercentString(final long current, final long total) {
-        if (total <= 0) { return 0.00d; }
-        return current * 10000 / total / 100.0d;
     }
 
     /**
