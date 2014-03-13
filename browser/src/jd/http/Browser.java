@@ -433,7 +433,6 @@ public class Browser {
     private String                   currentURL       = null;
     
     private String                   customCharset    = null;
-    
     private boolean                  debug            = false;
     private boolean                  doRedirects      = false;
     private RequestHeader            headers;
@@ -443,6 +442,7 @@ public class Browser {
     private int                      readTimeout      = -1;
     private Request                  request;
     private HashMap<String, Integer> requestIntervalLimitMap;
+    
     private HashMap<String, Long>    requestTimeMap;
     
     private boolean                  verbose          = false;
