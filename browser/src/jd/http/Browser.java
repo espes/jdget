@@ -276,58 +276,6 @@ public class Browser {
         Browser.VERBOSE = b;
     }
     
-    private static synchronized void waitForPageAccess(final Browser browser, final Request request) throws InterruptedException {
-        final String host = Browser.getHost(request.getUrl());
-        try {
-            Integer localLimit = null;
-            Integer globalLimit = null;
-            Long localLastRequest = null;
-            Long globalLastRequest = null;
-            
-            if (browser.requestIntervalLimitMap != null) {
-                localLimit = browser.requestIntervalLimitMap.get(host);
-                localLastRequest = browser.requestTimeMap.get(host);
-            }
-            if (Browser.REQUEST_INTERVAL_LIMIT_MAP != null) {
-                globalLimit = Browser.REQUEST_INTERVAL_LIMIT_MAP.get(host);
-                globalLastRequest = Browser.REQUESTTIME_MAP.get(host);
-            }
-            
-            if (localLimit == null && globalLimit == null) { return; }
-            if (localLastRequest == null && globalLastRequest == null) { return; }
-            if (localLimit != null && localLastRequest == null) { return; }
-            if (globalLimit != null && globalLastRequest == null) { return; }
-            
-            if (globalLimit == null) {
-                globalLimit = 0;
-            }
-            if (localLimit == null) {
-                localLimit = 0;
-            }
-            if (localLastRequest == null) {
-                localLastRequest = System.currentTimeMillis();
-            }
-            if (globalLastRequest == null) {
-                globalLastRequest = System.currentTimeMillis();
-            }
-            final long dif = Math.max(localLimit - (System.currentTimeMillis() - localLastRequest), globalLimit - (System.currentTimeMillis() - globalLastRequest));
-            
-            if (dif > 0) {
-                // System.out.println("Sleep " + dif + " before connect to " +
-                // request.getUrl().getHost());
-                Thread.sleep(dif);
-                // waitForPageAccess(request);
-            }
-        } finally {
-            if (browser.requestTimeMap != null) {
-                browser.requestTimeMap.put(host, System.currentTimeMillis());
-            }
-            if (Browser.REQUESTTIME_MAP != null) {
-                Browser.REQUESTTIME_MAP.put(host, System.currentTimeMillis());
-            }
-        }
-    }
-    
     private boolean        keepResponseContentBytes = false;
     
     private int[]          allowedResponseCodes     = new int[0];
@@ -415,6 +363,58 @@ public class Browser {
             Browser.REQUESTTIME_MAP = new HashMap<String, Long>();
         }
         Browser.REQUEST_INTERVAL_LIMIT_MAP.put(domain, i);
+    }
+    
+    private static synchronized void waitForPageAccess(final Browser browser, final Request request) throws InterruptedException {
+        final String host = Browser.getHost(request.getUrl());
+        try {
+            Integer localLimit = null;
+            Integer globalLimit = null;
+            Long localLastRequest = null;
+            Long globalLastRequest = null;
+            
+            if (browser.requestIntervalLimitMap != null) {
+                localLimit = browser.requestIntervalLimitMap.get(host);
+                localLastRequest = browser.requestTimeMap.get(host);
+            }
+            if (Browser.REQUEST_INTERVAL_LIMIT_MAP != null) {
+                globalLimit = Browser.REQUEST_INTERVAL_LIMIT_MAP.get(host);
+                globalLastRequest = Browser.REQUESTTIME_MAP.get(host);
+            }
+            
+            if (localLimit == null && globalLimit == null) { return; }
+            if (localLastRequest == null && globalLastRequest == null) { return; }
+            if (localLimit != null && localLastRequest == null) { return; }
+            if (globalLimit != null && globalLastRequest == null) { return; }
+            
+            if (globalLimit == null) {
+                globalLimit = 0;
+            }
+            if (localLimit == null) {
+                localLimit = 0;
+            }
+            if (localLastRequest == null) {
+                localLastRequest = System.currentTimeMillis();
+            }
+            if (globalLastRequest == null) {
+                globalLastRequest = System.currentTimeMillis();
+            }
+            final long dif = Math.max(localLimit - (System.currentTimeMillis() - localLastRequest), globalLimit - (System.currentTimeMillis() - globalLastRequest));
+            
+            if (dif > 0) {
+                // System.out.println("Sleep " + dif + " before connect to " +
+                // request.getUrl().getHost());
+                Thread.sleep(dif);
+                // waitForPageAccess(request);
+            }
+        } finally {
+            if (browser.requestTimeMap != null) {
+                browser.requestTimeMap.put(host, System.currentTimeMillis());
+            }
+            if (Browser.REQUESTTIME_MAP != null) {
+                Browser.REQUESTTIME_MAP.put(host, System.currentTimeMillis());
+            }
+        }
     }
     
     private String                   acceptLanguage   = "de, en-gb;q=0.9, en;q=0.8";
@@ -1224,6 +1224,7 @@ public class Browser {
         } catch (final BrowserException e) {
             throw e;
         } catch (final IOException e) {
+            e.printStackTrace();
             throw new BrowserException(e.getMessage(), con, e);
         } finally {
             try {
