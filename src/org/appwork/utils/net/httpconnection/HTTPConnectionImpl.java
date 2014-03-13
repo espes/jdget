@@ -289,9 +289,26 @@ public class HTTPConnectionImpl implements HTTPConnection {
     }
 
     public String getCharset() {
-        int i;
         if (this.customcharset != null) { return this.customcharset; }
-        return this.getContentType() != null && (i = this.getContentType().toLowerCase().indexOf("charset=")) > 0 ? this.getContentType().substring(i + 8).trim() : null;
+        String charSet = this.getContentType();
+        if (charSet != null) {
+            final int charSetIndex = this.getContentType().toLowerCase().indexOf("charset=");
+            if (charSetIndex > 0) {
+                charSet = this.getContentType().substring(charSetIndex + 8).trim();
+                if (charSet.length() > 2) {
+                    if (charSet.startsWith("\"")) {
+                        charSet = charSet.substring(1);
+                        final int indexLast = charSet.lastIndexOf("\"");
+                        if (indexLast > 0) {
+                            charSet = charSet.substring(0, indexLast);
+                        }
+                    }
+                    return charSet;
+                }
+            }
+        }
+        return null;
+
     }
 
     @Override
@@ -366,7 +383,7 @@ public class HTTPConnectionImpl implements HTTPConnection {
                     this.convertedInputStream = new GZIPInputStream(this.inputStream);
                 } else if ("deflate".equalsIgnoreCase(encoding)) {
                     /* deflate encoding */
-                    this.convertedInputStream = new java.util.zip.DeflaterInputStream(this.inputStream);
+                    this.convertedInputStream = new java.util.zip.InflaterInputStream(this.inputStream, new java.util.zip.Inflater(true));
                 } else {
                     /* unsupported */
                     this.contentDecoded = false;
