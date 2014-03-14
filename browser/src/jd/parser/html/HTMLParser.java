@@ -678,8 +678,6 @@ public class HTMLParser {
                 }
             }
         }
-        /* ! must be %21 encoded */
-        input = input.replaceAll(HTMLParser.specialReplace2Pattern, "%21");
         /* ' must be %27 encoded */
         input = input.replaceAll(HTMLParser.specialReplacePattern, "%27");
         /* spaces must be %20 encoded */
