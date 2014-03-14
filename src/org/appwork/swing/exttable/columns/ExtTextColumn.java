@@ -39,12 +39,12 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     private Color             editorForeground;
     private Font              rendererFont;
     private Font              editorFont;
-    protected MigPanel        editor;
+    protected JPanel          editor;
 
     protected JLabel          rendererIcon;
 
-    protected JPanel        renderer;
-    protected RenderLabel     editorIconLabel;
+    protected JPanel          renderer;
+    protected JLabel          editorIconLabel;
     protected boolean         noset            = false;
 
     /**
@@ -66,7 +66,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             @Override
             public void setIcon(final Icon icon) {
 
-                setVisible(icon != null);
+                this.setVisible(icon != null);
                 if (icon != this.getIcon()) {
                     super.setIcon(icon);
                 }
@@ -101,7 +101,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             @Override
             public void setIcon(final Icon icon) {
 
-                setVisible(icon != null);
+                this.setVisible(icon != null);
                 super.setIcon(icon);
             }
         };
@@ -120,8 +120,8 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
             @Override
             public void setText(final String text) {
-                if (text != null && text.equals(getText())) { return; }
-                if (text == null && getText() == null) { return; }
+                if (text != null && text.equals(this.getText())) { return; }
+                if (text == null && this.getText() == null) { return; }
                 super.setText(text);
             }
 
@@ -131,13 +131,13 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         this.editorForeground = this.editorField.getForeground();
         this.rendererFont = this.rendererField.getFont();
         this.editorFont = this.editorField.getFont();
-        this.editor = createEditorPanel();
+        this.editor = this.createEditorPanel();
 
-        this.renderer = createRendererPanel();
+        this.renderer = this.createRendererPanel();
 
         this.layoutEditor(this.editor, this.editorIconLabel, this.editorField);
         this.layoutRenderer(this.renderer, this.rendererIcon, this.rendererField);
-        setRowSorter(new ExtDefaultRowSorter<E>() {
+        this.setRowSorter(new ExtDefaultRowSorter<E>() {
 
             @Override
             public int compare(final E o1, final E o2) {
@@ -149,7 +149,7 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
                 if (o2s == null) {
                     o2s = "";
                 }
-                if (getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
+                if (this.getSortOrderIdentifier() == ExtColumn.SORT_ASC) {
                     return o1s.compareToIgnoreCase(o2s);
                 } else {
                     return o2s.compareToIgnoreCase(o1s);
@@ -161,24 +161,9 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
 
     }
 
-    protected JPanel createRendererPanel() {
-        return new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
-    }
-
-    protected MigPanel createEditorPanel() {
-        return new MigPanel("ins 0", "[]5[grow,fill]", "[grow,fill]") {
-
-            @Override
-            public void requestFocus() {
-                editorField.requestFocus();
-            }
-
-        };
-    }
-
     public void actionPerformed(final ActionEvent e) {
         this.editorField.removeActionListener(this);
-        fireEditingStopped();
+        this.fireEditingStopped();
     }
 
     @Override
@@ -215,12 +200,27 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
             str = "";
         }
 
-        if (getTableColumn() != null) {
-            this.rendererField.setText(SwingUtilities2.clipStringIfNecessary(this.rendererField, this.rendererField.getFontMetrics(this.rendererField.getFont()), str, getTableColumn().getWidth() - this.rendererIcon.getPreferredSize().width - 5));
+        if (this.getTableColumn() != null) {
+            this.rendererField.setText(SwingUtilities2.clipStringIfNecessary(this.rendererField, this.rendererField.getFontMetrics(this.rendererField.getFont()), str, this.getTableColumn().getWidth() - this.rendererIcon.getPreferredSize().width - 5));
         } else {
             this.rendererField.setText(str);
         }
 
+    }
+
+    protected MigPanel createEditorPanel() {
+        return new MigPanel("ins 0", "[]5[grow,fill]", "[grow,fill]") {
+
+            @Override
+            public void requestFocus() {
+                ExtTextColumn.this.editorField.requestFocus();
+            }
+
+        };
+    }
+
+    protected RendererMigPanel createRendererPanel() {
+        return new RendererMigPanel("ins 0", "[]0[grow,fill]", "[grow,fill]");
     }
 
     @Override
@@ -252,6 +252,17 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
         return this.editorField.getText();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.appwork.swing.exttable.ExtColumn#getDefaultForeground()
+     */
+    @Override
+    protected Color getDefaultForeground() {
+
+        return this.editorForeground;
+    }
+
     /**
      * @return
      */
@@ -278,7 +289,6 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
      */
     @Override
     public JComponent getRendererComponent(final E value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-
         return this.renderer;
     }
 
@@ -336,24 +346,13 @@ public abstract class ExtTextColumn<E> extends ExtColumn<E> implements ActionLis
     @Override
     public boolean onRenameClick(final MouseEvent e, final E obj) {
         if (this.isEditable(obj)) {
-            startEditing(obj);
+            this.startEditing(obj);
             System.out.println("Start");
             return true;
         } else {
             return super.onRenameClick(e, obj);
         }
 
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.appwork.swing.exttable.ExtColumn#getDefaultForeground()
-     */
-    @Override
-    protected Color getDefaultForeground() {
-
-        return editorForeground;
     }
 
     protected void prepareColumn(final E value) {
