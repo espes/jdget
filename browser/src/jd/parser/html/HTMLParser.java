@@ -372,7 +372,7 @@ public class HTMLParser {
     final private static Pattern                space2Pattern               = Pattern.compile(".*\\s.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern                hdotsPattern                = Pattern.compile("h.{2,3}://", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern                specialReplacePattern       = Pattern.compile("'", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    final private static Pattern                specialReplace2Pattern      = Pattern.compile("!", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    final private static Pattern                specialReplace2Pattern      = Pattern.compile("%21", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern                missingHTTPPattern          = Pattern.compile("^www\\.", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     final private static Pattern                removeTagsPattern           = Pattern.compile("[<>\"]*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     
@@ -678,6 +678,8 @@ public class HTMLParser {
                 }
             }
         }
+        /* ! is allowed so we convert back %21 to ! */
+        input = input.replaceAll(HTMLParser.specialReplace2Pattern, "!");
         /* ' must be %27 encoded */
         input = input.replaceAll(HTMLParser.specialReplacePattern, "%27");
         /* spaces must be %20 encoded */
