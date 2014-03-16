@@ -217,8 +217,8 @@ public class Subversion implements ISVNEventHandler {
         }
     }
 
-    public void downloadFile(final String url, final File resource, final SVNRevision head) throws SVNException {
-        getUpdateClient().doExport(SVNURL.parseURIDecoded(url), resource, head, head, null, true, null);
+    public long downloadFile(final String url, final File resource, final SVNRevision head) throws SVNException {
+       return getUpdateClient().doExport(SVNURL.parseURIDecoded(url), resource, head, head, null, true, null);
 
     }
 

@@ -11,6 +11,7 @@ public interface HTTPConnection {
 
     public static enum RequestMethod {
         PUT,
+        DELETE,
         OPTIONS,
         GET,
         POST,
