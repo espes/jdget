@@ -9,10 +9,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map.Entry;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -79,7 +77,6 @@ public class TranslationFactory {
             final String id = sb.toString();
             T ret = (T) TranslationFactory.CACHE.get(id);
             if (ret == null) {
-
                 ret = (T) Proxy.newProxyInstance(class1.getClassLoader(), new Class[] { class1 }, new TranslationHandler(class1, lookup));
                 TranslationFactory.CACHE.put(id, ret);
             }
@@ -147,14 +144,15 @@ public class TranslationFactory {
      * 
      */
     public static java.util.List<TranslateInterface> getCachedInterfaces() {
-        final java.util.List<TranslateInterface> ret = new ArrayList<TranslateInterface>();
-        Entry<String, TranslateInterface> next;
-        for (final Iterator<Entry<String, TranslateInterface>> it = TranslationFactory.CACHE.entrySet().iterator(); it.hasNext();) {
-            next = it.next();
-            ret.remove(next.getValue());
-            ret.add(next.getValue());
+        final HashSet<TranslateInterface> ret = new HashSet<TranslateInterface>();
+        synchronized (TranslationFactory.CACHE) {
+            for (final TranslateInterface intf : TranslationFactory.CACHE.values()) {
+                if (intf != null) {
+                    ret.add(intf);
+                }
+            }
         }
-        return ret;
+        return new ArrayList<TranslateInterface>(ret);
 
     }
 
@@ -167,9 +165,7 @@ public class TranslationFactory {
      */
     public static Locale getDesiredLocale() {
         final String lng = TranslationFactory.getDesiredLanguage();
-
         return TranslationFactory.stringToLocale(lng);
-
     }
 
     public static List<String> listAvailableTranslations(final Class<? extends TranslateInterface>... classes) {
@@ -233,8 +229,10 @@ public class TranslationFactory {
         if (TranslationFactory.getDesiredLanguage().equals(loc)) { return false; }
         TranslationFactory.language = loc;
 
-        for (final TranslateInterface i : TranslationFactory.CACHE.values()) {
-            i._getHandler().setLanguage(loc);
+        synchronized (TranslationFactory.CACHE) {
+            for (final TranslateInterface i : TranslationFactory.CACHE.values()) {
+                i._getHandler().setLanguage(loc);
+            }
         }
         return true;
     }

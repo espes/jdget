@@ -11,11 +11,13 @@ package org.appwork.remoteapi;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
-import org.appwork.utils.ReusableByteArrayOutputStream;
+import org.appwork.utils.Application;
 import org.appwork.utils.net.ChunkedOutputStream;
 import org.appwork.utils.net.HTTPHeader;
 import org.appwork.utils.net.HeaderCollection;
@@ -27,6 +29,8 @@ import org.appwork.utils.net.httpserver.responses.HttpResponseInterface;
  * 
  */
 public class RemoteAPIResponse implements HttpResponseInterface {
+
+    protected final int        MAXUNCOMPRESSED = 32767;
 
     private final HttpResponse response;
     private final RemoteAPI    remoteAPI;
@@ -81,23 +85,31 @@ public class RemoteAPIResponse implements HttpResponseInterface {
      * @param bytes
      */
 
-    public void sendBytes(final boolean gzip, final boolean chunked, final byte[] bytes) throws IOException {
+    public void sendBytes(final RemoteAPIRequest request, final byte[] bytes) throws IOException {
         /* we dont want this api response to get cached */
         this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CACHE_CONTROL, "no-store, no-cache"));
-        this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
-        if (gzip == false) {
+        if (this.getResponseHeaders().get(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE) == null) {
+            this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
+        }
+        final boolean gzip = RemoteAPI.gzip(request);
+        final boolean deflate = RemoteAPI.gzip(request) && Application.getJavaVersion() >= Application.JAVA16;
+        if (gzip == false && deflate == false || bytes.length <= this.MAXUNCOMPRESSED) {
             this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, bytes.length + ""));
             this.getOutputStream(true).write(bytes);
         } else {
-            this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_CONTENT_ENCODING, "gzip"));
-            if (chunked == false) {
-                final ReusableByteArrayOutputStream os = new ReusableByteArrayOutputStream(1024);
-                final GZIPOutputStream out = new GZIPOutputStream(os);
+            if (deflate) {
+                this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_CONTENT_ENCODING, "deflate"));
+                this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING, HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
+                ChunkedOutputStream cos = null;
+                DeflaterOutputStream out = null;
+                cos = new ChunkedOutputStream(this.getOutputStream(true));
+                out = new DeflaterOutputStream(cos, new Deflater(9, true));
                 out.write(bytes);
                 out.finish();
-                this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_LENGTH, os.size() + ""));
-                this.getOutputStream(true).write(os.getInternalBuffer(), 0, os.size());
+                out.flush();
+                cos.sendEOF();
             } else {
+                this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_CONTENT_ENCODING, "gzip"));
                 this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING, HTTPConstants.HEADER_RESPONSE_TRANSFER_ENCODING_CHUNKED));
                 ChunkedOutputStream cos = null;
                 GZIPOutputStream out = null;

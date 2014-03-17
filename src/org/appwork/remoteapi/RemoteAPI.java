@@ -103,6 +103,16 @@ public class RemoteAPI implements HttpRequestHandler {
         }
     }
 
+    public static boolean deflate(final RemoteAPIRequest request) {
+        final HTTPHeader acceptEncoding = request.getRequestHeaders().get(HTTPConstants.HEADER_REQUEST_ACCEPT_ENCODING);
+        if (acceptEncoding != null) {
+            final String value = acceptEncoding.getValue();
+            if (value != null && value.contains("deflate")) { return true; }
+        }
+        return false;
+    }
+
+    @Deprecated
     public static OutputStream getOutputStream(final RemoteAPIResponse response, final RemoteAPIRequest request, final boolean gzip, final boolean wrapJQuery) throws IOException {
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CACHE_CONTROL, "no-store, no-cache"));
         response.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
@@ -232,7 +242,7 @@ public class RemoteAPI implements HttpRequestHandler {
                  */
                 return;
             }
-            this.writeStringResponse(responseData, method, true, request, response);
+            this.writeStringResponse(responseData, method, request, response);
         } catch (BasicRemoteAPIException e) {
             // set request and response if it has not set yet
             if (e.getRequest() == null) {
@@ -516,12 +526,11 @@ public class RemoteAPI implements HttpRequestHandler {
      * @throws UnsupportedEncodingException
      * @throws IOException
      */
-    public void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, String text, final boolean chunked) throws UnsupportedEncodingException, IOException {
-
+    public void sendText(final RemoteAPIRequest request, final RemoteAPIResponse response, String text) throws UnsupportedEncodingException, IOException {
         text = this.jQueryWrap(request, text);
         final byte[] bytes = text.getBytes("UTF-8");
         response.setResponseCode(ResponseCode.SUCCESS_OK);
-        response.sendBytes(RemoteAPI.gzip(request), chunked, bytes);
+        response.sendBytes(request, bytes);
     }
 
     /**
@@ -577,7 +586,7 @@ public class RemoteAPI implements HttpRequestHandler {
 
     }
 
-    public void writeStringResponse(Object responseData, final Method method, final boolean chunkedTransfer, final RemoteAPIRequest request, final RemoteAPIResponse response) throws BasicRemoteAPIException {
+    public void writeStringResponse(Object responseData, final Method method, final RemoteAPIRequest request, final RemoteAPIResponse response) throws BasicRemoteAPIException {
         try {
             String text = null;
             if (method != null) {
@@ -589,7 +598,7 @@ public class RemoteAPI implements HttpRequestHandler {
                 text = this.toString(request, response, responseData);
             }
 
-            this.sendText(request, response, text, chunkedTransfer);
+            this.sendText(request, response, text);
         } catch (final Throwable e) {
             final InternalApiException internal = new InternalApiException(e);
             internal.setRequest(request);
