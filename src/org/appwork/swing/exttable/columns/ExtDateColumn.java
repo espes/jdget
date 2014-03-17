@@ -36,19 +36,7 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
         this.date = new Date();
         this.sb = new StringBuffer();
         try {
-            this.dateFormat = new SimpleDateFormat(this.getDateFormatString()) {
-
-                /**
-                 * 
-                 */
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public StringBuffer format(final Date date, final StringBuffer toAppendTo, final FieldPosition pos) {
-                    ExtDateColumn.this.sb.setLength(0);
-                    return super.format(date, ExtDateColumn.this.sb, pos);
-                }
-            };
+            this.dateFormat = createDateFormat();
         } catch (final Exception e) {
             this.dateFormat = new SimpleDateFormat("dd.MM.yy HH:mm") {
 
@@ -95,6 +83,25 @@ public abstract class ExtDateColumn<E> extends ExtTextColumn<E> {
 
         });
         this.init();
+    }
+
+    /**
+     * @return
+     */
+    protected SimpleDateFormat createDateFormat() {
+       return new SimpleDateFormat(this.getDateFormatString()) {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public StringBuffer format(final Date date, final StringBuffer toAppendTo, final FieldPosition pos) {
+                ExtDateColumn.this.sb.setLength(0);
+                return super.format(date, ExtDateColumn.this.sb, pos);
+            }
+        };
     }
 
     /**
