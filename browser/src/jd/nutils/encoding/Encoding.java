@@ -26,7 +26,7 @@ import jd.parser.Regex;
 import org.appwork.utils.logging.Log;
 
 public class Encoding {
-
+    
     public static byte[] base16Decode(String code) {
         while (code.length() % 2 > 0) {
             code += "0";
@@ -36,15 +36,15 @@ public class Encoding {
         while (i < code.length()) {
             res[i / 2] = (byte) Integer.parseInt(code.substring(i, i + 2), 16);
             i += 2;
-
+            
         }
         return res;
     }
-
+    
     public static String Base64Decode(final String base64) {
         if (base64 == null) { return null; }
         try {
-
+            
             final byte[] plain = Base64.decode(base64);
             if (Encoding.filterString(new String(plain)).length() < plain.length / 1.5) { return base64; }
             return new String(plain);
@@ -52,16 +52,16 @@ public class Encoding {
             return base64;
         }
     }
-
+    
     public static String Base64Encode(final String plain) {
-
+        
         if (plain == null) { return null; }
-
+        
         // String base64 = new BASE64Encoder().encode(plain.getBytes());
         final String base64 = new String(Base64.encodeToByte(plain.getBytes(), false));
         return base64;
     }
-
+    
     /**
      * 
      * Wandelt HTML in CDATA um
@@ -75,7 +75,7 @@ public class Encoding {
         str = str.replaceAll(">", "&gt;");
         return str;
     }
-
+    
     /**
      * Wendet htmlDecode an, bis es keine Änderungen mehr gibt. Aber max 50 mal!
      * 
@@ -95,7 +95,7 @@ public class Encoding {
         }
         return tmp;
     }
-
+    
     /**
      * Filtert alle nicht lesbaren Zeichen aus str
      * 
@@ -106,7 +106,7 @@ public class Encoding {
         final String allowed = "QWERTZUIOPÜASDFGHJKLÖÄYXCVBNMqwertzuiopasdfghjklyxcvbnmöäü;:,._-&$%(){}#~+ 1234567890<>='\"/";
         return Encoding.filterString(str, allowed);
     }
-
+    
     /**
      * Filtert alle Zeichen aus str die in filter nicht auftauchen
      * 
@@ -116,7 +116,7 @@ public class Encoding {
      */
     public static String filterString(final String str, final String filter) {
         if (str == null || filter == null) { return ""; }
-
+        
         final byte[] org = str.getBytes();
         final byte[] mask = filter.getBytes();
         final byte[] ret = new byte[org.length];
@@ -134,7 +134,7 @@ public class Encoding {
         }
         return new String(ret).trim();
     }
-
+    
     /**
      * WARNING: we MUST use the encoding given in charset info by webserver! else missmatch will happen eg UTF8 vs ISO-8859-15
      **/
@@ -147,7 +147,7 @@ public class Encoding {
             return Encoding.urlEncode(str);
         }
     }
-
+    
     /**
      * "http://rapidshare.com&#x2F;&#x66;&#x69;&#x6C;&#x65;&#x73;&#x2F;&#x35;&#x34;&#x35;&#x34;&#x31;&#x34;&#x38;&#x35;&#x2F;&#x63;&#x63;&#x66;&#x32;&#x72;&#x73;&#x64;&#x66;&#x2E;&#x72;&#x61;&#x72;"
      * ; Wandelt alle hexkodierten zeichen in diesem Format in normalen text um
@@ -164,11 +164,11 @@ public class Encoding {
         }
         return Encoding.htmlOnlyDecode(str);
     }
-
+    
     public static String htmlOnlyDecode(String str) {
         if (str == null) { return null; }
         str = HTMLEntities.unhtmlentities(str);
-
+        
         str = HTMLEntities.unhtmlAmpersand(str);
         str = HTMLEntities.unhtmlAngleBrackets(str);
         str = HTMLEntities.unhtmlDoubleQuotes(str);
@@ -176,7 +176,7 @@ public class Encoding {
         str = HTMLEntities.unhtmlSingleQuotes(str);
         return str;
     }
-
+    
     public static boolean isUrlCoded(final String str) {
         if (str == null) { return false; }
         try {
@@ -189,15 +189,14 @@ public class Encoding {
             return false;
         }
     }
-
+    
     public static void main(final String[] args) {
         final String test = "new encoding &#39";
         System.out.println(test);
     }
+    
     public static String unescape(String s) {
-        if (s == null) {
-            return null;
-        }
+        if (s == null) { return null; }
         if (true) {
             // convert any html based unicode as a pre correction
             String test = s;
@@ -227,51 +226,52 @@ public class Encoding {
             // prevents StringIndexOutOfBoundsException with ending char equals case trigger
             if (s.length() != i + 1) {
                 switch (ch) {
-                case '%':
-                case '\\':
-                    ch2 = ch;
-                    ch = s.charAt(++i);
-                    StringBuilder sb2 = null;
-                    switch (ch) {
-                    case 'u':
-                        /* unicode */
-                        sb2 = new StringBuilder();
-                        i++;
-                        ii = i + 4;
-                        for (; i < ii; i++) {
-                            ch = s.charAt(i);
-                            if (sb2.length() > 0 || ch != '0') {
-                                sb2.append(ch);
-                            }
+                    case '%':
+                    case '\\':
+                        ch2 = ch;
+                        ch = s.charAt(++i);
+                        StringBuilder sb2 = null;
+                        switch (ch) {
+                            case 'u':
+                                /* unicode */
+                                sb2 = new StringBuilder();
+                                i++;
+                                ii = i + 4;
+                                for (; i < ii; i++) {
+                                    ch = s.charAt(i);
+                                    if (sb2.length() > 0 || ch != '0') {
+                                        sb2.append(ch);
+                                    }
+                                }
+                                i--;
+                                sb.append((char) Long.parseLong(sb2.toString(), 16));
+                                continue;
+                            case 'x':
+                                /* normal hex coding */
+                                sb2 = new StringBuilder();
+                                i++;
+                                ii = i + 2;
+                                for (; i < ii; i++) {
+                                    ch = s.charAt(i);
+                                    sb2.append(ch);
+                                }
+                                i--;
+                                sb.append((char) Long.parseLong(sb2.toString(), 16));
+                                continue;
+                            default:
+                                if (ch2 == '%') {
+                                    sb.append(ch2);
+                                }
+                                sb.append(ch);
+                                continue;
                         }
-                        i--;
-                        sb.append((char) Long.parseLong(sb2.toString(), 16));
-                        continue;
-                    case 'x':
-                        /* normal hex coding */
-                        sb2 = new StringBuilder();
-                        i++;
-                        ii = i + 2;
-                        for (; i < ii; i++) {
-                            ch = s.charAt(i);
-                            sb2.append(ch);
-                        }
-                        i--;
-                        sb.append((char) Long.parseLong(sb2.toString(), 16));
-                        continue;
-                    default:
-                        if (ch2 == '%') {
-                            sb.append(ch2);
-                        }
-                        sb.append(ch);
-                        continue;
-                    }
                 }
             }
             sb.append(ch);
         }
         return sb.toString();
     }
+    
     public static String urlDecode(String urlcoded, final boolean isUrl) {
         if (urlcoded == null) { return null; }
         if (isUrl) {
@@ -284,6 +284,10 @@ public class Encoding {
                 urlcoded = urlcoded.replaceAll("%26", "&");
                 urlcoded = urlcoded.replaceAll("%23", "#");
             }
+            final boolean seemsFileURL = urlcoded.startsWith("file://");
+            if (seemsFileURL) {
+                urlcoded = urlcoded.replaceAll("%20", " ");
+            }
         } else {
             try {
                 urlcoded = URLDecoder.decode(urlcoded, "UTF-8");
@@ -293,7 +297,7 @@ public class Encoding {
         }
         return urlcoded;
     }
-
+    
     /**
      * WARNING: we MUST use the encoding given in charset info by webserver! else missmatch will happen eg UTF8 vs ISO-8859-15
      **/
@@ -306,7 +310,7 @@ public class Encoding {
         }
         return str;
     }
-
+    
     public static String urlEncode_light(final String url) {
         if (url == null) { return null; }
         final StringBuffer sb = new StringBuffer();
@@ -340,10 +344,10 @@ public class Encoding {
         }
         return sb.toString();
     }
-
+    
     /**
-     * Wandelt String in 'HTML URL Encode' um. Es werden alle Zeichen, nicht nur Sonderzeichen oder Umlaute kodiert. Beispielsweise wird "ä"
-     * zu "%E4" und "(auto)" zu "%28%61%75%74%6F%29".
+     * Wandelt String in 'HTML URL Encode' um. Es werden alle Zeichen, nicht nur Sonderzeichen oder Umlaute kodiert. Beispielsweise wird "ä" zu "%E4" und
+     * "(auto)" zu "%28%61%75%74%6F%29".
      * 
      * @see http://www.w3schools.com/tags/ref_urlencode.asp
      * @param string
@@ -368,17 +372,17 @@ public class Encoding {
         }
         return sb.toString();
     }
-
+    
     /**
      * @author JD-Team
      * @param str
      * @return str als UTF8Decodiert
      */
-
+    
     public static String UTF8Decode(final String str) {
         return Encoding.UTF8Decode(str, null);
     }
-
+    
     public static String UTF8Decode(final String str, final String sourceEncoding) {
         if (str == null) { return null; }
         try {
@@ -392,7 +396,7 @@ public class Encoding {
             return str;
         }
     }
-
+    
     /**
      * @author JD-Team
      * @param str
@@ -406,5 +410,5 @@ public class Encoding {
             return null;
         }
     }
-
+    
 }
