@@ -21,6 +21,40 @@ import java.util.HashSet;
  */
 public class Exceptions {
     /**
+     * 
+     * returns true of e instanceof class1 or any causes of e instanceof class1
+     * 
+     * @param e
+     * @param class1
+     * @return
+     */
+    public static boolean containsInstanceOf(final Throwable e, final Class<? extends Throwable>... classes) {
+        for (final Class<? extends Throwable> class1 : classes) {
+            if (Exceptions.getInstanceof(e, class1) != null) { return true; }
+        }
+        return false;
+
+    }
+
+    /**
+     * @param <T>
+     * @param e
+     * @param class1
+     * @return
+     */
+    public static <T extends Throwable> T getInstanceof(Throwable e, final Class<T> class1) {
+        Throwable cause;
+        final HashSet<Throwable> dupe = new HashSet<Throwable>();
+        while (true) {
+
+            if (class1.isAssignableFrom(e.getClass())) { return (T) e; }
+            cause = e.getCause();
+            if (cause == null || !dupe.add(cause)) { return null; }
+            e = cause;
+        }
+    }
+
+    /**
      * prints the StrackTrace into given StringBuffer
      * 
      */
@@ -28,8 +62,8 @@ public class Exceptions {
         final Writer sw = new Writer() {
             final int startPos;
             {
-                lock = sb;
-                startPos = sb.length();
+                this.lock = sb;
+                this.startPos = sb.length();
             }
 
             @Override
@@ -65,7 +99,7 @@ public class Exceptions {
 
             @Override
             public String toString() {
-                return sb.substring(startPos);
+                return sb.substring(this.startPos);
             }
 
             @Override
@@ -110,51 +144,12 @@ public class Exceptions {
      * @return
      */
     public static String getStackTrace(final Throwable thrown) {
+        if (thrown == null) { return ""; }
         final StringWriter sw = new StringWriter();
         final PrintWriter pw = new PrintWriter(sw);
         thrown.printStackTrace(pw);
         pw.close();
         return sw.toString();
-    }
-
-    /**
-     * 
-     * returns true of e instanceof class1 or any causes of e instanceof class1
-     * 
-     * @param e
-     * @param class1
-     * @return
-     */
-    public static boolean containsInstanceOf(final Throwable e, final Class<? extends Throwable> ...classes) {
-        for(final Class<? extends Throwable> class1:classes){
-            if(getInstanceof(e, class1) != null) {
-                return true;
-            }
-        }
-        return false;
-
-    }
-
-    /**
-     * @param <T>
-     * @param e
-     * @param class1
-     * @return
-     */
-    public static   <T extends Throwable> T getInstanceof(Throwable e, final Class<T> class1) {
-        Throwable cause;
-        final HashSet<Throwable> dupe = new HashSet<Throwable>();
-        while (true) {
-           
-            if (class1.isAssignableFrom(e.getClass())) {
-                return (T)e;
-            }
-            cause = e.getCause();
-            if (cause == null || !dupe.add(cause)) {
-                return null;
-            }
-            e = cause;
-        }
     }
 
 }

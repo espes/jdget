@@ -16,6 +16,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.EventListener;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.appwork.utils.IO;
 import org.appwork.utils.swing.dialog.Dialog;
@@ -125,10 +128,11 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
      * List of registered Eventlistener
      */
 
-    transient volatile protected java.util.List<ListenerType>                strongListeners = null;
-    transient volatile protected java.util.List<WeakReference<ListenerType>> weakListener    = null;
+    transient volatile protected Set<EventSuppressor<EventType>>    eventSuppressors = new CopyOnWriteArraySet<EventSuppressor<EventType>>();
+    transient volatile protected List<ListenerType>                strongListeners  = null;
+    transient volatile protected List<WeakReference<ListenerType>> weakListener     = null;
 
-    private final Object                                                     LOCK            = new Object();
+    private final Object                                           LOCK             = new Object();
 
     /**
      * List of Listeners that are requested for removal
@@ -141,7 +145,6 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
     public Eventsender() {
         this.strongListeners = new ArrayList<ListenerType>();
         this.weakListener = new ArrayList<WeakReference<ListenerType>>();
-
     }
 
     /**
@@ -156,6 +159,12 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
     public void addAllListener(final java.util.List<ListenerType> listener, final boolean weak) {
         for (final ListenerType l : listener) {
             this.addListener(l, weak);
+        }
+    }
+
+    public void addEventSuppressor(final EventSuppressor<EventType> eventSuppressor) {
+        if (eventSuppressor != null) {
+            this.eventSuppressors.add(eventSuppressor);
         }
     }
 
@@ -235,6 +244,9 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
 
     final public void fireEvent(final EventType event) {
         if (event == null) { return; }
+        for (final EventSuppressor<EventType> eventSuppressor : this.eventSuppressors) {
+            if (eventSuppressor.suppressEvent(event)) { return; }
+        }
         ListenerType t = null;
         boolean cleanup = false;
         final java.util.List<WeakReference<ListenerType>> listeners = this.weakListener;
@@ -252,46 +264,12 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
     }
 
     /**
-     * Fires an Event to all registered Listeners
-     * 
-     * @param event
-     * @return
-     */
-    final public void fireEvent(final int id, final Object... parameters) {
-        ListenerType t = null;
-        boolean cleanup = false;
-        final java.util.List<WeakReference<ListenerType>> listeners = this.weakListener;
-        for (final WeakReference<ListenerType> listener : listeners) {
-            t = listener.get();
-            if (t == null) {
-                cleanup = true;
-                continue;
-            }
-            this.fireEvent(t, id, parameters);
-        }
-        if (cleanup && listeners.size() > 0) {
-            this.cleanup();
-        }
-    }
-
-    /**
      * Abstract fire Event Method.
      * 
      * @param listener
      * @param event
      */
     protected abstract void fireEvent(ListenerType listener, EventType event);
-
-    /**
-     * 
-     * @param t
-     * @param id
-     * @param parameters
-     */
-    protected void fireEvent(final ListenerType listener, final int id, final Object... parameters) {
-        throw new RuntimeException("Not implemented. Overwrite org.appwork.utils.event.Eventsender.fireEvent(T, int, Object...) to use this");
-
-    }
 
     public java.util.List<ListenerType> getListener() {
         final java.util.List<WeakReference<ListenerType>> listeners = this.weakListener;
@@ -318,6 +296,12 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
             if (listener.get() != null) { return true; }
         }
         return false;
+    }
+
+    public void removeEventSuppressor(final EventSuppressor<EventType> eventSuppressor) {
+        if (eventSuppressor != null) {
+            this.eventSuppressors.remove(eventSuppressor);
+        }
     }
 
     public void removeListener(final ListenerType t) {
