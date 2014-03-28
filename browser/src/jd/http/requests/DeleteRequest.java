@@ -24,15 +24,15 @@ import jd.http.Request;
 import org.appwork.utils.net.httpconnection.HTTPConnection.RequestMethod;
 
 /**
- * The HTTP/1.0 specification defined the GET, POST and HEAD methods and the HTTP/1.1 specification. The GET method requests a
- * representation of the specified resource. Requests using GET should only retrieve data and should have no other effect.
+ * The HTTP/1.0 specification defined the GET, POST and HEAD methods and the HTTP/1.1 specification. The GET method requests a representation of the specified
+ * resource. Requests using GET should only retrieve data and should have no other effect.
  */
 public class DeleteRequest extends Request {
-
+    
     public DeleteRequest(final Request cloneRequest) {
         super(cloneRequest);
     }
-
+    
     /**
      * constructor
      * 
@@ -45,22 +45,22 @@ public class DeleteRequest extends Request {
     public DeleteRequest(final String url) throws MalformedURLException {
         super(url);
     }
-
+    
     @Override
     public DeleteRequest cloneRequest() {
         return new DeleteRequest(this);
     }
-
+    
     /** {@inheritDoc} */
     @Override
     public long postRequest() throws IOException {
         return 0;
     }
-
+    
     /** {@inheritDoc} */
     @Override
     public void preRequest() throws IOException {
-        httpConnection.setRequestMethod(RequestMethod.DELETE);
+        this.httpConnection.setRequestMethod(RequestMethod.DELETE);
     }
-
+    
 }

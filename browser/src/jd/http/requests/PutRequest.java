@@ -23,6 +23,11 @@ public class PutRequest extends PostRequest {
     }
     
     @Override
+    public PutRequest cloneRequest() {
+        return new PutRequest(this);
+    }
+    
+    @Override
     public void preRequest() throws IOException {
         super.preRequest();
         this.httpConnection.setRequestMethod(RequestMethod.PUT);
