@@ -379,8 +379,9 @@ public abstract class Request {
         if (!this.requested) { return "Request not sent yet"; }
         try {
             this.getHtmlCode();
-            if (this.htmlCode == null || this.htmlCode.length() == 0) {
-                if (this.getLocation() != null) { return "Not HTML Code. Redirect to: " + this.getLocation(); }
+            if (StringUtils.isEmpty(this.htmlCode)) {
+                final String location = this.getLocation();
+                if (location != null) { return "Not HTML Code. Redirect to: " + location; }
                 return "No htmlCode read";
             }
         } catch (final Exception e) {
