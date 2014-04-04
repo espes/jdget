@@ -195,6 +195,9 @@ public class HTTPConstants {
     public static final String HEADER_REQUEST_CONTENT_TYPE                  = "Content-Type";
 
     public static final String HEADER_REQUEST_CONTENT_RANGE                 = "Content-Range";
+
+    public static final String HEADER_RESPONSE_CONTENT_DISPOSITION          = "Content-Disposition";
+
     /**
      * The date and time that the message was sent Date: Tue, 15 Nov 1994
      * 08:12:31 GMT

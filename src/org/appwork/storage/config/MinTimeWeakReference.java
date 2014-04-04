@@ -14,6 +14,7 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.appwork.scheduler.DelayedRunnable;
 
@@ -69,14 +70,12 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
 
     }
 
-    @SuppressWarnings("unused")
-    private T                                 hard;
-
     // private final String id;
 
-    private DelayedRunnable                   delayer;
-    private final MinTimeWeakReferenceCleanup cleanupMinTimeWeakReference;
-    private final String                      id;
+    private final AtomicReference<DelayedRunnable> hardReference = new AtomicReference<DelayedRunnable>(null);
+    private final MinTimeWeakReferenceCleanup      cleanupMinTimeWeakReference;
+    private final String                           id;
+    private final long                             minLifeTime;
 
     /**
      * @param ret
@@ -88,20 +87,18 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
         this(ret, minlifetime, id, null);
     }
 
-    public MinTimeWeakReference(final T ret, final long minlifetime, final String id, final MinTimeWeakReferenceCleanup cleanupMinTimeWeakReference) {
-        // super(ret, MinTimeWeakReference.QUEUE);
+    public MinTimeWeakReference(final T ret, final long minLifeTime, final String id, final MinTimeWeakReferenceCleanup cleanupMinTimeWeakReference) {
         super(ret, MinTimeWeakReference.QUEUE);
-        this.hard = ret;
         this.id = id;
-        // this.id = id;
-        this.delayer = new DelayedRunnable(MinTimeWeakReference.EXECUTER, minlifetime) {
+        this.minLifeTime = minLifeTime;
+        /* we get the item at least once to start the cleanup process here */
+        this.hardReference.set(new DelayedRunnable(MinTimeWeakReference.EXECUTER, minLifeTime) {
+            @SuppressWarnings("unused")
+            private final T hardReference = ret;
 
             @Override
             public void delayedrun() {
-                // System.out.println("remove hardRef");
-                synchronized (MinTimeWeakReference.this) {
-                    MinTimeWeakReference.this.hard = null;
-                }
+                MinTimeWeakReference.this.hardReference.compareAndSet(this, null);
             }
 
             @Override
@@ -109,15 +106,22 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
                 return "MinTimeWeakReference_" + id;
             }
 
-        };
-        /* we get the item at least once to start the cleanup process here */
+            @Override
+            public void stop() {
+                this.delayedrun();
+                super.stop();
+            }
+        });
+
         this.get();
-        // System.out.println("Created Week " + id);
         this.cleanupMinTimeWeakReference = cleanupMinTimeWeakReference;
     }
 
     public void clearReference() {
-        MinTimeWeakReference.this.hard = null;
+        final DelayedRunnable old = this.hardReference.getAndSet(null);
+        if (old != null) {
+            old.stop();
+        }
     }
 
     /**
@@ -127,21 +131,35 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
     public T get() {
         final T ret = super.get();
         if (ret == null) {
-            synchronized (MinTimeWeakReference.this) {
-                /* T is gone so lets kill hardreference too */
-                if (this.delayer != null) {
-                    this.delayer.stop();
-                }
-                this.delayer = null;
-                this.hard = null;
-                return null;
-            }
+            this.clearReference();
         } else {
-            /* T still exists, lets refresh hardreference */
-            synchronized (MinTimeWeakReference.this) {
-                if (this.delayer != null) {
-                    this.delayer.run();
-                    this.hard = ret;
+            DelayedRunnable minHardReference = this.hardReference.get();
+            if (minHardReference != null) {
+                minHardReference.resetAndStart();
+                this.hardReference.compareAndSet(null, minHardReference);
+            } else {
+                minHardReference = new DelayedRunnable(MinTimeWeakReference.EXECUTER, this.minLifeTime) {
+                    @SuppressWarnings("unused")
+                    private final T hardReference = ret;
+
+                    @Override
+                    public void delayedrun() {
+                        MinTimeWeakReference.this.hardReference.compareAndSet(this, null);
+                    }
+
+                    @Override
+                    public String getID() {
+                        return "MinTimeWeakReference_" + MinTimeWeakReference.this.id;
+                    }
+
+                    @Override
+                    public void stop() {
+                        this.delayedrun();
+                        super.stop();
+                    }
+                };
+                if (this.hardReference.compareAndSet(null, minHardReference)) {
+                    minHardReference.resetAndStart();
                 }
             }
         }
@@ -155,13 +173,7 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
     public boolean isGone() {
         final T ret = super.get();
         if (ret == null) {
-            synchronized (MinTimeWeakReference.this) {
-                if (this.delayer != null) {
-                    this.delayer.stop();
-                }
-                this.delayer = null;
-                this.hard = null;
-            }
+            this.clearReference();
             return true;
         }
         return false;
@@ -180,8 +192,9 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
         return super.get();
     }
 
-    // @Override
-    // public String toString() {
-    // return " Cacheed " + this.id;
-    // }
+    @Override
+    public String toString() {
+        return "MinTimeWeakReference_" + MinTimeWeakReference.this.id + "|Gone:" + this.isGone();
+    }
+
 }
