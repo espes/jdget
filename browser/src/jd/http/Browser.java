@@ -1376,6 +1376,7 @@ public class Browser {
     /**
      * @param allowedResponseCodes
      *            the allowedResponseCodes to set
+     * @since JD2
      */
     public void setAllowedResponseCodes(final int... allowedResponseCodes) {
         this.allowedResponseCodes = allowedResponseCodes;
