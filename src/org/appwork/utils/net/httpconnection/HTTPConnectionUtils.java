@@ -159,6 +159,21 @@ public class HTTPConnectionUtils {
                     complete &= bigbuffer.get(position - 3) == HTTPConnectionUtils.N;
                     complete &= bigbuffer.get(position - 2) == HTTPConnectionUtils.R;
                     complete &= bigbuffer.get(position - 1) == HTTPConnectionUtils.N;
+
+                    if (complete) {
+                        break;
+                    }
+
+                    complete = bigbuffer.get(position - 2) == HTTPConnectionUtils.N;
+                    complete &= bigbuffer.get(position - 1) == HTTPConnectionUtils.N;
+
+                    if (complete) {
+                        break;
+                    }
+
+                    complete = bigbuffer.get(position - 2) == HTTPConnectionUtils.R;
+                    complete &= bigbuffer.get(position - 1) == HTTPConnectionUtils.R;
+
                     if (complete) {
                         break;
                     }
