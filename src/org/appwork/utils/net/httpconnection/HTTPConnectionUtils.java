@@ -14,8 +14,8 @@ import org.appwork.utils.logging.Log;
 
 public class HTTPConnectionUtils {
 
-    public static byte R = (byte) 13;
-    public static byte N = (byte) 10;
+    public final static byte R = (byte) 13;
+    public final static byte N = (byte) 10;
 
     public static String getFileNameFromDispositionHeader(String header) {
         // http://greenbytes.de/tech/tc2231/
@@ -121,18 +121,14 @@ public class HTTPConnectionUtils {
         ByteBuffer bigbuffer = ByteBuffer.wrap(new byte[4096]);
         final byte[] minibuffer = new byte[1];
         int position;
-        int c;
-        boolean complete = false;
-        while ((c = in.read(minibuffer)) >= 0) {
+        while (in.read(minibuffer) >= 0) {
             if (bigbuffer.remaining() < 1) {
                 final ByteBuffer newbuffer = ByteBuffer.wrap(new byte[bigbuffer.capacity() * 2]);
                 bigbuffer.flip();
                 newbuffer.put(bigbuffer);
                 bigbuffer = newbuffer;
             }
-            if (c > 0) {
-                bigbuffer.put(minibuffer);
-            }
+            bigbuffer.put(minibuffer);
             if (readSingleLine) {
                 if (bigbuffer.position() >= 1) {
                     /*
@@ -143,40 +139,29 @@ public class HTTPConnectionUtils {
                     if (bigbuffer.get(position - 1) == HTTPConnectionUtils.N) {
                         break;
                     }
-                }
-                if (bigbuffer.position() >= 2) {
-                    /* \r\n, correct line termination */
-                    position = bigbuffer.position();
-                    if (bigbuffer.get(position - 2) == HTTPConnectionUtils.R && bigbuffer.get(position - 1) == HTTPConnectionUtils.N) {
-                        break;
+                    if (bigbuffer.position() >= 2) {
+                        /* \r\n, correct line termination */
+                        if (bigbuffer.get(position - 2) == HTTPConnectionUtils.R && bigbuffer.get(position - 1) == HTTPConnectionUtils.N) {
+                            break;
+                        }
                     }
                 }
             } else {
-                if (bigbuffer.position() >= 4) {
-                    /* RNRN for header<->content divider */
+                if (bigbuffer.position() >= 2) {
                     position = bigbuffer.position();
-                    complete = bigbuffer.get(position - 4) == HTTPConnectionUtils.R;
-                    complete &= bigbuffer.get(position - 3) == HTTPConnectionUtils.N;
-                    complete &= bigbuffer.get(position - 2) == HTTPConnectionUtils.R;
-                    complete &= bigbuffer.get(position - 1) == HTTPConnectionUtils.N;
-
-                    if (complete) {
+                    if (bigbuffer.get(position - 2) == HTTPConnectionUtils.N && bigbuffer.get(position - 1) == HTTPConnectionUtils.N) {
+                        /*
+                         * \n\n for header<->content divider, or fucking buggy
+                         * non rfc servers
+                         */
                         break;
                     }
-
-//                    complete = bigbuffer.get(position - 2) == HTTPConnectionUtils.N;
-//                    complete &= bigbuffer.get(position - 1) == HTTPConnectionUtils.N;
-//
-//                    if (complete) {
-//                        break;
-//                    }
-//
-//                    complete = bigbuffer.get(position - 2) == HTTPConnectionUtils.R;
-//                    complete &= bigbuffer.get(position - 1) == HTTPConnectionUtils.R;
-//
-//                    if (complete) {
-//                        break;
-//                    }
+                    if (bigbuffer.position() >= 4) {
+                        /* \r\n\r\n for header<->content divider */
+                        if (bigbuffer.get(position - 4) == HTTPConnectionUtils.R && bigbuffer.get(position - 3) == HTTPConnectionUtils.N && bigbuffer.get(position - 2) == HTTPConnectionUtils.R && bigbuffer.get(position - 1) == HTTPConnectionUtils.N) {
+                            break;
+                        }
+                    }
                 }
             }
         }

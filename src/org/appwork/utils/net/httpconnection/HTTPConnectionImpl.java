@@ -180,9 +180,13 @@ public class HTTPConnectionImpl implements HTTPConnection {
         this.inputStreamConnected = true;
         /* first read http header */
         ByteBuffer header = HTTPConnectionUtils.readheader(this.httpSocket.getInputStream(), true);
-        byte[] bytes = new byte[header.limit()];
-        header.get(bytes);
-        this.httpHeader = new String(bytes, "ISO-8859-1").trim();
+        if (header.hasArray()) {
+            this.httpHeader = new String(header.array(), 0, header.limit(), "ISO-8859-1").trim();
+        } else {
+            final byte[] bytes = new byte[header.limit()];
+            header.get(bytes);
+            this.httpHeader = new String(bytes, "ISO-8859-1").trim();
+        }
         /* parse response code/message */
         if (this.httpHeader.startsWith("HTTP")) {
             final String code = new Regex(this.httpHeader, "HTTP.*? (\\d+)").getMatch(0);
@@ -197,13 +201,20 @@ public class HTTPConnectionImpl implements HTTPConnection {
             this.httpHeader = HTTPConnectionImpl.UNKNOWN_HTTP_RESPONSE;
             this.httpResponseCode = 200;
             this.httpResponseMessage = HTTPConnectionImpl.UNKNOWN_HTTP_RESPONSE;
-            if (bytes.length > 0) {
-                this.inputStream = new PushbackInputStream(this.httpSocket.getInputStream(), bytes.length);
+            if (header.limit() > 0) {
                 /*
                  * push back the data that got read because no http header
                  * exists
                  */
-                ((PushbackInputStream) this.inputStream).unread(bytes);
+                if (header.hasArray()) {
+                    this.inputStream = new PushbackInputStream(this.httpSocket.getInputStream(), header.limit());
+                    ((PushbackInputStream) this.inputStream).unread(header.array(), 0, header.limit());
+                } else {
+                    final byte[] bytes = new byte[header.limit()];
+                    header.get(bytes);
+                    this.inputStream = new PushbackInputStream(this.httpSocket.getInputStream(), bytes.length);
+                    ((PushbackInputStream) this.inputStream).unread(bytes);
+                }
             } else {
                 /* nothing to push back */
                 this.inputStream = this.httpSocket.getInputStream();
@@ -212,12 +223,16 @@ public class HTTPConnectionImpl implements HTTPConnection {
         }
         /* read rest of http headers */
         header = HTTPConnectionUtils.readheader(this.httpSocket.getInputStream(), false);
-        bytes = new byte[header.limit()];
-        header.get(bytes);
-        String temp = new String(bytes, "UTF-8");
+        final String temp;
+        if (header.hasArray()) {
+            temp = new String(header.array(), 0, header.limit(), "UTF-8");
+        } else {
+            final byte[] bytes = new byte[header.limit()];
+            header.get(bytes);
+            temp = new String(bytes, "UTF-8");
+        }
         /* split header into single strings, use RN or N(buggy fucking non rfc) */
         String[] headerStrings = temp.split("(\r\n)|(\n)");
-        temp = null;
         for (final String line : headerStrings) {
             String key = null;
             String value = null;
