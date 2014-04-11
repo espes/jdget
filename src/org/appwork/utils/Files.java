@@ -59,13 +59,13 @@ public class Files {
      * @throws IOException
      */
     public static void deleteRecursiv(final File file) throws IOException {
-        deleteRecursiv(file, true);
+        Files.deleteRecursiv(file, true);
     }
 
     /**
      * @param file
      * @param b
-     * @throws IOException 
+     * @throws IOException
      */
     public static void deleteRecursiv(final File file, final boolean breakOnError) throws IOException {
         if (!file.exists()) { throw new FileNotFoundException(file.getAbsolutePath()); }
@@ -146,7 +146,7 @@ public class Files {
 
         final int index = name.lastIndexOf(".");
         if (index < 0) { return null; }
-        return name.substring(index + 1).toLowerCase();
+        return name.substring(index + 1).toLowerCase(Locale.ENGLISH);
     }
 
     /**
