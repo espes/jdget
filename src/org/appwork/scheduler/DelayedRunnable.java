@@ -94,10 +94,10 @@ public abstract class DelayedRunnable implements Runnable {
 
     public DelayedRunnable(final ScheduledExecutorService service, final long minDelayInMS, final long maxDelayInMS) {
         this.service = service;
-        delayInMS = minDelayInMS;
-        maxInMS = maxDelayInMS;
-        if (delayInMS <= 0) { throw new IllegalArgumentException("minDelay must be >0"); }
-        if (maxInMS == 0) { throw new IllegalArgumentException("maxDelay must be !=0"); }
+        this.delayInMS = minDelayInMS;
+        this.maxInMS = maxDelayInMS;
+        if (this.delayInMS <= 0) { throw new IllegalArgumentException("minDelay must be >0"); }
+        if (this.maxInMS == 0) { throw new IllegalArgumentException("maxDelay must be !=0"); }
     }
 
     abstract public void delayedrun();
@@ -106,95 +106,96 @@ public abstract class DelayedRunnable implements Runnable {
         return null;
     }
 
+    public boolean isDelayerActive() {
+        return this.delayerSet.get();
+    }
+
     public boolean isDelayerEnabled() {
-        return delayerEnabled.get();
+        return this.delayerEnabled.get();
     }
 
     public void resetAndStart() {
-        run();
-    }
-    public boolean isDelayerActive(){
-        return delayerSet.get();
+        this.run();
     }
 
     @Override
     public void run() {
-        if (isDelayerEnabled() == false) {
+        if (this.isDelayerEnabled() == false) {
             DelayedRunnable.this.delayedrun();
             return;
         }
-        lastRunRequest.set(System.currentTimeMillis());
-        if (delayerSet.getAndSet(true) == true) { return; }
-        firstRunRequest.compareAndSet(0, System.currentTimeMillis());
-        service.schedule(new Runnable() {
+        this.lastRunRequest.set(System.currentTimeMillis());
+        if (this.delayerSet.getAndSet(true) == true) { return; }
+        this.firstRunRequest.compareAndSet(0, System.currentTimeMillis());
+        this.service.schedule(new Runnable() {
 
             private void delayAgain(final long currentTime, Long nextDelay, final long minDif, final long thisRequestRun) {
-                if (delayerSet.get() == false) { return; }
+                if (DelayedRunnable.this.delayerSet.get() == false) { return; }
                 if (nextDelay == null) {
-                    nextDelay = Math.max(0, delayInMS - minDif);
+                    nextDelay = Math.max(0, DelayedRunnable.this.delayInMS - minDif);
                 }
                 if (nextDelay < 10) {
-                    runNow(currentTime, thisRequestRun, minDif);
+                    this.runNow(currentTime, thisRequestRun, minDif);
                     return;
                 }
-                service.schedule(this, nextDelay, TimeUnit.MILLISECONDS);
+                DelayedRunnable.this.service.schedule(this, nextDelay, TimeUnit.MILLISECONDS);
             }
 
             public void run() {
-                if (delayerSet.get() == false) { return; }
-                final long thisRunRequest = lastRunRequest.get();
+                if (DelayedRunnable.this.delayerSet.get() == false) { return; }
+                final long thisRunRequest = DelayedRunnable.this.lastRunRequest.get();
                 final long currentTime = System.currentTimeMillis();
                 final long minDif = currentTime - thisRunRequest;
-                if (minDif >= delayInMS) {
+                if (minDif >= DelayedRunnable.this.delayInMS) {
                     /* minDelay reached, run now */
-                    runNow(currentTime, thisRunRequest, minDif);
+                    this.runNow(currentTime, thisRunRequest, minDif);
                     return;
                 }
                 final long firstRunRequest = DelayedRunnable.this.firstRunRequest.get();
                 Long nextDelay = null;
-                if (maxInMS > 0) {
+                if (DelayedRunnable.this.maxInMS > 0) {
                     final long maxDif = currentTime - firstRunRequest;
-                    if (maxDif >= maxInMS) {
+                    if (maxDif >= DelayedRunnable.this.maxInMS) {
                         /* maxDelay reached, run now */
-                        runNow(currentTime, thisRunRequest, minDif);
+                        this.runNow(currentTime, thisRunRequest, minDif);
                         return;
                     }
-                    final long delay = maxInMS - maxDif;
-                    nextDelay = Math.min(delay, delayInMS);
+                    final long delay = DelayedRunnable.this.maxInMS - maxDif;
+                    nextDelay = Math.min(delay, DelayedRunnable.this.delayInMS);
                 }
-                delayAgain(currentTime, nextDelay, minDif, thisRunRequest);
+                this.delayAgain(currentTime, nextDelay, minDif, thisRunRequest);
             }
 
             private void runNow(final long currentTime, final long thisRunRequest, final long minDif) {
                 try {
                     DelayedRunnable.this.delayedrun();
                 } finally {
-                    if (thisRunRequest != lastRunRequest.get()) {
-                        firstRunRequest.set(currentTime);
-                        delayAgain(currentTime, delayInMS, minDif, thisRunRequest);
+                    if (thisRunRequest != DelayedRunnable.this.lastRunRequest.get()) {
+                        DelayedRunnable.this.firstRunRequest.set(currentTime);
+                        this.delayAgain(currentTime, DelayedRunnable.this.delayInMS, minDif, thisRunRequest);
                     } else {
-                        stop();
+                        this.stop();
                     }
                 }
             }
 
             private void stop() {
-                firstRunRequest.set(0);
-                delayerSet.set(false);
+                DelayedRunnable.this.firstRunRequest.set(0);
+                DelayedRunnable.this.delayerSet.set(false);
             }
 
         }, DelayedRunnable.this.delayInMS, TimeUnit.MILLISECONDS);
     }
 
     public void setDelayerEnabled(final boolean b) {
-        if (delayerEnabled.getAndSet(b) == b) { return; }
+        if (this.delayerEnabled.getAndSet(b) == b) { return; }
         if (!b) {
-            stop();
+            this.stop();
         }
     }
 
-    public void stop() {
-        delayerSet.set(false);
+    public boolean stop() {
+        return this.delayerSet.compareAndSet(true, false);
     }
 
 }

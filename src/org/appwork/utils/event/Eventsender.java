@@ -128,7 +128,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
      * List of registered Eventlistener
      */
 
-    transient volatile protected Set<EventSuppressor<EventType>>    eventSuppressors = new CopyOnWriteArraySet<EventSuppressor<EventType>>();
+    transient volatile protected Set<EventSuppressor<EventType>>   eventSuppressors = new CopyOnWriteArraySet<EventSuppressor<EventType>>();
     transient volatile protected List<ListenerType>                strongListeners  = null;
     transient volatile protected List<WeakReference<ListenerType>> weakListener     = null;
 
@@ -227,19 +227,20 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
 
     public boolean containsListener(final ListenerType t) {
         if (t == null) { return false; }
-        synchronized (this.LOCK) {
-            for (final ListenerType tmp : this.strongListeners) {
-                if (tmp == t) { return true; }
-            }
-            ListenerType l = null;
-            for (final WeakReference<ListenerType> listener : this.weakListener) {
-                if ((l = listener.get()) == null) {
-                    /* weak item is gone */
-                    continue;
-                } else if (l == t) { return true; }
-            }
-            return false;
+        final List<ListenerType> lstrongListeners = this.strongListeners;
+        for (final ListenerType tmp : lstrongListeners) {
+            if (tmp == t) { return true; }
         }
+        ListenerType l = null;
+        final java.util.List<WeakReference<ListenerType>> listeners = this.weakListener;
+        for (final WeakReference<ListenerType> listener : listeners) {
+            if ((l = listener.get()) == null) {
+                /* weak item is gone */
+                continue;
+            } else if (l == t) { return true; }
+        }
+        return false;
+
     }
 
     final public void fireEvent(final EventType event) {
@@ -258,7 +259,7 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
             }
             this.fireEvent(t, event);
         }
-        if (cleanup && listeners.size() > 0) {
+        if (cleanup) {
             this.cleanup();
         }
     }
@@ -284,13 +285,14 @@ public abstract class Eventsender<ListenerType extends EventListener, EventType 
                 cleanup = true;
             }
         }
-        if (cleanup && listeners.size() > 0) {
+        if (cleanup) {
             this.cleanup();
         }
         return ret;
     }
 
     public boolean hasListener() {
+        if (this.strongListeners.isEmpty() == false) { return true; }
         final java.util.List<WeakReference<ListenerType>> listeners = this.weakListener;
         for (final WeakReference<ListenerType> listener : listeners) {
             if (listener.get() != null) { return true; }

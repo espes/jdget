@@ -107,9 +107,9 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
             }
 
             @Override
-            public void stop() {
+            public boolean stop() {
                 this.delayedrun();
-                super.stop();
+                return super.stop();
             }
         });
 
@@ -153,9 +153,9 @@ public class MinTimeWeakReference<T> extends WeakReference<T> {
                     }
 
                     @Override
-                    public void stop() {
+                    public boolean stop() {
                         this.delayedrun();
-                        super.stop();
+                        return super.stop();
                     }
                 };
                 if (this.hardReference.compareAndSet(null, minHardReference)) {
