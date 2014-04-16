@@ -28,4 +28,6 @@ public interface AccountInterface extends Linkable {
     boolean setUserNameAndPassword(long accountId, String username, String password);
 
     String getPremiumHosterUrl(String hoster);
+    
+    void refreshAccounts(long[] ids);
 }
