@@ -299,7 +299,7 @@ public class HTTPProxy {
             final String hostname = new Regex(host, "(.*?)(:|$)").getMatch(0);
             final String port = new Regex(host, ".*?:(\\d+)").getMatch(0);
             if (!StringUtils.isEmpty(hostname)) {
-                ret.host = hostname;
+                ret.setHost(hostname);
             }
             if (!StringUtils.isEmpty(port)) {
                 ret.port = Integer.parseInt(port);
@@ -356,13 +356,13 @@ public class HTTPProxy {
     public HTTPProxy(final TYPE type, final String host, final int port) {
         this.port = port;
         this.type = type;
-        this.host = HTTPProxy.getInfo(host, "" + port)[0];
+        this.setHost(HTTPProxy.getInfo(host, "" + port)[0]);
     }
 
     protected void cloneProxy(final HTTPProxy proxy) {
         if (proxy == null) { return; }
         this.user = proxy.user;
-        this.host = proxy.host;
+        this.setHost(proxy.host);
         this.localIP = proxy.localIP;
         this.pass = proxy.pass;
         this.port = proxy.port;
@@ -499,7 +499,10 @@ public class HTTPProxy {
         this.useConnectMethod = value;
     }
 
-    public void setHost(final String host) {
+    public void setHost(String host) {
+        if (host != null) {
+            host = host.trim();
+        }
         this.host = host;
     }
 

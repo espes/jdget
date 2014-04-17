@@ -169,7 +169,10 @@ public class HTTPConnectionUtils {
         return bigbuffer;
     }
 
-    public static InetAddress[] resolvHostIP(final String host) throws IOException {
+    public static InetAddress[] resolvHostIP(String host) throws IOException {
+        if (StringUtils.isEmpty(host)) { throw new UnknownHostException("Could not resolv: -empty host-"); }
+        /* remove spaces....so literal IP's work without resolving */
+        host = host.trim();
         InetAddress hosts[] = null;
         for (int resolvTry = 0; resolvTry < 2; resolvTry++) {
             try {
@@ -180,10 +183,10 @@ public class HTTPConnectionUtils {
                 try {
                     Thread.sleep(500);
                 } catch (final InterruptedException e1) {
-                    throw new UnknownHostException("Could not resolv " + host);
+                    break;
                 }
             }
         }
-        throw new UnknownHostException("Could not resolv " + host);
+        throw new UnknownHostException("Could not resolv: -" + host + "-");
     }
 }
