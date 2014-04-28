@@ -87,7 +87,9 @@ public class RemoteAPIResponse implements HttpResponseInterface {
 
     public void sendBytes(final RemoteAPIRequest request, final byte[] bytes) throws IOException {
         /* we dont want this api response to get cached */
-        this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CACHE_CONTROL, "no-store, no-cache"));
+        if (this.getResponseHeaders().get(HTTPConstants.HEADER_REQUEST_CACHE_CONTROL) == null) {
+            this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CACHE_CONTROL, "no-store, no-cache"));
+        }
         if (this.getResponseHeaders().get(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE) == null) {
             this.getResponseHeaders().add(new HTTPHeader(HTTPConstants.HEADER_REQUEST_CONTENT_TYPE, "application/json"));
         }

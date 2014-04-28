@@ -46,22 +46,23 @@ public class ExtFileSystemView extends FileSystemView {
         if (ExtFileSystemView.SAMBA_SCANNED) { return; }
         ExtFileSystemView.SAMBA_SCANNED = true;
 
-//        final long tt = System.currentTimeMillis();
-//        new Thread("Networkfolder Loader") {
-//            @Override
-//            public void run() {
-//                final ExtFileSystemView view = new ExtFileSystemView();
-//                view.getRoots();
-//                try {
-//                    if (view.networkFolder != null) {
-//                        view.networkFolder.listFiles();
-//                        Log.L.info("List Networkfolder done " + (System.currentTimeMillis() - tt));
-//                    }
-//                } catch (final Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }.start();
+        // final long tt = System.currentTimeMillis();
+        // new Thread("Networkfolder Loader") {
+        // @Override
+        // public void run() {
+        // final ExtFileSystemView view = new ExtFileSystemView();
+        // view.getRoots();
+        // try {
+        // if (view.networkFolder != null) {
+        // view.networkFolder.listFiles();
+        // Log.L.info("List Networkfolder done " + (System.currentTimeMillis() -
+        // tt));
+        // }
+        // } catch (final Exception e) {
+        // e.printStackTrace();
+        // }
+        // }
+        // }.start();
 
     }
 
@@ -79,7 +80,7 @@ public class ExtFileSystemView extends FileSystemView {
     /**
      */
     public ExtFileSystemView() {
-        org = FileSystemView.getFileSystemView();
+        this.org = FileSystemView.getFileSystemView();
         if (!ExtFileSystemView.SAMBA_SCANNED) {
             new Exception("run ExtFileSystemView.runSambaScanner() as early as possible in your app!");
             ExtFileSystemView.runSambaScanner();
@@ -89,12 +90,12 @@ public class ExtFileSystemView extends FileSystemView {
 
     @Override
     public File createFileObject(final File dir, final String filename) {
-        return org.createFileObject(dir, filename);
+        return this.org.createFileObject(dir, filename);
     }
 
     @Override
     public File createFileObject(final String path) {
-        return org.createFileObject(path);
+        return this.org.createFileObject(path);
     }
 
     /*
@@ -104,36 +105,34 @@ public class ExtFileSystemView extends FileSystemView {
      */
     @Override
     public File createNewFolder(final File containingDir) throws IOException {
-        return org.createNewFolder(containingDir);
+        return this.org.createNewFolder(containingDir);
     }
 
     @Override
     public File getChild(final File parent, final String fileName) {
 
-        return org.getChild(parent, fileName);
+        return this.org.getChild(parent, fileName);
     }
 
     @Override
     public File getDefaultDirectory() {
 
-        return org.getDefaultDirectory();
+        return this.org.getDefaultDirectory();
     }
 
     @Override
     public File[] getFiles(final File dir, final boolean useFileHiding) {
         final long t = System.currentTimeMillis();
         try {
-
             final File[] ret;
-
-            if (dir == networkFolder) {
-Log.L.info("getFilesShellfolder" );
-                ret = getFilesShellfolder((NetWorkFolder) dir, useFileHiding);
+            if (dir == this.networkFolder) {
+                Log.L.info("getFilesShellfolder");
+                ret = this.getFilesShellfolder((NetWorkFolder) dir, useFileHiding);
             } else {
-                Log.L.info("org.getFiles(dir, useFileHiding);" );
-                ret = org.getFiles(dir, useFileHiding);
+                Log.L.info("org.getFiles(dir, useFileHiding);");
+                ret = this.org.getFiles(dir, useFileHiding);
             }
-
+            Log.L.info("getFiles: ms:" + (System.currentTimeMillis() - t) + " " + dir + "|" + ret.length);
             final java.util.List<File> filtered = new ArrayList<File>();
             for (final File f : ret) {
                 if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
@@ -150,8 +149,7 @@ Log.L.info("getFilesShellfolder" );
             Log.L.info("Return Files for " + dir + "(" + useFileHiding + "): " + filtered.size());
             return filtered.toArray(new File[] {});
         } finally {
-            Log.L.info("getFiles: ms:" + (System.currentTimeMillis() - t) + " " + dir);
-
+            Log.L.info("getFiles(end): ms:" + (System.currentTimeMillis() - t) + " " + dir);
         }
     }
 
@@ -167,8 +165,8 @@ Log.L.info("getFilesShellfolder" );
             }
 
             if (!(f instanceof ShellFolder)) {
-                if (isFileSystemRoot(f)) {
-                    f = createFileSystemRoot(f);
+                if (this.isFileSystemRoot(f)) {
+                    f = this.createFileSystemRoot(f);
                 }
                 try {
                     f = ShellFolder.getShellFolder(f);
@@ -182,7 +180,7 @@ Log.L.info("getFilesShellfolder" );
                     continue;
                 }
             }
-            if (!useFileHiding || !isHiddenFile(f)) {
+            if (!useFileHiding || !this.isHiddenFile(f)) {
                 files.add(f);
             }
         }
@@ -193,7 +191,7 @@ Log.L.info("getFilesShellfolder" );
     @Override
     public File getHomeDirectory() {
 
-        return org.getHomeDirectory();
+        return this.org.getHomeDirectory();
     }
 
     /**
@@ -201,13 +199,13 @@ Log.L.info("getFilesShellfolder" );
      */
     public NetWorkFolder getNetworkFolder() {
         // TODO Auto-generated method stub
-        return networkFolder;
+        return this.networkFolder;
     }
 
     @Override
     public File getParentDirectory(final File dir) {
 
-        return org.getParentDirectory(dir);
+        return this.org.getParentDirectory(dir);
     }
 
     @Override
@@ -215,7 +213,7 @@ Log.L.info("getFilesShellfolder" );
         final long t = System.currentTimeMillis();
         Log.L.info("Get Roots");
 
-        if (roots != null) { return roots; }
+        if (this.roots != null) { return this.roots; }
         try {
 
             // this may take a long time on some systems.
@@ -234,7 +232,7 @@ Log.L.info("getFilesShellfolder" );
                  */
                 @Override
                 public boolean add(final File e) {
-                    if (contains(e)) { return false; }
+                    if (this.contains(e)) { return false; }
                     return super.add(e);
                 }
             };
@@ -244,11 +242,10 @@ Log.L.info("getFilesShellfolder" );
                 unique.add(desktopPath);
             }
 
-            mount(new File("/Volumes"), unique);
-            mount(new File("/media"), unique);
+            this.mount(new File("/Volumes"), unique);
+            this.mount(new File("/media"), unique);
 
-
-            final HomeFolder[] homeFolders = new HomeFolder[] {new HomeFolder(HomeFolder.HOME_ROOT, ExtFileChooserDialog.ICON_KEY_HOME), new HomeFolder(HomeFolder.DOCUMENTS,ExtFileChooserDialog.ICON_KEY_DOCUMENTS), new HomeFolder(HomeFolder.DROPBOX, ExtFileChooserDialog.ICON_KEY_BOX),new HomeFolder(HomeFolder.PICTURES, ExtFileChooserDialog.ICON_KEY_IMAGES), new HomeFolder(HomeFolder.VIDEOS, ExtFileChooserDialog.ICON_KEY_VIDEO), new HomeFolder(HomeFolder.DOWNLOADS, ExtFileChooserDialog.ICON_KEY_DOWNLOADS), new HomeFolder(HomeFolder.MUSIC, ExtFileChooserDialog.ICON_KEY_MUSIC) };
+            final HomeFolder[] homeFolders = new HomeFolder[] { new HomeFolder(HomeFolder.HOME_ROOT, ExtFileChooserDialog.ICON_KEY_HOME), new HomeFolder(HomeFolder.DOCUMENTS, ExtFileChooserDialog.ICON_KEY_DOCUMENTS), new HomeFolder(HomeFolder.DROPBOX, ExtFileChooserDialog.ICON_KEY_BOX), new HomeFolder(HomeFolder.PICTURES, ExtFileChooserDialog.ICON_KEY_IMAGES), new HomeFolder(HomeFolder.VIDEOS, ExtFileChooserDialog.ICON_KEY_VIDEO), new HomeFolder(HomeFolder.DOWNLOADS, ExtFileChooserDialog.ICON_KEY_DOWNLOADS), new HomeFolder(HomeFolder.MUSIC, ExtFileChooserDialog.ICON_KEY_MUSIC) };
             for (final HomeFolder hf : homeFolders) {
                 if (hf.exists()) {
                     unique.add(hf);
@@ -260,20 +257,19 @@ Log.L.info("getFilesShellfolder" );
                     continue;
                 }
                 if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER)) {
-                    networkFolder = new NetWorkFolder(f);
+                    this.networkFolder = new NetWorkFolder(f);
                     break;
                 } else if (f.getName().equals(ExtFileSystemView.VIRTUAL_NETWORKFOLDER_XP)) {
-                    networkFolder = new NetWorkFolder(f);
+                    this.networkFolder = new NetWorkFolder(f);
                     break;
                 }
-               
+
             }
-            if (networkFolder != null) {
-                unique.add(networkFolder);
+            if (this.networkFolder != null) {
+                unique.add(this.networkFolder);
             }
-            final File home = getHomeDirectory();
-            
-            
+            final File home = this.getHomeDirectory();
+
             for (final File f : baseFolders) {
                 // Win32ShellFolder2.class
                 if (f.getName().equals("Recent")) {
@@ -281,7 +277,7 @@ Log.L.info("getFilesShellfolder" );
                 }
                 if (f.getParentFile() == null || !f.getParentFile().equals(home)) {
                     unique.add(f);
-                } 
+                }
                 Log.L.info("Basefolder: " + f.getName() + " - " + f + " - " + CrossSystem.getOSString());
             }
             final File[] nroots = unique.toArray(new File[] {});
@@ -289,9 +285,9 @@ Log.L.info("getFilesShellfolder" );
             for (final File f : nroots) {
                 nspecialsMap.put(f, f);
             }
-            specialsMap = nspecialsMap;
-            roots = nroots;
-            return roots;
+            this.specialsMap = nspecialsMap;
+            this.roots = nroots;
+            return this.roots;
         } finally {
             Log.L.info("Roots: " + (System.currentTimeMillis() - t));
 
@@ -300,9 +296,9 @@ Log.L.info("getFilesShellfolder" );
 
     @Override
     public String getSystemDisplayName(final File f) {
-        if (f == networkFolder) { return _AWU.T.DIALOG_FILECHOOSER_networkfolder(); }
+        if (f == this.networkFolder) { return _AWU.T.DIALOG_FILECHOOSER_networkfolder(); }
         if (f instanceof VirtualRoot) { return f.getName(); }
-        return org.getSystemDisplayName(f);
+        return this.org.getSystemDisplayName(f);
     }
 
     @Override
@@ -312,7 +308,7 @@ Log.L.info("getFilesShellfolder" );
 
             return AWUTheme.I().getIcon("root", 18); }
 
-            return org.getSystemIcon(f);
+            return this.org.getSystemIcon(f);
 
         } catch (final Exception e) {
             // seems like getSystemIcon can throw a FileNotFoundException or a
@@ -325,61 +321,61 @@ Log.L.info("getFilesShellfolder" );
     @Override
     public String getSystemTypeDescription(final File f) {
 
-        return org.getSystemTypeDescription(f);
+        return this.org.getSystemTypeDescription(f);
     }
 
     @Override
     public boolean isComputerNode(final File dir) {
 
-        return org.isComputerNode(dir);
+        return this.org.isComputerNode(dir);
     }
 
     @Override
     public boolean isDrive(final File dir) {
 
-        return org.isDrive(dir);
+        return this.org.isDrive(dir);
     }
 
     @Override
     public boolean isFileSystem(final File f) {
 
-        return org.isFileSystem(f);
+        return this.org.isFileSystem(f);
     }
 
     @Override
     public boolean isFileSystemRoot(final File dir) {
 
-        return org.isFileSystemRoot(dir);
+        return this.org.isFileSystemRoot(dir);
     }
 
     @Override
     public boolean isFloppyDrive(final File dir) {
 
-        return org.isFloppyDrive(dir);
+        return this.org.isFloppyDrive(dir);
     }
 
     @Override
     public boolean isHiddenFile(final File f) {
 
-        return org.isHiddenFile(f);
+        return this.org.isHiddenFile(f);
     }
 
     @Override
     public boolean isParent(final File folder, final File file) {
 
-        return org.isParent(folder, file);
+        return this.org.isParent(folder, file);
     }
 
     @Override
     public boolean isRoot(final File f) {
 
-        return org.isRoot(f);
+        return this.org.isRoot(f);
     }
 
     @Override
     public Boolean isTraversable(final File f) {
 
-        return org.isTraversable(f);
+        return this.org.isTraversable(f);
     }
 
     /**
@@ -387,7 +383,7 @@ Log.L.info("getFilesShellfolder" );
      * @return
      */
     public File mapSpecialFolders(final File f) {
-        final File ret = specialsMap.get(f);
+        final File ret = this.specialsMap.get(f);
         return ret != null ? ret : f;
     }
 
