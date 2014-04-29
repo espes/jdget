@@ -1,20 +1,26 @@
 package org.jdownloader.myjdownloader.client.json;
 
-public class CaptchaResponse extends RequestIDOnly {
+public class MyCaptchaSolution {
+    
+    public static enum RESULT {
+        CORRECT,
+        WRONG,
+        TIMEOUT,
+        ABORT
+    }
     
     public static enum STATE {
         QUEUED,
         PROCESSING,
         SOLVED,
-        FAILED,
         NOT_AVAILABLE
     }
     
     private String id       = null;
-    private STATE  state    = STATE.QUEUED;
+    private STATE  state    = STATE.NOT_AVAILABLE;
     private String response = null;
     
-    public CaptchaResponse(/* Storable */) {
+    public MyCaptchaSolution(/* Storable */) {
     }
     
     public String getId() {
