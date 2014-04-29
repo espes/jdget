@@ -25,8 +25,8 @@ import org.appwork.utils.net.httpserver.session.HttpSession;
  */
 public class SessionRemoteAPIRequest<T extends HttpSession> extends RemoteAPIRequest {
 
-    private final T          session;
-    private RemoteAPIRequest apiRequest;
+    private final T                session;
+    private final RemoteAPIRequest apiRequest;
 
     /**
      * @param apiRequest
@@ -41,96 +41,86 @@ public class SessionRemoteAPIRequest<T extends HttpSession> extends RemoteAPIReq
     }
 
     public RemoteAPIRequest getApiRequest() {
-        return apiRequest;
+        return this.apiRequest;
     }
-
-
 
     @Override
     public InterfaceHandler<?> getIface() {
 
-        return apiRequest.getIface();
+        return this.apiRequest.getIface();
     }
 
     @Override
     public InputStream getInputStream() throws IOException {
 
-        return apiRequest.getInputStream();
+        return this.apiRequest.getInputStream();
     }
 
     @Override
     public String getJqueryCallback() {
 
-        return apiRequest.getJqueryCallback();
+        return this.apiRequest.getJqueryCallback();
     }
 
     @Override
     public Method getMethod() {
 
-        return apiRequest.getMethod();
+        return this.apiRequest.getMethod();
     }
 
     @Override
     public String getMethodName() {
 
-        return apiRequest.getMethodName();
-    }
-
-    @Override
-    public int getParameterCount() {
-
-        return apiRequest.getParameterCount();
+        return this.apiRequest.getMethodName();
     }
 
     @Override
     public String[] getParameters() {
 
-        return apiRequest.getParameters();
+        return this.apiRequest.getParameters();
     }
 
-//    @Override
-//    public List<KeyValuePair> getPostParameter() throws IOException {
-//
-//        return apiRequest.getPostParameter();
-//    }
+    // @Override
+    // public List<KeyValuePair> getPostParameter() throws IOException {
+    //
+    // return apiRequest.getPostParameter();
+    // }
 
     @Override
     public List<String> getRemoteAdress() {
 
-        return apiRequest.getRemoteAdress();
+        return this.apiRequest.getRemoteAdress();
     }
 
     @Override
     public String getRequestedPath() {
 
-        return apiRequest.getRequestedPath();
+        return this.apiRequest.getRequestedPath();
     }
 
     @Override
     public String getRequestedURL() {
 
-        return apiRequest.getRequestedURL();
+        return this.apiRequest.getRequestedURL();
     }
 
     @Override
     public List<KeyValuePair> getRequestedURLParameters() {
 
-        return apiRequest.getRequestedURLParameters();
+        return this.apiRequest.getRequestedURLParameters();
     }
 
     @Override
     public HeaderCollection getRequestHeaders() {
 
-        return apiRequest.getRequestHeaders();
+        return this.apiRequest.getRequestHeaders();
     }
 
     @Override
     public REQUESTTYPE getRequestType() {
 
-        return apiRequest.getRequestType();
+        return this.apiRequest.getRequestType();
     }
-
-
 
     public T getSession() {
         return this.session;

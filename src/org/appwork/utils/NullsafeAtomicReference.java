@@ -14,10 +14,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author daniel
  * 
- *         Nullsafe AtomicReference, because null can have multiple memory
- *         references (depends on jvm) so that
- *         AtomicReference.compareAndSet(null,xy) can return false even when it
- *         is null!
+ *         NullSafeAtomicReference
+ * 
+ *         AtomicReference which can differ between set/null/empty (tri-state)
  * 
  */
 public class NullsafeAtomicReference<V> {

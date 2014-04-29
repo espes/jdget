@@ -44,7 +44,7 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
      */
     @Override
     public boolean onGetSessionRequest(final T session, final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+        RemoteAPIRequest apiRequest = this.createRemoteAPIRequestObject(request);
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         apiRequest = this.createSessionRemoteAPIRequest(session, request, apiRequest);
         if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) { throw new SessionException(); }
@@ -67,7 +67,7 @@ public class SessionRemoteAPI<T extends HttpSession> extends RemoteAPI implement
      */
     @Override
     public boolean onPostSessionRequest(final T session, final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+        RemoteAPIRequest apiRequest = this.createRemoteAPIRequestObject(request);
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         apiRequest = this.createSessionRemoteAPIRequest(session, request, apiRequest);
         if (apiRequest.getIface().isSessionRequired() && (session == null || !session.isAlive())) { throw new SessionException(); }

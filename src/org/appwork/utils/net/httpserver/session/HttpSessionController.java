@@ -120,7 +120,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
     }
 
     public void registerSessionRequestHandler(final HttpSessionRequestHandler<T> handler) {
-        synchronized (this.handler) {
+        synchronized (this) {
             if (!this.handler.contains(handler)) {
                 final java.util.List<HttpSessionRequestHandler<T>> newhandler = new ArrayList<HttpSessionRequestHandler<T>>(this.handler);
                 newhandler.add(handler);
@@ -132,7 +132,7 @@ public abstract class HttpSessionController<T extends HttpSession> implements Ht
     protected abstract boolean removeSession(final T session);
 
     public void unregisterSessionRequestHandler(final HttpSessionRequestHandler<T> handler) {
-        synchronized (this.handler) {
+        synchronized (this) {
             final java.util.List<HttpSessionRequestHandler<T>> newhandler = new ArrayList<HttpSessionRequestHandler<T>>(this.handler);
             newhandler.remove(handler);
             this.handler = newhandler;

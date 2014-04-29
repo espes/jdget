@@ -42,9 +42,7 @@ public class RemoteAPIRequest implements HttpRequestInterface {
     private final String[]            parameters;
     protected final HttpRequest       request;
 
-    private Method                    method;
-
-    private int                       parameterCount;
+    private final Method              method;
 
     private final String              jqueryCallback;
 
@@ -55,16 +53,8 @@ public class RemoteAPIRequest implements HttpRequestInterface {
         this.parameters = parameters;
         this.request = request;
         this.methodName = methodName;
-
         this.jqueryCallback = jqueryCallback;
         this.method = this.iface.getMethod(methodName, this.parameters.length);
-        try {
-            if (this.method != null) {
-                this.parameterCount = iface.getParameterCount(this.method);
-            }
-        } catch (final Throwable e) {
-            this.method = null;
-        }
     }
 
     public HttpRequest getHttpRequest() {
@@ -110,7 +100,6 @@ public class RemoteAPIRequest implements HttpRequestInterface {
      */
     @Override
     public String getParameterbyKey(final String key) throws IOException {
-
         List<KeyValuePair> params = this.request.getRequestedURLParameters();
         if (params != null) {
             for (final KeyValuePair param : params) {
@@ -125,13 +114,8 @@ public class RemoteAPIRequest implements HttpRequestInterface {
                 }
             }
         }
-
         return null;
 
-    }
-
-    public int getParameterCount() {
-        return this.parameterCount;
     }
 
     // /*
@@ -195,6 +179,10 @@ public class RemoteAPIRequest implements HttpRequestInterface {
      */
     public String getSignature() {
         return null;
+    }
+
+    public boolean validateRID() {
+        return true;
     }
 
 }

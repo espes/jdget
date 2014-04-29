@@ -18,10 +18,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
 import org.appwork.net.protocol.http.HTTPConstants;
 import org.appwork.net.protocol.http.HTTPConstants.ResponseCode;
@@ -71,19 +68,18 @@ public class InterfaceHandler<T> {
         return ret;
     }
 
-    private final RemoteAPIInterface                        impl;
+    private final RemoteAPIInterface       impl;
 
-    private final java.util.List<Class<T>>                  interfaceClasses;
-    private final TreeMap<String, TreeMap<Integer, Method>> methods;
-    private final HashMap<Method, Integer>                  parameterCountMap;
-    private final HashMap<Method, Integer>                  methodsAuthLevel;
-    private final HashMap<String, Method>                   rawMethods;
-    private final HashSet<Method>                           signatureRequiredMethods;
-    private Method                                          signatureHandler = null;
-    private final int                                       defaultAuthLevel;
-    private boolean                                         sessionRequired  = false;
-    private SoftReference<byte[]>                           helpBytes        = new SoftReference<byte[]>(null);
-    private SoftReference<byte[]>                           helpBytesJson    = new SoftReference<byte[]>(null);
+    private final java.util.List<Class<T>> interfaceClasses;
+    private final HashMap<Method, Integer> parameterCountMap;
+    private final HashMap<Method, Integer> methodsAuthLevel;
+    private final HashMap<String, Method>  methods;
+    private final HashSet<Method>          signatureRequiredMethods;
+    private Method                         signatureHandler = null;
+    private final int                      defaultAuthLevel;
+    private boolean                        sessionRequired  = false;
+    private SoftReference<byte[]>          helpBytes        = new SoftReference<byte[]>(null);
+    private SoftReference<byte[]>          helpBytesJson    = new SoftReference<byte[]>(null);
 
     /**
      * @param <T>
@@ -96,13 +92,10 @@ public class InterfaceHandler<T> {
         this.interfaceClasses = new ArrayList<Class<T>>();
         this.interfaceClasses.add(c);
         this.impl = x;
-        this.methods = new TreeMap<String, TreeMap<Integer, Method>>();
-
         this.defaultAuthLevel = defaultAuthLevel;
-
         this.methodsAuthLevel = new HashMap<Method, Integer>();
         this.parameterCountMap = new HashMap<Method, Integer>();
-        this.rawMethods = new HashMap<String, Method>();
+        this.methods = new HashMap<String, Method>();
         this.signatureRequiredMethods = new HashSet<Method>();
     }
 
@@ -113,9 +106,7 @@ public class InterfaceHandler<T> {
      * @throws ParseException
      */
     public void add(final Class<T> c, final RemoteAPIInterface process, final int defaultAuthLevel) throws ParseException {
-
         if (this.sessionRequired != (c.getAnnotation(ApiSessionRequired.class) != null)) { throw new ParseException("Check SessionRequired for " + this); }
-
         if (defaultAuthLevel != this.getDefaultAuthLevel()) { throw new ParseException("Check Authlevel " + c + " " + this); }
         if (process != this.impl) { throw new ParseException(process + "!=" + this.impl); }
         try {
@@ -145,14 +136,10 @@ public class InterfaceHandler<T> {
      * @return
      */
     public Method getMethod(final String methodName, final int length) {
-        if (methodName.equals(InterfaceHandler.HELP.getName())) { return InterfaceHandler.HELP; }
-        final TreeMap<Integer, Method> methodsByName = this.methods.get(methodName);
-        if (methodsByName == null) { return null; }
-        Method ret = methodsByName.get(length);
-        if (ret == null) {
-            ret = this.rawMethods.get(methodName);
-        }
-        return ret;
+        final String methodID = methodName + length;
+        final Method ret = this.methods.get(methodID);
+        if (ret != null) { return ret; }
+        return this.methods.get(methodName);
     }
 
     /**
@@ -160,7 +147,9 @@ public class InterfaceHandler<T> {
      * @return
      */
     public int getParameterCount(final Method method) {
-        return this.parameterCountMap.get(method);
+        final Integer ret = this.parameterCountMap.get(method);
+        if (ret != null) { return ret; }
+        return -1;
     }
 
     public Method getSignatureHandler() {
@@ -190,30 +179,26 @@ public class InterfaceHandler<T> {
 
     private String helpJSON(final RemoteAPIRequest request, final RemoteAPIResponse response) throws UnsupportedEncodingException, IOException {
         final List<RemoteAPIMethodDefinition> methodDefinitions = new ArrayList<RemoteAPIMethodDefinition>();
-        Entry<String, TreeMap<Integer, Method>> next;
-        for (final Iterator<Entry<String, TreeMap<Integer, Method>>> it = this.methods.entrySet().iterator(); it.hasNext();) {
-            next = it.next();
-            for (final Method m : next.getValue().values()) {
-                final RemoteAPIMethodDefinition mDef = new RemoteAPIMethodDefinition();
-                mDef.setMethodName(m.getName());
+        for (final Method m : this.methods.values()) {
+            final RemoteAPIMethodDefinition mDef = new RemoteAPIMethodDefinition();
+            mDef.setMethodName(m.getName());
 
-                final ApiDoc an = m.getAnnotation(ApiDoc.class);
-                if (an != null) {
-                    mDef.setDescription(an.value());
-                }
-
-                final List<String> parameters = new ArrayList<String>();
-
-                for (int i = 0; i < m.getGenericParameterTypes().length; i++) {
-                    if (m.getParameterTypes()[i] == RemoteAPIRequest.class || m.getParameterTypes()[i] == RemoteAPIResponse.class) {
-                        continue;
-                    }
-                    parameters.add(m.getParameterTypes()[i].getSimpleName());
-                }
-                mDef.setParameters(parameters);
-
-                methodDefinitions.add(mDef);
+            final ApiDoc an = m.getAnnotation(ApiDoc.class);
+            if (an != null) {
+                mDef.setDescription(an.value());
             }
+
+            final List<String> parameters = new ArrayList<String>();
+
+            for (int i = 0; i < m.getGenericParameterTypes().length; i++) {
+                if (m.getParameterTypes()[i] == RemoteAPIRequest.class || m.getParameterTypes()[i] == RemoteAPIResponse.class) {
+                    continue;
+                }
+                parameters.add(m.getParameterTypes()[i].getSimpleName());
+            }
+            mDef.setParameters(parameters);
+
+            methodDefinitions.add(mDef);
         }
         return JSonStorage.serializeToJson(methodDefinitions);
     }
@@ -225,61 +210,57 @@ public class InterfaceHandler<T> {
             sb.append("\r\n");
         }
         sb.append("\r\n");
-        Entry<String, TreeMap<Integer, Method>> next;
-        for (final Iterator<Entry<String, TreeMap<Integer, Method>>> it = this.methods.entrySet().iterator(); it.hasNext();) {
-            next = it.next();
-            for (final Method m : next.getValue().values()) {
-                if (m == InterfaceHandler.HELP) {
-                    sb.append("\r\n====- " + m.getName() + " -====");
-                    sb.append("\r\n    Description: This Call");
-                    sb.append("\r\n           Call: ");
-                    sb.append("/" + m.getName() + "\r\n");
-                    continue;
+        for (final Method m : this.methods.values()) {
+            if (m == InterfaceHandler.HELP) {
+                sb.append("\r\n====- " + m.getName() + " -====");
+                sb.append("\r\n    Description: This Call");
+                sb.append("\r\n           Call: ");
+                sb.append("/" + m.getName() + "\r\n");
+                continue;
 
-                }
-                String name = m.getName();
-                final ApiMethodName methodname = m.getAnnotation(ApiMethodName.class);
-                if (methodname != null) {
-                    name = methodname.value();
-                }
-                sb.append("\r\n====- " + name + " -====");
-                final ApiDoc an = m.getAnnotation(ApiDoc.class);
-                if (an != null) {
-                    sb.append("\r\n    Description: ");
-                    sb.append(an.value() + "");
-                }
-                // sb.append("\r\n    Description: ");
-
-                final HashMap<Type, Integer> map = new HashMap<Type, Integer>();
-                String call = "/" + name;
-                int count = 0;
-                for (int i = 0; i < m.getGenericParameterTypes().length; i++) {
-                    if (m.getParameterTypes()[i] == RemoteAPIRequest.class || m.getParameterTypes()[i] == RemoteAPIResponse.class) {
-                        continue;
-                    }
-                    count++;
-                    if (i > 0) {
-                        call += "&";
-
-                    } else {
-                        call += "?";
-                    }
-
-                    Integer num = map.get(m.getParameterTypes()[i]);
-                    if (num == null) {
-                        map.put(m.getParameterTypes()[i], 0);
-                        num = 0;
-                    }
-                    num++;
-                    call += m.getParameterTypes()[i].getSimpleName() + "" + num;
-                    sb.append("\r\n      Parameter: " + count + " - " + m.getParameterTypes()[i].getSimpleName() + "" + num);
-                    map.put(m.getParameterTypes()[i], num);
-
-                }
-                sb.append("\r\n           Call: " + call);
-
-                sb.append("\r\n");
             }
+            String name = m.getName();
+            final ApiMethodName methodname = m.getAnnotation(ApiMethodName.class);
+            if (methodname != null) {
+                name = methodname.value();
+            }
+            sb.append("\r\n====- " + name + " -====");
+            final ApiDoc an = m.getAnnotation(ApiDoc.class);
+            if (an != null) {
+                sb.append("\r\n    Description: ");
+                sb.append(an.value() + "");
+            }
+            // sb.append("\r\n    Description: ");
+
+            final HashMap<Type, Integer> map = new HashMap<Type, Integer>();
+            String call = "/" + name;
+            int count = 0;
+            for (int i = 0; i < m.getGenericParameterTypes().length; i++) {
+                if (m.getParameterTypes()[i] == RemoteAPIRequest.class || m.getParameterTypes()[i] == RemoteAPIResponse.class) {
+                    continue;
+                }
+                count++;
+                if (i > 0) {
+                    call += "&";
+
+                } else {
+                    call += "?";
+                }
+
+                Integer num = map.get(m.getParameterTypes()[i]);
+                if (num == null) {
+                    map.put(m.getParameterTypes()[i], 0);
+                    num = 0;
+                }
+                num++;
+                call += m.getParameterTypes()[i].getSimpleName() + "" + num;
+                sb.append("\r\n      Parameter: " + count + " - " + m.getParameterTypes()[i].getSimpleName() + "" + num);
+                map.put(m.getParameterTypes()[i], num);
+
+            }
+            sb.append("\r\n           Call: " + call);
+
+            sb.append("\r\n");
         }
         return sb.toString();
     }
@@ -317,12 +298,9 @@ public class InterfaceHandler<T> {
      */
     private void parse() throws ParseException {
         this.methods.clear();
-        this.rawMethods.clear();
         this.parameterCountMap.clear();
         this.methodsAuthLevel.clear();
-        TreeMap<Integer, Method> map;
-        this.methods.put("help", map = new TreeMap<Integer, Method>());
-        map.put(0, InterfaceHandler.HELP);
+        this.methods.put("help", InterfaceHandler.HELP);
         this.parameterCountMap.put(InterfaceHandler.HELP, 0);
         this.methodsAuthLevel.put(InterfaceHandler.HELP, 0);
         this.signatureHandler = null;
@@ -333,16 +311,15 @@ public class InterfaceHandler<T> {
                 if (hidden != null) {
                     continue;
                 }
-                final ApiSignatureRequired signature = m.getAnnotation(ApiSignatureRequired.class);
                 this.validateMethod(m);
-                int l = 0;
+                int paramCounter = 0;
                 for (final Class<?> c : m.getParameterTypes()) {
                     if (c != RemoteAPIRequest.class && c != RemoteAPIResponse.class) {
-                        l++;
+                        paramCounter++;
                     }
                 }
                 String name = m.getName();
-                if ("handleRemoteAPISignature".equals(name) && l == 0) {
+                if ("handleRemoteAPISignature".equals(name) && paramCounter == 0) {
                     this.signatureHandler = m;
                     continue;
                 }
@@ -350,21 +327,18 @@ public class InterfaceHandler<T> {
                 if (methodname != null) {
                     name = methodname.value();
                 }
-                TreeMap<Integer, Method> methodsByName = this.methods.get(name);
-                if (methodsByName == null) {
-                    methodsByName = new TreeMap<Integer, Method>();
-                    this.methods.put(name, methodsByName);
-                }
+                if (this.methods.put(name + paramCounter, m) != null) { throw new ParseException(interfaceClass + " already contains method: \r\n" + name + "\r\n"); }
+
                 if (m.getAnnotation(ApiRawMethod.class) != null) {
-                    this.rawMethods.put(name, m);
+                    this.methods.put(name, m);
                 }
-                this.parameterCountMap.put(m, l);
-                if (methodsByName.containsKey(l)) { throw new ParseException(interfaceClass + " Contains ambiguous methods: \r\n" + m + "\r\n" + methodsByName.get(l)); }
-                methodsByName.put(l, m);
+                this.parameterCountMap.put(m, paramCounter);
+
                 final ApiAuthLevel auth = m.getAnnotation(ApiAuthLevel.class);
                 if (auth != null) {
                     this.methodsAuthLevel.put(m, auth.value());
                 }
+                final ApiSignatureRequired signature = m.getAnnotation(ApiSignatureRequired.class);
                 if (signature != null) {
                     signatureHandlerNeededClass = interfaceClass;
                     this.signatureRequiredMethods.add(m);
@@ -413,7 +387,6 @@ public class InterfaceHandler<T> {
             }
         } else {
             try {
-
                 if (m.getGenericReturnType() == void.class || m.getGenericReturnType() == Void.class) {
                     // void is ok.
                     return;
@@ -433,7 +406,6 @@ public class InterfaceHandler<T> {
                     }
                     if (!found) { throw new InvalidTypeException(e); }
                 }
-
             } catch (final InvalidTypeException e) {
                 throw new ParseException("return Type of " + m + " is invalid", e);
             }

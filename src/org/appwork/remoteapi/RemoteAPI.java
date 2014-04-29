@@ -52,6 +52,33 @@ import org.appwork.utils.reflection.Clazz;
  * 
  */
 public class RemoteAPI implements HttpRequestHandler {
+    public static class RemoteAPIMethod {
+
+        private final InterfaceHandler<?> interfaceHandler;
+
+        private final String              methodName;
+
+        private final String              nameSpace;
+
+        public RemoteAPIMethod(final String nameSpace, final InterfaceHandler<?> interfaceHandler, final String methodName) {
+            this.nameSpace = nameSpace;
+            this.interfaceHandler = interfaceHandler;
+            this.methodName = methodName;
+        }
+
+        public final InterfaceHandler<?> getInterfaceHandler() {
+            return this.interfaceHandler;
+        }
+
+        public final String getMethodName() {
+            return this.methodName;
+        }
+
+        public final String getNameSpace() {
+            return this.nameSpace;
+        }
+    }
+
     final static Pattern INTF = Pattern.compile("/((.+)/)?(.+)$");
 
     @SuppressWarnings("unchecked")
@@ -277,7 +304,6 @@ public class RemoteAPI implements HttpRequestHandler {
             try {
                 try {
                     responseData = request.getIface().invoke(request.getIface().getSignatureHandler(), parameters);
-
                     if (!Boolean.TRUE.equals(responseData)) { throw new AuthException(); }
                 } catch (final InvocationTargetException e) {
                     throw e.getTargetException();
@@ -290,41 +316,12 @@ public class RemoteAPI implements HttpRequestHandler {
         }
     }
 
-    protected RemoteAPIRequest createRemoteAPIRequestObject(final HttpRequest request, final String[] intf, final InterfaceHandler<?> interfaceHandler, final java.util.List<String> parameters, final String jqueryCallback) throws IOException {
-        return new RemoteAPIRequest(interfaceHandler, intf[2], parameters.toArray(new String[] {}), request, jqueryCallback);
-    }
-
-    protected RemoteAPIResponse createRemoteAPIResponseObject(final RemoteAPIRequest request, final HttpResponse response) throws IOException {
-        return new RemoteAPIResponse(response, this);
-    }
-
-    public RemoteAPIRequest getInterfaceHandler(final HttpRequest request) throws BasicRemoteAPIException {
-
-        final String path = request.getRequestedPath();
-        final String[] intf = new Regex(path, RemoteAPI.INTF).getRow(0);
-        if (intf == null || intf.length != 3) { return null; }
-        /* intf=unimportant,namespace,method */
-        if (intf[2] != null && intf[2].endsWith("/")) {
-            /* special handling for commands without name */
-            /**
-             * Explanation: this is for special handling of this
-             * http://localhost/test -->this is method test in root
-             * http://localhost/test/ --> this is method without name in
-             * namespace test
-             */
-            intf[1] = intf[2].substring(0, intf[2].length() - 1);
-            intf[2] = "";
-        }
-        InterfaceHandler<?> interfaceHandler = null;
-        if (intf[1] == null) {
-            intf[1] = "";
-        }
-        interfaceHandler = this.interfaces.get(intf[1]);
-        if (interfaceHandler == null) { return null; }
+    public RemoteAPIRequest createRemoteAPIRequestObject(final HttpRequest request) throws BasicRemoteAPIException {
         this.validateRequest(request);
+        final RemoteAPIMethod remoteAPIMethod = this.getRemoteAPIMethod(request);
+        if (remoteAPIMethod == null) { return null; }
         final java.util.List<String> parameters = new ArrayList<String>();
         String jqueryCallback = null;
-
         /* convert GET parameters to methodParameters */
         for (final KeyValuePair param : request.getRequestedURLParameters()) {
             if (param.key != null) {
@@ -366,19 +363,49 @@ public class RemoteAPI implements HttpRequestHandler {
                 throw new RuntimeException(e);
             }
         }
-        if (jqueryCallback != null) {
-            // System.out.println("found jquery callback: " + jqueryCallback);
-        }
+        // if (jqueryCallback != null) {
+        // System.out.println("found jquery callback: " + jqueryCallback);
+        // }
         RemoteAPIRequest ret;
         try {
-            ret = this.createRemoteAPIRequestObject(request, intf, interfaceHandler, parameters, jqueryCallback);
+            ret = this.createRemoteAPIRequestObject(request, remoteAPIMethod.getMethodName(), remoteAPIMethod.getInterfaceHandler(), parameters, jqueryCallback);
         } catch (final IOException e) {
             throw new BasicRemoteAPIException(e);
         }
-
         this.validateRequest(ret);
-
         return ret;
+    }
+
+    protected RemoteAPIRequest createRemoteAPIRequestObject(final HttpRequest request, final String method, final InterfaceHandler<?> interfaceHandler, final java.util.List<String> parameters, final String jqueryCallback) throws IOException {
+        return new RemoteAPIRequest(interfaceHandler, method, parameters.toArray(new String[] {}), request, jqueryCallback);
+    }
+
+    protected RemoteAPIResponse createRemoteAPIResponseObject(final RemoteAPIRequest request, final HttpResponse response) throws IOException {
+        return new RemoteAPIResponse(response, this);
+    }
+
+    public RemoteAPIMethod getRemoteAPIMethod(final HttpRequest request) throws BasicRemoteAPIException {
+        final String path = request.getRequestedPath();
+        final String[] intf = new Regex(path, RemoteAPI.INTF).getRow(0);
+        if (intf == null || intf.length != 3) { return null; }
+        /* intf=unimportant,namespace,method */
+        if (intf[2] != null && intf[2].endsWith("/")) {
+            /* special handling for commands without name */
+            /**
+             * Explanation: this is for special handling of this
+             * http://localhost/test -->this is method test in root
+             * http://localhost/test/ --> this is method without name in
+             * namespace test
+             */
+            intf[1] = intf[2].substring(0, intf[2].length() - 1);
+            intf[2] = "";
+        }
+        if (intf[1] == null) {
+            intf[1] = "";
+        }
+        final InterfaceHandler<RemoteAPIInterface> ret = this.interfaces.get(intf[1]);
+        if (ret != null) { return new RemoteAPIMethod(intf[1], ret, intf[2]); }
+        return null;
     }
 
     /**
@@ -428,7 +455,7 @@ public class RemoteAPI implements HttpRequestHandler {
      * @return
      */
     public boolean onGetRequest(final GetRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+        final RemoteAPIRequest apiRequest = this.createRemoteAPIRequestObject(request);
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         try {
             this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(apiRequest, response));
@@ -439,7 +466,7 @@ public class RemoteAPI implements HttpRequestHandler {
     }
 
     public boolean onPostRequest(final PostRequest request, final HttpResponse response) throws BasicRemoteAPIException {
-        final RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+        final RemoteAPIRequest apiRequest = this.createRemoteAPIRequestObject(request);
         if (apiRequest == null) { return this.onUnknownRequest(request, response); }
         try {
             this._handleRemoteAPICall(apiRequest, this.createRemoteAPIResponseObject(apiRequest, response));

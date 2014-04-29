@@ -163,7 +163,7 @@ public abstract class AbstractSessionRemoteAPI<T extends HttpSession> extends Re
         try {
 
             final String token = this.extractSessionID(request);
-            RemoteAPIRequest apiRequest = this.getInterfaceHandler(request);
+            RemoteAPIRequest apiRequest = this.createRemoteAPIRequestObject(request);
             if (apiRequest == null) { throw new ApiInterfaceNotAvailable(); }
             if (apiRequest.getMethod() == null) { throw new ApiInterfaceNotAvailable(); }
             final Class<?> declaringClass = apiRequest.getMethod().getDeclaringClass();
