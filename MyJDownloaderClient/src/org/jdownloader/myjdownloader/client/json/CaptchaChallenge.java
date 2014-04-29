@@ -1,38 +1,37 @@
 package org.jdownloader.myjdownloader.client.json;
 
-
 public class CaptchaChallenge {
+    private String captchaResponse;
+    
+    private String captchaChallenge;
+    
+    private String image;
+    
     public CaptchaChallenge(/* STorable */) {
     }
-
-    private String captchaResponse;
-
-    public String getCaptchaResponse() {
-        return captchaResponse;
-    }
-
-    public void setCaptchaResponse(String captchaResponse) {
-        this.captchaResponse = captchaResponse;
-    }
-
-    private String captchaChallenge;
-
+    
     public String getCaptchaChallenge() {
-        return captchaChallenge;
+        return this.captchaChallenge;
     }
-
-    public void setCaptchaChallenge(String captchaChallenge) {
+    
+    public String getCaptchaResponse() {
+        return this.captchaResponse;
+    }
+    
+    public String getImage() {
+        return this.image;
+    }
+    
+    public void setCaptchaChallenge(final String captchaChallenge) {
         this.captchaChallenge = captchaChallenge;
     }
-
-    public String getImage() {
-        return image;
+    
+    public void setCaptchaResponse(final String captchaResponse) {
+        this.captchaResponse = captchaResponse;
     }
-
-    public void setImage(String image) {
+    
+    public void setImage(final String image) {
         this.image = image;
     }
-
-    private String image;
-
+    
 }

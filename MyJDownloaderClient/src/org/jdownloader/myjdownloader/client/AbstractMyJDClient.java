@@ -280,10 +280,12 @@ public abstract class AbstractMyJDClient<GenericType> {
             final long rid;
             if (jsonRequest != null) {
                 jsonRequest.setApiVer(AbstractMyJDClient.API_VERSION);
-                if (jsonRequest.getRid() < 0) {
-                    jsonRequest.setRid(this.getUniqueRID());
+                if (jsonRequest.getRid() <= 0) {
+                    rid = this.getUniqueRID();
+                    jsonRequest.setRid(rid);
+                } else {
+                    rid = jsonRequest.getRid();
                 }
-                rid = jsonRequest.getRid();
             } else {
                 rid = this.getUniqueRID();
             }
