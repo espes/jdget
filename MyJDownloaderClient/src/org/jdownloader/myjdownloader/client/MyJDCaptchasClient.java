@@ -37,6 +37,10 @@ public class MyJDCaptchasClient<GenericType> {
         return list;
     }
     
+    public List<MyCaptchaSolution> list() throws MyJDownloaderException {
+        return this.get((String[]) null);
+    }
+    
     public MyCaptchaSolution solve(final MyCaptchaChallenge myCaptchaChallenge) throws MyJDownloaderException {
         final SessionInfo sessionInfo = this.api.getSessionInfo();
         final String url = "/my/captchas/solve?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
