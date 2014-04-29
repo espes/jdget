@@ -16,6 +16,27 @@ public class MyJDCaptchasClient<GenericType> {
         this.api = abstractMyJDClient;
     }
     
+    public MyCaptchaSolution get(final String ID) throws MyJDownloaderException {
+        final SessionInfo sessionInfo = this.api.getSessionInfo();
+        final String url = "/my/captchas/get?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
+        final JSonRequest re = new JSonRequest();
+        re.setParams(new Object[] { new String[] { ID } });
+        re.setUrl(url);
+        final List<MyCaptchaSolution> list = this.api.callServer(url, re, sessionInfo, MyCaptchaSolutionsListResponse.class).getList();
+        if (list != null && list.size() == 1) { return list.get(0); }
+        return null;
+    }
+    
+    public List<MyCaptchaSolution> get(final String IDs[]) throws MyJDownloaderException {
+        final SessionInfo sessionInfo = this.api.getSessionInfo();
+        final String url = "/my/captchas/get?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
+        final JSonRequest re = new JSonRequest();
+        re.setParams(new Object[] { IDs });
+        re.setUrl(url);
+        final List<MyCaptchaSolution> list = this.api.callServer(url, re, sessionInfo, MyCaptchaSolutionsListResponse.class).getList();
+        return list;
+    }
+    
     public MyCaptchaSolution solve(final MyCaptchaChallenge myCaptchaChallenge) throws MyJDownloaderException {
         final SessionInfo sessionInfo = this.api.getSessionInfo();
         final String url = "/my/captchas/solve?sessiontoken=" + this.api.urlencode(sessionInfo.getSessionToken());
