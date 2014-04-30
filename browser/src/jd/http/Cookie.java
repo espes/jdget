@@ -17,91 +17,84 @@
 package jd.http;
 
 import java.util.Date;
+import java.util.Locale;
 
+import org.appwork.utils.StringUtils;
 import org.appwork.utils.formatter.TimeFormatter;
 import org.appwork.utils.logging.Log;
 
 public class Cookie {
-
+    
     private String path;
     private String host;
     private String value;
     private String key;
     private String domain;
-
+    
     private long   hostTime     = -1;
     private long   creationTime = System.currentTimeMillis();
     private long   expireTime   = -1;
-
+    
     public Cookie() {
         this.host = "";
         this.key = "";
         this.value = "";
     }
-
+    
     public Cookie(final String host, final String key, final String value) {
         this.host = host;
         this.key = key;
         this.value = value;
     }
-
-    /* compares host and key ignoring case */
+    
     @Override
     public boolean equals(final Object obj) {
-        if (this == obj) { return true; }
         if (obj == null) { return false; }
-        if (this.getClass() != obj.getClass()) { return false; }
+        if (this == obj) { return true; }
+        if (!(obj instanceof Cookie)) { return false; }
         final Cookie other = (Cookie) obj;
-        if (this.host == null) {
-            if (other.host != null) { return false; }
-        } else if (!this.host.equalsIgnoreCase(other.host)) { return false; }
-        if (this.key == null) {
-            if (other.key != null) { return false; }
-        } else if (!this.key.equalsIgnoreCase(other.key)) { return false; }
+        if (!StringUtils.equalsIgnoreCase(this.getHost(), other.getHost())) { return false; }
+        if (!StringUtils.equalsIgnoreCase(this.getKey(), other.getKey())) { return false; }
         return true;
     }
-
+    
     public long getCreationTime() {
         return this.creationTime;
     }
-
+    
     public String getDomain() {
         return this.domain;
     }
-
+    
     public long getExpireDate() {
         return this.expireTime;
     }
-
+    
     public String getHost() {
         return this.host;
     }
-
+    
     public long getHostTime() {
         return this.hostTime;
     }
-
+    
     public String getKey() {
         return this.key;
     }
-
+    
     public String getPath() {
         return this.path;
     }
-
+    
     public String getValue() {
         return this.value;
     }
-
+    
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (this.host == null ? 0 : this.host.toUpperCase().hashCode());
-        result = prime * result + (this.key == null ? 0 : this.key.toUpperCase().hashCode());
-        return result;
+        return (this.getHost() + "_" + this.getKey().toLowerCase(Locale.ENGLISH)).hashCode();
     }
-
+    
     public boolean isExpired() {
         if (this.expireTime == -1) {
             // System.out.println("isexpired: no expireDate found! " + this.host
@@ -114,7 +107,7 @@ public class Cookie {
         } else {
             final long timediff = this.creationTime - this.hostTime;
             final long check = System.currentTimeMillis() - timediff;
-
+            
             // System.out.println(this.host + " " + this.key + " " +
             // this.creationTime + " " + this.hostTime + " " + this.expireTime +
             // " " + check);
@@ -127,19 +120,19 @@ public class Cookie {
             return expired;
         }
     }
-
+    
     public void setCreationTime(final long time) {
         this.creationTime = time;
     }
-
+    
     public void setDomain(final String domain) {
         this.domain = domain;
     }
-
+    
     public void setExpireDate(final long time) {
         this.expireTime = time;
     }
-
+    
     public void setExpires(final String expires) {
         if (expires == null) {
             this.expireTime = -1;
@@ -156,15 +149,15 @@ public class Cookie {
         Log.L.severe("Cookie: no Format for " + expires + " found!");
         return;
     }
-
+    
     public void setHost(final String host) {
         this.host = host;
     }
-
+    
     public void setHostTime(final long time) {
         this.hostTime = time;
     }
-
+    
     public void setHostTime(final String date) {
         if (date == null) {
             this.hostTime = -1;
@@ -181,37 +174,29 @@ public class Cookie {
         Log.L.severe("Cookie: no Format for " + date + " found!");
         return;
     }
-
+    
     public void setKey(final String key) {
         this.key = key;
     }
-
+    
     public void setPath(final String path) {
         this.path = path;
     }
-
+    
     public void setValue(final String value) {
         this.value = value;
     }
-
+    
     @Override
     public String toString() {
-        return this.key + "=" + this.value + " @" + this.host;
+        return this.getKey() + "=" + this.getValue() + " @" + this.getHost();
     }
-
-    // /* compares host and key */
-    // public boolean equals(final Cookie cookie2) {
-    // if (cookie2 == this) return true;
-    // if (!cookie2.getHost().equalsIgnoreCase(this.getHost())) return false;
-    // if (!cookie2.getKey().equalsIgnoreCase(this.getKey())) return false;
-    // return true;
-    // }
-
-    public void update(final Cookie cookie2) {
+    
+    protected synchronized void update(final Cookie cookie2) {
         this.setCreationTime(cookie2.creationTime);
         this.setExpireDate(cookie2.expireTime);
         this.setValue(cookie2.value);
         this.setHostTime(cookie2.hostTime);
     }
-
+    
 }

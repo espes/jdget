@@ -17,35 +17,31 @@
 package jd.http;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import jd.parser.Regex;
 
 public class Cookies {
-
+    
     public static Cookies parseCookies(final String cookieString, final String host, final String serverTime) {
         final Cookies cookies = new Cookies();
-
+        
         final String header = cookieString;
-
+        
         String path = null;
         String expires = null;
         String domain = null;
         final LinkedHashMap<String, String> tmp = new LinkedHashMap<String, String>();
         /* Cookie individual elements */
         final StringTokenizer st = new StringTokenizer(header, ";");
-
-        while (true) {
+        
+        while (st.hasMoreTokens()) {
             String key = null;
             String value = null;
-            String cookieelement = null;
-            if (st.hasMoreTokens()) {
-                cookieelement = st.nextToken().trim();
-            } else {
-                break;
-            }
+            final String cookieelement = st.nextToken().trim();
             /* Key and Value */
             final String st2[] = new Regex(cookieelement, "(.*?)=(.*)").getRow(0);
             if (st2 == null || st2.length == 0) {
@@ -55,9 +51,9 @@ public class Cookies {
             } else if (st2.length == 2) {
                 key = st2[0].trim();
                 value = st2[1].trim();
-
+                
             }
-
+            
             if (key != null) {
                 if (key.equalsIgnoreCase("path")) {
                     path = value;
@@ -72,7 +68,7 @@ public class Cookies {
                 break;
             }
         }
-
+        
         for (final Entry<String, String> next : tmp.entrySet()) {
             /*
              * no cookies are cookies without a value
@@ -89,86 +85,68 @@ public class Cookies {
                 cookie.setHostTime(serverTime);
             }
         }
-
+        
         return cookies;
-
+        
     }
-
-    private final LinkedList<Cookie> cookies = new LinkedList<Cookie>();
-
+    
+    private final CopyOnWriteArrayList<Cookie> cookies = new CopyOnWriteArrayList<Cookie>();
+    
     public Cookies() {
     }
-
+    
     public Cookies(final Cookies cookies) {
         this.add(cookies);
     }
-
-    public void add(final Cookie cookie) {
-        synchronized (this.cookies) {
-            for (final Cookie cookie2 : this.cookies) {
-                if (cookie2.equals(cookie)) {
-                    cookie2.update(cookie);
-                    return;
-                }
+    
+    public synchronized void add(final Cookie cookie) {
+        for (final Cookie cookie2 : this.cookies) {
+            if (cookie2.equals(cookie)) {
+                cookie2.update(cookie);
+                return;
             }
-            this.cookies.add(cookie);
         }
+        this.cookies.add(cookie);
     }
-
+    
     public void add(final Cookies newcookies) {
-        synchronized (this.cookies) {
-            for (final Cookie cookie : newcookies.getCookies()) {
-                this.add(cookie);
-            }
+        for (final Cookie cookie : newcookies.getCookies()) {
+            this.add(cookie);
         }
     }
-
+    
     public void clear() {
-        synchronized (this.cookies) {
-            this.cookies.clear();
-        }
+        this.cookies.clear();
     }
-
+    
     public Cookie get(final String key) {
         if (key == null) { return null; }
-        synchronized (this.cookies) {
-            for (final Cookie cookie : this.cookies) {
-                if (cookie.getKey().equalsIgnoreCase(key)) { return cookie; }
-            }
-            return null;
+        for (final Cookie cookie : this.cookies) {
+            if (cookie.getKey().equalsIgnoreCase(key)) { return cookie; }
         }
+        return null;
     }
-
-    public LinkedList<Cookie> getCookies() {
+    
+    public List<Cookie> getCookies() {
         return this.cookies;
     }
-
+    
     public boolean isEmpty() {
         return this.cookies.isEmpty();
     }
-
+    
     public void remove(final Cookie cookie) {
-        synchronized (this.cookies) {
-            if (!this.cookies.remove(cookie)) {
-                Cookie del = null;
-                for (final Cookie cookie2 : this.cookies) {
-                    if (cookie2.equals(cookie)) {
-                        del = cookie2;
-                        break;
-                    }
-                }
-                if (del != null) {
-                    this.cookies.remove(del);
-                }
-            }
-        }
+        this.cookies.remove(cookie);
     }
-
+    
     @Override
     public String toString() {
         final StringBuilder ret = new StringBuilder();
         for (final Cookie el : this.cookies) {
-            ret.append(el.toString() + "\r\n");
+            if (ret.length() > 0) {
+                ret.append("\r\n");
+            }
+            ret.append(el.toString());
         }
         return ret.toString();
     }
