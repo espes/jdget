@@ -18,7 +18,7 @@ public class HexFormatter {
      * @return
      */
     public static String byteArrayToHex(final byte[] digest) {
-        final StringBuilder ret = new StringBuilder();
+        final StringBuilder ret = new StringBuilder(digest.length * 2);
         String tmp;
         for (final byte d : digest) {
             tmp = Integer.toHexString(d & 0xFF);
