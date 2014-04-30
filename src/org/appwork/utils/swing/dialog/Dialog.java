@@ -13,6 +13,7 @@ import java.awt.Image;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
@@ -451,9 +452,9 @@ public class Dialog {
      * @throws DialogCanceledException
      * @throws DialogClosedException
      */
-    public int showConfirmDialog(final int flag, final String title, final String message, final ImageIcon tmpicon, final String okOption, final String cancelOption) throws DialogClosedException, DialogCanceledException {
+    public int showConfirmDialog(final int flag, final String title, final String message, final Icon tmpicon, final String okOption, final String cancelOption) throws DialogClosedException, DialogCanceledException {
 
-        final ImageIcon icon;
+        final Icon icon;
         if (tmpicon == null) {
             icon = Dialog.getIconByText(title + message);
         } else {
