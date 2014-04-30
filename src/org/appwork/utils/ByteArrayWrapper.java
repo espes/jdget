@@ -80,6 +80,11 @@ public final class ByteArrayWrapper {
         return this.hashCode;
     }
 
+    @Override
+    public String toString() {
+        return new String(this.byteArray, this.offset, this.length);
+    }
+
     public String toString(final String charset) throws IOException {
         return new String(this.byteArray, this.offset, this.length, charset);
     }
