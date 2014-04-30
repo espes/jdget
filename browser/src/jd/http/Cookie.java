@@ -25,26 +25,23 @@ import org.appwork.utils.logging.Log;
 
 public class Cookie {
     
-    private String path;
-    private String host;
-    private String value;
-    private String key;
-    private String domain;
+    private String path         = null;
+    private String host         = null;                       ;
+    private String value        = null;                       ;
+    private String key          = null;                       ;
+    private String domain       = null;                       ;
     
     private long   hostTime     = -1;
     private long   creationTime = System.currentTimeMillis();
     private long   expireTime   = -1;
     
     public Cookie() {
-        this.host = "";
-        this.key = "";
-        this.value = "";
     }
     
     public Cookie(final String host, final String key, final String value) {
-        this.host = host;
-        this.key = key;
-        this.value = value;
+        this.setHost(host);
+        this.setKey(key);
+        this.setValue(value);
     }
     
     @Override
@@ -55,6 +52,7 @@ public class Cookie {
         final Cookie other = (Cookie) obj;
         if (!StringUtils.equalsIgnoreCase(this.getHost(), other.getHost())) { return false; }
         if (!StringUtils.equalsIgnoreCase(this.getKey(), other.getKey())) { return false; }
+        if (!StringUtils.equalsIgnoreCase(this.getDomain(), other.getDomain())) { return false; }
         return true;
     }
     
@@ -151,7 +149,7 @@ public class Cookie {
     }
     
     public void setHost(final String host) {
-        this.host = host;
+        this.host = Browser.getHost(host);
     }
     
     public void setHostTime(final long time) {

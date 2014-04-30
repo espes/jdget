@@ -24,7 +24,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.CharacterCodingException;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -43,19 +42,13 @@ public abstract class Request {
     
     public static String getCookieString(final Cookies cookies) {
         if (cookies == null || cookies.isEmpty()) { return null; }
-        
         final StringBuilder buffer = new StringBuilder();
-        boolean first = true;
-        final LinkedList<Cookie> cookies2 = new LinkedList<Cookie>(cookies.getCookies());
-        for (final Cookie cookie : cookies2) {
+        for (final Cookie cookie : cookies.getCookies()) {
             // Pfade sollten verarbeitet werden...TODO
             if (cookie.isExpired()) {
                 continue;
             }
-            
-            if (first) {
-                first = false;
-            } else {
+            if (buffer.length() > 0) {
                 buffer.append("; ");
             }
             buffer.append(cookie.getKey());

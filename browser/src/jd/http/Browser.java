@@ -883,16 +883,6 @@ public class Browser {
         }
     }
     
-    public void forwardCookies(final URLConnectionAdapter con) {
-        if (con == null) { return; }
-        final String host = Browser.getHost(con.getURL().toString());
-        final Cookies cookies = this.getCookies().get(host);
-        final String cs = Request.getCookieString(cookies);
-        if (cs != null && cs.trim().length() > 0) {
-            con.setRequestProperty("Cookie", cs);
-        }
-    }
-    
     public String getAcceptLanguage() {
         return this.acceptLanguage;
     }
