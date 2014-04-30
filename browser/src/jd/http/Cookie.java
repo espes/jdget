@@ -25,14 +25,15 @@ import org.appwork.utils.logging.Log;
 
 public class Cookie {
     
-    private String path         = null;
+    private String path         = null;                       ;
     private String host         = null;                       ;
     private String value        = null;                       ;
     private String key          = null;                       ;
-    private String domain       = null;                       ;
     
+    private String domain       = null;
     private long   hostTime     = -1;
     private long   creationTime = System.currentTimeMillis();
+    
     private long   expireTime   = -1;
     
     public Cookie() {

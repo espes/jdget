@@ -218,9 +218,15 @@ public class Browser {
         final String trimURL = url.trim();
         /* direct ip */
         String ret = new Regex(trimURL, "(^[a-z0-9]+://|.*?@)(\\d+\\.\\d+\\.\\d+\\.\\d+)(/|$|:\\d+$|:\\d+/)").getMatch(1);
+        if (ret == null) {
+            ret = new Regex(trimURL, "^(\\d+\\.\\d+\\.\\d+\\.\\d+)$").getMatch(0);
+        }
         if (ret != null) { return ret; }
         /* normal url */
         ret = new Regex(trimURL, "(^[a-z0-9]+://|.*?@)(([^@:./]+\\.?)+)(/|$|:\\d+$|:\\d+/)").getMatch(1);
+        if (ret == null) {
+            ret = new Regex(trimURL, "^(([^@:./]+\\.?)+)$").getMatch(0);
+        }
         if (ret != null && includeSubDomains == false) {
             /* cut off all subdomains */
             int indexPoint = ret.lastIndexOf(".");
